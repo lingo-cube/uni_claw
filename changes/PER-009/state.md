@@ -41,14 +41,15 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
   （degraded:no-xml 入 provenance）。[ADR-0027]
 - D2 XML 走 P2 当普通 producer，一行裁决特判不加（对质是现有管道
   默认行为，"无条件信 XML"才需要写代码）。
-- D3 **[2026-09-22 修订·官方文档校准]** Tier 0 判据 =
+- D3 **[2026-09-22 修订 2·官方文档校验后冻结]** Tier 0 判据 =
   `语义字段权威 ∧ 节点身份唯一解析 ∧ dump 新鲜 ∧ 属性有效`：
-  - 语义字段权威集 = checked·checkable / enabled / selected / focused /
-    text（AccessibilityNodeInfo 原生序列化，非视觉推断）；
-  - 类名（android.* / com.*）只是强佐证，不是判据——自定义控件正确
-    暴露 accessibility 状态同样享有权威，反之亦然；
-  - IdentityMatched 操作定义：请求 subject 在树中**唯一**解析到节点
-    （resource-id/descriptor 匹配唯一命中）；零命中/多命中 = 剥夺权威。
+  - 状态权威集 = checked（**有效性前置：checkable=true**）/ enabled /
+    selected / focused（freshness 最敏感）；类名只是佐证；
+  - 文本权威 = text **仅限"Accessibility 语义文本"**（控件声明的
+    CharSequence），不是"像素实际渲染字符"的真相——canvas 自绘文字/
+    游戏文字/图片内文字/视觉截断属于像素域，XML text 不得强裁；
+  - IdentityMatched：请求 subject 在树中**唯一**解析到节点；
+    零命中/多命中 = 剥夺权威。
 - D4 统一裁决管道：全部冲突走同一 resolver，免费层优先。
 - D5 信任等级表 (源×类别)→A/B/C + CSS 级联覆盖维度；落点
   src/UniClaw.Kernel/World/producer-trust.json；修订双通道（人审
@@ -60,18 +61,28 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
   观察周期）；C 级线索不触发；不感知模型类型。
 - D7 共享 subject 层 = 三件套，常量类承载 + 存量迁移；半页语义纸
   （值格式 + 元素级不共享理由）；值格式断言进本 change 验收。
-  **值域修订：*.state ∈ {on, off, partial}（三态，getChecked()）。**
+  **值域修订：*.state ∈ {on, off, partial}。**依据官方
+  CHECKED_STATE_FALSE/TRUE/PARTIAL（isChecked() 于 API 36 弃用，
+  getChecked() 三态）——当前 api35 真机 dump 序列化仍为布尔，partial
+  为前向兼容通道（API 36+ 设备接入即有来源）。
 - D8 dump 失败语义：服务未启用 → 60s 降级窗口 × 每 Run ≤3 次探测；
   瞬时失败不占次数、下周期自然重试；预算 = 视觉耗时 + 500ms；
   空树 = OK_EMPTY。
 - D9 事后验证按类别路由（标准控件 XML / 非标准截图）。
 - D10 单竖切 change（本 change）；Tier 2 独立后置。
 - D11 不做清单见 Out of Scope（docket 有档）。
-- D12 **[新增·字段分类表]** 权威状态字段（checked/enabled/selected/
-  focused）+ text=结构化文本优先；clickable/scrollable/focusable=
-  能力属性，**不得当作视觉状态**；bounds=定位/裁剪依据，非像素内容
-  真相；resource-id/class/package=身份类别证据；颜色/图标语义/
-  canvas/图片内容/动画阶段=XML 非权威域，视觉域规则裁决。
+- D12 **[冻结·字段分类表]**（官方校验 2026-09-22，引用
+  AccessibilityNodeInfo 参考页）：
+  - **状态权威**：checked（∧ checkable=true 才有效）/ enabled /
+    selected / focused；
+  - **语义文本权威**：text（范围 = 控件语义文本；像素文字问题不裁）；
+  - **能力/前置属性**：checkable（= checked 的 validity guard，官方原文
+    "only meaningful when isCheckable() returns true"）/ clickable /
+    scrollable / focusable——不得当作视觉状态；
+  - **身份/类别证据**：resource-id / class / package；
+  - **空间证据**：bounds（定位/关联/Focused 裁剪依据，非像素内容真相）；
+  - **非权威域**：颜色 / 图标语义 / canvas / 图片内容 / 动画阶段 /
+    像素文字——视觉域规则裁决。
 - D13 **[新增·双类冲突]** 权威域内冲突：XML 直接销案，**confidence
   全盲**（0.55 与 0.999 同等待遇），销案记录 overruled=vision，
   **不升档**；权威域外冲突：XML 不参与终局裁决 → 视觉域 →
@@ -97,7 +108,10 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
 9. 值格式断言：XML 产 *.state 值域 {on,off,partial} 与常量类一致
 10. 全程零大模型调用（Tier 2 不在本 change）
 11. Android 规范调研落 evidence/，权威字段表与覆盖表每格有出处
-12. 能力属性误用守卫：clickable 等不进入状态 claim 裁决路径
+12. 能力属性误用守卫：clickable 等不进入状态 claim 裁决路径；
+    **checkable=false 时 checked 不具权威**（guard 回归）；
+    **text 权威边界**：像素文字场景（canvas/图片内文字）XML 不强裁，
+    落视觉域
 
 ## Verification
 
@@ -110,3 +124,8 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
 - 2026-09-22 · persisted·amended · 用户携官方文档修订 Tier 0 判据
   （D3 改语义字段权威制、新增 D12/D13/D14、D6/D7 值域升级）；
   台账 #17。原"类名前缀"判据作废存档。
+- 2026-09-22 · persisted·**rule-freeze** · 用户终审两处修正（checkable
+  降为 checked 有效性前置、text 权威范围限语义文本），Leader 抓取
+  官方参考页逐条证实（"only meaningful when isCheckable()"、
+  CHECKED_STATE_PARTIAL、isChecked() API 36 弃用）；D3/D12/D7/Acceptance
+  按此冻结。**裁决规则自本行起冻结，实现期改动需新裁决。**台账 #18。
