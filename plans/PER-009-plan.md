@@ -10,8 +10,8 @@
 
 - [x] S1 SharedSubjects 常量类 + 存量迁移（switch.state ×5 / screen.frame ×5 / HostRunner scope 集与 obligation）
 - [x] S2 UiAutomatorDump 解析器（纯函数）+ fixture 测试（8/8 绿）；adb 拉取 live 测试 PENDING-ENV
-- [ ] S3 ConflictResolver（冻结规则：字段表 / 三道门 / 两类冲突 / confidence 盲 / 不升档）
-- [ ] S4 producer-trust 表 + CSS 级联查找 + A/B/C 门槛
+- [x] S3 ConflictResolver（冻结规则：字段表 / 三道门 / 两类冲突 / confidence 盲 / 不升档；9 例测试绿）
+- [x] S4 producer-trust 表 + CSS 级联查找 + A/B/C 门槛（6 例测试绿）
 - [ ] S5 ControlBeliefView + ReobserveFocused 策略 + KernelRunDriver 分支
 - [ ] S6 观察请求 depth/subjects 透传 + Focused 裁剪重扫
 - [ ] S7 事后验证路由四门（dispatch 后重解析防同名错配 + 时序约束）
