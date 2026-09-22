@@ -241,7 +241,12 @@ public sealed class KernelRunDriver
                         _lastAnswer = consulted.Value;
                     }
                     if (_consultRejection is not null)
+                    {
+                        // RUN-004：null-response 已转 TerminalEvaluation → continue
+                        if (_phase == DrivePhase.TerminalEvaluation)
+                            continue;
                         return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, _consultRejection, null, 0);
+                    }
 
                     switch (_adoptedDecision)
                     {
@@ -547,7 +552,15 @@ public sealed class KernelRunDriver
 
         var decision = _inputs.ConsultAgent(context);
         if (decision is null)
+        {
+            // RUN-004：非初始边界的 no-response = agent 无法重规划 → 终局评估
+            if (context.Phase != AgentDecisionPhase.InitialPlanning)
+            {
+                _phase = DrivePhase.TerminalEvaluation;
+                _adoptedDecision = null;
+            }
             return new ConsultOutcome(null, "no-response");
+        }
 
         string answeredId;
         switch (decision)
@@ -635,7 +648,14 @@ public sealed class KernelRunDriver
                 // V4 hollow-completion（SR-074）
                 var hasMandatory = _kernel.RunState?.ProofObligations.Obligations
                     .Any(o => o.Mandatory) == true;
-                if (hasMandatory && no.Proposal.Completion is null && _consultCounter <= 1)
+                if (hasMandatory && no.Proposal.Completion is null
+                    && _consultCounter <= 1
+                    && _stepsDispatched == 0
+                    && _completedSteps.Count == 0
+                    && _kernel.RunState?.ProofObligations.Obligations
+                        .Any(o => o.Mandatory
+                            && _kernel.CurrentBelief?.WorldState.TryGetValue(o.Subject, out var claim) == true
+                            && claim.Value == o.RequiredValue) != true)
                     return "hollow-completion";
                 break;
             }

@@ -40,7 +40,7 @@ public sealed class DeterministicScenarioTests
             Assert.Equal(TerminalClassification.Completion, report.Outcome!.Classification);
             Assert.Equal(1, report.EffectDeliveries);
             Assert.Equal(1, host.EffectDriver.DeliveryCount);
-            Assert.Equal(1, report.AgentConsultations);
+            Assert.Equal(2, report.AgentConsultations);
             Assert.Empty(report.AgentViolations);
 
             // agent consultation：单一 InitialPlanning 边界；decision id 为
@@ -156,7 +156,7 @@ public sealed class DeterministicScenarioTests
         // 非终态、无 outcome
         Assert.False(host.Facts.IsRunTerminal);
         Assert.Null(host.Facts.RunHistory[^1].Outcome);
-        Assert.Equal(1, report.AgentConsultations);
+        Assert.Equal(2, report.AgentConsultations);
 
         // receipt ≠ proof：尝试证据已入账（act 计数记录了该动作），
         // 但 MaterialEffect obligation 未满足、无 proof 对象形成

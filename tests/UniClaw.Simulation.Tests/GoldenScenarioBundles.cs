@@ -57,7 +57,7 @@ internal static class GoldenScenarioBundles
                 Justification: "flip the wifi switch on"),
             Expected = new ScenarioExpectation(
                 "Completed", "Completion", ExpectedEffects: 1,
-                ExpectedAgentConsultations: 1, ExpectedUnconsumedStimuli: 0,
+                ExpectedAgentConsultations: 2, ExpectedUnconsumedStimuli: 0,
                 ExpectedGoalSatisfaction: "Satisfied"),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
@@ -95,7 +95,7 @@ internal static class GoldenScenarioBundles
                 Justification: "switch already on"),
             Expected = new ScenarioExpectation(
                 "Completed", "Completion", ExpectedEffects: 0,
-                ExpectedAgentConsultations: 1, ExpectedUnconsumedStimuli: 0,
+                ExpectedAgentConsultations: 2, ExpectedUnconsumedStimuli: 0,
                 ExpectedGoalSatisfaction: "Satisfied"),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
@@ -158,7 +158,7 @@ internal static class GoldenScenarioBundles
             // 1 effect、late stimulus 保持 unconsumed、goal Unsatisfied。
             Expected = new ScenarioExpectation(
                 "Completed", "SafeStop", ExpectedEffects: 1,
-                ExpectedAgentConsultations: 1, ExpectedUnconsumedStimuli: 1,
+                ExpectedAgentConsultations: 2, ExpectedUnconsumedStimuli: 1,
                 ExpectedGoalSatisfaction: "Unsatisfied"),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
@@ -229,7 +229,7 @@ internal static class GoldenScenarioBundles
                 Justification: "flip the wifi switch on, then open the menu"),
             Expected = new ScenarioExpectation(
                 "Completed", "Completion", ExpectedEffects: 2,
-                ExpectedAgentConsultations: 1, ExpectedUnconsumedStimuli: 0,
+                ExpectedAgentConsultations: 2, ExpectedUnconsumedStimuli: 0,
                 ExpectedGoalSatisfaction: "Satisfied"),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",

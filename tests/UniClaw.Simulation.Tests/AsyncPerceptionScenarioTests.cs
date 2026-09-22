@@ -306,7 +306,7 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.Equal(RunDriveStatus.Completed, final.Status);
 
         // 纠正在 decision boundary 之前：agent consultation 上下文含纠正值
-        var call = host.ScriptedAgent.Calls.Single();
+        var call = host.ScriptedAgent.Calls.First();
         Assert.Equal("disabled", call.CurrentWorldClaims["ui.state.colors"].Value);
         // 纠正后 desired-state 不满足 → 执行动作（而非被误判 skip）
         Assert.Equal(1, host.EffectDriver.DeliveryCount);
@@ -1137,7 +1137,7 @@ public sealed class AsyncPerceptionScenarioTests
             belief.Occurrences!.Single(o => o.SemanticDescriptor == "Settings").Role);
 
         // 纠正在 decision 前：agent 上下文含纠正后的 typing claims
-        var call = host.ScriptedAgent.Calls.Single();
+        var call = host.ScriptedAgent.Calls.First();
         Assert.Equal("static_title", call.CurrentWorldClaims[TruthTypingSubject(colorHeader)].Value);
         Assert.Equal("row_subtitle", call.CurrentWorldClaims[TruthTypingSubject(subtitle)].Value);
         Assert.Equal("row_title", call.CurrentWorldClaims[TruthTypingSubject(colors)].Value);
@@ -1329,7 +1329,7 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.Contains("res-fast", snapshot.StaleQuarantinedResultIds);
         // 纠正对迟到错误结果稳定（决策时与最终 WorldState 一致——不再有
         // 「后到 Fast 覆写纠正」路径：完成窗口外的同流结果不进入 belief）
-        var decisionClaims = host.ScriptedAgent.Calls.Single().CurrentWorldClaims;
+        var decisionClaims = host.ScriptedAgent.Calls.First().CurrentWorldClaims;
         Assert.Equal("static_title", decisionClaims[TruthTypingSubject(colorHeader)].Value);
         Assert.Equal("static_title",
             host.KernelCore.CurrentBelief!.WorldState[TruthTypingSubject(colorHeader)].Value);

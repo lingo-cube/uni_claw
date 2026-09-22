@@ -21,7 +21,7 @@ public sealed class SimulationHostSmokeTests
         Assert.NotNull(report.Outcome);
         Assert.Equal(UniClaw.Kernel.Run.TerminalClassification.Completion, report.Outcome!.Classification);
         Assert.Equal(1, report.EffectDeliveries);
-        Assert.Equal(1, report.AgentConsultations);
+        Assert.Equal(2, report.AgentConsultations); // RUN-004: E1
         Assert.Empty(report.AgentViolations);
         Assert.NotNull(report.GoalEvaluation);
         Assert.Equal(UniClaw.Agent.Evaluation.GoalSatisfaction.Satisfied, report.GoalEvaluation!.Satisfaction);

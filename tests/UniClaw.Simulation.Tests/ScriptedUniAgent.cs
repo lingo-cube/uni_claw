@@ -36,18 +36,22 @@ internal sealed class ScriptedUniAgent
         _calls.Add(ctx);
         _callCount++;
 
-        // RUN-004 multi-turn：首次脚本回放，后续 NoAction（目标应已达成——
-        // 由 TerminalEvaluation 如实判定；简单场景兼容）
-        if (_callCount > 1)
-        {
-            return new AgentDecision.NoAction(new AgentNoActionProposal(
-                ctx.DecisionId, "script-exhausted-goal-should-be-met"));
-        }
-
         if (_terminal)
         {
             // D19 late-call modeling：run terminal 后任何 consultation 都是违规
             _violations.Add("late-call");
+            return null;
+        }
+
+        // RUN-004 multi-turn：StepVerified 边界的再咨询 = 合法（脚本已跑完、
+        // 目标应已达成）→ NoAction 让 TerminalEvaluation 如实判。
+        // 其他 Phase 的第二次调用 = 非预期（duplicate-call 违规保持旧语义）。
+        if (_callCount > 1)
+        {
+            if (ctx.Phase == AgentDecisionPhase.StepVerified)
+                return new AgentDecision.NoAction(new AgentNoActionProposal(
+                    ctx.DecisionId, "script-exhausted-goal-should-be-met"));
+            _violations.Add("duplicate-call");
             return null;
         }
         if (ctx.Phase != AgentDecisionPhase.InitialPlanning)

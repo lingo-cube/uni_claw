@@ -35,7 +35,7 @@ public sealed class TwoStepBarrierTests
         Assert.Equal(2, report.EffectDeliveries);
         Assert.Equal(2, host.EffectDriver.DeliveryCount);
         Assert.Equal(2, host.Facts.EffectReceipts.Count);
-        Assert.Equal(1, report.AgentConsultations);
+        Assert.Equal(2, report.AgentConsultations); // RUN-004: E1 回边多一次 NoAction 咨询
         Assert.Empty(report.UnconsumedStimulusIds);
         Assert.Equal(new[] { "obs-1-initial", "obs-2-post", "obs-3-post" }, report.ConsumedStimulusIds);
         Assert.Equal(GoalSatisfaction.Satisfied, report.GoalEvaluation!.Satisfaction);
@@ -81,7 +81,7 @@ public sealed class TwoStepBarrierTests
         Assert.Equal(RunDriveStatus.Completed.ToString(), report.RunDriveStatus);
         Assert.Equal(TerminalClassification.SafeStop, report.Outcome!.Classification);
         Assert.Equal(1, report.EffectDeliveries);
-        Assert.Equal(1, report.AgentConsultations);
+        Assert.Equal(2, report.AgentConsultations); // RUN-004: E1 回边多一次 NoAction 咨询
         Assert.Empty(report.AgentViolations);
         Assert.Empty(report.UnconsumedStimulusIds);
     }
