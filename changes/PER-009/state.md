@@ -1,6 +1,6 @@
 # PER-009 — 多源观察与信任：XML producer + 冲突裁决 + 信任等级（竖切）
 
-lifecycle_state: planned · disposition: none · depth: decision-heavy · base: d45bdda
+lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: d45bdda
 
 ## Intent
 
@@ -120,7 +120,23 @@ lifecycle_state: planned · disposition: none · depth: decision-heavy · base: 
 
 ## Verification
 
-（IMPLEMENT 后按四元组回填；验收 3/5/6 为本 change 核心证据点）
+```yaml
+level: DETERMINISTIC
+method: dotnet test 四套件全量（Kernel/Host/Core/FileSystemRealization）
+        + PER-009 新增 51 例测试逐项
+expected: 零 PER-009 回归；存量环境失败不增（stash 已证）
+actual: |
+  Kernel:    448 通过 / 4 失败（VisionServiceHost env，stash 证存量）
+  Host:      19 通过 / 4 失败（journal-lock env，stash 证存量）
+  Core:      14 通过 / 0 失败
+  FileSys:    9 通过 / 0 失败
+  ——合计 490 通过 / 8 存量 env，零 PER-009 回归——
+  PER-009 新增 51 例（dump 8 + probe 5 + resolver 9 + trust 6 +
+  policy 6 + whitelist 1 + focused-loop 1 + router 8 + 存量迁移回归）全绿
+evidence: |
+  本文件 + 13 个提交（2e76ef6..b5b1dfa）逐切片四元组；
+  PENDING-ENV 项见 plans/PER-009-plan.md（真机/live 行为待模拟器环境复跑）
+```
 
 ## Status log
 
@@ -144,3 +160,9 @@ lifecycle_state: planned · disposition: none · depth: decision-heavy · base: 
   10 处存量迁移；S2 UiAutomatorDump 解析器 + 8 例 fixture 测试全绿。
   本机存量 flake（exec.journal 文件锁，EndToEnd×2/Replay×2）经 stash
   基线实验判定为环境问题，非本 change 回归（plans/PER-009-plan.md 记录）。
+- 2026-09-22 · implemented · S1–S8 全部落地（S7-wiring PENDING-ENV）：
+  S3 裁决器 + S4 信任表 + S5 冲突可见性 + S6a 观察指令缝（A 方案）+
+  S6b 聚焦环路接线 + XML 双源 + S7 路由器 + S8 回填。
+  全量回归 490/8 env（stash 证零回归）；PER-009 新增 51 例全绿。
+  13 个提交（2e76ef6..b5b1dfa）逐切片落地，hook 守护全部通过。
+  Verification 四元组已回填。待 REVIEW→VERIFY→人工 closure（P-D′）。

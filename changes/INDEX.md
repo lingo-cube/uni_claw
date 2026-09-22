@@ -10,4 +10,4 @@
 | CORE-005 | verified | none | decision-heavy | CORE-005 — World Evidence 到 Claim 的责任对齐切片 |
 | CORE-006 | verified | none | decision-heavy | CORE-006 — Effect Attempt 与固定依据契约 |
 | GATE-001 | implementing | none | standard | GATE-001 — 门控再校准 shadow-mode 实验（两周期） |
-| PER-009 | planned | none | decision-heavy | PER-009 — 多源观察与信任：XML producer + 冲突裁决 + 信任等级（竖切） |
+| PER-009 | implemented | none | decision-heavy | PER-009 — 多源观察与信任：XML producer + 冲突裁决 + 信任等级（竖切） |
