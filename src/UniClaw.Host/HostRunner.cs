@@ -73,8 +73,8 @@ public sealed class HostRunner
         var scope = new HashSet<string>
         {
             ProductAssociationStrategy.ScreenIdentitySubject,
-            "screen.frame",
-            "switch.state",
+            SharedSubjects.Frame,
+            SharedSubjects.State("switch"),
         };
         object? feedOwner = null;
         Func<ObservationContext, RunDriverInput?> nextInput;
@@ -146,7 +146,7 @@ public sealed class HostRunner
             {
                 new RunObligation(
                     "obj-switch-state", RunObligationKind.Objective,
-                    Subject: "switch.state", RequiredValue: options.TargetState, Mandatory: true),
+                    Subject: SharedSubjects.State("switch"), RequiredValue: options.TargetState, Mandatory: true),
             }));
         if (!admission.Accepted)
             throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");

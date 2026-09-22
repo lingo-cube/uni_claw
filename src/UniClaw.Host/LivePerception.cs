@@ -158,12 +158,12 @@ public static class LivePerception
             };
             if (includeStateClaim)
                 proposals.Add(new ObservationProposal(
-                    new ObservationClaim("switch.state", state),
+                    new ObservationClaim(SharedSubjects.State("switch"), state),
                     IngressKind.Observation, context,
                     new Provenance("host.live", _clock.Now, "scope:switch.state",
                         new[] { $"live:state:{state}" })));
             proposals.Add(new ObservationProposal(
-                new ObservationClaim("screen.frame", frame),
+                new ObservationClaim(SharedSubjects.Frame, frame),
                 IngressKind.Observation, context,
                 new Provenance("host.live", _clock.Now, "scope:screen.frame",
                     new[] { $"live:frame:{state}" })));

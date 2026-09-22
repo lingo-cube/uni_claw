@@ -83,13 +83,13 @@ public static class V0Runtime
                 new Provenance("host.v0", _clock.Now, "scope:ui.screen", new[] { $"v0:screen:{ScreenId}" })));
             if (includeStateClaim)
                 proposals.Add(new ObservationProposal(
-                    new ObservationClaim("switch.state", state),
+                    new ObservationClaim(SharedSubjects.State("switch"), state),
                     IngressKind.Observation, context,
                     new Provenance("host.v0", _clock.Now, "scope:switch.state", new[] { $"v0:state:{state}" })));
             // 内容 claim 放批尾：occurrence 是 revision-local（逐条证据重派生），
             // 最终 revision 必须承载 occurrence——post-action 唯一目标验证才有对象
             proposals.Add(new ObservationProposal(
-                new ObservationClaim("screen.frame", frame),
+                new ObservationClaim(SharedSubjects.Frame, frame),
                 IngressKind.Observation, context,
                 new Provenance("host.v0", _clock.Now, "scope:screen.frame", new[] { $"v0:frame:{state}" })));
             return new RunDriverInput.Observation(proposals);

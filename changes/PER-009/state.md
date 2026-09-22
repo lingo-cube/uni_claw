@@ -1,6 +1,6 @@
 # PER-009 — 多源观察与信任：XML producer + 冲突裁决 + 信任等级（竖切）
 
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: d45bdda
+lifecycle_state: planned · disposition: none · depth: decision-heavy · base: d45bdda
 
 ## Intent
 
@@ -139,3 +139,8 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
   验证四门收紧：dispatch 后重新唯一解析防同名错配假验证 + 时序约束）。
   机制冻结图落 `mechanism.md`（七段职责链 + 六原则 + 主图 + 速查）。
   台账 #19。
+- 2026-09-22 · planned·implementing（S1+S2 落地） · Direct 路线开工
+  （用户裁决；无模拟器项 PENDING-ENV）：S1 SharedSubjects 常量类 +
+  10 处存量迁移；S2 UiAutomatorDump 解析器 + 8 例 fixture 测试全绿。
+  本机存量 flake（exec.journal 文件锁，EndToEnd×2/Replay×2）经 stash
+  基线实验判定为环境问题，非本 change 回归（plans/PER-009-plan.md 记录）。
