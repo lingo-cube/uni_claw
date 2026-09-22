@@ -69,6 +69,13 @@ L2 Policy 形态（RUN-005）；传输层 schema（LLM realization 立项时）�
 
 ## Status log
 
+- 2026-09-22 · spec-review-2·CHANGES_REQUIRED(收口型)→v0.3 · 复评
+  12 closed/4 partial/5 新（G1–G5），无回退无 worsened。两个 major 残留
+  闭合：F5 幂等分支升级合同签名比较（D8 fail-closed 可达）；G2 折抵落点
+  = completion claim 入证（kernel.completion-* producer，ConflictResolver
+  写回先例）。F8 归属参数化、F3/G4 批过滤+nbounds、F2 差集登记、
+  G1/G3/G5 收口。处置表 spec §10。待放行。
+
 - 2026-09-22 · spec-review-1·CHANGES_REQUIRED→v0.2 · 对抗评审 1B+9maj+6min
   全项处置（处置表 spec §9）：S1 白名单算术修正（+6→+9，200→209）；F5/F6
   预算通道+canonical+记账算法（D8）；F8/F9 完成证明闭环（_completedSteps
