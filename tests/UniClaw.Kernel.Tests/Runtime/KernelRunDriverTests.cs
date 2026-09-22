@@ -549,4 +549,92 @@ public sealed class KernelRunDriverTests
         public ExecutionLink LinkCompensation(string attemptId) =>
             throw new NotSupportedException("commit-failed source 无关联面");
     }
+
+    /// <summary>
+    /// PER-009 S6b：driver 聚焦复查环路（A 方案，台账 #20）——
+    /// Observe ∧ TargetSubject → 有界（≤3）Focused 拉取 → 耗尽诚实失败。
+    /// 悬案由 policy.ConflictedSubjects 注入（DeriveControlBeliefView 推导
+    /// 属组合接线，另行覆盖）；聚焦指令经驱动面传导为本测试主断言面。
+    /// </summary>
+    [Fact]
+    public void FocusedReobservation_BoundedLoop_AndExhaustion()
+    {
+        var cid = ProbeContainerId("switch:primary@off");
+        var plan = new AgentPlanPolicy();
+        var focusedDirectives = new List<ObservationDirective>();
+        var inputs = new RunDriverInputs
+        {
+            NextInput = directive =>
+            {
+                if (directive.Depth == ObservationDepth.Focused)
+                {
+                    focusedDirectives.Add(directive);
+                    return new RunDriverInput.Observation(new[]
+                    {
+                        UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
+                    });
+                }
+                return directive.Context == ObservationContext.External
+                    ? new RunDriverInput.Observation(new[]
+                    {
+                        UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
+                    })
+                    : null;
+            },
+            ConsultAgent = ctx => new AgentDecision.Act(new AgentActionProposal(
+                ctx.DecisionId,
+                new[] { new AgentActionStep("switch", "primary", "toggle", "on") },
+                "flip-the-switch")),
+        };
+        var effects = new EffectBoundary(new OkDriver());
+        var kernel = new UniKernel(
+            new EvidenceLedger(),
+            new WorldModel(
+                new HashSet<string> { UIWorldDoubles.Observed },
+                new SeedContainerAssociationStrategy(),
+                new StatefulObservationStrategy(cid),
+                new RoleContinuityStrategy()),
+            DisabledRunTrace.Instance,
+            new RunModel(),
+            new ControlLoop(plan),
+            new RuntimeAssurance(new AlwaysFresh()),
+            effects);
+        Assert.True(kernel.AdmitContract(new ExecutionContract(
+            Version: "v1",
+            Objective: "turn-switch-on",
+            Scope: new HashSet<string> { UIWorldDoubles.Observed },
+            AllowedEffects: new HashSet<string> { "toggle" },
+            ForbiddenEffects: new HashSet<string>(),
+            ProofCriteria: new[] { "switch-on" },
+            Obligations: new[]
+            {
+                new RunObligation(
+                    "obl-switch-on", RunObligationKind.Objective,
+                    Subject: "switch", RequiredValue: "on", Mandatory: true,
+                    EntityScope: new TargetDescriptor("switch", "primary")),
+            })).Accepted);
+
+        var driver = new KernelRunDriver(kernel, plan, inputs);
+        Assert.True(driver.Activate().Accepted);
+
+        // 悬案注入：与已采纳目标（switch:primary）相交 → 每轮 Decide 聚焦
+        plan.Adopt(new[] { new TargetSpec("switch", "primary", "toggle", "on") });
+        plan.ConflictedSubjects = new[] { "switch:primary.state" };
+
+        var exhausted = driver.Drive();
+
+        // 有界环路：恰 3 次 Focused 拉取（FocusRetryCap），指令经驱动面携带
+        Assert.Equal(3, focusedDirectives.Count);
+        Assert.All(focusedDirectives, d =>
+        {
+            Assert.Equal(ObservationDepth.Focused, d.Depth);
+            Assert.Equal(ObservationContext.External, d.Context);
+            Assert.NotNull(d.Subjects);
+            Assert.Equal(new[] { "switch:primary.state" }, d.Subjects!);
+        });
+        // 耗尽 → 诚实失败（不硬猜、不无限复读）；零 dispatch（悬案挡授权前于动作）
+        Assert.Equal(RunDriveStatus.GroundingFailed, exhausted.Status);
+        Assert.Equal("focused-reobserve-exhausted", exhausted.Reason);
+        Assert.Equal(0, effects.ReceiptLog.Count);
+    }
 }
