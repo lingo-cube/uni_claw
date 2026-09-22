@@ -245,6 +245,10 @@ public sealed class KernelRunDriver
                     if (root is null)
                         return new RunDriveResult(RunDriveStatus.GroundingFailed, "no-single-root-container", null, 0);
 
+                    // PER-009 S6b：组合接线——每轮 act 决策前把 world 悬案推给
+                    // policy（Kernel 内完成 ⇒ 双 Host 生而同构，§24.8）
+                    _plan.ConflictedSubjects = _kernel.CurrentConflictedSubjects;
+
                     var slice = _kernel.DeriveSlice(root);
                     var intent = _kernel.SelectIntent(slice);
                     if (intent.Kind != ControlIntentKind.Act)

@@ -117,6 +117,13 @@ public sealed class UniKernel
 
     // ---- RFS-001：internal run driver 组合观察面（只读透传；不新增 authority）----
 
+    /// <summary>
+    /// PER-009 S6b：driver 组合接线——Control 侧悬案 subjects 透传
+    /// （internal；无 current revision = 空 = 无悬案可聚焦）。
+    /// </summary>
+    internal IReadOnlyList<string> CurrentConflictedSubjects =>
+        _world.DeriveControlBeliefViewOrNull()?.ConflictedSubjects ?? Array.Empty<string>();
+
     // ---- RFS-001 D20：Kernel 级 activation latch（composition/lifecycle 协调态）----
 
     /// <summary>

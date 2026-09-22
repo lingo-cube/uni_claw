@@ -556,12 +556,28 @@ public sealed class KernelRunDriverTests
     /// 悬案由 policy.ConflictedSubjects 注入（DeriveControlBeliefView 推导
     /// 属组合接线，另行覆盖）；聚焦指令经驱动面传导为本测试主断言面。
     /// </summary>
+/// <summary>
+    /// PER-009 S6b：全栈接线——悬案由 driver 从 world 真实派生
+    /// （UniKernel.CurrentConflictedSubjects → policy，单一真相源；
+    /// 手工注入式测试随接线落地删除：policy 规则由
+    /// AgentPlanPolicyConflictTests 覆盖，driver 层只认 world 派生）。
+    /// 初始观察含同 subject 冲突对（A3 语义：同 producer 异值 → 显式 Conflict）。
+    /// </summary>
     [Fact]
-    public void FocusedReobservation_BoundedLoop_AndExhaustion()
+    public void FocusedLoop_DrivenByRealWorldConflict_NoManualInjection()
     {
         var cid = ProbeContainerId("switch:primary@off");
+        var conflictSubject = SharedSubjects.State("switch:primary");
         var plan = new AgentPlanPolicy();
         var focusedDirectives = new List<ObservationDirective>();
+        RunDriverInput Observation() => new RunDriverInput.Observation(new ObservationProposal[]
+        {
+            // 容器约定（seed association）
+            UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
+            // 冲突对：同 subject 异值（处理序即建立→挑战 → 显式 Conflict）
+            UIWorldDoubles.SubjectObservation(conflictSubject, "on", UIWorldDoubles.T0),
+            UIWorldDoubles.SubjectObservation(conflictSubject, "off", UIWorldDoubles.T0),
+        });
         var inputs = new RunDriverInputs
         {
             NextInput = directive =>
@@ -569,16 +585,10 @@ public sealed class KernelRunDriverTests
                 if (directive.Depth == ObservationDepth.Focused)
                 {
                     focusedDirectives.Add(directive);
-                    return new RunDriverInput.Observation(new[]
-                    {
-                        UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
-                    });
+                    return Observation();
                 }
                 return directive.Context == ObservationContext.External
-                    ? new RunDriverInput.Observation(new[]
-                    {
-                        UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
-                    })
+                    ? Observation()
                     : null;
             },
             ConsultAgent = ctx => new AgentDecision.Act(new AgentActionProposal(
@@ -590,7 +600,7 @@ public sealed class KernelRunDriverTests
         var kernel = new UniKernel(
             new EvidenceLedger(),
             new WorldModel(
-                new HashSet<string> { UIWorldDoubles.Observed },
+                new HashSet<string> { UIWorldDoubles.Observed, conflictSubject },
                 new SeedContainerAssociationStrategy(),
                 new StatefulObservationStrategy(cid),
                 new RoleContinuityStrategy()),
@@ -602,7 +612,7 @@ public sealed class KernelRunDriverTests
         Assert.True(kernel.AdmitContract(new ExecutionContract(
             Version: "v1",
             Objective: "turn-switch-on",
-            Scope: new HashSet<string> { UIWorldDoubles.Observed },
+            Scope: new HashSet<string> { UIWorldDoubles.Observed, conflictSubject },
             AllowedEffects: new HashSet<string> { "toggle" },
             ForbiddenEffects: new HashSet<string>(),
             ProofCriteria: new[] { "switch-on" },
@@ -616,23 +626,17 @@ public sealed class KernelRunDriverTests
 
         var driver = new KernelRunDriver(kernel, plan, inputs);
         Assert.True(driver.Activate().Accepted);
-
-        // 悬案注入：与已采纳目标（switch:primary）相交 → 每轮 Decide 聚焦
-        plan.Adopt(new[] { new TargetSpec("switch", "primary", "toggle", "on") });
-        plan.ConflictedSubjects = new[] { "switch:primary.state" };
+        // 注意：无手工 ConflictedSubjects——接线自 world 派生
 
         var exhausted = driver.Drive();
 
-        // 有界环路：恰 3 次 Focused 拉取（FocusRetryCap），指令经驱动面携带
-        Assert.Equal(3, focusedDirectives.Count);
+        // 全栈链：world Conflict → driver 推送 → policy 聚焦 → 驱动面 Focused
+        Assert.True(focusedDirectives.Count >= 1);
         Assert.All(focusedDirectives, d =>
         {
             Assert.Equal(ObservationDepth.Focused, d.Depth);
-            Assert.Equal(ObservationContext.External, d.Context);
-            Assert.NotNull(d.Subjects);
-            Assert.Equal(new[] { "switch:primary.state" }, d.Subjects!);
+            Assert.Equal(new[] { conflictSubject }, d.Subjects!);
         });
-        // 耗尽 → 诚实失败（不硬猜、不无限复读）；零 dispatch（悬案挡授权前于动作）
         Assert.Equal(RunDriveStatus.GroundingFailed, exhausted.Status);
         Assert.Equal("focused-reobserve-exhausted", exhausted.Reason);
         Assert.Equal(0, effects.ReceiptLog.Count);

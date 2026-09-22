@@ -20,11 +20,12 @@
       （6 feeds + HostRunner + sim + 测试）；driver 聚焦复查分支
       （Observe∧TargetSubject∧有界 ≤3 次 → Focused 拉取；普通 Observe
       保持原 fail-closed 语义）；白名单授权 +2；全量 439 通过（仅存量 4 env）
-- [x] S6b-1 driver 聚焦环路集成测试（FocusedReobservation_BoundedLoop_AndExhaustion：
-      3 次 Focused 指令断言 + 耗尽诚实失败 + 零 dispatch；一次通过）
+- [x] S6b-1 driver 聚焦环路集成测试（全栈版：world 真实 Conflict →
+      UniKernel.CurrentConflictedSubjects → policy → 驱动面 Focused，
+      单一真相源接线；手工注入式旧测随接线删除，policy 规则由
+      AgentPlanPolicyConflictTests 覆盖）
 - [ ] S6b-2 XML producer 接入 feeds（LivePerception 双源组合 + dump 执行器；
-      live 行为 PENDING-ENV，组合逻辑 fixture 可测）+ DeriveControlBeliefView→
-      policy.ConflictedSubjects 组合接线
+      live 行为 PENDING-ENV，组合逻辑 fixture 可测）
 - [ ] S7 事后验证路由四门（dispatch 后重解析防同名错配 + 时序约束）
 - [ ] S8 值域断言（{on,off,partial}）+ 全量回归 + Verification 四元组回填
 

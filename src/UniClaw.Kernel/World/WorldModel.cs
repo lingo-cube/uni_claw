@@ -1118,6 +1118,15 @@ public sealed class WorldModel
     }
 
     /// <summary>
+    /// PER-009 S6b：driver 组合接线用——无 current revision 时返回 null
+    /// （= 无悬案可聚焦；fail-closed 语义保留给消费侧显式派生）。
+    /// </summary>
+    internal ControlBeliefView? DeriveControlBeliefViewOrNull() =>
+        Current is { } current
+            ? new ControlBeliefView(IndexFor(current).ConflictSubjects.ToArray())
+            : null;
+
+    /// <summary>
     /// 为 Assurance obligation / outcome 路径派生 OutcomeAssuranceView
     /// （EXP-008 D8）：claims / conflicts 按 obligation subjects scope
     /// （空 subject 占位 obligation 不入 scope，查找本来即 miss，行为
