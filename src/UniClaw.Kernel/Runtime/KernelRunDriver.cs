@@ -116,6 +116,11 @@ public sealed class KernelRunDriver
 
     private readonly UniKernel _kernel;
     private readonly AgentPlanPolicy _plan;
+
+    /// <summary>PER-009：聚焦复查有界上限（防复读烧预算；超限诚实失败）。</summary>
+    private const int FocusRetryCap = 3;
+
+    private int _focusRetries;
     private readonly RunDriverInputs _inputs;
     private readonly object _driverIdentity = new();
     private DrivePhase _phase = DrivePhase.NeedInitialObservation;
@@ -243,7 +248,31 @@ public sealed class KernelRunDriver
                     var slice = _kernel.DeriveSlice(root);
                     var intent = _kernel.SelectIntent(slice);
                     if (intent.Kind != ControlIntentKind.Act)
-                        return new RunDriveResult(RunDriveStatus.GroundingFailed, "control-issued-non-act-intent", null, 0);
+                    {
+                        // PER-009 ⑤（mechanism 冻结图）：Observe + TargetSubject =
+                        // 悬案聚焦信号 → 有界定向复查（Tier 1 通道，A 方案经
+                        // 驱动面传导）。普通 Observe（desired-state 已满足 /
+                        // 景观空，无 subject）保持原 fail-closed 语义不变。
+                        if (intent.Kind == ControlIntentKind.Observe
+                            && intent.TargetSubject is not null
+                            && _focusRetries < FocusRetryCap)
+                        {
+                            _focusRetries++;
+                            var focused = PullObservations(
+                                ObservationContext.External, "focused-reobservation",
+                                ObservationDepth.Focused,
+                                new[] { intent.TargetSubject });
+                            if (focused.Stop is not null)
+                                return focused.Stop;
+                            continue; // 重新 DeriveSlice → SelectIntent
+                        }
+                        return new RunDriveResult(
+                            RunDriveStatus.GroundingFailed,
+                            intent.Kind == ControlIntentKind.Observe && intent.TargetSubject is not null
+                                ? "focused-reobserve-exhausted"
+                                : "control-issued-non-act-intent",
+                            null, 0);
+                    }
 
                     var grounded = _kernel.ActViaCurrentGrounding(
                         intent, new TargetDescriptor(step.TargetRole, step.TargetDescriptor));
@@ -391,9 +420,12 @@ public sealed class KernelRunDriver
     /// Cancel 在任意 observation pull 均可到达（既有 CancelPath；cancel claim
     /// Process 可能产生 belief revision，cancel 后照常进入 terminal 评估）。
     /// </summary>
-    private ObservationPull PullObservations(ObservationContext expected, string phaseLabel)
+    private ObservationPull PullObservations(
+        ObservationContext expected, string phaseLabel,
+        ObservationDepth depth = ObservationDepth.Normal,
+        IReadOnlyList<string>? subjects = null)
     {
-        var input = _inputs.NextInput(expected);
+        var input = _inputs.NextInput(new ObservationDirective(expected, depth, subjects));
         switch (input)
         {
             case null:

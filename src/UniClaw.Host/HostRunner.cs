@@ -77,7 +77,7 @@ public sealed class HostRunner
             SharedSubjects.State("switch"),
         };
         object? feedOwner = null;
-        Func<ObservationContext, RunDriverInput?> nextInput;
+        Func<ObservationDirective, RunDriverInput?> nextInput;
         if (options.Live is { } live)
         {
             var liveFeed = new LivePerception.LiveFrameFeed(

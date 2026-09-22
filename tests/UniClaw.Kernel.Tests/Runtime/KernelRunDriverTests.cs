@@ -31,7 +31,7 @@ public sealed class KernelRunDriverTests
     }
 
     private static Composition Compose(
-        Func<ObservationContext, RunDriverInput?>? nextInput = null,
+        Func<ObservationDirective, RunDriverInput?>? nextInput = null,
         Func<AgentDecisionContext, AgentDecision?>? consult = null)
     {
         var plan = new AgentPlanPolicy();
@@ -394,7 +394,7 @@ public sealed class KernelRunDriverTests
         var postActionArrived = false;
         var inputs = new RunDriverInputs
         {
-            NextInput = expected => expected == ObservationContext.External
+            NextInput = expected => expected.Context == ObservationContext.External
                 ? new RunDriverInput.Observation(new[]
                 {
                     UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
@@ -472,7 +472,7 @@ public sealed class KernelRunDriverTests
         var plan = new AgentPlanPolicy();
         var inputs = new RunDriverInputs
         {
-            NextInput = expected => expected == ObservationContext.External
+            NextInput = expected => expected.Context == ObservationContext.External
                 ? new RunDriverInput.Observation(new[]
                 {
                     UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),

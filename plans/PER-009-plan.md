@@ -9,11 +9,20 @@
 ## 切片（依赖序）
 
 - [x] S1 SharedSubjects 常量类 + 存量迁移（switch.state ×5 / screen.frame ×5 / HostRunner scope 集与 obligation）
-- [x] S2 UiAutomatorDump 解析器（纯函数）+ fixture 测试（8/8 绿）；adb 拉取 live 测试 PENDING-ENV
+- [x] S2 UiAutomatorDump 解析器（纯函数）+ fixture 测试（**纠错记录**：
+      S2 时报"8/8 绿"是误数——bounds 解析 bug 自始存在（"][ 中缝"），
+      S6a 复跑抓出并修复，现为真 8/8）；adb 拉取 live 测试 PENDING-ENV
 - [x] S3 ConflictResolver（冻结规则：字段表 / 三道门 / 两类冲突 / confidence 盲 / 不升档；9 例测试绿）
 - [x] S4 producer-trust 表 + CSS 级联查找 + A/B/C 门槛（6 例测试绿）
 - [x] S5 ControlBeliefView（internal）+ 聚焦复查策略（Observe+TargetSubject 复用既有意图面，零 ControlIntentKind 变更）+ WorldModel.DeriveControlBeliefView（6 例测试绿）；KernelRunDriver 推送接线随 S6
-- [ ] S6 观察请求 depth/subjects 透传 + Focused 裁剪重扫 + driver 接线
+- [x] S6a 观察指令经 Kernel 驱动面传导（台账 #20 A 方案裁决）：
+      ObservationDirective（Context+Depth+Subjects）+ NextInput 缝迁移
+      （6 feeds + HostRunner + sim + 测试）；driver 聚焦复查分支
+      （Observe∧TargetSubject∧有界 ≤3 次 → Focused 拉取；普通 Observe
+      保持原 fail-closed 语义）；白名单授权 +2；全量 439 通过（仅存量 4 env）
+- [ ] S6b driver 聚焦环路集成测试（feed 断言 Focused+Subjects + 有界耗尽
+      "focused-reobserve-exhausted"）+ feed 级 Focused 行为（live 裁剪重扫
+      PENDING-ENV）+ XML producer 接入 feeds
 - [ ] S7 事后验证路由四门（dispatch 后重解析防同名错配 + 时序约束）
 - [ ] S8 值域断言（{on,off,partial}）+ 全量回归 + Verification 四元组回填
 

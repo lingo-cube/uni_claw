@@ -112,8 +112,9 @@ internal sealed class ScenarioStimulusFeed
     }
 
     /// <summary>driver NextInput seam 的 feed 侧实现。</summary>
-    public RunDriverInput? Next(ObservationContext expected)
+    public RunDriverInput? Next(ObservationDirective directive)
     {
+        var expected = directive.Context;
         if (_pending.Count == 0)
             return null;
         var stimulus = _pending.Peek();

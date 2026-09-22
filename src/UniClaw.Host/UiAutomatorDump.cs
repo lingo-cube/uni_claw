@@ -129,10 +129,10 @@ public static class UiAutomatorDump
 
     private static string ParseBounds(string? raw)
     {
-        // uiautomator 格式："[x1,y1][x2,y2]"
+        // uiautomator 格式："[x1,y1][x2,y2]" → "x1,y1,x2,y2"
         if (raw is null)
             return "0,0,0,0";
-        var parts = raw.Replace("[", " ").Replace("]", " ").Split(',', StringSplitOptions.TrimEntries);
+        var parts = raw.Replace("][", ",").Replace("[", "").Replace("]", "").Split(',');
         return parts.Length == 4 ? string.Join(",", parts) : "0,0,0,0";
     }
 

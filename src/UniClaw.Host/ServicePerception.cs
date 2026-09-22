@@ -42,8 +42,9 @@ public static class ServicePerception
             _targetState = targetState;
         }
 
-        public RunDriverInput? Next(ObservationContext expected)
+        public RunDriverInput? Next(ObservationDirective directive)
         {
+            var expected = directive.Context;
             string pngPath;
             string state;
             bool includeStateClaim;

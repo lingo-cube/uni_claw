@@ -144,6 +144,10 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.AgentObligationView",
             "UniClaw.Kernel.Runtime.AgentPlanPolicy",
             "UniClaw.Kernel.Runtime.KernelRunDriver",
+            // PER-009 台账 #20（A 方案）提升集（2）：观察指令经 Kernel 驱动面
+            // 传导（Observation Control 权威保持在 Control Loop；双 Host 同构）
+            "UniClaw.Kernel.Runtime.ObservationDepth",
+            "UniClaw.Kernel.Runtime.ObservationDirective",
             "UniClaw.Kernel.Runtime.RunDriveResult",
             "UniClaw.Kernel.Runtime.RunDriveStatus",
             "UniClaw.Kernel.Runtime.RunDriverInput",

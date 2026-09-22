@@ -67,8 +67,9 @@ public static class ReplayPerception
             _targetState = targetState;
         }
 
-        public RunDriverInput? Next(ObservationContext expected)
+        public RunDriverInput? Next(ObservationDirective directive)
         {
+            var expected = directive.Context;
             AnchorDetection detection;
             string state;
             bool includeStateClaim;

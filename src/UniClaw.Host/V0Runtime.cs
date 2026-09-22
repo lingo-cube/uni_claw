@@ -52,8 +52,9 @@ public static class V0Runtime
             _initialState = initialState;
         }
 
-        public RunDriverInput? Next(ObservationContext expected)
+        public RunDriverInput? Next(ObservationDirective directive)
         {
+            var expected = directive.Context;
             switch (_phase)
             {
                 case 0 when expected == ObservationContext.External:

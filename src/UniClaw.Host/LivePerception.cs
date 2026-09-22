@@ -114,8 +114,9 @@ public static class LivePerception
             _acquisition = new AdbScreenshotAcquisition(assets.DeviceId, "adb", () => clock.Now);
         }
 
-        public RunDriverInput? Next(ObservationContext expected)
+        public RunDriverInput? Next(ObservationDirective directive)
         {
+            var expected = directive.Context;
             bool includeStateClaim;
             switch (_phase)
             {

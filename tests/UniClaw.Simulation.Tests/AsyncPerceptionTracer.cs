@@ -183,8 +183,9 @@ internal sealed class AsyncObservationFeed
     /// 等待，hold-until-complete）；终态非投递（Failed/TimedOut/Empty 语义
     /// 见 D7/Superseded/Cancelled）或已投递 → 前进到下一脚本 operation。
     /// </summary>
-    internal RunDriverInput? Next(ObservationContext expected)
+    internal RunDriverInput? Next(ObservationDirective directive)
     {
+        var expected = directive.Context;
         PumpAll();
         if (_cancels.Count > 0)
         {
