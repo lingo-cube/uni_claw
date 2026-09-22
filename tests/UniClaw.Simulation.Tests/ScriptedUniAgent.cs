@@ -4,7 +4,7 @@ namespace UniClaw.Simulation.Tests;
 
 /// <summary>
 /// RFS-001 / P25 deterministic UniAgent double：按 bundle 内 AgentScriptStep
-/// 单射决策（不调用 live model）。同时记录每次 consultation context 与
+/// 逐次对应返回决策（不调用 live model）。同时记录每次 consultation context 与
 /// 消费纪律违规（unexpected-phase / duplicate-call / missing-run-correlation /
 /// late-call——MarkTerminal 后的任何 Consult），供 runner 在场景末尾
 /// fail-closed 核对（AssertDiscipline → DisciplineViolations）。

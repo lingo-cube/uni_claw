@@ -11,7 +11,7 @@ namespace UniClaw.Kernel.World.UiRealization;
 /// - <see cref="AssociationDispositionKind.Insufficient"/>：claim value
 ///   空/空白（无可判别内容），**或 claim subject 不是屏幕身份 subject**
 ///   （D4：内容类 claim 不参与容器身份判别——否则每帧内容变化都铸新
-///   容器，与司机单根容器约束冲突）；
+///   容器，与驱动器单根容器约束冲突）；
 /// - <see cref="AssociationDispositionKind.New"/>：Previous 无 container，
 ///   或没有任何 container 的 signature 与当前 claim value 相等；
 /// - <see cref="AssociationDispositionKind.Matched"/>：恰有一个 container

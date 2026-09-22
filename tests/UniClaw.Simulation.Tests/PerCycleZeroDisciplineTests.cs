@@ -84,7 +84,7 @@ public sealed class PerCycleZeroDisciplineTests
     }
 
     /// <summary>
-    /// runner 源码纪律（单相位语义）：恰好一次 Drive（经 Host.DriveOnce，
+    /// runner 源码纪律（单次 Drive 语义）：恰好一次 Drive（经 Host.DriveOnce，
     /// 不直接触碰 Driver.Drive）、至少一次 AdmitContract 与 Activate、
     /// 零 per-cycle 内部调用；且真实 UniAgent 参与目标评估。phased 场景的
     /// 后续 Drive 由测试经 Host.DriveOnce 驱动（不在 runner 内）。

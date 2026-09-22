@@ -61,22 +61,22 @@ PolicyState? 字段属 L2 执行态，**刻意不在 v1**——RUN-005 随 Polic
 ——白名单 +1（累计 +9 → **209**）。派生：Current.Containers 唯一根 →
 ContainerId；Signature = WorldState[ui.container.signature.{id}]。
 
-## 2. 驱动器改动（零新状态；边/微循环/字段逐点映射——F10 补全）
+## 2. 驱动器改动（零新状态；边/状态内循环（Defer 轮）/字段逐点映射——F10 补全）
 
 ```text
 E1  StepAct: stepIndex ≥ steps.Count        现:→TerminalEvaluation   改:→NeedDecision (StepVerified)
 E2  StepAct 失败点逐条映射（F10 表）：
-    no-single-root-container (L255)         → StepRejected 回边（预算余）
-    grounding:* (L299-300)                  → StepRejected 回边
-    gate-rejected (L301-305)                → StepRejected 回边
+    no-single-root-container (L255)         → StepRejected 返回转移（预算余）
+    grounding:* (L299-300)                  → StepRejected 返回转移
+    gate-rejected (L301-305)                → StepRejected 返回转移
     focus 耗尽 (L288-292)                   → 保持 return（PER-009 聚焦域语义）
     UnconfirmedDelivery (L307-310)          → 保持 return（恢复屏障：结果未知禁自动重试，不入决策环）
     ControlIntentKind.Recovery              → 保持现 fail-closed（恢复意图归恢复编排域，登记）
     预算尽                                    → return（reason 规范化，见 §2.1）
-E3  StepVerify 失败                          → VerificationFailed 回边（同 E2 预算律）
+E3  StepVerify 失败                          → VerificationFailed 返回转移（同 E2 预算律）
 E4  plain Observe（无 subject）              现:GroundingFailed 改:→TerminalEvaluation
 M1  NeedDecision 收 Defer：就地 PullObservations 一轮→留在 NeedDecision 再咨询
-    （MaxRounds 计数；耗尽→phase=DeferRoundsExhausted 终问一次，V5 豁免（F7），
+    （MaxRounds 计数；耗尽→phase=DeferRoundsExhausted 最后再问一次，V5 豁免（F7），
      仍 Defer → return TerminalNotProven "defer-exhausted"）
 F1' 字段：_consultCounter / _perBoundaryConsulted / _completedSteps（§3 归档）/
     _awaitingRuling / _lastAnswer（V5 状态）/ _stepsDispatched 计数
@@ -156,7 +156,7 @@ private string? ValidateDecision(
 // V3 budget-exceeded：提案步数 > StepsRemaining
 // V4 hollow-completion：NoAction ∧ 存在 mandatory 义务 ∧ Completion=null
 // V5 defer-unbounded：Defer ∧ (MaxRounds>4 ∨ lastAnswer 是 Defer)
-//    ——豁免：phase==DeferRoundsExhausted 的终问（M1 T6 路径）
+//    ——豁免：phase==DeferRoundsExhausted 的最后再问（M1 T6 路径）
 ```
 
 ## 5. 上下文组装（F3/F4 补源）
@@ -171,7 +171,7 @@ private string? ValidateDecision(
 ## 6. 验收（F12 补：11 项）
 
 1–8 原 eight（state.md）不变；
-9. T6 全链：低置信→Defer 至 MaxRounds 耗尽→DeferRoundsExhausted 终问→仍 Defer→`defer-exhausted` 终局
+9. T6 全链：低置信→Defer 至 MaxRounds 耗尽→DeferRoundsExhausted 最后再问→仍 Defer→`defer-exhausted` 终局
 10. V3/V4/V5 各一 RED（超步预算提案 / 空洞 NoAction / 无界·嵌套 Defer + T6 豁免正例）
 11. 层3 双分支：approved→Completion 与 rejected→`completion-rejected`（含 dossier 呈递断言）
 

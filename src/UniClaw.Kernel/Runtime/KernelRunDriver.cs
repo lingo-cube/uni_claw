@@ -664,7 +664,7 @@ public sealed class KernelRunDriver
                 // V5 defer-unbounded（SR-068）
                 if (defer.Spec.MaxRounds > 4)
                     return "defer-unbounded:max-rounds";
-                // 嵌套 Defer（上轮也是 Defer）——豁免：DeferRoundsExhausted 终问
+                // 嵌套 Defer（上轮也是 Defer）——豁免：DeferRoundsExhausted 最后再问
                 if (lastAnswer is AgentDecision.Defer
                     && PhaseForCurrent() != AgentDecisionPhase.DeferRoundsExhausted)
                     return "defer-unbounded:nested";

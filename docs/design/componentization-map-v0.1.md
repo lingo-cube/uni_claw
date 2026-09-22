@@ -35,7 +35,7 @@
 | Assurance/ | 行动前判断：授权、新鲜度 | ProductFreshnessEvaluator 今天落的产品件 |
 | Control/ | 意图签发（该观察还是该动手） | |
 | Effects/ | 执行边界：绑定→门→派动→回执；执行记录 journal | CORE-013 可靠执行源在这里 |
-| Runtime/ | 自驱司机（KernelRunDriver 相位机） | RUN-003 后对产品公开 |
+| Runtime/ | 自驱驱动器（KernelRunDriver 可恢复 phase 状态机） | RUN-003 后对产品公开 |
 | Run/ + Outcome/ | Run 状态与终局证明 | |
 | Trace/ + Diagnostics/ | 只读痕迹与度量（不入关键路径） | |
 | Perception/ | 感知接驳（截图采集、FastPerception、视觉服务宿主） | |

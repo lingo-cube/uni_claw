@@ -19,7 +19,7 @@ namespace UniClaw.Host;
 /// <summary>
 /// HOST-001 — Product Host 最小 composition root（spec v0.3）。单次
 /// headless run：真实核心（产品 association / freshness / 执行边界 /
-/// journal / 自驱司机）+ 仿真外部（帧源 / 投递驱动 / 咨询）。全部经
+/// journal / 自驱驱动器）+ 仿真外部（帧源 / 投递驱动 / 咨询）。全部经
 /// 抽象缝组合；./runs/&lt;runid&gt;/ 落 journal + trace + facts，按终局退出。
 /// </summary>
 public sealed class HostRunner

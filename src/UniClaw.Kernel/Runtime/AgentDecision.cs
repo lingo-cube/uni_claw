@@ -20,7 +20,7 @@ public enum AgentDecisionPhase
     /// <summary>提案中途验证失败。</summary>
     VerificationFailed,
 
-    /// <summary>Defer 等待预算耗尽（终问一次）。</summary>
+    /// <summary>Defer 等待预算耗尽（最后再问一次）。</summary>
     DeferRoundsExhausted,
 }
 

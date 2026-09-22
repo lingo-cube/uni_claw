@@ -535,7 +535,7 @@ public sealed class KernelRunDriverTests
         var result = driver.Drive();
 
         // RUN-004 多轮化：门拒绝 → 再咨询 → NoAction → 终局如实未证
-        //（原 GateRejected 即终——现回边给 agent 重议机会；MultiTurnCompat
+        //（原 GateRejected 即终——现返回转移给 agent 重议机会；MultiTurnCompat
         //  第二次答 NoAction → TerminalNotProven = 目标未达的诚实报告）
         Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
         Assert.Equal(0, effects.ReceiptLog.Count);

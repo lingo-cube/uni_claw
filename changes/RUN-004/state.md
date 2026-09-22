@@ -1,4 +1,4 @@
-# RUN-004 — 多轮决策协议（P25 契约 v2 + 驱动器回边 + 完成证明三层）
+# RUN-004 — 多轮决策协议（P25 契约 v2 + 驱动器返回转移 + 完成证明三层）
 
 lifecycle_state: planning · disposition: none · depth: decision-heavy · base: c4fcd5d9
 
@@ -21,9 +21,9 @@ lifecycle_state: planning · disposition: none · depth: decision-heavy · base:
 
 - D1 触发词汇 v1 = InitialPlanning / StepVerified / StepRejected /
   VerificationFailed / DeferRoundsExhausted；PolicyGuardTripped 留 RUN-005。
-- D2 状态机零新增状态：改 4 条回边（提案耗尽→NeedDecision；两类失败
+- D2 状态机零新增状态：改 4 条返回转移（提案耗尽→NeedDecision；两类失败
   →NeedDecision（预算余）；plain-Observe→TerminalEvaluation）+ Defer
-  状态内微循环（NeedDecision 原地拉观察再问，扣轮次）。
+  状态内循环（NeedDecision 原地拉观察再问，扣轮次）。
 - D3 上下文 v2 与回答 v2 字段集 = consultation-protocol §2 全文
   （CurrentWorldClaims 值类型改 ClaimSummary，库内消费方同步改）。
 - D4 预算合同声明制：ExecutionContract 加 `int? MaxConsultations`
@@ -58,7 +58,7 @@ lifecycle_state: planning · disposition: none · depth: decision-heavy · base:
 7. 完成证明三层各一例：claim 折抵 / 锚定自证折抵 / 锚不住→
    AwaitingCompletionAdjudication→人工裁决记录（SR-073/074/150）
 8. 确定性：同输入两跑决策序列与 digest 一致；断点续跑不重问（SR-107/108）
-9. T6 全链：Defer 至 MaxRounds 耗尽 → DeferRoundsExhausted 终问 → 仍 Defer → defer-exhausted 终局
+9. T6 全链：Defer 至 MaxRounds 耗尽 → DeferRoundsExhausted 最后再问 → 仍 Defer → defer-exhausted 终局
 10. V3/V4/V5 各一 RED（超预算提案 / 空洞 NoAction / 无界·嵌套 Defer + T6 豁免正例）
 11. 层3 双分支：approved→Completion 与 rejected→completion-rejected（含 dossier 呈递）
 
