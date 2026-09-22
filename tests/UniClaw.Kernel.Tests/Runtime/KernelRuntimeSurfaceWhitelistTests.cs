@@ -92,6 +92,9 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Evidence.ObservationContext",
             "UniClaw.Kernel.Evidence.ObservationProposal",
             "UniClaw.Kernel.Evidence.Provenance",
+            // PER-009 D7 提升集（1）：SharedSubjects（共享 subject 常量类，
+            // Host 侧 producer 跨程序集消费；2026-09-22）
+            "UniClaw.Kernel.Evidence.SharedSubjects",
             "UniClaw.Kernel.GroundedActResult",
             "UniClaw.Kernel.KernelResult",
             "UniClaw.Kernel.Outcome.RuntimeOutcome",

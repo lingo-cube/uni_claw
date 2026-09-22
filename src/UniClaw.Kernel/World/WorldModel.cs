@@ -1106,6 +1106,18 @@ public sealed class WorldModel
     }
 
     /// <summary>
+    /// PER-009 S5：为 Control 派生冲突可见性（internal，零公开面变更）。
+    /// 悬案 subjects 来自 current revision 的 ConflictSubjects 索引
+    /// （与 Assurance 的 HasConflictOnTarget 同源）。无 current → fail-closed。
+    /// </summary>
+    internal ControlBeliefView DeriveControlBeliefView()
+    {
+        var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 ControlBeliefView");
+        var subjects = IndexFor(current).ConflictSubjects;
+        return new ControlBeliefView(subjects.ToArray());
+    }
+
+    /// <summary>
     /// 为 Assurance obligation / outcome 路径派生 OutcomeAssuranceView
     /// （EXP-008 D8）：claims / conflicts 按 obligation subjects scope
     /// （空 subject 占位 obligation 不入 scope，查找本来即 miss，行为

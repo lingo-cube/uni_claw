@@ -8,8 +8,10 @@ namespace UniClaw.Kernel.World;
 /// 等级挂组合、不挂单条证据；每级对应采信动作：
 ///   A = 孤证即可授权常规动作；B = 不可逆动作前须补佐证；C = 只算线索，触发补看。
 /// 初始表为冻结值（grill #16/#18 落定）；修订走 change 或自动调优（留痕可回滚）。
+/// FromJson 载入（配置文件形态就绪）。
+/// internal：不进公开驱动面；跨程序集消费出现时经授权提升。
 /// </summary>
-public static class ProducerTrust
+internal static class ProducerTrust
 {
     public enum Grade { A, B, C }
 

@@ -65,3 +65,11 @@ public sealed record OutcomeAssuranceView(
     IReadOnlyList<Conflict> Conflicts,
     IReadOnlySet<string> BasisEvidenceIds,
     IReadOnlyList<EntityObligationFact>? EntityFacts = null);
+
+/// <summary>
+/// ControlBeliefView — World Model 为 Control Loop（PER-009 S5，
+/// mechanism.md ⑤）派生的冲突可见性视图。internal：不进公开驱动面
+/// （RUN-003 白名单零变更）；owner-derived / ephemeral（ADR-0011 纪律），
+/// 只携带 conflicted subjects 列表——聚焦复查的发起依据。
+/// </summary>
+internal sealed record ControlBeliefView(IReadOnlyList<string> ConflictedSubjects);

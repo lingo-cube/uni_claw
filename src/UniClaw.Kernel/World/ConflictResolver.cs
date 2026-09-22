@@ -7,8 +7,10 @@ namespace UniClaw.Kernel.World;
 /// 输出两种处置：CategoryAuthority（权威域定案，销案、不升档）或
 /// VisionDomain（XML 失去本次裁判资格 ≠ 视觉获胜，视觉阶梯继续）。
 /// 升档决策归 Control（S5/S6），本类型不发起观察。
+/// internal：不进公开驱动面（RUN-003 白名单零变更）；跨程序集消费
+/// 出现时经授权提升（SharedSubjects 先例）。
 /// </summary>
-public static class ConflictResolver
+internal static class ConflictResolver
 {
     public sealed record ConflictingClaim(string Producer, string Value, DateTimeOffset CaptureTime);
 

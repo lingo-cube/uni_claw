@@ -12,8 +12,8 @@
 - [x] S2 UiAutomatorDump 解析器（纯函数）+ fixture 测试（8/8 绿）；adb 拉取 live 测试 PENDING-ENV
 - [x] S3 ConflictResolver（冻结规则：字段表 / 三道门 / 两类冲突 / confidence 盲 / 不升档；9 例测试绿）
 - [x] S4 producer-trust 表 + CSS 级联查找 + A/B/C 门槛（6 例测试绿）
-- [ ] S5 ControlBeliefView + ReobserveFocused 策略 + KernelRunDriver 分支
-- [ ] S6 观察请求 depth/subjects 透传 + Focused 裁剪重扫
+- [x] S5 ControlBeliefView（internal）+ 聚焦复查策略（Observe+TargetSubject 复用既有意图面，零 ControlIntentKind 变更）+ WorldModel.DeriveControlBeliefView（6 例测试绿）；KernelRunDriver 推送接线随 S6
+- [ ] S6 观察请求 depth/subjects 透传 + Focused 裁剪重扫 + driver 接线
 - [ ] S7 事后验证路由四门（dispatch 后重解析防同名错配 + 时序约束）
 - [ ] S8 值域断言（{on,off,partial}）+ 全量回归 + Verification 四元组回填
 
@@ -30,3 +30,9 @@
   改动的干净基线同样失败 → 判定为本机文件锁环境问题（journal 句柄/
   同毫秒 run 目录碰撞），非本 change 引入。有模拟器/干净环境复跑再判。
 - 本 change 全部新测试（8 例）绿；迁移点行为等值（常量类仅改拼写来源）。
+- Kernel.Tests 存量 4 例 VisionServiceHostTests（进程托管类）在本机失败：
+  stash 基线实验同样失败 → 存量环境问题。本 change 后全量 439 通过 /
+  仅此 4 例环境失败。
+- 本 change 附带修复：docs/analysis/invariant-enforcement-matrix.md 补
+  Status/Authority 头（DocsMetadataTests 执法——ARCH-DOC-016 产物自身
+  曾违反 ARCH-DOC-015 文档治理，已补）。

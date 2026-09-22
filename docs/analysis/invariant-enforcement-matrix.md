@@ -1,5 +1,8 @@
 # 不变量 × 执法覆盖矩阵（Invariant Enforcement Matrix）
 
+> Status: LIVING / DERIVED（完整性由 tools/check-invariant-matrix.py 守护）
+> Authority: NONE
+
 > 派生但有语义映射的工件：不变量清单由 `docs/architecture/product-architecture-baseline-l0-l3.md`
 > §20（1–42）+ §24.10（43–47）锁定；执法映射为人工语义判定（ARCH-DOC-016，2026-09-22）。
 > 完整性由 `python3 tools/check-invariant-matrix.py` 守护：每条不变量必须有行、判定必须在
