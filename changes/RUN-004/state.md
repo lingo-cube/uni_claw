@@ -36,9 +36,16 @@ lifecycle_state: planning · disposition: none · depth: decision-heavy · base:
   `RunDriveStatus.AwaitingCompletionAdjudication`（人为终极裁定；
   awaiting-human-review 先例）——裁决记录入档后按裁决终局。
 - D6 机械校验 V3–V5（超预算 / 空洞完成 / 无界 Defer）fail-closed。
-- D7 白名单 +6 公开类型（ElementSummary/ClaimSummary/
-  ConsultationProgress/ConsultationBudget/CompletionEvidence/ObserveSpec）
-  + RunDriveStatus 加一成员——本 change 授权。
+- D7 **[评审 S1 修正]** 白名单 +9 公开类型条目（200→209）：
+  ElementEpistemic / ElementSummary / ClaimSummary / ConsultationProgress /
+  ConsultationBudget / CompletionEvidence / ObserveSpec / ScreenSummary /
+  **AgentDecision+Defer（嵌套，按 FullName 计——先例 L139-156）**。
+  v0.1 的「+6」为算术错误（漏枚举类型与嵌套条目），评审拦截。
+
+- D8 **[评审 F5/F6 落形]** 预算合同语义：MaxConsultations（默认 16）与
+  MaxTotalSteps（默认 256）入 ExecutionContract **并参与 RunId canonical**
+  ——同 version 异预算 = 不同合同 → version-conflict fail-closed；View 携带
+  已解析值（驱动器可读）。扣减/耗尽谓词/reason 规范见 spec §2.1。
 
 ## Acceptance（RED 先行）
 
@@ -51,6 +58,9 @@ lifecycle_state: planning · disposition: none · depth: decision-heavy · base:
 7. 完成证明三层各一例：claim 折抵 / 锚定自证折抵 / 锚不住→
    AwaitingCompletionAdjudication→人工裁决记录（SR-073/074/150）
 8. 确定性：同输入两跑决策序列与 digest 一致；断点续跑不重问（SR-107/108）
+9. T6 全链：Defer 至 MaxRounds 耗尽 → DeferRoundsExhausted 终问 → 仍 Defer → defer-exhausted 终局
+10. V3/V4/V5 各一 RED（超预算提案 / 空洞 NoAction / 无界·嵌套 Defer + T6 豁免正例）
+11. 层3 双分支：approved→Completion 与 rejected→completion-rejected（含 dossier 呈递）
 
 ## Out of Scope
 
@@ -58,6 +68,13 @@ L2 Policy 形态（RUN-005）；传输层 schema（LLM realization 立项时）�
 世界突变主动检测（preemption Phase 6/7）；跨 run 迟到反馈（恢复编排）。
 
 ## Status log
+
+- 2026-09-22 · spec-review-1·CHANGES_REQUIRED→v0.2 · 对抗评审 1B+9maj+6min
+  全项处置（处置表 spec §9）：S1 白名单算术修正（+6→+9，200→209）；F5/F6
+  预算通道+canonical+记账算法（D8）；F8/F9 完成证明闭环（_completedSteps
+  归档/dossier 元组面/rejected 终局防环）；F2/F3/F4 上下文三源补全；
+  F10 失败点映射表；F1 涟漪重列；F12 验收补 9–11；S3 边界卡固化 spec §0。
+  待复评或放行。
 
 - 2026-09-22 · created · 十余轮设计对话（边界/粒度/协议/核验）+
   mini-grill 裁决⑧（台账 #21）后立项；spec 即上文，评审待用户。
