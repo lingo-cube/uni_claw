@@ -124,6 +124,88 @@ public sealed class UniKernel
     internal IReadOnlyList<string> CurrentConflictedSubjects =>
         _world.DeriveControlBeliefViewOrNull()?.ConflictedSubjects ?? Array.Empty<string>();
 
+    /// <summary>
+    /// PER-009 C-1（评审修复）：权威域冲突裁决 + owner 销案。对每个悬案
+    /// subject 构造 ConflictCase（双方 producer/value/captureTime 来自
+    /// CanonicalRecords）+ XmlAuthoritySnapshot（自 XML 侧 claim 的
+    /// provenance lineage：xml-map:{localId} / xml-checkable / 构造唯一性），
+    /// 经冻结 ConflictResolver 裁决；Tier 0 → WorldModel.ResolveConflict
+    /// 销案（D13：confidence 盲、不升档）。返回销案数。internal。
+    /// </summary>
+    internal int ResolveAuthorityConflicts(TimeSpan freshnessWindow)
+    {
+        var view = _world.DeriveControlBeliefViewOrNull();
+        if (view is null || view.ConflictedSubjects.Count == 0)
+            return 0;
+
+        var resolved = 0;
+        foreach (var subject in view.ConflictedSubjects.ToArray())
+        {
+            var conflict = _world.Current?.Conflicts.FirstOrDefault(c => c.Subject == subject);
+            if (conflict is null)
+                continue;
+
+            var claims = new List<World.ConflictResolver.ConflictingClaim>();
+            Evidence.EvidenceRecord? xmlRecord = null;
+            string? xmlValue = null;
+            foreach (var pair in new[]
+                     {
+                         (EvidenceId: conflict.EstablishedEvidenceId, Value: conflict.EstablishedValue),
+                         (EvidenceId: conflict.ChallengingEvidenceId, Value: conflict.ChallengingValue),
+                     })
+            {
+                if (!_ledger.CanonicalRecords.TryGetValue(pair.EvidenceId, out var record))
+                    continue;
+                claims.Add(new World.ConflictResolver.ConflictingClaim(
+                    record.Provenance.Producer, pair.Value, record.Provenance.CaptureTime));
+                if (record.Provenance.Producer == World.ProducerTrust.XmlProducer)
+                {
+                    xmlRecord = record;
+                    xmlValue = pair.Value;
+                }
+            }
+
+            var disposition = World.ConflictResolver.Resolve(
+                new World.ConflictResolver.ConflictCase(subject, claims),
+                SnapshotFromLineage(xmlRecord, xmlValue),
+                freshnessWindow);
+
+            if (disposition.Tier == World.ConflictResolver.Tier.CategoryAuthority
+                && disposition.ResolvedValue is { } value)
+            {
+                _world.ResolveConflict(
+                    subject, value, "category-authority",
+                    disposition.OverruledProducer, disposition.Basis,
+                    DateTimeOffset.UtcNow);
+                resolved++;
+            }
+        }
+        return resolved;
+    }
+
+    /// <summary>
+    /// XML 侧快照（C-1）：共享层映射 claim（Host MapTargetStateClaim）的
+    /// lineage 携带节点身份与 guard——xml-map:{localId} / xml-checkable:{b} /
+    /// xml-unique:true（映射只在唯一最佳匹配时发射，构造保证 IdentityMatched）。
+    /// dump 时序 = claim 的 CaptureTime（D14）。无 XML 侧 → null（缺席即数据）。
+    /// </summary>
+    private static World.ConflictResolver.XmlAuthoritySnapshot? SnapshotFromLineage(
+        Evidence.EvidenceRecord? xmlRecord, string? xmlValue)
+    {
+        if (xmlRecord is null || xmlValue is null)
+            return null;
+        var localId = xmlRecord.Provenance.TransformationLineage
+            .FirstOrDefault(l => l.StartsWith("xml-map:", StringComparison.Ordinal))?["xml-map:".Length..];
+        var checkable = xmlRecord.Provenance.TransformationLineage
+            .Any(l => l == "xml-checkable:true");
+        var unique = xmlRecord.Provenance.TransformationLineage
+            .Any(l => l == "xml-unique:true");
+        var checkedRaw = xmlValue switch { "on" => "true", "off" => "false", var v => v };
+        return new World.ConflictResolver.XmlAuthoritySnapshot(
+            localId ?? "(unknown)", unique, xmlRecord.Provenance.CaptureTime,
+            checkable, checkedRaw, Enabled: null, Selected: null, Focused: null);
+    }
+
     // ---- RFS-001 D20：Kernel 级 activation latch（composition/lifecycle 协调态）----
 
     /// <summary>
@@ -367,16 +449,65 @@ public sealed class UniKernel
     /// </summary>
     internal PostActionEffectVerification VerifyPostActionEffect(
         TargetSpec target,
-        IReadOnlyList<KernelResult> processedObservations)
+        IReadOnlyList<KernelResult> processedObservations,
+        DateTimeOffset? dispatchTime = null)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(processedObservations);
+
+        // PER-009 C-2（评审修复）：D9 四门 XML 验证路由——目标属性∈权威域 ∧
+        // post 观察含 XML 映射 claim（映射构造保证身份唯一+checkable guard）∧
+        // dispatchTime 在案（门④时序执法）→ PostActionXmlRouter 裁决。
+        // 不过门 → 既有 occurrence 视觉验证路径（XML 失去本次资格 ≠ 视觉必胜）。
+        if (dispatchTime is { } dispatched && TryRouteXmlVerification(
+                target, processedObservations, dispatched) is { } routed)
+            return routed;
+
         var root = _world.Current?.Containers is { Count: 1 } containers
             ? containers[0].Identity.ContainerId
             : throw new InvalidOperationException("post-action verification requires one root container");
         var slice = DeriveSlice(root);
         return Assurance.VerifyPostActionEffect(
             new PostActionEffectVerificationInput(target, slice, processedObservations));
+    }
+
+    /// <summary>
+    /// XML 验证路由执行（C-2）：post 观察结果中存在目标 role 的共享层
+    /// state claim 且 establishing producer = XML 映射时，构造快照并经
+    /// PostActionXmlRouter 四门裁决；UseXml → 验证由 XML 定案值对
+    /// DesiredState 判定（occurrence 路径不触发——验收 8：标准控件零截图）。
+    /// </summary>
+    private PostActionEffectVerification? TryRouteXmlVerification(
+        TargetSpec target,
+        IReadOnlyList<KernelResult> processedObservations,
+        DateTimeOffset dispatchTime)
+    {
+        foreach (var result in processedObservations)
+        {
+            if (result.ResultingRevision is not { } revision)
+                continue;
+            if (!revision.WorldState.TryGetValue($"{target.Role}.state", out var claim)
+                || claim.EstablishingProducer != World.ProducerTrust.XmlProducer)
+                continue;
+            if (!_ledger.CanonicalRecords.TryGetValue(claim.EvidenceId, out var record))
+                continue;
+
+            var snapshot = SnapshotFromLineage(record, claim.Value);
+            var route = World.PostActionXmlRouter.Route(target, snapshot, dispatchTime, record.Provenance.CaptureTime);
+            if (!route.UseXml || route.ResolvedState is null)
+                return null; // 任一门不过：回 occurrence 视觉验证（router Basis 已留档语义）
+
+            var verified = route.ResolvedState == target.DesiredState;
+            return new PostActionEffectVerification(
+                revision.RevisionId, target, verified,
+                new[]
+                {
+                    new AssuranceCheck("xml-route-four-gates", true),
+                    new AssuranceCheck("xml-state-matches-desired", verified),
+                },
+                verified ? null : $"xml-route: resolved={route.ResolvedState} desired={target.DesiredState} ({route.Basis})");
+        }
+        return null;
     }
 
     private RunModel Run => _run ?? throw new InvalidOperationException("Uni Kernel 未组合 Run Model");

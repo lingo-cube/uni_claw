@@ -120,7 +120,16 @@ public sealed class KernelRunDriver
     /// <summary>PER-009：聚焦复查有界上限（防复读烧预算；超限诚实失败）。</summary>
     private const int FocusRetryCap = 3;
 
+    /// <summary>
+    /// PER-009 C-1/D14：冲突裁决新鲜度窗口占位（Δ ≤ 视觉耗时+余量）。
+    /// 视觉耗时遥测接入后替换为推导值（D8 预算公式的消费侧）。
+    /// </summary>
+    private static readonly TimeSpan ConflictFreshnessWindow = TimeSpan.FromSeconds(3);
+
     private int _focusRetries;
+
+    /// <summary>C-2：最近一次 dispatch 的下游确认时间（StepVerify 时序门执法）。</summary>
+    private DateTimeOffset? _lastDispatchAt;
     private readonly RunDriverInputs _inputs;
     private readonly object _driverIdentity = new();
     private DrivePhase _phase = DrivePhase.NeedInitialObservation;
@@ -245,6 +254,12 @@ public sealed class KernelRunDriver
                     if (root is null)
                         return new RunDriveResult(RunDriveStatus.GroundingFailed, "no-single-root-container", null, 0);
 
+                    // PER-009 C-1（评审修复）：先裁决——权威域冲突经冻结
+                    // ConflictResolver 销案（D13：confidence 盲、不升档、留档
+                    // 不删）；余案才交 Control 聚焦（mechanism ④→⑤）。
+                    // 销案 revision 携带原 occurrences，Act 可直接继续。
+                    _ = _kernel.ResolveAuthorityConflicts(ConflictFreshnessWindow);
+
                     // PER-009 S6b：组合接线——每轮 act 决策前把 world 悬案推给
                     // policy（Kernel 内完成 ⇒ 双 Host 生而同构，§24.8）
                     _plan.ConflictedSubjects = _kernel.CurrentConflictedSubjects;
@@ -288,6 +303,7 @@ public sealed class KernelRunDriver
                             RunDriveStatus.GateRejected,
                             grounded.Act.Binding?.RejectionReason?.ToString() ?? grounded.Act.Gate?.Reason ?? "gate-rejected",
                             null, 0);
+                    _lastDispatchAt = grounded.Act.Receipt.DispatchedAt;
                     if (grounded.Act.Receipt.Outcome.IsUnconfirmedOutcome())
                         return new RunDriveResult(
                             RunDriveStatus.UnconfirmedDelivery,
@@ -310,7 +326,8 @@ public sealed class KernelRunDriver
                     var step = ((AgentDecision.Act)_adoptedDecision!).Proposal.Steps[_stepIndex];
                     var target = new TargetSpec(
                         step.TargetRole, step.TargetDescriptor, step.EffectClass, step.DesiredState);
-                    var verification = _kernel.VerifyPostActionEffect(target, post.ProcessedObservations);
+                    var verification = _kernel.VerifyPostActionEffect(
+                        target, post.ProcessedObservations, _lastDispatchAt);
                     if (!verification.IsVerified)
                         return new RunDriveResult(
                             RunDriveStatus.VerificationFailed,
@@ -323,6 +340,10 @@ public sealed class KernelRunDriver
                 }
 
                 case DrivePhase.TerminalEvaluation:
+                    // PER-009 C-1 补全：终局证明前同样先裁决——post 相双源分歧
+                    // （如 host 观察态 vs XML 定案态）销案后 obligation 才可能满足；
+                    // 权威域外的悬案保持冲突 → 终局如实未证（诚实失败）。
+                    _ = _kernel.ResolveAuthorityConflicts(ConflictFreshnessWindow);
                     return EvaluateTerminalOnce();
 
                 default:

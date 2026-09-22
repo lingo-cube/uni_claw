@@ -118,29 +118,64 @@ public static class LivePerception
         public RunDriverInput? Next(ObservationDirective directive)
         {
             var expected = directive.Context;
-            bool includeStateClaim;
+            bool isPostPhase;
             switch (_phase)
             {
                 case 0 when expected == ObservationContext.External:
                     _phase = 1;
-                    includeStateClaim = false;
+                    isPostPhase = false;
                     break;
                 case 1 when expected == ObservationContext.PostActionEffectFlow:
                     _phase = 2;
-                    includeStateClaim = true;
+                    isPostPhase = true;
                     break;
                 default:
                     return null; // 合法等待
             }
 
-            // 真观察：实屏截图 → 真推理 → switch 检测；状态读自系统设置
-            var responseJson = _session.CaptureAndAnalyze(_acquisition);
+            // 真观察：实屏截图 → 真推理 → switch 检测（bounds 来自当前屏幕）
+            var shot = _acquisition.CaptureAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var responseJson = _session.Analyze(shot.Artifact.Payload);
             var detection = ReplayPerception.ExtractJson(responseJson, "switch", $"live:{_assets.DeviceId}");
-            var state = _readSwitchState();
 
             // PER-009 D1：XML 永远并行（缺席即数据）；D8 探测状态机管节奏
-            var xmlClaims = TryCoObserveXml(expected, out var degraded);
-            var input = Frame(detection, state, expected, includeStateClaim);
+            var dump = TryCoObserveXml(expected, out var degraded);
+
+            // P-3（评审修复）：跨源碰头——XML 节点空间映射到共享层 {role}.state
+            // P-6：Focused 时仅映射指令点名 subjects（真裁剪重扫 = Tier 1 管线支持后）
+            ObservationProposal? mapped = null;
+            if (dump is not null && SubjectInScope(directive))
+            {
+                mapped = UiAutomatorDump.MapTargetStateClaim(
+                    dump, "switch",
+                    (detection.X1, detection.Y1, detection.X2, detection.Y2),
+                    shot.Width, shot.Height, _clock.Now, expected);
+            }
+
+            // P-1/C-2（评审修复）：post 相 XML-first——映射在场即权威定案通道
+            // （四门之①③④由构造/序保证：目标态非空、checkable guard、post 相
+            // dump 时序必然后于 dispatch；Kernel VerifyPostActionEffect 再执法）。
+            // 映射缺席 → 回系统设置独立读态（原通道）。
+            string state;
+            ObservationProposal? stateClaim;
+            if (isPostPhase && mapped is { } mappedClaim)
+            {
+                state = mappedClaim.Claim.Value;
+                stateClaim = mappedClaim;
+            }
+            else
+            {
+                state = _readSwitchState();
+                stateClaim = isPostPhase
+                    ? new ObservationProposal(
+                        new ObservationClaim("switch.state", state),
+                        IngressKind.Observation, expected,
+                        new Provenance("host.live", _clock.Now, "scope:switch.state",
+                            new[] { $"live:state:{state}" }))
+                    : null;
+            }
+
+            var input = Frame(detection, state, expected, stateClaim);
 
             // 缺席标记：附加到既有 claims 的 lineage（degraded:no-xml）
             if (degraded && input is RunDriverInput.Observation obs)
@@ -158,21 +193,29 @@ public static class LivePerception
                 input = new RunDriverInput.Observation(tagged);
             }
 
-            // 双源合并：XML claims 附加到视觉 claims（同一 Observation）
-            if (xmlClaims is { Count: > 0 } && input is RunDriverInput.Observation o)
+            // 双源合并：XML 私有层 claims +（initial 相的）映射 claim 附加进批
+            if (dump is not null && input is RunDriverInput.Observation o)
             {
-                var merged = o.Proposals.Concat(xmlClaims).ToArray();
-                input = new RunDriverInput.Observation(merged);
+                var extras = new List<ObservationProposal>(dump.Claims);
+                if (!isPostPhase && mapped is { } initialMapped)
+                    extras.Add(initialMapped); // initial：双通道并置（分歧即真实冲突 → C-1 销案）
+                if (extras.Count > 0)
+                    input = new RunDriverInput.Observation(o.Proposals.Concat(extras).ToArray());
             }
             return input;
         }
+
+        /// <summary>P-6：Focused 指令点名 subjects 时，仅映射被点名目标。</summary>
+        private static bool SubjectInScope(ObservationDirective directive) =>
+            directive.Subjects is not { Count: > 0 } subjects
+            || subjects.Any(s => s == "switch" || s.StartsWith("switch.", StringComparison.Ordinal));
 
         /// <summary>
         /// PER-009 D1/D8：XML 并行观察。探测状态机管节奏（60s × ≤3）；
         /// 成功 → claims（producer=platform.uiautomator）；失败 → null +
         /// degraded 标记（缺席即数据，记入 provenance lineage）。
         /// </summary>
-        private IReadOnlyList<ObservationProposal>? TryCoObserveXml(
+        private UiAutomatorDump.DumpResult? TryCoObserveXml(
             ObservationContext context, out bool degraded)
         {
             degraded = false;
@@ -193,8 +236,7 @@ public static class LivePerception
             }
             try
             {
-                var dump = UiAutomatorDump.Parse(xml, _clock.Now, context);
-                return dump.Claims;
+                return UiAutomatorDump.Parse(xml, _clock.Now, context);
             }
             catch (System.Xml.XmlException)
             {
@@ -208,7 +250,7 @@ public static class LivePerception
             ReplayPerception.AnchorDetection detection,
             string state,
             ObservationContext context,
-            bool includeStateClaim)
+            ObservationProposal? stateClaim)
         {
             _clock.Tick();
             var frame = $"{{\"role\":\"switch\",\"state\":\"{state}\","
@@ -222,12 +264,8 @@ public static class LivePerception
                     new Provenance("host.live", _clock.Now, "scope:ui.screen",
                         new[] { $"live:screen:{_assets.DeviceId}" })),
             };
-            if (includeStateClaim)
-                proposals.Add(new ObservationProposal(
-                    new ObservationClaim(SharedSubjects.State("switch"), state),
-                    IngressKind.Observation, context,
-                    new Provenance("host.live", _clock.Now, "scope:switch.state",
-                        new[] { $"live:state:{state}" })));
+            if (stateClaim is not null)
+                proposals.Add(stateClaim);
             proposals.Add(new ObservationProposal(
                 new ObservationClaim(SharedSubjects.Frame, frame),
                 IngressKind.Observation, context,

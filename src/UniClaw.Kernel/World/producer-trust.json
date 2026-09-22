@@ -1,0 +1,12 @@
+{
+  "grades": [
+    { "producer": "platform.uiautomator", "category": "state", "grade": "A" },
+    { "producer": "platform.uiautomator", "category": "text", "grade": "A" },
+    { "producer": "platform.uiautomator", "category": "identity", "grade": "A" },
+    { "producer": "platform.uiautomator", "category": "bounds", "grade": "B" },
+    { "producer": "perception.live.vision", "category": "text", "grade": "B" },
+    { "producer": "perception.live.vision", "category": "pixel", "grade": "B" },
+    { "producer": "perception.live.vision", "category": "state", "grade": "C" }
+  ],
+  "overrides": []
+}

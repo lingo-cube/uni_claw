@@ -45,10 +45,11 @@ internal static class ProducerTrust
         }
     }
 
-    /// <summary>producer 常量（与 Host 侧 producer 字符串保持一致）。</summary>
+    /// <summary>producer 常量（与 Host 侧 producer 字符串保持一致）。
+    /// DeepProducer（Tier 2）已按评审 Scope 项移除——Out of Scope 明说
+    /// 延后；其 change 落地时再加回（不为未来预置）。</summary>
     public const string XmlProducer = "platform.uiautomator";
     public const string VisionProducer = "perception.live.vision";
-    public const string DeepProducer = "perception.deep.vlm";
 
     /// <summary>冻结初始表（2026-09-22，台账 #16/#18）。</summary>
     public static TrustTable Default() => new(
@@ -64,8 +65,6 @@ internal static class ProducerTrust
             new Entry(VisionProducer, "text", Grade.B),
             new Entry(VisionProducer, "pixel", Grade.B),
             new Entry(VisionProducer, "state", Grade.C),
-            // 深模型（Tier 2 后置）：像素语义主力，仍有幻觉可能（B）
-            new Entry(DeepProducer, "pixel", Grade.B),
         },
         Array.Empty<Override>());
 
@@ -90,6 +89,23 @@ internal static class ProducerTrust
                     o.GetProperty("category").GetString()!,
                     Enum.Parse<Grade>(o.GetProperty("grade").GetString()!, ignoreCase: true)));
         return new TrustTable(grades, overrides);
+    }
+
+    /// <summary>
+    /// P-1（评审修复）：冻结表落盘（src/UniClaw.Kernel/World/producer-trust.json，
+    /// EmbeddedResource）——D5 落点兑现；载入失败 fail-closed 抛出（配置错误
+    /// 非 runtime Unknown）。修订走文件 + change（双通道的人审侧）。
+    /// </summary>
+    public static TrustTable LoadFrozenTable()
+    {
+        var assembly = typeof(ProducerTrust).Assembly;
+        var resourceName = assembly.GetManifestResourceNames()
+            .SingleOrDefault(n => n.EndsWith("producer-trust.json", StringComparison.Ordinal))
+            ?? throw new InvalidOperationException("producer-trust.json 未嵌入（构建配置错误，fail-closed）");
+        using var stream = assembly.GetManifestResourceStream(resourceName)
+            ?? throw new InvalidOperationException("producer-trust.json 无法读取（fail-closed）");
+        using var reader = new System.IO.StreamReader(stream);
+        return FromJson(reader.ReadToEnd());
     }
 
     /// <summary>A 级：孤证即可授权常规动作。</summary>

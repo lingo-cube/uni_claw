@@ -1,6 +1,6 @@
 # PER-009 — 多源观察与信任：XML producer + 冲突裁决 + 信任等级（竖切）
 
-lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: d45bdda
+lifecycle_state: verifying · disposition: none · depth: decision-heavy · base: d45bdda
 
 ## Intent
 
@@ -139,6 +139,25 @@ evidence: |
 ```
 
 ## Status log
+
+- 2026-09-22 · review-remediation·verifying · 评审 CHANGES_REQUIRED 全项处置
+  （evidence/2026-09-22-per009-remediation.md）：
+  **C-1** 裁决器接线——StepAct 与 TerminalEvaluation 双点先裁决后聚焦
+  （WorldModel.ResolveConflict owner 销案 + ConflictResolutionLog；occurrences
+  原样携带，Act 无需观察恢复）；**C-2** 四门路由接线——VerifyPostActionEffect
+  收 dispatchTime，XML 映射 claim 为 establishing producer 时经
+  PostActionXmlRouter 裁决（occurrence 路径保留为回退）；**C-3**
+  ProbeStateMachine.ResetForNewRun；**S-1** 双修——超时先读后等 + fail-closed
+  不吞 + **传输修正**（API 35 `dump /dev/tty` 不回显 XML，改定点文件+cat+rm
+  单次原子——PENDING-ENV 实测）；**P-3** 跨源碰头——MapTargetStateClaim
+  空间映射到共享层 {role}.state（IoU≥0.5 且唯一余量≥0.25 + checkable guard），
+  live 初始相双通道并置；**P-1** producer-trust.json 落盘（EmbeddedResource
+  + LoadFrozenTable fail-closed）；**P-6** 部分——Focused subjects 过滤
+  （真裁剪重扫待 Tier 1 管线裁剪支持，登记）；**P-2** 显式递延——授权门槛
+  全接线需 effect 不可逆性分类（Grant/Phase 6 域），无模型不伪造；
+  **Scope** DeepProducer 移除；**P-8** plan/state 对齐（本行）。
+  整改回归 8/8 新测试 + 全量 655/655 + 真机双源全真闭环 GREEN（11s）。
+  lifecycle → verifying（待人工 closure，P-D′）。
 
 - 2026-09-22 · created·persisted · 立项 grill 三轮落定（docket 见
   evidence/2026-09-22-per009-multisource-grill-docket.md；台账 #16）。

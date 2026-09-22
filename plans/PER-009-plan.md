@@ -30,10 +30,10 @@
       5 例探测状态机测试绿（live 行为 PENDING-ENV）
 - [x] S7 路由器（PostActionXmlRouter：四门纯函数，8/8 绿；含
       confidence 盲结构锁、tri-state、同名错配防线、时序约束）
-- [ ] S7-wiring StepVerify 接线（需 XML→Kernel 快照桥：
+- [x] S7-wiring StepVerify 接线（2026-09-22 整改落地：XML→共享层映射 = 快照桥，
       身份解析映射的 Kernel 侧落点 = TargetSpec.Role → resource-id
       尾段约定，待真机校准后接入——PENDING-ENV）
-- [ ] S8 值域断言（{on,off,partial}）+ 全量回归 + Verification 四元组回填
+- [x] S8 值域断言（{on,off,partial}）+ 全量回归 + Verification 四元组回填
 
 ## PENDING-ENV 清单（Acceptance 映射）
 

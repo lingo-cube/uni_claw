@@ -36,4 +36,8 @@
     <InternalsVisibleTo Include="UniClaw.Simulation.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="World\producer-trust.json" />
+  </ItemGroup>
+
 </Project>

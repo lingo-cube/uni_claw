@@ -71,8 +71,20 @@ public static class UiAutomatorDump
             _probesThisRun++;
         }
 
-        /// <summary>瞬时失败（超时/空输出）：不占探测次数。</summary>
+        /// <summary>瞬时失败（超时/空输出）：不占探测次数（无状态迁移——
+        /// 下周期无条件重试即 D8 语义；保留方法以显式表达协议）。</summary>
         public void MarkTransient() { }
+
+        /// <summary>
+        /// C-3（评审修复）：Run 边界显式重置。Host 侧 feed 每 RunOnce 新建
+        /// （feed 生命周期 = run 生命周期，重置天然成立）；长生命周期宿主
+        /// 复用 feed 时必须在本调用，否则 ≤3 语义退化为永久耗尽。
+        /// </summary>
+        public void ResetForNewRun()
+        {
+            _probesThisRun = 0;
+            _unavailableSince = null;
+        }
 
         /// <summary>本 Run 内不再尝试（超限后调用方短路）。</summary>
         public bool Exhausted => _probesThisRun >= MaxProbesPerRun;
@@ -88,18 +100,33 @@ public static class UiAutomatorDump
         string deviceId, int timeoutMs = 3000)
     {
         ArgumentNullException.ThrowIfNull(deviceId);
-        var info = new ProcessStartInfo("adb", $"-s {deviceId} shell uiautomator dump /dev/tty")
+        // 传输修正（PENDING-ENV 实测）：API 35 上 `dump /dev/tty` 不回显 XML
+        // （写文件 + 打印消息）——改为 dump 到定点文件 + cat + rm，单次 shell
+        // 原子完成（无二次往返、无残留）。
+        const string devicePath = "/data/local/tmp/uniclaw_window_dump.xml";
+        var info = new ProcessStartInfo(
+            "adb",
+            $"-s {deviceId} shell \"uiautomator dump {devicePath} >/dev/null 2>&1 && cat {devicePath} && rm -f {devicePath}\"")
         {
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
+        // S-1（评审修复）：先异步起读再限时等待——ReadToEnd 阻塞在
+        // WaitForExit 之前会让超时永远约束不了读取；fail-closed 的
+        // InvalidOperationException 不吞（只把可分类的执行层异常归瞬时）。
         try
         {
             using var process = Process.Start(info)
                 ?? throw new InvalidOperationException("adb 启动失败（fail-closed）");
-            var stdout = process.StandardOutput.ReadToEnd();
-            process.WaitForExit(timeoutMs);
+            var stdoutTask = process.StandardOutput.ReadToEndAsync();
+            if (!process.WaitForExit(timeoutMs))
+            {
+                try { process.Kill(entireProcessTree: true); } catch (System.ComponentModel.Win32Exception) { }
+                _ = process.WaitForExit(1000);
+                return (null, IsStructural: false); // 超时：瞬时（不占探测次数）
+            }
+            var stdout = stdoutTask.GetAwaiter().GetResult();
             if (process.ExitCode != 0)
                 return (null, IsStructural: false); // 瞬时（shell 层失败）
             var xmlStart = stdout.IndexOf("<?xml", StringComparison.Ordinal);
@@ -107,9 +134,9 @@ public static class UiAutomatorDump
                 return (null, IsStructural: true); // dump 输出无 XML = 服务未启用
             return (stdout[xmlStart..], IsStructural: false);
         }
-        catch (Exception)
+        catch (Exception ex) when (ex is not InvalidOperationException)
         {
-            return (null, IsStructural: false); // 超时/进程异常：瞬时
+            return (null, IsStructural: false); // 可分类执行层异常：瞬时；fail-closed 异常上抛
         }
     }
 
@@ -153,6 +180,91 @@ public static class UiAutomatorDump
                 return null;
         }
         return count == 1 ? hit : null;
+    }
+
+    /// <summary>
+    /// P-3（评审修复）：跨源碰头——目标 bounds 与 XML 节点空间映射。
+    /// 唯一最佳重叠（IoU ≥ 0.5 且领先次名 ≥ 0.25 余量）且 checkable=true
+    /// （D12 guard）时，产 {role}.state 共享 claim（producer=XML），值域
+    /// {on,off,partial}；lineage 携带 C-1 Kernel 侧裁决所需快照
+    /// （xml-map:{localId} / xml-checkable / xml-unique）。非唯一/不重叠/
+    /// 非 checkable → null（缺席即数据，不映射不裁决）。
+    /// </summary>
+    public static ObservationProposal? MapTargetStateClaim(
+        DumpResult dump,
+        string role,
+        (double X1, double Y1, double X2, double Y2) targetNormalizedBounds,
+        int viewportWidth,
+        int viewportHeight,
+        DateTimeOffset captureTime,
+        ObservationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(dump);
+
+        NodeInfo? best = null;
+        var bestOverlap = 0.0;
+        var secondBest = 0.0;
+        foreach (var node in dump.Nodes)
+        {
+            var overlap = NormalizedOverlap(node, targetNormalizedBounds, viewportWidth, viewportHeight);
+            if (overlap > bestOverlap)
+            {
+                secondBest = bestOverlap;
+                bestOverlap = overlap;
+                best = node;
+            }
+            else if (overlap > secondBest)
+            {
+                secondBest = overlap;
+            }
+        }
+
+        if (best is null || bestOverlap < 0.5 || bestOverlap - secondBest < 0.25)
+            return null; // 非唯一/不重叠：不映射
+        if (!best.Checkable)
+            return null; // D12 guard：checkable=false 时 checked 不具权威
+
+        var value = best.Checked switch { "true" => "on", "false" => "off", var v => v };
+        var subject = $"{role}.state";
+        return new ObservationProposal(
+            new ObservationClaim(subject, value),
+            IngressKind.Observation,
+            context,
+            new Provenance(Producer, captureTime, $"scope:{subject}",
+                new[] { $"xml-map:{best.LocalId}", $"xml-checkable:{best.Checkable}", "xml-unique:true" }));
+    }
+
+    /// <summary>节点 bounds（px）归一化后与目标 bounds 的 IoU；解析失败 = 0。</summary>
+    private static double NormalizedOverlap(
+        NodeInfo node,
+        (double X1, double Y1, double X2, double Y2) target,
+        int viewportWidth,
+        int viewportHeight)
+    {
+        var parts = node.Bounds.Split(',');
+        if (parts.Length != 4
+            || !double.TryParse(parts[0], out var x1) || !double.TryParse(parts[1], out var y1)
+            || !double.TryParse(parts[2], out var x2) || !double.TryParse(parts[3], out var y2))
+            return 0;
+        if (viewportWidth <= 0 || viewportHeight <= 0 || x2 <= x1 || y2 <= y1)
+            return 0;
+
+        var nx1 = x1 / viewportWidth;
+        var ny1 = y1 / viewportHeight;
+        var nx2 = x2 / viewportWidth;
+        var ny2 = y2 / viewportHeight;
+
+        var ix1 = Math.Max(nx1, target.X1);
+        var iy1 = Math.Max(ny1, target.Y1);
+        var ix2 = Math.Min(nx2, target.X2);
+        var iy2 = Math.Min(ny2, target.Y2);
+        if (ix2 <= ix1 || iy2 <= iy1)
+            return 0;
+        var intersection = (ix2 - ix1) * (iy2 - iy1);
+        var union = (nx2 - nx1) * (ny2 - ny1)
+                    + (target.X2 - target.X1) * (target.Y2 - target.Y1)
+                    - intersection;
+        return union <= 0 ? 0 : intersection / union;
     }
 
     internal static string Sanitize(string resourceId)

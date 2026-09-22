@@ -108,6 +108,95 @@ public sealed class WorldModel
     internal void AttachPerformanceMetrics(RuntimeStageMetrics? metrics) =>
         _performanceMetrics = metrics;
 
+    /// <summary>
+    /// 销案记录（PER-009 mechanism ④：统一销案{key,tier,依据}留档不删）。
+    /// internal：不进公开面（白名单零变更）。
+    /// </summary>
+    internal sealed record ConflictResolution(
+        string Subject,
+        string Tier,
+        string ResolvedValue,
+        string? OverruledProducer,
+        string Basis,
+        string ResolvedAtRevisionId,
+        DateTimeOffset ResolvedAt);
+
+    private readonly List<ConflictResolution> _conflictResolutionLog = new();
+
+    /// <summary>销案留痕（append-only，owner-internal；同 AssociationLog 先例）。</summary>
+    internal IReadOnlyList<ConflictResolution> ConflictResolutionLog => _conflictResolutionLog;
+
+    /// <summary>
+    /// PER-009 D13 销案（评审 C-1 修复）：ConflictResolver 定案后由 owner 执行——
+    /// 清除该 subject 冲突条目 + 定案值生效（痕迹链沿用 CLE-001 Revise 语义）
+    /// + 双留痕（ClaimEvolutionLog + ConflictResolutionLog）。非观察：不经 P2、
+    /// EvidenceBasis 不变；occurrences/containers 等 belief 原样携带（销案后
+    /// Act 可直接继续，无需观察恢复）。无该 subject 冲突 → null（幂等）。
+    /// </summary>
+    internal WorldBeliefRevision? ResolveConflict(
+        string subject,
+        string resolvedValue,
+        string tier,
+        string? overruledProducer,
+        string basis,
+        DateTimeOffset resolvedAt)
+    {
+        var parent = Current;
+        if (parent is null || parent.Conflicts.All(c => c.Subject != subject))
+            return null;
+
+        var state = parent.WorldState.ToDictionary(
+            kv => kv.Key, kv => kv.Value, StringComparer.Ordinal);
+        var subjectConflicts = parent.Conflicts.Where(c => c.Subject == subject).ToArray();
+        string? previousValue = null;
+        string establishingEvidenceId;
+        if (state.TryGetValue(subject, out var established))
+        {
+            previousValue = established.Value;
+            establishingEvidenceId = established.EvidenceId;
+            var superseded = (established.SupersededEvidenceIds ?? Array.Empty<string>())
+                .Append(established.EvidenceId)
+                .Concat(subjectConflicts.SelectMany(
+                    c => new[] { c.EstablishedEvidenceId, c.ChallengingEvidenceId }))
+                .Distinct(StringComparer.Ordinal).ToArray();
+            state[subject] = new WorldClaim(
+                resolvedValue, established.EvidenceId,
+                "kernel.conflict-resolver", established.EstablishingScope, superseded);
+        }
+        else
+        {
+            establishingEvidenceId = subjectConflicts[0].EstablishedEvidenceId;
+            state[subject] = new WorldClaim(
+                resolvedValue, establishingEvidenceId,
+                "kernel.conflict-resolver", "scope:" + subject);
+        }
+
+        var remaining = parent.Conflicts.Where(c => c.Subject != subject).ToArray();
+        var number = parent.RevisionNumber + 1;
+        var revision = new WorldBeliefRevision(
+            $"rev-{number}", parent.RevisionId, number,
+            state,
+            parent.WorldGraph,
+            parent.EvidenceBasis, // 销案非观察：证据集不变
+            parent.FreshnessBasis,
+            new Uncertainty(remaining.Length),
+            remaining,
+            parent.Containers, parent.Relations, parent.Occurrences, parent.LogicalItems);
+
+        _claimEvolutionLog.Add(new ClaimEvolutionDecision(
+            revision.RevisionId, subject, ClaimEvolutionKind.Revise,
+            previousValue ?? subjectConflicts[0].EstablishedValue, resolvedValue,
+            SupersededEvidenceId: establishingEvidenceId,
+            establishingEvidenceId,
+            Producer: "kernel.conflict-resolver",
+            Scope: "scope:conflict-resolution"));
+        _conflictResolutionLog.Add(new ConflictResolution(
+            subject, tier, resolvedValue, overruledProducer, basis,
+            revision.RevisionId, resolvedAt));
+        PublishRevision(revision);
+        return revision;
+    }
+
     /// <summary>Belief Relevance 判定（独立于 Admission 的第二个产出）。
     /// ING-006 D4：kind-aware——AttemptReport 定义性非 world-relevant
     /// （kind 门压过 subject-scope 匹配，不再依赖命名空间巧合）。</summary>
