@@ -654,6 +654,26 @@ double；按脚本返回 proposal 并断言调用边界/顺序/次数/correlatio
 种 UniAgent realization，不证明 Agent 智力，不调用 live model。
 _Avoid_: 第三 realization、mock agent（作为 realization 义）、intelligence proof
 
+### Multi-Source Observation & Trust（PER-009 立项 2026-09-22）
+
+**Shared Subject（共享 subject）**:
+跨 producer 共用的 claim key 语义层，仅语义三件套（ui.screen /
+*.state / screen.frame），由常量类承载统一拼写；元素级 subject
+永不共享（防假合并）。
+_Avoid_: 全局统一命名、元素级共享 key、词汇表（运行时组件义）
+
+**Producer Trust Grade（源信任等级）**:
+(producer × claim 类别) → A/B/C 的采信等级，CSS 级联覆盖
+（包名/系统特例 > 类别 > 源默认）；等级挂组合、不挂单条证据，
+每级对应明确采信动作（A=孤证可授权常规动作）。
+_Avoid_: confidence score、数值权重、全局源排名
+
+**Conflict Resolver（冲突裁决器）**:
+同 key 多源分歧的统一裁决管道：Tier 0 类别权威（标准控件 XML
+定案）→ Tier 1 裁剪重扫 → Tier 2 深模型（后置）；所有销案记录
+同构留档（由谁定案、依据什么）。
+_Avoid_: 投票、平均、按源加权合并
+
 ### Memory（边界占位，未实现）
 
 **Memory Recall**: Memory System 的召回产出；只能以 prior / context /
