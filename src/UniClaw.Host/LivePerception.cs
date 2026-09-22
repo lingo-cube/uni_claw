@@ -103,6 +103,7 @@ public static class LivePerception
         private readonly Func<string> _readSwitchState;
         private readonly VisionServiceSession _session;
         private readonly AdbScreenshotAcquisition _acquisition;
+        private readonly UiAutomatorDump.ProbeStateMachine _xmlProbe = new();
         private int _phase;
 
         public LiveFrameFeed(V0Runtime.VirtualClock clock, LiveAssets assets, Func<string> readSwitchState)
@@ -136,7 +137,71 @@ public static class LivePerception
             var responseJson = _session.CaptureAndAnalyze(_acquisition);
             var detection = ReplayPerception.ExtractJson(responseJson, "switch", $"live:{_assets.DeviceId}");
             var state = _readSwitchState();
-            return Frame(detection, state, expected, includeStateClaim);
+
+            // PER-009 D1：XML 永远并行（缺席即数据）；D8 探测状态机管节奏
+            var xmlClaims = TryCoObserveXml(expected, out var degraded);
+            var input = Frame(detection, state, expected, includeStateClaim);
+
+            // 缺席标记：附加到既有 claims 的 lineage（degraded:no-xml）
+            if (degraded && input is RunDriverInput.Observation obs)
+            {
+                var tagged = obs.Proposals.Select(p => p with
+                {
+                    Provenance = p.Provenance is null
+                        ? null
+                        : p.Provenance with
+                        {
+                            TransformationLineage = p.Provenance.TransformationLineage
+                                .Append("degraded:no-xml").ToArray(),
+                        },
+                }).ToArray();
+                input = new RunDriverInput.Observation(tagged);
+            }
+
+            // 双源合并：XML claims 附加到视觉 claims（同一 Observation）
+            if (xmlClaims is { Count: > 0 } && input is RunDriverInput.Observation o)
+            {
+                var merged = o.Proposals.Concat(xmlClaims).ToArray();
+                input = new RunDriverInput.Observation(merged);
+            }
+            return input;
+        }
+
+        /// <summary>
+        /// PER-009 D1/D8：XML 并行观察。探测状态机管节奏（60s × ≤3）；
+        /// 成功 → claims（producer=platform.uiautomator）；失败 → null +
+        /// degraded 标记（缺席即数据，记入 provenance lineage）。
+        /// </summary>
+        private IReadOnlyList<ObservationProposal>? TryCoObserveXml(
+            ObservationContext context, out bool degraded)
+        {
+            degraded = false;
+            if (!_xmlProbe.ShouldProbe(_clock.Now))
+            {
+                degraded = _xmlProbe.Exhausted; // 超限后持续标记
+                return null;
+            }
+            var (xml, isStructural) = UiAutomatorDump.TryDumpToDevice(_assets.DeviceId);
+            if (xml is null)
+            {
+                if (isStructural)
+                    _xmlProbe.MarkUnavailable(_clock.Now); // D8 结构性：占探测次数
+                else
+                    _xmlProbe.MarkTransient();              // D8 瞬时：不占，下周期重试
+                degraded = true;
+                return null;
+            }
+            try
+            {
+                var dump = UiAutomatorDump.Parse(xml, _clock.Now, context);
+                return dump.Claims;
+            }
+            catch (System.Xml.XmlException)
+            {
+                _xmlProbe.MarkTransient(); // 非法 XML：瞬时（fail-closed，不产观察）
+                degraded = true;
+                return null;
+            }
         }
 
         private RunDriverInput Frame(

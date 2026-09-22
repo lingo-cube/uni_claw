@@ -24,8 +24,10 @@
       UniKernel.CurrentConflictedSubjects → policy → 驱动面 Focused，
       单一真相源接线；手工注入式旧测随接线删除，policy 规则由
       AgentPlanPolicyConflictTests 覆盖）
-- [ ] S6b-2 XML producer 接入 feeds（LivePerception 双源组合 + dump 执行器；
-      live 行为 PENDING-ENV，组合逻辑 fixture 可测）
+- [x] S6b-2 XML producer 接入 feeds：LiveFrameFeed 双源组合（TryCoObserveXml
+      + D8 ProbeStateMachine 60s×≤3 + degraded:no-xml lineage 标记）+
+      adb dump 执行器（TryDumpToDevice，结构性 vs 瞬时分类）；
+      5 例探测状态机测试绿（live 行为 PENDING-ENV）
 - [ ] S7 事后验证路由四门（dispatch 后重解析防同名错配 + 时序约束）
 - [ ] S8 值域断言（{on,off,partial}）+ 全量回归 + Verification 四元组回填
 

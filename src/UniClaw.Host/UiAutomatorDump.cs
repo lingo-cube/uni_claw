@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Xml.Linq;
 using UniClaw.Kernel.Evidence;
 
@@ -37,6 +38,80 @@ public static class UiAutomatorDump
     public sealed record DumpResult(
         IReadOnlyList<NodeInfo> Nodes,
         IReadOnlyList<ObservationProposal> Claims);
+
+    /// <summary>
+    /// D8 探测状态机（纯逻辑，可测）：服务未启用 → 60s 降级窗口 × 每 Run
+    /// ≤3 次探测；超限本 Run 标不可用。瞬时失败不占次数（下周期自然重试）。
+    /// </summary>
+    public sealed class ProbeStateMachine
+    {
+        private const int MaxProbesPerRun = 3;
+        private readonly TimeSpan _window;
+        private DateTimeOffset? _unavailableSince;
+        private int _probesThisRun;
+
+        public ProbeStateMachine(TimeSpan? window = null) => _window = window ?? TimeSpan.FromSeconds(60);
+
+        /// <summary>当前是否应尝试 dump（窗口外且未超限）。</summary>
+        public bool ShouldProbe(DateTimeOffset now)
+        {
+            if (_unavailableSince is { } since)
+            {
+                if (now - since < _window)
+                    return false; // 窗口内：不重试
+                _unavailableSince = null; // 窗口过期：允许探测
+            }
+            return _probesThisRun < MaxProbesPerRun;
+        }
+
+        /// <summary>服务未启用（结构性失败，区别于瞬时）。</summary>
+        public void MarkUnavailable(DateTimeOffset now)
+        {
+            _unavailableSince = now;
+            _probesThisRun++;
+        }
+
+        /// <summary>瞬时失败（超时/空输出）：不占探测次数。</summary>
+        public void MarkTransient() { }
+
+        /// <summary>本 Run 内不再尝试（超限后调用方短路）。</summary>
+        public bool Exhausted => _probesThisRun >= MaxProbesPerRun;
+    }
+
+    /// <summary>
+    /// 执行 adb shell uiautomator dump 并返回 XML 字符串。
+    /// 失败分类：结构性（服务未启用/权限拒绝）vs 瞬时（超时/空输出）。
+    /// 返回 (xml, isStructural)——xml 为 null 时 isStructural 区分 D8 语义。
+    /// ENVIRONMENT-gated：需真机/模拟器。
+    /// </summary>
+    public static (string? Xml, bool IsStructuralFailure) TryDumpToDevice(
+        string deviceId, int timeoutMs = 3000)
+    {
+        ArgumentNullException.ThrowIfNull(deviceId);
+        var info = new ProcessStartInfo("adb", $"-s {deviceId} shell uiautomator dump /dev/tty")
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        try
+        {
+            using var process = Process.Start(info)
+                ?? throw new InvalidOperationException("adb 启动失败（fail-closed）");
+            var stdout = process.StandardOutput.ReadToEnd();
+            process.WaitForExit(timeoutMs);
+            if (process.ExitCode != 0)
+                return (null, IsStructural: false); // 瞬时（shell 层失败）
+            var xmlStart = stdout.IndexOf("<?xml", StringComparison.Ordinal);
+            if (xmlStart < 0)
+                return (null, IsStructural: true); // dump 输出无 XML = 服务未启用
+            return (stdout[xmlStart..], IsStructural: false);
+        }
+        catch (Exception)
+        {
+            return (null, IsStructural: false); // 超时/进程异常：瞬时
+        }
+    }
 
     /// <summary>
     /// 解析 dump XML（纯函数）。空树 = OK_EMPTY：零 claims、非失败
