@@ -1,0 +1,19 @@
+{
+  "id": "SCN-WIFI-002",
+  "name": "WiFi already on → zero effect",
+  "source": "recorded",
+  "srRef": "SR-007",
+  "purpose": "Desired-state satisfied → NoAction → zero dispatch → Completion",
+  "capability": "desired-state-satisfaction",
+  "components": ["kernel", "control-loop"],
+  "status": "passing",
+  "version": 2,
+  "expectations": {
+    "status": "Completed",
+    "classification": "Completion",
+    "effects": 0,
+    "agentConsultations": 1,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": "Satisfied"
+  }
+}

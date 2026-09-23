@@ -1,0 +1,19 @@
+{
+  "id": "SCN-WIFI-005",
+  "name": "Cancel during wait → SafeStop",
+  "source": "recorded",
+  "srRef": "SR-067",
+  "purpose": "Cancel signal during post-action wait → safe stop, zero revival, late stimulus unconsumed",
+  "capability": "safe-stop",
+  "components": ["kernel", "assurance", "effect-boundary"],
+  "status": "passing",
+  "version": 2,
+  "expectations": {
+    "status": "Completed",
+    "classification": "SafeStop",
+    "effects": 1,
+    "agentConsultations": 1,
+    "unconsumedStimuli": 1,
+    "goalSatisfaction": "Unsatisfied"
+  }
+}

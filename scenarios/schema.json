@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UniClaw Scenario Library Entry",
+  "description": "仿真场景库条目：元数据 + 期望值快照。独立基础设施，不依附于文档。",
+  "type": "object",
+  "required": ["id", "name", "source", "purpose", "capability", "components", "status", "version"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^SCN-[A-Z0-9][A-Z0-9-]*$",
+      "description": "唯一标识，如 SCN-WIFI-001"
+    },
+    "name": {
+      "type": "string",
+      "description": "人读名称"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["recorded", "generated", "derived-from-doc", "bug-repro", "component-test"],
+      "description": "场景来源类型"
+    },
+    "srRef": {
+      "type": ["string", "null"],
+      "description": "可选：来源为 derived-from-doc 时标注 ARCH-DOC-017 的 SR-xxx"
+    },
+    "purpose": {
+      "type": "string",
+      "description": "测什么、为什么存在"
+    },
+    "capability": {
+      "type": "string",
+      "description": "测的产品能力域（如 effect-verification / identity-continuity）"
+    },
+    "components": {
+      "type": "array",
+      "items": { "type": "string" },
+     description": "涉及的组件（如 kernel / assurance / effect-boundary / world-model）"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["passing", "failing", "pending-env", "not-implemented"],
+      "description": "当前测试状态（覆盖率工具自动更新）"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "行为变更时 bump"
+    },
+    "expectations": {
+      "type": "object",
+      "description": "期望值快照（与 GoldenScenarioBundles.cs 对齐；Phase 2 起测试直接读此）",
+      "properties": {
+        "status": { "type": "string", "description": "期望 RunDriveStatus" },
+        "classification": { "type": ["string", "null"], "description": "期望 TerminalClassification" },
+        "effects": { "type": "integer", "description": "期望效果投递数" },
+        "agentConsultations": { "type": "integer", "description": "期望咨询次数" },
+        "unconsumedStimuli": { "type": "integer", "description": "期望未消费 stimulus 数" },
+        "goalSatisfaction": { "type": ["string", "null"], "description": "期望 GoalSatisfaction" }
+      }
+    }
+  }
+}

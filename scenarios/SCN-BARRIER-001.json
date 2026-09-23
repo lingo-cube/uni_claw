@@ -1,0 +1,19 @@
+{
+  "id": "SCN-BARRIER-001",
+  "name": "Two-step serial barrier positive",
+  "source": "recorded",
+  "srRef": "SR-104",
+  "purpose": "Invariant 43: evidence between steps → second effect allowed",
+  "capability": "serial-verification-barrier",
+  "components": ["kernel", "assurance", "effect-boundary"],
+  "status": "passing",
+  "version": 1,
+  "expectations": {
+    "status": "Completed",
+    "classification": "Completion",
+    "effects": 2,
+    "agentConsultations": 2,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": "Satisfied"
+  }
+}

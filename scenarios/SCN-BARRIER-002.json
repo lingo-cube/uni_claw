@@ -1,0 +1,19 @@
+{
+  "id": "SCN-BARRIER-002",
+  "name": "Missing middle evidence → barrier blocks second effect",
+  "source": "recorded",
+  "srRef": "SR-105",
+  "purpose": "Invariant 43 falsification: no evidence between steps → second effect blocked",
+  "capability": "serial-verification-barrier",
+  "components": ["kernel", "assurance", "effect-boundary"],
+  "status": "passing",
+  "version": 2,
+  "expectations": {
+    "status": "Completed",
+    "classification": "SafeStop",
+    "effects": 1,
+    "agentConsultations": 1,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  }
+}
