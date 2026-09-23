@@ -35,6 +35,41 @@ public sealed class ScenarioCertificationTests
     }
 
     /// <summary>
+    /// SIM-002 G3：test-case ↔ scenario-id 映射执法——场景库每个条目必须
+    /// 有测试承载（[Trait("Scenario", "SCN-…")]）。映射随测试存活：测试
+    /// 改名/删除 → trait 消失 → 本测试红（覆盖率工具同规则：无结果 →
+    /// exit 1）。反向（trait 指向不存在的场景）同样违规。
+    /// </summary>
+    [Fact]
+    public void ScenarioLibrary_EveryEntryHasTestCase_AndEveryTraitResolves()
+    {
+        var repo = RepoRoot();
+        var jsonIds = Directory.EnumerateFiles(Path.Combine(repo, "scenarios"), "SCN-*.json")
+            .Select(Path.GetFileNameWithoutExtension)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var traited = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var type in typeof(ScenarioCertificationTests).Assembly.GetTypes())
+        foreach (var method in type.GetMethods())
+        foreach (var data in method.GetCustomAttributesData())
+        {
+            if (data.AttributeType != typeof(Xunit.TraitAttribute) || data.ConstructorArguments.Count != 2)
+                continue;
+            if (data.ConstructorArguments[0].Value as string != "Scenario")
+                continue;
+            var scenarioId = data.ConstructorArguments[1].Value as string;
+            if (!jsonIds.Contains(scenarioId))
+                Assert.Fail($"测试 {type.Name}.{method.Name} 的 Scenario trait 指向不存在的场景：{scenarioId}");
+            traited.Add(scenarioId!);
+        }
+
+        var missing = jsonIds.Where(id => !traited.Contains(id)).OrderBy(id => StringComparer.Ordinal).ToList();
+        Assert.True(missing.Count == 0,
+            "场景库条目无测试承载（SIM-002 G3：加 [Trait(\"Scenario\", \"…\")] 到承载测试）："
+            + string.Join(", ", missing));
+    }
+
+    /// <summary>
     /// 验收正例（spec 原文场景）：期望值被改动（effects+1）后，认证必须
     /// 拒绝——不再存在「重跑自动重新认证」路径。在临时副本上模拟篡改，
     /// 不触碰仓库文件。

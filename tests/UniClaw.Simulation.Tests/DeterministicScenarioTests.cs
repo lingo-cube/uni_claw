@@ -20,7 +20,7 @@ public sealed class DeterministicScenarioTests
     /// 终态 Completion。跑两次独立执行，逐一核对全套语义断言，
     /// 并验证是 driver（而非测试）完成了工作。
     /// </summary>
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-WIFI-001")]
     public void S1_OffToOn_OneAuthorizedEffect_VerifiedTerminalOutcome()
     {
         var bundle = GoldenScenarioBundles.WifiToggleOffToOn();
@@ -71,7 +71,7 @@ public sealed class DeterministicScenarioTests
     /// S2 零 Effect：目标已达成（switch 已 on）→ agent NoAction →
     /// 直接终态 Completion，零 Effect、单次 consultation。
     /// </summary>
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-WIFI-002")]
     public void S2_AlreadyOn_ZeroEffect_TerminalCompletion()
     {
         var bundle = GoldenScenarioBundles.AlreadyOnZeroEffect();
@@ -94,7 +94,7 @@ public sealed class DeterministicScenarioTests
     /// S3 单一 Primary Run：重复 admit/activate（Drive 前后共三次激活）全部
     /// 幂等接受且指向同一 RunId，零额外副作用、零额外 outcome。
     /// </summary>
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-WIFI-003")]
     public void S3_DuplicateActivation_SinglePrimaryRun()
     {
         var bundle = GoldenScenarioBundles.WifiToggleOffToOn();
@@ -135,7 +135,7 @@ public sealed class DeterministicScenarioTests
     /// 一次 Effect 发生但 receipt 不是 proof——run 非终态、obligation 未满足、
     /// 无 proof 对象形成。
     /// </summary>
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-WIFI-004")]
     public void S4_MissingPostActionStimulus_LegalWaiting_NoSecondEffect_NoTerminalSuccess()
     {
         var bundle = GoldenScenarioBundles.MissingPostActionStimulus();
@@ -171,7 +171,7 @@ public sealed class DeterministicScenarioTests
     /// late stimulus 保持 unconsumed、零 late effect；terminal 后再 Drive →
     /// AlreadyTerminal。验收在 FinalizePhased 之后核对。
     /// </summary>
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-WIFI-005")]
     public void S5_WaitingCancelThenLateStimulus_ZeroLateEffect_NoRevival()
     {
         var bundle = GoldenScenarioBundles.CancelThenLateStimulus();

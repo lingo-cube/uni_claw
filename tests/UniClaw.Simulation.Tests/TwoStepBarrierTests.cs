@@ -20,7 +20,7 @@ public sealed class TwoStepBarrierTests
     /// step2 的 "menuItem" role 来自 manifest frame 元素（bounds +
     /// perceptionType "menuItem"，在 case-b-on 与 case-a-before 两帧均有）。
     /// </summary>
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-BARRIER-001")]
     public void TwoStep_EvidenceBetweenSteps_SecondEffectAllowed_TerminalCompletion()
     {
         var bundle = GoldenScenarioBundles.TwoStepToggleThenMenuItem();
@@ -49,7 +49,7 @@ public sealed class TwoStepBarrierTests
     /// ——step2 被 serialization barrier 阻塞，第二次 effect 不得发生；
     /// Submit(cancel) → DriveOnce → SafeStop terminal，effects 仍为 1。
     /// </summary>
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-BARRIER-002")]
     public void TwoStep_MissingMiddleEvidence_SecondEffectBlocked_BySerializationBarrier()
     {
         var bundle = GoldenScenarioBundles.TwoStepMissingMiddleEvidence();
@@ -91,7 +91,7 @@ public sealed class TwoStepBarrierTests
     /// Assurance verification 必须 fail closed，不得仅凭 context 正确就放行
     /// menuItem 的第二次 Effect。
     /// </summary>
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-BARRIER-003")]
     public void TwoStep_PostActionContradictsDesiredState_SecondEffectBlocked()
     {
         var original = GoldenScenarioBundles.TwoStepToggleThenMenuItem();

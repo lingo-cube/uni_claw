@@ -8,7 +8,7 @@ namespace UniClaw.Simulation.Tests;
 /// </summary>
 public sealed class SimulationHostSmokeTests
 {
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-SMOKE-001")]
     public void S1_HappyPath_EndToEnd_Accepts()
     {
         var execution = ScenarioRunner.Run(GoldenScenarioBundles.WifiToggleOffToOn());

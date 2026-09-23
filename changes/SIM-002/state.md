@@ -78,6 +78,27 @@ G4 C7 v0.2 能准确描述当前 hybrid Agent realization
 
 ## Status log
 
+- 2026-09-23 · G3 closed（覆盖率真值链）· `scenario-coverage.py` 不再
+  读 JSON 自报 status：以 TRX（`dotnet test --logger trx`）的 FQN→outcome
+  为唯一真值源；映射经 `[Trait("Scenario", "SCN-…")]` 钉在 17 个承载
+  测试方法上（WIFI×5 Deterministic / BARRIER×3 TwoStep / PERC×8
+  AsyncPerception 主变体 S1,S2a,S2b,S3a,S3b,S4,S6,S8b / SMOKE×1），
+  工具用 `--list-tests --filter` 从二进制发现映射（TRX 不携带 xUnit
+  traits——vstest 局限，join 发生在 FQN 层）。三类违规 exit 1：无结果
+  （声明非 not-implemented 而无承载）/ 结果不匹配（JSON 声明 ≠ 派生）/
+  schema 违规（缺字段或非法枚举，自 WARN 升级）；另加 TRX 陈旧检查
+  （TRX 早于 Kernel/Agent 源、仿真测试源或场景库任一文件的最后修改）。
+  C# 侧 `ScenarioCertificationTests` 增双执法：每个场景必有 trait 承载
+  + 反向（trait 指向不存在场景也违规）。RED 先行：trait 执法测试落地
+  时 17 条目全红 → 加 trait → 绿。实测验收：谎报 status= failing（真实
+  passing）→ 「结果不匹配」exit 1；G2 侧篡改期望值 → 摘要不匹配
+  exit 1——两个谎报方向都有牙。已知漂移记录（未动，属致因 change 的
+  C8 范围）：SCN-PERC-003 期望 AgentDecisionFailed，承载测试 S2b 实际
+  断言 TerminalNotProven（RUN-004 涟漪只改了一侧）；SCN-WIFI-003 期望
+  AlreadyTerminal 无 C# 对应物。验证：level DETERMINISTIC——method
+  `--run`/`--trx` 全流程 + 篡改演示；actual 17/17 passing 派生 + 双向
+  拒绝 + exit 码正确；evidence 本条 + 仓库 HEAD。
+
 - 2026-09-23 · G2 closed（golden 认证持久化 + Verify-only）·
   scenarios/ 17 条目全部带 certification 块（expectationsDigest /
   runtimeSourceHash / certifiedByChange / certifiedAt）；唯一写入口

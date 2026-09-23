@@ -47,6 +47,19 @@ python3 tools/scenario_certify.py --check
 ## 使用
 
 ```bash
-# 能力覆盖率报告
-python3 tools/scenario-coverage.py
+# 能力覆盖率报告（SIM-002 G3：status 由 TRX 真实执行派生，非 JSON 自报）
+python3 tools/scenario-coverage.py --run    # 跑测试 + 出报告（推荐）
+python3 tools/scenario-coverage.py --trx <path>  # 用既有 TRX
+
+# 无结果 / 结果不匹配 / schema 违规 / TRX 陈旧 / 认证违规 → exit 1
 ```
+
+## 测试承载（SIM-002 G3）
+
+每个场景条目必须有一个（或多个）承载测试，映射以
+`[Trait("Scenario", "SCN-…")]` 钉在测试方法上——测试改名/删除，映射随
+之消失，覆盖率工具报「无结果」exit 1；C# 侧由
+`ScenarioCertificationTests` 双执法（含反向：trait 指向不存在的场景也
+违规）。工具经 `dotnet test --list-tests --filter Scenario=<id>` 从二进制
+发现映射（TRX 不携带 xUnit traits——vstest 局限），再与 TRX 的
+FQN→outcome join 派生 status。

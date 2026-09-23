@@ -155,7 +155,7 @@ public sealed class AsyncPerceptionScenarioTests
     // ① Fast 漏目标 → 定向 Slow 找回（omission ≠ absence）
     // =====================================================================
 
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-PERC-001")]
     public void S1_FastMissesTarget_TargetedSlowRecovers_OneEffectOnRealTarget()
     {
         var facts = Facts();
@@ -255,7 +255,7 @@ public sealed class AsyncPerceptionScenarioTests
     //    旧 revision 绑定失效。
     // =====================================================================
 
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-PERC-002")]
     public void S2a_FastMisjudgesState_SlowCorrectsBeforeDecision()
     {
         var facts = Facts();
@@ -316,7 +316,7 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.Equal(TerminalClassification.Completion, final.Outcome!.Classification);
     }
 
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-PERC-003")]
     public void S2b_FastOnlyContrast_UncorrectedMisjudge_FailsClosed_NoCompletion()
     {
         var facts = Facts();
@@ -443,7 +443,7 @@ public sealed class AsyncPerceptionScenarioTests
     // exact duplicate）；basis/冲突/不确定性变化 → 新 revision。
     // =====================================================================
 
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-PERC-004")]
     public void S3a_IrrelevantAndExactDuplicateEvidence_DoNotGrowRevision()
     {
         var facts = Facts();
@@ -499,7 +499,7 @@ public sealed class AsyncPerceptionScenarioTests
             $"admissions={host.LedgerCore.AdmissionLog.Count}");
     }
 
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-PERC-005")]
     public void S3b_BasisConflictUncertaintyChange_GrowsRevision()
     {
         var facts = Facts();
@@ -559,7 +559,7 @@ public sealed class AsyncPerceptionScenarioTests
     // ④ 旧 capture 的 Slow 迟到（页面/采集推进后）→ Superseded 隔离
     // =====================================================================
 
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-PERC-006")]
     public void S4_StaleSlowAfterPageAdvance_Quarantined_ZeroBeliefPollution()
     {
         var facts = Facts();
@@ -873,7 +873,7 @@ public sealed class AsyncPerceptionScenarioTests
     //    推断 absence；failure ≠ OK_EMPTY。
     // =====================================================================
 
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-PERC-007")]
     public void S6_FourTerminalCompletionStates_StrictlyDistinct()
     {
         var facts = Facts();
@@ -1163,7 +1163,7 @@ public sealed class AsyncPerceptionScenarioTests
     // ⑧-B 后续识别仍错误 / 冲突：Slow 不因更慢成真值；歧义零点击
     // =====================================================================
 
-    [Fact]
+    [Fact, Trait("Scenario", "SCN-PERC-008")]
     public void S8b_StillWrongOrConflicting_SlowNotAutoTruth_AmbiguityZeroClicks()
     {
         var facts = Facts();
