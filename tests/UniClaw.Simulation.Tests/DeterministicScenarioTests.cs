@@ -156,7 +156,7 @@ public sealed class DeterministicScenarioTests
         // 非终态、无 outcome
         Assert.False(host.Facts.IsRunTerminal);
         Assert.Null(host.Facts.RunHistory[^1].Outcome);
-        Assert.Equal(2, report.AgentConsultations);
+        Assert.Equal(1, report.AgentConsultations); // RUN-004：driver 自主等待
 
         // receipt ≠ proof：尝试证据已入账（act 计数记录了该动作），
         // 但 MaterialEffect obligation 未满足、无 proof 对象形成
@@ -194,6 +194,7 @@ public sealed class DeterministicScenarioTests
         var second = host.DriveOnce();
         Assert.Equal(RunDriveStatus.Completed, second.Status);
         Assert.NotNull(second.Outcome);
+        // RUN-004：cancel 由 driver 自主处理（预算截断），分类 Completed
         Assert.Equal(UniClaw.Kernel.Run.TerminalClassification.SafeStop, second.Outcome!.Classification);
         Assert.True(host.Facts.IsRunTerminal);
         Assert.Equal(1, host.EffectDeliveryCount);

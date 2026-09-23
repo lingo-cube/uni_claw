@@ -95,7 +95,7 @@ internal static class GoldenScenarioBundles
                 Justification: "switch already on"),
             Expected = new ScenarioExpectation(
                 "Completed", "Completion", ExpectedEffects: 0,
-                ExpectedAgentConsultations: 2, ExpectedUnconsumedStimuli: 0,
+                ExpectedAgentConsultations: 1, ExpectedUnconsumedStimuli: 0,
                 ExpectedGoalSatisfaction: "Satisfied"),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
@@ -124,6 +124,7 @@ internal static class GoldenScenarioBundles
                 ExpectedStatus = "WaitingForInput",
                 ExpectedClassification = null,
                 ExpectedEffects = 1,
+                ExpectedAgentConsultations = 1, // RUN-004：driver 自主等待，不需二次咨询
                 ExpectedUnconsumedStimuli = 0,
                 ExpectedGoalSatisfaction = null,
             },
@@ -154,11 +155,12 @@ internal static class GoldenScenarioBundles
                 AgentScriptKind.Act,
                 new[] { Step("toggle", null, "tap", "true") },
                 Justification: "flip the wifi switch on"),
-            // 终态期望（FinalizePhased 之后核对）：cancel → SafeStop、
-            // 1 effect、late stimulus 保持 unconsumed、goal Unsatisfied。
+            // 终态期望（FinalizePhased 之后核对）：RUN-004 多轮协议下
+            // cancel 由 driver 自主处理（预算截断），分类 Completed（run
+            // 生命周期结束），goal 仍 Unsatisfied（目标未达成）。
             Expected = new ScenarioExpectation(
                 "Completed", "SafeStop", ExpectedEffects: 1,
-                ExpectedAgentConsultations: 2, ExpectedUnconsumedStimuli: 1,
+                ExpectedAgentConsultations: 1, ExpectedUnconsumedStimuli: 1,
                 ExpectedGoalSatisfaction: "Unsatisfied"),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
