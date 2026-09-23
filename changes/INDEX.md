@@ -12,4 +12,4 @@
 | GATE-001 | implementing | none | standard | GATE-001 — 门控再校准 shadow-mode 实验（两周期） |
 | PER-009 | verifying | none | decision-heavy | PER-009 — 多源观察与信任：XML producer + 冲突裁决 + 信任等级（竖切） |
 | RUN-004 | planning | none | decision-heavy | RUN-004 — 多轮决策协议（P25 契约 v2 + 驱动器返回转移 + 完成证明三层） |
-| SIM-001 | persisted | none | standard | SIM-001 — 仿真 Host 插件化补全（SeamOverrides） |
+| SIM-001 | implemented | none | standard | SIM-001 — 仿真 Host 插件化补全（SeamOverrides） |

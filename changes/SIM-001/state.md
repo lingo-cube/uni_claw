@@ -1,6 +1,6 @@
 # SIM-001 — 仿真 Host 插件化补全（SeamOverrides）
 
-lifecycle_state: persisted · disposition: none · depth: standard · base: 87b2247
+lifecycle_state: implemented · disposition: none · depth: standard · base: 87b2247
 
 ## Intent
 
@@ -44,8 +44,18 @@ SimulationHost 工厂面的 5 个缝 + Agent 脚本全部 hard-code——
 
 ## Verification
 
-（IMPLEMENT 后四元组回填）
+```yaml
+level: DETERMINISTIC
+method: dotnet test Simulation.Tests --filter SeamOverride + 全量回归
+expected: 4/4 新测试绿 + 105/27 与改动前一致（零回归）
+actual: 4/4 绿；全量 105 通过/27 失败 = 改动前精确同数
+evidence: commit f26bce1（含 SeamOverrideTests.cs 4 例）
+```
 
 ## Status log
 
 - 2026-09-22 · created·persisted · grill 三问落定（全开/独立 record/独立 change）
+- 2026-09-22 · implemented · SeamOverrides 6 缝落地 + SimulationHost 工厂
+  读取 + EffectDriver 类型改接口 + EffectDeliveryCount 便捷面 +
+  8 文件 DeliveryCount 批量迁移（AsyncPerceptionHost 回退）；
+  4/4 新测试绿，105/27 精确同前（零回归）
