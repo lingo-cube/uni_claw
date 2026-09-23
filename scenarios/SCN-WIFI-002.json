@@ -11,6 +11,8 @@
   ],
   "status": "passing",
   "version": 2,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "real",
   "expectations": {
     "status": "Completed",
     "classification": "Completion",

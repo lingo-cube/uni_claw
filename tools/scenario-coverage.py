@@ -44,7 +44,9 @@ SIM_TESTS = ROOT / "tests" / "UniClaw.Simulation.Tests"
 TRX_DIR = SIM_TESTS / "TestResults"
 VALID_STATUS = {"passing", "failing", "pending-env", "not-implemented"}
 VALID_SOURCE = {"recorded", "generated", "derived-from-doc", "bug-repro", "component-test"}
-REQUIRED_FIELDS = ["id", "name", "source", "purpose", "capability", "components", "status", "version"]
+VALID_REALIZATION = {"real", "double"}
+REQUIRED_FIELDS = ["id", "name", "source", "purpose", "capability", "components", "status", "version",
+                   "agentDecisionRealization", "goalEvaluationRealization"]
 
 OUTCOME_TO_STATUS = {
     "Passed": "passing",
@@ -162,6 +164,10 @@ def load(trx_outcomes: dict[str, str], test_map: dict[str, list[str]]) -> tuple[
             violations.append(f"{f.name}: invalid status '{data.get('status')}'")
         if data.get("source") not in VALID_SOURCE:
             violations.append(f"{f.name}: invalid source '{data.get('source')}'")
+        # SIM-002 G4（C7 v0.2）：Agent 侧拆分标注（与实际构成的一致性由 C# 侧执法）
+        for field in ("agentDecisionRealization", "goalEvaluationRealization"):
+            if data.get(field) not in VALID_REALIZATION:
+                violations.append(f"{f.name}: {field} 缺失或非法值 '{data.get(field)}'（legal: real|double）")
         violations.extend(verify_entry(data, f.name, source_hash))
 
         # 真值链：TRX 派生 status vs JSON 声明

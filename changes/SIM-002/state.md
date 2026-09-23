@@ -78,6 +78,24 @@ G4 C7 v0.2 能准确描述当前 hybrid Agent realization
 
 ## Status log
 
+- 2026-09-23 · G4 closed（C7 v0.2 拆分标注）·
+  `docs/architecture/simulation-baseline-v0.2-c7-amendment.md`（delta
+  修订：仅 C7 被取代，v0.1 其余条款不动；授权 = 本 change 2026-09-22
+  用户 Gate 裁决，满足 v0.1 §7 C 条款变更需 Human Gate）。C7 拆分为
+  `agentDecisionRealization`（决策面，ConsultAgent seam）+
+  `goalEvaluationRealization`（评估面，PrimaryGoal→GoalEvaluation），
+  断言分层按面细化（R2 语义保持）；记录当前 hybrid 构成：decision=
+  double（ScriptedUniAgent）/ evaluation=真件（ScenarioRunner 经
+  BuildGoal→UniAgent.Evaluate——代码实证后落档）。场景库 17 条目
+  全部标注（double/real）；执法双面：C#
+  ScenarioRealizationAnnotationTests（存在/合法/与实际构成一致 +
+  构成锚点活性证明）+ 覆盖工具 schema 违规（缺失/非法 → exit 1）。
+  RED 先行：标注测试落地时 17 条目报缺字段 → 标注 → 2/2 GREEN。
+  schema.json v2 重建（含本两字段）明确归 S5，未顺手做。验证：level
+  DETERMINISTIC——method 标注测试 + `--run` 全流程；actual 2/2 +
+  17/17 passing 派生 + 工具仅余并行会话待重认证的源码哈希违规（设计内）；
+  evidence 本条 + 仓库 HEAD。
+
 - 2026-09-23 · G3 closed（覆盖率真值链）· `scenario-coverage.py` 不再
   读 JSON 自报 status：以 TRX（`dotnet test --logger trx`）的 FQN→outcome
   为唯一真值源；映射经 `[Trait("Scenario", "SCN-…")]` 钉在 17 个承载

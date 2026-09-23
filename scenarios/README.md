@@ -13,10 +13,14 @@
 | bug-repro        | 缺陷复现                 |
 | component-test   | 组件级隔离测试            |
 
-## 元数据字段（8 + 期望值 + 认证）
+## 元数据字段（8 + 期望值 + 认证 + Agent realization）
 
-见 `schema.json`。status 由覆盖率工具自动从测试结果更新（G3 待落地：
-当前 status 仍为手维护自报——SIM-002 下一 Gate 绑定真实 test execution）。
+见 `schema.json`（schema v2 重建归 SIM-002 S5）。status 由覆盖率工具从
+TRX 真实执行派生（G3）。每个场景还带 Agent 侧拆分标注（G4 /
+simulation-baseline v0.2 C7）：`agentDecisionRealization` 与
+`goalEvaluationRealization`（legal: real|double；当前构成 hybrid——
+decision=double，evaluation=真件；与实际构成的一致性由
+`ScenarioRealizationAnnotationTests` 执法）。
 
 ## Golden 认证（SIM-002 G2）
 
