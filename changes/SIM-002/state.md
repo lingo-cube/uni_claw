@@ -1,0 +1,82 @@
+# SIM-002 — Simulation Baseline Compliance
+
+lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: c3ef5b30
+
+## Intent
+
+不是继续设计仿真，而是**让当前仓库重新符合已冻结的仿真架构基线**。
+外部审阅（第三轮，2026-09-22）确认：Architecture CLOSED / Implementation Compliance OPEN。
+本 change 按 Gate 顺序闭合差距。
+
+## 核心裁决（用户 2026-09-22）
+
+```text
+G1 Product Host 无 Simulation / Replay 依赖闭包
+G2 Golden certification 不可由 test runtime 自行重新签发
+G3 Scenario status 来自真实 test execution，而非 JSON 自报
+G4 C7 v0.2 能准确描述当前 hybrid Agent realization
+```
+
+## Scope
+
+### Gate 1 — S1 Product Host 边界剥离
+
+从 `src/UniClaw.Host/` 剥离 Simulation/Replay 组件：
+- `ReplayPerception` → 移出 Product Host
+- `V0Runtime`（Simulated FrameFeed）→ 移出
+- `ServicePerception`（ServiceReplayFrameFeed）→ 评估归属
+- `HostRunner` 的 `EffectProfile.Simulated` 默认值 → 改为 fail-closed
+- CLI `--replay` / `--service` 路径 → 剥离或移入 DevHost
+
+验收：Product Host 依赖闭包机械可证不含 Simulation/Replay 路径。
+
+### Gate 2 — S2 Golden 认证持久化
+
+从 `ScenarioBundleDigest.Sealed()`（runtime auto-seal）改为：
+- 认证记录持久化到 scenario JSON（certified digest + change id + artifact hash）
+- test runtime 只允许 Verify（不允许 re-Seal）
+- 覆盖率工具检查 certified hash 与实际 runtime hash 匹配
+
+验收：修改 Expected 后重跑测试不再自动通过认证。
+
+### Gate 3 — S3 覆盖率真值链
+
+`tools/scenario-coverage.py` 升级：
+- 读取 `dotnet test` 结果（而非 JSON 自报 status）
+- test-case ↔ scenario-id 映射
+- 无结果 / 结果不匹配 / schema 违规 → exit 1
+
+验收：`python3 tools/scenario-coverage.py` 输出的 passing 代表
+"此 HEAD 此期望此测试执行刚刚通过"。
+
+### Gate 4 — S4 C7 v0.2 混合 Agent Realization
+
+推进 `simulation-baseline-v0.2`：
+- C7 拆分：`agentDecisionRealization` + `goalEvaluationRealization`
+- 不顺手改其他 C1-C9 条款
+- 场景 schema 加对应字段
+
+### Schema Hygiene — S5/S6/S8
+
+- 修 `scenarios/schema.json` 非法 JSON
+- Schema v2：补 realization / certification / deviation / security 字段
+- `source: generated` → `synthetic`（Phase B 前的语义清理）
+
+## Out of Scope
+
+- Phase B（ScenarioBuilder / IStimulusScheduler）— **G1-G3 闭前不启动**
+- 任何新仿真功能 / 新场景
+- C1-C6 / C8-C9 的基线修订（仅 C7 走 v0.2）
+
+## Decisions
+
+- D1 Gate 顺序 = S1 → S2 → S3 → S4 → S5/S6/S8，不可并行
+  （S1 是产品级冻结边界违规，最高优先）
+- D2 不开第四轮文档审阅——直接进 compliance implementation
+- D3 S1 完成标准 = 依赖闭包机械可证（不是"代码挪了"）
+- D4 Phase B 冻结到 G3 闭合
+
+## Status log
+
+- 2026-09-22 · created·persisted · 外部第三轮审阅触发（S1-S8 + P1-P3），
+  用户裁决按 Gate 推进，Phase B 暂停

@@ -2,7 +2,7 @@
 
 > 派生索引：列出所有 lifecycle_state ≠ closed 的 change。
 > 再生：`python3 tools/gen-open-changes.py`（GATE-001 P-E′；一致性执法二期）。
-> 统计：89 changes · 9 open。
+> 统计：90 changes · 10 open。
 
 | change | lifecycle_state | disposition | depth | title |
 |---|---|---|---|---|
@@ -15,3 +15,4 @@
 | SCN-001 | persisted | none | decision-heavy | SCN-001 — 场景库：可执行的场景定义 + 能力覆盖率 |
 | SCN-002 | persisted | none | decision-heavy | SCN-002 — 生成式场景能力（ScenarioBuilder + DynamicStimulusScheduler） |
 | SIM-001 | implemented | none | standard | SIM-001 — 仿真 Host 插件化补全（SeamOverrides） |
+| SIM-002 | persisted | none | decision-heavy | SIM-002 — Simulation Baseline Compliance |
