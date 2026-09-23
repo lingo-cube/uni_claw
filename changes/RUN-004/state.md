@@ -1,6 +1,6 @@
 # RUN-004 — 多轮决策协议（P25 契约 v2 + 驱动器返回转移 + 完成证明三层）
 
-lifecycle_state: implement → verify（终局收口完成，closure-ready） · disposition: none · depth: decision-heavy · base: c4fcd5d9
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: c4fcd5d9
 
 ## Intent
 
@@ -68,6 +68,19 @@ L2 Policy 形态（RUN-005）；传输层 schema（LLM realization 立项时）�
 世界突变主动检测（preemption Phase 6/7）；跨 run 迟到反馈（恢复编排）。
 
 ## Status log
+
+- 2026-09-24 · **closed（owner 授权 closure）**· 四元组：method = 全 solution
+  测试套件于 HEAD `16ce8b44` 复验（dotnet test UniClaw.Kernel.slnx）；
+  expected = 十项完成条件 + 11 项 acceptance 全绿（spec §12.4 映射表）；
+  actual = 691 通过 / 0 失败 / 0 跳过（Kernel 480 · Simulation 153 · Host 18 ·
+  Agent 17 · Core 14 · FSRealization 9），场景库 18/18 认证有效
+  （runtimeSourceHash=6e00da87…，change=RUN-004）；evidence = 本条记录 +
+  spec §12（终局收口登记）+ 上一条 status log + 仓库 HEAD。范围完成 +
+  acceptance 被证明 + 无未授权改动（会话内提交均落在 RUN-004 归属内）+
+  文档同步（spec §12 / state 与代码一致）+ 无阻塞 Human Decision（本条即
+  裁决记录）。咨询协议自此冻结；G4 Elements XML 增强以 DEFERRED 登记
+  （spec §12.2 触发条件），由独立 change 承接；AGT-001（UniAgent decision
+  realization）在冻结协议上启动。
 
 - 2026-09-24 · **终局收口（Gate 5-7 + 验收补齐）完成** · 六项收口裁决全部落定：
   ①E2/E3 相位由控制流捕获点显式记录（Gate 4 已闭合，回归保持 GREEN）；
