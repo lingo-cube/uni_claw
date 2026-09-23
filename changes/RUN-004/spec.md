@@ -220,3 +220,35 @@ private string? ValidateDecision(
 | G1 minor | closed | 标题 +9→209 | §1 |
 | G3 minor | closed | 尾部可选默认声明 + View 构造点唯一性（无外部涟漪） | §1.2 |
 | G5 minor | closed | canonical 用解析后值 + 编码位声明；256 = 实现常数留痕（64×16 的 1/4 硬顶语义，FocusRetryCap 同族） | §2.1 |
+
+## 11. 评审 #3 更正（2026-09-23 · HEAD b4b6865c 实现实核）
+
+> §10 保留为 v0.2→v0.3 的历史处置记录；以下为评审方对实现逐行核对后的**当前事实**。
+
+| 项 | §10 原判定 | 更正 | 证据（HEAD b4b6865c） |
+|---|---|---|---|
+| F5 预算 fail-closed | closed | **OPEN（P0）** | RunModel.AdmitContract L72-75 构造 View 只传 6 参数（合同预算声明被丢弃，View 恒默认 16/256）；L85-86 幂等仍按 `View.Version` 相等，无合同签名比较、无 `contract-signature-conflict`；MintRunId L101-112 无 B1/B2。验收 2（64 轮）与 D8 fail-closed 均不可达。修复链：contract 预算字段 → admitted view → canonical 签名 → 幂等/冲突检测 → RunId 参与 |
+| G4 Elements XML 增强 | closed | **OPEN（P2）** | DeriveElementSummaries（L610-620）恒 `Epistemic=Partial`、能力字段全 null；UiAutomatorDump 无 viewport 参数、无 `nbounds:` lineage。二选一：实现，或显式 DEFERRED（reason/trigger/current-state 登记）后删除 closed 声明 |
+| M1/T6（验收 9） | （§2 M1 / §6 验收 9 正文） | **OPEN（P0）** | Defer 分支（L284-297）无 MaxRounds 计数；PhaseForCurrent（L582-589）恒不产 DeferRoundsExhausted → V5 豁免条件恒真、嵌套 Defer 恒拒；无 `defer-exhausted` 终局路径。验收 9 当前实现**不可能产生满足它的执行轨迹** |
+| F12 验收 9–11 承载 | 文档已补 | **OPEN（P0 Gate 前置，RED-first）** | tests 对 `Defer / AwaitingCompletionAdjudication / ResumeWithAdjudication / PendingCompletionDossier / defer-exhausted` 零命中；涟漪修复只对齐旧场景（agentCalls/status），未产生新验收测试 |
+| PhaseForCurrent 分派（新） | — | **OPEN（P1）** | L587-588：`RunState?.ProofObligations != null → VerificationFailed`——激活后 RunState 恒非空 → **StepRejected 相位恒不可达**，E2（接地/门拒）与 E3（验证失败）对 Agent 不可区分（验收 1 vs 3 恢复语义混同） |
+| 层3 rejected 终局化（新） | — | **OPEN（P1/P2）** | ResumeWithAdjudication(false) 无持久 settlement marker（如 rejected 标记）；`_adoptedDecision` 仍持 NoAction+Completion → Drive() 重入后重新进入 AwaitingCompletionAdjudication（API terminality ≠ 状态机 terminality） |
+| G2 / F8 | closed | **维持 closed** | DischargeCompletion 经 `_kernel.Process` 入证（kernel.completion-verifier/adjudicator producer，lineage 载 basis，`kernel.lifecycle`/`kernel.conflict-resolver` 写回先例）；满足义务的 claim 由 kernel 侧入证、人为 anchor 只作授权门槛——「义务满足来源 = adjudicator 权威，非 anchor 本身」成立。VerifyCompletionAnchors 三锚可查（_completedSteps / EffectReceipts / EvidenceBasis） |
+| V4/E4/Disposition/Defer-D2 偏差（新） | （未登记） | **待登记（Gate 7）** | V4 首询限定（L652-654）、E4 悬案守卫（L368）、Disposition 三分→二分（L591-596）、Defer 无 DecisionId 回带（L570）——实现收窄/简化均未登记 |
+| **V5 自引用（Gate 1 实测，新）** | — | **NEW MAJOR → Gate 3** | KernelRunDriver.cs L241 咨询返回后立即 `_lastAnswer = consulted.Value` → 首个 Defer 进入 case 时 `lastAnswer is AgentDecision.Defer` 对**当前回答自身**恒真 → 任何单个 Defer 均被判 `defer-unbounded:nested`（RED3 实测仅 1 次咨询、AgentDecisionFailed）。验收 4（Defer 一轮）与验收 9 在现实现下均不可行。修复并入 Gate 3：`_lastAnswer` 应为上一轮回答（当前回答进校验前不得回填） |
+
+**Gate 2 结果（2026-09-23，只修 F5）**：RunModel 预算链三处落地（null→16/256 解析进 View；
+幂等比较升级为合同签名 → 同 version 异预算 `contract-signature-conflict`；MintRunId 增
+B1/B2 参与 canonical）。两个 Acceptance 2 RED → GREEN；其余 Gate-1 状态保持原状
+（Acceptance9×2 / Acceptance1 仍 RED，Acceptance3 GREEN）。Kernel.Tests 463 通过/3 失败
+（3 失败 = 保留 RED）。Simulation.Tests 3 失败经 stash 隔离证明非 F5 回归（b4b6865c 既有，
+`AgentConsultations` 1→2 的 import/redrive/golden 旧期望未升档——疑被误归「17 环境失败」桶，
+建议后续单独核对）。
+
+**放行条件（四项，全部闭合前不做第四轮文档对抗审阅）**：
+1. F5 预算链（contract → view → canonical 签名 → 幂等/冲突检测 → RunId）有 RED→GREEN 证明；
+2. Defer 耗尽状态实际可达（MaxRounds 计数、DeferRoundsExhausted 相位、V5 豁免可达、`defer-exhausted` 终局）；
+3. StepRejected / VerificationFailed 可观察地区分（E2/E3 相位分派）；
+4. v0.3 新增验收（4/6/9/10/11）有 executable tests（RED 先行）。
+
+**修复顺序（Gate 0-7，RED-first）**：Gate 0 纠正 claim（本 §）→ Gate 1 先建 RED（验收 2/9/1-3）→ Gate 2 修 F5 → Gate 3 修 Defer 状态机 → Gate 4 修 phase 分派 → Gate 5 补 adjudication settlement → Gate 6 其余验收（4/6/10/11）→ Gate 7 spec debt（G4 defer/实现、V4/E4/Disposition/Defer-D2/折抵信任面登记、死代码清理）。

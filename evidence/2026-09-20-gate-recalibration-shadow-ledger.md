@@ -49,8 +49,21 @@
 
 | 23 | 2026-09-22 | RUN-004 spec 复评（评审 #2） | v0.2 处置核验 + 复评 | C1（claim-vs-fact 持续执法）；复评专属问题四项定向复核（新 claim/表层里层/RED 可构造性/投机复查） | 评审方逐行核 v0.2 新增内容自身的事实性；判定 12/4/0/0——收敛型复评的范式：上轮 16 项零回退，残留全为文字收口无设计改动 | CHANGES_REQUIRED（收口型）：F5 幂等不可达 + G2 折抵落点缺失两 major → v0.3 闭合 | **是**（第五次高价值评审——且首抓「承诺在既有代码下不可达」的可达性类缺陷） | 异步 |
 
+| 24 | 2026-09-23 | RUN-004 spec 评审 #3（实现后首审，HEAD b4b6865c） | v0.3 处置表 vs 实现逐行核对 | C1（claim-vs-fact 持续执法）；首次实现层核对 | 五 major：F5 预算链（AdmitContract 不解析/无签名比较/无 B1B2——合同声明丢失）、M1/T6（无 MaxRounds/无 DeferRoundsExhausted/豁免不可达/defer-exhausted 缺失——验收 9 无可行轨迹）、G4（nbounds 两侧缺席）、验收 4/6/9/10/11 零测试承载、StepRejected 相位恒不可达（PhaseForCurrent 恒 VerificationFailed）；另层3 rejected 无持久 marker | CHANGES_REQUIRED 维持；**§10 两条 closed 被代码证伪——「处置表 ≠ 仓库真相」首例**；用户裁决：验收承载升 RED-first P0 Gate、rejected 升 P1/P2；放行条件四条；Gate 0-7 修复顺序（Gate 0 文档 claim 纠正已落，见 spec §11/state status） | **是**（第六次高价值评审——首抓处置表 closed 与实现缺席不一致） | 异步 |
+
+| 25 | 2026-09-23 | UAR-003（立项 grill，6 槽：D0 推荐组合 / D1 adapter 宿主 / D2 绑定文件 / D3 强制闭环 / D4 DSH_HOME 与凭证 / D5 sandbox+C8） | DSH 嵌入 R1 前置决议：批准研究推荐组合 + 裁决研究 §9 五未决问题 + 产出 Tracer Bullet 预定授权边界 | C1（方向两可——DSH 轨道形态与授权边界=产品语义取舍，触发器①新战线开工）；D2/D3 各自 C2（研究 §5.2 倾向 + MRB-001/baseline 约束单一显然步骤）；D4/D5 混合（隔离落点可推出，最小化范围=ADR-0026 buyer-driven 推导） | 研究 §1–§8 全部一手证据（路径:行号 + [已核实] 标注）+ baseline §9 deferred 边界 + 用户 2026-09-23 前台裁决选「开 R1 决议 change（推荐）」（前序判断：DSH 实现不提前、SIM-002 队列不动摇） | D0/D2/D3/D4/D5 全按建议（5/5）；D1 用户委托「哪种符合架构正确性」→ Leader 依工件推导链（baseline §4 调用者不得依赖 Plugin/Profile/transport + §5 Host 物理保存 Product records 禁令 + ADR-0022 D4 + 研究 §3.4/§8.5 发布链路未决 + §5.2 Kernel 唯一 authority）裁定 a（C# 进程内），veto 窗口至下次触点 | 否（零 override；D1 为委托裁定非默认采纳） | ≈0（一次问答） |
+
+| 26 | 2026-09-23 | UAR-003 closure | DECISION-HEAVY 决议 change（六槽裁决全留痕、Acceptance 1–5 CONTRACT 核验过、零实现改动、Review PASS）是否关闭 | 事实面 C2（四元组齐 + git 范围核对 + 台账 #25 同步）；规则面 C1（P-D′ DECISION-HEAVY 保留人工 closure） | 同事件 #1/#4/#8/#12 张力：closure 类决策事实可推出，规则永久保留 | 批准关闭（与建议一致，零 override，同会话一次问答） | 否 | ≈0 |
+
+| 27 | 2026-09-23 | RUN-004 Gate 1 ACCEPTED + Gate 2（F5 修复） | RED-first 验收测试 + F5 预算链修复 | C1（验收可执行化；claim→可执行失败→再转 GREEN 的正向闭环） | Gate 1：6 测试 = 5 有效 RED + 1 GREEN（E3 对照），**V5 自引用新发现**（首个 Defer 即被拒——验收 4 连带不可行）；Gate 2：RunModel 三处落地（View 解析、合同签名幂等比较、MintRunId B1/B2），两个 Acceptance2 RED → GREEN，其余保持 RED；Kernel 463/3（3 = 保留 RED）；Sim 3 失败 stash 隔离证明 pre-F5（import/redrive `AgentConsultations` 1→2 旧期望未升档） | ACCEPTED（V5 记 Gate 3）；Gate 2 目标达成 | **是**（RED-first 首次把「处置表≠代码」转成稳定失败再转 GREEN 的完整闭环） | 异步 |
 
 ## 边界案例池（「单一显然步骤」判例积累）
+
+- **2026-09-23 · 事件 #25**：D1 委托裁定形态——用户以「哪种符合架构正确性」
+  把选项裁决转换为架构推导题（非弃权、非默认采纳）：Leader 依工件级推导链
+  （baseline §4/§5 + ADR-0022 D4 + 研究 §3.4/§8.5）裁定并以 veto 窗口
+  兜底。与事件 #7（推导链已硬→C2 直行）同族但方向相反：#7 是推导链足够
+  硬以致无需上报，#25 是上报后人工选择「用架构正确性替代人工偏好」。
 
 - **2026-09-20 · 事件 #1**：DECISION-HEAVY closure 在事实面可推出（后继全 closed、证据绿、残余无），但 P-D′ 规则将其永久保留给人工——出现「规则面 C1 / 事实面 C2」的张力。人裁决与事实面建议一致（零 override、零等待成本）。校准报告需决定：规则保留是否过宽，或是否正是「闭门类决策」本就该从 C1 排除的信号。
 

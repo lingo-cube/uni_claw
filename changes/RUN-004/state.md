@@ -69,6 +69,27 @@ L2 Policy 形态（RUN-005）；传输层 schema（LLM realization 立项时）�
 
 ## Status log
 
+- 2026-09-23 · Gate 1 ACCEPTED（评审 #3 缺口 → 6 测试可执行化：5 RED + 1 GREEN，
+  KernelRunDriverTests 17/17 无回归）· **V5 自引用**（KernelRunDriver L241 `_lastAnswer`
+  回填当前回答 → 首个 Defer 即被 V5 判 nested）记为 **Gate 3 新 major**（验收 4 连带
+  不可行）；不扩大 scope。
+- 2026-09-23 · Gate 2 完成（只修 F5）· RunModel 预算链三处落地：null→16/256 解析进
+  View（含 canonical MintRunId 增 B1/B2）、幂等比较升级合同签名（同 version 异预算 →
+  `contract-signature-conflict`）。两个 Acceptance 2 RED → GREEN；其余 Gate-1 状态保持
+  原状（Acceptance9×2 / Acceptance1 仍 RED，Acceptance3 GREEN）；Kernel.Tests 463/3
+  （3 失败 = 保留 RED）；Simulation.Tests 3 失败经 stash 隔离证明非 F5 回归——b4b6865c
+  既有 `AgentConsultations` 1→2 旧期望（import/redrive/golden 族未升档，疑入「17 环境
+  失败」桶），建议后续单独核对。
+
+- 2026-09-23 · spec-review-3·**CHANGES_REQUIRED 维持**（HEAD b4b6865c 实现实核）·
+  首次对实现逐行核 v0.3 处置表：§10 声称 closed 的 **F5（预算通道）** 与 **G4
+  （Elements XML 增强）代码缺席 → 改判 OPEN**；**M1/T6 链（验收 9）**与
+  **StepRejected 相位**不可达；验收 4/6/9/10/11 **零测试承载**；层3 rejected 无
+  持久 settlement marker。修正后判定：G2/F8 closed ✓，其余按 spec §11。放行
+  条件四条（F5 预算链 RED→GREEN / Defer 耗尽可达 / E2-E3 相位可区分 / 新验收
+  executable）。修复顺序 Gate 0-7（RED-first）；四项闭合前不做第四轮文档对抗
+  审阅。
+
 - 2026-09-22 · spec-review-2·CHANGES_REQUIRED(收口型)→v0.3 · 复评
   12 closed/4 partial/5 新（G1–G5），无回退无 worsened。两个 major 残留
   闭合：F5 幂等分支升级合同签名比较（D8 fail-closed 可达）；G2 折抵落点

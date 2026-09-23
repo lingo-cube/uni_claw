@@ -39,9 +39,16 @@ public sealed class RunModel
     /// <summary>是否已 terminal（Terminal Outcome State 已记录；§17 不可恢复 active）。</summary>
     public bool IsTerminal => State?.Outcome is not null;
 
+    /// <summary>RUN-004 D8（F5）：预算合同默认值（null→默认；须与
+    /// ExecutionContractView 尾部默认一致——同价 null≡默认 的幂等语义）。</summary>
+    private const int DefaultMaxConsultations = 16;
+    private const int DefaultMaxTotalSteps = 256;
+
     /// <summary>
     /// Contract admission path：非法/不完整 contract → 拒绝 + 零 Run State
-    /// 副作用（验收 1）；同 version 重复 admit → 幂等复用同一 View（验收 9）；
+    /// 副作用（验收 1）；同 version 且合同签名（Version + 两预算解析值）相等
+    /// 重复 admit → 幂等复用同一 View（验收 9）；同 version 异预算 → 拒绝
+    /// "contract-signature-conflict"（RUN-004 D8 fail-closed，评审 #3 F5）；
     /// 不同 version → fail-closed 拒绝（显式取代语义不在本片）。outcome 语义
     /// 不变；Obligations 可选中携带 run-level 证明义务（D2）。
     /// </summary>
@@ -69,11 +76,14 @@ public sealed class RunModel
 
         if (View is null)
         {
+            // RUN-004 D8（F5）：null→默认解析后值进 View（合同预算声明通道）
+            var consultations = contract.MaxConsultations ?? DefaultMaxConsultations;
+            var totalSteps = contract.MaxTotalSteps ?? DefaultMaxTotalSteps;
             View = new ExecutionContractView(
                 contract.Version, contract.Objective,
                 contract.Scope!, contract.AllowedEffects!, contract.ForbiddenEffects!,
-                contract.ProofCriteria!);
-            RunId = MintRunId(contract);
+                contract.ProofCriteria!, consultations, totalSteps);
+            RunId = MintRunId(contract, consultations, totalSteps);
             _history.Add(new RunState(
                 View,
                 new ObjectiveState(contract.Objective, "pursuing"),
@@ -82,8 +92,17 @@ public sealed class RunModel
             return new ContractAdmission(true, checks, RejectionReason: null);
         }
 
-        if (View.Version == contract.Version)
+        // RUN-004 D8（F5 评审 #3 修正）：幂等比较升级为合同签名比较——
+        // Version + 两预算解析值全等才算同一合同；同 version 异预算
+        // = 不同合同 → fail-closed（原实现按 Version 相等即幂等复用，
+        // 预算变更被静默丢弃）。
+        var sameSignature = View.Version == contract.Version
+            && View.MaxConsultations == (contract.MaxConsultations ?? DefaultMaxConsultations)
+            && View.MaxTotalSteps == (contract.MaxTotalSteps ?? DefaultMaxTotalSteps);
+        if (sameSignature)
             return new ContractAdmission(true, checks, RejectionReason: null);
+        if (View.Version == contract.Version)
+            return new ContractAdmission(false, checks, "contract-signature-conflict");
 
         return new ContractAdmission(false, checks, "version-conflict");
     }
@@ -98,7 +117,7 @@ public sealed class RunModel
     /// "run-" + SHA-256 完整 hex（64 位；人工裁决 2026-09-09 二轮）。
     /// 编码拼法 = realization。
     /// </summary>
-    private static string MintRunId(ExecutionContract contract)
+    private static string MintRunId(ExecutionContract contract, int consultations, int totalSteps)
     {
         var canonical = string.Concat(
             Scalar("V", contract.Version),
@@ -106,7 +125,10 @@ public sealed class RunModel
             Collection("S", contract.Scope!.OrderBy(s => s, StringComparer.Ordinal)),
             Collection("E", contract.AllowedEffects!.OrderBy(s => s, StringComparer.Ordinal)),
             Collection("F", contract.ForbiddenEffects!.OrderBy(s => s, StringComparer.Ordinal)),
-            Collection("C", contract.ProofCriteria!));
+            Collection("C", contract.ProofCriteria!),
+            // RUN-004 D8（F5）：两预算解析后值参与 canonical（null≡默认，幂等语义成立）
+            Scalar("B1", consultations.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+            Scalar("B2", totalSteps.ToString(System.Globalization.CultureInfo.InvariantCulture)));
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(canonical));
         return "run-" + Convert.ToHexString(hash).ToLowerInvariant();
     }
