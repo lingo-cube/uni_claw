@@ -98,7 +98,7 @@ public static class LivePerception
 
     public sealed class LiveFrameFeed : IDisposable
     {
-        private readonly V0Runtime.VirtualClock _clock;
+        private readonly HostUtilities.VirtualClock _clock;
         private readonly LiveAssets _assets;
         private readonly Func<string> _readSwitchState;
         private readonly VisionServiceSession _session;
@@ -106,7 +106,7 @@ public static class LivePerception
         private readonly UiAutomatorDump.ProbeStateMachine _xmlProbe = new();
         private int _phase;
 
-        public LiveFrameFeed(V0Runtime.VirtualClock clock, LiveAssets assets, Func<string> readSwitchState)
+        public LiveFrameFeed(HostUtilities.VirtualClock clock, LiveAssets assets, Func<string> readSwitchState)
         {
             _clock = clock;
             _assets = assets;
@@ -136,7 +136,7 @@ public static class LivePerception
             // 真观察：实屏截图 → 真推理 → switch 检测（bounds 来自当前屏幕）
             var shot = _acquisition.CaptureAsync(CancellationToken.None).GetAwaiter().GetResult();
             var responseJson = _session.Analyze(shot.Artifact.Payload);
-            var detection = ReplayPerception.ExtractJson(responseJson, "switch", $"live:{_assets.DeviceId}");
+            var detection = HostUtilities.ExtractJson(responseJson, "switch", $"live:{_assets.DeviceId}");
 
             // PER-009 D1：XML 永远并行（缺席即数据）；D8 探测状态机管节奏
             var dump = TryCoObserveXml(expected, out var degraded);
@@ -247,7 +247,7 @@ public static class LivePerception
         }
 
         private RunDriverInput Frame(
-            ReplayPerception.AnchorDetection detection,
+            HostUtilities.AnchorDetection detection,
             string state,
             ObservationContext context,
             ObservationProposal? stateClaim)
