@@ -1,14 +1,17 @@
 {
-  "id": "SCN-PERC-001",
-  "name": "Fast perception final → verified completion",
+  "id": "SCN-WIFI-006",
+  "name": "WiFi switch off→on (generated, template-equivalent)",
   "source": "synthetic",
-  "srRef": "SR-001",
-  "purpose": "Fast-only perception with correct detection → normal verification → Completion",
+  "srRef": null,
+  "templateRef": "SCN-WIFI-001",
+  "purpose": "SCN-002 D7: generated scenario via ScenarioBuilder.FromTemplate(SCN-WIFI-001) must be semantically equivalent to the recorded golden — generative capability proof, not new coverage",
   "capability": "effect-verification",
   "components": [
     "kernel",
+    "assurance",
+    "effect-boundary",
     "world-model",
-    "assurance"
+    "scenario-builder"
   ],
   "status": "passing",
   "version": 1,
@@ -22,14 +25,15 @@
     "unconsumedStimuli": 0,
     "goalSatisfaction": "Satisfied"
   },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "synthetic（ScenarioBuilder 自 SCN-WIFI-001 模板生成）；无录制资产新增"
+  },
   "certification": {
     "schemaVersion": 1,
     "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
     "runtimeSourceHash": "31ea2562f97486dc5f1d2dafa50b3eb3a62c770de426454a830303b374649978",
-    "certifiedByChange": "RUN-004",
+    "certifiedByChange": "SCN-002",
     "certifiedAt": "2026-09-23"
-  },
-  "security": {
-    "sensitiveReview": "cleared"
   }
 }

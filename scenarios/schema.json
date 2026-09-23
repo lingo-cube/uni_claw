@@ -38,6 +38,10 @@
       "type": ["string", "null"],
       "description": "可选：来源标注 ARCH-DOC-017 的 SR-xxx"
     },
+    "templateRef": {
+      "type": ["string", "null"],
+      "description": "可选（D5）：生成式场景的模板引用（SCN-xxx——ScenarioBuilder.FromTemplate 的来源条目）"
+    },
     "purpose": {
       "type": "string",
       "description": "测什么、为什么存在"

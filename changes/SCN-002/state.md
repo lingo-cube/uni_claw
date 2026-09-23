@@ -1,6 +1,6 @@
 # SCN-002 — 生成式场景能力（ScenarioBuilder + DynamicStimulusScheduler）
 
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: 0c280a81
+lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: 0c280a81
 
 ## Intent
 
@@ -75,6 +75,29 @@ ScenarioRunner / SimulationHost（不变）
 6. GoldenBundle 录制场景不受影响（零回归）
 
 ## Status log
+
+- 2026-09-23 · implemented（Phase B 首切片：Acceptance 1-6 全闭）·
+  ScenarioBuilder（Fluent：FromTemplate / WithScenarioId / Screen /
+  AgentDecides / Expect / Inject(afterStep)）+ IStimulusScheduler 条件式
+  接口 + FixedTimingScheduler 实现（D3 Phase 1；Inject(stimulus, n) 即
+  Scope 中 AfterEffect(n) 语法糖——构建期插入位 = 第 n 个 post-action
+  观察帧之后，与同步 feed 的 FIFO+context 匹配模型一致）。验证：
+  level DETERMINISTIC——A1/A2 生成版 ≡ 录制版（同 runner 全语义字段
+  + 消费轨迹一致，GeneratedScenarioTests 4/4）；A3 Inject 迟到帧
+  保持 unconsumed、run 不扰动（期望面经 Expect 参数化 unconsumed
+  0→1——API 用例本身）；A5 两次 Build 同 bundle digest（层1 构造
+  幂等）+ 两次运行同 semantic digest（层3）；A6 录制零回归
+  （DeterministicScenario 全绿）；A4 SCN-WIFI-006 入库（synthetic +
+  templateRef=SCN-WIFI-001，认证 SCN-002，schema v2 += templateRef，
+  trait 承载，覆盖率 18/18 passing 派生，工具 exit 0）。
+  勘误记录：Acceptance 4 原文 source "generated"——S6 更名后落
+  "synthetic"（语义不变）。附带处置（C8 搭乘补执行）：并行 RUN-004
+  会话提交 3b7268e8（Defer 链）后未做 golden 重认证，17 条旧章源码
+  哈希报警——经机械核对映射测试全绿（期望值未受影响）后，以
+  --change RUN-004 重认证（纯哈希刷新，期望值零改动）。
+  Known RED 保持：Simulation 3 失败（ImportReDrive /
+  AsyncImportRedrive / AsyncPerceptionRealization）为 HEAD 存量，
+  与本 change 零接触（stash 复验在案）。
 
 - 2026-09-22 · created·persisted · grill 八问三轮（含 Q3/Q5/Q6 架构修正）
   全部落定。Q3 修正：调度器内部条件式接口（非固定时机架构）；

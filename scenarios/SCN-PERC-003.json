@@ -25,8 +25,8 @@
   "certification": {
     "schemaVersion": 1,
     "expectationsDigest": "400b1755b0e41e92f3af95979a13117a0329550c4907c34c39fe755e049fd778",
-    "runtimeSourceHash": "4d496d56893063dfd46a3fac5d7d18a9730a7e68e72b7086f46d2e87d2734fb1",
-    "certifiedByChange": "SIM-002",
+    "runtimeSourceHash": "31ea2562f97486dc5f1d2dafa50b3eb3a62c770de426454a830303b374649978",
+    "certifiedByChange": "RUN-004",
     "certifiedAt": "2026-09-23"
   },
   "security": {
