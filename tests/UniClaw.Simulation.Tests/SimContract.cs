@@ -45,7 +45,23 @@ internal static class BundleAssetFiles
         var path = Path.Combine(GoldenPaths.RepoRoot(), GoldenPaths.BundleRoot, relativePath);
         if (!File.Exists(path))
             throw new ScenarioBundleException($"missing bundle asset file: {relativePath}");
-        return Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))).ToLowerInvariant();
+        return HashBytes(relativePath, File.ReadAllBytes(path));
+    }
+
+    /// <summary>
+    /// 统一哈希（CRLF→LF 归一化仅限文本资产）：manifest 哈希锚定 LF 版本；
+    /// Windows core.autocrlf 检出会把文本文件换成 CRLF。二进制保持原字节。
+    /// HashOf 与 ReadArtifact 共用——同一文件同一哈希，跨平台一致。
+    /// </summary>
+    internal static string HashBytes(string relativePath, byte[] bytes)
+    {
+        if (relativePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+            || relativePath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+        {
+            var text = System.Text.Encoding.UTF8.GetString(bytes).Replace("\r\n", "\n");
+            bytes = System.Text.Encoding.UTF8.GetBytes(text);
+        }
+        return Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
     }
 }
 
@@ -73,7 +89,7 @@ internal sealed class BundleAssetRegistry
         if (!File.Exists(path))
             throw new ScenarioBundleException($"missing bundle asset: {assetId} -> {entry.RelativePath}");
         var bytes = File.ReadAllBytes(path);
-        var hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+        var hash = BundleAssetFiles.HashBytes(entry.RelativePath, bytes);
         if (hash != entry.Sha256)
             throw new ScenarioBundleException($"integrity mismatch: {assetId} expected {entry.Sha256} got {hash}");
         return bytes;
