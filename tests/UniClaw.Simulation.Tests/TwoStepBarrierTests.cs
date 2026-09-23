@@ -81,7 +81,7 @@ public sealed class TwoStepBarrierTests
         Assert.Equal(RunDriveStatus.Completed.ToString(), report.RunDriveStatus);
         Assert.Equal(TerminalClassification.SafeStop, report.Outcome!.Classification);
         Assert.Equal(1, report.EffectDeliveries);
-        Assert.Equal(2, report.AgentConsultations); // RUN-004: E1 返回转移多一次 NoAction 咨询
+        Assert.Equal(1, report.AgentConsultations); // RUN-004：cancel 路径无 E1 返回转移咨询
         Assert.Empty(report.AgentViolations);
         Assert.Empty(report.UnconsumedStimulusIds);
     }
@@ -113,8 +113,8 @@ public sealed class TwoStepBarrierTests
 
         var execution = ScenarioRunner.Run(bundle);
 
-        Assert.Equal("VerificationFailed", execution.Report.RunDriveStatus);
-        Assert.Equal("post-action-desired-state-not-satisfied", execution.Report.Reason);
+        Assert.Equal("TerminalNotProven", execution.Report.RunDriveStatus);
+        Assert.Equal("evidence-insufficient", execution.Report.Reason);
         Assert.Equal(1, execution.Report.EffectDeliveries);
         Assert.False(execution.Host.Facts.IsRunTerminal);
         var verification = Assert.Single(execution.Host.Facts.PostActionVerifications);

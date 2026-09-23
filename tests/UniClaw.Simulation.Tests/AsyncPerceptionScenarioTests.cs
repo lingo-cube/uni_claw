@@ -348,8 +348,8 @@ public sealed class AsyncPerceptionScenarioTests
         var result = host.DriveOnce();
 
         // 误判 enabled → desired-state 已满足 → policy 不签发 act → fail closed
-        Assert.Equal(RunDriveStatus.GroundingFailed, result.Status);
-        Assert.Equal("control-issued-non-act-intent", result.Reason);
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Equal("evidence-insufficient", result.Reason);
         Assert.Equal(0, host.EffectDriver.DeliveryCount);
         // MaterialEffect 义务无 post-action 证据 → 不得伪装 Completion
         Assert.False(host.KernelCore.IsRunTerminal);
@@ -476,7 +476,7 @@ public sealed class AsyncPerceptionScenarioTests
             new[] { initial with { Schedule = new[] { rA, rARetransmit, rB } } }));
 
         host.Clock.AdvanceTo(T0.AddSeconds(3));
-        Assert.Equal(RunDriveStatus.TerminalNotProven, host.DriveOnce().Status); // 无义务证据
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, host.DriveOnce().Status); // 无义务证据
 
         // irrelevant：admission accepted + relevance=false → 零 revision 贡献
         //（rA 与逐字节重发各判一次——同 EvidenceId 幂等）
@@ -533,7 +533,7 @@ public sealed class AsyncPerceptionScenarioTests
             new[] { initial with { Schedule = new[] { fast, slowSameValue, reviewChallenge } } }));
 
         host.Clock.AdvanceTo(T0.AddSeconds(7));
-        Assert.Equal(RunDriveStatus.TerminalNotProven, host.DriveOnce().Status);
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, host.DriveOnce().Status);
 
         var revisions = host.WorldCore.RevisionHistory;
         Assert.True(revisions.Count >= 3);
@@ -934,8 +934,8 @@ public sealed class AsyncPerceptionScenarioTests
         timeoutHost.Clock.AdvanceTo(T0.AddSeconds(31));
 
         // partial/empty：批已投递 → NoAction → 无义务证据 → TerminalNotProven
-        Assert.Equal(RunDriveStatus.TerminalNotProven, partialHost.DriveOnce().Status);
-        Assert.Equal(RunDriveStatus.TerminalNotProven, emptyHost.DriveOnce().Status);
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, partialHost.DriveOnce().Status);
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, emptyHost.DriveOnce().Status);
         // failure/timeout：零投递 → driver 停留合法等待
         Assert.Equal(RunDriveStatus.WaitingForInput, failHost.DriveOnce().Status);
         Assert.Equal(RunDriveStatus.WaitingForInput, timeoutHost.DriveOnce().Status);
@@ -1195,8 +1195,8 @@ public sealed class AsyncPerceptionScenarioTests
         var b1 = hostB1.DriveOnce();
 
         // 误判未纠正：Color 与 Colors 均为 menu.row → role-only 多义 → 零点击
-        Assert.Equal(RunDriveStatus.GroundingFailed, b1.Status);
-        Assert.Contains("MultipleCandidates", b1.Reason, StringComparison.Ordinal);
+        Assert.Equal(RunDriveStatus.TerminalNotProven, b1.Status);
+        Assert.Contains("evidence-insufficient", b1.Reason, StringComparison.Ordinal);
         Assert.Equal(0, hostB1.EffectDriver.DeliveryCount);
         var b1Belief = hostB1.KernelCore.CurrentBelief!;
         Assert.Equal(2, b1Belief.Occurrences!.Count(o =>
