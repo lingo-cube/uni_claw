@@ -148,11 +148,22 @@ public sealed class KernelRunDriver
     /// <summary>裁决⑧层3：等待人工终裁旗。</summary>
     private bool _awaitingRuling;
 
-    /// <summary>上一个回答（V5 嵌套 Defer 判定）。</summary>
+    /// <summary>上一个回答（校验期的对照引用；当前回答校验通过并采纳后才回填）。</summary>
     private AgentDecision? _lastAnswer;
+
+    /// <summary>当前 Defer 链已执行的等待轮数（每轮 = 1 拉取 + 1 再咨询，M1）。</summary>
+    private int _deferRoundsUsed;
+
+    /// <summary>Defer 配额耗尽：下一轮咨询以 DeferRoundsExhausted 相位发出（T6 终问）。</summary>
+    private bool _deferExhaustedPending;
 
     /// <summary>上一次咨询的失败上下文（E2/E3 捕获点原文，M2 不净化）。</summary>
     private string? _pendingFailureReason;
+
+    /// <summary>失败来源相位（E2=StepRejected / E3=VerificationFailed；2026-09-23：
+    /// 由控制流在捕获点显式记录，PhaseForCurrent 直读——不再从世界状态反推）。</summary>
+    private AgentDecisionPhase? _pendingFailurePhase;
+
     private int? _pendingFailedStepIndex;
 
     /// <summary>层3 完成自证缓存（docket 呈递用）。</summary>
@@ -238,7 +249,9 @@ public sealed class KernelRunDriver
                         var consulted = ConsultAgentV2(view);
                         _adoptedDecision = consulted.Value;
                         _consultRejection = consulted.Rejection;
-                        _lastAnswer = consulted.Value;
+                        // 注意：不再立即回填 _lastAnswer——校验通过并采纳后才成为
+                        // 下一轮的「上一轮回答」（2026-09-23 语义修正：防止当前回答
+                        // 被当成上一轮，导致首个 Defer 被判嵌套）。
                     }
                     if (_consultRejection is not null)
                     {
@@ -256,6 +269,11 @@ public sealed class KernelRunDriver
                             var v4 = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
                             if (v4 is not null)
                                 return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, v4, null, 0);
+
+                            // 采纳：当前回答成为下一轮对照；Defer 链终结
+                            _lastAnswer = _adoptedDecision;
+                            _deferRoundsUsed = 0;
+                            _deferExhaustedPending = false;
 
                             // 裁决⑧：有 Completion → 尝试折抵
                             if (no.Proposal.Completion is { } evidence)
@@ -283,12 +301,36 @@ public sealed class KernelRunDriver
                         }
                         case AgentDecision.Defer defer:
                         {
-                            // V5 defer-unbounded
+                            // V5 defer-unbounded（静态界）
                             var v5 = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
                             if (v5 is not null)
                                 return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, v5, null, 0);
 
-                            // M1：就地拉一轮观察 → 留在 NeedDecision 再咨询
+                            // T6 终问（配额已尽）：仍 Defer → 确定性终局（不再拉取/咨询）
+                            if (_deferExhaustedPending)
+                            {
+                                _adoptedDecision = null;
+                                return new RunDriveResult(
+                                    RunDriveStatus.TerminalNotProven,
+                                    "defer-exhausted", null, _kernel.EffectReceipts.Count);
+                            }
+
+                            // 新链起点：上一轮不是 Defer → 轮次计数重新开始
+                            if (_lastAnswer is not AgentDecision.Defer)
+                                _deferRoundsUsed = 0;
+
+                            // M1 配额语义（2026-09-23 定形）：MaxRounds = 等待轮次数
+                            //（每轮 = 1 拉取 + 1 再咨询；首个 Defer 是请求本身，不入配额）。
+                            if (_deferRoundsUsed >= defer.Spec.MaxRounds)
+                            {
+                                // 配额已尽仍收到 Defer：进入 exhaustion 终问（不再等待）
+                                _deferExhaustedPending = true;
+                                _adoptedDecision = null;
+                                continue;
+                            }
+
+                            _deferRoundsUsed++;
+                            _lastAnswer = _adoptedDecision;
                             _adoptedDecision = null; // 清空以触发再咨询
                             var observed = PullObservations(ObservationContext.External, "defer-observation");
                             if (observed.Stop is not null)
@@ -300,6 +342,9 @@ public sealed class KernelRunDriver
                             var rejection = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
                             if (rejection is not null)
                                 return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, rejection, null, 0);
+                            _lastAnswer = _adoptedDecision;
+                            _deferRoundsUsed = 0;
+                            _deferExhaustedPending = false;
                             _stepIndex = 0;
                             _phase = DrivePhase.StepAct;
                             continue;
@@ -317,6 +362,7 @@ public sealed class KernelRunDriver
                     {
                         // E1（RUN-004）：提案耗尽 → 回 NeedDecision（StepVerified）
                         _pendingFailureReason = null;
+                        _pendingFailurePhase = null;
                         _pendingFailedStepIndex = null;
                         _adoptedDecision = null; // 清空触发再咨询
                         _phase = DrivePhase.NeedDecision;
@@ -339,6 +385,7 @@ public sealed class KernelRunDriver
                         if (CurrentBudget(view).                            RoundsRemaining > 0)
                         {
                             _pendingFailureReason = "no-single-root-container";
+                            _pendingFailurePhase = AgentDecisionPhase.StepRejected;
                             _pendingFailedStepIndex = _stepIndex;
                             _adoptedDecision = null;
                             _phase = DrivePhase.NeedDecision;
@@ -401,6 +448,7 @@ public sealed class KernelRunDriver
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = reason;
+                            _pendingFailurePhase = AgentDecisionPhase.StepRejected;
                             _pendingFailedStepIndex = _stepIndex;
                             _adoptedDecision = null;
                             _phase = DrivePhase.NeedDecision;
@@ -415,6 +463,7 @@ public sealed class KernelRunDriver
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = reason;
+                            _pendingFailurePhase = AgentDecisionPhase.StepRejected;
                             _pendingFailedStepIndex = _stepIndex;
                             _adoptedDecision = null;
                             _phase = DrivePhase.NeedDecision;
@@ -454,6 +503,7 @@ public sealed class KernelRunDriver
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = reason;
+                            _pendingFailurePhase = AgentDecisionPhase.VerificationFailed;
                             _pendingFailedStepIndex = _stepIndex;
                             _adoptedDecision = null;
                             _phase = DrivePhase.NeedDecision;
@@ -575,18 +625,22 @@ public sealed class KernelRunDriver
 
         // 清除失败上下文（已消费）
         _pendingFailureReason = null;
+        _pendingFailurePhase = null;
         _pendingFailedStepIndex = null;
         return new ConsultOutcome(decision, null);
     }
 
-    private AgentDecisionPhase PhaseForCurrent() =>
-        _pendingFailureReason switch
-        {
-            null when _completedSteps.Count > 0 => AgentDecisionPhase.StepVerified,
-            null => AgentDecisionPhase.InitialPlanning,
-            _ when _kernel.RunState?.ProofObligations != null => AgentDecisionPhase.VerificationFailed,
-            _ => AgentDecisionPhase.StepRejected,
-        };
+    private AgentDecisionPhase PhaseForCurrent()
+    {
+        if (_deferExhaustedPending)
+            return AgentDecisionPhase.DeferRoundsExhausted;
+        // 失败来源由控制流显式记录（E2/E3 捕获点），不再从世界状态反推
+        if (_pendingFailurePhase is { } phase)
+            return phase;
+        return _completedSteps.Count > 0
+            ? AgentDecisionPhase.StepVerified
+            : AgentDecisionPhase.InitialPlanning;
+    }
 
     private string DispositionOf(string subject)
     {
@@ -661,13 +715,11 @@ public sealed class KernelRunDriver
             }
             case AgentDecision.Defer defer:
             {
-                // V5 defer-unbounded（SR-068）
+                // V5 defer-unbounded（SR-068）：静态界（配额链已由 M1 计数替代——
+                // 配额内重复 Defer 合法、耗尽进入 DeferRoundsExhausted 终问；
+                // 「嵌套拒绝」语义 2026-09-23 修订移除，见 spec §4 注记）
                 if (defer.Spec.MaxRounds > 4)
                     return "defer-unbounded:max-rounds";
-                // 嵌套 Defer（上轮也是 Defer）——豁免：DeferRoundsExhausted 最后再问
-                if (lastAnswer is AgentDecision.Defer
-                    && PhaseForCurrent() != AgentDecisionPhase.DeferRoundsExhausted)
-                    return "defer-unbounded:nested";
                 break;
             }
         }

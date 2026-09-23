@@ -69,6 +69,13 @@ L2 Policy 形态（RUN-005）；传输层 schema（LLM realization 立项时）�
 
 ## Status log
 
+- 2026-09-23 · Defer 流程修复（三步）· `_lastAnswer` 改为「上一轮回答」（校验通过并
+  采纳后才回填——首 Defer 被接受由新增回归锁测试锁定）；M1 MaxRounds 配额计数（每轮
+  = 1 拉取 + 1 再咨询；耗尽 → DeferRoundsExhausted 终问 → 仍 Defer → `defer-exhausted`
+  终局）；V5 嵌套拒绝由配额语义取代（登记 spec §4）。验收测试 FirstDefer / 耗尽相位 /
+  defer-exhausted 三项转 GREEN；仅保留 E2/E3 相位分派 RED（Gate 4，未碰）；
+  Kernel 全量 466/1；Sim 3 失败维持「待归因、未动 golden」。
+
 - 2026-09-23 · Gate 1 ACCEPTED（评审 #3 缺口 → 6 测试可执行化：5 RED + 1 GREEN，
   KernelRunDriverTests 17/17 无回归）· **V5 自引用**（KernelRunDriver L241 `_lastAnswer`
   回填当前回答 → 首个 Defer 即被 V5 判 nested）记为 **Gate 3 新 major**（验收 4 连带

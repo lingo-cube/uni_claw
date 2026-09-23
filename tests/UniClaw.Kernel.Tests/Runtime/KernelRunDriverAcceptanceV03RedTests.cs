@@ -85,7 +85,7 @@ public sealed class KernelRunDriverAcceptanceV03RedTests
         var admission = kernel.AdmitContract(Contract(consultations: 64, totalSteps: 128));
         Assert.True(admission.Accepted);
 
-        // 合同声明 64/128；当前实现 View 恒为尾部默认 16/256（RunModel.AdmitContract 不读预算字段）
+        // 回归锁：合同预算必须保留进 admitted View（修复前恒为尾部默认 16/256）
         Assert.Equal(64, kernel.RunView!.MaxConsultations);
         Assert.Equal(128, kernel.RunView!.MaxTotalSteps);
     }
@@ -101,13 +101,39 @@ public sealed class KernelRunDriverAcceptanceV03RedTests
         var second = kernel.AdmitContract(Contract(consultations: 64, totalSteps: 256, version: "v1"));
 
         Assert.True(first.Accepted);
-        // 当前实现：second 按 View.Version 相等走幂等复用（Accepted=true）——D8 fail-closed 不可达
+        // 回归锁：同 version 异预算 = 不同合同 → 拒绝，且 reason 必须精确为
+        // contract-signature-conflict（修复前：幂等复用 Accepted=true、无该 code）
         Assert.False(second.Accepted);
-        // GREEN 收敛注记：期望 RejectionReason 收敛为 "contract-signature-conflict"
-        //（当前公开 API 不含该 code，不做 exact-code 断言，先证明「非幂等成功」）。
+        Assert.Equal("contract-signature-conflict", second.RejectionReason);
     }
 
     // ---- RED3：Ac 9 / M1-T6 —— Defer 耗尽后必须出现 exhaustion 语义（非普通相位）----
+
+    /// <summary>首个 Defer 必须被接受并触发第二轮咨询（最前面的回归锁：修复前首 Defer
+    /// 即被判 defer-unbounded:nested 直接失败，第二轮咨询根本不发生）。</summary>
+    [Fact]
+    public void Acceptance9_FirstDefer_IsAccepted_AndTriggersSecondConsultation()
+    {
+        var consults = 0;
+        var (kernel, driver) = Compose(
+            nextInput: _ => SeedObservation(),
+            world: new WorldModel(new HashSet<string> { "live.frame" }),
+            consult: ctx =>
+            {
+                consults++;
+                return consults == 1
+                    ? new AgentDecision.Defer(new ObserveSpec(Subject: null, MaxRounds: 2))
+                    : new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "stop-after-defer"));
+            });
+        Assert.True(kernel.AdmitContract(Contract()).Accepted);
+        Assert.True(driver.Activate().Accepted);
+
+        var result = driver.Drive();
+
+        Assert.Equal(2, consults);                                              // Defer 被接受 → 拉一次观察 → 第二次咨询发生
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);          // NoAction 后诚实未证终局（无 defer 拒绝）
+        Assert.DoesNotContain("defer-unbounded", result.Reason ?? "");
+    }
 
     [Fact]
     public void Acceptance9_DeferRounds_ReachExhaustionPhase()
@@ -125,9 +151,8 @@ public sealed class KernelRunDriverAcceptanceV03RedTests
 
         var result = driver.Drive();
 
-        // 期望：MaxRounds=2 耗尽后 Agent 收到 exhaustion 语义（非普通相位）；当前每次咨询
-        // 均为普通相位（PhaseForCurrent 恒不产 DeferRoundsExhausted），且第二轮 Defer 被
-        // V5 提前拒绝——exhaustion 相位从不出现。
+        // 回归锁：MaxRounds=2 耗尽后 Agent 必须收到 exhaustion 语义
+        //（DeferRoundsExhausted 不属于普通咨询相位集——修复前恒普通相位/提前拒绝）。
         var ordinary = new[]
         {
             AgentDecisionPhase.InitialPlanning,
@@ -153,8 +178,8 @@ public sealed class KernelRunDriverAcceptanceV03RedTests
 
         var result = driver.Drive();
 
-        // 期望：耗尽后终问仍 Defer → 确定性终局 TerminalNotProven "defer-exhausted"；
-        // 当前实现无 MaxRounds 计数/无耗尽相位 → 第二轮 Defer 被 V5 以“defer-unbounded:nested”拒绝。
+        // 回归锁：耗尽后终问仍 Defer → 确定性终局 TerminalNotProven "defer-exhausted"
+        //（修复前：无 MaxRounds 计数/无耗尽相位，第二轮 Defer 被提前拒绝）。
         Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
         Assert.Contains("defer-exhausted", result.Reason ?? "");
     }

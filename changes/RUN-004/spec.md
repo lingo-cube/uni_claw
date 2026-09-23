@@ -157,6 +157,13 @@ private string? ValidateDecision(
 // V4 hollow-completion：NoAction ∧ 存在 mandatory 义务 ∧ Completion=null
 // V5 defer-unbounded：Defer ∧ (MaxRounds>4 ∨ lastAnswer 是 Defer)
 //    ——豁免：phase==DeferRoundsExhausted 的最后再问（M1 T6 路径）
+//   [2026-09-23 **V5 specification correction**：boundedness belongs to the
+//    Defer chain budget (MaxRounds), not to a blanket prohibition on consecutive
+//    Defer answers——原「lastAnswer 是 Defer 即拒」与 M1 的 MaxRounds 计数语义
+//    自相矛盾（配额要有意义，Agent 必须能连续 Defer 到看清新观察）；现已由配额
+//    计数取代，Reason "defer-unbounded:nested" 不再产生；旧判断不得重新加回。
+//    另修正：原实现因 _lastAnswer 回填当前回答导致**首个** Defer 即被拒（Gate 1
+//    实测），已改——校验通过并采纳后才回填上一轮回答。]
 ```
 
 ## 5. 上下文组装（F3/F4 补源）
