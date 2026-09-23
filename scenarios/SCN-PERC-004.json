@@ -1,7 +1,7 @@
 {
   "id": "SCN-PERC-004",
   "name": "Irrelevant + exact duplicate evidence → no revision growth",
-  "source": "generated",
+  "source": "synthetic",
   "srRef": "SR-012",
   "purpose": "Duplicate/irrelevant evidence should not create new WorldBelief revisions",
   "capability": "evidence-deduplication",
@@ -28,5 +28,8 @@
     "runtimeSourceHash": "4d496d56893063dfd46a3fac5d7d18a9730a7e68e72b7086f46d2e87d2734fb1",
     "certifiedByChange": "SIM-002",
     "certifiedAt": "2026-09-23"
+  },
+  "security": {
+    "sensitiveReview": "cleared"
   }
 }

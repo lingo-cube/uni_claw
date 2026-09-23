@@ -8,19 +8,19 @@
 | source           | 含义                     |
 |------------------|--------------------------|
 | recorded         | 真机/模拟器录制回放       |
-| generated        | 参数化动态生成            |
+| synthetic        | 参数化动态合成（S6 更名自 generated）|
 | derived-from-doc | 从推理文档派生（带 srRef）|
 | bug-repro        | 缺陷复现                 |
 | component-test   | 组件级隔离测试            |
 
-## 元数据字段（8 + 期望值 + 认证 + Agent realization）
+## 元数据字段（v2 schema 真校验）
 
-见 `schema.json`（schema v2 重建归 SIM-002 S5）。status 由覆盖率工具从
-TRX 真实执行派生（G3）。每个场景还带 Agent 侧拆分标注（G4 /
-simulation-baseline v0.2 C7）：`agentDecisionRealization` 与
-`goalEvaluationRealization`（legal: real|double；当前构成 hybrid——
-decision=double，evaluation=真件；与实际构成的一致性由
-`ScenarioRealizationAnnotationTests` 执法）。
+`schema.json` v2（SIM-002 S5 重建——v1 曾为非法 JSON 且零消费）：由
+`tools/scenario-coverage.py` 以 jsonschema（draft-07）对每条目真校验
+（结构 / 枚举 / 必填 / additionalProperties 严格），违规 exit 1。字段
+= 元数据 8 项 + 期望值 + golden 认证（G2）+ Agent realization 拆分标注
+（G4 / C7 v0.2）+ `deviation`（C1/R1 已知 double 偏差，可选）+
+`security.sensitiveReview`（C9 fail-closed：库内条目必须 cleared）。
 
 ## Golden 认证（SIM-002 G2）
 

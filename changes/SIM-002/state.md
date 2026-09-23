@@ -1,6 +1,6 @@
 # SIM-002 — Simulation Baseline Compliance
 
-lifecycle_state: implementing · disposition: none · depth: decision-heavy · base: c3ef5b30
+lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: c3ef5b30
 
 ## Intent
 
@@ -77,6 +77,25 @@ G4 C7 v0.2 能准确描述当前 hybrid Agent realization
 - D4 Phase B 冻结到 G3 闭合
 
 ## Status log
+
+- 2026-09-23 · S5/S6/S8 closed（Schema Hygiene；SIM-002 scope 全闭）·
+  schema.json v1 系非法 JSON（L37 缺开引号）且建库起零消费——v2 重建
+  为合法 draft-07 并首次接入真校验：coverage 工具以 jsonschema 对每
+  条目验结构/枚举/必填/additionalProperties 严格模式，违规 exit 1。
+  v2 新字段：certification（G2）/ agentDecisionRealization +
+  goalEvaluationRealization（G4）/ deviation（C1/R1 已知 double 偏差，
+  可选，缺席=无已知偏差）/ security.sensitiveReview（C9 fail-closed，
+  库内必须 cleared）。S6：source `generated` → `synthetic`（8 个 PERC
+  条目 + schema 枚举 + 工具 + README 同步）。S8 安全标记清审依据：
+  recorded 资产全部来自 emulator 标定采集（Wi-Fi 设置页，无用户数据）、
+  synthetic 条目无录制资产——17 条目全部 cleared（本批清审随本 change
+  由 owner 复核）。验证：level DETERMINISTIC——method RED 先行（schema
+  非法 + 17 缺安全标记 + 8 个 generated 全部报违规）→ 迁移 → schema/
+  source/security 违规清零；本切片零 C# 改动，全量套件结果不可能变化，
+  以 coverage `--run`（含 Simulation 全套件执行 + TRX 真值链 + 认证 +
+  schema 校验）作为覆盖验证；evidence 本条 + 仓库 HEAD。
+  SIM-002 scope（G1-G4 + S5/S6/S8）至此全部落地；closure 按 P-D′
+  DECISION-HEAVY 规则保留人工裁决。
 
 - 2026-09-23 · G4 closed（C7 v0.2 拆分标注）·
   `docs/architecture/simulation-baseline-v0.2-c7-amendment.md`（delta

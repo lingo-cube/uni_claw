@@ -38,15 +38,19 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from scenario_certify import runtime_source_hash, verify_entry
 
+try:
+    import jsonschema
+except ImportError:  # pragma: no cover
+    jsonschema = None
+
 ROOT = Path(__file__).resolve().parent.parent
 SCENARIOS = ROOT / "scenarios"
+SCHEMA = SCENARIOS / "schema.json"
 SIM_TESTS = ROOT / "tests" / "UniClaw.Simulation.Tests"
 TRX_DIR = SIM_TESTS / "TestResults"
 VALID_STATUS = {"passing", "failing", "pending-env", "not-implemented"}
-VALID_SOURCE = {"recorded", "generated", "derived-from-doc", "bug-repro", "component-test"}
+VALID_SOURCE = {"recorded", "synthetic", "derived-from-doc", "bug-repro", "component-test"}
 VALID_REALIZATION = {"real", "double"}
-REQUIRED_FIELDS = ["id", "name", "source", "purpose", "capability", "components", "status", "version",
-                   "agentDecisionRealization", "goalEvaluationRealization"]
 
 OUTCOME_TO_STATUS = {
     "Passed": "passing",
@@ -144,10 +148,32 @@ def derive_status(outcomes: list[str]) -> tuple[str | None, str | None]:
     return None, None
 
 
+def load_schema_violations() -> tuple[dict | None, list[str]]:
+    """S5：schema.json 必须是合法 JSON Schema（v2）；加载失败即违规。"""
+    try:
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+    except Exception as e:
+        return None, [f"schema.json: 非法 JSON / 无法加载（{e}）——SIM-002 S5"]
+    return schema, []
+
+
+def validate_entry(schema: dict | None, data: dict, filename: str) -> list[str]:
+    """S5：条目对 schema.json 的真校验（jsonschema，draft-07）。"""
+    if jsonschema is None or schema is None:
+        return []
+    validator = jsonschema.Draft7Validator(schema)
+    return [
+        f"{filename}: schema 违规：{'/'.join(str(p) for p in error.absolute_path) or '<root>'}: {error.message}"
+        for error in sorted(validator.iter_errors(data), key=lambda e: list(e.absolute_path))
+    ]
+
+
 def load(trx_outcomes: dict[str, str], test_map: dict[str, list[str]]) -> tuple[list[dict], list[str]]:
     entries = []
     violations: list[str] = []
     source_hash = runtime_source_hash()
+    schema, schema_problems = load_schema_violations()
+    violations.extend(schema_problems)
     for f in sorted(SCENARIOS.glob("*.json")):
         if f.name == "schema.json":
             continue
@@ -156,18 +182,22 @@ def load(trx_outcomes: dict[str, str], test_map: dict[str, list[str]]) -> tuple[
         except Exception as e:
             violations.append(f"{f.name}: JSON 解析失败（{e}）")
             continue
-        # schema 违规（G3：WARN 升级为违规）
-        for field in REQUIRED_FIELDS:
-            if field not in data:
-                violations.append(f"{f.name}: 缺必需字段 {field}")
+        # S5：schema v2 真校验（结构 / 枚举 / 必填 / additionalProperties）
+        violations.extend(validate_entry(schema, data, f.name))
+        # 语义级执法（schema 之外的策略）
         if data.get("status") not in VALID_STATUS:
             violations.append(f"{f.name}: invalid status '{data.get('status')}'")
         if data.get("source") not in VALID_SOURCE:
-            violations.append(f"{f.name}: invalid source '{data.get('source')}'")
-        # SIM-002 G4（C7 v0.2）：Agent 侧拆分标注（与实际构成的一致性由 C# 侧执法）
+            violations.append(f"{f.name}: invalid source '{data.get('source')}'（S6：generated 已更名 synthetic）")
         for field in ("agentDecisionRealization", "goalEvaluationRealization"):
             if data.get(field) not in VALID_REALIZATION:
                 violations.append(f"{f.name}: {field} 缺失或非法值 '{data.get(field)}'（legal: real|double）")
+        # S8/C9：场景库 fail-closed——敏感内容评审未 cleared 的条目不得留在库内
+        security = data.get("security") or {}
+        if security.get("sensitiveReview") != "cleared":
+            violations.append(
+                f"{f.name}: security.sensitiveReview='{security.get('sensitiveReview')}'"
+                "（C9：库内条目必须 cleared；未评审录制不入库）")
         violations.extend(verify_entry(data, f.name, source_hash))
 
         # 真值链：TRX 派生 status vs JSON 声明
