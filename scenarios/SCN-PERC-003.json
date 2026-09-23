@@ -1,1 +1,30 @@
-{"id":"SCN-PERC-003","name":"Fast-only misjudge → fail closed, no completion","source":"generated","srRef":"SR-017","purpose":"Fast detection wrong, no slow correction → desired-state not satisfied → fail closed","capability":"evidence-revision","components":["kernel","world-model","assurance"],"status":"passing","version":1,"expectations":{"status":"AgentDecisionFailed","classification":null,"effects":0,"agentConsultations":1,"unconsumedStimuli":0,"goalSatisfaction":null}}
+{
+  "id": "SCN-PERC-003",
+  "name": "Fast-only misjudge → fail closed, no completion",
+  "source": "generated",
+  "srRef": "SR-017",
+  "purpose": "Fast detection wrong, no slow correction → desired-state not satisfied → fail closed",
+  "capability": "evidence-revision",
+  "components": [
+    "kernel",
+    "world-model",
+    "assurance"
+  ],
+  "status": "passing",
+  "version": 1,
+  "expectations": {
+    "status": "AgentDecisionFailed",
+    "classification": null,
+    "effects": 0,
+    "agentConsultations": 1,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "certification": {
+    "schemaVersion": 1,
+    "expectationsDigest": "400b1755b0e41e92f3af95979a13117a0329550c4907c34c39fe755e049fd778",
+    "runtimeSourceHash": "4d496d56893063dfd46a3fac5d7d18a9730a7e68e72b7086f46d2e87d2734fb1",
+    "certifiedByChange": "SIM-002",
+    "certifiedAt": "2026-09-23"
+  }
+}

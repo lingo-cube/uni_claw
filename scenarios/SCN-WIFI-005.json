@@ -5,7 +5,11 @@
   "srRef": "SR-067",
   "purpose": "Cancel signal during post-action wait → safe stop, zero revival, late stimulus unconsumed",
   "capability": "safe-stop",
-  "components": ["kernel", "assurance", "effect-boundary"],
+  "components": [
+    "kernel",
+    "assurance",
+    "effect-boundary"
+  ],
   "status": "passing",
   "version": 2,
   "expectations": {
@@ -15,5 +19,12 @@
     "agentConsultations": 1,
     "unconsumedStimuli": 1,
     "goalSatisfaction": "Unsatisfied"
+  },
+  "certification": {
+    "schemaVersion": 1,
+    "expectationsDigest": "7f4b1806e36b413ca49b16b4cdb7e702a181fb74ceb5da084945e2b252de70d6",
+    "runtimeSourceHash": "4d496d56893063dfd46a3fac5d7d18a9730a7e68e72b7086f46d2e87d2734fb1",
+    "certifiedByChange": "SIM-002",
+    "certifiedAt": "2026-09-23"
   }
 }

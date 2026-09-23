@@ -1,1 +1,33 @@
-{"id":"SCN-SMOKE-001","name":"SimulationHost smoke test end-to-end","source":"recorded","srRef":null,"purpose":"Host-level E2E: assemble same Runtime + sim doubles → complete run","capability":"host-integration","components":["kernel","world-model","assurance","effect-boundary","control-loop","run-model"],"status":"passing","version":1,"expectations":{"status":"Completed","classification":"Completion","effects":1,"agentConsultations":2,"unconsumedStimuli":0,"goalSatisfaction":"Satisfied"}}
+{
+  "id": "SCN-SMOKE-001",
+  "name": "SimulationHost smoke test end-to-end",
+  "source": "recorded",
+  "srRef": null,
+  "purpose": "Host-level E2E: assemble same Runtime + sim doubles → complete run",
+  "capability": "host-integration",
+  "components": [
+    "kernel",
+    "world-model",
+    "assurance",
+    "effect-boundary",
+    "control-loop",
+    "run-model"
+  ],
+  "status": "passing",
+  "version": 1,
+  "expectations": {
+    "status": "Completed",
+    "classification": "Completion",
+    "effects": 1,
+    "agentConsultations": 2,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": "Satisfied"
+  },
+  "certification": {
+    "schemaVersion": 1,
+    "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+    "runtimeSourceHash": "4d496d56893063dfd46a3fac5d7d18a9730a7e68e72b7086f46d2e87d2734fb1",
+    "certifiedByChange": "SIM-002",
+    "certifiedAt": "2026-09-23"
+  }
+}

@@ -1,1 +1,30 @@
-{"id":"SCN-PERC-001","name":"Fast perception final → verified completion","source":"generated","srRef":"SR-001","purpose":"Fast-only perception with correct detection → normal verification → Completion","capability":"effect-verification","components":["kernel","world-model","assurance"],"status":"passing","version":1,"expectations":{"status":"Completed","classification":"Completion","effects":1,"agentConsultations":2,"unconsumedStimuli":0,"goalSatisfaction":"Satisfied"}}
+{
+  "id": "SCN-PERC-001",
+  "name": "Fast perception final → verified completion",
+  "source": "generated",
+  "srRef": "SR-001",
+  "purpose": "Fast-only perception with correct detection → normal verification → Completion",
+  "capability": "effect-verification",
+  "components": [
+    "kernel",
+    "world-model",
+    "assurance"
+  ],
+  "status": "passing",
+  "version": 1,
+  "expectations": {
+    "status": "Completed",
+    "classification": "Completion",
+    "effects": 1,
+    "agentConsultations": 2,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": "Satisfied"
+  },
+  "certification": {
+    "schemaVersion": 1,
+    "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+    "runtimeSourceHash": "4d496d56893063dfd46a3fac5d7d18a9730a7e68e72b7086f46d2e87d2734fb1",
+    "certifiedByChange": "SIM-002",
+    "certifiedAt": "2026-09-23"
+  }
+}

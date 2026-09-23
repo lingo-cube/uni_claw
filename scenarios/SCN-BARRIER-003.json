@@ -1,1 +1,30 @@
-{"id":"SCN-BARRIER-003","name":"Post-action contradicts desired state → second effect blocked","source":"recorded","srRef":"SR-134","purpose":"Post-action evidence shows toggle still false → assurance fail-closed, no second dispatch","capability":"serial-verification-barrier","components":["kernel","assurance","effect-boundary"],"status":"passing","version":2,"expectations":{"status":"TerminalNotProven","classification":null,"effects":1,"agentConsultations":2,"unconsumedStimuli":1,"goalSatisfaction":null}}
+{
+  "id": "SCN-BARRIER-003",
+  "name": "Post-action contradicts desired state → second effect blocked",
+  "source": "recorded",
+  "srRef": "SR-134",
+  "purpose": "Post-action evidence shows toggle still false → assurance fail-closed, no second dispatch",
+  "capability": "serial-verification-barrier",
+  "components": [
+    "kernel",
+    "assurance",
+    "effect-boundary"
+  ],
+  "status": "passing",
+  "version": 2,
+  "expectations": {
+    "status": "TerminalNotProven",
+    "classification": null,
+    "effects": 1,
+    "agentConsultations": 2,
+    "unconsumedStimuli": 1,
+    "goalSatisfaction": null
+  },
+  "certification": {
+    "schemaVersion": 1,
+    "expectationsDigest": "3757929670677752beec06cf9cb50d4929ae878704b296eab0d8b2ababfa9b9a",
+    "runtimeSourceHash": "4d496d56893063dfd46a3fac5d7d18a9730a7e68e72b7086f46d2e87d2734fb1",
+    "certifiedByChange": "SIM-002",
+    "certifiedAt": "2026-09-23"
+  }
+}

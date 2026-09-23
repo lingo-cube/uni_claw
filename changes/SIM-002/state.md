@@ -78,6 +78,28 @@ G4 C7 v0.2 能准确描述当前 hybrid Agent realization
 
 ## Status log
 
+- 2026-09-23 · G2 closed（golden 认证持久化 + Verify-only）·
+  scenarios/ 17 条目全部带 certification 块（expectationsDigest /
+  runtimeSourceHash / certifiedByChange / certifiedAt）；唯一写入口
+  tools/scenario_certify.py（无 --change 拒绝执行——C8 搭乘协议执法化）；
+  test runtime 无写回路径，双执法面：C# 验证器
+  （ScenarioCertification.VerifyFile + ScenarioCertificationTests，与
+  python canonical 双语言独立实现互为一致性检查）+ 覆盖率工具
+  （违规 exit 1）。取舍记录：runtime hash 取 Kernel+Agent**源码**哈希
+  而非 DLL 哈希（DLL 哈希依赖构建环境、不可跨机复现；源码哈希内容
+  寻址、双侧可独立重算）。实现期实测抓到跨语言分歧一例：python 侧
+  曾以绝对路径入帧（自洽但嵌机器路径），C# 侧相对路径——修复后双侧
+  在真实数据上逐字节一致。验收语义实测（spec 原文场景）：篡改
+  expectations.effects 不带重认证 → C# 报「摘要不匹配」+ 覆盖率工具
+  exit 1；源码哈希过期同理报红；恢复后全绿。已知语义（按设计）：
+  Kernel/Agent 源任何后续改动使认证失效，重认证 = 显式 tool 跑
+  --change <致因change>，期望值是否随动由该 change 评审裁决。
+  验证：level DETERMINISTIC——method RED 先行（17 条目缺 certification
+  块全红）→ 盖章 → GREEN；全量 Host 18/18 · Kernel 467/467 ·
+  Simulation 143/146（3 失败为 HEAD 存量 RED：ImportReDrive /
+  AsyncImportRedrive / AsyncPerceptionRealization，与本 change 零接触，
+  stash 复验在案）；evidence 本条 status log + 仓库 HEAD + 认证测试。
+
 - 2026-09-23 · G1 closed（follow-up slice，接 b4b6865c 首切片）·
   产品 Host 仿真/回放闭包剥离完成：`V0Runtime` / `ReplayPerception` /
   `ServicePerception`（含 `FrameFeed` / `ReplayFrameFeed` /

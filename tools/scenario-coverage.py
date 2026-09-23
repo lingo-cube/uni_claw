@@ -4,11 +4,19 @@
 Scans scenarios/*.json and aggregates capability × status × source.
 Independent of any document; srRef shown when present (source lineage).
 
+SIM-002 G2: also verifies golden certification blocks (expectations digest +
+runtime source hash + causal-change ref); any violation → exit 1.
+Note: `status` is still JSON self-report at this point — binding it to real
+test executions is Gate 3 (coverage truth chain).
+
 Usage: python3 tools/scenario-coverage.py [--by-component]
 """
 from __future__ import annotations
 import json, sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from scenario_certify import runtime_source_hash, verify_entry
 
 ROOT = Path(__file__).resolve().parent.parent
 SCENARIOS = ROOT / "scenarios"
@@ -16,8 +24,10 @@ VALID_STATUS = {"passing", "failing", "pending-env", "not-implemented"}
 VALID_SOURCE = {"recorded", "generated", "derived-from-doc", "bug-repro", "component-test"}
 
 
-def load() -> list[dict]:
+def load() -> tuple[list[dict], list[str]]:
     entries = []
+    cert_violations: list[str] = []
+    source_hash = runtime_source_hash()
     for f in sorted(SCENARIOS.glob("*.json")):
         if f.name == "schema.json":
             continue
@@ -27,15 +37,16 @@ def load() -> list[dict]:
                 print(f"  WARN: {f.name} invalid status '{data.get('status')}'")
             if data.get("source") not in VALID_SOURCE:
                 print(f"  WARN: {f.name} invalid source '{data.get('source')}'")
+            cert_violations.extend(verify_entry(data, f.name, source_hash))
             entries.append(data)
         except Exception as e:
             print(f"  ERROR: {f.name}: {e}")
-    return entries
+    return entries, cert_violations
 
 
 def main() -> int:
     by_component = "--by-component" in sys.argv
-    entries = load()
+    entries, cert_violations = load()
     if not entries:
         print("No scenarios found.")
         return 1
@@ -90,8 +101,25 @@ def main() -> int:
         for e in pending:
             print(f"  {e['id']:20} {e['status']:16} {e['name']}")
 
+    # SIM-002 G2: golden certification verification（期望值摘要 + 源码哈希 +
+    # 致因 change 引用；违规 → exit 1）
+    print(f"\n── Golden Certification (SIM-002 G2) ──")
+    certified_by = {}
+    for e in entries:
+        cert = e.get("certification") or {}
+        if cert.get("certifiedByChange"):
+            certified_by[cert["certifiedByChange"]] = certified_by.get(cert["certifiedByChange"], 0) + 1
+    for change, count in sorted(certified_by.items()):
+        print(f"  certified by {change}: {count} scenarios")
+    if cert_violations:
+        print(f"\n  FAIL ({len(cert_violations)} violations):")
+        for v in cert_violations:
+            print(f"    {v}")
+    else:
+        print(f"  all {len(entries)} entries certified and matching")
+
     print(f"\n{'='*60}")
-    return 0
+    return 0 if not cert_violations else 1
 
 
 if __name__ == "__main__":

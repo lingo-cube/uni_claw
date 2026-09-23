@@ -1,1 +1,30 @@
-{"id":"SCN-WIFI-004","name":"Missing post-action stimulus → legal waiting","source":"recorded","srRef":"SR-052","purpose":"Invariant 43: no post-action evidence → driver waits, no second effect, no fake completion","capability":"serial-verification-barrier","components":["kernel","assurance","effect-boundary"],"status":"passing","version":2,"expectations":{"status":"WaitingForInput","classification":null,"effects":1,"agentConsultations":1,"unconsumedStimuli":0,"goalSatisfaction":null}}
+{
+  "id": "SCN-WIFI-004",
+  "name": "Missing post-action stimulus → legal waiting",
+  "source": "recorded",
+  "srRef": "SR-052",
+  "purpose": "Invariant 43: no post-action evidence → driver waits, no second effect, no fake completion",
+  "capability": "serial-verification-barrier",
+  "components": [
+    "kernel",
+    "assurance",
+    "effect-boundary"
+  ],
+  "status": "passing",
+  "version": 2,
+  "expectations": {
+    "status": "WaitingForInput",
+    "classification": null,
+    "effects": 1,
+    "agentConsultations": 1,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "certification": {
+    "schemaVersion": 1,
+    "expectationsDigest": "e295392830356c6d8aabaa22617caaaac705343312001e6b86e8d73c90344f6a",
+    "runtimeSourceHash": "4d496d56893063dfd46a3fac5d7d18a9730a7e68e72b7086f46d2e87d2734fb1",
+    "certifiedByChange": "SIM-002",
+    "certifiedAt": "2026-09-23"
+  }
+}
