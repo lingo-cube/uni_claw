@@ -1,6 +1,6 @@
 # SIM-002 — Simulation Baseline Compliance
 
-lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: c3ef5b30
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: c3ef5b30
 
 ## Intent
 
@@ -77,6 +77,16 @@ G4 C7 v0.2 能准确描述当前 hybrid Agent realization
 - D4 Phase B 冻结到 G3 闭合
 
 ## Status log
+
+- 2026-09-23 · closed（owner 授权 closure）· 四元组：method 按
+  closure-readiness 判定面（G1 闭包执法 / G2 篡改双向拒绝 / G3 真值链
+  exit 0 / G4 C7 v0.2 标注执法 / S5-S8 schema 真校验，全部于 HEAD
+  fb3d6d87 复验绿）；expected 六 scope 项全绿；actual 与 expected 一致；
+  evidence 下条 closure-readiness 记录 + 仓库 HEAD。范围完成 + acceptance
+  被证明 + 无未授权改动（会话内提交均落在 SIM-002 / SCN-002 / harness
+  汇报规则三个 change 归属内）+ 文档同步（基线 v0.2 修订 +
+  scenarios/README）+ 无阻塞 Human Decision（本条即裁决记录）。
+  Phase B 谱系由 SCN-002（已另案闭合）承接。
 
 - 2026-09-23 · closure-readiness 判定（独立于 SCN-002，不联动）·
   按 owner 指示以自身验收证据判定：G1 闭包执法（ProductHostClosure
