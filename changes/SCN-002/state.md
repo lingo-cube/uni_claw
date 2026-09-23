@@ -1,6 +1,6 @@
 # SCN-002 — 生成式场景能力（ScenarioBuilder + DynamicStimulusScheduler）
 
-lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: 0c280a81
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 0c280a81
 
 ## Intent
 
@@ -75,6 +75,21 @@ ScenarioRunner / SimulationHost（不变）
 6. GoldenBundle 录制场景不受影响（零回归）
 
 ## Status log
+
+- 2026-09-23 · closed（owner 授权 closure；证据核对后闭合）·
+  核对四元组：method Acceptance 1-6 于 HEAD fb3d6d87 复验
+  （GeneratedScenarioTests 4/4 + DeterministicScenario 全绿 + 覆盖率
+  --run 18/18 passing 派生 / 认证 / 真值链 exit 0）+ 三个存量 RED
+  基线归属复验（worktree 检出会话前基线 23bca220 实跑：
+  ImportReDrive / AsyncImportRedrive / AsyncPerceptionRealization 三者
+  同样失败——先于本会话存在，不在本 change 验收面内）；expected 六条
+  全绿且存量 RED 归属明确；actual 与 expected 一致；evidence 本条 +
+  fb3d6d87 + 基线 worktree 运行记录。closure 范围界定：
+  ① ConditionalScheduler（Phase 2 when(predicate)）不在关闭范围——
+  Out of Scope 等买家，未实现未冻结；② pre-commit 重认证提示机制
+  未立项未实现，仅记为新 change 候选；③ RUN-004 golden 重认证
+  （17 条 certifiedByChange=RUN-004）为独立归属的 C8 搭乘处置，
+  不属本 change 关闭动作；④ SIM-002 不随本 change 联动关闭。
 
 - 2026-09-23 · implemented（Phase B 首切片：Acceptance 1-6 全闭）·
   ScenarioBuilder（Fluent：FromTemplate / WithScenarioId / Screen /

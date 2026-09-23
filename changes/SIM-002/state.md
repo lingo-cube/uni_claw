@@ -78,6 +78,14 @@ G4 C7 v0.2 能准确描述当前 hybrid Agent realization
 
 ## Status log
 
+- 2026-09-23 · closure-readiness 判定（独立于 SCN-002，不联动）·
+  按 owner 指示以自身验收证据判定：G1 闭包执法（ProductHostClosure
+  3/3，Kernel 467/467 内）· G2 篡改双向拒绝（certification tests 绿）·
+  G3 真值链（覆盖率 exit 0，18/18 派生）· G4 C7 v0.2 标注执法绿 +
+  修订文档在档 · S5/S6/S8 schema 真校验绿——全部于 HEAD fb3d6d87
+  复验成立。判定：closure-ready；lifecycle 维持 implemented，等待
+  owner 独立 closure 裁决（P-D′ decision-heavy 保留人工闭合）。
+
 - 2026-09-23 · S5/S6/S8 closed（Schema Hygiene；SIM-002 scope 全闭）·
   schema.json v1 系非法 JSON（L37 缺开引号）且建库起零消费——v2 重建
   为合法 draft-07 并首次接入真校验：coverage 工具以 jsonschema 对每
