@@ -38,14 +38,18 @@ public sealed class ImportReDriveTests
         imported.Bundle.Verify();
 
         // Re-drive：重跑 derived bundle → Completed / Completion /
-        // 1 effect / 1 consultation / GoalSatisfied
+        // 1 effect / 2 consultations / GoalSatisfied
         var reDrive = ScenarioRunner.Run(imported.Bundle);
         var report = reDrive.Report;
         Assert.True(report.AcceptancePassed, ScenarioReport.DescribeAcceptance(imported.Bundle, report));
         Assert.Equal(RunDriveStatus.Completed.ToString(), report.RunDriveStatus);
         Assert.Equal(TerminalClassification.Completion, report.Outcome!.Classification);
         Assert.Equal(1, report.EffectDeliveries);
-        Assert.Equal(1, report.AgentConsultations);
+        // RUN-004 E1（causal：d53f3331/ba4b5e9b）：提案耗尽 → NeedDecision
+        //（StepVerified）再咨询恰一次（ScriptedUniAgent 多轮分支答 NoAction
+        // → TerminalEvaluation）。旧期望 1 = 单轮协议时代残留；bundle 侧
+        // ExpectedAgentConsultations 已随 ba4b5e9b 升 2，此处硬编码同步。
+        Assert.Equal(2, report.AgentConsultations);
         Assert.Equal(GoalSatisfaction.Satisfied, report.GoalEvaluation!.Satisfaction);
 
         // 源/重跑 outcome 语义等价（digest 字符串因 stimulus id 版本化必然

@@ -74,7 +74,8 @@ public sealed class AsyncImportRedriveTests
     /// <summary>
     /// Acceptance 6：S1 async 臂 sealed artifact → DeriveFromPersisted（经
     /// 磁盘 integrity 复核）→ derived bundle → re-drive → Completed /
-    /// Completion / 1 effect / 1 consultation / GoalSatisfied。
+    /// Completion / 1 effect / 2 consultations（RUN-004 E1 再咨询）/
+    /// GoalSatisfied。
     /// </summary>
     [Fact]
     public void AsyncSealedArtifact_Imports_AndReDrives()
@@ -101,7 +102,9 @@ public sealed class AsyncImportRedriveTests
         Assert.Equal(RunDriveStatus.Completed.ToString(), report.RunDriveStatus);
         Assert.Equal(TerminalClassification.Completion, report.Outcome!.Classification);
         Assert.Equal(1, report.EffectDeliveries);
-        Assert.Equal(1, report.AgentConsultations);
+        // RUN-004 E1（causal：d53f3331/ba4b5e9b）：提案耗尽 → StepVerified
+        // 再咨询恰一次（同 ImportReDriveTests 归因；bundle 期望已为 2）。
+        Assert.Equal(2, report.AgentConsultations);
         Assert.Equal(GoalSatisfaction.Satisfied, report.GoalEvaluation!.Satisfaction);
 
         // 源/重跑语义等价（同 ImportReDriveTests 断言面）

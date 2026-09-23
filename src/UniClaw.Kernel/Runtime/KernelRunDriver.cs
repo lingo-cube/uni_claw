@@ -148,6 +148,16 @@ public sealed class KernelRunDriver
     /// <summary>裁决⑧层3：等待人工终裁旗。</summary>
     private bool _awaitingRuling;
 
+    /// <summary>
+    /// 裁决⑧层3 settlement：completion adjudication 被 rejected 后的持久终局
+    /// 状态（RUN-004 终局收口）。语义：API 返回 TerminalNotProven
+    /// "completion-rejected" 与状态机终局必须一致——后续 Drive() 不得重新
+    /// 采纳同一 completion proposal、不得重新发起同一裁决（防
+    /// NoAction→驳回→再裁决环）。这不是「清空临时字段的偶然效果」，
+    /// 而是显式登记的状态机语义。
+    /// </summary>
+    private bool _completionAdjudicationRejected;
+
     /// <summary>上一个回答（校验期的对照引用；当前回答校验通过并采纳后才回填）。</summary>
     private AgentDecision? _lastAnswer;
 
@@ -172,7 +182,6 @@ public sealed class KernelRunDriver
     private readonly RunDriverInputs _inputs;
     private readonly object _driverIdentity = new();
     private DrivePhase _phase = DrivePhase.NeedInitialObservation;
-    private bool _consulted;
     private AgentDecision? _adoptedDecision;
     private string? _consultRejection;
     private int _stepIndex;
@@ -215,6 +224,14 @@ public sealed class KernelRunDriver
                 _kernel.EffectReceipts.Count);
         if (_kernel.IsRunTerminal)
             return new RunDriveResult(RunDriveStatus.AlreadyTerminal, "already-terminal", null, 0);
+
+        // 层3 settlement 执法：completion adjudication rejected 后的 Drive
+        // 直接以同一终局语义应答（幂等重报），不重入 NeedDecision、不重新
+        // 采纳 completion proposal、不重新发起裁决。
+        if (_completionAdjudicationRejected)
+            return new RunDriveResult(
+                RunDriveStatus.TerminalNotProven, "completion-rejected",
+                null, _kernel.EffectReceipts.Count);
 
         var view = _kernel.RunView;
         if (view is null)
@@ -545,20 +562,6 @@ public sealed class KernelRunDriver
         RunDriveResult? Stop,
         IReadOnlyList<KernelResult> ProcessedObservations);
 
-    /// <summary>
-    /// decision id：run-correlated 且确定性——RunId 是 content-derived
-    /// "run-&lt;sha256hex&gt;"，取末 12 字符 + 序号 "-1"（Phase 1 单边界
-    /// 单次 consult）；同 Run 内确定，跨 Run 唯一。
-    /// </summary>
-    private string DecisionIdForRun()
-    {
-        var runId = _kernel.RunId;
-        return $"decision-{(runId.Length > 12 ? runId[^12..] : runId)}-1";
-    }
-
-
-    // ==== RUN-004：多轮协议辅助方法 ====
-
     /// <summary>当前预算快照（§2.1）。</summary>
     private ConsultationBudget CurrentBudget(ExecutionContractView view) => new(
         RoundsRemaining: view.MaxConsultations - _consultCounter,
@@ -578,7 +581,7 @@ public sealed class KernelRunDriver
                 kv => kv.Key,
                 kv => new ClaimSummary(
                     kv.Value.Value,
-                    DispositionOf(kv.Key),
+                    DispositionOf(kv.Key, kv.Value),
                     _kernel.CurrentConflictedSubjects.Contains(kv.Key)));
 
         var context = new AgentDecisionContext(
@@ -617,7 +620,9 @@ public sealed class KernelRunDriver
         {
             case AgentDecision.Act a: answeredId = a.Proposal.DecisionId; break;
             case AgentDecision.NoAction n: answeredId = n.Proposal.DecisionId; break;
-            case AgentDecision.Defer: answeredId = decisionId; break; // Defer 不带 DecisionId
+            // RUN-004 终局收口：Defer 同样回带 DecisionId（D2 防串话适用于
+            // 每一次 consultation response，不限于最终可执行 decision）
+            case AgentDecision.Defer d: answeredId = d.DecisionId; break;
             default: return new ConsultOutcome(null, "unknown-decision-kind");
         }
         if (answeredId != decisionId)
@@ -642,11 +647,15 @@ public sealed class KernelRunDriver
             : AgentDecisionPhase.InitialPlanning;
     }
 
-    private string DispositionOf(string subject)
+    /// <summary>
+    /// Disposition 三态（spec §5 / F4 值域三分）：conflicted（权威域悬案）＞
+    /// revised（痕迹链非空——该 subject 的值曾被后续证据修正）＞ established。
+    /// </summary>
+    private string DispositionOf(string subject, WorldClaim claim)
     {
         if (_kernel.CurrentConflictedSubjects.Contains(subject))
             return "conflicted";
-        return "established"; // v1 简化：不做 supersede 链检查
+        return claim.SupersededEvidenceIds is not null ? "revised" : "established";
     }
 
     private ScreenSummary? DeriveScreenSummary()
@@ -673,6 +682,11 @@ public sealed class KernelRunDriver
             .ToList();
     }
 
+    /// <summary>
+    /// decision id：run-correlated 且确定性——RunId 是 content-derived
+    /// "run-&lt;sha256hex&gt;"，取末 12 字符 + 咨询序号 "-{n}"（多轮协议：
+    /// 每次咨询严格递增，D2）。同 Run 内确定，跨 Run 唯一。
+    /// </summary>
     private string DecisionIdForRun(int n)
     {
         var runId = _kernel.RunId;
@@ -735,8 +749,13 @@ public sealed class KernelRunDriver
         {
             var verified = anchor switch
             {
+                // step 锚按 (DecisionN, StepIndex) 命中——ReceiptId 不参与
+                // 匹配（锚点格式无 receipt 段；修复前整元组 Contains 恒
+                // false——step 锚从未可核验，层2 验收测试暴露）
                 var a when a.StartsWith("step:", StringComparison.Ordinal) =>
-                    ParseStepAnchor(a) is { } step && _completedSteps.Contains(step),
+                    ParseStepAnchor(a) is { } step
+                    && _completedSteps.Any(c =>
+                        c.DecisionN == step.DecisionN && c.StepIndex == step.StepIndex),
                 var a when a.StartsWith("dispatch:", StringComparison.Ordinal) =>
                     _kernel.EffectReceipts.Any(r => r.ReceiptId == a["dispatch:".Length..]),
                 var a when a.StartsWith("obs:", StringComparison.Ordinal) =>
@@ -759,17 +778,26 @@ public sealed class KernelRunDriver
         return (n, idx, ""); // ReceiptId 不参与匹配
     }
 
-    /// <summary>层2/3 折抵：completion claim 经 Process 入证（裁决⑧ G2 闭合）。</summary>
+    /// <summary>
+    /// 层2/3 折抵：completion claim 经 Process 入证（裁决⑧ G2 闭合）。
+    /// 折抵目标 = <b>未世界满足</b>的 mandatory 义务（spec §3：subject =
+    /// 未世界满足义务之 Subject——已满足的不重复入证，判定同源见
+    /// UniKernel.UnsatisfiedMandatoryObligations）。
+    /// </summary>
     private void DischargeCompletion(CompletionEvidence evidence, string producer)
     {
-        var mandatoryUnsatisfied = _kernel.RunState?.ProofObligations.Obligations
-            .Where(o => o.Mandatory) ?? Enumerable.Empty<Run.RunObligation>();
-        foreach (var obligation in mandatoryUnsatisfied)
+        foreach (var obligation in _kernel.UnsatisfiedMandatoryObligations())
         {
+            // 入证 context = PostActionEffectFlow：折抵断言的是「已经发生的
+            // effect 流」（锚点 = 步归档/dispatch receipt/post-action 观察），
+            // 且 MaterialEffect 判定门（ING-006 D7）要求 backing evidence 为
+            // 该 context——义务是否满足仍由层1 JudgeOutcome 按证据类判定，
+            // anchor 只是把断言送进裁决的门槛（收口裁决⑥：不把「有真实
+            // anchor」误写成「义务已满足」）。
             _kernel.Process(new Evidence.ObservationProposal(
                 new Evidence.ObservationClaim(obligation.Subject, obligation.RequiredValue),
                 Evidence.IngressKind.Observation,
-                Evidence.ObservationContext.External,
+                Evidence.ObservationContext.PostActionEffectFlow,
                 new Evidence.Provenance(producer, DateTimeOffset.UtcNow,
                     $"scope:{obligation.Subject}",
                     new[] { "completion-evidence", evidence.Basis })));
@@ -783,7 +811,7 @@ public sealed class KernelRunDriver
             ? (evidence, results)
             : null;
 
-    /// <summary>层3：人工终裁恢复（rejected = 终局防环）。</summary>
+    /// <summary>层3：人工终裁恢复（rejected = 持久 settlement，防环）。</summary>
     public RunDriveResult ResumeWithAdjudication(bool approved, string? note)
     {
         if (!_awaitingRuling)
@@ -797,55 +825,16 @@ public sealed class KernelRunDriver
         }
         else
         {
+            // 持久 settlement：显式状态机语义（非清字段的偶然效果）——
+            // 后续 Drive() 幂等重报 completion-rejected，不重入裁决。
+            _completionAdjudicationRejected = true;
+            _adoptedDecision = null;
             return new RunDriveResult(
                 RunDriveStatus.TerminalNotProven,
                 $"completion-rejected{(note is null ? "" : $":{note}")}",
                 null, _kernel.EffectReceipts.Count);
         }
         return Drive(); // 按裁决终局
-    }
-
-    /// <summary>P25 consultation：构建有界 context，调用外部 seam，做机械入口校验。</summary>
-    private ConsultOutcome ConsultAgent(ExecutionContractView view)
-    {
-        var state = _kernel.RunState!;
-        var claims = _kernel.CurrentBelief?.WorldState;
-        var context = new AgentDecisionContext(
-            DecisionId: DecisionIdForRun(),
-            RunId: _kernel.RunId,
-            ContractVersion: view.Version,
-            Objective: view.Objective,
-            AllowedEffects: view.AllowedEffects,
-            CurrentWorldClaims: claims is null
-                ? new Dictionary<string, ClaimSummary>()
-                : claims.ToDictionary(kv => kv.Key, kv => new ClaimSummary(kv.Value.Value, "established", false)),
-            PendingObligations: state.ProofObligations.Obligations
-                .Select(o => new AgentObligationView(
-                    o.ObligationId, o.Kind.ToString(), o.Subject, o.RequiredValue, o.Mandatory))
-                .ToList(),
-            Phase: AgentDecisionPhase.InitialPlanning);
-
-        var decision = _inputs.ConsultAgent(context);
-        if (decision is null)
-            return new ConsultOutcome(null, "no-response");
-
-        string decisionId;
-        switch (decision)
-        {
-            case AgentDecision.Act a:
-                decisionId = a.Proposal.DecisionId;
-                break;
-            case AgentDecision.NoAction n:
-                decisionId = n.Proposal.DecisionId;
-                break;
-            default:
-                // 防御性 switch default：closed union 之外的派生类型 → fail closed
-                return new ConsultOutcome(null, "unknown-decision-kind");
-        }
-
-        if (decisionId != context.DecisionId)
-            return new ConsultOutcome(null, "correlation-mismatch");
-        return new ConsultOutcome(decision, null);
     }
 
     /// <summary>

@@ -155,6 +155,11 @@ private string? ValidateDecision(
     ConsultationBudget remaining, AgentDecision? lastAnswer)
 // V3 budget-exceeded：提案步数 > StepsRemaining
 // V4 hollow-completion：NoAction ∧ 存在 mandatory 义务 ∧ Completion=null
+//    [终局收口登记（2026-09-24）——实际收窄条件]：V4 只在「首询且零执行
+//    且世界未满足」时执法：_consultCounter<=1 ∧ _stepsDispatched==0 ∧
+//    _completedSteps 空 ∧ 无任何 mandatory 义务被世界满足。收窄语义：
+//    首询空洞收工 = 规避义务（fail closed）；执行后再 NoAction = 诚实
+//    报告（交 TerminalEvaluation 如实判，验收 1/3 的恢复路径依赖此区分）。
 // V5 defer-unbounded：Defer ∧ (MaxRounds>4 ∨ lastAnswer 是 Defer)
 //    ——豁免：phase==DeferRoundsExhausted 的最后再问（M1 T6 路径）
 //   [2026-09-23 **V5 specification correction**：boundedness belongs to the
@@ -164,6 +169,10 @@ private string? ValidateDecision(
 //    计数取代，Reason "defer-unbounded:nested" 不再产生；旧判断不得重新加回。
 //    另修正：原实现因 _lastAnswer 回填当前回答导致**首个** Defer 即被拒（Gate 1
 //    实测），已改——校验通过并采纳后才回填上一轮回答。]
+//   [终局收口裁决③（2026-09-24）：Defer 回带 DecisionId——每次 consultation
+//    response 都携带同号（D2 防串话），AgentDecision.Defer(string DecisionId,
+//    ObserveSpec Spec)；Kernel correlation validation 对 Act/NoAction/Defer
+//    同律。理由：真实 UniAgent / HTTP transport 的 request/response 稳定关联。]
 ```
 
 ## 5. 上下文组装（F3/F4 补源）
@@ -172,7 +181,7 @@ private string? ValidateDecision(
 |---|---|
 | Screen | §1.2（唯一根容器 + signature claim） |
 | Elements | **occurrence 投影 ×XML 增强**（G4 两前提闭合）：基准 = Current.Occurrences（Role/Locator→Bounds/State→Epistemic=Observed）。**批过滤** = XML 证据 EvidenceId ∈ Current.EvidenceBasis（同 revision 入证的证据集，kernel 可查，无时间窗猜测）。**坐标归一化** = XML px bounds 与 occurrence 归一化 bounds 不可直接 IoU——Host 侧 UiAutomatorDump.Parse 增可选 viewport 参数，落 `nbounds:{x1},{y1},{x2},{y2}` 进 lineage（归一化值，viewport 归属正确在 Host）；kernel 连接**仅当 nbounds 存在**（缺失 → 跳过增强，Epistemic=Partial 视觉单源——诚实降级而非错误换算）。命中→补 Text/Clickable/Checkable/Enabled，Epistemic=Observed。Ambiguous 保留多候选连接（v1 不产生，登记） |
-| Claims | WorldState → Value；Disposition = InConflict?"conflicted":(SupersededEvidenceIds≠null?"revised":"established")（F4 值域三分）；InConflict = subject∈Conflicts |
+| Claims | WorldState → Value；Disposition = InConflict?"conflicted":(SupersededEvidenceIds≠null?"revised":"established")（F4 值域三分；终局收口裁决④：三态已真实产生——revised 由 CLE-001 Revise 痕迹链判定，回归测试 ClaimsDisposition_ThreeStatesObservable）；InConflict = subject∈Conflicts |
 | Progress/Budget | 驱动器计数（§2.1） |
 
 ## 6. 验收（F12 补：11 项）
@@ -259,3 +268,85 @@ B1/B2 参与 canonical）。两个 Acceptance 2 RED → GREEN；其余 Gate-1 �
 4. v0.3 新增验收（4/6/9/10/11）有 executable tests（RED 先行）。
 
 **修复顺序（Gate 0-7，RED-first）**：Gate 0 纠正 claim（本 §）→ Gate 1 先建 RED（验收 2/9/1-3）→ Gate 2 修 F5 → Gate 3 修 Defer 状态机 → Gate 4 修 phase 分派 → Gate 5 补 adjudication settlement → Gate 6 其余验收（4/6/10/11）→ Gate 7 spec debt（G4 defer/实现、V4/E4/Disposition/Defer-D2/折抵信任面登记、死代码清理）。
+
+## 12. 终局收口登记（2026-09-24 · Gate 5-7 全闭合）
+
+> 本节为最新 current-fact 层；与 §11 冲突处以本节为准。收口裁决六条
+> （StepRejected/VerificationFailed 区分、adjudication settlement、
+> Defer DecisionId、Disposition 三态、G4 DEFERRED、差异登记）全部落定。
+
+### 12.1 收口实现状态
+
+| 项 | 状态 | 落点 |
+|---|---|---|
+| E2/E3 相位区分 | closed | 控制流捕获点显式记录 `_pendingFailurePhase`（E2=StepRejected / E3=VerificationFailed），`PhaseForCurrent` 直读——不从 ProofObligations/CurrentBelief 反推历史 |
+| 层3 rejected settlement | closed | 显式持久状态 `_completionAdjudicationRejected`：ResumeWithAdjudication(false) 置位 + Drive() 前置执法（幂等重报 "completion-rejected"、不重咨询、不重入裁决、dossier 关闭）。回归：Acceptance11_Layer3_Rejected_SettlementIsPersistent_NoReAdjudication |
+| Defer DecisionId | closed | `AgentDecision.Defer(string DecisionId, ObserveSpec Spec)`；correlation 对三态回答同律。回归：DeferResponse_WithMismatchedDecisionId_FailsClosed（+全部 Defer 链测试回带同号） |
+| Disposition 三态 | closed | DispositionOf(subject, claim)：conflicted ＞ revised(SupersededEvidenceIds≠null) ＞ established。回归：ClaimsDisposition_ThreeStatesObservable（三态同帧产生） |
+| G4 Elements XML 增强 | **DEFERRED**（见 §12.2） | 不再伪装 closed |
+| V4 收窄条件 | 登记（见 §4 注记） | 首询+零执行+世界未满足 |
+| E4 悬案守卫 | 登记（见下） | 实现收窄：plain Observe → TerminalEvaluation 需 `TargetSubject==null ∧ CurrentConflictedSubjects.Count==0`；有悬案时 plain Observe 保持 GroundingFailed "control-issued-non-act-intent"（不把带悬案的世界误判「目标已满足」）。收窄接受理由：诚实性优先，终局前世界必须无未决冲突 |
+| Defer 无 DecisionId 回带（§11 偏差行） | closed | 即 Defer DecisionId 项 |
+| Completion discharge 信任面 | 登记（见 §12.3） | 折抵语义澄清 |
+
+### 12.2 G4 Elements XML 增强 — Status: DEFERRED
+
+范围（本轮明确不实现）：viewport 参数 / nbounds lineage / XML×视觉批过滤 /
+IoU merge / element capability enrichment（Clickable/Checkable/Enabled 补全）。
+
+当前真实状态：`DeriveElementSummaries` = occurrence 单源投影，Epistemic 恒
+`Partial`，能力字段全 null——诚实降级，非错误换算。
+
+理由：多轮咨询协议闭环不依赖 XML+视觉融合增强；现有 Element summary 足以
+支持协议冻结。该能力等待真实 UniAgent 场景压力后再由独立 change 启动。
+
+重启触发条件（任一成立即立项）：
+
+```text
+真实 Agent 场景出现：
+- 元素身份歧义（多候选连接无法分辨）
+- grounding 频繁失败（视觉单源不足以为 act 提供稳定目标）
+- viewport 判断不足（px/归一化坐标歧义成为失败来源）
+- XML / visual mismatch 成为主要失败来源
+```
+
+### 12.3 Completion discharge 信任面（澄清）
+
+- anchor（step:/dispatch:/obs:）的职责 = **允许进入折抵/裁决的真实性门槛**
+  （锚点核验 = 存在性核验，不是义务满足判定）；
+- 义务是否满足由 adjudicator / Kernel authority 决定：折抵 claim 经
+  `_kernel.Process` 入证（producer = kernel.completion-verifier /
+  kernel.completion-adjudicator，lineage 载 basis），层1 JudgeOutcome 照常
+  按证据类判定；
+- 折抵目标 = **未世界满足**的 mandatory 义务（spec §3 G2 原文；实现经
+  `UniKernel.UnsatisfiedMandatoryObligations()` 与层1 同源判定）——已满足
+  义务不重复入证；
+- 折抵 claim 入证 context = PostActionEffectFlow（ING-006 D7 MaterialEffect
+  判定门要求；折抵断言的是已发生的 effect 流）。
+
+**不得**把「有真实 step anchor」表述为「mandatory obligation 已满足」。
+
+### 12.4 验收映射表（全部 GREEN · 2026-09-24）
+
+| Acceptance | Test | Result |
+|---|---|---|
+| 1 弹窗重议（SR-106） | KernelRunDriverFinalizationTests.Acceptance1_GroundingReject_FullChain_ReplanToCompletion（E2→StepRejected→重规划→Completed）+ AcceptanceV03RedTests.Acceptance1_GroundingOrGateReject_ReportsStepRejected | GREEN |
+| 2 多屏遍历 ≥3 咨询/预算 64（SR-099） | Finalization.Acceptance2_ThreeConsultations_UnderDeclaredBudget64 + V03Red.Acceptance2_ContractBudget_IsPreservedIntoRunView + Acceptance2_SameVersionDifferentBudget_IsRejectedAsContractSignatureConflict | GREEN |
+| 3 验证失败重规划（SR-103） | V03Red.Acceptance3_VerificationFailure_ReportsVerificationFailed（E3 相位） | GREEN |
+| 4 Defer 一轮（SR-013/067） | V03Red.Acceptance9_FirstDefer_IsAccepted_AndTriggersSecondConsultation | GREEN |
+| 5 零动作如实终局（SR-007/139） | Simulation DeterministicScenarioTests.S2_AlreadyOn_ZeroEffect_TerminalCompletion（SCN-WIFI-002 认证 golden） | GREEN |
+| 6 预算耗尽诚实失败（SR-102/049） | Finalization.Acceptance6_ConsultBudgetExhausted_HonestFailure | GREEN |
+| 7 完成证明三层（SR-073/074/150） | 层1：S1 golden（DeterministicScenarioTests）+ KernelRunDriverTests.Drive_SingleStep；层2：Finalization.Acceptance7_Layer2_AnchoredSelfAttestance + Layer2_StepAndDispatchAnchors；层3：Acceptance11_Layer3 双测试 | GREEN |
+| 8 确定性/断点续跑不重问（SR-107/108） | Finalization.Acceptance8_WaitingResume_DoesNotReconsult + Simulation SemanticDigestTests（同输入两跑 digest 恒等） | GREEN |
+| 9 T6 全链（defer-exhausted 终局） | V03Red.Acceptance9_DeferRounds_ReachExhaustionPhase + Acceptance9_DeferAfterExhaustion_Terminates | GREEN |
+| 10 V3/V4/V5 各一（+T6 豁免正例） | Finalization.Acceptance10_V3_StepBudgetExceeded / V4_HollowCompletion / V5_DeferMaxRoundsOverBound + FirstDefer（V5 配额内连续 Defer 合法正例） | GREEN |
+| 11 层3 双分支 + dossier | Finalization.Acceptance11_Layer3_Rejected_SettlementIsPersistent_NoReAdjudication + Approved_AdjudicatorDischargesToCompletion（含 dossier 呈递断言） | GREEN |
+
+测试总账（2026-09-24，全 solution）：Kernel 480 / Simulation 153 / Host 18 /
+Agent 17 / Core 14 / FSRealization 9 = 691 通过 0 失败 0 跳过；场景库
+18/18 认证重签（runtimeSourceHash 随收口变更，certifiedByChange=RUN-004）。
+
+### 12.5 死代码清理（收口附带）
+
+旧单轮 `ConsultAgent` 方法、无参 `DecisionIdForRun()`（恒 "-1" 后缀）、
+未使用 `_consulted` 字段——确认零调用后删除；Driver 架构零重构。

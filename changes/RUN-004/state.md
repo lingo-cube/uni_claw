@@ -1,6 +1,6 @@
 # RUN-004 — 多轮决策协议（P25 契约 v2 + 驱动器返回转移 + 完成证明三层）
 
-lifecycle_state: planning · disposition: none · depth: decision-heavy · base: c4fcd5d9
+lifecycle_state: implement → verify（终局收口完成，closure-ready） · disposition: none · depth: decision-heavy · base: c4fcd5d9
 
 ## Intent
 
@@ -68,6 +68,24 @@ L2 Policy 形态（RUN-005）；传输层 schema（LLM realization 立项时）�
 世界突变主动检测（preemption Phase 6/7）；跨 run 迟到反馈（恢复编排）。
 
 ## Status log
+
+- 2026-09-24 · **终局收口（Gate 5-7 + 验收补齐）完成** · 六项收口裁决全部落定：
+  ①E2/E3 相位由控制流捕获点显式记录（Gate 4 已闭合，回归保持 GREEN）；
+  ②层3 rejected settlement = 显式持久状态 `_completionAdjudicationRejected`（Drive 幂等重报、
+  不重咨询、不重入裁决）；③`AgentDecision.Defer` 增 DecisionId（correlation 三态同律）；
+  ④Disposition 三态真实产生（revised ← CLE-001 痕迹链）；⑤G4 Elements XML 增强
+  **DEFERRED**（spec §12.2 登记触发条件）；⑥差异登记进 spec §12（V4 收窄 / E4 悬案
+  守卫 / discharge 信任面——折抵目标收窄为未满足义务、context=PostActionEffectFlow）。
+  验收补齐：KernelRunDriverFinalizationTests 13 项（层2 双锚 / 层3 双分支+settlement /
+  V3-V5 / 预算耗尽 / 3 连环咨询 / E2 全链 / 续跑不重问 / Defer correlation / 三态同帧）；
+  修复过程中暴露并修掉两个真 bug：step 锚整元组 Contains 恒 false（ReceiptId 不参与
+  匹配）、discharge 对已满足义务重复入证（改经 `UnsatisfiedMandatoryObligations()`
+  与层1 同源）。Simulation 3 失败归因闭合：Import/AsyncImportReDrive 咨询数 1→2 =
+  RUN-004 E1 StepVerified 再咨询（协议正确，expectation 升 2 + 注明 causal）；
+  AsyncPerceptionRealization inspect 臂 = V4 hollow-completion 首询执法（协议正确，
+  expectation 改 AgentDecisionFailed）。死代码清理：旧 ConsultAgent / 无参
+  DecisionIdForRun / _consulted。总账：全 solution 691/0/0；场景库 18/18 重签
+  （runtimeSourceHash 变更，change=RUN-004）。**RUN-004 closure-ready。**
 
 - 2026-09-23 · Defer 流程修复（三步）· `_lastAnswer` 改为「上一轮回答」（校验通过并
   采纳后才回填——首 Defer 被接受由新增回归锁测试锁定）；M1 MaxRounds 配额计数（每轮

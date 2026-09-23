@@ -25,9 +25,9 @@
   "certification": {
     "schemaVersion": 1,
     "expectationsDigest": "400b1755b0e41e92f3af95979a13117a0329550c4907c34c39fe755e049fd778",
-    "runtimeSourceHash": "31ea2562f97486dc5f1d2dafa50b3eb3a62c770de426454a830303b374649978",
+    "runtimeSourceHash": "6e00da87a0f30be019515e9be6434225f0075b597da1721518040db09091913b",
     "certifiedByChange": "RUN-004",
-    "certifiedAt": "2026-09-23"
+    "certifiedAt": "2026-09-24"
   },
   "security": {
     "sensitiveReview": "cleared"

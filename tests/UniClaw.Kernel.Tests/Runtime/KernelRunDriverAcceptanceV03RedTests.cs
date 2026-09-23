@@ -122,7 +122,7 @@ public sealed class KernelRunDriverAcceptanceV03RedTests
             {
                 consults++;
                 return consults == 1
-                    ? new AgentDecision.Defer(new ObserveSpec(Subject: null, MaxRounds: 2))
+                    ? new AgentDecision.Defer(ctx.DecisionId, new ObserveSpec(Subject: null, MaxRounds: 2))
                     : new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "stop-after-defer"));
             });
         Assert.True(kernel.AdmitContract(Contract()).Accepted);
@@ -144,7 +144,7 @@ public sealed class KernelRunDriverAcceptanceV03RedTests
             consult: ctx =>
             {
                 phases.Add(ctx.Phase);
-                return new AgentDecision.Defer(new ObserveSpec(Subject: null, MaxRounds: 2));
+                return new AgentDecision.Defer(ctx.DecisionId, new ObserveSpec(Subject: null, MaxRounds: 2));
             });
         Assert.True(kernel.AdmitContract(Contract()).Accepted);
         Assert.True(driver.Activate().Accepted);
@@ -172,7 +172,7 @@ public sealed class KernelRunDriverAcceptanceV03RedTests
     {
         var (kernel, driver) = Compose(
             nextInput: _ => SeedObservation(),
-            consult: _ => new AgentDecision.Defer(new ObserveSpec(Subject: null, MaxRounds: 2)));
+            consult: ctx => new AgentDecision.Defer(ctx.DecisionId, new ObserveSpec(Subject: null, MaxRounds: 2)));
         Assert.True(kernel.AdmitContract(Contract()).Accepted);
         Assert.True(driver.Activate().Accepted);
 

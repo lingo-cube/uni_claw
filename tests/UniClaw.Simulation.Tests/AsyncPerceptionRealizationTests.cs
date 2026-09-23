@@ -149,8 +149,13 @@ public sealed class AsyncPerceptionRealizationTests
         host.Clock.AdvanceTo(T0.AddSeconds(10));
         if (inspect)
         {
-            // 观察臂：decision（NoAction）→ terminal 证据不足 → 非终态停驻
-            Assert.Equal(RunDriveStatus.TerminalNotProven, host.DriveOnce().Status);
+            // 观察臂：NoAction（无 Completion 自证）+ mandatory 义务
+            // page.colors.opened 未世界满足 → RUN-004 V4 hollow-completion
+            // fail closed（SR-074：首询空洞收工是协议违规，不是诚实未证）。
+            // 世界信念本身已由 realization 交付（下方 Normalize 消费
+            // CurrentBelief，不受 drive 状态影响）。
+            var inspectResult = host.DriveOnce();
+            Assert.Equal(RunDriveStatus.AgentDecisionFailed, inspectResult.Status);
             return host;
         }
         Assert.Equal(RunDriveStatus.WaitingForInput, host.DriveOnce().Status);

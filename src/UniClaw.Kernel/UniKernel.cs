@@ -682,6 +682,32 @@ public sealed class UniKernel
     /// CAS）→ 接受后关闭 Effect Boundary delivery → 从 canonical Outcome
     /// State 投影 immutable Runtime Outcome（exactly once）。证据不足时
     /// 返回无 proof（保持 non-terminal，不猜测分类）；已 terminal / 竞争
+    /// <summary>
+    /// RUN-004 裁决⑧ G2（终局收口）：折抵目标 = <b>未世界满足</b>的 mandatory
+    /// 义务。与层1 判定同源（RuntimeAssurance.EvaluateObligations 权威，同一
+    /// beliefView 派生）——已满足的义务不重复入证（避免对已满足义务写
+    /// subject claim 污染 belief）。义务是否满足始终由 Kernel authority
+    /// 判定，completion anchor 只是进入折抵/裁决的门槛。
+    /// </summary>
+    internal IReadOnlyList<RunObligation> UnsatisfiedMandatoryObligations()
+    {
+        var state = Run.State ?? throw new InvalidOperationException("Run State 尚未建立（无已接受 contract）");
+        var view = Run.View ?? throw new InvalidOperationException("尚无已接受的 Execution Contract");
+        _ = _world.Current ?? throw new InvalidOperationException("尚无 WorldBelief revision");
+        var beliefView = _world.DeriveOutcomeAssuranceView(
+            state.ProofObligations.Obligations.Select(o => o.Subject),
+            state.ProofObligations.Obligations
+                .Where(o => o.EntityScope is not null)
+                .Select(o => (o.ObligationId, o.EntityScope!, o.RequiredValue)));
+        return Assurance.EvaluateObligations(state.ProofObligations, beliefView, _ledger.CanonicalRecords)
+            .Where(s => s.Mandatory && !s.Satisfied)
+            .Select(s => state.ProofObligations.Obligations.Single(o => o.ObligationId == s.ObligationId))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Terminal 编排公开面：Kernel 独占 terminal 证明判断（不变量 22），
+    /// 但 Run 状态记录与 effect 门控仍由 Run Model / Effect Boundary 拥有。
     /// 失败时不产生新的 Runtime Outcome。
     /// </summary>
     public TerminalEvaluation EvaluateTerminal()

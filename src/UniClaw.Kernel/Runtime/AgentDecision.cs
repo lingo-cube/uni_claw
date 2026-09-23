@@ -101,6 +101,10 @@ public abstract record AgentDecision
 
     public sealed record NoAction(AgentNoActionProposal Proposal) : AgentDecision;
 
-    /// <summary>RUN-004：再观察一轮（有界，SR-067/068）。</summary>
-    public sealed record Defer(ObserveSpec Spec) : AgentDecision;
+    /// <summary>
+    /// RUN-004：再观察一轮（有界，SR-067/068）。DecisionId = 咨询关联号
+    /// （终局收口裁决：每次 consultation response 都回带同号——Act/NoAction/
+    /// Defer 同律 D2「防串话」；真实 UniAgent/HTTP transport 依赖该稳定关联）。
+    /// </summary>
+    public sealed record Defer(string DecisionId, ObserveSpec Spec) : AgentDecision;
 }
