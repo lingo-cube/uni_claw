@@ -14,29 +14,21 @@ using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
 
-namespace UniClaw.Host;
+namespace UniClaw.Simulation.Tests;
 
 /// <summary>
-/// HOST-001 — Product Host 最小 composition root（spec v0.3）。单次
-/// headless run：真实核心（产品 association / freshness / 执行边界 /
-/// journal / 自驱驱动器）+ 真实外部（live 感知 / 真机 ADB 投递 / 显式
-/// 注入的 agent 咨询）。全部经抽象缝组合；./runs/&lt;runid&gt;/ 落
-/// journal + trace + facts，按终局退出。
-/// SIM-002 G1：无仿真默认路径——帧源与咨询两缝均 fail-closed（未显式
-/// 提供即抛）；仿真/回放/半真档经测试侧 dev-loop 组合根（Simulation
-/// Host）承载（双 Host 对称：同一 Kernel 真件）。
+/// SIM-002 G1：Product Host 剥离仿真档后的 dev/test 组合根。与产品
+/// HostRunner 装配**同一 Kernel 真件**（双 Host 对称 C2：EvidenceLedger /
+/// WorldModel / RunModel / ControlLoop / RuntimeAssurance / EffectBoundary /
+/// UniKernel / KernelRunDriver 全真实），只有外部缝是仿真 double：
+/// 帧源（V0 / Replay / ServiceReplay）、咨询（V0Runtime.Consult）、
+/// 投递（DeterministicEffectDriver；半真档注入 AdbLiveEffectDriver）。
+/// 承载原 HostTests / HostReplayTests / HostServiceReplayTests /
+/// HostLiveEffectTests 的端到端断言（含 journal/trace/facts 落盘与 digest）。
 /// </summary>
-public sealed class HostRunner
+internal static class DevLoopRunner
 {
-    public sealed record HostOptions(
-        string? DeviceId = null,
-        int ViewportWidth = 1080,
-        int ViewportHeight = 2400,
-        string TargetState = "on",
-        LivePerception.LiveAssets? Live = null,
-        Func<AgentDecisionContext, AgentDecision?>? ConsultAgent = null);
-
-    public sealed record HostRunResult(
+    internal sealed record DevRunResult(
         string RunDir,
         RunDriveStatus Status,
         string? Reason,
@@ -46,54 +38,52 @@ public sealed class HostRunner
         string FactsDigest,
         long JournalBytes);
 
-    public static HostRunResult RunOnce(string runRoot, HostOptions? options = null)
+    /// <summary>帧源工厂：注入共享虚拟时钟（freshness / provenance / 投递
+    /// 时间戳同源）；Owner 非空时由 runner 负责 Dispose。</summary>
+    internal delegate (Func<ObservationDirective, RunDriverInput?> Next, IDisposable? Owner)
+        MakeFeed(V0Runtime.VirtualClock clock);
+
+    internal static DevRunResult RunOnce(
+        string runRoot,
+        MakeFeed makeFeed,
+        string targetState = "on",
+        Func<AgentDecisionContext, AgentDecision?>? consult = null,
+        Func<V0Runtime.VirtualClock, IEffectDriver>? makeDriver = null,
+        string runName = "dev")
     {
-        options ??= new HostOptions();
         ArgumentNullException.ThrowIfNull(runRoot);
-        // SIM-002 G1 fail-closed：产品组合根不再内置仿真档——外部缝必须
-        // 显式提供（隐藏模拟路径违反 simulation baseline C4 反向闭包）
-        if (options.Live is null)
-            throw new InvalidOperationException(
-                "Product Host 无仿真/回放帧源（SIM-002 G1）：须显式提供 Live 感知资产；"
-                + "仿真/回放/半真档由 Simulation Host（测试侧 dev-loop 组合根）承载");
-        if (options.ConsultAgent is null)
-            throw new InvalidOperationException(
-                "Product Host 无内置仿真咨询（SIM-002 G1）：须显式注入 ConsultAgent；"
-                + "确定性单步咨询 double 随 dev 档住在 Simulation Host（测试侧）");
+        ArgumentNullException.ThrowIfNull(makeFeed);
+        consult ??= context => V0Runtime.Consult(context, targetState);
         Directory.CreateDirectory(runRoot);
-        var runDir = Path.Combine(runRoot, $"run-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}");
+        var runDir = Path.Combine(runRoot, $"run-{runName}-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}");
         Directory.CreateDirectory(runDir);
         var journalPath = Path.Combine(runDir, "exec.journal");
 
-        // ---- 组合根：全部经抽象缝（利用抽象能力构建完整流程）----------
-        var clock = new HostUtilities.VirtualClock();
+        // ---- 组合（镜像原 HostRunner：Kernel 真件 + 仿真外部缝）----------
+        var clock = new V0Runtime.VirtualClock();
         var scope = new HashSet<string>
         {
             ProductAssociationStrategy.ScreenIdentitySubject,
             SharedSubjects.Frame,
             SharedSubjects.State("switch"),
         };
-        var liveFeed = new LivePerception.LiveFrameFeed(
-            clock, options.Live, () => LivePerception.LiveFrameFeed.ReadWifiState(options.Live.DeviceId));
+        var (nextInput, feedOwner) = makeFeed(clock);
         try
         {
             var world = new WorldModel(
                 scope,
                 new ProductAssociationStrategy(),
-                new ScreenFrameOccurrenceStrategy());
+                new V0Runtime.FrameOccurrenceStrategy());
             var assurance = new RuntimeAssurance(
                 new ProductFreshnessEvaluator(() => clock.Now, TimeSpan.FromMinutes(5)));
-            // journal 必注入（D3）：产品路径不存在「未注入执行源」的默认
-            IEffectDriver delivery = new AdbLiveEffectDriver(
-                options.DeviceId ?? "emulator-5554",
-                options.ViewportWidth,
-                options.ViewportHeight,
-                adbExecutable: "adb",
-                clock: () => clock.Now);
+            // journal 必注入（D3）：产品路径不存在「未注入执行源」的默认（两档同律）
+            IEffectDriver delivery = makeDriver is not null
+                ? makeDriver(clock)
+                : new DeterministicEffectDriver();
             var effectBoundary = new EffectBoundary(delivery, new FileExecutionJournal(journalPath));
             var metrics = new RuntimeStageMetrics();
             var planPolicy = new AgentPlanPolicy();
-            var traceScope = RunTraceFactory.BeginRun(new RunCorrelation("host:v0-flip-switch"));
+            var traceScope = RunTraceFactory.BeginRun(new RunCorrelation("sim:dev-loop"));
             var kernel = new UniKernel(
                 new EvidenceLedger(), world, traceScope.Trace,
                 new RunModel(), new ControlLoop(planPolicy), assurance, effectBoundary, metrics);
@@ -101,11 +91,10 @@ public sealed class HostRunner
                 kernel, planPolicy,
                 new RunDriverInputs
                 {
-                    NextInput = liveFeed.Next,
-                    ConsultAgent = options.ConsultAgent,
+                    NextInput = nextInput,
+                    ConsultAgent = consult,
                 });
 
-            // ---- 单次 run ---------------------------------------------------
             var admission = kernel.AdmitContract(new ExecutionContract(
                 Version: "v0",
                 Objective: "flip-switch",
@@ -113,13 +102,11 @@ public sealed class HostRunner
                 AllowedEffects: new HashSet<string> { "tap" },
                 ForbiddenEffects: new HashSet<string>(),
                 ProofCriteria: new[] { "switch-state-on" },
-                // 显式义务（criteria 占位不可判定——RunModel 语义）：post-action
-                // 世界 claim switch.state=on 即兑现 → Completion
                 Obligations: new[]
                 {
                     new RunObligation(
                         "obj-switch-state", RunObligationKind.Objective,
-                        Subject: SharedSubjects.State("switch"), RequiredValue: options.TargetState, Mandatory: true),
+                        Subject: SharedSubjects.State("switch"), RequiredValue: targetState, Mandatory: true),
                 }));
             if (!admission.Accepted)
                 throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");
@@ -133,9 +120,9 @@ public sealed class HostRunner
                     break;
             }
 
-            // ---- 产物落盘 ---------------------------------------------------
+            // ---- 产物落盘（承载原 Host 端到端断言）-------------------------
             var artifact = traceScope.FinalizeArtifact();
-            WriteText(runDir, "trace.json", TryJson(artifact));
+            File.WriteAllText(Path.Combine(runDir, "trace.json"), TryJson(artifact));
 
             var receipts = kernel.EffectReceipts
                 .Select(r => r.Outcome.ToString())
@@ -151,27 +138,19 @@ public sealed class HostRunner
                 journalBytes = new FileInfo(journalPath).Length,
             };
             var factsJson = JsonSerializer.Serialize(facts, JsonOptions);
-            WriteText(runDir, "facts.json", factsJson);
+            File.WriteAllText(Path.Combine(runDir, "facts.json"), factsJson);
             var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
                 $"{facts.status}|{facts.outcome}|{facts.delivered}|{string.Join(",", receipts)}|{facts.journalBytes}")));
 
-            return new HostRunResult(
+            return new DevRunResult(
                 runDir, drive.Status, drive.Reason, facts.outcome, facts.delivered,
                 receipts, digest, facts.journalBytes);
         }
         finally
         {
-            liveFeed.Dispose();
+            feedOwner?.Dispose();
         }
     }
-
-    public static int ExitCode(RunDriveStatus status) => status switch
-    {
-        RunDriveStatus.Completed => 0,
-        RunDriveStatus.TerminalNotProven => 3,
-        RunDriveStatus.WaitingForInput => 4,
-        _ => 1,
-    };
 
     private static readonly JsonSerializerOptions JsonOptions =
         new(JsonSerializerDefaults.Web) { WriteIndented = true };
@@ -181,7 +160,4 @@ public sealed class HostRunner
         try { return JsonSerializer.Serialize(value, JsonOptions); }
         catch (Exception) { return value?.ToString() ?? "<null>"; }
     }
-
-    private static void WriteText(string dir, string name, string content) =>
-        File.WriteAllText(Path.Combine(dir, name), content);
 }

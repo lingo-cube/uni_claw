@@ -1,36 +1,32 @@
-using System.Reflection;
 using UniClaw.Host;
-using UniClaw.Kernel.Runtime;
 using Xunit;
 
 namespace UniClaw.Host.Tests;
 
 /// <summary>
-/// HOST-001 验收：完整最小闭环（观察→决策→effect→Outcome 语义）+ journal
-/// 必注入产物 + 仿真可复现（两次 run digest 一致，spec v0.3 Acceptance #7）。
+/// SIM-002 G1：Product Host 组合根 fail-closed 执法——仿真/回放档已移出
+/// 产品闭包，未显式提供外部缝（Live 感知 / ConsultAgent 咨询）必须抛，
+/// 不允许任何默认仿真路径（simulation baseline C4 反向闭包）。
+/// 原 HOST-001 仿真端到端回归（完整闭环 / digest 可复现）迁至
+/// UniClaw.Simulation.Tests.DevLoopTests（经 DevLoopRunner 组合同一
+/// Kernel 真件——双 Host 对称）。
 /// </summary>
-public sealed class HostEndToEndTests
+public sealed class HostFailClosedTests
 {
     private static string TempRoot()
         => Path.Combine(Path.GetTempPath(), "uniclaw-host-" + Guid.NewGuid().ToString("N"));
 
     [Fact]
-    public void FullLoop_DeliversOnce_WritesAllArtifacts()
+    public void RunWithoutLive_ThrowsFailClosed()
     {
         var root = TempRoot();
         try
         {
-            var result = HostRunner.RunOnce(root);
-
-            // 闭环证据（Acceptance #1/#2）：Completed + Completion outcome + journal 有 pre-dispatch 记录
-            Assert.Equal(RunDriveStatus.Completed, result.Status);
-            Assert.Equal("Completion", result.OutcomeClassification);
-            Assert.Single(result.ReceiptOutcomes);
-            Assert.Equal("DeliveryCompleted", result.ReceiptOutcomes[0]);
-            Assert.True(result.JournalBytes > 0, "journal 应有 pre-dispatch 记录");
-            Assert.True(File.Exists(Path.Combine(result.RunDir, "exec.journal")));
-            Assert.True(File.Exists(Path.Combine(result.RunDir, "trace.json")));
-            Assert.True(File.ReadAllText(Path.Combine(result.RunDir, "facts.json")).Length > 0);
+            var ex = Assert.Throws<InvalidOperationException>(() => HostRunner.RunOnce(root));
+            Assert.Contains("SIM-002 G1", ex.Message);
+            Assert.Contains("Live", ex.Message);
+            // fail-closed 语义：拒绝发生在组合与落盘之前（run 目录未创建）
+            Assert.False(Directory.Exists(root));
         }
         finally
         {
@@ -39,30 +35,35 @@ public sealed class HostEndToEndTests
     }
 
     [Fact]
-    public void SimulationIsReproducible_TwoRunsSameDigest_Acceptance7()
+    public void RunWithoutConsultAgent_ThrowsFailClosed()
     {
-        var rootA = TempRoot();
-        var rootB = TempRoot();
+        var root = TempRoot();
         try
         {
-            var a = HostRunner.RunOnce(rootA);
-            var b = HostRunner.RunOnce(rootB);
-
-            Assert.Equal(a.Status, b.Status);
-            Assert.Equal(a.ReceiptOutcomes, b.ReceiptOutcomes);
-            Assert.Equal(a.FactsDigest, b.FactsDigest); // 仿真流程=正式能力：可复现
+            // LiveAssets 是纯数据 record——构造不启动任何服务；
+            // 咨询缝缺席必须在组合真实外部件之前被拒
+            var ex = Assert.Throws<InvalidOperationException>(() => HostRunner.RunOnce(root,
+                new HostRunner.HostOptions
+                {
+                    Live = new LivePerception.LiveAssets("no-device", "wifi-settings", "provider", "python"),
+                }));
+            Assert.Contains("SIM-002 G1", ex.Message);
+            Assert.Contains("ConsultAgent", ex.Message);
         }
         finally
         {
-            if (Directory.Exists(rootA)) Directory.Delete(rootA, recursive: true);
-            if (Directory.Exists(rootB)) Directory.Delete(rootB, recursive: true);
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
         }
     }
 }
 
 /// <summary>
 /// HOST-001 依赖闭包执法（Acceptance #4，还 RFS-001 债）：Host 程序集
-/// UniClaw.* 引用 ⊆ {UniClaw.Kernel}；无 Simulation/Replay/Oracle/Importer 类型。
+/// UniClaw.* 引用 ⊆ {UniClaw.Kernel}；无 Simulation/Replay/Oracle/Importer
+/// 类型。SIM-002 G1（2026-09-22 外部第三轮审阅 S1 裁决）扩禁词至仿真/
+/// 回放 feed：2026-09-20「感知回放属能力层、可留产品 Host」的定性被该
+/// 评审推翻——ReplayPerception / ServicePerception / 仿真帧源与咨询
+/// double 一并移入 tests/UniClaw.Simulation.Tests。
 /// </summary>
 public sealed class HostClosureTests
 {
@@ -81,14 +82,14 @@ public sealed class HostClosureTests
     [Fact]
     public void HostAssemblyContainsNoSimulationOrScenarioReplayTypes()
     {
-        // G23 精确执法：禁的是**场景回放机制**（Simulation Host 领地）。
-        // 感知回放（录制感知锚喂能力缝，ReplayPerception）是能力层合法件
-        // ——2026-09-20 定性：「感知回放模拟真实感知功能；Trace 回放模拟
-        // 整个场景」。故禁词用具体类型名，不用裸词 Replay。
+        // SIM-002 G1：禁词覆盖全部仿真/回放路径（feed / 咨询 double /
+        // 确定性投递 double——均已移入 Simulation Host）
         var forbidden = new[]
         {
             "ScenarioStimulus", "ScenarioImporter", "ScenarioRunner",
             "SemanticDigest", "Oracle", "ScriptedUniAgent", "MinimalScenarioBundle",
+            "V0Runtime", "ReplayPerception", "ServicePerception",
+            "ServiceReplayFrameFeed", "ReplayFrameFeed", "SimulationHost",
         };
         var typeNames = typeof(HostRunner).Assembly
             .GetTypes()

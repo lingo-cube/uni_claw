@@ -5,8 +5,10 @@ using UniClaw.Kernel.World.UiRealization;
 namespace UniClaw.Host;
 
 /// <summary>
-/// SIM-002 G1：从 V0Runtime 拆出的产品能力——World Model 观察推导策略。
-/// 属产品侧（IUiObservationStrategy 的 Host realization），非仿真专用。
+/// SIM-002 G1：World Model 观察推导策略（产品能力独立成件——原与 dev
+/// 帧源同居一文件，G1 拆分时随首批提取）。属产品侧（IUiObservationStrategy
+/// 的 Host realization，消费 LiveVision 契约 ui.detect.*.class claims），
+/// 非仿真专用。
 /// </summary>
 public sealed class FrameOccurrenceStrategy : IUiObservationStrategy
 {
@@ -20,10 +22,9 @@ public sealed class FrameOccurrenceStrategy : IUiObservationStrategy
         return new[]
         {
             new ProposedOccurrence(
-                Role: role,
-                SemanticDescriptor: null,
                 OwningContainerId: null,
-                EvidenceId: record.EvidenceId),
+                Role: role,
+                SemanticDescriptor: null),
         };
     }
 }

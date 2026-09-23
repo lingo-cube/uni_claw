@@ -4,7 +4,7 @@ using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.World.UiRealization;
 
-namespace UniClaw.Host;
+namespace UniClaw.Simulation.Tests;
 
 /// <summary>
 /// 路线一 2b — 服务回放：录制截图 → **真感知服务**（Python 视觉管线，
@@ -13,6 +13,10 @@ namespace UniClaw.Host;
 /// ReplayPerception.ExtractJson——同一格式知识只此一处。
 /// 缝为同步（RunDriverInputs 契约）；内部 Async 同步等待（console v0
 /// 形态，无并发消费者）。fail-closed：推理失败即抛（Diagnostic 随文）。
+/// SIM-002 G1（S1 裁决·归属评估）：回放档属仿真闭包——自 Product Host
+/// 移入 Simulation Host。产品侧等价能力 = VisionServiceSession（真推理，
+/// LivePerception.cs）+ HostUtilities.ExtractJson；CLI 标定诊断 --analyze
+/// 已改走该产品面。
 /// </summary>
 public static class ServicePerception
 {

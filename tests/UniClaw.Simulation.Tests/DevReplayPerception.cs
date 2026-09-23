@@ -5,7 +5,7 @@ using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
 
-namespace UniClaw.Host;
+namespace UniClaw.Simulation.Tests;
 
 /// <summary>
 /// 路线一 2a — 感知回放（2026-09-20 定性：「感知回放模拟真实感知功能」）。
@@ -14,6 +14,8 @@ namespace UniClaw.Host;
 /// 每锚恰一个），以**录制 bounds 原文**产出帧——真实管线输出、非真机输入。
 /// 资产先例：platforms/perception/evaluation/assets/captures/
 /// wifi-slice2-calibration/perception/*.json。
+/// SIM-002 G1（S1 裁决）：自 Product Host 移入 Simulation Host——产品闭包
+/// 不含回放路径；产品侧提取器为 HostUtilities.ExtractJson（UniClaw.Host）。
 /// </summary>
 public static class ReplayPerception
 {

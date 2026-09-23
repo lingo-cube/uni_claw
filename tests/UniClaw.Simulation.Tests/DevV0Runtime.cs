@@ -5,14 +5,16 @@ using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
 
-namespace UniClaw.Host;
+namespace UniClaw.Simulation.Tests;
 
 /// <summary>
 /// HOST-001 v0 确定性外部缝（spec v0.3 §2，显式命名的 dev-profile 件；
 /// 2026-09-20 仿真方针：外部组件先仿真，跑通核心模型+能力接口）：
-/// 帧源（屏幕身份 + 内容双 claim）、occurrence 派生、agent 咨询、
-/// 确定性投递驱动、虚拟时钟。换入路径：live 感知 / ADB / 智能 agent
-/// 各自是已登记的后续 change。
+/// 帧源（屏幕身份 + 内容双 claim）、occurrence 派生、agent 咨询、虚拟时钟。
+/// SIM-002 G1（2026-09-22 外部第三轮审阅 S1 裁决）：本类自 Product Host
+/// （原 src/UniClaw.Host/V0Runtime.cs）移入 Simulation Host——产品闭包
+/// 不含仿真/回放路径；产品侧需要的能力已拆出为 HostUtilities /
+/// ScreenFrameOccurrenceStrategy（UniClaw.Host）。
 /// </summary>
 public static class V0Runtime
 {
@@ -27,6 +29,9 @@ public static class V0Runtime
         public void Tick() => _ticks++;
     }
 
+    /// <summary>标定对（原 HostRunner.Calibration 随档位移入）：目标控件归一化 bounds。</summary>
+    public sealed record Calibration(double X1, double Y1, double X2, double Y2);
+
     /// <summary>v0 帧契约：{"role":"switch","state":"off","b":[x1,y1,x2,y2]}（归一化坐标）。
     /// 标定注入：bounds 提供时用 AdbEffectDriver 支持坐标系（真件档）；
     /// targetState 决定 post-action 帧/claim 的目标态（flip 语义）；
@@ -35,14 +40,14 @@ public static class V0Runtime
     public sealed class FrameFeed
     {
         private readonly VirtualClock _clock;
-        private readonly HostRunner.Calibration? _bounds;
+        private readonly Calibration? _bounds;
         private readonly string _targetState;
         private readonly string _initialState;
         private int _phase;
 
         public FrameFeed(
             VirtualClock clock,
-            HostRunner.Calibration? bounds = null,
+            Calibration? bounds = null,
             string targetState = "on",
             string initialState = "off")
         {
@@ -97,7 +102,9 @@ public static class V0Runtime
         }
     }
 
-    /// <summary>内容帧 → occurrence（owner = previous revision 的唯一根容器；非帧 claim 不派生）。</summary>
+    /// <summary>内容帧 → occurrence（owner = previous revision 的唯一根容器；非帧 claim 不派生）。
+    /// 产品侧孪生：UniClaw.Host.ScreenFrameOccurrenceStrategy（SIM-002 G1
+    /// 拆分；双 Host 不得互引，两份逻辑保持逐行同步）。</summary>
     public sealed class FrameOccurrenceStrategy : IUiObservationStrategy
     {
         public IReadOnlyList<ProposedOccurrence> Derive(EvidenceRecord record, WorldBeliefRevision? previous)
@@ -127,6 +134,8 @@ public static class V0Runtime
     /// <summary>
     /// v0 咨询（多轮化）：第一次 Act（单步 tap 至目标态），后续 NoAction
     /// （目标应已达成——由 TerminalEvaluation 如实判定）。智能升级=后续 change。
+    /// SIM-002 G1：随仿真档移入测试侧——产品 Host 咨询缝 fail-closed，
+    /// 由调用方显式注入（HostLiveFullTests 注入本 double）。
     /// </summary>
     public static AgentDecision Consult(AgentDecisionContext context, string targetState = "on")
     {

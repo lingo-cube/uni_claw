@@ -6,14 +6,17 @@ namespace UniClaw.Kernel.Tests;
 /// <summary>
 /// RFS-001 / baseline §24.8 — Product Host 依赖闭包可执行执法。
 ///
-/// HONEST FRAMING（RFS-001 D23）：本测试证明 CURRENT truth——当前产品
-/// 程序集（UniClaw.Kernel / UniClaw.Agent）不含 Simulation 功能/标识符，
-/// 且对 tests/ 无任何编译依赖；唯一跨边界是 Kernel.csproj 显式声明的
-/// InternalsVisibleTo test seam（恰好两个测试程序集）。它不是「完整未来
-/// Product Host 依赖闭包」的证明——Product Host 尚不存在（RFS-001 D23），
-/// 其组合面未来引入的依赖只能由届时的事实测试执法，本测试不预支该结论。
-/// Simulation 只存在于独立 Simulation Host（tests/UniClaw.Simulation.Tests）。
-/// 本测试不引用该项目或其类型——缺席性以磁盘扫描方式执法。
+/// HONEST FRAMING（RFS-001 D23 → SIM-002 G1 扩面）：本测试证明 CURRENT
+/// truth——产品程序集（UniClaw.Kernel / UniClaw.Agent / UniClaw.Host）
+/// 不含 Simulation 功能/标识符，且对 tests/ 无任何编译依赖；唯一跨边界
+/// 是 Kernel.csproj 显式声明的 InternalsVisibleTo test seam（恰好两个
+/// 测试程序集）。HOST-001 Product Host 落地后，SIM-002 G1（2026-09-22
+/// 外部第三轮审阅 S1 裁决）把闭包执法扩到 UniClaw.Host：Product Host
+/// 依赖闭包不得含 Simulation/Replay 路径（禁词含 V0Runtime /
+/// ReplayPerception / ServicePerception——2026-09-20「感知回放属能力层」
+/// 定性被该评审推翻）。Simulation 只存在于独立 Simulation Host
+/// （tests/UniClaw.Simulation.Tests）。本测试不引用该项目或其类型——
+/// 缺席性以磁盘扫描方式执法。
 /// </summary>
 public sealed class ProductHostClosureTests
 {
@@ -64,6 +67,21 @@ public sealed class ProductHostClosureTests
                 violations.Add($"src/UniClaw.Agent/UniClaw.Agent.csproj: ProjectReference 越界（{include}，仅允许 UniClaw.Kernel）");
         }
 
+        // SIM-002 G1：Host（Product Host composition root）——ProjectReference
+        // 恰好等于 {UniClaw.Kernel}；多一项即 Simulation/Replay 组件越界进入产品闭包
+        var hostCsprojPath = Path.Combine(root, "src", "UniClaw.Host", "UniClaw.Host.csproj");
+        Assert.True(File.Exists(hostCsprojPath), "src/UniClaw.Host/UniClaw.Host.csproj 缺失（Product Host）");
+        var hostCsproj = File.ReadAllText(hostCsprojPath);
+        var hostReferences = Regex.Matches(hostCsproj, @"<ProjectReference\s+Include=""([^""]+)""")
+            .Cast<Match>()
+            .Select(m => m.Groups[1].Value.Replace('\\', '/'))
+            .ToList();
+        if (hostReferences.Count != 1
+            || !hostReferences[0].EndsWith("src/UniClaw.Kernel/UniClaw.Kernel.csproj", StringComparison.Ordinal)
+                && !hostReferences[0].Equals("../UniClaw.Kernel/UniClaw.Kernel.csproj", StringComparison.Ordinal))
+            violations.Add(
+                $"src/UniClaw.Host/UniClaw.Host.csproj: ProjectReference 须恰好等于 [UniClaw.Kernel]（实际 [{string.Join(", ", hostReferences)}]）");
+
         // D23 test-seam boundary：Kernel 的 InternalsVisibleTo 集合恰好等于
         // 两个测试程序集（显式、穷举——多一项即 Simulation 功能越界进入
         // 产品可见面，少一项即测试 seam 缺失）
@@ -80,11 +98,12 @@ public sealed class ProductHostClosureTests
         if (internalsVisibleTo.Count != internalsVisibleTo.Distinct().Count())
             violations.Add("src/UniClaw.Kernel/UniClaw.Kernel.csproj: InternalsVisibleTo 存在重复条目");
 
-        // 两个产品 csproj 均不得以 <Compile Include / <ProjectReference 指向 tests/ 下任何内容
+        // 三个产品 csproj 均不得以 <Compile Include / <ProjectReference 指向 tests/ 下任何内容
         foreach (var (path, text) in new[]
         {
             ("src/UniClaw.Kernel/UniClaw.Kernel.csproj", kernelCsproj),
             ("src/UniClaw.Agent/UniClaw.Agent.csproj", agentCsproj),
+            ("src/UniClaw.Host/UniClaw.Host.csproj", hostCsproj),
         })
         {
             foreach (var pattern in new[] { @"<Compile\s+Include=""([^""]+)""", @"<ProjectReference\s+Include=""([^""]+)""" })
@@ -118,6 +137,13 @@ public sealed class ProductHostClosureTests
             "ScenarioImporter",
             "SimulationHost",
             "UniClaw.Simulation",
+            // SIM-002 G1（S1 裁决）：Product Host 闭包禁仿真/回放标识
+            "V0Runtime",
+            "ReplayPerception",
+            "ServicePerception",
+            "ServiceReplayFrameFeed",
+            "ReplayFrameFeed",
+            "DeterministicDeliveryDriver",
         ];
         var violations = new List<string>();
         foreach (var path in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))

@@ -64,7 +64,6 @@ public sealed class HostLiveFullTests(ITestOutputHelper output)
         {
             var result = HostRunner.RunOnce(root, new HostRunner.HostOptions
             {
-                Effect = HostRunner.EffectProfile.AdbLive,
                 DeviceId = deviceId,
                 TargetState = target,
                 Live = new LivePerception.LiveAssets(
@@ -73,6 +72,8 @@ public sealed class HostLiveFullTests(ITestOutputHelper output)
                     Path.Combine(repo, "platforms", "perception"),
                     Path.Combine(repo, ".perception", "venv", "bin", "python"),
                     Path.Combine(repo, ".perception", "cache")),
+                // SIM-002 G1：咨询 double 由测试注入（产品 Host 无内置仿真咨询）
+                ConsultAgent = context => SingleStepConsult.Consult(context, target),
             });
 
             output.WriteLine($"status={result.Status}({result.Reason}) outcome={result.OutcomeClassification} delivered={result.DeliveredEffects}");
@@ -95,5 +96,28 @@ public sealed class HostLiveFullTests(ITestOutputHelper output)
         {
             if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
         }
+    }
+}
+
+/// <summary>
+/// SIM-002 G1：测试侧确定性咨询 double（原仿真档单步策略迁入测试——
+/// 产品 Host 咨询缝 fail-closed 后由本 double 显式注入）。第一次 Act
+/// （单步 tap 至目标态），StepVerified / VerificationFailed 后 NoAction
+/// （目标应已达成——由 TerminalEvaluation 如实判定）。
+/// </summary>
+internal static class SingleStepConsult
+{
+    internal static AgentDecision Consult(AgentDecisionContext context, string targetState)
+    {
+        if (context.Phase == AgentDecisionPhase.StepVerified
+            || context.Phase == AgentDecisionPhase.VerificationFailed)
+        {
+            return new AgentDecision.NoAction(new AgentNoActionProposal(
+                context.DecisionId, "goal-should-be-met-after-first-step"));
+        }
+        return new AgentDecision.Act(new AgentActionProposal(
+            context.DecisionId,
+            new[] { new AgentActionStep("switch", TargetDescriptor: null, EffectClass: "tap", DesiredState: targetState) },
+            Justification: "v0-single-step-goal"));
     }
 }

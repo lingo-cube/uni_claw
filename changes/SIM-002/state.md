@@ -1,6 +1,6 @@
 # SIM-002 — Simulation Baseline Compliance
 
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: c3ef5b30
+lifecycle_state: implementing · disposition: none · depth: decision-heavy · base: c3ef5b30
 
 ## Intent
 
@@ -77,6 +77,35 @@ G4 C7 v0.2 能准确描述当前 hybrid Agent realization
 - D4 Phase B 冻结到 G3 闭合
 
 ## Status log
+
+- 2026-09-23 · G1 closed（follow-up slice，接 b4b6865c 首切片）·
+  产品 Host 仿真/回放闭包剥离完成：`V0Runtime` / `ReplayPerception` /
+  `ServicePerception`（含 `FrameFeed` / `ReplayFrameFeed` /
+  `ServiceReplayFrameFeed` / `Consult` / `FrameOccurrenceStrategy` /
+  `DeterministicDeliveryDriver`）全部移入
+  `tests/UniClaw.Simulation.Tests`（dev 档组合根 `DevLoopRunner` 承载，
+  双 Host 对称：同一 Kernel 真件）；`HostRunner` 外部缝 fail-closed
+  （Live / ConsultAgent 缺席即抛，无仿真默认档，EffectProfile.Simulated
+  枚举删除）；CLI `--replay` / `--service` / `--effect adb` 剥离，
+  `--analyze` 改经产品面 VisionServiceSession，无参调用 fail-closed 退出；
+  产品孪生独立成件：`ScreenFrameOccurrenceStrategy`（live 路径依赖）+
+  切片 1 已落 `HostUtilities` / `FrameOccurrenceStrategy`。机械执法扩面：
+  `ProductHostClosureTests` 禁词 + Host csproj 引用白名单；`HostClosureTests`
+  同步（2026-09-20「感知回放属能力层」定性撤销备注）。
+  验证：level DETERMINISTIC——method 全量 `dotnet test`；expected 闭包
+  测试 GREEN + 零回归（已知 RED 不变）；actual Host 18/18 · Kernel
+  467/467 · Simulation 140/143（3 失败经 stash 复验为 HEAD 存量 RED：
+  ImportReDrive×1 / AsyncImportRedrive×1 / AsyncPerceptionRealization×1，
+  与本切片无关）；evidence 本条 status log + 仓库 HEAD。
+  附带修正：切片 1 提交的 `FrameOccurrenceStrategy.cs` 含编译错误
+  （`ProposedOccurrence` 无 `EvidenceId` 参数——b4b6865c 提交时未跑
+  `dotnet build`，其守护脚本仅为文档检查），本切片已修（ui.detect.class
+  → Role-only occurrence）。
+
+- 2026-09-23 · G1 first slice（b4b6865c）· `HostUtilities`（VirtualClock
+  / AnchorDetection / ExtractJson）+ `FrameOccurrenceStrategy`
+  （ui.detect.*.class）产品侧提取；`LivePerception` 切换引用。（状态
+  记录滞后补登；该切片含上述编译错误，已在 follow-up slice 修复。）
 
 - 2026-09-22 · created·persisted · 外部第三轮审阅触发（S1-S8 + P1-P3），
   用户裁决按 Gate 推进，Phase B 暂停
