@@ -1,5 +1,8 @@
 # DSH 运行时嵌入 uni_claw（含两层 profile 定制）研究
 
+> Status: RESEARCH_DELIVERED
+> Authority: NONE
+
 > 状态：研究交付（2026-09-22 重写，以 **embedding** 为主线）。范围已由用户确认：
 > 目标不是「DSH 作为 uni-harness 的开发 Host」为主，而是「把 DSH 运行时作为依赖嵌入
 > uni_claw 产品侧（DSH-backed UniAgent = Product Realization，ADR-0022）」。profile
