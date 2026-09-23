@@ -36,7 +36,7 @@ public sealed class FailClosedScenarioTests
         Assert.True(report.AcceptancePassed, ScenarioReport.DescribeAcceptance(bundle, report));
         Assert.Equal(RunDriveStatus.AgentDecisionFailed.ToString(), report.RunDriveStatus);
         Assert.Equal("no-response", report.Reason);
-        Assert.Equal(0, host.EffectDriver.DeliveryCount);
+        Assert.Equal(0, host.EffectDeliveryCount);
         Assert.False(host.Facts.IsRunTerminal);
         Assert.Equal(1, report.AgentConsultations);
     }
@@ -69,7 +69,7 @@ public sealed class FailClosedScenarioTests
 
         Assert.True(report.AcceptancePassed, ScenarioReport.DescribeAcceptance(bundle, report));
         Assert.Equal(RunDriveStatus.UnexpectedInput.ToString(), report.RunDriveStatus);
-        Assert.Equal(0, host.EffectDriver.DeliveryCount);
+        Assert.Equal(0, host.EffectDeliveryCount);
         Assert.False(host.Facts.IsRunTerminal);
 
         Assert.Single(report.UnexpectedStimuli);

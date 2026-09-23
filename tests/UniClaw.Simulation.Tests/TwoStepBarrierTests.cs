@@ -33,7 +33,7 @@ public sealed class TwoStepBarrierTests
         Assert.Equal(RunDriveStatus.Completed.ToString(), report.RunDriveStatus);
         Assert.Equal(TerminalClassification.Completion, report.Outcome!.Classification);
         Assert.Equal(2, report.EffectDeliveries);
-        Assert.Equal(2, host.EffectDriver.DeliveryCount);
+        Assert.Equal(2, host.EffectDeliveryCount);
         Assert.Equal(2, host.Facts.EffectReceipts.Count);
         Assert.Equal(2, report.AgentConsultations); // RUN-004: E1 返回转移多一次 NoAction 咨询
         Assert.Empty(report.UnconsumedStimulusIds);
@@ -64,7 +64,7 @@ public sealed class TwoStepBarrierTests
         Assert.Equal("post-action-evidence", pending.Reason!["PhasedPending:".Length..]);
 
         // 不变量 43：step1 已 dispatch（1 effect），step2 因证据缺失被阻塞
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveryCount);
         Assert.Equal(1, host.Facts.EffectReceipts.Count);
         Assert.False(host.Facts.IsRunTerminal);
 
@@ -74,7 +74,7 @@ public sealed class TwoStepBarrierTests
         Assert.Equal(RunDriveStatus.Completed, cancelled.Status);
         Assert.Equal(TerminalClassification.SafeStop, cancelled.Outcome!.Classification);
         Assert.True(host.Facts.IsRunTerminal);
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveryCount);
 
         var report = ScenarioRunner.FinalizePhased(bundle, host);
         // bundle.Expected 描述等待中状态；终态字段逐项核对（effects 屏障不破）

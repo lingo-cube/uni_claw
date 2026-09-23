@@ -36,7 +36,7 @@ public sealed class ReliableExecutionRecordTests
         // 非 terminal——guarded dispatch 的前置状态。
         var drive = host.DriveOnce();
         Assert.Equal(RunDriveStatus.WaitingForInput, drive.Status);
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveryCount);
         Assert.False(host.Facts.IsRunTerminal);
         return (host, fixture);
     }
@@ -74,7 +74,7 @@ public sealed class ReliableExecutionRecordTests
         Assert.Equal(DispatchOutcome.DeliveryCompleted, result.Receipt!.Outcome);
 
         // 恰好一次 driver 调用（基线 1 + guarded 1），Receipt 已关联
-        Assert.Equal(2, hostA.EffectDriver.DeliveryCount);
+        Assert.Equal(2, hostA.EffectDeliveryCount);
         Assert.Empty(fixture.FindPending());
 
         var restored = fixture.GetAttempt("attempt-g-1")!;
@@ -97,7 +97,7 @@ public sealed class ReliableExecutionRecordTests
         Assert.False(result.Crashed);
         Assert.Equal(ReliableCommitOutcome.Failure, result.Commit);
         Assert.Null(result.Receipt);
-        Assert.Equal(1, hostA.EffectDriver.DeliveryCount);
+        Assert.Equal(1, hostA.EffectDeliveryCount);
 
         // 无可发送 Attempt：未决发现不含提交失败记录
         Assert.Empty(fixture.FindPending());
@@ -118,7 +118,7 @@ public sealed class ReliableExecutionRecordTests
 
         Assert.Equal(ReliableCommitOutcome.Unknown, result.Commit);
         Assert.Null(result.Receipt);
-        Assert.Equal(1, hostA.EffectDriver.DeliveryCount);
+        Assert.Equal(1, hostA.EffectDeliveryCount);
 
         var unknown = fixture.GetAttempt("attempt-g-3")!;
         Assert.NotNull(unknown);
@@ -143,7 +143,7 @@ public sealed class ReliableExecutionRecordTests
         Assert.True(result.Crashed);
         Assert.Equal(CrashCutPoint.BeforePrepareCommit, result.StoppedAt);
         Assert.Null(result.Commit);
-        Assert.Equal(1, hostA.EffectDriver.DeliveryCount);
+        Assert.Equal(1, hostA.EffectDeliveryCount);
         hostA = null!; // 丢弃 Host A 的 Kernel/Runtime/Trace 内存组合
 
         // 崩溃发生在可靠提交之前：fixture 无可发送 Attempt（不得解释为成功/失败/已发送）
@@ -153,7 +153,7 @@ public sealed class ReliableExecutionRecordTests
 
         var hostB = BootedHostB(fixture);
         Assert.Empty(fixture.FindPending(hostB.KernelCore.RunId));
-        Assert.Equal(0, hostB.EffectDriver.DeliveryCount);
+        Assert.Equal(0, hostB.EffectDeliveryCount);
     }
 
     // ---- S5 AfterPrepareCommitBeforeDriver 重启：无 ID 发现未决，driver 次数为零 ----
@@ -170,7 +170,7 @@ public sealed class ReliableExecutionRecordTests
         Assert.True(result.Crashed);
         Assert.Equal(CrashCutPoint.AfterPrepareCommitBeforeDriver, result.StoppedAt);
         Assert.Equal(ReliableCommitOutcome.Success, result.Commit);
-        Assert.Equal(1, hostA.EffectDriver.DeliveryCount); // guarded attempt：零 driver 调用
+        Assert.Equal(1, hostA.EffectDeliveryCount); // guarded attempt：零 driver 调用
         hostA = null!;
 
         var hostB = BootedHostB(fixture);
@@ -196,7 +196,7 @@ public sealed class ReliableExecutionRecordTests
         Assert.Empty(restored.Entries); // 未发送：无 submission/receipt 痕迹
 
         // 恢复发现零投递、零新 Attempt（不得盲重发）
-        Assert.Equal(0, hostB.EffectDriver.DeliveryCount);
+        Assert.Equal(0, hostB.EffectDeliveryCount);
         Assert.Equal(1, fixture.AttemptCount);
     }
 
@@ -213,7 +213,7 @@ public sealed class ReliableExecutionRecordTests
         Assert.Equal(CrashCutPoint.AfterDriverBeforeReceipt, result.StoppedAt);
         Assert.True(result.Gate!.Allowed);
         Assert.Null(result.Receipt);
-        Assert.Equal(2, hostA.EffectDriver.DeliveryCount); // driver 已调用（崩溃前观察）
+        Assert.Equal(2, hostA.EffectDeliveryCount); // driver 已调用（崩溃前观察）
         var preCrash = fixture.GetAttempt("attempt-g-6")!;
         Assert.Equal(ReliableAttemptStatus.Dispatched, preCrash.Status);
         hostA = null!;
@@ -228,7 +228,7 @@ public sealed class ReliableExecutionRecordTests
         Assert.DoesNotContain(restored.Entries, e => e.Kind == AttemptEntryKind.Receipt);
 
         // 不自动新投递：Host B 零 driver 调用、零新 Attempt
-        Assert.Equal(0, hostB.EffectDriver.DeliveryCount);
+        Assert.Equal(0, hostB.EffectDeliveryCount);
         Assert.Equal(1, fixture.AttemptCount);
 
         // Host B 协调动作：显式登记「仍无 Receipt」的未决声明（不伪造失败）
@@ -250,7 +250,7 @@ public sealed class ReliableExecutionRecordTests
         Assert.True(result.Crashed);
         Assert.Equal(CrashCutPoint.AfterReceiptAppend, result.StoppedAt);
         var receiptId = result.Receipt!.ReceiptId;
-        Assert.Equal(2, hostA.EffectDriver.DeliveryCount);
+        Assert.Equal(2, hostA.EffectDeliveryCount);
         hostA = null!;
 
         var hostB = BootedHostB(fixture);
@@ -262,7 +262,7 @@ public sealed class ReliableExecutionRecordTests
         var receiptEntry = Assert.Single(restored.Entries, e => e.Kind == AttemptEntryKind.Receipt);
         Assert.Equal(receiptId, receiptEntry.Receipt!.ReceiptId);
         Assert.Equal(DispatchOutcome.DeliveryCompleted, receiptEntry.Receipt.Outcome);
-        Assert.Equal(0, hostB.EffectDriver.DeliveryCount);
+        Assert.Equal(0, hostB.EffectDeliveryCount);
     }
 
     // ---- S8 迟到反馈：追加到原 Attempt，不覆盖历史；关联不明保留待关联 ----
@@ -306,7 +306,7 @@ public sealed class ReliableExecutionRecordTests
         var retried = fixture.GetAttempt("attempt-g-9")!;
         Assert.Equal(ReliableAttemptStatus.CommittedPending, retried.Status);
         Assert.Equal(1, fixture.AttemptCount); // 同一 Attempt，未新建
-        Assert.Equal(1, hostA.EffectDriver.DeliveryCount); // 不增加外部投递
+        Assert.Equal(1, hostA.EffectDeliveryCount); // 不增加外部投递
     }
 
     // ---- S10 外部投递重试：新 Attempt，保留重试关系 ----
@@ -380,7 +380,7 @@ public sealed class ReliableExecutionRecordTests
         Assert.Equal(crashedBindingId, restored.Preparation.Binding.BindingId);
         Assert.Equal(crashedRevisionId, restored.Preparation.Binding.RevisionId);
         Assert.Equal("DeterministicEffectDriver", restored.Preparation.ExecutorId);
-        Assert.Equal(0, hostB.EffectDriver.DeliveryCount);
+        Assert.Equal(0, hostB.EffectDeliveryCount);
         Assert.Equal(1, fixture.AttemptCount);
     }
 }

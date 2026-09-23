@@ -82,7 +82,7 @@ public sealed class ReliableExecutionJournalRestartTests : IDisposable
 
         Assert.Equal(0, journalB.AttemptCount);
         Assert.Empty(journalB.DiscoverPending()); // 无可发送 Attempt，不得解释为成功/失败/已发送
-        Assert.Equal(0, hostB.EffectDriver.DeliveryCount);
+        Assert.Equal(0, hostB.EffectDeliveryCount);
     }
 
     // ---- S7：Receipt 已追加 → 重启可还原、脱离未决（不重复投递） ----
@@ -94,7 +94,7 @@ public sealed class ReliableExecutionJournalRestartTests : IDisposable
         var hostA = Boot(TraceArm.Enabled, journalA);
         var drive = hostA.DriveOnce();
         Assert.Equal(RunDriveStatus.WaitingForInput, drive.Status);
-        Assert.Equal(1, hostA.EffectDriver.DeliveryCount);
+        Assert.Equal(1, hostA.EffectDeliveryCount);
         var productReceiptId = hostA.Facts.EffectReceipts.Single().ReceiptId;
 
         hostA = null!;
@@ -113,7 +113,7 @@ public sealed class ReliableExecutionJournalRestartTests : IDisposable
         Assert.Equal(productReceiptId, entry.Receipt!.ReceiptId); // 产品 receipt 关联原样还原
         Assert.Equal("DeterministicEffectDriver", restored.Registration.ExecutorId);
         Assert.Equal("tap", restored.Registration.EffectClass);
-        Assert.Equal(0, hostB.EffectDriver.DeliveryCount);
+        Assert.Equal(0, hostB.EffectDeliveryCount);
     }
 
     // ---- S6：driver 已调用、追加故障 → 记录停留未决未知，重启可发现 ----
@@ -128,7 +128,7 @@ public sealed class ReliableExecutionJournalRestartTests : IDisposable
         // boundary 吞掉，不吞 delivery——CORE-012 计划 §3.1 语义）
         var drive = hostA.DriveOnce();
         Assert.Equal(RunDriveStatus.WaitingForInput, drive.Status);
-        Assert.Equal(1, hostA.EffectDriver.DeliveryCount);
+        Assert.Equal(1, hostA.EffectDeliveryCount);
         Assert.Single(hostA.Facts.EffectReceipts);
 
         hostA = null!;
@@ -146,7 +146,7 @@ public sealed class ReliableExecutionJournalRestartTests : IDisposable
         Assert.DoesNotContain(restored.Entries, e => e.Kind == ExecutionEntryKind.Receipt);
 
         // 不自动新投递：Host B 零 driver 调用、零新 Attempt
-        Assert.Equal(0, hostB.EffectDriver.DeliveryCount);
+        Assert.Equal(0, hostB.EffectDeliveryCount);
         Assert.Equal(1, journalB.AttemptCount);
 
         // Host B 协调动作：显式登记「仍无 Receipt」→ 仍未决，不伪造失败
@@ -184,7 +184,7 @@ public sealed class ReliableExecutionJournalRestartTests : IDisposable
         Assert.Equal(ExecutionAttemptStatus.Completed, restored.Status);
         Assert.Equal(productReceiptId,
             restored.Entries.Single(e => e.Kind == ExecutionEntryKind.Receipt).Receipt!.ReceiptId);
-        Assert.Equal(0, hostB.EffectDriver.DeliveryCount);
+        Assert.Equal(0, hostB.EffectDeliveryCount);
     }
 
     // ---- S8：Host B 协调——迟到反馈追加不覆盖、待关联可再重启存活 ----

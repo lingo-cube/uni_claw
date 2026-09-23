@@ -121,7 +121,7 @@ internal static class ScenarioRunner
             ModelCalls: "N/A (ScriptedUniAgent; no live model)",
             InputTokens: "N/A (ScriptedUniAgent; no live model)");
 
-        var effectDeliveries = host.EffectDriver.DeliveryCount;
+        var effectDeliveries = host.EffectDeliveryCount;
         var agentConsultations = host.ScriptedAgent.Calls.Count;
         var unconsumed = host.Feed.Remaining;
 

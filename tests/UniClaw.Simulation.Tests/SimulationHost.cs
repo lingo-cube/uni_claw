@@ -45,7 +45,11 @@ internal sealed class SimulationHost
     internal KernelRunDriver Driver { get; }
     internal AgentPlanPolicy Plan { get; }
     internal ScriptedUniAgent ScriptedAgent { get; }
-    internal DeterministicEffectDriver EffectDriver { get; }
+    internal UniClaw.Kernel.Effects.IEffectDriver EffectDriver { get; }
+
+    /// <summary>SIM-001：效果投递计数便捷面（默认驱动专用；注入驱动返回 -1）。</summary>
+    internal int EffectDeliveryCount =>
+        EffectDriver is DeterministicEffectDriver d ? d.DeliveryCount : -1;
     internal ScenarioStimulusFeed Feed { get; }
     internal RuntimeStageMetrics Metrics { get; }
     internal RunTraceScope? TraceScope { get; }
@@ -96,7 +100,7 @@ internal sealed class SimulationHost
 
     private SimulationHost(
         UniKernel kernel, KernelRunDriver driver, AgentPlanPolicy plan,
-        ScriptedUniAgent scriptedAgent, DeterministicEffectDriver effectDriver,
+        ScriptedUniAgent scriptedAgent, UniClaw.Kernel.Effects.IEffectDriver effectDriver,
         ScenarioStimulusFeed feed, RuntimeStageMetrics metrics,
         RunTraceScope? traceScope, RunModel runModel, EffectBoundary effectBoundary,
         RuntimeAssurance assurance, WorldModel world, TraceArm bundleArm,
@@ -172,18 +176,23 @@ internal sealed class SimulationHost
                 throw new ArgumentOutOfRangeException(nameof(options), options.TraceArm, "未知 Trace 臂");
         }
 
+        // SIM-001：缝注入旋钮（null = 工厂默认，向后兼容）
+        var seams = options.Seams;
         var world = new WorldModel(
             bundle.Contract.Scope!,
-            new SeedingAssociationStrategy(),
-            new ReplayFrameObservationStrategy());
-        var assurance = new RuntimeAssurance(new SatisfyingFreshness());
-        var effectDriver = new DeterministicEffectDriver();
+            seams?.Association ?? new SeedingAssociationStrategy(),
+            seams?.Observation ?? new ReplayFrameObservationStrategy(),
+            seams?.Continuity);
+        var assurance = new RuntimeAssurance(
+            seams?.Freshness ?? new SatisfyingFreshness());
+        var effectDriver = (UniClaw.Kernel.Effects.IEffectDriver?)seams?.Driver
+            ?? new DeterministicEffectDriver();
         var effectBoundary = new EffectBoundary(effectDriver, reliableExecutionSource);
         var metrics = new RuntimeStageMetrics();
         var planPolicy = new AgentPlanPolicy();
         var perception = new ScenarioPerceptionAdapter(assets, trace, metrics);
         var feed = new ScenarioStimulusFeed(bundle.Stimuli, perception);
-        var scriptedAgent = new ScriptedUniAgent(bundle.AgentScript);
+        var scriptedAgent = seams?.Agent ?? new ScriptedUniAgent(bundle.AgentScript);
         var runModel = new RunModel();
         var kernel = new UniKernel(
             new EvidenceLedger(), world, trace,

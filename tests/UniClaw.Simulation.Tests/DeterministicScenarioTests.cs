@@ -39,7 +39,7 @@ public sealed class DeterministicScenarioTests
             Assert.NotNull(report.Outcome);
             Assert.Equal(TerminalClassification.Completion, report.Outcome!.Classification);
             Assert.Equal(1, report.EffectDeliveries);
-            Assert.Equal(1, host.EffectDriver.DeliveryCount);
+            Assert.Equal(1, host.EffectDeliveryCount);
             Assert.Equal(2, report.AgentConsultations);
             Assert.Empty(report.AgentViolations);
 
@@ -83,7 +83,7 @@ public sealed class DeterministicScenarioTests
             ScenarioReport.DescribeAcceptance(bundle, report));
 
         Assert.Equal(0, report.EffectDeliveries);
-        Assert.Equal(0, host.EffectDriver.DeliveryCount);
+        Assert.Equal(0, host.EffectDeliveryCount);
         Assert.Equal(TerminalClassification.Completion, report.Outcome!.Classification);
         Assert.Equal(1, report.AgentConsultations); // no-action 决策也是一次真实 consultation
         Assert.Equal(GoalSatisfaction.Satisfied, report.GoalEvaluation!.Satisfaction);
@@ -117,13 +117,13 @@ public sealed class DeterministicScenarioTests
         Assert.True(third.AlreadyActivated);
         Assert.Equal(report.FirstActivation.RunId, third.RunId);
 
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveryCount);
         Assert.True(host.Facts.IsRunTerminal);
 
         // 恰好一个 RuntimeOutcome：第二次 Drive 幂等返回 AlreadyTerminal、不再发射
         Assert.NotNull(report.Outcome);
         Assert.Equal(RunDriveStatus.AlreadyTerminal, host.Driver.Drive().Status);
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveryCount);
 
         // Run identity 全程一致
         Assert.Equal(report.FirstActivation.RunId, host.Facts.RunId);
@@ -151,7 +151,7 @@ public sealed class DeterministicScenarioTests
 
         // 唯一一次授权 Effect 已发生
         Assert.Equal(1, report.EffectDeliveries);
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveryCount);
 
         // 非终态、无 outcome
         Assert.False(host.Facts.IsRunTerminal);
@@ -196,12 +196,12 @@ public sealed class DeterministicScenarioTests
         Assert.NotNull(second.Outcome);
         Assert.Equal(UniClaw.Kernel.Run.TerminalClassification.SafeStop, second.Outcome!.Classification);
         Assert.True(host.Facts.IsRunTerminal);
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveryCount);
 
         // Phase 3：terminal 后再 Drive → AlreadyTerminal（late 不复活 run）
         var terminal = host.DriveOnce();
         Assert.Equal(RunDriveStatus.AlreadyTerminal, terminal.Status);
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveryCount);
 
         // 验收在最终 phase 后重算
         var report = ScenarioRunner.FinalizePhased(bundle, host);

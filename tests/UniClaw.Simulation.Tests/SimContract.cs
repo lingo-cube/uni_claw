@@ -393,6 +393,42 @@ internal sealed record RunOptions
     /// ScenarioRunner.FinalizePhased(bundle, host) 重算 report 与验收。
     /// </summary>
     public bool Phased { get; init; }
+
+    /// <summary>
+    /// SIM-001：外部缝注入旋钮（null = 全部走工厂默认，向后兼容）。
+    /// 与 Phased/DuplicateActivation 等行为开关分属不同关注点。
+    /// </summary>
+    public SeamOverrides? Seams { get; init; }
+}
+
+/// <summary>
+/// SIM-001：仿真缝注入（全部可选；null = 工厂默认值）。
+/// 每个参数对应一个可替换的外部缝——与 Product Host 同缝可互换
+/// 的仿真面旋钮。确定性纪律由既有 digest 可复现测试间接执法（D4）。
+/// </summary>
+internal sealed record SeamOverrides
+{
+    /// <summary>容器 association 策略（默认 SeedingAssociationStrategy）。</summary>
+    public UniClaw.Kernel.World.UiRealization.IAssociationStrategy? Association { get; init; }
+
+    /// <summary>观察推导策略（默认 ReplayFrameObservationStrategy）。</summary>
+    public UniClaw.Kernel.World.UiRealization.IUiObservationStrategy? Observation { get; init; }
+
+    /// <summary>新鲜度评估器（默认 SatisfyingFreshness）。</summary>
+    public UniClaw.Kernel.Assurance.IFreshnessEvaluator? Freshness { get; init; }
+
+    /// <summary>效果驱动（默认 DeterministicEffectDriver）。</summary>
+    public UniClaw.Kernel.Effects.IEffectDriver? Driver { get; init; }
+
+    /// <summary>连续性策略（默认 RoleContinuityStrategy）。</summary>
+    public UniClaw.Kernel.World.UiRealization.IContinuityStrategy? Continuity { get; init; }
+
+    /// <summary>
+    /// Agent double（默认 bundle 内脚本构造的 ScriptedUniAgent）。
+    /// 注入级在 ScriptedUniAgent 实例而非 AgentScriptStep——
+    /// 覆盖多轮/defer/升级等复杂 double（RUN-004）。
+    /// </summary>
+    public ScriptedUniAgent? Agent { get; init; }
 }
 
 /// <summary>结构化计数（latency/结构计数 graduation evidence；N/A 显式非 0）。</summary>
