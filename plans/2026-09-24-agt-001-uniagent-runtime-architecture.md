@@ -1,15 +1,19 @@
-# AGT-001 — UniAgent Runtime Architecture：DSH 作为 Product UniAgent Realization（设计稿 v0.2 · post-grill revision）
+# AGT-001 — UniAgent Runtime Architecture：DSH 作为 Product UniAgent Realization（设计稿 v0.2 · FROZEN）
 
-> Status: DESIGN DRAFT v0.2（第一次正式 adversarial grill：PASS_WITH_FINDINGS；
-> F1-F7 已按 owner 裁决 GQ1=A / GQ2=B-DEFER / GQ3=YES / GQ4=YES 修订；
-> 待 focused re-grill）
-> Authority: NONE（本文档不修改任何 baseline；上游顺序见 §0）
+> Status: **FROZEN（AGT-001 architecture freeze，2026-09-24）**
+> Lineage: Step 1 Explore → Architecture Draft v0.1 → Full Adversarial Grill
+> （PASS_WITH_FINDINGS：F1-F3 SUBSTANTIVE / F4-F6 MEDIUM / F7 MINOR）→
+> Findings Disposition（owner 裁决 GQ1=A / GQ2=B-DEFER / GQ3=YES / GQ4=YES）→
+> Architecture Revision v0.2 → Focused Re-Grill（**PASS**，remaining
+> BLOCKER/SUBSTANTIVE/MEDIUM = 0）→ **FROZEN**。
+> 冻结后修改本架构须经独立 change（revision rule 见文末 §17）。
+> Authority: 本文档为 AGT-001 冻结架构；上游顺序见 §0（冲突时上游为准）
 > 输入谱系：product-architecture-baseline-l0-l3（§24.2/§24.5/§24.7/不变量 43-47）·
 > uniagent-realization-baseline-v0.1（FROZEN，ADR-0022）·
 > consultation-protocol-v0.1 · decision-granularity-scenarios-v0.1 ·
 > RUN-004（CLOSED）· GEV-004（CLOSED）· DSH checkout 机制核查 ·
 > grill-2026-09-24（F1-F7 findings + GQ1-GQ4 owner 裁决）
-> 日期：2026-09-24 · 修订：v0.2（v0.1 → grill → 本版；修订日志见文末）
+> 日期：2026-09-24 · 修订：v0.2（修订日志见 §15）
 
 ---
 
@@ -480,5 +484,14 @@ Q10（旁路）→ §6.2 三层机械关闭 + §11 UI command 条款。
 
 ## 16. Verdict
 
-**READY_FOR_FOCUSED_RE_GRILL** —— F1-F6 闭合、F7 注记入文；focused
-re-grill 范围限定为六项 finding 闭合验证 + F7 注记确认。
+Focused Re-Grill（2026-09-24）：**PASS**——F1-F6 全部 CLOSED、F7 CONFIRMED、
+Trace/UI CONFIRMED、remaining structural findings = 0。本设计稿自此 **FROZEN**
+（AGT-001 closure，owner 接受裁决）。实现（AGT-002）与 RUN-005 以本稿为
+上游权威。
+
+## 17. Revision Rule（冻结后）
+
+本架构冻结后，任何修改必须开独立 change，且：指明真实 buyer 与被影响的
+冻结条款（§2/§3/§5/§6 冻结块优先）；判定是否触及上游 FROZEN 文档
+（baseline / realization baseline / RUN-004 seam）；独立 Review/Verify。
+DEFER 项清单见 changes/AGT-001/state.md（不得因 closure 被误认为已解决）。
