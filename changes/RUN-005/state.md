@@ -1,6 +1,6 @@
 # RUN-005 — L2 Policy Protocol & Runtime
 
-lifecycle_state: implementing (Slice A complete) · design_state: frozen · disposition: none · depth: decision-heavy · base: 4022ce40
+lifecycle_state: implementing (Slice A+B owner-adjudicated PASS; Slice C in progress) · design_state: frozen (v0.3.1) · disposition: none · depth: decision-heavy · base: 4022ce40
 
 ## Status
 
@@ -90,3 +90,63 @@ Simulation baseline reopened? **NO** · AGT-001 修改：**NO**（禁令维持�
   `Termination` 合取列表与 `MaxApplications` 唯一预算字段——未造 wrapper
   类型即未动冻结 schema）。下一步：Slice B（adoption + PolicyExpand 良基
   循环 + `_pendingPolicyOutcome` + PolicyInvalidated 相位）。
+
+- 2026-09-24 · implementing · **v0.3.1 窄幅 amendment（owner 授权——不重开
+  设计、不再 Grill）**：Slice A 终裁 PASS，唯一修正项落地——删除
+  `PolicyPredicate.ElementExists`（动因：「看见→Satisfied / 没看见→Unknown」
+  与 Termination Unknown→PolicyInvalidated 出口矛盾，无法表达「继续执行
+  直到目标元素出现」；「元素没出现」只有 coverage 足够时才能合法判 false，
+  v1 无 coverage/completeness semantics；禁把 not-observed 改判 Violated
+  绕过）。v1 词汇 = ClaimEquals/ClaimInSet + ObservationUnchanged；DEFER
+  登记 buyer = coverage-aware traversal / termination（P12 随之 DEFER，
+  矩阵 P1-P11 聚焦 A2/A4/C1 claim-driven contingent loop）。同步：
+  PolicyProtocol/PolicyRuntime/词汇封闭反射测试/truth-table 测试/白名单
+  （-ElementExists）/设计稿 v0.3.1（§2/§3/§10/§11/§16/§17 + §4 两条 Slice B
+  实现约束：lease exact-equality / PolicyId validated≠adopted）/spec/plan。
+  上述 state.md 早条的「v1 buyers = … + ElementExists termination」被本
+  amendment 取代（历史记录保留）。
+- 2026-09-24 · implementing · **Slice B COMPLETE（展开运行时）**· adoption
+  （V6 通过即采纳：绑定 exact `PolicyLeaseRef` 进 ephemeral
+  `PolicyExecutionState`；`_adoptedPolicyIds` 只在实际采纳时记录——
+  validated/reserved ≠ adopted，V6f operand = 采纳集）· `DrivePhase.
+  PolicyExpand` 良基循环（每轮：fresh External observation[WaitingForInput
+  可恢复] → lease current==adopted exact 等值 → Termination 合取 → Guards
+  逐个 tri-state → bounds → Match 合取 → 模板物化单步）· 复用
+  StepAct→StepVerify 全链零新执行器（`CurrentSteps()` 统一取步；主链
+  非-policy 路径逐字节不变）· verified → ApplicationsUsed++/GuardCursor
+  更新（首样本只初始化；缺席/冲突不产样本）→ 回 PolicyExpand · E4 映射
+  （plain-Observe → 重评 Termination：Satisfied→policy-succeeded / 否则
+  control-non-act，F7(b)）· `_pendingPolicyOutcome`（Phase+Reason+Summary，
+  活到下次咨询消费即清；Progress.PolicyState 数据源）· `PolicyInvalidated`
+  新相位（八 typed reason，reason 原文 M2；invalidation 预算门由 NeedDecision
+  既有 consult-budget-exhausted 执法）· 步链失败（grounding/gate/verify/
+  no-root）既有转移 + policy 作废 + 摘要并入。公开面 +`PolicyProgressState`
+  （白名单 RUN-005 增集）+`AgentDecisionPhase.PolicyInvalidated` +
+  `ConsultationProgress.PolicyState` 可选尾参。四元组：method = dotnet test
+  UniClaw.Kernel.slnx 全量 + scenario-coverage --run；expected = Slice B
+  边界/行为测试全绿（新增 KernelRunDriverPolicyExpandTests 11 例：两轮
+  成功链+WaitingForInput 续跑/0-application 即时满足/termination-unprovable/
+  no-match/match-unknown/bounds-exhausted/guard-violated（2 applications 后
+  trip）/guard-unknown/lease-invalidated（容器身份漂移零新 Effect）/
+  control-non-act E4/验证失败既有转移+摘要；validation 套件补 duplicate-id
+  采纳占用例）+ 既有全绿；actual = 740 通过 / 0 失败（Kernel 520 ·
+  Simulation 162 · Host 18 · Agent 17 · Core 14 · FSRealization 9），
+  场景库 18/18 重认证（--change RUN-005，expectationsDigest/executionDigest
+  逐字节不变，仅 runtimeSourceHash 位移）+ coverage 18/18=100%；RUN-004
+  零回归（E1-E5/Defer 链/cancel/finalization 全绿）。调试记录：4 轮到
+  GREEN，缺陷全部在测试脚手架（容器 id 探针 capture-time 错位 / post
+  队列误用 External 构造器 / claim 演化同 scope 异值→Conflict 语义——
+  Temp 观察改 tick 派生 scope 走 Revise），driver 实现零返工。
+  DESIGN_CONFLICT: NONE。下一步：Slice C（ScriptedUniAgent 相位感知重做 +
+  Simulation integration + P1-P11 全矩阵 + full regression/certification/
+  coverage）。
+
+- 2026-09-24 · implementing · **Slice B owner 裁决：PASS**——PolicyExpand:
+  PASS · Semantic lease: PASS · PolicyState boundary: PASS · RUN-004
+  execution reuse: PASS · Budget/invalidation: PASS · Architecture
+  deviation: NONE。保持 `design_state: frozen` / `lifecycle_state:
+  implementing`（不 CLOSED——余 Slice C）。进入 Slice C（ScriptedUniAgent
+  相位感知重做 · Simulation integration · P1-P11 全矩阵；禁接 DSH/禁扩
+  vocabulary/禁恢复 ElementExists/禁 traversal memory/禁改 FROZEN 设计/
+  禁新 Simulation execution path/禁为测试方便改 Product semantics）；
+  Slice C 后做 RUN-005 最终实现级验收 → CLOSED（不直接进 AGT-002）。

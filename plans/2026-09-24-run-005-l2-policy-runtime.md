@@ -1,11 +1,14 @@
-# RUN-005 — L2 Policy Protocol & Runtime（设计稿 v0.3 · FROZEN）
+# RUN-005 — L2 Policy Protocol & Runtime（设计稿 v0.3.1 · FROZEN）
 
 > Status: **FROZEN（RUN-005 design freeze，2026-09-24，owner 裁决
-> PASS_WITH_ONE_NARROW_AMENDMENT；Further Grill NOT REQUIRED）**
+> PASS_WITH_ONE_NARROW_AMENDMENT；Further Grill NOT REQUIRED；
+> v0.3.1 窄幅 amendment 2026-09-24 owner 授权：删除 ElementExists→DEFER
+> + Slice B 两条实现约束——不重开完整设计，不再 Grill）**
 > Lineage: v0.1 Draft → Owner 预审（PASS_WITH_FINDINGS）+ 独立盲审（REOPEN）
 > → v0.2 dual-grill revision → Owner 终裁（PASS_WITH_ONE_NARROW_AMENDMENT）
 > → v0.3 narrow amendment（semantic lease 冻结 + Owner 决策 1/2 + GuardCursor
-> warm-up 澄清）→ **FROZEN**。
+> warm-up 澄清）→ FROZEN → **v0.3.1**（ElementExists 删除→DEFER + Slice B
+> lease exact-equality / PolicyId validated-vs-adopted 约束）。
 > 冻结后修改须经独立 change；实现以本稿为权威（Slice A→B→C，见
 > changes/RUN-005/plan.md）。
 > Authority: NONE（不修改 AGT-001/baseline；上游顺序同前）
@@ -61,11 +64,16 @@ public abstract record PolicyPredicate
     public sealed record ClaimEquals(string Subject, string Value) : PolicyPredicate;
     public sealed record ClaimInSet(string Subject, IReadOnlyList<string> Values)
         : PolicyPredicate;                       // 有界方向语义（F8(o)/F3(o)）
-    public sealed record ElementExists(string Role) : PolicyPredicate;
 }
 // v0.2 删除项：ClaimNotEquals（过冲反例 19→18；A2/C1 由 ClaimInSet 覆盖）·
 // ElementMissing（absence 不可证——缺 coverage 输入，随 B6 DEFER）·
 // TextContains（Text 恒 null，无数据源）。
+// v0.3.1 删除项：ElementExists——「看见→Satisfied / 没看见→Unknown」与
+// Termination Unknown→invalidation 出口语义矛盾（无法表达「继续执行直到
+// 目标元素出现」——首轮未出现即退出）；「元素没出现」只有在 observation
+// coverage 足够时才能合法判 false，v1 无 coverage/completeness semantics。
+// 不把 not-observed 改判 Violated 绕过——整员删除，DEFER（buyer =
+// coverage-aware traversal / termination）。
 
 public sealed record PolicyActionTemplate(       // = AgentActionStep 同形（F2(o)）
     string TargetRole,                           // 语义目标——Kernel 零猜测
@@ -81,9 +89,12 @@ public abstract record PolicyGuard               // closed kind + typed inputs +
 public enum PolicyTruth { Satisfied, Violated, Unknown }   // 一切谓词/守卫的求值格
 ```
 
-**v1 谓词收敛为三员 + 单守卫 + 单模板**。不提前造（登记 buyer）：元素属性
-过滤（A1/B4）· 多模板（B4）· coverage 依赖谓词（B6）· 序比较（真区间 buyer）·
-逐元素记忆（B2/A1，granularity §5-2 明文归驱动器执行态——随其 buyer）。
+**v1 谓词收敛为两员（v0.3.1：ElementExists 删除→DEFER）+ 单守卫 + 单模板**。
+不提前造（登记 buyer）：元素属性过滤（A1/B4）· 多模板（B4）· coverage 依赖
+谓词（B6）· 序比较（真区间 buyer）· 逐元素记忆（B2/A1，granularity §5-2
+明文归驱动器执行态——随其 buyer）· **coverage-aware 元素存在/终止
+（v0.3.1 新登记——ElementExists 复活的前提 = coverage/completeness
+semantics 到位）**。
 
 ## 3. Epistemic Evaluation（v0.2 新增：PolicyTruth 逐 primitive 推导表）
 
@@ -94,7 +105,7 @@ public enum PolicyTruth { Satisfied, Violated, Unknown }   // 一切谓词/守�
 |---|---|---|---|
 | `ClaimEquals(s,v)` | claim 存在且 Value==v 且 !InConflict | claim 存在且 Value≠v 且 !InConflict | subject 缺席 · InConflict=true（SR-022 族：conflicted claim 永不满足终止） |
 | `ClaimInSet(s,vs)` | 存在、!InConflict、Value∈vs | 存在、!InConflict、Value∉vs | 同上 |
-| `ElementExists(r)` | 本 revision occurrences 含 role=r 且 Epistemic=Observed | **v1 永不**（absence 不可证——bounds 耗尽兜底） | 未见 · Epistemic≠Observed（Ambiguous v1 不产生，防御性保留） |
+| ~~`ElementExists(r)`~~ | **v0.3.1 删除**（DEFER：coverage-aware buyer——Unknown 出口与 Termination 语义矛盾，见 §2 删除注记） | — | — |
 | `ObservationUnchanged(s,n)` | 连续未变计数 < n（含 warm-up：首样本前/窗口未满） | 连续 n 轮值不变 | 本轮 subject 值 Unknown（缺席/冲突） |
 
 合取语义：任一 Unknown → 整体 Unknown；任一 Violated → 整体 Violated；
@@ -106,14 +117,21 @@ public enum PolicyTruth { Satisfied, Violated, Unknown }   // 一切谓词/守�
 container」；invalidation 于 container identity 变化 · 零/多 root（既有检查
 覆盖）。**内容变化（滚动/可见元素变化/content revision）≠ lease 失效**。
 
-**Semantic Lease 冻结规则（owner 终裁必补 1——不整体 DEFER）**：
+**Semantic Lease 冻结规则（owner 终裁必补 1——不整体 DEFER；v0.3.1 实现约束
+强化）**：
 
 ```text
 Policy adoption  → bind current active execution lease
-每次 PolicyExpand → verify lease still valid
+                   （v0.3.1：保存 exact PolicyLeaseRef 进 ephemeral PolicyState）
+每次 PolicyExpand → verify: current active lease == adopted lease
+                   （exact 等值——不只在 V6 检查「当前存在某个 lease」）
 lease invalid    → PolicyInvalidated(LeaseInvalidated) → NeedDecision
-                 → zero new Effect
+                  → zero new Effect
 ```
+
+**v0.3.1 实现约束（PolicyId）**：区分 validated/reserved PolicyId 与 actually
+adopted PolicyId——Policy validation 通过但 adoption 未发生时不得永久占用
+PolicyId（V6f 唯一性的 operand = 实际采纳集）；不新增 canonical owner。
 
 **仍 DEFER**（登记）：lease detection vocabulary（检测机制词表）·
 human-preemption detection（§24.7 检测机制 = Phase 6/7 buyer）·
@@ -233,21 +251,25 @@ V6f PolicyId 同 run 内唯一
 |---|---|---|
 | `ClaimInSet` | **A2 match**（temp∈{24,23,22,21}——方向语义：19/25 出集即停）· C1 match（light∈{red,yellow}） | §4.1/§2 |
 | `ClaimEquals` | A2/A4/C1 termination（temp=20 / 音量值 / light=green） | §2 |
-| `ElementExists` | termination「目标出现」（P12 系：wifi entry found） | §2/B6 终止面 |
+| ~~`ElementExists`~~ | **v0.3.1 删除**——DEFER（buyer = coverage-aware traversal / termination；原 P12「目标出现」终止面随词汇删除一并 DEFER，不为保场景扩词汇） | — |
 | `ObservationUnchanged(s,n)` | A2/C1 守卫（temp 不动/灯不变） | §4.1 |
 | Template（AgentActionStep 同形） | A2/A4/C1（TargetRole=减号/音量键/电源键） | §4.1 |
 
 **DEFER（买家未到，逐一登记）**：B6 翻页（需 ElementMissing+coverage+内容
 稳定 scoping）· B2 逐项清除（需逐元素记忆+投影 identity）· A1 遍历（同 B2
-+traversal bound）· B4 表单（多模板+属性过滤）。
++traversal bound）· B4 表单（多模板+属性过滤）· **coverage-aware 元素存在/
+终止（v0.3.1 = 原 ElementExists：需 coverage/completeness semantics，P12
+「目标出现」终止面随之一并 DEFER）**。
 
-## 11. Simulation（P1-P12 v0.2 修订）
+## 11. Simulation（P1-P12 v0.2 修订；v0.3.1：P12 随 ElementExists DEFER）
 
 ScriptedUniAgent **重做相位感知脚本序列**（`PolicyInvalidated` 为合法再咨询
 相位；现 duplicate-call 纪律会误杀全部 P3-P7/P10/P11——F9(b)），纪律核算
 随动。P 矩阵修正：P3 no-match = ClaimInSet 出集；P6 Guard/谓词 Unknown 触发
 = **conflicted claim**（可产；Ambiguous 元素 v1 不产生——F8(b)）；其余不变
-（载体仍优先真实资产）。全部 deterministic，禁 DSH。
+（载体仍优先真实资产）。**v0.3.1：P12（ElementExists termination「目标
+出现」）随词汇删除一并 DEFER——v1 矩阵 = P1-P11，聚焦 A2/A4/C1
+claim-driven contingent loop**。全部 deterministic，禁 DSH。
 
 ## 12. Authority Matrix Delta（不变 + 强化）
 
@@ -271,15 +293,31 @@ target」的代码路径不存在**；`PolicyTruth` 三态 → conflicted/absent
 同 v0.1 §13 + `ScriptedUniAgent.cs`（相位感知重做，非扩展）+
 `KernelRunDriver.cs` 增 `_pendingPolicyOutcome`/`_guardCursors` 捕获。
 
-## 15. Architecture Delta（不变）
+## 15. Architecture Delta（不变；v0.3.1 词汇两员化）
 
-RUN-004 全保；RUN-005 只增：Policy 员（三谓词+单守卫+自带目标模板+单界）、
-PolicyTruth 三态求值、ephemeral PolicyState（含 GuardCursor/pending outcome）、
-PolicyExpand 良基循环（复用 Act 链）、V6、PolicyInvalidated 相位、单层局部
-预算、E4 映射、P1-P12。
+RUN-004 全保；RUN-005 只增：Policy 员（**v0.3.1：两谓词**+单守卫+自带目标
+模板+单界）、PolicyTruth 三态求值、ephemeral PolicyState（含 GuardCursor/
+pending outcome + **v0.3.1：adopted lease ref**）、PolicyExpand 良基循环
+（复用 Act 链）、V6、PolicyInvalidated 相位、单层局部预算、E4 映射、
+P1-P11（P12 DEFER）。
 
 ## 16. Revision Log
 
+- **v0.3.1（2026-09-24，owner 授权窄幅 amendment——不重开完整设计、不再
+  Grill）**：**删除 `PolicyPredicate.ElementExists`，v1 词汇收敛为
+  ClaimEquals/ClaimInSet + 单守卫**。动因：「看见→Satisfied / 没看见→
+  Unknown」与 Termination Unknown→PolicyInvalidated 出口语义矛盾——无法
+  表达「继续执行直到目标元素出现」（首轮未出现即退出）；「元素没出现」
+  只有在 observation coverage 足够时才能合法判 false，v1 无 coverage/
+  completeness semantics；明确禁止把 not-observed 改判 Violated 绕过。
+  DEFER 登记（buyer = coverage-aware traversal / termination，P12 随之
+  DEFER；v1 矩阵 P1-P11，聚焦 A2/A4/C1 claim-driven contingent loop）。
+  同步两条 Slice B 实现约束（设计不因此重开）：① lease——adoption 保存
+  exact `PolicyLeaseRef` 进 ephemeral PolicyState，每次 PolicyExpand 以
+  current==adopted **exact 等值**校验（非「存在某 lease」）；②
+  PolicyId——validated/reserved 与 actually adopted 区分，validation 通过
+  而 adoption 未发生不得永久占用（V6f operand = 实际采纳集），不新增
+  canonical owner。
 - **v0.3（2026-09-24，FROZEN）**：owner 终裁窄修——semantic lease 规则冻结
   （adoption 绑定 / 每轮校验 / 失效→PolicyInvalidated(LeaseInvalidated)→
   NeedDecision→零新 effect；content revision/scroll/可见元素变化 ≠ 失效；
@@ -299,7 +337,9 @@ PolicyExpand 良基循环（复用 Act 链）、V6、PolicyInvalidated 相位、
 
 ## 17. Verdict
 
-**FROZEN**（owner 终裁 PASS_WITH_ONE_NARROW_AMENDMENT；Further Grill NOT
-REQUIRED）。实现按 changes/RUN-005/plan.md Slice A→B→C 执行，以本稿为
-权威；禁止再开完整 grill / 修改 AGT-001 / 接 DSH / 新增 executor / canonical
-owner / 扩大 v1 vocabulary。
+**FROZEN（v0.3.1）**（owner 终裁 PASS_WITH_ONE_NARROW_AMENDMENT + 2026-09-24
+owner 授权窄幅 amendment：ElementExists 删除→DEFER + Slice B lease/PolicyId
+实现约束；Further Grill NOT REQUIRED——amendment 不重开完整设计）。实现按
+changes/RUN-005/plan.md Slice A→B→C 执行，以本稿为权威；禁止再开完整
+grill / 修改 AGT-001 / 接 DSH / 新增 executor / canonical owner / 扩大
+v1 vocabulary。

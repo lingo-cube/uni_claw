@@ -22,6 +22,15 @@ public enum AgentDecisionPhase
 
     /// <summary>Defer 等待预算耗尽（最后再问一次）。</summary>
     DeferRoundsExhausted,
+
+    /// <summary>
+    /// RUN-005 §7（Owner 决策 1）：policy 级 invalidation——bounds/no-match/
+    /// match-unknown/guard-violated/guard-unknown/lease-invalidated/
+    /// termination-unprovable/control-non-act 的统一 typed cause（原文经
+    /// FailureReason 携带，M2 不净化）。NeedDecision 的再咨询边界（T5 谱系），
+    /// 不建新状态机；invalidation 出口恒零新 Effect。
+    /// </summary>
+    PolicyInvalidated,
 }
 
 /// <summary>

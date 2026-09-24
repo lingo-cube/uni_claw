@@ -12,10 +12,10 @@ using Xunit;
 namespace UniClaw.Kernel.Tests.Runtime;
 
 /// <summary>
-/// RUN-005 Slice A — V6 fail-closed 的 driver 边界面：Policy decision 经
-/// ConsultAgent seam 进入 NeedDecision 后被机械校验拒绝（零新 Effect、
-/// 非终局、映射回既有 AgentDecisionFailed 语义）。边界测试，不含
-/// Policy 执行路径（Slice B）。
+/// RUN-005 — V6 fail-closed 的 driver 边界面：Policy decision 经 ConsultAgent
+/// seam 进入 NeedDecision 后被机械校验拒绝（零新 Effect、非终局、映射回既有
+/// AgentDecisionFailed 语义），以及 v0.3.1 约束 ②（PolicyId 只在实际采纳时
+/// 占用）。展开循环行为面见 KernelRunDriverPolicyExpandTests（Slice B）。
 /// </summary>
 public sealed class KernelRunDriverPolicyValidationTests
 {
@@ -251,22 +251,28 @@ public sealed class KernelRunDriverPolicyValidationTests
         AssertFailClosed(c, driver.Drive(), "correlation-mismatch");
     }
 
-    // ---- Slice A 边界：V6 通过后的诚实占位 ---------------------------------------------
+    // ---- v0.3.1 约束 ②：validated/reserved ≠ adopted ------------------------------
 
     [Fact]
-    public void Drive_ValidPolicy_AfterV6Pass_FailsClosedPendingSliceB()
+    public void Drive_ValidPolicy_IsAdopted_AndReusedPolicyIdRejected()
     {
-        var c = ComposeSeeded(ctx => Policy(ctx.DecisionId));
+        var calls = 0;
+        var c = ComposeSeeded(ctx =>
+        {
+            calls++;
+            // 第一次：合法 policy（被采纳——本世界无 temp claim，展开首轮即
+            // termination-unprovable invalidation）；第二次：复用同 PolicyId
+            return calls == 1
+                ? Policy(ctx.DecisionId)
+                : Policy(ctx.DecisionId, termination: new[] { new PolicyPredicate.ClaimEquals("temp", "21") });
+        });
         Assert.True(c.Kernel.AdmitContract(Contract()).Accepted);
         var driver = new KernelRunDriver(c.Kernel, c.Plan, c.Inputs);
         Assert.True(driver.Activate().Accepted);
 
-        // V6 全过（含 lease 绑定单 root container）→ Slice A 无展开运行时：
-        // 诚实 fail closed（零新 Effect、非终局），不伪装执行。Slice B 以
-        // adoption + PolicyExpand 循环替换本出口。
-        AssertFailClosed(c, driver.Drive(), "policy-execution-not-implemented");
-
-        // 幂等重 Drive：同一次咨询的重验不得误报 V6f duplicate
-        AssertFailClosed(c, driver.Drive(), "policy-execution-not-implemented");
+        // 采纳 → PolicyExpand r1（fresh obs）→ temp 缺席 → termination
+        // Unknown → PolicyInvalidated → 再咨询复用 pol-1 → V6f reject
+        //（id 已被实际采纳占用；validation-only 从不占用）
+        AssertFailClosed(c, driver.Drive(), "policy:duplicate-policy-id");
     }
 }

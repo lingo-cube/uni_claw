@@ -1,26 +1,32 @@
 # RUN-005 — Plan
 
-> 前置：设计稿 **v0.3 FROZEN**（owner 终裁 PASS_WITH_ONE_NARROW_AMENDMENT；
-> Further Grill NOT REQUIRED）。实现以 FROZEN 设计为权威。
+> 前置：设计稿 **v0.3.1 FROZEN**（owner 终裁 PASS_WITH_ONE_NARROW_AMENDMENT
+> + 2026-09-24 owner 授权窄幅 amendment：ElementExists 删除→DEFER + Slice B
+> lease exact-equality / PolicyId validated-vs-adopted 实现约束；Further
+> Grill NOT REQUIRED）。实现以 FROZEN 设计为权威。
 
 ## 实现顺序（owner 指定 Slice A→B→C）
 
 **Slice A — 契约与校验面**
-Policy records（PolicyProposal/Predicate 三员/Guard/自带目标模板）·
-`PolicyTruth` · `PolicyEvaluationView`（§4.1 契约）· `AgentDecision.Policy`
-第四员 · V6 validation（V6a-f）· **lease binding validation**（adoption 绑定
-active execution lease）。RED 先行：P9/P10/P11。
+Policy records（PolicyProposal/Predicate 两员[ v0.3.1：ElementExists 删除→
+DEFER]/Guard/自带目标模板）· `PolicyTruth` · `PolicyEvaluationView`（§4.1
+契约）· `AgentDecision.Policy` 第四员 · V6 validation（V6a-f）· **lease
+binding validation**（adoption 绑定 active execution lease）。RED 先行：
+P9/P10/P11。
 
 **Slice B — 展开运行时**
-Policy adoption · ephemeral PolicyState（含 GuardCursor，warm-up ≠ Unknown）·
-`PolicyExpand` 良基循环（每轮：fresh observe → lease 校验 → termination →
-guard → bounds → match → 物化单步）· `_pendingPolicyOutcome` ·
-`PolicyInvalidated`（typed cause，含 LeaseInvalidated；带预算门）·
-**复用现有 Act path（零新执行器）**· E4 映射。P1-P8。
+Policy adoption（**v0.3.1 约束：保存 exact PolicyLeaseRef；PolicyId 只在
+实际采纳时占用——validated/reserved ≠ adopted**）· ephemeral PolicyState
+（含 GuardCursor，warm-up ≠ Unknown）· `PolicyExpand` 良基循环（每轮：fresh
+observe → lease exact-equality 校验 → termination → guard → bounds → match
+→ 物化单步）· `_pendingPolicyOutcome` · `PolicyInvalidated`（typed cause，
+含 LeaseInvalidated；带预算门）· **复用现有 Act path（零新执行器）**· E4
+映射。P1-P8。
 
 **Slice C — 仿真与回归**
-`ScriptedUniAgent` 相位感知改造 · Simulation integration · P1-P12 全矩阵 ·
-full regression / certification / coverage（场景库随动按 C8 搭乘）。
+`ScriptedUniAgent` 相位感知改造 · Simulation integration · P1-P11 全矩阵
+（v0.3.1：P12 随 ElementExists DEFER）· full regression / certification /
+coverage（场景库随动按 C8 搭乘）。
 
 ## 禁令（实现期持续有效）
 

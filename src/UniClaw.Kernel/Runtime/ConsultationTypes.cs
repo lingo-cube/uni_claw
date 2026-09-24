@@ -27,10 +27,24 @@ public sealed record ElementSummary(
 public sealed record ClaimSummary(string Value, string Disposition, bool InConflict);
 
 /// <summary>咨询进度（no-progress 判定的输入，SR-100）。</summary>
+/// <param name="PolicyState">RUN-005 §8：policy 级结局投影（_pendingPolicyOutcome
+/// 数据源；null = 上一咨询后无 policy 结局——非 policy 决策路径恒 null）。</param>
 public sealed record ConsultationProgress(
     int RoundsUsed,
     int StepsDispatched,
-    int StepsVerified);
+    int StepsVerified,
+    PolicyProgressState? PolicyState = null);
+
+/// <summary>
+/// RUN-005 §8 — Progress.PolicyState 投影（policy 摘要）：PolicyId ·
+/// ApplicationsUsed · TerminationStatus（出口时刻的终止求值三态；成功出口
+/// 恒 Satisfied）。只读派生事实，非执行态权威（权威 = driver ephemeral
+/// PolicyState）。
+/// </summary>
+public sealed record PolicyProgressState(
+    string PolicyId,
+    int ApplicationsUsed,
+    PolicyTruth TerminationStatus);
 
 /// <summary>剩余预算（SR-102/049）。</summary>
 public sealed record ConsultationBudget(int RoundsRemaining, int StepsRemaining);

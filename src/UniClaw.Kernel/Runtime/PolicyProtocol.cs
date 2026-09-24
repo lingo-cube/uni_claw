@@ -51,11 +51,16 @@ public sealed record PolicyProposal(
     string? Justification);
 
 /// <summary>
-/// RUN-005 §2 — closed typed predicate AST。v1 词汇冻结为三员
-///（ClaimEquals/ClaimInSet/ElementExists）；禁止 arbitrary expression /
-/// script / free-form predicate / general DSL / dynamic code。求值一律
-/// <see cref="PolicyTruth"/> 三态（§3 推导表）。派生类型不在封闭词汇内 →
-/// V6a reject（fail closed）。
+/// RUN-005 §2（v0.3.1 修订）— closed typed predicate AST。v1 词汇冻结为两员
+///（ClaimEquals/ClaimInSet）；禁止 arbitrary expression / script / free-form
+/// predicate / general DSL / dynamic code。求值一律 <see cref="PolicyTruth"/>
+/// 三态（§3 推导表）。派生类型不在封闭词汇内 → V6a reject（fail closed）。
+/// 【v0.3.1 删除 ElementExists】原「看见 → Satisfied / 没看见 → Unknown」与
+/// Termination Unknown → invalidation 的出口语义矛盾（无法表达「继续执行，
+/// 直到目标元素出现」——首轮未出现即退出）；「元素没出现」只有在
+/// observation coverage 足够时才能合法判定为 false，而 v1 无 coverage/
+/// completeness semantics。不为绕过矛盾把 not-observed 改判 Violated——
+/// 整员删除，DEFER（buyer = coverage-aware traversal / termination）。
 /// </summary>
 public abstract record PolicyPredicate
 {
@@ -69,9 +74,6 @@ public abstract record PolicyPredicate
     /// Unknown。v1 不加 GreaterThan/LessThan/数值 range DSL（buyer 未到）。
     /// </summary>
     public sealed record ClaimInSet(string Subject, IReadOnlyList<string> Values) : PolicyPredicate;
-
-    /// <summary>本 revision occurrences 含 role=r 且 Epistemic=Observed → Satisfied；未见或 Epistemic≠Observed → Unknown；v1 永不 Violated（absence 不可证——bounds 耗尽兜底）。</summary>
-    public sealed record ElementExists(string Role) : PolicyPredicate;
 }
 
 /// <summary>

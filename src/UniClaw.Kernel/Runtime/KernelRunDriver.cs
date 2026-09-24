@@ -113,6 +113,14 @@ public sealed class KernelRunDriver
         /// <summary>待消费上一 dispatch 的 post-action 证据（不变量 43 屏障）。</summary>
         StepVerify,
 
+        /// <summary>
+        /// RUN-005 §5：Policy 展开轮（每轮恰一步；良基——每轮 dispatch
+        ///（→ ApplicationsUsed++）或退出）。进入条件 = adoption（V6 通过 +
+        /// lease 绑定）；退出 = policy-succeeded / PolicyInvalidated（typed
+        /// reason）/ 步链既有转移。
+        /// </summary>
+        PolicyExpand,
+
         /// <summary>terminal 编排（P16/P17/P18）。</summary>
         TerminalEvaluation,
     }
@@ -185,8 +193,26 @@ public sealed class KernelRunDriver
     /// <summary>
     /// V6f operand：已通过 V6 的 PolicyId → 咨询序号（同 run 内唯一性；
     /// 同序号 = 同次咨询幂等重验，不算重复——见 PolicyValidation.IsDuplicatePolicyId）。
+    /// 【v0.3.1 约束】validated/reserved ≠ adopted：本表只在 **实际 adoption**
+    /// 时记录（NeedDecision Policy case），validation 通过而未采纳的 id 不占用。
     /// </summary>
     private readonly Dictionary<string, int> _adoptedPolicyIds = new(StringComparer.Ordinal);
+
+    // ---- RUN-005 Slice B：Policy 展开运行时（§5/§8；全部 driver private
+    //      ephemeral——不持久化、非 recovery state、非 authority）----
+
+    /// <summary>ephemeral PolicyState（§8 + v0.3.1：含 adopted exact lease）。
+    /// null = 无活跃 policy。</summary>
+    private PolicyExecutionState? _policy;
+
+    /// <summary>当前展开轮物化的单步（模板派生——目标来自模板，Kernel 零猜测）。</summary>
+    private AgentActionStep? _policyStep;
+
+    /// <summary>per-guard 游标（§8：与 Proposal.Guards 同序；null = 该 guard 尚无可比样本）。</summary>
+    private PolicyGuardCursor?[] _guardCursors = Array.Empty<PolicyGuardCursor?>();
+
+    /// <summary>policy 级结局捕获（§8：活到下次咨询、消费即清；Progress.PolicyState 数据源）。</summary>
+    private PendingPolicyOutcome? _pendingPolicyOutcome;
 
     private readonly RunDriverInputs _inputs;
     private readonly object _driverIdentity = new();
@@ -383,17 +409,27 @@ public sealed class KernelRunDriver
                             if (rejection is not null)
                                 return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, rejection, null, 0);
 
-                            // V6 通过：登记 PolicyId（V6f run 内唯一性 operand；
-                            // 同序号幂等重验不误报）
+                            // RUN-005 Slice B：adoption（V6 通过即采纳，原子）。
+                            // v0.3.1 约束 ①：绑定并保存 exact PolicyLeaseRef 进
+                            // ephemeral PolicyState（后续每轮 current==adopted
+                            // exact 等值校验，非「存在某 lease」）。
+                            // v0.3.1 约束 ②：PolicyId 只在 **实际采纳** 时占用
+                            //（validated/reserved ≠ adopted——V6f operand = 采纳集）。
+                            var lease = PolicyLease.TryDerive(_kernel.CurrentBelief);
+                            _policy = new PolicyExecutionState(
+                                policy.Proposal.PolicyId,
+                                lease.Lease!,
+                                policy.Proposal,
+                                ApplicationsUsed: 0,
+                                LastTerminationStatus: null);
+                            _guardCursors = new PolicyGuardCursor?[
+                                policy.Proposal.Guards?.Count ?? 0];
                             _adoptedPolicyIds[policy.Proposal.PolicyId] = _consultCounter;
-
-                            // Slice A 边界：协议/校验面已落地，adoption +
-                            // PolicyExpand 循环归 Slice B（禁令：不接仿真
-                            // Policy execution）。诚实占位：fail closed、零新
-                            // Effect、非终局——不伪装执行、不静默楔死。
-                            return new RunDriveResult(
-                                RunDriveStatus.AgentDecisionFailed,
-                                "policy-execution-not-implemented", null, 0);
+                            _lastAnswer = _adoptedDecision;
+                            _deferRoundsUsed = 0;
+                            _deferExhaustedPending = false;
+                            _phase = DrivePhase.PolicyExpand;
+                            continue;
                         }
                         default:
                             return new RunDriveResult(
@@ -403,7 +439,9 @@ public sealed class KernelRunDriver
 
                 case DrivePhase.StepAct:
                 {
-                    var steps = ((AgentDecision.Act)_adoptedDecision!).Proposal.Steps;
+                    // RUN-005 §5 步骤 7：Policy 展开轮的 steps = 模板物化单步
+                    //（CurrentSteps 统一取步——Act 链逻辑逐字节不变）
+                    var steps = CurrentSteps();
                     if (_stepIndex >= steps.Count)
                     {
                         // E1（RUN-004）：提案耗尽 → 回 NeedDecision（StepVerified）
@@ -428,7 +466,8 @@ public sealed class KernelRunDriver
                         : null;
                     if (root is null)
                     {
-                        if (CurrentBudget(view).                            RoundsRemaining > 0)
+                        VoidActivePolicyForStepFailure(AgentDecisionPhase.StepRejected, "no-single-root-container");
+                        if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = "no-single-root-container";
                             _pendingFailurePhase = AgentDecisionPhase.StepRejected;
@@ -455,11 +494,34 @@ public sealed class KernelRunDriver
                     if (intent.Kind != ControlIntentKind.Act)
                     {
                         // E4（RUN-004）：plain Observe（无 subject、无冲突）=
-                        // 目标已满足/无可行动 → TerminalEvaluation 如实判
+                        // 目标已满足/无可行动
                         if (intent.Kind == ControlIntentKind.Observe
                             && intent.TargetSubject is null
                             && _kernel.CurrentConflictedSubjects.Count == 0)
                         {
+                            // RUN-005 §5 E4 映射：policy 展开中 = 重评
+                            // Termination on fresh belief——Satisfied →
+                            // policy-succeeded；否则 control-non-act
+                            //（F7(b)：消灭静默楔死）
+                            if (_policy is not null)
+                            {
+                                var e4View = PolicyEvaluationView.FromBelief(_kernel.CurrentBelief!);
+                                var e4Termination = PolicyEvaluation.EvaluateConjunction(
+                                    _policy.Proposal.Termination, e4View);
+                                _policy = _policy with { LastTerminationStatus = e4Termination };
+                                if (e4Termination == PolicyTruth.Satisfied)
+                                {
+                                    ExitPolicy(AgentDecisionPhase.StepVerified, "policy-succeeded", e4Termination);
+                                }
+                                else
+                                {
+                                    ExitPolicy(
+                                        AgentDecisionPhase.PolicyInvalidated,
+                                        $"policy:{PolicyInvalidationTokens.Token(PolicyInvalidationReason.ControlNonAct)}",
+                                        e4Termination);
+                                }
+                                continue;
+                            }
                             _phase = DrivePhase.TerminalEvaluation;
                             continue;
                         }
@@ -491,6 +553,7 @@ public sealed class KernelRunDriver
                     if (grounded.Act is null)
                     {
                         var reason = $"grounding:{grounded.View.Result}";
+                        VoidActivePolicyForStepFailure(AgentDecisionPhase.StepRejected, reason);
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = reason;
@@ -506,6 +569,7 @@ public sealed class KernelRunDriver
                     {
                         var reason = grounded.Act.Binding?.RejectionReason?.ToString()
                             ?? grounded.Act.Gate?.Reason ?? "gate-rejected";
+                        VoidActivePolicyForStepFailure(AgentDecisionPhase.StepRejected, reason);
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = reason;
@@ -538,7 +602,7 @@ public sealed class KernelRunDriver
                     if (post.Stop is not null)
                         return post.Stop;
 
-                    var step = ((AgentDecision.Act)_adoptedDecision!).Proposal.Steps[_stepIndex];
+                    var step = CurrentSteps()[_stepIndex];
                     var target = new TargetSpec(
                         step.TargetRole, step.TargetDescriptor, step.EffectClass, step.DesiredState);
                     var verification = _kernel.VerifyPostActionEffect(
@@ -546,6 +610,7 @@ public sealed class KernelRunDriver
                     if (!verification.IsVerified)
                     {
                         var reason = verification.RejectionReason ?? "verification-failed";
+                        VoidActivePolicyForStepFailure(AgentDecisionPhase.VerificationFailed, reason);
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = reason;
@@ -562,10 +627,127 @@ public sealed class KernelRunDriver
                             _kernel.EffectReceipts.Count);
                     }
                     // 层2 归档：每步验证成功时追加
-                    var actDecision = (AgentDecision.Act)_adoptedDecision!;
                     _completedSteps.Add((_consultCounter, _stepIndex,
                         _kernel.EffectReceipts.LastOrDefault()?.ReceiptId ?? ""));
                     _stepIndex++;
+                    if (_policy is not null)
+                    {
+                        // RUN-005 §5：verified → ApplicationsUsed++ / GuardCursor
+                        // 更新 → 回 PolicyExpand（良基：本轮 application 消耗）
+                        _policy = _policy with { ApplicationsUsed = _policy.ApplicationsUsed + 1 };
+                        UpdateGuardCursors();
+                        _phase = DrivePhase.PolicyExpand;
+                    }
+                    else
+                    {
+                        _phase = DrivePhase.StepAct;
+                    }
+                    continue;
+                }
+
+                case DrivePhase.PolicyExpand:
+                {
+                    // RUN-005 §5：每轮恰一步；良基不变量——每次重入必 dispatch
+                    //（→ verified 后 ApplicationsUsed++）或退出，无「既不
+                    // dispatch 又不退出」的轮（单约束即完备有界，F1(o)）。
+                    var state = _policy!;
+
+                    // 1. fresh observation（External）→ reconcile → fresh belief
+                    //（WaitingForInput 可恢复：phase 保持，续跑重入本步）
+                    var observed = PullObservations(ObservationContext.External, "policy-observation");
+                    if (observed.Stop is not null)
+                        return observed.Stop;
+
+                    // 2. lease check（v0.3.1 约束）：current active lease ==
+                    //    adopted lease（exact 等值）；零/多根/身份漂移一律
+                    //    LeaseInvalidated → 零新 Effect 回 decision boundary
+                    var currentLease = PolicyLease.TryDerive(_kernel.CurrentBelief);
+                    if (currentLease.Lease is null
+                        || currentLease.Lease.RootContainerId != state.Lease.RootContainerId)
+                    {
+                        ExitPolicy(
+                            AgentDecisionPhase.PolicyInvalidated,
+                            $"policy:{PolicyInvalidationTokens.Token(PolicyInvalidationReason.LeaseInvalidated)}",
+                            state.LastTerminationStatus ?? PolicyTruth.Unknown);
+                        continue;
+                    }
+
+                    // 每轮即席派生的最小求值视图（§4.1：fresh-derived/ephemeral）
+                    var evaluationView = PolicyEvaluationView.FromBelief(_kernel.CurrentBelief!);
+
+                    // 3. Termination（合取）：Satisfied → 成功出口；Unknown →
+                    //    termination-unprovable（fail closed）；Violated → 继续
+                    var termination = PolicyEvaluation.EvaluateConjunction(
+                        state.Proposal.Termination, evaluationView);
+                    _policy = state = state with { LastTerminationStatus = termination };
+                    if (termination == PolicyTruth.Satisfied)
+                    {
+                        ExitPolicy(AgentDecisionPhase.StepVerified, "policy-succeeded", termination);
+                        continue;
+                    }
+                    if (termination == PolicyTruth.Unknown)
+                    {
+                        ExitPolicy(
+                            AgentDecisionPhase.PolicyInvalidated,
+                            $"policy:{PolicyInvalidationTokens.Token(PolicyInvalidationReason.TerminationUnprovable)}",
+                            termination);
+                        continue;
+                    }
+
+                    // 4. Guards（逐个 tri-state；无 Fallback 分支——Unknown 同样
+                    //    回 decision boundary）
+                    if (state.Proposal.Guards is { } guards)
+                    {
+                        PolicyInvalidationReason? guardFailure = null;
+                        for (var i = 0; i < guards.Count && guardFailure is null; i++)
+                        {
+                            var truth = PolicyEvaluation.Evaluate(guards[i], evaluationView, _guardCursors[i]);
+                            if (truth == PolicyTruth.Violated)
+                                guardFailure = PolicyInvalidationReason.GuardViolated;
+                            else if (truth == PolicyTruth.Unknown)
+                                guardFailure = PolicyInvalidationReason.GuardUnknown;
+                        }
+                        if (guardFailure is { } guardReason)
+                        {
+                            ExitPolicy(
+                                AgentDecisionPhase.PolicyInvalidated,
+                                $"policy:{PolicyInvalidationTokens.Token(guardReason)}",
+                                termination);
+                            continue;
+                        }
+                    }
+
+                    // 5. bounds：ApplicationsUsed ≥ MaxApplications → 耗尽
+                    if (state.ApplicationsUsed >= state.Proposal.MaxApplications)
+                    {
+                        ExitPolicy(
+                            AgentDecisionPhase.PolicyInvalidated,
+                            $"policy:{PolicyInvalidationTokens.Token(PolicyInvalidationReason.BoundsExhausted)}",
+                            termination);
+                        continue;
+                    }
+
+                    // 6. Match（合取）：Satisfied → 继续；Violated/Unknown →
+                    //    no-match / match-unknown
+                    var match = PolicyEvaluation.EvaluateConjunction(state.Proposal.Match, evaluationView);
+                    if (match != PolicyTruth.Satisfied)
+                    {
+                        ExitPolicy(
+                            AgentDecisionPhase.PolicyInvalidated,
+                            $"policy:{PolicyInvalidationTokens.Token(match == PolicyTruth.Violated
+                                ? PolicyInvalidationReason.NoMatch
+                                : PolicyInvalidationReason.MatchUnknown)}",
+                            termination);
+                        continue;
+                    }
+
+                    // 7. 物化单步（目标来自模板——Kernel 零猜测），复用
+                    //    StepAct→StepVerify 全链（零新执行器）
+                    var template = state.Proposal.ActionTemplate;
+                    _policyStep = new AgentActionStep(
+                        template.TargetRole, template.TargetDescriptor,
+                        template.EffectClass, template.DesiredState);
+                    _stepIndex = 0;
                     _phase = DrivePhase.StepAct;
                     continue;
                 }
@@ -629,7 +811,9 @@ public sealed class KernelRunDriver
             FailedStepIndex: _pendingFailedStepIndex,
             Screen: DeriveScreenSummary(),
             Elements: DeriveElementSummaries(),
-            Progress: new ConsultationProgress(_consultCounter, _stepsDispatched, _completedSteps.Count),
+            Progress: new ConsultationProgress(
+                _consultCounter, _stepsDispatched, _completedSteps.Count,
+                PolicyState: _pendingPolicyOutcome?.Summary),
             BudgetRemaining: CurrentBudget(view));
 
         var decision = _inputs.ConsultAgent(context);
@@ -660,10 +844,12 @@ public sealed class KernelRunDriver
         if (answeredId != decisionId)
             return new ConsultOutcome(null, "correlation-mismatch");
 
-        // 清除失败上下文（已消费）
+        // 清除失败上下文（已消费）；RUN-005：policy 结局同点消费即清（§8——
+        // 活到下次咨询为止，本咨询 context 已携带其投影）
         _pendingFailureReason = null;
         _pendingFailurePhase = null;
         _pendingFailedStepIndex = null;
+        _pendingPolicyOutcome = null;
         return new ConsultOutcome(decision, null);
     }
 
@@ -674,6 +860,13 @@ public sealed class KernelRunDriver
         // 失败来源由控制流显式记录（E2/E3 捕获点），不再从世界状态反推
         if (_pendingFailurePhase is { } phase)
             return phase;
+        // RUN-005：policy 级结局显式捕获（F7(o)/F6(b)——不依赖 _completedSteps
+        // 推导：0-application 即时满足/E4 路径下 _completedSteps 可为空）
+        if (_pendingPolicyOutcome is
+            {
+                Phase: AgentDecisionPhase.StepVerified or AgentDecisionPhase.PolicyInvalidated
+            } outcome)
+            return outcome.Phase;
         return _completedSteps.Count > 0
             ? AgentDecisionPhase.StepVerified
             : AgentDecisionPhase.InitialPlanning;
@@ -886,6 +1079,94 @@ public sealed class KernelRunDriver
                 null, _kernel.EffectReceipts.Count);
         }
         return Drive(); // 按裁决终局
+    }
+
+    // ---- RUN-005 Slice B：Policy 展开运行时 helpers（§5/§7/§8）-----------------
+
+    /// <summary>
+    /// 当前执行 steps：Policy 展开轮 = 模板物化的单步（目标来自模板——
+    /// Kernel 零猜测）；否则 = 采纳的 Act proposal steps。StepAct/StepVerify
+    /// 主链经此统一取步，Act 路径行为不变。
+    /// </summary>
+    private IReadOnlyList<AgentActionStep> CurrentSteps() =>
+        _policyStep is { } policyStep
+            ? new[] { policyStep }
+            : ((AgentDecision.Act)_adoptedDecision!).Proposal.Steps;
+
+    /// <summary>
+    /// §8 GuardCursor 更新（verified application 后）：第一份样本只初始化
+    /// cursor（warm-up）；同值 → ConsecutiveUnchangedCount++；异值 → 重置。
+    /// 只有可比样本（subject 在场且无冲突）参与——证据不足不产样本、不产
+    /// 假「未变」计数。
+    /// </summary>
+    private void UpdateGuardCursors()
+    {
+        if (_policy?.Proposal.Guards is not { } guards || _guardCursors.Length == 0)
+            return;
+        var view = PolicyEvaluationView.FromBelief(_kernel.CurrentBelief!);
+        for (var i = 0; i < guards.Count && i < _guardCursors.Length; i++)
+        {
+            if (guards[i] is not PolicyGuard.ObservationUnchanged guard)
+                continue; // closed vocabulary——非成员类型不会出现（V6a 已拒）
+            if (!view.Claims.TryGetValue(guard.Subject, out var fact) || fact.InConflict)
+                continue;
+            var sample = fact.Value;
+            var cursor = _guardCursors[i];
+            _guardCursors[i] = cursor is null || cursor.InWarmUp
+                ? new PolicyGuardCursor(guard.Subject, sample, ConsecutiveUnchangedCount: 0)
+                : cursor.LastObservedValue == sample
+                    ? cursor with { ConsecutiveUnchangedCount = cursor.ConsecutiveUnchangedCount + 1 }
+                    : cursor with { LastObservedValue = sample, ConsecutiveUnchangedCount = 0 };
+        }
+    }
+
+    /// <summary>
+    /// §7 policy 级出口（成功 / invalidation 共用）：捕获
+    /// <see cref="_pendingPolicyOutcome"/>（活到下次咨询、消费即清；
+    /// Progress.PolicyState 数据源）→ 清空 policy 执行态 → 回 NeedDecision。
+    /// 成功出口 phase = 既有 <see cref="AgentDecisionPhase.StepVerified"/>；
+    /// invalidation 出口 phase = <see cref="AgentDecisionPhase.PolicyInvalidated"/>
+    ///（typed cause，reason 原文经 _pendingFailure* 同构捕获，M2 不净化）。
+    /// 预算门（F10(b)）：invalidation 时 RoundsRemaining ≤ 0 → 由 NeedDecision
+    /// 既有 consult-budget-exhausted 检查如实终局（同语义零重复执法）。
+    /// </summary>
+    private void ExitPolicy(AgentDecisionPhase phase, string reason, PolicyTruth terminationStatus)
+    {
+        var state = _policy!;
+        _pendingPolicyOutcome = new PendingPolicyOutcome(
+            phase, reason,
+            new PolicyProgressState(state.PolicyId, state.ApplicationsUsed, terminationStatus));
+        if (phase == AgentDecisionPhase.PolicyInvalidated)
+        {
+            _pendingFailureReason = reason;
+            _pendingFailurePhase = AgentDecisionPhase.PolicyInvalidated;
+            _pendingFailedStepIndex = null;
+        }
+        _policy = null;
+        _policyStep = null;
+        _guardCursors = Array.Empty<PolicyGuardCursor?>();
+        _adoptedDecision = null;
+        _phase = DrivePhase.NeedDecision;
+    }
+
+    /// <summary>
+    /// §7 步链失败（grounding/gate/verification/no-root）时的 policy 作废：
+    /// 既有 StepRejected/VerificationFailed 转移原样保留，本方法只清空
+    /// policy 执行态并把 policy 摘要并入 _pendingPolicyOutcome（「既有载荷 +
+    /// policy 摘要」）。无活跃 policy 时零副作用。
+    /// </summary>
+    private void VoidActivePolicyForStepFailure(AgentDecisionPhase phase, string reason)
+    {
+        if (_policy is not { } state)
+            return;
+        _pendingPolicyOutcome = new PendingPolicyOutcome(
+            phase, reason,
+            new PolicyProgressState(
+                state.PolicyId, state.ApplicationsUsed,
+                state.LastTerminationStatus ?? PolicyTruth.Unknown));
+        _policy = null;
+        _policyStep = null;
+        _guardCursors = Array.Empty<PolicyGuardCursor?>();
     }
 
     /// <summary>

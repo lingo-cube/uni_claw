@@ -26,10 +26,9 @@ internal sealed record PolicyClaimFact(string Value, string Disposition, bool In
 
 /// <summary>
 /// RUN-005 §4.1 — occurrence 侧最小投影（Role / Epistemic）。
-/// v1 派生规则：presence ⇒ Observed（occurrence = admission-checked
-/// accepted evidence 经 reconciliation 建立的 belief；「未见」以不在投影中
-/// 表达）。Epistemic≠Observed 分支防御性保留：未来降级 occurrence 一律
-/// Unknown（fail closed），不得偷换成 Satisfied。
+/// v0.3.1：ElementExists 已从 v1 词汇删除（DEFER——buyer = coverage-aware
+/// traversal / termination）；occurrence 投影为 Slice B 及后续 buyer 保留
+/// 最小事实面（presence ⇒ Observed；「未见」以不在投影中表达）。
 /// </summary>
 internal sealed record PolicyOccurrenceFact(string Role, ElementEpistemic Epistemic);
 
@@ -106,11 +105,62 @@ internal sealed record PolicyGuardCursor(
 /// RUN-005 §4 — semantic lease ref：Policy adoption 绑定的 active execution
 /// lease 身份。v1 判据 = scope 语义：当前唯一 root container 的 canonical
 /// 身份（容器身份 + 单根持存）。内容变化（滚动/可见元素变化/content
-/// revision）≠ 失效——只有容器身份变化/单根不持存才失效（每轮校验归
-/// Slice B；detection vocabulary / preemption / cross-process recovery
-/// 维持 DEFER）。不是 canonical owner：纯派生只读引用。
+/// revision）≠ 失效——只有容器身份变化/单根不持存才失效。不是 canonical
+/// owner：纯派生只读引用。
 /// </summary>
 internal sealed record PolicyLeaseRef(string RootContainerId);
+
+/// <summary>
+/// RUN-005 §8 — ephemeral PolicyState（driver-private 运行态；不持久化、非
+/// recovery state、非 authority）。携带：
+/// <list type="bullet">
+/// <item><see cref="PolicyId"/>/<see cref="Proposal"/>：采纳的 policy 身份与
+/// 内容（immutable 引用）。</item>
+/// <item><see cref="Lease"/>：**v0.3.1 约束**——adoption 保存 exact
+/// <see cref="PolicyLeaseRef"/>；每次 PolicyExpand 以 current == adopted
+/// exact 等值校验（非「存在某 lease」）。</item>
+/// <item><see cref="ApplicationsUsed"/>：已验证 application 计数（唯一局部
+/// 预算 operand；良基递减不变量的正向镜像）。</item>
+/// <item><see cref="LastTerminationStatus"/>：最近一次 Termination 求值三态
+///（出口摘要数据源；null = 尚未求值）。</item>
+/// </list>
+/// </summary>
+internal sealed record PolicyExecutionState(
+    string PolicyId,
+    PolicyLeaseRef Lease,
+    PolicyProposal Proposal,
+    int ApplicationsUsed,
+    PolicyTruth? LastTerminationStatus);
+
+/// <summary>
+/// RUN-005 §8 — policy 级结局捕获（Phase+Reason+Summary）：活到下次咨询、
+/// 消费即清（与 _pendingFailure* 同构）；Progress.PolicyState 的数据源
+///（F7(o)/F6(b)：显式捕获，不依赖 _completedSteps 推导）。
+/// </summary>
+internal sealed record PendingPolicyOutcome(
+    AgentDecisionPhase Phase,
+    string Reason,
+    PolicyProgressState Summary);
+
+/// <summary>
+/// RUN-005 §7 — PolicyInvalidationReason → 协议 reason 字符串（kebab token，
+/// M2 原文不净化；V6 拒绝词同族前缀 policy:）。
+/// </summary>
+internal static class PolicyInvalidationTokens
+{
+    public static string Token(PolicyInvalidationReason reason) => reason switch
+    {
+        PolicyInvalidationReason.BoundsExhausted => "bounds-exhausted",
+        PolicyInvalidationReason.NoMatch => "no-match",
+        PolicyInvalidationReason.MatchUnknown => "match-unknown",
+        PolicyInvalidationReason.GuardViolated => "guard-violated",
+        PolicyInvalidationReason.GuardUnknown => "guard-unknown",
+        PolicyInvalidationReason.LeaseInvalidated => "lease-invalidated",
+        PolicyInvalidationReason.TerminationUnprovable => "termination-unprovable",
+        PolicyInvalidationReason.ControlNonAct => "control-non-act",
+        _ => throw new InvalidOperationException($"未知 PolicyInvalidationReason: {reason}"),
+    };
+}
 
 /// <summary>lease 派生结果：Lease 与 Rejection 恰一非空。</summary>
 internal readonly record struct PolicyLeaseDerivation(PolicyLeaseRef? Lease, string? Rejection);
@@ -148,13 +198,11 @@ internal static class PolicyLease
 /// Unknown（conflicted claim 永不满足终止）。</item>
 /// <item>ClaimInSet(s,vs)：存在 ∧ !InConflict ∧ Value∈vs → Satisfied；
 /// 存在 ∧ !InConflict ∧ Value∉vs → Violated；同上 Unknown。</item>
-/// <item>ElementExists(r)：本 revision occurrences 含 role=r ∧
-/// Epistemic=Observed → Satisfied；未见 / Epistemic≠Observed → Unknown；
-/// v1 永不 Violated（absence 不可证——bounds 耗尽兜底）。</item>
 /// <item>ObservationUnchanged(s,n)：连续未变计数 &lt; n（含 warm-up）→
 /// Satisfied；连续 n 轮不变 → Violated；本轮 subject 值 Unknown（缺席/
 /// 冲突）→ Unknown。</item>
 /// </list>
+/// 【v0.3.1】ElementExists 已删除（DEFER：coverage-aware buyer）。
 /// 合取语义：任一 Unknown → 整体 Unknown；任一 Violated → 整体 Violated；
 /// 否则 Satisfied。未知 AST 节点 → Unknown（fail closed；V6a 已在入口
 /// reject，此处为防御面）。
@@ -178,10 +226,6 @@ internal static class PolicyEvaluation
                 { } fact => p.Values.Contains(fact.Value) ? PolicyTruth.Satisfied : PolicyTruth.Violated,
                 null => PolicyTruth.Unknown,
             },
-            PolicyPredicate.ElementExists p => view.Occurrences.Any(o =>
-                o.Role == p.Role && o.Epistemic == ElementEpistemic.Observed)
-                ? PolicyTruth.Satisfied
-                : PolicyTruth.Unknown,
             // 封闭词汇外的派生节点：无法合法求值 → Unknown（fail closed）
             _ => PolicyTruth.Unknown,
         };
@@ -291,11 +335,9 @@ internal static class PolicyValidation
                     if (string.IsNullOrWhiteSpace(p.Subject) || p.Values is not { Count: > 0 })
                         return "policy:invalid-node";
                     break;
-                case PolicyPredicate.ElementExists p:
-                    if (string.IsNullOrWhiteSpace(p.Role))
-                        return "policy:invalid-node";
-                    break;
                 default:
+                    // v0.3.1：ElementExists 已从封闭词汇删除——所有非两员节点
+                    //（含历史 ElementExists 派生类型）一律 unknown-node reject
                     return "policy:unknown-node";
             }
         }

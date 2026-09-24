@@ -43,9 +43,10 @@ public sealed class PolicyProtocolTests
     [Fact]
     public void ClosedVocabulary_IsFrozen()
     {
-        // v1 谓词恰三员；守卫恰一员；PolicyTruth 恰三态；invalidation 恰八因
+        // v0.3.1：谓词恰两员（ElementExists 删除——DEFER coverage-aware buyer）；
+        // 守卫恰一员；PolicyTruth 恰三态；invalidation 恰八因
         Assert.Equal(
-            new[] { "ClaimEquals", "ClaimInSet", "ElementExists" },
+            new[] { "ClaimEquals", "ClaimInSet" },
             typeof(PolicyPredicate).GetNestedTypes().Select(t => t.Name).OrderBy(n => n, StringComparer.Ordinal));
         Assert.Equal(
             new[] { "ObservationUnchanged" },
@@ -105,23 +106,6 @@ public sealed class PolicyProtocolTests
         Assert.Equal(PolicyTruth.Unknown, PolicyEvaluation.Evaluate(new PolicyPredicate.ClaimInSet("temp", domain), View()));
         Assert.Equal(PolicyTruth.Unknown, PolicyEvaluation.Evaluate(new PolicyPredicate.ClaimInSet("temp", domain),
             View(new Dictionary<string, PolicyClaimFact> { ["temp"] = Fact("24", inConflict: true) })));
-    }
-
-    [Fact]
-    public void ElementExists_TruthTable()
-    {
-        var observed = View(occurrences: new[] { new PolicyOccurrenceFact("wifi-entry", ElementEpistemic.Observed) });
-        Assert.Equal(PolicyTruth.Satisfied,
-            PolicyEvaluation.Evaluate(new PolicyPredicate.ElementExists("wifi-entry"), observed));
-
-        // 未见 → Unknown（absence 不可证，v1 永不 Violated）
-        Assert.Equal(PolicyTruth.Unknown,
-            PolicyEvaluation.Evaluate(new PolicyPredicate.ElementExists("wifi-entry"), View()));
-
-        // Epistemic≠Observed（防御性保留：v1 视图不产生，但不得偷换成 Satisfied）
-        var degraded = View(occurrences: new[] { new PolicyOccurrenceFact("wifi-entry", ElementEpistemic.Partial) });
-        Assert.Equal(PolicyTruth.Unknown,
-            PolicyEvaluation.Evaluate(new PolicyPredicate.ElementExists("wifi-entry"), degraded));
     }
 
     [Fact]
@@ -328,12 +312,9 @@ public sealed class PolicyProtocolTests
         Assert.Equal("policy:invalid-node", PolicyValidation.ValidateProposal(
             ValidProposal() with { Match = new[] { new PolicyPredicate.ClaimInSet("temp", Array.Empty<string>()) } },
             ContractView, 256));
-        // 空白 subject / role
+        // 空白 subject
         Assert.Equal("policy:invalid-node", PolicyValidation.ValidateProposal(
             ValidProposal() with { Termination = new[] { new PolicyPredicate.ClaimEquals(" ", "20") } },
-            ContractView, 256));
-        Assert.Equal("policy:invalid-node", PolicyValidation.ValidateProposal(
-            ValidProposal() with { Match = new[] { new PolicyPredicate.ElementExists("") } },
             ContractView, 256));
         // Guard AfterRounds ≤ 0（「连续 n 轮」退化）
         Assert.Equal("policy:invalid-node", PolicyValidation.ValidateProposal(

@@ -14,12 +14,13 @@ namespace UniClaw.Kernel.Tests;
 /// AgentActionStep / AgentNoActionProposal / AgentDecision（+Act/NoAction）/
 /// AgentPlanPolicy / ActivationResult / RunDriveStatus / RunDriveResult
 /// （嵌套类型随 FullName 计入名单）。
-/// RUN-005 Slice A 增集（10，FROZEN v0.3 §2 咨询缝词汇）：AgentDecision
-/// （+Policy）/ PolicyProposal / PolicyPredicate（+ClaimEquals/ClaimInSet/
-/// ElementExists）/ PolicyActionTemplate / PolicyGuard
-/// （+ObservationUnchanged）/ PolicyTruth / PolicyInvalidationReason。
-/// 求值机制面（PolicyEvaluationView/GuardCursor/lease/V6 校验器）保持
-/// internal（ControlBeliefView 先例），不入本名单。
+/// RUN-005 Slice A 增集（FROZEN v0.3.1 §2 咨询缝词汇）：AgentDecision
+/// （+Policy）/ PolicyProposal / PolicyPredicate（+ClaimEquals/ClaimInSet）
+/// / PolicyActionTemplate / PolicyGuard（+ObservationUnchanged）/ PolicyTruth
+/// / PolicyInvalidationReason / PolicyProgressState（Slice B：Progress.
+/// PolicyState 投影）。求值机制面（PolicyEvaluationView/GuardCursor/lease/
+/// V6 校验器）保持 internal（ControlBeliefView 先例），不入本名单。
+/// v0.3.1 修订：ElementExists 从 v1 词汇删除（DEFER coverage-aware buyer）。
 /// </summary>
 public sealed class KernelRuntimeSurfaceWhitelistTests
 {
@@ -166,7 +167,7 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.PolicyPredicate",
             "UniClaw.Kernel.Runtime.PolicyPredicate+ClaimEquals",
             "UniClaw.Kernel.Runtime.PolicyPredicate+ClaimInSet",
-            "UniClaw.Kernel.Runtime.PolicyPredicate+ElementExists",
+            "UniClaw.Kernel.Runtime.PolicyProgressState",
             "UniClaw.Kernel.Runtime.PolicyProposal",
             "UniClaw.Kernel.Runtime.PolicyTruth",
             "UniClaw.Kernel.Runtime.RunDriveResult",
