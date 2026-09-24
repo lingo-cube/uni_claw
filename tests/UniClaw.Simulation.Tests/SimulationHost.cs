@@ -192,7 +192,11 @@ internal sealed class SimulationHost
         var planPolicy = new AgentPlanPolicy();
         var perception = new ScenarioPerceptionAdapter(assets, trace, metrics);
         var feed = new ScenarioStimulusFeed(bundle.Stimuli, perception);
-        var scriptedAgent = seams?.Agent ?? new ScriptedUniAgent(bundle.AgentScript);
+        // RUN-005 Slice C：相位感知脚本优先（Policy 协议场景）；缺省 legacy
+        var scriptedAgent = seams?.Agent
+            ?? (bundle.PhaseScript is { } phaseScript
+                ? new ScriptedUniAgent(phaseScript)
+                : new ScriptedUniAgent(bundle.AgentScript));
         var runModel = new RunModel();
         var kernel = new UniKernel(
             new EvidenceLedger(), world, trace,

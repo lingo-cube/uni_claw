@@ -36,7 +36,7 @@ internal abstract record ScenarioStimulus
     public sealed record ObservationFrame(
         string PerceptionArtifactId,
         IReadOnlyList<ReviewedElement> ReviewedElements,
-        IReadOnlyList<(string Subject, string Value)> ReviewedStateClaims,
+        IReadOnlyList<ReviewedStateClaim> ReviewedStateClaims,
         ObservationContext Context) : ScenarioStimulus;
 
     /// <summary>宿主/用户 cancel（Phase 1 经 contract SafeStop obligation 表达）。</summary>
@@ -246,13 +246,17 @@ internal sealed class ScenarioPerceptionAdapter
                 frame.Context,
                 new Provenance("sim.replay.join", frame.VirtualTime, "scope:live.frame", lineage)),
         };
-        foreach (var (subject, value) in frame.ReviewedStateClaims)
+        foreach (var claim in frame.ReviewedStateClaims)
         {
+            // Scope 缺省 = 既有约定 scope:{subject}（跨帧值变化 → 显式
+            // Conflict）；authored Scope = 同流再观察呈现（CLE-001 Revise，
+            // RUN-005 policy 场景的 claim 演化通道）
             result.Add(new ObservationProposal(
-                new ObservationClaim(subject, value),
+                new ObservationClaim(claim.Subject, claim.Value),
                 IngressKind.Observation,
                 frame.Context,
-                new Provenance("sim.replay.reviewed", frame.VirtualTime, $"scope:{subject}", lineage)));
+                new Provenance("sim.replay.reviewed", frame.VirtualTime,
+                    claim.Scope ?? $"scope:{claim.Subject}", lineage)));
         }
         return result;
     }

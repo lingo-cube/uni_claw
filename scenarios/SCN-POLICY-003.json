@@ -1,0 +1,45 @@
+{
+  "id": "SCN-POLICY-003",
+  "name": "P3 no match — ClaimInSet out of direction domain (19) stops policy, reconsult at PolicyInvalidated",
+  "source": "component-test",
+  "srRef": null,
+  "purpose": "RUN-005 P-matrix: L2 policy protocol end-to-end via phase-aware ScriptedUniAgent through the real KernelRunDriver policy expansion path",
+  "capability": "policy-protocol",
+  "components": [
+    "kernel",
+    "run-driver",
+    "world-model",
+    "control-loop",
+    "assurance",
+    "effect-boundary"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "real",
+  "expectations": {
+    "status": "TerminalNotProven",
+    "classification": null,
+    "effects": 0,
+    "agentConsultations": 2,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "golden-bundle",
+    "carrier": "policy-no-match",
+    "options": {}
+  },
+  "certification": {
+    "schemaVersion": 2,
+    "expectationsDigest": "4b272fd73ef58ede4eb2a817e583e30dbd588b319d777a8d0daffe3b1b604eeb",
+    "executionDigest": "97328f1c56934f3048bcc70e31e85d98eac2ae1e0c75f2c70e3f959d85ca216a",
+    "runtimeSourceHash": "406a913c7b72092d5f8ec278c8c0ec9ce3a37b12cdf9736bac169a13d7c0c23f",
+    "certifiedByChange": "RUN-005",
+    "certifiedAt": "2026-09-24"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "golden-run-v1 reviewed assets + authored claim scopes only"
+  }
+}

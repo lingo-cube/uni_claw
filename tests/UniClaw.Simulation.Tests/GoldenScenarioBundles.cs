@@ -2,6 +2,7 @@ using System.Text.Json;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.Run;
+using UniClaw.Kernel.Runtime;
 
 namespace UniClaw.Simulation.Tests;
 
@@ -51,10 +52,10 @@ internal static class GoldenScenarioBundles
             Stimuli = new ScenarioStimulus[]
             {
                 ObservationFrame("obs-1-initial", T0, "golden-v1-case-b-off-perception",
-                    "golden-v1-case-b-off", ("switch.wifi", "false"),
+                    "golden-v1-case-b-off", new ReviewedStateClaim("switch.wifi", "false"),
                     ObservationContext.External),
                 ObservationFrame("obs-2-post", T1, "golden-v1-case-b-on-perception",
-                    "golden-v1-case-b-on", ("switch.wifi", "true"),
+                    "golden-v1-case-b-on", new ReviewedStateClaim("switch.wifi", "true"),
                     ObservationContext.PostActionEffectFlow),
             },
             ProducerIdentities = LoadProducerIdentities(),
@@ -91,7 +92,7 @@ internal static class GoldenScenarioBundles
             Stimuli = new ScenarioStimulus[]
             {
                 ObservationFrame("obs-1-initial", T0, "golden-v1-case-a-before-perception",
-                    "golden-v1-case-a-before", ("switch.wifi", "true"),
+                    "golden-v1-case-a-before", new ReviewedStateClaim("switch.wifi", "true"),
                     ObservationContext.External),
             },
             ProducerIdentities = LoadProducerIdentities(),
@@ -143,7 +144,7 @@ internal static class GoldenScenarioBundles
             Stimuli = new ScenarioStimulus[]
             {
                 ObservationFrame("obs-1-initial", T0, "golden-v1-case-b-off-perception",
-                    "golden-v1-case-b-off", ("switch.wifi", "false"),
+                    "golden-v1-case-b-off", new ReviewedStateClaim("switch.wifi", "false"),
                     ObservationContext.External),
             },
             ProducerIdentities = LoadProducerIdentities(),
@@ -178,7 +179,7 @@ internal static class GoldenScenarioBundles
     /// <summary>S5 phased 测试注入用：late post-action 观察帧（保持 unconsumed）。</summary>
     internal static ScenarioStimulus.ObservationFrame LatePostActionStimulus() =>
         ObservationFrame("obs-2-late", T1, "golden-v1-case-b-on-perception",
-            "golden-v1-case-b-on", ("switch.wifi", "true"),
+            "golden-v1-case-b-on", new ReviewedStateClaim("switch.wifi", "true"),
             ObservationContext.PostActionEffectFlow);
 
     // ---- (e) D22：两步串行场景——toggle（有期望终态）→ menuItem（无期望终态）----
@@ -205,13 +206,13 @@ internal static class GoldenScenarioBundles
             Stimuli = new ScenarioStimulus[]
             {
                 ObservationFrame("obs-1-initial", T0, "golden-v1-case-b-off-perception",
-                    "golden-v1-case-b-off", ("switch.wifi", "false"),
+                    "golden-v1-case-b-off", new ReviewedStateClaim("switch.wifi", "false"),
                     ObservationContext.External),
                 ObservationFrame("obs-2-post", T1, "golden-v1-case-b-on-perception",
-                    "golden-v1-case-b-on", ("switch.wifi", "true"),
+                    "golden-v1-case-b-on", new ReviewedStateClaim("switch.wifi", "true"),
                     ObservationContext.PostActionEffectFlow),
                 ObservationFrame("obs-3-post", T2, "golden-v1-case-a-before-perception",
-                    "golden-v1-case-a-before", ("switch.wifi", "true"),
+                    "golden-v1-case-a-before", new ReviewedStateClaim("switch.wifi", "true"),
                     ObservationContext.PostActionEffectFlow),
             },
             ProducerIdentities = LoadProducerIdentities(),
@@ -258,7 +259,7 @@ internal static class GoldenScenarioBundles
             Stimuli = new ScenarioStimulus[]
             {
                 ObservationFrame("obs-1-initial", T0, "golden-v1-case-b-off-perception",
-                    "golden-v1-case-b-off", ("switch.wifi", "false"),
+                    "golden-v1-case-b-off", new ReviewedStateClaim("switch.wifi", "false"),
                     ObservationContext.External),
             },
             ProducerIdentities = LoadProducerIdentities(),
@@ -309,7 +310,7 @@ internal static class GoldenScenarioBundles
                     ? element with { State = "false" }
                     : element)
                 .ToList(),
-            ReviewedStateClaims = new[] { ("switch.wifi", "false") },
+            ReviewedStateClaims = new[] { new ReviewedStateClaim("switch.wifi", "false") },
         };
         return ScenarioBundleDigest.Sealed(original with
         {
@@ -340,11 +341,320 @@ internal static class GoldenScenarioBundles
         });
     }
 
+    // ====================================================================
+    // RUN-005 Slice C — P1-P11 Policy 场景 carriers（设计稿 §11；claim 演化
+    // 经 authored Scope（CLE-001 Revise），occurrence 景观复用 golden 资产）
+    // ====================================================================
+
+    private static readonly DateTimeOffset PT0 = new(2026, 9, 13, 9, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset PT1 = PT0.AddSeconds(10);
+    private static readonly DateTimeOffset PT2 = PT0.AddSeconds(20);
+    private static readonly DateTimeOffset PT3 = PT0.AddSeconds(30);
+    private static readonly DateTimeOffset PT4 = PT0.AddSeconds(40);
+    private static readonly DateTimeOffset PT5 = PT0.AddSeconds(50);
+
+    private static ScriptPredicateSpec Eq(string subject, string value) =>
+        new("ClaimEquals", subject, value, null);
+    private static ScriptPredicateSpec InDomain(string subject) =>
+        new("ClaimInSet", subject, null, new[] { "24", "23", "22", "21" });
+
+    /// <summary>claim 演化（CLE-001 Revise 通道）：per-frame authored scope。</summary>
+    private static ReviewedStateClaim Temp(string value, string scope) =>
+        new("hvac.temp", value, "scope:hvac.temp:" + scope);
+
+    /// <summary>固定 scope（跨帧值变化 → 显式 Conflict——P6 conflicted-claim 触发）。</summary>
+    private static ReviewedStateClaim FixedScope(string subject, string value) =>
+        new(subject, value, "scope:" + subject);
+
+    private static ScenarioStimulus.ObservationFrame PolicyFrame(
+        string stimulusId, DateTimeOffset t, string assetId, string frameId,
+        IReadOnlyList<ReviewedStateClaim> claims, ObservationContext context) =>
+        new(assetId, ReviewedElementsOf(frameId), claims, context)
+        {
+            StimulusId = stimulusId,
+            VirtualTime = t,
+        };
+
+    private static ScriptPolicySpec TempPolicy(
+        string policyId = "pol-temp-1",
+        int maxApplications = 4,
+        IReadOnlyList<ScriptPredicateSpec>? match = null,
+        IReadOnlyList<ScriptPredicateSpec>? termination = null,
+        IReadOnlyList<ScriptGuardSpec>? guards = null,
+        string templateEffectClass = "tap",
+        string? matchPredicateKind = null) => new(
+        policyId,
+        match ?? new[] { matchPredicateKind is null ? InDomain("hvac.temp") : new ScriptPredicateSpec(matchPredicateKind, "hvac.temp", null, null) },
+        new ScriptActionStep("toggle", null, templateEffectClass, "true"),
+        termination ?? new[] { Eq("hvac.temp", "20") },
+        guards ?? Array.Empty<ScriptGuardSpec>(),
+        maxApplications);
+
+    private static ScriptedTurn PolicyTurn(ScriptPolicySpec policy) =>
+        new(AgentDecisionPhase.InitialPlanning, ScriptDecisionKind.Policy,
+            Array.Empty<ScriptActionStep>(), policy, DeferMaxRounds: null, Justification: "cool-to-20");
+
+    private static ExecutionContract PolicyContract(int maxTotalSteps = 256) => new(
+        "policy-v1", "cool-to-20",
+        new HashSet<string> { "live.frame", "hvac.temp" },
+        new HashSet<string> { "tap" },
+        new HashSet<string>(),
+        new[] { "temp-20" },
+        new[] { new RunObligation("temp", RunObligationKind.Objective, "hvac.temp", "20", true) },
+        MaxTotalSteps: maxTotalSteps);
+
+    private static GoalSpec PolicyGoal() => new(
+        "goal-temp", "cool the setting down to 20",
+        RequiredClassification: "Completion", RequiredObligationIds: new[] { "temp" });
+
+    private static MinimalScenarioBundle PolicyBundle(
+        string bundleId, string scenarioId, string expectationScenarioId,
+        IReadOnlyList<ScenarioStimulus> stimuli, PhaseAwareAgentScript script,
+        int maxTotalSteps = 256) => ScenarioBundleDigest.Sealed(
+        new MinimalScenarioBundle
+        {
+            BundleId = bundleId,
+            BundleVersion = "v1",
+            ScenarioId = scenarioId,
+            ScenarioVersion = "v1",
+            RuntimeArtifact = RuntimeArtifactIdentity.CaptureCurrent(),
+            TargetUiSystem = LoadTargetUiSystem(),
+            Assets = LoadAssets(),
+            Stimuli = stimuli,
+            ProducerIdentities = LoadProducerIdentities(),
+            AgentScript = new AgentScriptStep(
+                AgentScriptKind.NoAction, Array.Empty<ScriptActionStep>(), "phase-aware-script"),
+            PhaseScript = script,
+            Expected = ScenarioExpectations.Load(expectationScenarioId),
+            Contract = PolicyContract(maxTotalSteps),
+            Goal = PolicyGoal(),
+            BundleDigest = "",
+        });
+
+    private static ScriptedTurn NoActionAt(AgentDecisionPhase phase, string why) =>
+        ScriptedTurn.Respond(phase, ScriptDecisionKind.NoAction, why);
+
+    // ---- P1：immediate termination（0-application 即时满足）----
+
+    public static MinimalScenarioBundle PolicyImmediateTermination(
+        string expectationScenarioId = "SCN-POLICY-001") =>
+        PolicyBundle("golden-policy-p1", "policy-immediate-termination", expectationScenarioId,
+            new ScenarioStimulus[]
+            {
+                PolicyFrame("p1-init", PT0, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("20", "init") }, ObservationContext.External),
+                PolicyFrame("p1-round-1", PT1, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("20", "r1") }, ObservationContext.External),
+            },
+            new PhaseAwareAgentScript(new[]
+            {
+                PolicyTurn(TempPolicy()),
+                NoActionAt(AgentDecisionPhase.StepVerified, "already-at-20"),
+            }));
+
+    // ---- P2：repeated application → success（claim 演化 24→23→22→20）----
+
+    public static MinimalScenarioBundle PolicyRepeatedApplicationSuccess(
+        string expectationScenarioId = "SCN-POLICY-002") =>
+        PolicyBundle("golden-policy-p2", "policy-repeated-application", expectationScenarioId,
+            new ScenarioStimulus[]
+            {
+                PolicyFrame("p2-init", PT0, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "init") }, ObservationContext.External),
+                PolicyFrame("p2-r1", PT1, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("23", "r1") }, ObservationContext.External),
+                PolicyFrame("p2-v1", PT2, "golden-v1-case-b-on-perception", "golden-v1-case-b-on",
+                    new[] { Temp("23", "v1") }, ObservationContext.PostActionEffectFlow),
+                PolicyFrame("p2-r2", PT3, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("22", "r2") }, ObservationContext.External),
+                PolicyFrame("p2-v2", PT4, "golden-v1-case-b-on-perception", "golden-v1-case-b-on",
+                    new[] { Temp("22", "v2") }, ObservationContext.PostActionEffectFlow),
+                PolicyFrame("p2-r3", PT5, "golden-v1-case-b-on-perception", "golden-v1-case-b-on",
+                    new[] { Temp("20", "r3") }, ObservationContext.External),
+            },
+            new PhaseAwareAgentScript(new[]
+            {
+                PolicyTurn(TempPolicy()),
+                NoActionAt(AgentDecisionPhase.StepVerified, "reached-20"),
+            }));
+
+    // ---- P3：no match（ClaimInSet 出集 → 再咨询 PolicyInvalidated）----
+
+    public static MinimalScenarioBundle PolicyNoMatch(
+        string expectationScenarioId = "SCN-POLICY-003") =>
+        PolicyBundle("golden-policy-p3", "policy-no-match", expectationScenarioId,
+            new ScenarioStimulus[]
+            {
+                PolicyFrame("p3-init", PT0, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "init") }, ObservationContext.External),
+                PolicyFrame("p3-r1", PT1, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("19", "r1") }, ObservationContext.External),
+            },
+            new PhaseAwareAgentScript(new[]
+            {
+                PolicyTurn(TempPolicy()),
+                NoActionAt(AgentDecisionPhase.PolicyInvalidated, "overshot-below-domain"),
+            }));
+
+    // ---- P4：bounds exhausted（MaxApplications=1，temp 不动）----
+
+    public static MinimalScenarioBundle PolicyBoundsExhausted(
+        string expectationScenarioId = "SCN-POLICY-004") =>
+        PolicyBundle("golden-policy-p4", "policy-bounds-exhausted", expectationScenarioId,
+            new ScenarioStimulus[]
+            {
+                PolicyFrame("p4-init", PT0, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "init") }, ObservationContext.External),
+                PolicyFrame("p4-r1", PT1, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "r1") }, ObservationContext.External),
+                PolicyFrame("p4-v1", PT2, "golden-v1-case-b-on-perception", "golden-v1-case-b-on",
+                    new[] { Temp("24", "v1") }, ObservationContext.PostActionEffectFlow),
+                PolicyFrame("p4-r2", PT3, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "r2") }, ObservationContext.External),
+            },
+            new PhaseAwareAgentScript(new[]
+            {
+                PolicyTurn(TempPolicy(maxApplications: 1)),
+                NoActionAt(AgentDecisionPhase.PolicyInvalidated, "stuck-at-24"),
+            }));
+
+    // ---- P5：guard violated（连续 unchanged 轮触发；2 applications）----
+
+    public static MinimalScenarioBundle PolicyGuardViolated(
+        string expectationScenarioId = "SCN-POLICY-005") =>
+        PolicyBundle("golden-policy-p5", "policy-guard-violated", expectationScenarioId,
+            new ScenarioStimulus[]
+            {
+                PolicyFrame("p5-init", PT0, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "init") }, ObservationContext.External),
+                PolicyFrame("p5-r1", PT1, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "r1") }, ObservationContext.External),
+                PolicyFrame("p5-v1", PT2, "golden-v1-case-b-on-perception", "golden-v1-case-b-on",
+                    new[] { Temp("24", "v1") }, ObservationContext.PostActionEffectFlow),
+                PolicyFrame("p5-r2", PT3, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "r2") }, ObservationContext.External),
+                PolicyFrame("p5-v2", PT4, "golden-v1-case-b-on-perception", "golden-v1-case-b-on",
+                    new[] { Temp("24", "v2") }, ObservationContext.PostActionEffectFlow),
+                PolicyFrame("p5-r3", PT5, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "r3") }, ObservationContext.External),
+            },
+            new PhaseAwareAgentScript(new[]
+            {
+                PolicyTurn(TempPolicy(guards: new[] { new ScriptGuardSpec("hvac.temp", 1) })),
+                NoActionAt(AgentDecisionPhase.PolicyInvalidated, "temp-not-moving"),
+            }));
+
+    // ---- P6：guard Unknown（conflicted claim——固定 scope 跨帧值变化）----
+
+    public static MinimalScenarioBundle PolicyGuardUnknown(
+        string expectationScenarioId = "SCN-POLICY-006") =>
+        PolicyBundle("golden-policy-p6", "policy-guard-unknown", expectationScenarioId,
+            new ScenarioStimulus[]
+            {
+                PolicyFrame("p6-init", PT0, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "init"), FixedScope("hvac.mode", "cool") }, ObservationContext.External),
+                PolicyFrame("p6-r1", PT1, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "r1"), FixedScope("hvac.mode", "heat") }, ObservationContext.External),
+            },
+            new PhaseAwareAgentScript(new[]
+            {
+                PolicyTurn(TempPolicy(guards: new[] { new ScriptGuardSpec("hvac.mode", 1) })),
+                NoActionAt(AgentDecisionPhase.PolicyInvalidated, "mode-sensor-conflicted"),
+            }));
+
+    // ---- P7：verification failure midway（post-action 与 DesiredState 矛盾）----
+
+    public static MinimalScenarioBundle PolicyVerificationFailureMidway(
+        string expectationScenarioId = "SCN-POLICY-007") =>
+        PolicyBundle("golden-policy-p7", "policy-verification-failure", expectationScenarioId,
+            new ScenarioStimulus[]
+            {
+                PolicyFrame("p7-init", PT0, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "init") }, ObservationContext.External),
+                PolicyFrame("p7-r1", PT1, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "r1") }, ObservationContext.External),
+                // post-action 仍 off（desired true）→ 既有 VerificationFailed 转移 + policy 作废
+                PolicyFrame("p7-v1", PT2, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "v1") }, ObservationContext.PostActionEffectFlow),
+            },
+            new PhaseAwareAgentScript(new[]
+            {
+                PolicyTurn(TempPolicy()),
+                NoActionAt(AgentDecisionPhase.VerificationFailed, "tap-did-not-flip"),
+            }));
+
+    // ---- P8：fresh-world change between applications（lease invalidation；
+    //      drift association 由测试经 SeamOverrides.Association 注入）----
+
+    public static MinimalScenarioBundle PolicyLeaseDrift(
+        string expectationScenarioId = "SCN-POLICY-008") =>
+        PolicyBundle("golden-policy-p8", "policy-lease-drift", expectationScenarioId,
+            new ScenarioStimulus[]
+            {
+                PolicyFrame("p8-init", PT0, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "init") }, ObservationContext.External),
+                PolicyFrame("p8-r1", PT1, "golden-v1-case-b-on-perception", "golden-v1-case-b-on",
+                    new[] { Temp("24", "r1") }, ObservationContext.External),
+            },
+            new PhaseAwareAgentScript(new[]
+            {
+                PolicyTurn(TempPolicy()),
+                NoActionAt(AgentDecisionPhase.PolicyInvalidated, "screen-changed"),
+            }));
+
+    // ---- P9：forbidden effect class → V6d reject ----
+
+    public static MinimalScenarioBundle PolicyForbiddenEffect(
+        string expectationScenarioId = "SCN-POLICY-009") =>
+        PolicyBundle("golden-policy-p9", "policy-forbidden-effect", expectationScenarioId,
+            new ScenarioStimulus[]
+            {
+                PolicyFrame("p9-init", PT0, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "init") }, ObservationContext.External),
+            },
+            new PhaseAwareAgentScript(new[]
+            {
+                PolicyTurn(TempPolicy(templateEffectClass: "swipe")),
+            }));
+
+    // ---- P10：policy budget > remaining contract budget → V6c reject ----
+
+    public static MinimalScenarioBundle PolicyBudgetExceeds(
+        string expectationScenarioId = "SCN-POLICY-010") =>
+        PolicyBundle("golden-policy-p10", "policy-budget-exceeds", expectationScenarioId,
+            new ScenarioStimulus[]
+            {
+                PolicyFrame("p10-init", PT0, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "init") }, ObservationContext.External),
+            },
+            new PhaseAwareAgentScript(new[]
+            {
+                // MaxApplications(3) > StepsRemaining(2)：不得扩大合同步数预算
+                PolicyTurn(TempPolicy(maxApplications: 3)),
+            }),
+            maxTotalSteps: 2);
+
+    // ---- P11：unknown/malformed AST → V6a reject（rogue 谓词经正式 seam）----
+
+    public static MinimalScenarioBundle PolicyUnknownAst(
+        string expectationScenarioId = "SCN-POLICY-011") =>
+        PolicyBundle("golden-policy-p11", "policy-unknown-ast", expectationScenarioId,
+            new ScenarioStimulus[]
+            {
+                PolicyFrame("p11-init", PT0, "golden-v1-case-b-off-perception", "golden-v1-case-b-off",
+                    new[] { Temp("24", "init") }, ObservationContext.External),
+            },
+            new PhaseAwareAgentScript(new[]
+            {
+                // 脚本携带外来谓词 kind → double 映射 rogue 派生节点 → V6a
+                PolicyTurn(TempPolicy(matchPredicateKind: "ElementRoleStartsWith")),
+            }));
+
     // ---- manifest 派生 helpers（fail closed：结构/内容不符 → 异常）----
 
     private static ScenarioStimulus.ObservationFrame ObservationFrame(
         string stimulusId, DateTimeOffset virtualTime, string perceptionAssetId,
-        string frameId, (string Subject, string Value) claim,
+        string frameId, ReviewedStateClaim claim,
         ObservationContext context) =>
         new(perceptionAssetId, ReviewedElementsOf(frameId),
             new[] { claim }, context)

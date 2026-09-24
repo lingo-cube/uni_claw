@@ -1,0 +1,45 @@
+{
+  "id": "SCN-POLICY-004",
+  "name": "P4 bounds exhausted — MaxApplications=1 consumed, temp unchanged, reconsult at PolicyInvalidated",
+  "source": "component-test",
+  "srRef": null,
+  "purpose": "RUN-005 P-matrix: L2 policy protocol end-to-end via phase-aware ScriptedUniAgent through the real KernelRunDriver policy expansion path",
+  "capability": "policy-protocol",
+  "components": [
+    "kernel",
+    "run-driver",
+    "world-model",
+    "control-loop",
+    "assurance",
+    "effect-boundary"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "real",
+  "expectations": {
+    "status": "TerminalNotProven",
+    "classification": null,
+    "effects": 1,
+    "agentConsultations": 2,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "golden-bundle",
+    "carrier": "policy-bounds-exhausted",
+    "options": {}
+  },
+  "certification": {
+    "schemaVersion": 2,
+    "expectationsDigest": "5fc118241dc16870c7ab7655c6483647d1f9ee3b5c85a69ddd5e8641d7c7bec1",
+    "executionDigest": "405f5f1abfb87ce9aa2ec307038a5943a99fbffc730d9069f9eb87dbe665cada",
+    "runtimeSourceHash": "406a913c7b72092d5f8ec278c8c0ec9ce3a37b12cdf9736bac169a13d7c0c23f",
+    "certifiedByChange": "RUN-005",
+    "certifiedAt": "2026-09-24"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "golden-run-v1 reviewed assets + authored claim scopes only"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "id": "SCN-POLICY-005",
+  "name": "P5 guard violated — ObservationUnchanged(temp,1) trips after consecutive unchanged rounds (2 applications)",
+  "source": "component-test",
+  "srRef": null,
+  "purpose": "RUN-005 P-matrix: L2 policy protocol end-to-end via phase-aware ScriptedUniAgent through the real KernelRunDriver policy expansion path",
+  "capability": "policy-protocol",
+  "components": [
+    "kernel",
+    "run-driver",
+    "world-model",
+    "control-loop",
+    "assurance",
+    "effect-boundary"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "real",
+  "expectations": {
+    "status": "TerminalNotProven",
+    "classification": null,
+    "effects": 2,
+    "agentConsultations": 2,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "golden-bundle",
+    "carrier": "policy-guard-violated",
+    "options": {}
+  },
+  "certification": {
+    "schemaVersion": 2,
+    "expectationsDigest": "75cb1230027332536c2c6f01f9e5641bc671c7dd21a77047b8d70589b4bc711c",
+    "executionDigest": "0165142c66f75d024227d8925e78fea8ed0a6de04b46a032152ef9983eef69e6",
+    "runtimeSourceHash": "406a913c7b72092d5f8ec278c8c0ec9ce3a37b12cdf9736bac169a13d7c0c23f",
+    "certifiedByChange": "RUN-005",
+    "certifiedAt": "2026-09-24"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "golden-run-v1 reviewed assets + authored claim scopes only"
+  }
+}

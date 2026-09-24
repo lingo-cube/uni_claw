@@ -297,7 +297,7 @@ public sealed class AssetGovernanceTests
             ((ScenarioStimulus.ObservationFrame)bundle.Stimuli[0]).PerceptionArtifactId,
             firstStimulus.GetProperty("perceptionArtifactId").GetString());
         Assert.Equal("switch.wifi",
-            firstStimulus.GetProperty("reviewedStateClaims")[0].GetProperty("item1").GetString());
+            firstStimulus.GetProperty("reviewedStateClaims")[0].GetProperty("subject").GetString());
     }
 
     [Fact]

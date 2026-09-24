@@ -125,3 +125,142 @@ public sealed class ScriptedUniAgentTests
         Assert.Throws<InvalidOperationException>(() => agent.AssertDiscipline(1));
     }
 }
+
+// ==== RUN-005 Slice C：相位感知脚本（正式 Agent protocol 决策面）===============
+
+/// <summary>
+/// 相位感知决策核行为锁：turn 相位匹配、Policy proposal 构建、rogue 谓词
+/// 映射、Defer、相位失配/耗尽 fail closed。legacy 形态行为由上方既有测试
+/// 锁定（零回归）。
+/// </summary>
+public sealed class ScriptedUniAgentPhaseAwareTests
+{
+    private static AgentDecisionContext Context(
+        AgentDecisionPhase phase,
+        string decisionId = "decision-run0000000-1",
+        string runId = "run-1") => new(
+        decisionId, runId, "policy-v1", "cool-to-20",
+        new HashSet<string> { "tap" },
+        new Dictionary<string, ClaimSummary>(),
+        Array.Empty<AgentObligationView>(),
+        phase);
+
+    private static ScriptedTurn PolicyTurnAt(AgentDecisionPhase phase) => new(
+        phase, ScriptDecisionKind.Policy,
+        Array.Empty<ScriptActionStep>(),
+        new ScriptPolicySpec(
+            "pol-1",
+            new[] { new ScriptPredicateSpec("ClaimInSet", "hvac.temp", null, new[] { "24", "23" }) },
+            new ScriptActionStep("toggle", null, "tap", "true"),
+            new[] { new ScriptPredicateSpec("ClaimEquals", "hvac.temp", "20", null) },
+            new[] { new ScriptGuardSpec("hvac.temp", 2) },
+            MaxApplications: 4),
+        DeferMaxRounds: null,
+        Justification: "cool");
+
+    [Fact]
+    public void PhaseMatched_PolicyTurn_BuildsFullProposalWithEchoedDecisionId()
+    {
+        var agent = new ScriptedUniAgent(new PhaseAwareAgentScript(new[]
+        {
+            PolicyTurnAt(AgentDecisionPhase.InitialPlanning),
+            ScriptedTurn.Respond(AgentDecisionPhase.PolicyInvalidated, ScriptDecisionKind.NoAction, "seen"),
+        }));
+
+        var decision = agent.Consult(Context(AgentDecisionPhase.InitialPlanning));
+        var policy = Assert.IsType<AgentDecision.Policy>(decision);
+        Assert.Equal("decision-run0000000-1", policy.DecisionId); // D2 回带
+        Assert.Equal("pol-1", policy.Proposal.PolicyId);
+        var match = Assert.IsType<PolicyPredicate.ClaimInSet>(policy.Proposal.Match[0]);
+        Assert.Equal(new[] { "24", "23" }, match.Values);
+        Assert.IsType<PolicyPredicate.ClaimEquals>(policy.Proposal.Termination[0]);
+        Assert.Equal("toggle", policy.Proposal.ActionTemplate.TargetRole);
+        var guard = Assert.IsType<PolicyGuard.ObservationUnchanged>(policy.Proposal.Guards[0]);
+        Assert.Equal(2, guard.AfterRounds);
+        Assert.Equal(4, policy.Proposal.MaxApplications);
+        Assert.Empty(agent.Violations);
+    }
+
+    [Fact]
+    public void PolicyInvalidated_IsLegalReConsultationPhase()
+    {
+        var agent = new ScriptedUniAgent(new PhaseAwareAgentScript(new[]
+        {
+            PolicyTurnAt(AgentDecisionPhase.InitialPlanning),
+            ScriptedTurn.Respond(AgentDecisionPhase.PolicyInvalidated, ScriptDecisionKind.NoAction, "handled"),
+        }));
+
+        Assert.NotNull(agent.Consult(Context(AgentDecisionPhase.InitialPlanning)));
+        var second = Assert.IsType<AgentDecision.NoAction>(
+            agent.Consult(Context(AgentDecisionPhase.PolicyInvalidated)));
+        Assert.Equal("handled", second.Proposal.Justification);
+        Assert.Empty(agent.Violations); // F9(b)：旧 duplicate-call 纪律不再误杀
+        agent.AssertDiscipline(2);
+    }
+
+    [Fact]
+    public void PhaseMismatch_FailClosed_ViolationRecorded()
+    {
+        var agent = new ScriptedUniAgent(new PhaseAwareAgentScript(new[]
+        {
+            PolicyTurnAt(AgentDecisionPhase.InitialPlanning),
+            ScriptedTurn.Respond(AgentDecisionPhase.PolicyInvalidated, ScriptDecisionKind.NoAction, "expected"),
+        }));
+
+        Assert.NotNull(agent.Consult(Context(AgentDecisionPhase.InitialPlanning)));
+        // 第二咨询到达相位失配脚本 turn（StepRejected ≠ PolicyInvalidated）
+        Assert.Null(agent.Consult(Context(AgentDecisionPhase.StepRejected)));
+        Assert.Contains(agent.Violations, v => v.StartsWith("phase-mismatch:got-StepRejected", StringComparison.Ordinal));
+        Assert.Throws<InvalidOperationException>(() => agent.AssertDiscipline(2));
+    }
+
+    [Fact]
+    public void ScriptExhausted_FailClosed()
+    {
+        var agent = new ScriptedUniAgent(new PhaseAwareAgentScript(new[]
+        {
+            PolicyTurnAt(AgentDecisionPhase.InitialPlanning),
+        }));
+
+        Assert.NotNull(agent.Consult(Context(AgentDecisionPhase.InitialPlanning)));
+        Assert.Null(agent.Consult(Context(AgentDecisionPhase.StepVerified)));
+        Assert.Contains("script-exhausted", agent.Violations);
+    }
+
+    [Fact]
+    public void UnknownPredicateKind_MapsToRogueNode_ThroughRealSeam()
+    {
+        var foreignPolicy = new ScriptPolicySpec(
+            "pol-1",
+            new[] { new ScriptPredicateSpec("ElementRoleStartsWith", "toggle", null, null) },
+            new ScriptActionStep("toggle", null, "tap", "true"),
+            new[] { new ScriptPredicateSpec("ClaimEquals", "hvac.temp", "20", null) },
+            Array.Empty<ScriptGuardSpec>(),
+            MaxApplications: 4);
+        var agent = new ScriptedUniAgent(new PhaseAwareAgentScript(new[]
+        {
+            new ScriptedTurn(AgentDecisionPhase.InitialPlanning, ScriptDecisionKind.Policy,
+                Array.Empty<ScriptActionStep>(), foreignPolicy, DeferMaxRounds: null, Justification: null),
+        }));
+
+        var decision = agent.Consult(Context(AgentDecisionPhase.InitialPlanning));
+        var policy = Assert.IsType<AgentDecision.Policy>(decision);
+        Assert.False(policy.Proposal.Match[0] is PolicyPredicate.ClaimEquals
+            or PolicyPredicate.ClaimInSet); // rogue 派生节点——V6a 的真实输入
+    }
+
+    [Fact]
+    public void DeferTurn_CarriesBoundedSpec()
+    {
+        var agent = new ScriptedUniAgent(new PhaseAwareAgentScript(new[]
+        {
+            new ScriptedTurn(AgentDecisionPhase.InitialPlanning, ScriptDecisionKind.Defer,
+                Array.Empty<ScriptActionStep>(), Policy: null, DeferMaxRounds: 2, Justification: null),
+        }));
+
+        var defer = Assert.IsType<AgentDecision.Defer>(
+            agent.Consult(Context(AgentDecisionPhase.InitialPlanning)));
+        Assert.Equal(2, defer.Spec.MaxRounds);
+        Assert.Empty(agent.Violations);
+    }
+}

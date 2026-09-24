@@ -1,0 +1,45 @@
+{
+  "id": "SCN-POLICY-002",
+  "name": "P2 repeated application — claim evolution 24->23->22->20 over two verified applications to policy success",
+  "source": "component-test",
+  "srRef": null,
+  "purpose": "RUN-005 P-matrix: L2 policy protocol end-to-end via phase-aware ScriptedUniAgent through the real KernelRunDriver policy expansion path",
+  "capability": "policy-protocol",
+  "components": [
+    "kernel",
+    "run-driver",
+    "world-model",
+    "control-loop",
+    "assurance",
+    "effect-boundary"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "real",
+  "expectations": {
+    "status": "Completed",
+    "classification": "Completion",
+    "effects": 2,
+    "agentConsultations": 2,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": "Satisfied"
+  },
+  "execution": {
+    "kind": "golden-bundle",
+    "carrier": "policy-repeated-application",
+    "options": {}
+  },
+  "certification": {
+    "schemaVersion": 2,
+    "expectationsDigest": "e70845d5e3000ddfb414741a304d86784719da988872676d98646580dfaaded5",
+    "executionDigest": "1cf543de0ab0abdd12a1c4ac8c3291c50ba832d60c329f8393778e7a736acba5",
+    "runtimeSourceHash": "406a913c7b72092d5f8ec278c8c0ec9ce3a37b12cdf9736bac169a13d7c0c23f",
+    "certifiedByChange": "RUN-005",
+    "certifiedAt": "2026-09-24"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "golden-run-v1 reviewed assets + authored claim scopes only"
+  }
+}

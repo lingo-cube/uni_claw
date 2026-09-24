@@ -35,6 +35,19 @@ internal static class ScenarioLibrary
             ["wifi-two-step-missing-middle"] = id => GoldenScenarioBundles.TwoStepMissingMiddleEvidence(id),
             ["wifi-two-step-contradictory-post"] = id => GoldenScenarioBundles.TwoStepContradictoryPost(id),
             ["wifi-off-to-on-generated"] = id => GoldenScenarioBundles.WifiToggleOffToOnGenerated(id),
+
+            // RUN-005 Slice C — P1-P11 Policy carriers（相位感知脚本）
+            ["policy-immediate-termination"] = id => GoldenScenarioBundles.PolicyImmediateTermination(id),
+            ["policy-repeated-application"] = id => GoldenScenarioBundles.PolicyRepeatedApplicationSuccess(id),
+            ["policy-no-match"] = id => GoldenScenarioBundles.PolicyNoMatch(id),
+            ["policy-bounds-exhausted"] = id => GoldenScenarioBundles.PolicyBoundsExhausted(id),
+            ["policy-guard-violated"] = id => GoldenScenarioBundles.PolicyGuardViolated(id),
+            ["policy-guard-unknown"] = id => GoldenScenarioBundles.PolicyGuardUnknown(id),
+            ["policy-verification-failure"] = id => GoldenScenarioBundles.PolicyVerificationFailureMidway(id),
+            ["policy-lease-drift"] = id => GoldenScenarioBundles.PolicyLeaseDrift(id),
+            ["policy-forbidden-effect"] = id => GoldenScenarioBundles.PolicyForbiddenEffect(id),
+            ["policy-budget-exceeds"] = id => GoldenScenarioBundles.PolicyBudgetExceeds(id),
+            ["policy-unknown-ast"] = id => GoldenScenarioBundles.PolicyUnknownAst(id),
         };
 
     /// <summary>

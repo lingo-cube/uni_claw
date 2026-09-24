@@ -176,6 +176,75 @@ internal sealed record AgentScriptStep(
     IReadOnlyList<ScriptActionStep> Steps,
     string? Justification);
 
+// ============================================================================
+// RUN-005 Slice C — 相位感知脚本模型（设计稿 §11/F9(b)：ScriptedUniAgent
+// 相位感知重做；PolicyInvalidated 为合法再咨询相位）。test-side only。
+// ============================================================================
+
+/// <summary>相位感知脚本的决策种类（正式 Agent protocol 全集）。</summary>
+internal enum ScriptDecisionKind
+{
+    Act,
+    Policy,
+    NoAction,
+    Defer,
+    NoResponse,
+}
+
+/// <summary>
+/// 脚本谓词（closed AST 的 authored 投影）：Kind ∈ {ClaimEquals, ClaimInSet}；
+/// <b>未知 Kind 经 double 映射为 rogue 派生节点</b>——模拟外来/畸形 AST 经
+/// 正式 seam 入场（V6a 入口执法的真实输入），不是 double 旁路。
+/// </summary>
+internal sealed record ScriptPredicateSpec(
+    string Kind,
+    string Subject,
+    string? Value,
+    IReadOnlyList<string>? Values);
+
+/// <summary>脚本守卫（ObservationUnchanged 的 authored 投影）。</summary>
+internal sealed record ScriptGuardSpec(string Subject, int AfterRounds);
+
+/// <summary>脚本 Policy proposal（PolicyProposal 的 authored 投影；模板 = ScriptActionStep 同形）。</summary>
+internal sealed record ScriptPolicySpec(
+    string PolicyId,
+    IReadOnlyList<ScriptPredicateSpec> Match,
+    ScriptActionStep Template,
+    IReadOnlyList<ScriptPredicateSpec> Termination,
+    IReadOnlyList<ScriptGuardSpec> Guards,
+    int MaxApplications);
+
+/// <summary>
+/// 相位感知 turn：咨询到达相位必须等于 ExpectedPhase（失配 = 纪律违规，
+/// fail closed）——脚本按 Phase/Progress/PolicyState 语义驱动，非调用序
+/// 魔数。模拟正式 Agent protocol 的完整决策面。
+/// </summary>
+internal sealed record ScriptedTurn(
+    AgentDecisionPhase ExpectedPhase,
+    ScriptDecisionKind Kind,
+    IReadOnlyList<ScriptActionStep> Steps,
+    ScriptPolicySpec? Policy,
+    int? DeferMaxRounds,
+    string? Justification)
+{
+    public static ScriptedTurn Respond(
+        AgentDecisionPhase phase, ScriptDecisionKind kind, string? justification = null) =>
+        new(phase, kind, Array.Empty<ScriptActionStep>(), Policy: null, DeferMaxRounds: null,
+            Justification: justification);
+}
+
+/// <summary>相位感知脚本（有序 turn 序列；耗尽后再咨询 = 纪律违规）。</summary>
+internal sealed record PhaseAwareAgentScript(IReadOnlyList<ScriptedTurn> Turns);
+
+/// <summary>
+/// reviewed state claim（authored）：Subject/Value 之外可选 Scope——null =
+/// 既有约定 scope:{subject}（同 subject 跨帧值变化 → 显式 Conflict，真实
+/// 观察流矛盾语义）；非 null = authoring 声明的「同流再观察呈现」（CLE-001
+/// Revise：同 producer 异 scope → 值替换 + 痕迹链）。RUN-005 Slice C：policy
+/// 场景的 claim 演化（如 temp 24→…→20）经后者表达。
+/// </summary>
+internal sealed record ReviewedStateClaim(string Subject, string Value, string? Scope = null);
+
 /// <summary>场景期望（semantic assertions；runner 核对并写入 report）。</summary>
 internal sealed record ScenarioExpectation(
     string ExpectedStatus,
@@ -205,6 +274,13 @@ internal sealed record MinimalScenarioBundle
     public required IReadOnlyList<ScenarioStimulus> Stimuli { get; init; }
     public required ProducerSchemaConfigIdentity ProducerIdentities { get; init; }
     public required AgentScriptStep AgentScript { get; init; }
+
+    /// <summary>
+    /// RUN-005 Slice C：相位感知脚本（缺省 null = legacy AgentScript 形态——
+    /// 既有 golden 场景零变更）。非 null 时 host 以本脚本构造 ScriptedUniAgent，
+    /// AgentScript 字段仅作 digest 占位（NoAction 空步）。
+    /// </summary>
+    public PhaseAwareAgentScript? PhaseScript { get; init; }
     public required ScenarioExpectation Expected { get; init; }
     public required ExecutionContract Contract { get; init; }
     public required GoalSpec Goal { get; init; }
@@ -303,7 +379,8 @@ internal static class ScenarioBundleDigest
                         F(e.Role + ":" + (e.State ?? "")
                             + ":" + D(e.X1) + "," + D(e.Y1) + "," + D(e.X2) + "," + D(e.Y2))));
                     var claims = string.Join(",", frame.ReviewedStateClaims
-                        .Select(c => F(c.Subject + "=" + c.Value)));
+                        .Select(c => F(c.Subject + "=" + c.Value
+                            + (c.Scope is null ? "" : "@" + c.Scope))));
                     body = F(frame.PerceptionArtifactId) + "|" + F(frame.Context.ToString())
                         + "|" + elements + "|" + claims;
                     break;
@@ -353,6 +430,32 @@ internal static class ScenarioBundleDigest
                 F(s.TargetRole + ":" + (s.TargetDescriptor ?? "") + ":" + s.EffectClass
                     + ":" + (s.DesiredState ?? "")))),
             F(bundle.AgentScript.Justification ?? "")));
+
+        // RUN-005 Slice C：相位感知脚本（仅非 null 时渲染——legacy-only
+        // bundle 的 canonical rendering/digest 逐字节不变；任何 turn 篡改
+        // 必须改变 digest）
+        if (bundle.PhaseScript is { } phaseScript)
+        {
+            static string Preds(IReadOnlyList<ScriptPredicateSpec> specs) => string.Join(",", specs.Select(p =>
+                F(p.Kind + ":" + p.Subject + ":" + (p.Value ?? "") + ":"
+                    + (p.Values is null ? "-" : string.Join("/", p.Values)))));
+            static string PolicyOf(ScriptPolicySpec p) => string.Join("|",
+                F(p.PolicyId), Preds(p.Match),
+                F(p.Template.TargetRole + ":" + (p.Template.TargetDescriptor ?? "") + ":" + p.Template.EffectClass
+                    + ":" + (p.Template.DesiredState ?? "")),
+                Preds(p.Termination),
+                string.Join(",", p.Guards.Select(g => F(g.Subject + ":" + g.AfterRounds.ToString(CultureInfo.InvariantCulture)))),
+                p.MaxApplications.ToString(CultureInfo.InvariantCulture));
+            parts.Add("phasescript=" + string.Join("|", phaseScript.Turns.Select(t => string.Join("|",
+                F(t.ExpectedPhase.ToString()),
+                F(t.Kind.ToString()),
+                string.Join(",", t.Steps.Select(step =>
+                    F(step.TargetRole + ":" + (step.TargetDescriptor ?? "") + ":" + step.EffectClass
+                        + ":" + (step.DesiredState ?? "")))),
+                t.Policy is null ? "-" : PolicyOf(t.Policy),
+                t.DeferMaxRounds?.ToString(CultureInfo.InvariantCulture) ?? "-",
+                F(t.Justification ?? "")))));
+        }
 
         var canonical = string.Join("\n", parts);
         return Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(canonical))).ToLowerInvariant();

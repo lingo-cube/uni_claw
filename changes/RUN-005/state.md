@@ -150,3 +150,37 @@ Simulation baseline reopened? **NO** · AGT-001 修改：**NO**（禁令维持�
   vocabulary/禁恢复 ElementExists/禁 traversal memory/禁改 FROZEN 设计/
   禁新 Simulation execution path/禁为测试方便改 Product semantics）；
   Slice C 后做 RUN-005 最终实现级验收 → CLOSED（不直接进 AGT-002）。
+
+- 2026-09-24 · implementing · **Slice C COMPLETE（仿真与全矩阵回归）**·
+  ScriptedUniAgent 相位感知重做（非「追加 Policy case」：决策核按
+  Phase/Progress/PolicyState 驱动的 turn 表求值，ExpectedPhase 失配/
+  耗尽 = 纪律违规 fail closed；支持 Act/Policy/NoAction/Defer/NoResponse
+  全决策面；未知谓词 kind → rogue 派生节点经正式 seam 入场——V6a 的
+  真实输入，非 double 旁路；legacy AgentScriptStep 形态语义逐字节保留
+  ——既有 18 golden 场景零变更零重认证）· Simulation integration：
+  MinimalScenarioBundle.PhaseScript 可选尾字段（digest 仅非 null 渲染
+  ——legacy bundle digest 逐字节不变）+ ReviewedStateClaim 可选 Scope
+  （null = 既有固定 scope → 跨帧值变化 = 显式 Conflict；authored scope =
+  CLE-001 Revise 同流再观察——policy 场景 claim 演化通道；occurrence
+  景观仍复用 golden-run-v1 资产经真实 FastPerception 管线）· P1-P11
+  全矩阵（SCN-POLICY-001..011 + 11 注册 carriers + PolicyScenarioTests
+  trait 承载）：P1 即时终止 0-application / P2 两轮 application claim
+  演化至成功 / P3 出集 no-match→PolicyInvalidated 再咨询 / P4 bounds
+  耗尽（恰 MaxApplications 次无超支）/ P5 guard 连续未变触发 / P6
+  conflicted claim guard-Unknown 零 dispatch / P7 中途验证失败既有
+  VerificationFailed 转移+policy 作废 / P8 容器身份漂移 lease 失效零新
+  Effect（drift 经 sanctioned SeamOverrides.Association 缝注入，执行
+  路径不变）/ P9-P11 V6d/V6c/V6a 入口 fail closed（单咨询即拒、零
+  effect）。四元组：method = dotnet test UniClaw.Kernel.slnx 全量 +
+  scenario_certify --check + scenario-coverage --run；expected = P1-P11
+  全 PASS（certified expectations + policy 语义断言：consultations/
+  effects/ApplicationsUsed/termination-invalidation reason/零未授权
+  Effect）+ 既有全绿；actual = **758 通过 / 0 失败**（Kernel 520 ·
+  Simulation 180 · Host 18 · Agent 17 · Core 14 · FSRealization 9），
+  场景库 29/29 认证 PASS（新增 11 经 C8 `--change RUN-005`；既有 18
+  文件零触碰——Kernel/Agent 源 Slice C 零改动，runtimeSourceHash 无位移）
+  + coverage 29/29=100%；RUN-004 回归 PASS；architecture deviation NONE
+  （零新执行路径/零 Product 语义改动/禁令全守：无 DSH、无词汇扩展、
+  ElementExists 未复活、无 traversal memory、FROZEN 设计未动）。
+  下一步（owner 面）：RUN-005 最终实现级验收 → CLOSED（不直接进
+  AGT-002）。

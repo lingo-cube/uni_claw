@@ -1,0 +1,45 @@
+{
+  "id": "SCN-POLICY-009",
+  "name": "P9 forbidden effect class — template EffectClass outside contract rejected by V6d at consultation",
+  "source": "component-test",
+  "srRef": null,
+  "purpose": "RUN-005 P-matrix: L2 policy protocol end-to-end via phase-aware ScriptedUniAgent through the real KernelRunDriver policy expansion path",
+  "capability": "policy-protocol",
+  "components": [
+    "kernel",
+    "run-driver",
+    "world-model",
+    "control-loop",
+    "assurance",
+    "effect-boundary"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "real",
+  "expectations": {
+    "status": "AgentDecisionFailed",
+    "classification": null,
+    "effects": 0,
+    "agentConsultations": 1,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "golden-bundle",
+    "carrier": "policy-forbidden-effect",
+    "options": {}
+  },
+  "certification": {
+    "schemaVersion": 2,
+    "expectationsDigest": "400b1755b0e41e92f3af95979a13117a0329550c4907c34c39fe755e049fd778",
+    "executionDigest": "d0d5aebf09d10aeca655585c170c27730b97031aab80a92a7b4be80f7946835a",
+    "runtimeSourceHash": "406a913c7b72092d5f8ec278c8c0ec9ce3a37b12cdf9736bac169a13d7c0c23f",
+    "certifiedByChange": "RUN-005",
+    "certifiedAt": "2026-09-24"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "golden-run-v1 reviewed assets + authored claim scopes only"
+  }
+}

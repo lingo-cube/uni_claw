@@ -104,7 +104,7 @@ public sealed class BundleIntegrityTests
                 {
                     FrameAt(b, 0) with
                     {
-                        ReviewedStateClaims = new[] { ("switch.wifi", "tampered") },
+                        ReviewedStateClaims = new[] { new ReviewedStateClaim("switch.wifi", "tampered") },
                     },
                     b.Stimuli[1],
                 },
