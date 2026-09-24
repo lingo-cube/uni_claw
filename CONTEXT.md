@@ -631,6 +631,25 @@ _Avoid_: satisfaction 成员、follow-up mechanism、action item
 context）的 opaque 契约；当前仅允许 Empty，不携带业务语义。
 _Avoid_: user profile、session state、config
 
+**Consultation**: Kernel 在语义 decision boundary（T1-T6 触发点）经外部
+seam 向 UniAgent 发起的一次同步请求-回答：输入 = 有界
+AgentDecisionContext，输出 = 恰一个 AgentDecision（或 null = no-response
+fail-closed）。咨询时机与次数由 Kernel 独占（D1-D7 纪律）；Agent 只回答，
+永不发起。Host realization 内部的 turn/step 结构是回答的产生方式，不是
+第二次咨询。
+_Avoid_: agent invocation（泛义）、chat round、turn（跨 realization 混用）、
+Agent 发起的询问
+
+**Agent Strategy State**: UniAgent 侧允许持有的认知状态——Plan
+Hypothesis、被弃策略及原因、policy 耗尽史、语义假设、decision
+rationale；只回答「我准备怎么做、以前为何失败」，永不充当「现在是什么」。
+当前现实断言的唯一来源是最新 AgentDecisionContext；策略记忆影响推理质量，
+不产生 World/Run/effect/proof/binding 真值（baseline §24.5 Agent
+Continuation 的 realization 载体；与 Memory Recall 同受 non-evidentiary
+纪律）。
+_Avoid_: shadow state、第二 World Model、cached world summary（作权威义）、
+execution log
+
 ### Simulation Substrate（RFS-001 落定）
 
 **ScenarioStimulus**: 由 sealed Trace 或 reviewed fixture 经 Scenario Importer

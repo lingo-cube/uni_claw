@@ -1,40 +1,31 @@
 # AGT-001 — UniAgent Runtime Architecture（DSH Product Realization）
 
-lifecycle_state: designing · disposition: none · depth: decision-heavy · base: 83fa8c0e
+lifecycle_state: designing · review_state: ready-for-focused-grill · disposition: none · depth: decision-heavy · base: 83fa8c0e
 
 ## Status
 
-**ready-for-grill**（Step 1 设计稿完成；不 CLOSED）。
+**ready-for-focused-grill**（第一次正式 grill PASS_WITH_FINDINGS → v0.2
+修订完成；不 CLOSED、不进入 implementation）。
 
-设计稿：`plans/2026-09-24-agt-001-uniagent-runtime-architecture.md`
-
-## 状态速览
-
-- Explore 完成：FROZEN 上游全量对齐（baseline §24.2/§24.5、realization
-  baseline v0.1、consultation-protocol v0.1、granularity 文档、RUN-004、
-  GEV-004、现行缝类型）+ DSH checkout 机制核查（agent loop / concludesTurn
-  终结工具 / event-sourced session / tool registry / headless-SDK 驱动面）。
-- 核心裁决：sidecar 边界（B）、1:1 session 映射、1:1 consultation-turn、
-  四元 AgentDecision（Policy 正式成员）、单工具 profile、策略状态白名单、
-  12 项失败模型（DSH 失败折叠为咨询失败，永不升级 Kernel authority）。
-- 4 个 Open Questions 登记待裁决（context 预算 / realization 标注 /
-  失败咨询计轮语义 / transport 信封）。
-- Amendment candidate 登记（RUN-004 Acceptance #8 的 live 语义补注）——
-  本步未改任何 baseline。
+设计稿：`plans/2026-09-24-agt-001-uniagent-runtime-architecture.md`（v0.2）
 
 ## Verification
 
 ```yaml
 verification:
   level: CONTRACT
-  method: 设计稿交叉核验：每条裁决 → FROZEN 上游条文引用或 DSH 机制证据（file:line）
-  expected: 与冻结面零冲突；十问预答齐备；无软约束（提示词级）执法点
-  actual: READY_FOR_GRILL（设计稿 §14；独立 grill 待执行）
-  evidence: plans/2026-09-24-agt-001-uniagent-runtime-architecture.md（全稿）
+  method: grill 复核：F1-F7 逐条对照设计稿 v0.2 条款；GQ1-GQ4 owner 裁决逐字落地核验
+  expected: 六项 finding 闭合 + F7 注记 + 零新增 authority/owner/state
+  actual: v0.2 修订完成（§3.2/§3.4/§5.2/§6.2/§6.4/§2/§7/§11）；待 focused re-grill
+  evidence: 设计稿 v0.2 全文 + changes/AGT-001/spec.md grill 处置表
 ```
 
 ## Status log
 
-- 2026-09-24 · understand→designing · Step 1 Explore/Architecture Draft
-  完成：设计稿落 plans/；spec/plan/state 落 changes/AGT-001/；下一步 =
-  独立 Grill（见 plan.md 步骤 1）。
+- 2026-09-24 · understand→designing · Step 1 设计稿 v0.1 + spec/plan/state。
+- 2026-09-24 · designing · 第一次正式 adversarial grill（PASS_WITH_FINDINGS：
+  F1-F3 SUBSTANTIVE / F4-F6 MEDIUM / F7 MINOR；GQ1-GQ4 四项 owner 裁决）。
+- 2026-09-24 · designing · v0.2 修订完成（F1-F6 闭合、F7 注记、GQ 裁决全部
+  落地；CONTEXT.md 固化 Consultation / Agent Strategy State 词条）→
+  **ready-for-focused-grill**。下一步：plan 步骤 4（focused re-grill，一次，
+  范围限六项 finding + F7 确认）。

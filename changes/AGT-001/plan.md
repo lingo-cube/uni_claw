@@ -1,37 +1,33 @@
 # AGT-001 — Plan
 
-> 前置：Step 1 设计稿完成（plans/2026-09-24-agt-001-uniagent-runtime-architecture.md）。
-> 本 plan 只到「Grill → 修订定稿」；实现拆分在 Grill 后另立 plan。
+> v0.2：grill 修订完成，进入 focused re-grill。
 
-## 步骤（垂直切片，不按层拆）
+## 步骤
 
-1. **Grill（独立会话）**：以设计稿为靶，攻击面 = 设计稿 §11 十问 +
-   §12 Open Questions + Failure Model 完备性 + Policy schema 与 baseline
-   §24.2 语义一致性。产出：finding 清单（F-major / M-medium / S-self-refuted）。
-2. **修订**：按 grill findings 修订设计稿（revision 留痕）；上游冻结面
-   冲突项 → 上抛 owner 裁决（不就地改 baseline）。
-3. **定稿裁决**：verdict = DESIGN_FROZEN（进入实现拆分）或需二次 grill。
-4. **实现拆分（Grill 后，另行立项或本 change 续档）**：
-   - 切片 A：`UniClaw.Agent.Dsh` adapter + fake sidecar 协议测试
-     （CONTRACT 级：信封/握手/错误码——先于真 sidecar）；
-   - 切片 B：DSH 侧 uniclaw-agent profile（单工具 + concludesTurn）+
-     mock provider 冒烟；
-   - 切片 C：Product Host 配置门控接入 + failure matrix 测试；
-   - 切片 D：conformance C1-C11 场景落地（fake/mock provider）；
-   - RUN-005（Kernel 侧 Policy 展开）与本 change 的 AgentDecision+Policy
-     成员联动由 RUN-005 spec 评审裁定时序。
+1. ~~设计稿 v0.1~~（完成，2026-09-24）。
+2. ~~第一次正式 adversarial grill~~（完成：PASS_WITH_FINDINGS，F1-F7 +
+   GQ1-GQ4 owner 裁决）。
+3. ~~v0.2 修订~~（完成：F1-F6 闭合、F7 注记，设计稿 v0.2）。
+4. **Focused re-grill（下一步，仅一次）**：只验证——
+   - F1 interruption：AbortCurrentTurn 不拥有 Product cancel/preemption
+     authority；stale/late response 无法 re-enter Kernel；
+   - F2 closed Policy language：无 arbitrary executable expression；
+   - F3 headless DSH isolation：无 interactive/steering reality bypass；
+   - F4 transport correlation：分层 + 丢弃规则完整；
+   - F5 schema single source：Product protocol 只有一个 schema authority；
+   - F6 cross-restart：不依赖 DSH session / driver volatile state，恢复以
+     owner records + fresh observation 为准；
+   - F7 注记确认（latest context wins）。
+   通过标准：上述全部成立 → CLOSED；仅当出现新的 authority inversion /
+   second runtime / second truth owner / reality bypass 才 REOPEN。
+   **不得**从零重 grill 整份架构。
+5. 冻结与实现拆分（focused re-grill 通过后）：设计稿升 FROZEN 候选；
+   实现切片（adapter+fake sidecar 协议测试 → DSH profile + mock provider
+   冒烟 → Host 配置门控 + failure matrix 测试 → conformance C1-C11）另立
+   plan；RUN-005 联动时序由 RUN-005 spec 评裁决。
 
-## 依赖与时序约束
+## 验证策略（focused re-grill 阶段）
 
-- RUN-004 协议冻结（✓ 前提已满足）；RUN-005 未启动——Policy schema 在
-  本稿只定义 Agent 侧产出契约，Kernel 展开语义不得提前冻结。
-- SIM-003 已闭（场景库 execution 绑定体系可为 realization 标注扩展复用）。
-- Open Questions Q-ctx（context 尺寸预算）须在切片 A 前裁决；
-  Q-transport 信封设计在切片 A 内完成。
-
-## 验证策略（Grill 阶段）
-
-- 每条裁决可指回 FROZEN 上游条文或 DSH 机制证据（file:line）；
-- 十问预答无「靠提示词/靠自觉」类软约束；
-- Failure Matrix 覆盖指令 12 项且 owner 列无「DSH 自愈」；
-- 修订后设计稿与 changes/AGT-001/spec.md 裁决表一致。
+- 六项 finding 逐条对照设计稿 v0.2 条款（引用节号）；
+- 裁决落地与 GQ1-GQ4 owner 决定逐字一致（无扩大无收窄）；
+- 无新增 authority/owner/state（GQ2 DEFER 清单未被越权预造）。
