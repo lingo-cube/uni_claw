@@ -1,8 +1,12 @@
 # RUN-005 — L2 Policy Protocol & Runtime
 
-> Step 1 设计稿：`plans/2026-09-24-run-005-l2-policy-runtime.md`
->（**v0.2 dual-grill revision**：owner 预审 F1-F8+lease 点 × 独立盲审
-> 10 findings 合并处置完毕；待 owner 复裁）。
+> 设计稿：`plans/2026-09-24-run-005-l2-policy-runtime.md`
+>（**v0.3 FROZEN**：owner 终裁 PASS_WITH_ONE_NARROW_AMENDMENT——semantic
+> lease 规则冻结（§4）+ Owner 决策 1（PolicyInvalidated 统一承载，§7）+
+> Owner 决策 2（独立最小 PolicyEvaluationView，§4.1）+ GuardCursor warm-up
+> 澄清（§8）；Further Grill NOT REQUIRED；v0.2 其余裁决全部维持）。
+> 状态：`lifecycle_state: implementing · design_state: frozen`（plan =
+> Slice A→B→C）。
 
 ## Dual-Grill 处置记录（2026-09-24）
 

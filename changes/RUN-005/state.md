@@ -1,54 +1,65 @@
 # RUN-005 — L2 Policy Protocol & Runtime
 
-lifecycle_state: designing · review_state: awaiting-owner-readjudication · disposition: none · depth: decision-heavy · base: 4022ce40
+lifecycle_state: implementing · design_state: frozen · disposition: none · depth: decision-heavy · base: 4022ce40
 
 ## Status
 
-**designing / v0.2 dual-grill revision 完成，待 owner 复裁**（不 CLOSED）。
+**DESIGN FROZEN → Implementation READY**（owner 终裁
+PASS_WITH_ONE_NARROW_AMENDMENT · Further Grill NOT REQUIRED）。
 
-设计稿：`plans/2026-09-24-run-005-l2-policy-runtime.md`（v0.2）
+设计稿：`plans/2026-09-24-run-005-l2-policy-runtime.md`（v0.3 · FROZEN）
 
-## 核心裁决（v0.2 后）
+## Owner 终裁记录（2026-09-24）
 
-| 议题 | 裁决 |
-|---|---|
-| PolicyState owner | KernelRunDriver private ephemeral（含 GuardCursor + _pendingPolicyOutcome；逐元素记忆随 B2/A1 DEFER） |
-| 执行路径 | 零新执行器；模板（AgentActionStep 同形，自带 TargetRole）物化单步 → 复用 StepAct→StepVerify |
-| 求值格 | PolicyTruth 三态，逐 primitive 推导表；conflict/absence 永不满足终止；Unknown 一律回 decision boundary |
-| 新相位 | 唯一 PolicyInvalidated（八 typed reason；含 control-non-act；带预算门）；FailClosed 终局分支删除 |
-| 预算 | 展开轮零咨询；V6c 对 StepsRemaining；v1 无 MaxRounds |
-| Scope | = 当前单根容器身份；内容变化不失效；semantic lease 深语义 DEFER 专项 |
-| 词汇表 v1 | ClaimEquals / ClaimInSet / ElementExists + ObservationUnchanged + 自带目标模板 |
-| DAG 性 | 良基不变量：重入必严格减 remainingApplications 或退出 |
+**Verdict: PASS_WITH_ONE_NARROW_AMENDMENT**。核心架构成立（Agent authors
+Policy · Kernel 只做机械展开 · 每轮 fresh observation · 复用 RUN-004 Act
+链 · 无第二 Runtime/owner/planner）。
 
-## Dual-Grill 记录（2026-09-24）
+**必补 1（已落 §4）**：Semantic Lease 规则冻结——adoption 绑定 active
+execution lease；每次 PolicyExpand 校验；失效 →
+PolicyInvalidated(LeaseInvalidated) → NeedDecision → 零新 Effect；
+content revision/scroll/可见元素变化 ≠ 失效；detection vocabulary /
+preemption detection / cross-process recovery 维持 DEFER。
 
-- Owner 预审：PASS_WITH_FINDINGS（F1-F4 SUBSTANTIVE / F5-F8 MEDIUM + lease 点）。
-- 独立盲审（fresh subagent 零泄漏）：REOPEN（BLOCKER×1 FailClosed 违
-  §24.2 原文 + SUBSTANTIVE×4 + MEDIUM×3 + MINOR×2）；核心方向确认存活。
-- 交叉对表：四根双命中（预算域/认识论/FailClosed/Scope-lease）；互补命中
-  （owner：target 表达、ClaimInSet 过冲；盲审：逐元素记忆、E4 楔死、
-  ScriptedUniAgent 重做、预算门）。
-- v0.2 全部吸收（设计稿 §16）。
+**Owner 决策 1（已落 §7）**：采用 `PolicyInvalidated(reason)`，不用
+`PolicyGuardTripped`；统一承载一切 policy 级 invalidation；只是 NeedDecision
+的 typed cause，不建新状态机。
+
+**Owner 决策 2（已落 §4.1）**：独立最小 `PolicyEvaluationView`
+（owner-derived · read-only · ephemeral · fresh-derived · not persisted ·
+not recovery state · not authority）；不绑定 AgentDecisionContext。
+
+**GuardCursor 澄清（已落 §8）**：Warm-up ≠ PolicyTruth.Unknown（首样本只
+初始化 cursor；样本不足属 warm-up；Unknown 只表示当前证据冲突/不足）。
+
+**接受不变**：MaxRounds 删除 · PolicyFallback 删除 · PolicyTruth 三态 ·
+ClaimInSet · TargetRole · remainingApplications 良基递减 ·
+_pendingPolicyOutcome · E4 映射 · invalidation budget gate ·
+B2/B6/A1/B4 DEFER（v1 buyers = A2/A4/C1 + ElementExists termination）。
 
 ## Verification
 
 ```yaml
 verification:
   level: CONTRACT
-  method: 双审合并：owner 预审 + fresh-subagent 盲审（对基线与真实代码交叉核验）→ 逐 finding 处置进 v0.2
-  expected: findings 全闭合；核心方向存活；无规划权增量
-  actual: v0.2 REVISED — awaiting owner re-adjudication
-  evidence: plans/2026-09-24-run-005-l2-policy-runtime.md（v0.2 全文 + §16 修订日志）+ spec.md 处置记录
+  method: 双审（owner 预审 + 零泄漏盲审）→ v0.2 合并修订 → owner 终裁窄修 → v0.3 FROZEN
+  expected: findings 全闭合 + lease 冻结 + 两项 Owner 决策落形 + warm-up 澄清
+  actual: DESIGN FROZEN / Implementation READY（Baseline reopen: NO）
+  evidence: plans/2026-09-24-run-005-l2-policy-runtime.md v0.3（§4/§4.1/§7/§8/§13/§16/§17）
 ```
+
+## Baseline Impact
+
+Product baseline reopened? **NO** · RUN-004 reopened? **NO** ·
+Simulation baseline reopened? **NO** · AGT-001 修改：**NO**（禁令维持）。
 
 ## Status log
 
-- 2026-09-24 · understand→designing · Step 1 v0.1 → ready-for-grill（1739bca2）。
-- 2026-09-24 · designing · Owner 预审（PASS_WITH_FINDINGS，8 findings + lease 点）；
-  盲审委托（fresh subagent，零泄漏）。
-- 2026-09-24 · designing · 盲审返回（REOPEN，10 findings）；交叉对表（四根双
-  命中）；**v0.2 合并修订完成**（删 MaxRounds/PolicyFallback/PolicyScope 字段/
-  三谓词；PolicyTruth 表；模板自带目标；良基不变量；GuardCursor+pending
-  outcome；E4 映射；预算门；B2/B6/A1/B4 DEFER）→ awaiting-owner-
-  readjudication。下一步：owner 复裁 → 通过则冻结设计、进实现拆分（plan 步骤 3）。
+- 2026-09-24 · understand→designing · v0.1 → ready-for-grill（1739bca2）。
+- 2026-09-24 · designing · Owner 预审（PASS_WITH_FINDINGS）+ 盲审（REOPEN）
+  → v0.2 dual-grill revision（01a518ab）。
+- 2026-09-24 · designing→**implementing（design_state: frozen）** · Owner
+  终裁 PASS_WITH_ONE_NARROW_AMENDMENT：lease 规则冻结 + 决策 1/2 落形 +
+  warm-up 澄清 → v0.3 **FROZEN**。实现按 plan Slice A→B→C 展开；禁令：
+  不再开完整 grill / 不改 AGT-001 / 不接 DSH / 不新增 executor 或
+  canonical owner / 不扩大 v1 vocabulary。

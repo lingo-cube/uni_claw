@@ -1,28 +1,36 @@
 # RUN-005 — Plan
 
-> 前置：Step 1 设计稿 v0.2（dual-grill revision 完成）。
+> 前置：设计稿 **v0.3 FROZEN**（owner 终裁 PASS_WITH_ONE_NARROW_AMENDMENT；
+> Further Grill NOT REQUIRED）。实现以 FROZEN 设计为权威。
 
-## 步骤
+## 实现顺序（owner 指定 Slice A→B→C）
 
-1. ~~设计稿 v0.1 → grill~~（完成）。
-2. ~~双 grill（owner 预审 + fresh-subagent 盲审）+ 交叉对表 + v0.2 合并修订~~
-   （完成：四根双命中——预算域/认识论三态/FailClosed/Scope-lease；互补
-   命中——target 表达/ClaimInSet 过冲/逐元素记忆/E4 楔死/ScriptedUniAgent
-   重做/预算门；全部吸收进 v0.2）。
-3. **Owner 复裁（下一步）**：对 v0.2 逐 finding 复核（处置表 = state.md）；
-   通过 → 设计冻结候选。
-4. **实现拆分（复裁通过后另立 plan）**：
-   - 切片 A：PolicyTypes + AgentDecision.Policy + V6（RED 先行 P9/P10/P11）；
-   - 切片 B：PolicyExpand（良基）+ PolicyTruth 求值 + PolicyInvalidated +
-     _pendingPolicyOutcome/GuardCursor（P1-P8，含 E4 映射）；
-   - 切片 C：ScriptedUniAgent 相位感知重做 + P12 + 全量回归 + 场景库随动
-     （C8 搭乘）。
-5. **AGT-002 衔接**：RUN-005 CLOSED 后 AGT-002 消费 authoritative records
-   做 schema generation；RUN-005 不做 generation/bridge。
+**Slice A — 契约与校验面**
+Policy records（PolicyProposal/Predicate 三员/Guard/自带目标模板）·
+`PolicyTruth` · `PolicyEvaluationView`（§4.1 契约）· `AgentDecision.Policy`
+第四员 · V6 validation（V6a-f）· **lease binding validation**（adoption 绑定
+active execution lease）。RED 先行：P9/P10/P11。
+
+**Slice B — 展开运行时**
+Policy adoption · ephemeral PolicyState（含 GuardCursor，warm-up ≠ Unknown）·
+`PolicyExpand` 良基循环（每轮：fresh observe → lease 校验 → termination →
+guard → bounds → match → 物化单步）· `_pendingPolicyOutcome` ·
+`PolicyInvalidated`（typed cause，含 LeaseInvalidated；带预算门）·
+**复用现有 Act path（零新执行器）**· E4 映射。P1-P8。
+
+**Slice C — 仿真与回归**
+`ScriptedUniAgent` 相位感知改造 · Simulation integration · P1-P12 全矩阵 ·
+full regression / certification / coverage（场景库随动按 C8 搭乘）。
+
+## 禁令（实现期持续有效）
+
+不再开完整 grill · 不修改 AGT-001 · 不接 DSH/DeepSeek · 不新增 Policy
+executor · 不新增 canonical owner · 不扩大 v1 vocabulary。
 
 ## 验证策略
 
-- v0.2 每条裁决可指回双审 finding 编号 + FROZEN 上游条文/代码行；
-- 实现期全 deterministic（ScriptedUniAgent；禁 live model）；
+- 每实现裁决指回 FROZEN 设计条款（§2-§12）；
+- 全 deterministic（ScriptedUniAgent；禁 live model）；
 - 权威检查：driver 无 Policy mutation API；「Kernel never invents/repairs/
-  extends」无违例路径（模板自带目标后「猜 target」路径结构性不存在）。
+  extends」无违例路径（模板自带目标后「猜 target」结构性不存在）；
+  PolicyTruth 三态在 conflicted/absent 数据上的 fail-closed 行为逐场景可证。

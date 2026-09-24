@@ -1,13 +1,14 @@
-# RUN-005 — L2 Policy Protocol & Runtime（设计稿 v0.2 · dual-grill revision）
+# RUN-005 — L2 Policy Protocol & Runtime（设计稿 v0.3 · FROZEN）
 
-> Status: DESIGN DRAFT v0.2（双 grill 合并修订：owner 预审 F1-F8+lease 点 ×
-> 独立盲审 10 findings；待 owner 复裁）
-> Authority: NONE（不修改 AGT-001/baseline；上游顺序同 v0.1）
-> 上游：RUN-004（CLOSED）· AGT-001（CLOSED/FROZEN §5）· baseline §24.2
->（Bounded Contingent Decision Package：finite DAG · typed tri-state Guard ·
-> semantic lease 绑定 · Guard Unknown/失效/preemption fail closed **回 Agent
-> decision boundary** · Run Model 不存内容）· consultation-protocol-v0.1 ·
-> granularity 18 场景（§5 结论 2：已访问/已尝试计数归驱动器执行态）
+> Status: **FROZEN（RUN-005 design freeze，2026-09-24，owner 裁决
+> PASS_WITH_ONE_NARROW_AMENDMENT；Further Grill NOT REQUIRED）**
+> Lineage: v0.1 Draft → Owner 预审（PASS_WITH_FINDINGS）+ 独立盲审（REOPEN）
+> → v0.2 dual-grill revision → Owner 终裁（PASS_WITH_ONE_NARROW_AMENDMENT）
+> → v0.3 narrow amendment（semantic lease 冻结 + Owner 决策 1/2 + GuardCursor
+> warm-up 澄清）→ **FROZEN**。
+> 冻结后修改须经独立 change；实现以本稿为权威（Slice A→B→C，见
+> changes/RUN-005/plan.md）。
+> Authority: NONE（不修改 AGT-001/baseline；上游顺序同前）
 > 日期：2026-09-24 · 修订日志见 §16
 
 ---
@@ -99,14 +100,35 @@ public enum PolicyTruth { Satisfied, Violated, Unknown }   // 一切谓词/守�
 合取语义：任一 Unknown → 整体 Unknown；任一 Violated → 整体 Violated；
 否则 Satisfied。
 
-## 4. Scope（v0.2 修订：F4(b) 二难裁决）
+## 4. Scope 与 Semantic Lease（v0.3：lease 规则冻结）
 
-**v1 无 PolicyScope 字段**。Scope 语义 = 「当前唯一 root container」——与
-driver 既有单根假设（L397-399）同构；invalidation 仅于：container identity
-变化 · 零/多 root（既有检查自然覆盖）。**内容变化（滚动）不失效**——semantic
-scope identity（容器身份）与 content revision（内容）显式区分；内容敏感
-scoping（signature 形态）与 semantic lease 深语义（§24.2「semantic lease
-绑定」的完整形态）随 B6/A1 buyer **DEFER**（登记：lease 语义专项）。
+**v1 无 PolicyScope 字段**（v0.2 裁决维持）。Scope 语义 = 「当前唯一 root
+container」；invalidation 于 container identity 变化 · 零/多 root（既有检查
+覆盖）。**内容变化（滚动/可见元素变化/content revision）≠ lease 失效**。
+
+**Semantic Lease 冻结规则（owner 终裁必补 1——不整体 DEFER）**：
+
+```text
+Policy adoption  → bind current active execution lease
+每次 PolicyExpand → verify lease still valid
+lease invalid    → PolicyInvalidated(LeaseInvalidated) → NeedDecision
+                 → zero new Effect
+```
+
+**仍 DEFER**（登记）：lease detection vocabulary（检测机制词表）·
+human-preemption detection（§24.7 检测机制 = Phase 6/7 buyer）·
+cross-process lease recovery（AGT-001 GQ2 同族）。v1 的 lease 判据 =
+上述 scope 语义（容器身份 + 单根持存）——检测词表深化随 buyer。
+
+### 4.1 PolicyEvaluationView（Owner 决策 2：独立最小视图）
+
+谓词/守卫求值的输入载体 = **独立最小 `PolicyEvaluationView`**，不绑定
+`AgentDecisionContext`（避免未来 Agent context 裁剪影响 Policy runtime
+correctness）。契约（owner 原文语义）：**owner-derived · read-only ·
+ephemeral · fresh-derived（每轮即席派生）· not persisted · not recovery
+state · not authority**。字段 = PolicyTruth 求值所需的最小 claim
+（Value/Disposition/InConflict）与 occurrence（Role/Epistemic）投影；
+按 Consumer View 规则（ADR-0011）由 World owner 派生；Text 不进 v1。
 
 ## 5. Expansion Algorithm（v0.2 修订：单轮，全链复用 + E4 映射）
 
@@ -115,9 +137,9 @@ scoping（signature 形态）与 semantic lease 深语义（§24.2「semantic le
 ┌─ PolicyExpand（每轮恰一步；良基不变量：每次重入 remainingApplications
 │  严格减 1 或退出——语义上等价 ≤N 节点有限展开 DAG，F5(o)）──────────┐
 │ 1. fresh observation（External）→ reconcile → fresh belief           │
-│ 2. scope check：单根 container identity 仍持？否→ exit(scope-        │
-│    invalidated)；零/多根 → 既有路径                                  │
-│ 3. Termination := 合取求值（PolicyTruth）                            │
+│ 2. lease check：active execution lease 仍有效（scope 语义：容器身份  │
+│    + 单根持存）？否→ exit(lease-invalidated)；零/多根 → 既有路径      │
+│ 3. Termination := 合取求值（PolicyTruth，经 PolicyEvaluationView）    │
 │    Satisfied → exit(policy-succeeded)；Unknown → exit(termination-   │
 │    unprovable)；Violated → 继续                                      │
 │ 4. Guards := 逐个 tri-state：Violated → exit(guard-violated)；       │
@@ -160,7 +182,7 @@ V6c：0 < MaxApplications ≤ StepsRemaining（= MaxTotalSteps - _stepsDispatche
 | Policy 内结局 | Phase | 载荷 |
 |---|---|---|
 | Termination Satisfied（含 0-application 即时满足、E4 路径） | 既有 `StepVerified`（**经 `_pendingPolicyOutcome` 显式捕获**，不依赖 `_completedSteps` 推导——F7(o)/F6(b)） | policy 摘要 |
-| bounds-exhausted / no-match / match-unknown / guard-violated / **guard-unknown** / scope-invalidated / termination-unprovable / control-non-act | 新 `PolicyInvalidated`（typed reason 八值） | reason 原文（不净化，M2）+ policy 摘要 |
+| bounds-exhausted / no-match / match-unknown / guard-violated / **guard-unknown** / **lease-invalidated** / termination-unprovable / control-non-act | 新 `PolicyInvalidated`（typed reason；**Owner 决策 1：采用此名，不用 PolicyGuardTripped——它统一承载一切 policy 级 invalidation，只是 NeedDecision 的 typed cause，不建新状态机**） | reason 原文（不净化，M2）+ policy 摘要 |
 | 展开步 grounding/gate 失败 | 既有 `StepRejected` | 既有载荷 + policy 摘要 |
 | 展开步验证失败 | 既有 `VerificationFailed` | 同上 |
 | **invalidation 时 `RoundsRemaining ≤ 0`** | 诚实失败终局（`consult-budget-exhausted` 既有语义，F10(b)） | — |
@@ -178,9 +200,12 @@ Owner 不变：**KernelRunDriver private ephemeral**（baseline「Run Model 不�
 ```csharp
 PolicyExecutionState? _policy;   // PolicyId · ApplicationsUsed · TerminationStatus
 PolicyGuardCursor?[]  _guardCursors;  // 每 guard：Subject · LastObservedValue ·
-                                      // ConsecutiveUnchangedCount（F6(o)/F8(b)：
-                                      // 历史比较 operand，非 current World truth；
-                                      // warm-up = Satisfied 直至窗口满）
+                                      // ConsecutiveUnchangedCount（历史比较
+                                      // operand，非 current World truth）。
+                                      // 【v0.3 澄清】Warm-up ≠ PolicyTruth.
+                                      // Unknown：第一份样本只初始化 cursor；
+                                      // 样本不足属 warm-up（Satisfied）；Unknown
+                                      // 只表示当前证据冲突/不足、无法合法求值
 PendingPolicyOutcome? _pendingPolicyOutcome;  // Phase+Reason+Summary{PolicyId,
      // ApplicationsUsed, TerminationStatus}——活到下次咨询、消费即清
      //（F7(o)/F6(b)：与 _pendingFailure* 同构；Progress.PolicyState 的数据源）
@@ -231,14 +256,15 @@ ScriptedUniAgent **重做相位感知脚本序列**（`PolicyInvalidated` 为合
 target」的代码路径不存在**；`PolicyTruth` 三态 → conflicted/absent 数据
 永不被动满足终止。
 
-## 13. Open Questions（v0.2）
+## 13. Open Questions（v0.3：前两项已裁决关闭）
 
-1. OQ-相位命名（PolicyInvalidated vs PolicyGuardTripped）——维持。
-2. OQ-谓词求值投影：独立最小 PolicyEvaluationView（含 PolicyTruth 所需
-   claim/occurrence 字段；Text 不进 v1）——倾向独立 view。
-3. **OQ-semantic lease 完整形态**（F4(b)/owner lease 点）：容器身份级 scope
-   是 v1 可用的 lease 粒度；§24.2「semantic lease 绑定」的深语义（失效时机、
-   preemption 交互）随 B6/A1 buyer 专项裁决。
+1. ~~OQ-相位命名~~ → **已裁决（Owner 决策 1）**：`PolicyInvalidated(reason)`，
+   不用 `PolicyGuardTripped`；NeedDecision 的 typed cause，非状态机。
+2. ~~OQ-谓词求值投影~~ → **已裁决（Owner 决策 2）**：独立最小
+   `PolicyEvaluationView`（§4.1 契约），不绑定 AgentDecisionContext。
+3. OQ-semantic lease 深化：**绑定/校验/失效规则已冻结（§4）**；仍 DEFER =
+   lease detection vocabulary · human-preemption detection · cross-process
+   lease recovery（随 Phase 6/7 与 Recovery buyer）。
 
 ## 14. Files To Change Later（v0.2 补 ScriptedUniAgent 重做）
 
@@ -254,19 +280,26 @@ PolicyExpand 良基循环（复用 Act 链）、V6、PolicyInvalidated 相位、
 
 ## 16. Revision Log
 
-- **v0.2（2026-09-24）**：dual-grill 修订——删 MaxRounds（预算域脱钩，展开
-  轮零咨询）·删 PolicyFallback 全枚举（Guard Unknown 亦回 decision boundary；
-  TerminalNotProven 分支删除）·模板改 AgentActionStep 同形自带目标 ·
-  PolicyTruth 三态 + 逐 primitive 推导表（conflict/absence 永不满足）·
-  删 ElementMissing/ClaimNotEquals/TextContains，增 ClaimInSet ·删
-  PolicyScope 字段（scope=单根容器身份；内容不失效；lease 专项 DEFER）·
-  良基不变量（finite DAG 等价）·GuardCursor+warm-up ·_pendingPolicyOutcome
-  显式相位捕获 ·E4 映射 ·invalidation 预算门 ·B2/B6/A1/B4 消费者 DEFER ·
-  ScriptedUniAgent 重做登记 ·P3/P6 触发修正。
+- **v0.3（2026-09-24，FROZEN）**：owner 终裁窄修——semantic lease 规则冻结
+  （adoption 绑定 / 每轮校验 / 失效→PolicyInvalidated(LeaseInvalidated)→
+  NeedDecision→零新 effect；content revision/scroll/可见元素变化 ≠ 失效；
+  detection vocabulary/preemption/cross-process recovery 维持 DEFER）·
+  Owner 决策 1 落形（PolicyInvalidated 统一承载，非 PolicyGuardTripped）·
+  Owner 决策 2 落形（独立最小 PolicyEvaluationView，§4.1 契约）·
+  GuardCursor 澄清（Warm-up ≠ PolicyTruth.Unknown）· OQ-1/2 关闭。其余
+  v0.2 裁决全部维持（MaxRounds/PolicyFallback 删除、PolicyTruth 三态、
+  ClaimInSet、TargetRole、良基递减、_pendingPolicyOutcome、E4 映射、
+  预算门、B2/B6/A1/B4 DEFER）。
+- v0.2（2026-09-24）：dual-grill 修订（详见上版日志；§16 v0.2 条目由本版
+  收编：删 MaxRounds/PolicyFallback/PolicyScope/ClaimNotEquals/
+  ElementMissing/TextContains；PolicyTruth 表；自带目标模板；良基不变量；
+  GuardCursor；pending outcome；E4 映射；预算门；消费者 DEFER 重定；
+  ScriptedUniAgent 重做登记；P3/P6 触发修正）。
 - v0.1（2026-09-24）：初稿。
 
 ## 17. Verdict
 
-**REVISED — AWAITING OWNER RE-ADJUDICATION**（双审合并处置完毕；核心方向
-两审均确认存活：Agent authors closed typed Policy · Kernel mechanical
-expansion · 复用 RUN-004 Act 链 · 无新 executor/owner/planning authority）。
+**FROZEN**（owner 终裁 PASS_WITH_ONE_NARROW_AMENDMENT；Further Grill NOT
+REQUIRED）。实现按 changes/RUN-005/plan.md Slice A→B→C 执行，以本稿为
+权威；禁止再开完整 grill / 修改 AGT-001 / 接 DSH / 新增 executor / canonical
+owner / 扩大 v1 vocabulary。
