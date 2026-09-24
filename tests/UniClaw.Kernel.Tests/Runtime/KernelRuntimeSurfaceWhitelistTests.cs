@@ -14,6 +14,12 @@ namespace UniClaw.Kernel.Tests;
 /// AgentActionStep / AgentNoActionProposal / AgentDecision（+Act/NoAction）/
 /// AgentPlanPolicy / ActivationResult / RunDriveStatus / RunDriveResult
 /// （嵌套类型随 FullName 计入名单）。
+/// RUN-005 Slice A 增集（10，FROZEN v0.3 §2 咨询缝词汇）：AgentDecision
+/// （+Policy）/ PolicyProposal / PolicyPredicate（+ClaimEquals/ClaimInSet/
+/// ElementExists）/ PolicyActionTemplate / PolicyGuard
+/// （+ObservationUnchanged）/ PolicyTruth / PolicyInvalidationReason。
+/// 求值机制面（PolicyEvaluationView/GuardCursor/lease/V6 校验器）保持
+/// internal（ControlBeliefView 先例），不入本名单。
 /// </summary>
 public sealed class KernelRuntimeSurfaceWhitelistTests
 {
@@ -137,6 +143,7 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.AgentDecision+Act",
             "UniClaw.Kernel.Runtime.AgentDecision+Defer",
             "UniClaw.Kernel.Runtime.AgentDecision+NoAction",
+            "UniClaw.Kernel.Runtime.AgentDecision+Policy",
             "UniClaw.Kernel.Runtime.AgentDecisionContext",
             "UniClaw.Kernel.Runtime.AgentDecisionPhase",
             "UniClaw.Kernel.Runtime.AgentNoActionProposal",
@@ -152,6 +159,16 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.ObservationDepth",
             "UniClaw.Kernel.Runtime.ObservationDirective",
             "UniClaw.Kernel.Runtime.ObserveSpec",
+            "UniClaw.Kernel.Runtime.PolicyActionTemplate",
+            "UniClaw.Kernel.Runtime.PolicyGuard",
+            "UniClaw.Kernel.Runtime.PolicyGuard+ObservationUnchanged",
+            "UniClaw.Kernel.Runtime.PolicyInvalidationReason",
+            "UniClaw.Kernel.Runtime.PolicyPredicate",
+            "UniClaw.Kernel.Runtime.PolicyPredicate+ClaimEquals",
+            "UniClaw.Kernel.Runtime.PolicyPredicate+ClaimInSet",
+            "UniClaw.Kernel.Runtime.PolicyPredicate+ElementExists",
+            "UniClaw.Kernel.Runtime.PolicyProposal",
+            "UniClaw.Kernel.Runtime.PolicyTruth",
             "UniClaw.Kernel.Runtime.RunDriveResult",
             "UniClaw.Kernel.Runtime.RunDriveStatus",
             "UniClaw.Kernel.Runtime.RunDriverInput",

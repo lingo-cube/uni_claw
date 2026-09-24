@@ -107,4 +107,14 @@ public abstract record AgentDecision
     /// Defer 同律 D2「防串话」；真实 UniAgent/HTTP transport 依赖该稳定关联）。
     /// </summary>
     public sealed record Defer(string DecisionId, ObserveSpec Spec) : AgentDecision;
+
+    /// <summary>
+    /// RUN-005 Slice A（FROZEN v0.3 §2）：L2 policy proposal——Agent 给规则，
+    /// Kernel 机械展开（Slice B 落地展开循环）。DecisionId 回带同 V1/V6e
+    /// 三态同律（D2 防串话适用于每一次 consultation response）；与 PolicyId
+    /// （同 run 内 policy 唯一性，V6f）正交。DecisionId 放置在 union 成员上
+    ///（Defer 先例）——FROZEN §2 sketch 未显式画出该参数，但 §9 V6e 与
+    /// 基线 D2 要求其存在，此处为两条款的合并落形，非词汇扩展。
+    /// </summary>
+    public sealed record Policy(string DecisionId, PolicyProposal Proposal) : AgentDecision;
 }

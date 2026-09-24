@@ -179,6 +179,15 @@ public sealed class KernelRunDriver
     /// <summary>层3 完成自证缓存（docket 呈递用）。</summary>
     private CompletionEvidence? _lastCompletionEvidence;
     private IReadOnlyList<(string Anchor, bool Verified)>? _lastAnchorResults;
+
+    // ---- RUN-005 Slice A：Policy 协议面（adoption/展开运行时归 Slice B）----
+
+    /// <summary>
+    /// V6f operand：已通过 V6 的 PolicyId → 咨询序号（同 run 内唯一性；
+    /// 同序号 = 同次咨询幂等重验，不算重复——见 PolicyValidation.IsDuplicatePolicyId）。
+    /// </summary>
+    private readonly Dictionary<string, int> _adoptedPolicyIds = new(StringComparer.Ordinal);
+
     private readonly RunDriverInputs _inputs;
     private readonly object _driverIdentity = new();
     private DrivePhase _phase = DrivePhase.NeedInitialObservation;
@@ -365,6 +374,26 @@ public sealed class KernelRunDriver
                             _stepIndex = 0;
                             _phase = DrivePhase.StepAct;
                             continue;
+                        }
+                        case AgentDecision.Policy policy:
+                        {
+                            // RUN-005 Slice A：V6 机械校验（fail closed，零新
+                            // Effect，映射回既有 AgentDecisionFailed 语义）。
+                            var rejection = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
+                            if (rejection is not null)
+                                return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, rejection, null, 0);
+
+                            // V6 通过：登记 PolicyId（V6f run 内唯一性 operand；
+                            // 同序号幂等重验不误报）
+                            _adoptedPolicyIds[policy.Proposal.PolicyId] = _consultCounter;
+
+                            // Slice A 边界：协议/校验面已落地，adoption +
+                            // PolicyExpand 循环归 Slice B（禁令：不接仿真
+                            // Policy execution）。诚实占位：fail closed、零新
+                            // Effect、非终局——不伪装执行、不静默楔死。
+                            return new RunDriveResult(
+                                RunDriveStatus.AgentDecisionFailed,
+                                "policy-execution-not-implemented", null, 0);
                         }
                         default:
                             return new RunDriveResult(
@@ -623,6 +652,9 @@ public sealed class KernelRunDriver
             // RUN-004 终局收口：Defer 同样回带 DecisionId（D2 防串话适用于
             // 每一次 consultation response，不限于最终可执行 decision）
             case AgentDecision.Defer d: answeredId = d.DecisionId; break;
+            // RUN-005 V6e：Policy 同律回带 DecisionId（防串话；Defer 先例——
+            // correlation 字段在 union 成员上，与 PolicyId 正交）
+            case AgentDecision.Policy p: answeredId = p.DecisionId; break;
             default: return new ConsultOutcome(null, "unknown-decision-kind");
         }
         if (answeredId != decisionId)
@@ -693,7 +725,7 @@ public sealed class KernelRunDriver
         return $"decision-{(runId.Length > 12 ? runId[^12..] : runId)}-{n}";
     }
 
-    /// <summary>决策校验（V3–V5；Act case 内部沿用既有五检查）。</summary>
+    /// <summary>决策校验（V3–V6；Act case 内部沿用既有五检查；Policy case = RUN-005 V6 形态/预算/唯一性/lease 绑定）。</summary>
     private string? ValidateDecision(
         AgentDecision decision,
         ExecutionContractView view,
@@ -734,6 +766,25 @@ public sealed class KernelRunDriver
                 // 「嵌套拒绝」语义 2026-09-23 修订移除，见 spec §4 注记）
                 if (defer.Spec.MaxRounds > 4)
                     return "defer-unbounded:max-rounds";
+                break;
+            }
+            case AgentDecision.Policy policy:
+            {
+                // V6（RUN-005 §9）：V6a-d 形态 + V6c bounds（纯函数面）
+                var shape = PolicyValidation.ValidateProposal(
+                    policy.Proposal, view, remaining.StepsRemaining);
+                if (shape is not null)
+                    return shape;
+                // V6f：PolicyId 同 run 内唯一（同次咨询幂等重验除外）
+                if (PolicyValidation.IsDuplicatePolicyId(
+                        _adoptedPolicyIds, policy.Proposal.PolicyId, _consultCounter))
+                    return "policy:duplicate-policy-id";
+                // V6g（semantic lease）：adoption 必须可绑定当前 active
+                // execution lease——无 lease / identity 不合法 → reject
+                //（per-expand 的 lease validity 校验归 Slice B）
+                var lease = PolicyLease.TryDerive(_kernel.CurrentBelief);
+                if (lease.Rejection is not null)
+                    return $"policy:{lease.Rejection}";
                 break;
             }
         }

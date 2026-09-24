@@ -1,6 +1,6 @@
 # RUN-005 — L2 Policy Protocol & Runtime
 
-lifecycle_state: implementing · design_state: frozen · disposition: none · depth: decision-heavy · base: 4022ce40
+lifecycle_state: implementing (Slice A complete) · design_state: frozen · disposition: none · depth: decision-heavy · base: 4022ce40
 
 ## Status
 
@@ -63,3 +63,30 @@ Simulation baseline reopened? **NO** · AGT-001 修改：**NO**（禁令维持�
   warm-up 澄清 → v0.3 **FROZEN**。实现按 plan Slice A→B→C 展开；禁令：
   不再开完整 grill / 不改 AGT-001 / 不接 DSH / 不新增 executor 或
   canonical owner / 不扩大 v1 vocabulary。
+- 2026-09-24 · implementing · **Slice A COMPLETE（Policy Protocol &
+  Validation）**· RED→GREEN：产品协议 `AgentDecision.Policy`（+DecisionId，
+  V6e/D2 与 §2 sketch 合并落形——correlation 字段在 union 成员，Defer
+  先例）+ `PolicyProposal`/`PolicyPredicate`（三员 closed AST）/
+  `PolicyActionTemplate`（自带 TargetRole）/`PolicyGuard`（单员）/
+  `PolicyTruth`（三态）/`PolicyInvalidationReason`（八因词汇）＝公开咨询缝
+  词汇（白名单 RUN-005 增集 10 项，显式修订）；internal 机制面
+  `PolicyEvaluationView`（§4.1 owner-derived 独立最小投影，FromBelief 派生）
+  / `PolicyGuardCursor`（warm-up≠Unknown）/ `PolicyLease(TryDerive)`
+  （§4 identity 规则）/`PolicyEvaluation`（§3 推导表+合取）/`PolicyValidation`
+  （V6a-d/f 纯函数）；driver 三触点：ConsultAgentV2 correlation case +
+  ValidateDecision V6 case（形态→V6f 唯一→V6g lease 绑定）+ NeedDecision
+  Policy case（V6 通过 → `policy-execution-not-implemented` 诚实占位——
+  adoption/PolicyExpand 归 Slice B，fail closed 零新 Effect 非终局）。
+  StepAct/StepVerify 主链零改动。四元组：method = dotnet test
+  UniClaw.Kernel.slnx 全量于工作树（Kernel 509 / 全 solution 729）；
+  expected = Slice A 边界测试全绿（policy 2 新测试文件 30 例：三态推导表/
+  合取序/warm-up≠Unknown/ClaimInSet 正反例/lease 派生表/V6 全 reject 面/
+  第四成员/词汇封闭反射执法）+ 既有全绿；actual = 729 通过 / 0 失败，
+  RUN-004 行为零回归（场景库 18/18 经 C8 协议重认证
+  `--change RUN-005`——expectationsDigest/executionDigest 逐字节不变，
+  仅 runtimeSourceHash 随源码位移）；evidence = 本条 + git diff（4 新文件/
+  3 修改 + 18 场景哈希钉扎位移）+ 测试运行输出。 DESIGN_CONFLICT: NONE
+  （任务表列 PolicyTermination/PolicyBounds 映射为 FROZEN §2 的
+  `Termination` 合取列表与 `MaxApplications` 唯一预算字段——未造 wrapper
+  类型即未动冻结 schema）。下一步：Slice B（adoption + PolicyExpand 良基
+  循环 + `_pendingPolicyOutcome` + PolicyInvalidated 相位）。
