@@ -1,59 +1,61 @@
 # RUN-005 — L2 Policy Protocol & Runtime
 
-> Step 1 设计稿：`plans/2026-09-24-run-005-l2-policy-runtime.md`（待 Review/Grill）。
+> Step 1 设计稿：`plans/2026-09-24-run-005-l2-policy-runtime.md`
+>（**v0.2 dual-grill revision**：owner 预审 F1-F8+lease 点 × 独立盲审
+> 10 findings 合并处置完毕；待 owner 复裁）。
+
+## Dual-Grill 处置记录（2026-09-24）
+
+- **Owner 预审**：PASS_WITH_FINDINGS（4 SUBSTANTIVE + 4 MEDIUM + lease 点）。
+- **独立盲审**（fresh subagent，零泄漏委托）：REOPEN（1 BLOCKER +
+  4 SUBSTANTIVE + 3 MEDIUM + 2 MINOR）；核心方向确认存活。
+- **交叉对表**：预算域/认识论三态/FailClosed/Scope-lease 四根问题双命中
+  （高置信）；target 表达与 ClaimInSet 过冲为 owner 独有命中；逐元素记忆/
+  E4 楔死/ScriptedUniAgent 重做/预算门为盲审独有命中。
+- **v0.2 全部吸收**（设计稿 §16 修订日志逐项）。
 
 ## Intent（WHAT/WHY）
 
 在 RUN-004 冻结的多轮决策 Runtime 上新增 **L2 Policy 能力**：UniAgent 提交
-bounded typed Policy（有限、类型化、条件式策略），Kernel 在**不获得规划权**
-的前提下根据 fresh world 逐轮展开。一句话差异：L1 未来 steps 已知（Agent
-预先展开），L2 下一 application 依赖后续 fresh observation（Agent 给规则，
-Kernel 机械展开）。
+bounded typed Policy，Kernel 在**不获得规划权**的前提下根据 fresh world
+逐轮展开。一句话差异：L1 未来 steps 已知（Agent 预先展开），L2 下一
+application 依赖后续 fresh observation（Agent 给规则，Kernel 机械展开）。
 
-**不变量**：UniAgent creates Policy · Kernel executes Policy · Kernel never
-invents/repairs/extends（AGT-001 FROZEN §5 继承）；Policy = bounded
-contingent advisory decision package ≠ workflow/program/script/effect batch/
-driver macro（baseline §24.2 继承）。
+**不变量**：UniAgent creates · Kernel executes · never invents/repairs/
+extends（AGT-001 FROZEN §5）；Policy ≠ workflow/program/script/effect
+batch/driver macro（baseline §24.2）；**一切 Policy 内结局 fail closed 回
+Agent decision boundary**（基线原文；v0.2 删除 FailClosed 终局分支）。
 
 ## Scope（Step 1：只设计）
 
-- 最小 .NET authoritative records（PolicyProposal/Scope/Predicate/Guard/
-  Template/Bounds/Fallback + AgentDecision.Policy 第四员）
-- Closed vocabulary：4 谓词 + 1 守卫 + 1 模板，逐项 18 场景反推（A2/A4/B2/
-  B6/C1 为消费者；A1/B4 的 visited/属性过滤 buyer 未到 → 登记 DEFER）
-- PolicyState：driver-private ephemeral（依据 baseline「Run Model 不存
-  内容」+ AGT-001 GQ2 DEFER——不新建 owner、不持久、restart 丢弃重咨询）
-- 单轮展开算法：PolicyExpand phase → fresh observe → scope/termination/
-  guard/bounds/match → derive ONE step → **复用既有 StepAct→StepVerify 全链**
-  （零新执行器）→ counters → repeat
-- 失败/重咨询映射：PolicyInvalidated（唯一新相位，六 typed reason）+
-  复用 StepRejected/VerificationFailed/StepVerified/E1
-- 两层预算（Contract > Policy local；V6c 机械执法不得扩大合同）
-- Termination ≠ Goal Completion（P12 执法）
-- V6 校验规则集（8 条，全 fail-closed 不修复）
-- P1-P12 deterministic 验收矩阵（ScriptedUniAgent，禁 DSH）
-- Authority Matrix Delta（谓词求值 = 封闭 AST 机械消费，非规划）
+最小 records（v0.2：三谓词 ClaimEquals/ClaimInSet/ElementExists + 单守卫
+ObservationUnchanged + **自带语义目标的模板**（AgentActionStep 同形）+ 单界
+MaxApplications）· PolicyTruth 三态逐 primitive 推导表 · PolicyExpand 良基
+单轮循环（复用 StepAct→StepVerify 全链；E4 映射）· PolicyInvalidated
+（唯一新相位，八 typed reason；invalidation 带预算门）· 两层预算（V6c 对
+StepsRemaining；展开轮零咨询）· ephemeral PolicyState（含 GuardCursor 与
+_pendingPolicyOutcome）· P1-P12（触发修正：conflicted-claim 可产化）·
+authority delta（无规划权；模板自带目标消灭「猜 target」路径）。
+
+DEFER 登记：B2/B6/A1/B4 消费者（逐元素记忆/coverage/内容稳定 scoping/
+多模板）；semantic lease 深语义专项。
 
 ## Out of Scope
 
-实现代码 · DSH/DeepSeek 接入 · AGT-001 修改 · consultation 协议重设计 ·
-第二 Kernel loop · 通用 workflow engine · general-purpose DSL · Memory ·
-Recovery/Agent Continuation · cross-process Policy resume · DSH UI · prompt ·
-schema generation/DSH bridge（AGT-002 消费本 change 产出的 authoritative
-records）。
+实现代码 · DSH/DeepSeek · AGT-001 修改 · consultation 重设计 · 第二 Kernel
+loop · workflow engine · general DSL · Memory · Recovery/Agent Continuation ·
+cross-process resume · DSH UI · prompt · schema generation（AGT-002）。
 
 ## 上游对齐
 
-RUN-004 spec/state（冻结协议 + E1/E4/D5/预算链）· AGT-001 FROZEN 设计 §5
-（closed typed；五要素）· baseline §24.2/§24.3/不变量 43/45 ·
-consultation-protocol-v0.1（T5 预留/V6 预留/Progress.PolicyState? 预留）·
-granularity 18 场景 · 代码基线（KernelRunDriver L240-534 / ExecutionContract
-/ ConsultationTypes / AgentDecision）。
+RUN-004 · AGT-001 FROZEN · baseline §24.2/§24.3/不变量 43/45 ·
+consultation-protocol-v0.1 · granularity 18 场景（§5-2 执行态条款）·
+代码基线（KernelRunDriver L240-683 / ExecutionContract / ConsultationTypes）。
 
 ## Acceptance（本 Step）
 
-1. 设计覆盖 Q1-Q17 全部议题（见设计稿目录映射）；
-2. 每个 primitive 有场景消费者；无消费者的登记 DEFER；
-3. 展开链逐项证明 fresh（Q7 清单）；无新执行器（Q11）；
-4. Authority delta 无 Kernel 规划权增量；
-5. state = ready-for-grill（不 CLOSED）。
+1. v0.2 覆盖双审全部 findings（§16 逐项）；
+2. 每个 v1 primitive 有可产消费者；DEFER 项逐一登记 buyer；
+3. 展开链逐项 fresh；无新执行器；无 Kernel 规划权增量；
+4. state = awaiting-owner-readjudication（不 CLOSED）。
+
