@@ -1,11 +1,11 @@
 # SIM-004 — Simulation Agent Seam De-Concreting
 
-lifecycle_state: implemented (READY_FOR_REVIEW) · review_state: ready-for-review · disposition: none · depth: standard · base: bc051175
+lifecycle_state: closed · review_state: passed · disposition: none · depth: standard · base: bc051175
 
 ## Status
 
-**READY_FOR_REVIEW**（continuation delta 完成；全量验证绿；Narrow Grill
-G1-G7 零新 finding——见 state log。）
+**CLOSED**（final narrow review PASS；Step 0 裁决 A：当前无 structural mirror；
+全量验证绿——见 state log。）
 
 ## Step-0 事实源
 
@@ -63,3 +63,9 @@ verification:
   Product 类型（A1-A8 + Assert.Same 零映射证明）；G6 注入 Func realization
   经 Product seam 全链可用（SeamOverrideTests crown 证明）；G7 产品零修改
   （git diff src/ = 0）。零新 finding → Review Gate。
+- 2026-09-24 · final narrow review PASS（Step 0 = A）：`ScriptedTurn` 仅描述
+  ExpectedPhase + double behavior + Product 类型载荷；`ScriptedUniAgent` 直接
+  构造 Product `AgentDecision`；JSON converter 仅为 Product closed union 的
+  serialization adapter；runtime/test authoring 无 Simulation decision taxonomy。
+  tripwire、A1-A8、bundle digest/round-trip、全 solution 760/760、certification
+  29/29、coverage 29/29=100% 均 PASS；src/ 零改动 → SIM-004 CLOSED。
