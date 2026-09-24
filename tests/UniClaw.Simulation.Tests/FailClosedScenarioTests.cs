@@ -23,7 +23,12 @@ public sealed class FailClosedScenarioTests
         var bundle = ScenarioBundleDigest.Sealed(
             GoldenScenarioBundles.WifiToggleOffToOn() with
             {
-                AgentScript = new AgentScriptStep(AgentScriptKind.NoResponse, Array.Empty<ScriptActionStep>(), "no response"),
+                // SIM-004：显式 no-response turn（double behavior，非决策变体）；
+                // 首轮咨询即 fail closed——turn 2 不可达，单 turn 覆写
+                PhaseScript = new PhaseAwareAgentScript(new[]
+                {
+                    ScriptedTurn.NoResponseAt(AgentDecisionPhase.InitialPlanning),
+                }),
                 // 适配：初始观察在 consultation 前已被消费，obs-2-post 保持 unconsumed（=1）
                 Expected = new ScenarioExpectation("AgentDecisionFailed", null, 0, 1, 1, null),
                 ScenarioId = "wifi-no-response",
@@ -59,6 +64,9 @@ public sealed class FailClosedScenarioTests
                 initial with { Context = ObservationContext.PostActionEffectFlow },
                 s1.Stimuli[1],
             },
+            // SIM-004 显式迁移：context 失配 → driver 在任何 consultation 之前
+            // fail closed——零 turn 可达，脚本显式声明空（零咨询场景）
+            PhaseScript = new PhaseAwareAgentScript(Array.Empty<ScriptedTurn>()),
             // 适配：context 失配帧被记为 unexpected 但不dequeue，两条 stimulus 均保持 unconsumed（=2）
             Expected = new ScenarioExpectation("UnexpectedInput", null, 0, 0, 2, null),
         });

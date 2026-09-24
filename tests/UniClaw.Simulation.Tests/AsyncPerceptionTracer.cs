@@ -483,13 +483,37 @@ internal sealed class MenuFrameObservationStrategy : IUiObservationStrategy
     }
 }
 
-/// <summary>UAP-001 场景声明（脚本 + 契约 + agent 脚本）。</summary>
+/// <summary>
+/// UAP-001 场景声明（脚本 + 契约 + agent turn 序列）。SIM-004：AgentScript
+/// 类型 = 相位感知脚本（legacy AgentScriptStep 镜像已删除）。
+/// </summary>
 internal sealed record AsyncScenario(
     string ScenarioId,
     DateTimeOffset T0,
     ExecutionContract Contract,
-    AgentScriptStep AgentScript,
+    PhaseAwareAgentScript AgentScript,
     IReadOnlyList<ScriptedOperation> Operations);
+
+/// <summary>
+/// SIM-004：UAP authoring sugar——legacy 显式迁移为 turn 序列。Act 场景
+/// 两 turn（InitialPlanning Act + StepVerified 再咨询 NoAction——原 legacy
+/// 自动兜底行为）；NoAction 场景单 turn；Empty = 零咨询场景（S7 等待臂）。
+/// </summary>
+internal static class AsyncScenarioScripts
+{
+    internal static PhaseAwareAgentScript ActScript(string? justification, params AgentActionStep[] steps) =>
+        new(new[]
+        {
+            ScriptedTurn.ActAt(AgentDecisionPhase.InitialPlanning, steps, justification),
+            ScriptedTurn.NoActionAt(AgentDecisionPhase.StepVerified, "script-exhausted-goal-should-be-met"),
+        });
+
+    internal static PhaseAwareAgentScript NoActionScript(string justification) =>
+        new(new[] { ScriptedTurn.NoActionAt(AgentDecisionPhase.InitialPlanning, justification) });
+
+    /// <summary>零咨询场景（driver 永不到达 decision boundary）。</summary>
+    internal static PhaseAwareAgentScript EmptyScript { get; } = new(Array.Empty<ScriptedTurn>());
+}
 
 /// <summary>
 /// UAP-001 组合根：全部 L2 product modules 真实（UniKernel / KernelRunDriver /
@@ -505,8 +529,18 @@ internal sealed class AsyncPerceptionHost
     internal UniKernel KernelCore { get; }
     internal KernelRunDriver Driver { get; }
     internal AgentPlanPolicy Plan { get; }
-    internal ScriptedUniAgent ScriptedAgent { get; }
-    internal DeterministicEffectDriver EffectDriver { get; }
+
+    /// <summary>SIM-004：Product Consult seam 消费侧观测（realization 无关）。</summary>
+    internal ConsultationJournal Consultations { get; }
+
+    /// <summary>SIM-004（ABS-001）：scripted probe 面（probe 接口，非 concrete）。</summary>
+    internal IScriptedAgentProbe? ScriptedAgent { get; }
+
+    /// <summary>
+    /// SIM-004（ABS-002）：产品 owner facts 取数（EffectReceipts）——原
+    /// concrete-typed EffectDriver 属性与 DeliveryCount probe 已删除。
+    /// </summary>
+    internal int EffectDeliveries => KernelCore.EffectReceipts.Count;
     internal AsyncObservationFeed Feed { get; }
     internal VirtualClock Clock { get; }
     internal RuntimeStageMetrics Metrics { get; }
@@ -532,13 +566,19 @@ internal sealed class AsyncPerceptionHost
             new SeedingAssociationStrategy(),
             new MenuFrameObservationStrategy());
         var assurance = new RuntimeAssurance(new SatisfyingFreshness());
-        EffectDriver = new DeterministicEffectDriver(scenario.T0);
-        EffectBoundaryCore = new EffectBoundary(EffectDriver);
+        // SIM-004（ABS-002）：计数面 = 产品 facts（receipts）；driver 保持
+        // concrete 构造（组合根自选，本地变量）——组合面不再暴露 concrete。
+        var effectDriver = new DeterministicEffectDriver(scenario.T0);
+        EffectBoundaryCore = new EffectBoundary(effectDriver);
         Metrics = new RuntimeStageMetrics();
         Plan = new AgentPlanPolicy();
         LedgerCore = new EvidenceLedger();
         Feed = new AsyncObservationFeed(Clock, scenario.Operations);
-        ScriptedAgent = new ScriptedUniAgent(scenario.AgentScript);
+        // SIM-004（ABS-001）：agent 缝 = Product Consult seam；观测经
+        // ConsultationJournal（seam 消费侧），probe 经接口暴露。
+        var scripted = new ScriptedUniAgent(scenario.AgentScript);
+        ScriptedAgent = scripted;
+        Consultations = new ConsultationJournal(scripted.Consult);
         RunModelCore = new RunModel();
         KernelCore = new UniKernel(
             LedgerCore, world, DisabledRunTrace.Instance,
@@ -548,17 +588,17 @@ internal sealed class AsyncPerceptionHost
         Driver = new KernelRunDriver(KernelCore, Plan, new RunDriverInputs
         {
             NextInput = Feed.Next,
-            ConsultAgent = ScriptedAgent.Consult,
+            ConsultAgent = Consultations.Consult,
         });
     }
 
-    /// <summary>包裹一次 Driver.Drive()（terminal 后标记 ScriptedAgent）。</summary>
+    /// <summary>包裹一次 Driver.Drive()（terminal 后标记 seam 观测）。</summary>
     internal RunDriveResult DriveOnce()
     {
         var result = Driver.Drive();
         _driveResults.Add(result);
         if (KernelCore.IsRunTerminal)
-            ScriptedAgent.MarkTerminal();
+            Consultations.MarkTerminal();
         return result;
     }
 

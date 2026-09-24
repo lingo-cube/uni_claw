@@ -33,7 +33,8 @@ internal static class GoldenScenarioBundles
     private static readonly DateTimeOffset T2 = T0.AddSeconds(20);
     private static readonly DateTimeOffset Tcancel = T0.AddSeconds(5);
 
-    private static ScriptActionStep Step(string role, string? descriptor, string effectClass, string? desiredState) =>
+    /// <summary>SIM-004：脚本步 = Product AgentActionStep（零镜像）。</summary>
+    private static AgentActionStep Step(string role, string? descriptor, string effectClass, string? desiredState) =>
         new(role, descriptor, effectClass, desiredState);
 
     // ---- (a) S1：wifi off → tap → post-action on（happy path）----
@@ -59,10 +60,17 @@ internal static class GoldenScenarioBundles
                     ObservationContext.PostActionEffectFlow),
             },
             ProducerIdentities = LoadProducerIdentities(),
-            AgentScript = new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[] { Step("toggle", null, "tap", "true") },
-                Justification: "flip the wifi switch on"),
+            // SIM-004 显式迁移：legacy Act 单步 + StepVerified 自动 NoAction 兜底
+            // → 显式两 turn（行为等价；certified 六字段不变）
+            PhaseScript = new PhaseAwareAgentScript(new[]
+            {
+                ScriptedTurn.ActAt(
+                    AgentDecisionPhase.InitialPlanning,
+                    new[] { Step("toggle", null, "tap", "true") },
+                    "flip the wifi switch on"),
+                ScriptedTurn.NoActionAt(
+                    AgentDecisionPhase.StepVerified, "script-exhausted-goal-should-be-met"),
+            }),
             Expected = ScenarioExpectations.Load(expectationScenarioId),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
@@ -96,9 +104,10 @@ internal static class GoldenScenarioBundles
                     ObservationContext.External),
             },
             ProducerIdentities = LoadProducerIdentities(),
-            AgentScript = new AgentScriptStep(
-                AgentScriptKind.NoAction, Array.Empty<ScriptActionStep>(),
-                Justification: "switch already on"),
+            PhaseScript = new PhaseAwareAgentScript(new[]
+            {
+                ScriptedTurn.NoActionAt(AgentDecisionPhase.InitialPlanning, "switch already on"),
+            }),
             Expected = ScenarioExpectations.Load(expectationScenarioId),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
@@ -123,6 +132,9 @@ internal static class GoldenScenarioBundles
             BundleId = "golden-wifi-missing-post",
             ScenarioId = "wifi-missing-post-action",
             Stimuli = new[] { full.Stimuli[0] },
+            // SIM-004 显式迁移：缺 post-action 帧 → 停在 StepVerify，唯一咨询
+            // 是 InitialPlanning——turn 2 不可达，脚本只 authoring 首轮
+            PhaseScript = new PhaseAwareAgentScript(new[] { full.PhaseScript.Turns[0] }),
             Expected = ScenarioExpectations.Load(expectationScenarioId),
         });
     }
@@ -148,10 +160,15 @@ internal static class GoldenScenarioBundles
                     ObservationContext.External),
             },
             ProducerIdentities = LoadProducerIdentities(),
-            AgentScript = new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[] { Step("toggle", null, "tap", "true") },
-                Justification: "flip the wifi switch on"),
+            // SIM-004 显式迁移：cancel 截断 run——StepVerified 再咨询不可达，
+            // 只 authoring 首轮 turn
+            PhaseScript = new PhaseAwareAgentScript(new[]
+            {
+                ScriptedTurn.ActAt(
+                    AgentDecisionPhase.InitialPlanning,
+                    new[] { Step("toggle", null, "tap", "true") },
+                    "flip the wifi switch on"),
+            }),
             // 终态期望（FinalizePhased 之后核对）：RUN-004 多轮协议下
             // cancel 由 driver 自主处理（预算截断），分类 Completed（run
             // 生命周期结束），goal 仍 Unsatisfied（目标未达成）。
@@ -216,14 +233,20 @@ internal static class GoldenScenarioBundles
                     ObservationContext.PostActionEffectFlow),
             },
             ProducerIdentities = LoadProducerIdentities(),
-            AgentScript = new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[]
-                {
-                    Step("toggle", null, "tap", "true"),
-                    Step("menuItem", null, "tap", null),
-                },
-                Justification: "flip the wifi switch on, then open the menu"),
+            // SIM-004 显式迁移：两步 proposal 耗尽 → StepVerified 再咨询 → NoAction
+            PhaseScript = new PhaseAwareAgentScript(new[]
+            {
+                ScriptedTurn.ActAt(
+                    AgentDecisionPhase.InitialPlanning,
+                    new[]
+                    {
+                        Step("toggle", null, "tap", "true"),
+                        Step("menuItem", null, "tap", null),
+                    },
+                    "flip the wifi switch on, then open the menu"),
+                ScriptedTurn.NoActionAt(
+                    AgentDecisionPhase.StepVerified, "script-exhausted-goal-should-be-met"),
+            }),
             Expected = ScenarioExpectations.Load(expectationScenarioId),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
@@ -263,14 +286,19 @@ internal static class GoldenScenarioBundles
                     ObservationContext.External),
             },
             ProducerIdentities = LoadProducerIdentities(),
-            AgentScript = new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[]
-                {
-                    Step("toggle", null, "tap", "true"),
-                    Step("menuItem", null, "tap", null),
-                },
-                Justification: "flip the wifi switch on, then open the menu"),
+            // SIM-004 显式迁移：缺中间证据 → step1 后停在 StepVerify（不变量 43
+            // 屏障）——唯一咨询是 InitialPlanning，单 turn
+            PhaseScript = new PhaseAwareAgentScript(new[]
+            {
+                ScriptedTurn.ActAt(
+                    AgentDecisionPhase.InitialPlanning,
+                    new[]
+                    {
+                        Step("toggle", null, "tap", "true"),
+                        Step("menuItem", null, "tap", null),
+                    },
+                    "flip the wifi switch on, then open the menu"),
+            }),
             Expected = ScenarioExpectations.Load(expectationScenarioId),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
@@ -316,6 +344,14 @@ internal static class GoldenScenarioBundles
         {
             ScenarioId = "wifi-two-step-contradictory-post",
             Stimuli = new[] { original.Stimuli[0], contradictory, original.Stimuli[2] },
+            // SIM-004 显式迁移：step1 验证失败 → 再咨询到达 VerificationFailed
+            // 相位，显式 no-response（legacy 形态在此伪记 duplicate-call 违规；
+            // certified 六字段不变，acceptance 由伪违规必假翻真）
+            PhaseScript = new PhaseAwareAgentScript(new[]
+            {
+                original.PhaseScript.Turns[0],
+                ScriptedTurn.NoResponseAt(AgentDecisionPhase.VerificationFailed),
+            }),
             Expected = ScenarioExpectations.Load(expectationScenarioId),
         });
     }
@@ -353,10 +389,11 @@ internal static class GoldenScenarioBundles
     private static readonly DateTimeOffset PT4 = PT0.AddSeconds(40);
     private static readonly DateTimeOffset PT5 = PT0.AddSeconds(50);
 
-    private static ScriptPredicateSpec Eq(string subject, string value) =>
-        new("ClaimEquals", subject, value, null);
-    private static ScriptPredicateSpec InDomain(string subject) =>
-        new("ClaimInSet", subject, null, new[] { "24", "23", "22", "21" });
+    /// <summary>SIM-004：谓词/守卫直接用 Product closed-AST 成员（零镜像）。</summary>
+    private static PolicyPredicate Eq(string subject, string value) =>
+        new PolicyPredicate.ClaimEquals(subject, value);
+    private static PolicyPredicate InDomain(string subject) =>
+        new PolicyPredicate.ClaimInSet(subject, new[] { "24", "23", "22", "21" });
 
     /// <summary>claim 演化（CLE-001 Revise 通道）：per-frame authored scope。</summary>
     private static ReviewedStateClaim Temp(string value, string scope) =>
@@ -375,24 +412,28 @@ internal static class GoldenScenarioBundles
             VirtualTime = t,
         };
 
-    private static ScriptPolicySpec TempPolicy(
+    /// <summary>
+    /// SIM-004：temp policy 直接构造 Product PolicyProposal（matchPredicate =
+    /// rogue 注入位，P11 用）。
+    /// </summary>
+    private static PolicyProposal TempPolicy(
         string policyId = "pol-temp-1",
         int maxApplications = 4,
-        IReadOnlyList<ScriptPredicateSpec>? match = null,
-        IReadOnlyList<ScriptPredicateSpec>? termination = null,
-        IReadOnlyList<ScriptGuardSpec>? guards = null,
+        IReadOnlyList<PolicyPredicate>? match = null,
+        IReadOnlyList<PolicyPredicate>? termination = null,
+        IReadOnlyList<PolicyGuard>? guards = null,
         string templateEffectClass = "tap",
-        string? matchPredicateKind = null) => new(
+        PolicyPredicate? matchPredicate = null) => new(
         policyId,
-        match ?? new[] { matchPredicateKind is null ? InDomain("hvac.temp") : new ScriptPredicateSpec(matchPredicateKind, "hvac.temp", null, null) },
-        new ScriptActionStep("toggle", null, templateEffectClass, "true"),
+        match ?? new[] { matchPredicate ?? InDomain("hvac.temp") },
+        new PolicyActionTemplate("toggle", null, templateEffectClass, "true"),
         termination ?? new[] { Eq("hvac.temp", "20") },
-        guards ?? Array.Empty<ScriptGuardSpec>(),
-        maxApplications);
+        guards ?? Array.Empty<PolicyGuard>(),
+        maxApplications,
+        Justification: null);
 
-    private static ScriptedTurn PolicyTurn(ScriptPolicySpec policy) =>
-        new(AgentDecisionPhase.InitialPlanning, ScriptDecisionKind.Policy,
-            Array.Empty<ScriptActionStep>(), policy, DeferMaxRounds: null, Justification: "cool-to-20");
+    private static ScriptedTurn PolicyTurn(PolicyProposal policy) =>
+        ScriptedTurn.PolicyAt(AgentDecisionPhase.InitialPlanning, policy);
 
     private static ExecutionContract PolicyContract(int maxTotalSteps = 256) => new(
         "policy-v1", "cool-to-20",
@@ -422,8 +463,6 @@ internal static class GoldenScenarioBundles
             Assets = LoadAssets(),
             Stimuli = stimuli,
             ProducerIdentities = LoadProducerIdentities(),
-            AgentScript = new AgentScriptStep(
-                AgentScriptKind.NoAction, Array.Empty<ScriptActionStep>(), "phase-aware-script"),
             PhaseScript = script,
             Expected = ScenarioExpectations.Load(expectationScenarioId),
             Contract = PolicyContract(maxTotalSteps),
@@ -432,7 +471,7 @@ internal static class GoldenScenarioBundles
         });
 
     private static ScriptedTurn NoActionAt(AgentDecisionPhase phase, string why) =>
-        ScriptedTurn.Respond(phase, ScriptDecisionKind.NoAction, why);
+        ScriptedTurn.NoActionAt(phase, why);
 
     // ---- P1：immediate termination（0-application 即时满足）----
 
@@ -540,7 +579,7 @@ internal static class GoldenScenarioBundles
             },
             new PhaseAwareAgentScript(new[]
             {
-                PolicyTurn(TempPolicy(guards: new[] { new ScriptGuardSpec("hvac.temp", 1) })),
+                PolicyTurn(TempPolicy(guards: new[] { new PolicyGuard.ObservationUnchanged("hvac.temp", 1) })),
                 NoActionAt(AgentDecisionPhase.PolicyInvalidated, "temp-not-moving"),
             }));
 
@@ -558,7 +597,7 @@ internal static class GoldenScenarioBundles
             },
             new PhaseAwareAgentScript(new[]
             {
-                PolicyTurn(TempPolicy(guards: new[] { new ScriptGuardSpec("hvac.mode", 1) })),
+                PolicyTurn(TempPolicy(guards: new[] { new PolicyGuard.ObservationUnchanged("hvac.mode", 1) })),
                 NoActionAt(AgentDecisionPhase.PolicyInvalidated, "mode-sensor-conflicted"),
             }));
 
@@ -646,8 +685,9 @@ internal static class GoldenScenarioBundles
             },
             new PhaseAwareAgentScript(new[]
             {
-                // 脚本携带外来谓词 kind → double 映射 rogue 派生节点 → V6a
-                PolicyTurn(TempPolicy(matchPredicateKind: "ElementRoleStartsWith")),
+                // 脚本携带 rogue 派生谓词（SIM-004：Product closed AST 之外的
+                // test-side 注入位）→ 经正式 seam 入场 → V6a fail closed
+                PolicyTurn(TempPolicy(matchPredicate: new RogueScriptPredicate())),
             }));
 
     // ---- manifest 派生 helpers（fail closed：结构/内容不符 → 异常）----

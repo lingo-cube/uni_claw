@@ -193,10 +193,7 @@ public sealed class AsyncPerceptionScenarioTests
             "s1-fast-miss-targeted-slow",
             T0,
             TapContract(scope, "page.network.opened"),
-            new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[] { new ScriptActionStep("menu.row", "Network & internet", "tap", null) },
-                "open network settings"),
+            AsyncScenarioScripts.ActScript("open network settings", new AgentActionStep("menu.row", "Network & internet", "tap", null)),
             new[] { initial with { Schedule = new[] { fastResult, slowResult } },
                     post with { Schedule = new[] { postResult } } }));
 
@@ -234,7 +231,7 @@ public sealed class AsyncPerceptionScenarioTests
         // occurrence id 是 revision-local 的——act 时 binding 绑定的是决策时
         // revision 的 occurrence，post-action revision 后同指涉换新 id，故
         // 断言以 locator 指涉为准）
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveries);
         var binding = host.EffectBoundaryCore.BindingLog.Single(b => b.Canonical is not null).Canonical!;
         Assert.NotNull(binding.TargetOccurrenceId);
         Assert.Equal(CenterY(network), Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
@@ -246,7 +243,7 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.Equal(TerminalClassification.Completion, final.Outcome!.Classification);
         _output.WriteLine($"S1: revisions={host.WorldCore.RevisionHistory.Count} " +
             $"canonical={host.LedgerCore.CanonicalRecords.Count} " +
-            $"effects={host.EffectDriver.DeliveryCount} " +
+            $"effects={host.EffectDeliveries} " +
             $"deliveryLatency={opSnapshot.VirtualDeliveryLatency}");
     }
 
@@ -292,10 +289,7 @@ public sealed class AsyncPerceptionScenarioTests
             "s2a-state-misjudge-corrected",
             T0,
             TapContract(scope, "ui.state.colors", requiredValue: "enabled"),
-            new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[] { new ScriptActionStep("menu.row", "Colors", "tap", "enabled") },
-                "enable colors row"),
+            AsyncScenarioScripts.ActScript("enable colors row", new AgentActionStep("menu.row", "Colors", "tap", "enabled")),
             new[] { initial with { Schedule = new[] { fastResult, slowResult } },
                     post with { Schedule = new[] { postResult } } }));
 
@@ -306,10 +300,10 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.Equal(RunDriveStatus.Completed, final.Status);
 
         // 纠正在 decision boundary 之前：agent consultation 上下文含纠正值
-        var call = host.ScriptedAgent.Calls.First();
+        var call = host.Consultations.Calls.First();
         Assert.Equal("disabled", call.CurrentWorldClaims["ui.state.colors"].Value);
         // 纠正后 desired-state 不满足 → 执行动作（而非被误判 skip）
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveries);
         // 同流再观察 = Revise（非 Conflict）
         Assert.Contains(host.WorldCore.ClaimEvolutionLog,
             d => d.Subject == "ui.state.colors" && d.Kind == ClaimEvolutionKind.Revise);
@@ -338,10 +332,7 @@ public sealed class AsyncPerceptionScenarioTests
             "s2b-fast-only-misjudge",
             T0,
             TapContract(scope, "ui.state.colors", requiredValue: "enabled"),
-            new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[] { new ScriptActionStep("menu.row", "Colors", "tap", "enabled") },
-                "enable colors row"),
+            AsyncScenarioScripts.ActScript("enable colors row", new AgentActionStep("menu.row", "Colors", "tap", "enabled")),
             new[] { initial with { Schedule = new[] { fastResult } } }));
 
         host.Clock.AdvanceTo(T0.AddSeconds(1));
@@ -350,7 +341,7 @@ public sealed class AsyncPerceptionScenarioTests
         // 误判 enabled → desired-state 已满足 → policy 不签发 act → fail closed
         Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
         Assert.Equal("evidence-insufficient", result.Reason);
-        Assert.Equal(0, host.EffectDriver.DeliveryCount);
+        Assert.Equal(0, host.EffectDeliveries);
         // MaterialEffect 义务无 post-action 证据 → 不得伪装 Completion
         Assert.False(host.KernelCore.IsRunTerminal);
         Assert.Null(result.Outcome);
@@ -394,14 +385,9 @@ public sealed class AsyncPerceptionScenarioTests
             "s2c-stale-binding",
             T0,
             TapContract(scope, "page.colors.opened", extraScope: "page.contrast.opened"),
-            new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[]
-                {
-                    new ScriptActionStep("menu.row", "Colors", "tap", null),
-                    new ScriptActionStep("menu.row", "Color contrast", "tap", null),
-                },
-                "two taps"),
+            AsyncScenarioScripts.ActScript("two taps",
+                new AgentActionStep("menu.row", "Colors", "tap", null),
+                new AgentActionStep("menu.row", "Color contrast", "tap", null)),
             new[]
             {
                 initial with { Schedule = new[] { fastResult, slowCorrected } },
@@ -435,7 +421,7 @@ public sealed class AsyncPerceptionScenarioTests
         // 两步各自落真实目标（中心 y 与真值一致）
         Assert.Equal(CenterY(colors), Math.Round(canonicals[0].TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
         Assert.Equal(CenterY(contrast), Math.Round(canonicals[1].TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
-        Assert.Equal(2, host.EffectDriver.DeliveryCount);
+        Assert.Equal(2, host.EffectDeliveries);
     }
 
     // =====================================================================
@@ -472,7 +458,7 @@ public sealed class AsyncPerceptionScenarioTests
             "s3a-no-revision-growth",
             T0,
             TapContract(scope, "page.noop"),
-            new AgentScriptStep(AgentScriptKind.NoAction, Array.Empty<ScriptActionStep>(), "inspect"),
+            AsyncScenarioScripts.NoActionScript("inspect"),
             new[] { initial with { Schedule = new[] { rA, rARetransmit, rB } } }));
 
         host.Clock.AdvanceTo(T0.AddSeconds(3));
@@ -529,7 +515,7 @@ public sealed class AsyncPerceptionScenarioTests
             "s3b-revision-growth",
             T0,
             TapContract(scope, "page.noop"),
-            new AgentScriptStep(AgentScriptKind.NoAction, Array.Empty<ScriptActionStep>(), "inspect"),
+            AsyncScenarioScripts.NoActionScript("inspect"),
             new[] { initial with { Schedule = new[] { fast, slowSameValue, reviewChallenge } } }));
 
         host.Clock.AdvanceTo(T0.AddSeconds(7));
@@ -601,10 +587,7 @@ public sealed class AsyncPerceptionScenarioTests
             "s4-stale-slow",
             T0,
             TapContract(allScope, "page.colors.opened"),
-            new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[] { new ScriptActionStep("menu.row", "Colors", "tap", null) },
-                "open colors"),
+            AsyncScenarioScripts.ActScript("open colors", new AgentActionStep("menu.row", "Colors", "tap", null)),
             new[] { opA with { Schedule = new[] { fastA, slowA } },
                     opB with { Schedule = new[] { fastB } },
                     post with { Schedule = new[] { postResult } } }));
@@ -637,10 +620,7 @@ public sealed class AsyncPerceptionScenarioTests
             "s4-negative-control",
             T0,
             TapContract(allScope, "page.colors.opened"),
-            new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[] { new ScriptActionStep("menu.row", "Colors", "tap", null) },
-                "open colors"),
+            AsyncScenarioScripts.ActScript("open colors", new AgentActionStep("menu.row", "Colors", "tap", null)),
             new[] { opA with { Schedule = new[] { fastA, slowA } } }));
         controlHost.Clock.AdvanceTo(T0.AddSeconds(20));
         controlHost.DriveOnce(); // opA 完成（无隔离）→ capture A 证据入账
@@ -648,7 +628,7 @@ public sealed class AsyncPerceptionScenarioTests
             r => r.Provenance.TransformationLineage.Contains($"capture:{captureA}"));
 
         // 动作只来自 capture B 流：恰一 effect、接地 Colors 真实行
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveries);
         var binding = host.EffectBoundaryCore.BindingLog.Single(b => b.Canonical is not null).Canonical!;
         Assert.Equal(CenterY(colors), Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
     }
@@ -696,10 +676,7 @@ public sealed class AsyncPerceptionScenarioTests
                 treatment ? "s5-treatment" : "s5-control",
                 T0,
                 TapContract(scope, "page.colors.opened"),
-                new AgentScriptStep(
-                    AgentScriptKind.Act,
-                    new[] { new ScriptActionStep("menu.row", "Colors", "tap", null) },
-                    "open colors"),
+                AsyncScenarioScripts.ActScript("open colors", new AgentActionStep("menu.row", "Colors", "tap", null)),
                 new[] { initial with { Schedule = schedule },
                         post with { Schedule = new[] { postResult } } }));
 
@@ -744,7 +721,7 @@ public sealed class AsyncPerceptionScenarioTests
         // 不重复动作：两臂都恰一 effect、同一真实目标
         foreach (var host in new[] { controlHost, treatmentHost })
         {
-            Assert.Equal(1, host.EffectDriver.DeliveryCount);
+            Assert.Equal(1, host.EffectDeliveries);
             var binding = host.EffectBoundaryCore.BindingLog.Single(b => b.Canonical is not null).Canonical!;
             Assert.Equal(CenterY(colors), Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
         }
@@ -796,10 +773,7 @@ public sealed class AsyncPerceptionScenarioTests
                 withLateFailure ? "s5b-cadence-failure" : pullAtSix ? "s5b-cadence-late" : "s5b-cadence-early",
                 T0,
                 TapContract(scope, "page.colors.opened"),
-                new AgentScriptStep(
-                    AgentScriptKind.Act,
-                    new[] { new ScriptActionStep("menu.row", "Colors", "tap", null) },
-                    "open colors"),
+                AsyncScenarioScripts.ActScript("open colors", new AgentActionStep("menu.row", "Colors", "tap", null)),
                 new[] { initial with { Schedule = schedule },
                         post with { Schedule = new[] { postResult } } }));
 
@@ -846,7 +820,7 @@ public sealed class AsyncPerceptionScenarioTests
         // 同一安全行为：恰一 Effect、落真实 Colors 行；纠正稳定不被覆写
         foreach (var host in new[] { early, late })
         {
-            Assert.Equal(1, host.EffectDriver.DeliveryCount);
+            Assert.Equal(1, host.EffectDeliveries);
             var binding = host.EffectBoundaryCore.BindingLog.Single(b => b.Canonical is not null).Canonical!;
             Assert.Equal(CenterY(colors), Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
             Assert.Equal("static_title",
@@ -860,7 +834,7 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.Null(failureSnapshot.FailureReason);
         Assert.Contains("res-failure-late", failureSnapshot.StaleQuarantinedResultIds);
         Assert.Equal(new[] { "res-slow" }, failureSnapshot.DeliveredResultIds);
-        Assert.Equal(1, withFailure.EffectDriver.DeliveryCount);
+        Assert.Equal(1, withFailure.EffectDeliveries);
         Assert.Equal(
             early.KernelCore.CurrentBelief!.WorldState
                 .OrderBy(kv => kv.Key).Select(kv => (kv.Key, kv.Value.Value)).ToList(),
@@ -887,7 +861,7 @@ public sealed class AsyncPerceptionScenarioTests
         AsyncScenario ScenarioOf(string id, IReadOnlyList<ScheduledResult> schedule, string? captureOverride = null) =>
             new(id, T0,
                 TapContract(scope, "page.noop"),
-                new AgentScriptStep(AgentScriptKind.NoAction, Array.Empty<ScriptActionStep>(), "inspect"),
+                AsyncScenarioScripts.NoActionScript("inspect"),
                 new[] { InitialOp(scope, T0, captureOverride ?? AsyncRealizations.CaptureIdOf(response), schedule) });
 
         // (a) partial：只覆盖 color header，预算到期 → PartialAtDeadline
@@ -1013,10 +987,7 @@ public sealed class AsyncPerceptionScenarioTests
             "s7-cancel-then-late",
             T0,
             contract,
-            new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[] { new ScriptActionStep("menu.row", "Colors", "tap", null) },
-                "open colors"),
+            AsyncScenarioScripts.ActScript("open colors", new AgentActionStep("menu.row", "Colors", "tap", null)),
             new[] { initial with { Schedule = new[] { slowLate } } }));
 
         // 等待期（slow 未到）→ 合法等待；随后 cancel 到达 → SafeStop terminal
@@ -1026,7 +997,7 @@ public sealed class AsyncPerceptionScenarioTests
         var cancelled = host.DriveOnce();
         Assert.Equal(RunDriveStatus.Completed, cancelled.Status);
         Assert.Equal(TerminalClassification.SafeStop, cancelled.Outcome!.Classification);
-        Assert.Equal(0, host.EffectDriver.DeliveryCount);
+        Assert.Equal(0, host.EffectDeliveries);
 
         var revisionsAtTerminal = host.WorldCore.RevisionHistory.Count;
         var admissionsAtTerminal = host.LedgerCore.AdmissionLog.Count;
@@ -1036,7 +1007,7 @@ public sealed class AsyncPerceptionScenarioTests
         host.Feed.PumpNow(); // terminal 后 driver 不再 pull；诊断面泵送
         var already = host.DriveOnce();
         Assert.Equal(RunDriveStatus.AlreadyTerminal, already.Status);
-        Assert.Equal(0, host.EffectDriver.DeliveryCount);
+        Assert.Equal(0, host.EffectDeliveries);
         Assert.Equal(revisionsAtTerminal, host.WorldCore.RevisionHistory.Count);
         Assert.Equal(admissionsAtTerminal, host.LedgerCore.AdmissionLog.Count);
 
@@ -1044,7 +1015,7 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.Equal(ObservationOperationStatus.Cancelled, opSnapshot.Status);
         Assert.Contains("res-slow-late", opSnapshot.CancelledQuarantinedResultIds);
         Assert.Empty(opSnapshot.DeliveredResultIds);
-        Assert.Empty(host.ScriptedAgent.CheckDiscipline(0)); // 决策前取消：零 consultation
+        Assert.Empty(host.Consultations.CheckExpectedConsultations(0)); // 决策前取消：零 consultation
     }
 
     // =====================================================================
@@ -1103,10 +1074,7 @@ public sealed class AsyncPerceptionScenarioTests
             "s8a-subtitle-corrected",
             T0,
             TapContract(scope, "page.colors.opened"),
-            new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[] { new ScriptActionStep("menu.row", "Colors", "tap", null) },
-                "open colors"),
+            AsyncScenarioScripts.ActScript("open colors", new AgentActionStep("menu.row", "Colors", "tap", null)),
             new[] { initial with { Schedule = new[] { fast, slowCorrected } },
                     post with { Schedule = new[] { postResult } } }));
 
@@ -1137,7 +1105,7 @@ public sealed class AsyncPerceptionScenarioTests
             belief.Occurrences!.Single(o => o.SemanticDescriptor == "Settings").Role);
 
         // 纠正在 decision 前：agent 上下文含纠正后的 typing claims
-        var call = host.ScriptedAgent.Calls.First();
+        var call = host.Consultations.Calls.First();
         Assert.Equal("static_title", call.CurrentWorldClaims[TruthTypingSubject(colorHeader)].Value);
         Assert.Equal("row_subtitle", call.CurrentWorldClaims[TruthTypingSubject(subtitle)].Value);
         Assert.Equal("row_title", call.CurrentWorldClaims[TruthTypingSubject(colors)].Value);
@@ -1145,7 +1113,7 @@ public sealed class AsyncPerceptionScenarioTests
         // 请求打开 Colors：唯一接地真实菜单行（真值 cy 2202.5）
         var resolution = host.WorldCore.ResolveCurrent(new TargetDescriptor("menu.row", "Colors"));
         Assert.Equal(CurrentCandidateSetResultKind.UniqueCandidate, resolution.Result);
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveries);
         var binding = host.EffectBoundaryCore.BindingLog.Single(b => b.Canonical is not null).Canonical!;
         Assert.Equal(CenterY(colors), Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
 
@@ -1186,10 +1154,7 @@ public sealed class AsyncPerceptionScenarioTests
             "s8b1-still-wrong",
             T0,
             TapContract(scope, "page.colors.opened"),
-            new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[] { new ScriptActionStep("menu.row", null, "tap", null) }, // role-only（含糊目标）
-                "open a color menu"),
+            AsyncScenarioScripts.ActScript("open a color menu", new AgentActionStep("menu.row", null, "tap", null)), // role-only（含糊目标）
             new[] { initialB1 with { Schedule = new[] { fastB1, slowStillWrong } } }));
         hostB1.Clock.AdvanceTo(T0.AddSeconds(7));
         var b1 = hostB1.DriveOnce();
@@ -1197,7 +1162,7 @@ public sealed class AsyncPerceptionScenarioTests
         // 误判未纠正：Color 与 Colors 均为 menu.row → role-only 多义 → 零点击
         Assert.Equal(RunDriveStatus.TerminalNotProven, b1.Status);
         Assert.Contains("evidence-insufficient", b1.Reason, StringComparison.Ordinal);
-        Assert.Equal(0, hostB1.EffectDriver.DeliveryCount);
+        Assert.Equal(0, hostB1.EffectDeliveries);
         var b1Belief = hostB1.KernelCore.CurrentBelief!;
         Assert.Equal(2, b1Belief.Occurrences!.Count(o =>
             o.Role == "menu.row" && o.SemanticDescriptor is "Color" or "Colors"));
@@ -1222,17 +1187,14 @@ public sealed class AsyncPerceptionScenarioTests
             "s8b2-conflict",
             T0,
             TapContract(scope, "page.colors.opened"),
-            new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[] { new ScriptActionStep("menu.row", "Color", "tap", null) }, // 若误判成立则点标题
-                "open color menu"),
+            AsyncScenarioScripts.ActScript("open color menu", new AgentActionStep("menu.row", "Color", "tap", null)), // 若误判成立则点标题
             new[] { initialB2 with { Schedule = new[] { slowWrongFirst, reviewTruthLast } } }));
         hostB2.Clock.AdvanceTo(T0.AddSeconds(9));
         var b2 = hostB2.DriveOnce();
 
         // 零点击：最终景观（review 帧）中 Color=menu.static → 无 act → fail closed
         Assert.Equal(RunDriveStatus.GroundingFailed, b2.Status);
-        Assert.Equal(0, hostB2.EffectDriver.DeliveryCount);
+        Assert.Equal(0, hostB2.EffectDeliveries);
         var b2Belief = hostB2.KernelCore.CurrentBelief!;
         Assert.Equal("menu.static",
             b2Belief.Occurrences!.Single(o => o.SemanticDescriptor == "Color").Role);
@@ -1296,10 +1258,7 @@ public sealed class AsyncPerceptionScenarioTests
             "s8c-swap-duplicate",
             T0,
             TapContract(scope, "page.colors.opened"),
-            new AgentScriptStep(
-                AgentScriptKind.Act,
-                new[] { new ScriptActionStep("menu.row", "Colors", "tap", null) },
-                "open colors"),
+            AsyncScenarioScripts.ActScript("open colors", new AgentActionStep("menu.row", "Colors", "tap", null)),
             new[] { initial with { Schedule = schedule },
                     post with { Schedule = new[] { postResult } } }));
 
@@ -1310,7 +1269,7 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.Equal(RunDriveStatus.Completed, final.Status);
 
         // 不变量 1：恰一 Effect、不重复（重复投递零放大）
-        Assert.Equal(1, host.EffectDriver.DeliveryCount);
+        Assert.Equal(1, host.EffectDeliveries);
         // 不变量 2：请求 Colors 只接地真实菜单行
         var binding = host.EffectBoundaryCore.BindingLog.Single(b => b.Canonical is not null).Canonical!;
         Assert.Equal(CenterY(colors), Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
@@ -1329,7 +1288,7 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.Contains("res-fast", snapshot.StaleQuarantinedResultIds);
         // 纠正对迟到错误结果稳定（决策时与最终 WorldState 一致——不再有
         // 「后到 Fast 覆写纠正」路径：完成窗口外的同流结果不进入 belief）
-        var decisionClaims = host.ScriptedAgent.Calls.First().CurrentWorldClaims;
+        var decisionClaims = host.Consultations.Calls.First().CurrentWorldClaims;
         Assert.Equal("static_title", decisionClaims[TruthTypingSubject(colorHeader)].Value);
         Assert.Equal("static_title",
             host.KernelCore.CurrentBelief!.WorldState[TruthTypingSubject(colorHeader)].Value);

@@ -41,8 +41,9 @@ public sealed class ScenarioRealizationAnnotationTests
     [Fact]
     public void CompositionAnchor_ScriptedAgentIsTheComposedDecisionDouble()
     {
-        // SimulationHost.ScriptedAgent 属性类型即 ScriptedUniAgent（编译期事实）；
-        // 这里以一次真实组合确认它在组合产物上非空可达。
+        // SIM-004：SimulationHost.ScriptedAgent 属性类型为 sim-only probe 接口
+        //（IScriptedAgentProbe）；默认组合的 realization 仍是 ScriptedUniAgent
+        //（运行时类型事实——组合根自选 concrete，AGT-001 §10.2 指定 double）。
         var host = SimulationHost.Compose(GoldenScenarioBundles.WifiToggleOffToOn());
         Assert.NotNull(host.ScriptedAgent);
         Assert.IsType<ScriptedUniAgent>(host.ScriptedAgent);

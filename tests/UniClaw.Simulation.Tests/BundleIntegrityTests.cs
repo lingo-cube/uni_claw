@@ -1,4 +1,5 @@
 using Xunit;
+using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.World.UiRealization;
 
 namespace UniClaw.Simulation.Tests;
@@ -202,21 +203,72 @@ public sealed class BundleIntegrityTests
             {
                 TargetUiSystem = b.TargetUiSystem with { AppBuild = "1.2.3-tampered" },
             }),
-            ("script-desired-state", b => b with
+            ("script-act-step", b => b with
             {
-                AgentScript = b.AgentScript with
+                // SIM-004：脚本载荷 = Product AgentActionStep（turn[0] Act 载荷）
+                PhaseScript = b.PhaseScript with
                 {
-                    Steps = new[] { new ScriptActionStep("toggle", null, "tap", "tampered") },
+                    Turns = new[]
+                    {
+                        b.PhaseScript.Turns[0] with
+                        {
+                            Act = new[] { new AgentActionStep("toggle", null, "tap", "tampered") },
+                        },
+                        b.PhaseScript.Turns[1],
+                    },
                 },
             }),
             ("script-second-step", b => b with
             {
-                AgentScript = b.AgentScript with
+                PhaseScript = b.PhaseScript with
                 {
-                    Steps = new[]
+                    Turns = new[]
                     {
-                        b.AgentScript.Steps[0],
-                        new ScriptActionStep("menuItem", null, "tap", null),
+                        b.PhaseScript.Turns[0] with
+                        {
+                            Act = new[]
+                            {
+                                b.PhaseScript.Turns[0].Act![0],
+                                new AgentActionStep("menuItem", null, "tap", null),
+                            },
+                        },
+                        b.PhaseScript.Turns[1],
+                    },
+                },
+            }),
+            ("script-expected-phase", b => b with
+            {
+                PhaseScript = b.PhaseScript with
+                {
+                    Turns = new[]
+                    {
+                        b.PhaseScript.Turns[0] with { ExpectedPhase = AgentDecisionPhase.StepVerified },
+                        b.PhaseScript.Turns[1],
+                    },
+                },
+            }),
+            ("script-behavior", b => b with
+            {
+                PhaseScript = b.PhaseScript with
+                {
+                    Turns = new[]
+                    {
+                        ScriptedTurn.NoResponseAt(b.PhaseScript.Turns[0].ExpectedPhase),
+                        b.PhaseScript.Turns[1],
+                    },
+                },
+            }),
+            ("script-completion", b => b with
+            {
+                PhaseScript = b.PhaseScript with
+                {
+                    Turns = new[]
+                    {
+                        b.PhaseScript.Turns[0],
+                        b.PhaseScript.Turns[1] with
+                        {
+                            Completion = new CompletionEvidence("tampered", new[] { "check" }),
+                        },
                     },
                 },
             }),

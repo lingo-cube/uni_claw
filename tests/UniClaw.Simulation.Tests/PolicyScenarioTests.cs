@@ -42,7 +42,7 @@ public sealed class PolicyScenarioTests
 
     private static PolicyProgressState PolicyStateOf(ScenarioExecution execution, int consultation)
     {
-        var state = execution.Host.ScriptedAgent.Calls[consultation].Progress.PolicyState;
+        var state = execution.Host.Consultations.Calls[consultation].Progress.PolicyState;
         Assert.NotNull(state);
         return state!;
     }
@@ -57,7 +57,7 @@ public sealed class PolicyScenarioTests
         AssertAccepted(execution.Report);
 
         // policy 语义：adoption 轮 fresh observation 即满足 → 成功出口
-        var calls = execution.Host.ScriptedAgent.Calls;
+        var calls = execution.Host.Consultations.Calls;
         Assert.Equal(AgentDecisionPhase.InitialPlanning, calls[0].Phase);
         Assert.Equal(AgentDecisionPhase.StepVerified, calls[1].Phase);
         Assert.Null(calls[1].FailureReason);
@@ -76,7 +76,7 @@ public sealed class PolicyScenarioTests
         var execution = Run("SCN-POLICY-002");
         AssertAccepted(execution.Report);
 
-        var calls = execution.Host.ScriptedAgent.Calls;
+        var calls = execution.Host.Consultations.Calls;
         Assert.Equal(AgentDecisionPhase.StepVerified, calls[1].Phase);
         var summary = PolicyStateOf(execution, 1);
         Assert.Equal(2, summary.ApplicationsUsed); // 两次已验证 application
@@ -93,7 +93,7 @@ public sealed class PolicyScenarioTests
         var execution = Run("SCN-POLICY-003");
         AssertAccepted(execution.Report);
 
-        var calls = execution.Host.ScriptedAgent.Calls;
+        var calls = execution.Host.Consultations.Calls;
         Assert.Equal(AgentDecisionPhase.PolicyInvalidated, calls[1].Phase);
         Assert.Equal("policy:no-match", calls[1].FailureReason);
         var summary = PolicyStateOf(execution, 1);
@@ -111,7 +111,7 @@ public sealed class PolicyScenarioTests
         var execution = Run("SCN-POLICY-004");
         AssertAccepted(execution.Report);
 
-        var calls = execution.Host.ScriptedAgent.Calls;
+        var calls = execution.Host.Consultations.Calls;
         Assert.Equal(AgentDecisionPhase.PolicyInvalidated, calls[1].Phase);
         Assert.Equal("policy:bounds-exhausted", calls[1].FailureReason);
         var summary = PolicyStateOf(execution, 1);
@@ -128,7 +128,7 @@ public sealed class PolicyScenarioTests
         var execution = Run("SCN-POLICY-005");
         AssertAccepted(execution.Report);
 
-        var calls = execution.Host.ScriptedAgent.Calls;
+        var calls = execution.Host.Consultations.Calls;
         Assert.Equal("policy:guard-violated", calls[1].FailureReason);
         var summary = PolicyStateOf(execution, 1);
         Assert.Equal(2, summary.ApplicationsUsed); // warm-up 轮 + 1 轮未变后 trip
@@ -144,7 +144,7 @@ public sealed class PolicyScenarioTests
         var execution = Run("SCN-POLICY-006");
         AssertAccepted(execution.Report);
 
-        var calls = execution.Host.ScriptedAgent.Calls;
+        var calls = execution.Host.Consultations.Calls;
         Assert.Equal("policy:guard-unknown", calls[1].FailureReason);
         Assert.Equal(0, execution.Report.EffectDeliveries); // Unknown 不降级——零 dispatch
     }
@@ -158,7 +158,7 @@ public sealed class PolicyScenarioTests
         var execution = Run("SCN-POLICY-007");
         AssertAccepted(execution.Report);
 
-        var calls = execution.Host.ScriptedAgent.Calls;
+        var calls = execution.Host.Consultations.Calls;
         Assert.Equal(AgentDecisionPhase.VerificationFailed, calls[1].Phase);
         Assert.Equal("post-action-desired-state-not-satisfied", calls[1].FailureReason);
         var summary = PolicyStateOf(execution, 1);
@@ -191,14 +191,15 @@ public sealed class PolicyScenarioTests
         // certified expectations 与 policy 语义
         Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
         Assert.Equal(0, host.Facts.EffectReceipts.Count); // 零新 Effect（§4 出口语义）
-        var calls = host.ScriptedAgent.Calls;
+        var calls = host.Consultations.Calls;
         Assert.Equal(2, calls.Count);
         Assert.Equal(AgentDecisionPhase.PolicyInvalidated, calls[1].Phase);
         Assert.Equal("policy:lease-invalidated", calls[1].FailureReason);
         var summary = calls[1].Progress.PolicyState;
         Assert.NotNull(summary);
         Assert.Equal(0, summary!.ApplicationsUsed);
-        Assert.Empty(host.ScriptedAgent.CheckDiscipline(2));
+        Assert.Empty(host.Consultations.CheckExpectedConsultations(2));
+        Assert.Empty(host.ScriptedAgent!.ScriptViolations);
         Assert.Empty(host.Feed.Remaining);
     }
 
@@ -214,7 +215,7 @@ public sealed class PolicyScenarioTests
         Assert.Equal(RunDriveStatus.AgentDecisionFailed.ToString(), execution.Report.RunDriveStatus);
         Assert.Equal("policy:effect-class-not-allowed", execution.Report.Reason);
         Assert.Equal(0, execution.Report.EffectDeliveries);
-        Assert.Single(execution.Host.ScriptedAgent.Calls); // 单咨询即 fail closed
+        Assert.Single(execution.Host.Consultations.Calls); // 单咨询即 fail closed
     }
 
     [Trait("Scenario", "SCN-POLICY-010")]
@@ -227,7 +228,7 @@ public sealed class PolicyScenarioTests
         Assert.Equal(RunDriveStatus.AgentDecisionFailed.ToString(), execution.Report.RunDriveStatus);
         Assert.Equal("policy:max-applications-exceeds-steps", execution.Report.Reason);
         Assert.Equal(0, execution.Report.EffectDeliveries);
-        Assert.Single(execution.Host.ScriptedAgent.Calls);
+        Assert.Single(execution.Host.Consultations.Calls);
     }
 
     [Trait("Scenario", "SCN-POLICY-011")]
@@ -241,6 +242,6 @@ public sealed class PolicyScenarioTests
         Assert.Equal(RunDriveStatus.AgentDecisionFailed.ToString(), execution.Report.RunDriveStatus);
         Assert.Equal("policy:unknown-node", execution.Report.Reason);
         Assert.Equal(0, execution.Report.EffectDeliveries);
-        Assert.Single(execution.Host.ScriptedAgent.Calls);
+        Assert.Single(execution.Host.Consultations.Calls);
     }
 }

@@ -63,8 +63,8 @@ internal static class ScenarioRunner
         var result = host.DriveOnce();
         stopwatch.Stop();
 
-        // D19：terminal 后标记（late-call 建模）+ 纪律聚合
-        var discipline = host.ScriptedAgent.CheckDiscipline(bundle.Expected.ExpectedAgentConsultations);
+        // SIM-004：纪律聚合（seam 级 journal + scripted probe；见 AgentDiscipline）
+        var discipline = AgentDiscipline(host, bundle.Expected.ExpectedAgentConsultations);
 
         if (options.Phased)
         {
@@ -92,9 +92,26 @@ internal static class ScenarioRunner
         var last = host.RecordedDriveResults.LastOrDefault(r => r.Outcome is not null)
             ?? host.RecordedDriveResults.LastOrDefault()
             ?? throw new InvalidOperationException("phased 场景尚未发生任何 Drive");
-        var discipline = host.ScriptedAgent.CheckDiscipline(bundle.Expected.ExpectedAgentConsultations);
+        var discipline = AgentDiscipline(host, bundle.Expected.ExpectedAgentConsultations);
         return BuildReport(bundle, host, last, Stopwatch.StartNew(), discipline,
             reasonOverride: null, acceptanceOverride: null);
+    }
+
+    /// <summary>
+    /// SIM-004：观测三源分离——seam 级（<see cref="ConsultationJournal"/>：
+    /// late-call / missing-run-correlation / count-mismatch，realization 无关）
+    /// + scripted double 级（phase-mismatch / script-exhausted / unconsumed）。
+    /// 注入非 scripted realization 时 probe 为 null，仅 seam 级纪律适用——
+    /// agentDecisionRealization=real 的未来场景 runner 零改动（ABS-001）。
+    /// </summary>
+    private static IReadOnlyList<string> AgentDiscipline(SimulationHost host, int expectedConsultations)
+    {
+        var violations = host.Consultations.Violations
+            .Concat(host.Consultations.CheckExpectedConsultations(expectedConsultations))
+            .ToList();
+        if (host.ScriptedAgent is { } probe)
+            violations.AddRange(probe.ScriptViolations.Concat(probe.UnconsumedTurns()));
+        return violations;
     }
 
     private static ScenarioReport BuildReport(
@@ -106,7 +123,11 @@ internal static class ScenarioRunner
             ? new UniAgent(BuildGoal(bundle.Goal)).Evaluate(result.Outcome)
             : null;
 
-        var digest = SemanticDigest.Of(host, host.ScriptedAgent, host.Feed, result, evaluation);
+        var digest = SemanticDigest.Of(host, host.Consultations.Calls, host.Feed, result, evaluation);
+
+        var agentNote = host.ScriptedAgent is null
+            ? "injected-realization;observability=seam-journal"
+            : "N/A (ScriptedUniAgent; no live model)";
 
         var metrics = new ScenarioMetricsSnapshot(
             CriticalPathLatencyMs: Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3, MidpointRounding.AwayFromZero),
@@ -118,14 +139,14 @@ internal static class ScenarioRunner
                 ? stage.Invocations
                 : 0,
             VerificationMode: "material-effect:post-action-observation-gate;freshness:scripted-sufficient",
-            ModelCalls: "N/A (ScriptedUniAgent; no live model)",
-            InputTokens: "N/A (ScriptedUniAgent; no live model)");
+            ModelCalls: agentNote,
+            InputTokens: agentNote);
 
         var effectDeliveries = host.EffectDeliveryCount;
-        var agentConsultations = host.ScriptedAgent.Calls.Count;
+        var agentConsultations = host.Consultations.Calls.Count;
         var unconsumed = host.Feed.Remaining;
 
-        var violations = host.ScriptedAgent.Violations.Concat(discipline).ToList();
+        var violations = discipline.ToList();
         var acceptance = acceptanceOverride
             ?? (violations.Count == 0
                 && AcceptancePassed(bundle, result, evaluation, effectDeliveries, agentConsultations, unconsumed.Count));

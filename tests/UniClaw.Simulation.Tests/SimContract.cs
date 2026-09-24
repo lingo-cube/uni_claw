@@ -150,91 +150,82 @@ internal sealed record ProducerSchemaConfigIdentity(
     string EffectDriverIdentity,
     int ManifestSchemaVersion);
 
-/// <summary>ScriptedUniAgent 脚本（bundle 内版本化输入；不调用 live model）。</summary>
-internal enum AgentScriptKind
+// ============================================================================
+// SIM-004 — 相位感知脚本模型（收敛 RUN-005 Slice C 的 dual 形态；机制
+// 沿用 Slice C，词表收敛）。「第几轮、期待什么相位、什么行为」是
+// test-side 语义；「返回什么」的语义类型全部直接来自 Product（ABS-003
+// 裁决：删除 AgentScriptKind/ScriptActionStep/AgentScriptStep 与
+// ScriptDecisionKind/ScriptPredicateSpec/ScriptGuardSpec/ScriptPolicySpec
+// 两套镜像）。test-side only。
+// ============================================================================
+
+/// <summary>
+/// scripted double 的行为分类（SIM-004 Step 7 裁决）——double behavior
+/// taxonomy，<b>非</b> Product semantic taxonomy：NoResponse 是 seam 允许的
+/// null 应答（AgentDecision union 之外的第三种 seam 结果），不是决策变体。
+/// </summary>
+internal enum ScriptedDoubleBehavior
 {
-    Act,
-    NoAction,
+    /// <summary>按 turn 的 Product 载荷构造并返回 AgentDecision。</summary>
+    Respond,
+
+    /// <summary>显式 no-response（seam 返回 null）。</summary>
     NoResponse,
 }
 
 /// <summary>
-/// 单个有序脚本步骤（映射 AgentActionStep：完整目标表达，无依赖表达）。
-/// </summary>
-internal sealed record ScriptActionStep(
-    string TargetRole,
-    string? TargetDescriptor,
-    string EffectClass,
-    string? DesiredState);
-
-/// <summary>
-/// 脚本决策（RFS-001 D21/D22 适配）：Act 携带有界有序 Steps（每步独立完整
-/// 链、串行受不变量 43 屏障约束）；NoAction/NoResponse 携带空 Steps。
-/// </summary>
-internal sealed record AgentScriptStep(
-    AgentScriptKind Kind,
-    IReadOnlyList<ScriptActionStep> Steps,
-    string? Justification);
-
-// ============================================================================
-// RUN-005 Slice C — 相位感知脚本模型（设计稿 §11/F9(b)：ScriptedUniAgent
-// 相位感知重做；PolicyInvalidated 为合法再咨询相位）。test-side only。
-// ============================================================================
-
-/// <summary>相位感知脚本的决策种类（正式 Agent protocol 全集）。</summary>
-internal enum ScriptDecisionKind
-{
-    Act,
-    Policy,
-    NoAction,
-    Defer,
-    NoResponse,
-}
-
-/// <summary>
-/// 脚本谓词（closed AST 的 authored 投影）：Kind ∈ {ClaimEquals, ClaimInSet}；
-/// <b>未知 Kind 经 double 映射为 rogue 派生节点</b>——模拟外来/畸形 AST 经
-/// 正式 seam 入场（V6a 入口执法的真实输入），不是 double 旁路。
-/// </summary>
-internal sealed record ScriptPredicateSpec(
-    string Kind,
-    string Subject,
-    string? Value,
-    IReadOnlyList<string>? Values);
-
-/// <summary>脚本守卫（ObservationUnchanged 的 authored 投影）。</summary>
-internal sealed record ScriptGuardSpec(string Subject, int AfterRounds);
-
-/// <summary>脚本 Policy proposal（PolicyProposal 的 authored 投影；模板 = ScriptActionStep 同形）。</summary>
-internal sealed record ScriptPolicySpec(
-    string PolicyId,
-    IReadOnlyList<ScriptPredicateSpec> Match,
-    ScriptActionStep Template,
-    IReadOnlyList<ScriptPredicateSpec> Termination,
-    IReadOnlyList<ScriptGuardSpec> Guards,
-    int MaxApplications);
-
-/// <summary>
-/// 相位感知 turn：咨询到达相位必须等于 ExpectedPhase（失配 = 纪律违规，
-/// fail closed）——脚本按 Phase/Progress/PolicyState 语义驱动，非调用序
-/// 魔数。模拟正式 Agent protocol 的完整决策面。
+/// 一个 scripted consultation turn（SIM-004）。ExpectedPhase = Product
+/// <see cref="AgentDecisionPhase"/>（失配 = 纪律违规，fail closed）；Respond
+/// 载荷全部为 Product 类型：Act = <see cref="AgentActionStep"/> 列表；
+/// NoAction = Justification + 可选 <see cref="CompletionEvidence"/>；Defer =
+/// <see cref="ObserveSpec"/>；Policy = <see cref="PolicyProposal"/> 原样（可
+/// 携带 <see cref="RogueScriptPredicate"/> 经正式 seam 入场）。Respond 下
+/// Act/Defer/Policy 至多其一非空（全空 = NoAction）；NoResponse 不得携带
+/// 载荷。构造纪律由 ScriptedUniAgent ctor 执法（fail closed）。
+/// DecisionId 不在脚本内：由 double 以 ctx.DecisionId 回带（D2 防串话）。
 /// </summary>
 internal sealed record ScriptedTurn(
     AgentDecisionPhase ExpectedPhase,
-    ScriptDecisionKind Kind,
-    IReadOnlyList<ScriptActionStep> Steps,
-    ScriptPolicySpec? Policy,
-    int? DeferMaxRounds,
-    string? Justification)
+    ScriptedDoubleBehavior Behavior,
+    IReadOnlyList<AgentActionStep>? Act = null,
+    string? Justification = null,
+    CompletionEvidence? Completion = null,
+    ObserveSpec? Defer = null,
+    PolicyProposal? Policy = null)
 {
-    public static ScriptedTurn Respond(
-        AgentDecisionPhase phase, ScriptDecisionKind kind, string? justification = null) =>
-        new(phase, kind, Array.Empty<ScriptActionStep>(), Policy: null, DeferMaxRounds: null,
-            Justification: justification);
+    /// <summary>authoring sugar（构造助手，非 taxonomy）。</summary>
+    public static ScriptedTurn ActAt(
+        AgentDecisionPhase phase, IReadOnlyList<AgentActionStep> steps, string? justification = null) =>
+        new(phase, ScriptedDoubleBehavior.Respond, Act: steps, Justification: justification);
+
+    /// <summary>NoAction turn（可选 Product CompletionEvidence 载荷）。</summary>
+    public static ScriptedTurn NoActionAt(
+        AgentDecisionPhase phase, string justification, CompletionEvidence? completion = null) =>
+        new(phase, ScriptedDoubleBehavior.Respond,
+            Justification: justification, Completion: completion);
+
+    /// <summary>显式 no-response turn（double behavior，非决策变体）。</summary>
+    public static ScriptedTurn NoResponseAt(AgentDecisionPhase phase) =>
+        new(phase, ScriptedDoubleBehavior.NoResponse);
+
+    /// <summary>Defer turn（Product ObserveSpec 全表达：Subject + MaxRounds）。</summary>
+    public static ScriptedTurn DeferAt(AgentDecisionPhase phase, ObserveSpec spec) =>
+        new(phase, ScriptedDoubleBehavior.Respond, Defer: spec);
+
+    /// <summary>Policy turn（Product PolicyProposal 原样，零映射）。</summary>
+    public static ScriptedTurn PolicyAt(AgentDecisionPhase phase, PolicyProposal proposal) =>
+        new(phase, ScriptedDoubleBehavior.Respond, Policy: proposal);
 }
 
 /// <summary>相位感知脚本（有序 turn 序列；耗尽后再咨询 = 纪律违规）。</summary>
 internal sealed record PhaseAwareAgentScript(IReadOnlyList<ScriptedTurn> Turns);
+
+/// <summary>
+/// P11 malformed-input 注入位：closed vocabulary 之外的 rogue 派生谓词
+/// （test-side 派生记录）。经 <see cref="ScriptedTurn"/> 的 Policy 载荷进入
+/// 正式 seam，由 Product V6a 入口拒绝（fail closed）——不是 double 旁路。
+/// </summary>
+internal sealed record RogueScriptPredicate : PolicyPredicate;
 
 /// <summary>
 /// reviewed state claim（authored）：Subject/Value 之外可选 Scope——null =
@@ -273,14 +264,13 @@ internal sealed record MinimalScenarioBundle
     public required IReadOnlyList<BundleAssetEntry> Assets { get; init; }
     public required IReadOnlyList<ScenarioStimulus> Stimuli { get; init; }
     public required ProducerSchemaConfigIdentity ProducerIdentities { get; init; }
-    public required AgentScriptStep AgentScript { get; init; }
-
     /// <summary>
-    /// RUN-005 Slice C：相位感知脚本（缺省 null = legacy AgentScript 形态——
-    /// 既有 golden 场景零变更）。非 null 时 host 以本脚本构造 ScriptedUniAgent，
-    /// AgentScript 字段仅作 digest 占位（NoAction 空步）。
+    /// SIM-004：相位感知脚本（唯一 script 形态——legacy AgentScriptStep
+    /// 镜像已删除）。host 以本脚本构造默认 ScriptedUniAgent realization
+    /// （组合根自选 concrete 合法）；Seams.Agent 可注入任意 Product-seam
+    /// realization（ABS-001）。
     /// </summary>
-    public PhaseAwareAgentScript? PhaseScript { get; init; }
+    public required PhaseAwareAgentScript PhaseScript { get; init; }
     public required ScenarioExpectation Expected { get; init; }
     public required ExecutionContract Contract { get; init; }
     public required GoalSpec Goal { get; init; }
@@ -423,39 +413,42 @@ internal static class ScenarioBundleDigest
             expected.ExpectedUnconsumedStimuli.ToString(CultureInfo.InvariantCulture),
             F(expected.ExpectedGoalSatisfaction ?? "")));
 
-        // AgentScript（kind、每步完整表达、justification）
-        parts.Add("script=" + string.Join("|",
-            F(bundle.AgentScript.Kind.ToString()),
-            string.Join(",", bundle.AgentScript.Steps.Select(s =>
-                F(s.TargetRole + ":" + (s.TargetDescriptor ?? "") + ":" + s.EffectClass
-                    + ":" + (s.DesiredState ?? "")))),
-            F(bundle.AgentScript.Justification ?? "")));
-
-        // RUN-005 Slice C：相位感知脚本（仅非 null 时渲染——legacy-only
-        // bundle 的 canonical rendering/digest 逐字节不变；任何 turn 篡改
-        // 必须改变 digest）
-        if (bundle.PhaseScript is { } phaseScript)
+        // SIM-004：相位感知脚本（唯一 script 形态）。载荷为 Product 类型：
+        // closed-union 成员按成员值渲染，rogue 节点按类型名确定性渲染
+        // （P11 注入位——digest 对任何 turn 篡改敏感，BundleIntegrityTests 锁定）。
+        static string Preds(IReadOnlyList<PolicyPredicate> predicates) => string.Join(",", predicates.Select(p => p switch
         {
-            static string Preds(IReadOnlyList<ScriptPredicateSpec> specs) => string.Join(",", specs.Select(p =>
-                F(p.Kind + ":" + p.Subject + ":" + (p.Value ?? "") + ":"
-                    + (p.Values is null ? "-" : string.Join("/", p.Values)))));
-            static string PolicyOf(ScriptPolicySpec p) => string.Join("|",
-                F(p.PolicyId), Preds(p.Match),
-                F(p.Template.TargetRole + ":" + (p.Template.TargetDescriptor ?? "") + ":" + p.Template.EffectClass
-                    + ":" + (p.Template.DesiredState ?? "")),
-                Preds(p.Termination),
-                string.Join(",", p.Guards.Select(g => F(g.Subject + ":" + g.AfterRounds.ToString(CultureInfo.InvariantCulture)))),
-                p.MaxApplications.ToString(CultureInfo.InvariantCulture));
-            parts.Add("phasescript=" + string.Join("|", phaseScript.Turns.Select(t => string.Join("|",
-                F(t.ExpectedPhase.ToString()),
-                F(t.Kind.ToString()),
-                string.Join(",", t.Steps.Select(step =>
-                    F(step.TargetRole + ":" + (step.TargetDescriptor ?? "") + ":" + step.EffectClass
-                        + ":" + (step.DesiredState ?? "")))),
-                t.Policy is null ? "-" : PolicyOf(t.Policy),
-                t.DeferMaxRounds?.ToString(CultureInfo.InvariantCulture) ?? "-",
-                F(t.Justification ?? "")))));
-        }
+            PolicyPredicate.ClaimEquals equals => F("ClaimEquals:" + equals.Subject + ":" + equals.Value),
+            PolicyPredicate.ClaimInSet inSet => F("ClaimInSet:" + inSet.Subject + ":"
+                + string.Join("/", inSet.Values)),
+            _ => F("rogue:" + p.GetType().Name),
+        }));
+        static string GuardsOf(IReadOnlyList<PolicyGuard> guards) => string.Join(",", guards.Select(g => g switch
+        {
+            PolicyGuard.ObservationUnchanged unchanged => F("ObservationUnchanged:" + unchanged.Subject
+                + ":" + unchanged.AfterRounds.ToString(CultureInfo.InvariantCulture)),
+            _ => F("rogue:" + g.GetType().Name),
+        }));
+        static string PolicyOf(PolicyProposal p) => string.Join("|",
+            F(p.PolicyId), Preds(p.Match),
+            F(p.ActionTemplate.TargetRole + ":" + (p.ActionTemplate.TargetDescriptor ?? "")
+                + ":" + p.ActionTemplate.EffectClass + ":" + (p.ActionTemplate.DesiredState ?? "")),
+            Preds(p.Termination), GuardsOf(p.Guards),
+            p.MaxApplications.ToString(CultureInfo.InvariantCulture));
+        parts.Add("phasescript=" + string.Join("|", bundle.PhaseScript.Turns.Select(t => string.Join("|",
+            F(t.ExpectedPhase.ToString()),
+            F(t.Behavior.ToString()),
+            t.Act is null ? "-" : string.Join(",", t.Act.Select(step =>
+                F(step.TargetRole + ":" + (step.TargetDescriptor ?? "") + ":" + step.EffectClass
+                    + ":" + (step.DesiredState ?? "")))),
+            F(t.Justification ?? ""),
+            t.Completion is null
+                ? "-"
+                : F(t.Completion.Basis + ":" + string.Join("/", t.Completion.Checklist)),
+            t.Defer is null
+                ? "-"
+                : F((t.Defer.Subject ?? "") + ":" + t.Defer.MaxRounds.ToString(CultureInfo.InvariantCulture)),
+            t.Policy is null ? "-" : PolicyOf(t.Policy)))));
 
         var canonical = string.Join("\n", parts);
         return Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(canonical))).ToLowerInvariant();
@@ -527,11 +520,13 @@ internal sealed record SeamOverrides
     public UniClaw.Kernel.World.UiRealization.IContinuityStrategy? Continuity { get; init; }
 
     /// <summary>
-    /// Agent double（默认 bundle 内脚本构造的 ScriptedUniAgent）。
-    /// 注入级在 ScriptedUniAgent 实例而非 AgentScriptStep——
-    /// 覆盖多轮/defer/升级等复杂 double（RUN-004）。
+    /// SIM-004（ABS-001）：agent 缝注入旋钮 = Product 冻结 consultation seam
+    /// （RUN-004 D6 / AGT-001 §1，Func 形态）。任意 realization（测试 double、
+    /// 未来 DSH conformance）经同一缝进入 Kernel；观测一律经 host 的
+    /// ConsultationJournal（seam 消费侧），不因 probe 要求 concrete。
+    /// null = bundle PhaseScript 构造的默认 ScriptedUniAgent。
     /// </summary>
-    public ScriptedUniAgent? Agent { get; init; }
+    public Func<AgentDecisionContext, AgentDecision?>? Agent { get; init; }
 }
 
 /// <summary>结构化计数（latency/结构计数 graduation evidence；N/A 显式非 0）。</summary>

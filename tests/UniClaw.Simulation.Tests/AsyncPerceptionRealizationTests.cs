@@ -137,11 +137,8 @@ public sealed class AsyncPerceptionRealizationTests
             T0,
             contract,
             inspect
-                ? new AgentScriptStep(AgentScriptKind.NoAction, Array.Empty<ScriptActionStep>(), "inspect world")
-                : new AgentScriptStep(
-                    AgentScriptKind.Act,
-                    new[] { new ScriptActionStep("menu.row", "Colors", "tap", null) },
-                    "open colors"),
+                ? AsyncScenarioScripts.NoActionScript("inspect world")
+                : AsyncScenarioScripts.ActScript("open colors", new AgentActionStep("menu.row", "Colors", "tap", null)),
             new[] { initial with { Schedule = schedule },
                     post with { Schedule = new[] { postResult } } }));
         Assert.True(host.KernelCore.AdmitContract(contract).Accepted);
@@ -200,7 +197,7 @@ public sealed class AsyncPerceptionRealizationTests
                 ColorRequestResolution: Resolve("Color"),
                 MenuRowCount: belief.Occurrences!.Count(o => o.Role == "menu.row"),
                 SubtitleRowCount: belief.Occurrences!.Count(o => o.Role == "menu.subtitle"),
-                EffectCount: host.EffectDriver.DeliveryCount,
+                EffectCount: host.EffectDeliveries,
                 EffectTargetCenterY: binding is null
                     ? null
                     : (double?)Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
@@ -216,7 +213,7 @@ public sealed class AsyncPerceptionRealizationTests
         var expectedCenterY = AsyncPerceptionTruth.CenterYOf(colorsElement.Cy);
         foreach (var actHost in hosts.Values)
         {
-            Assert.Equal(1, actHost.EffectDriver.DeliveryCount);
+            Assert.Equal(1, actHost.EffectDeliveries);
             var binding = actHost.EffectBoundaryCore.BindingLog
                 .Single(b => b.Canonical is not null).Canonical!;
             Assert.Equal(expectedCenterY, Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));

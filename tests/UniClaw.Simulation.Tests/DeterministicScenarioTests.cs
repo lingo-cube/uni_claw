@@ -42,7 +42,7 @@ public sealed class DeterministicScenarioTests
 
             // Type-B：agent consultation 决策 id 为 run 关联确定格式
             // （decision-{RunId 末 12 字符}-1——协议不变量，非 golden 值复写）
-            var call = host.ScriptedAgent.Calls[0];
+            var call = host.Consultations.Calls[0];
             Assert.Equal(AgentDecisionPhase.InitialPlanning, call.Phase);
             Assert.StartsWith("decision-", call.DecisionId, StringComparison.Ordinal);
             Assert.EndsWith("-1", call.DecisionId, StringComparison.Ordinal);

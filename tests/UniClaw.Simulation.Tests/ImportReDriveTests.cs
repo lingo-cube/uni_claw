@@ -46,9 +46,10 @@ public sealed class ImportReDriveTests
         Assert.Equal(TerminalClassification.Completion, report.Outcome!.Classification);
         Assert.Equal(1, report.EffectDeliveries);
         // RUN-004 E1（causal：d53f3331/ba4b5e9b）：提案耗尽 → NeedDecision
-        //（StepVerified）再咨询恰一次（ScriptedUniAgent 多轮分支答 NoAction
-        // → TerminalEvaluation）。旧期望 1 = 单轮协议时代残留；bundle 侧
-        // ExpectedAgentConsultations 已随 ba4b5e9b 升 2，此处硬编码同步。
+        //（StepVerified）再咨询恰一次（SIM-004 起 turn 表显式 authoring
+        // NoAction turn → TerminalEvaluation；legacy 自动兜底已删除）。
+        // 旧期望 1 = 单轮协议时代残留；bundle 侧 ExpectedAgentConsultations
+        // 已随 ba4b5e9b 升 2，此处硬编码同步。
         Assert.Equal(2, report.AgentConsultations);
         Assert.Equal(GoalSatisfaction.Satisfied, report.GoalEvaluation!.Satisfaction);
 

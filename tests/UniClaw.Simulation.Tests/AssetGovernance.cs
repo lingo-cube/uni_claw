@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using HumanPromotionAuthority = UniClaw.Simulation.Tests.FileSystemGovernanceStore.HumanPromotionAuthority;
 
 namespace UniClaw.Simulation.Tests;
@@ -627,7 +628,7 @@ internal sealed class FileSystemGovernanceStore : IDisposable
                 Assets = Required<List<BundleAssetEntry>>("assets"),
                 Stimuli = stimuli,
                 ProducerIdentities = Required<ProducerSchemaConfigIdentity>("producerIdentities"),
-                AgentScript = Required<AgentScriptStep>("agentScript"),
+                PhaseScript = Required<PhaseAwareAgentScript>("phaseScript"),
                 Expected = Required<ScenarioExpectation>("expected"),
                 Contract = contract,
                 Goal = Required<GoalSpec>("goal"),
@@ -844,7 +845,7 @@ internal sealed class FileSystemGovernanceStore : IDisposable
                 Payload = JsonSerializer.SerializeToElement(stimulus, stimulus.GetType(), BundleJsonOptions),
             }).ToArray(),
             bundle.ProducerIdentities,
-            bundle.AgentScript,
+            PhaseScript = bundle.PhaseScript,
             bundle.Expected,
             bundle.Contract,
             bundle.Goal,
@@ -856,7 +857,101 @@ internal sealed class FileSystemGovernanceStore : IDisposable
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
         IncludeFields = true,
+        // SIM-004：bundle 脚本载荷为 Product closed-union 类型（多态 record）——
+        // 治理 JSON 往返需要 kind 判别 converter（rogue 派生节点按类型名
+        // round-trip，保持 P11 注入位）。
+        Converters =
+        {
+            new PolicyPredicateJsonConverter(),
+            new PolicyGuardJsonConverter(),
+        },
     };
+
+    /// <summary>PolicyPredicate closed union 的 kind 判别往返（rogue → 派生类型名）。</summary>
+    private sealed class PolicyPredicateJsonConverter : JsonConverter<UniClaw.Kernel.Runtime.PolicyPredicate>
+    {
+        public override UniClaw.Kernel.Runtime.PolicyPredicate Read(
+            ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            using var document = JsonDocument.ParseValue(ref reader);
+            var root = document.RootElement;
+            var kind = root.GetProperty("$kind").GetString();
+            return kind switch
+            {
+                "ClaimEquals" => new UniClaw.Kernel.Runtime.PolicyPredicate.ClaimEquals(
+                    root.GetProperty("subject").GetString()!,
+                    root.GetProperty("value").GetString()!),
+                "ClaimInSet" => new UniClaw.Kernel.Runtime.PolicyPredicate.ClaimInSet(
+                    root.GetProperty("subject").GetString()!,
+                    root.GetProperty("values").EnumerateArray().Select(v => v.GetString()!).ToList()),
+                // rogue 派生节点（P11 注入位）：按类型名还原
+                _ => new RogueScriptPredicate(),
+            };
+        }
+
+        public override void Write(
+            Utf8JsonWriter writer, UniClaw.Kernel.Runtime.PolicyPredicate value, JsonSerializerOptions options)
+        {
+            writer.WriteStartObject();
+            switch (value)
+            {
+                case UniClaw.Kernel.Runtime.PolicyPredicate.ClaimEquals equals:
+                    writer.WriteString("$kind", "ClaimEquals");
+                    writer.WriteString("subject", equals.Subject);
+                    writer.WriteString("value", equals.Value);
+                    break;
+                case UniClaw.Kernel.Runtime.PolicyPredicate.ClaimInSet inSet:
+                    writer.WriteString("$kind", "ClaimInSet");
+                    writer.WriteString("subject", inSet.Subject);
+                    writer.WriteStartArray("values");
+                    foreach (var v in inSet.Values)
+                        writer.WriteStringValue(v);
+                    writer.WriteEndArray();
+                    break;
+                default:
+                    writer.WriteString("$kind", value.GetType().Name);
+                    break;
+            }
+            writer.WriteEndObject();
+        }
+    }
+
+    /// <summary>PolicyGuard closed union 的 kind 判别往返。</summary>
+    private sealed class PolicyGuardJsonConverter : JsonConverter<UniClaw.Kernel.Runtime.PolicyGuard>
+    {
+        public override UniClaw.Kernel.Runtime.PolicyGuard Read(
+            ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            using var document = JsonDocument.ParseValue(ref reader);
+            var root = document.RootElement;
+            return root.GetProperty("$kind").GetString() switch
+            {
+                "ObservationUnchanged" => new UniClaw.Kernel.Runtime.PolicyGuard.ObservationUnchanged(
+                    root.GetProperty("subject").GetString()!,
+                    root.GetProperty("afterRounds").GetInt32()),
+                _ => throw new AssetGovernanceException(
+                    $"policy-guard-kind-unknown:{root.GetProperty("$kind").GetString()}"),
+            };
+        }
+
+        public override void Write(
+            Utf8JsonWriter writer, UniClaw.Kernel.Runtime.PolicyGuard value, JsonSerializerOptions options)
+        {
+            writer.WriteStartObject();
+            switch (value)
+            {
+                case UniClaw.Kernel.Runtime.PolicyGuard.ObservationUnchanged unchanged:
+                    writer.WriteString("$kind", "ObservationUnchanged");
+                    writer.WriteString("subject", unchanged.Subject);
+                    writer.WriteNumber("afterRounds", unchanged.AfterRounds);
+                    break;
+                default:
+                    writer.WriteString("$kind", value.GetType().Name);
+                    break;
+            }
+            writer.WriteEndObject();
+        }
+    }
 
     private void EnsureBlob(string sha, byte[] bytes)
     {

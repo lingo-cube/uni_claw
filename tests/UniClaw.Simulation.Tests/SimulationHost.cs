@@ -44,12 +44,27 @@ internal sealed class SimulationHost
     internal UniKernel KernelCore { get; }
     internal KernelRunDriver Driver { get; }
     internal AgentPlanPolicy Plan { get; }
-    internal ScriptedUniAgent ScriptedAgent { get; }
+
+    /// <summary>
+    /// SIM-004：Product Consult seam 消费侧观测（realization 无关）。
+    /// calls transcript / late-call / count 一律经此（ABS-002）。
+    /// </summary>
+    internal ConsultationJournal Consultations { get; }
+
+    /// <summary>
+    /// SIM-004（ABS-001）：默认 scripted realization 的 sim-only probe 面。
+    /// 组合根自选 ScriptedUniAgent（concrete 构造合法）；属性类型为 probe
+    /// 接口——runner/digest 不依赖 concrete。注入 Seams.Agent 时为 null。
+    /// </summary>
+    internal IScriptedAgentProbe? ScriptedAgent { get; }
     internal UniClaw.Kernel.Effects.IEffectDriver EffectDriver { get; }
 
-    /// <summary>SIM-001：效果投递计数便捷面（默认驱动专用；注入驱动返回 -1）。</summary>
-    internal int EffectDeliveryCount =>
-        EffectDriver is DeterministicEffectDriver d ? d.DeliveryCount : -1;
+    /// <summary>
+    /// SIM-004（ABS-002）：产品 owner facts 取数——EffectBoundary 每次合法
+    /// dispatch 追加一条 EffectReceipt（与 driver realization 无关）。原
+    /// is-DeterministicEffectDriver cast 与注入驱动 -1 sentinel 已删除。
+    /// </summary>
+    internal int EffectDeliveryCount => KernelCore.EffectReceipts.Count;
     internal ScenarioStimulusFeed Feed { get; }
     internal RuntimeStageMetrics Metrics { get; }
     internal RunTraceScope? TraceScope { get; }
@@ -100,7 +115,8 @@ internal sealed class SimulationHost
 
     private SimulationHost(
         UniKernel kernel, KernelRunDriver driver, AgentPlanPolicy plan,
-        ScriptedUniAgent scriptedAgent, UniClaw.Kernel.Effects.IEffectDriver effectDriver,
+        ConsultationJournal consultations, IScriptedAgentProbe? scriptedAgent,
+        UniClaw.Kernel.Effects.IEffectDriver effectDriver,
         ScenarioStimulusFeed feed, RuntimeStageMetrics metrics,
         RunTraceScope? traceScope, RunModel runModel, EffectBoundary effectBoundary,
         RuntimeAssurance assurance, WorldModel world, TraceArm bundleArm,
@@ -110,6 +126,7 @@ internal sealed class SimulationHost
         KernelCore = kernel;
         Driver = driver;
         Plan = plan;
+        Consultations = consultations;
         ScriptedAgent = scriptedAgent;
         EffectDriver = effectDriver;
         Feed = feed;
@@ -192,11 +209,24 @@ internal sealed class SimulationHost
         var planPolicy = new AgentPlanPolicy();
         var perception = new ScenarioPerceptionAdapter(assets, trace, metrics);
         var feed = new ScenarioStimulusFeed(bundle.Stimuli, perception);
-        // RUN-005 Slice C：相位感知脚本优先（Policy 协议场景）；缺省 legacy
-        var scriptedAgent = seams?.Agent
-            ?? (bundle.PhaseScript is { } phaseScript
-                ? new ScriptedUniAgent(phaseScript)
-                : new ScriptedUniAgent(bundle.AgentScript));
+        // SIM-004（ABS-001）：agent 缝 = Product Consult seam（RUN-004 D6 /
+        // AGT-001 §1）。默认 realization = bundle PhaseScript 构造的
+        // ScriptedUniAgent（组合根自选 concrete 合法，AGT-001 §10.2 指定
+        // deterministic double）；Seams.Agent 注入任意 Func realization
+        //（测试 double / 未来 DSH conformance 同缝进入 Kernel）。观测一律
+        // 经 ConsultationJournal（seam 消费侧）——host 不因 probe 依赖 concrete。
+        ScriptedUniAgent? scripted = null;
+        Func<AgentDecisionContext, AgentDecision?> realization;
+        if (seams?.Agent is { } injected)
+        {
+            realization = injected;
+        }
+        else
+        {
+            scripted = new ScriptedUniAgent(bundle.PhaseScript);
+            realization = scripted.Consult;
+        }
+        var journal = new ConsultationJournal(realization);
         var runModel = new RunModel();
         var kernel = new UniKernel(
             new EvidenceLedger(), world, trace,
@@ -204,11 +234,11 @@ internal sealed class SimulationHost
         var driver = new KernelRunDriver(kernel, planPolicy, new RunDriverInputs
         {
             NextInput = feed.Next,
-            ConsultAgent = scriptedAgent.Consult,
+            ConsultAgent = journal.Consult,
         });
 
         var host = new SimulationHost(
-            kernel, driver, planPolicy, scriptedAgent, effectDriver, feed, metrics,
+            kernel, driver, planPolicy, journal, scripted, effectDriver, feed, metrics,
             scope, runModel, effectBoundary, assurance, world, options.TraceArm,
             asyncWriter, asyncOptions, executionSource);
 
@@ -220,14 +250,15 @@ internal sealed class SimulationHost
 
     /// <summary>
     /// D21 phased 驱动面：包裹一次 Driver.Drive()，记录结果并在 run terminal
-    /// 后标记 ScriptedAgent（late-call 建模）。测试不得直接调用 Driver.Drive。
+    /// 后标记 seam 观测（late-call 建模——SIM-004 起经 ConsultationJournal，
+    /// 对任意 realization 同律）。测试不得直接调用 Driver.Drive。
     /// </summary>
     public RunDriveResult DriveOnce()
     {
         var result = Driver.Drive();
         _recordedDriveResults.Add(result);
         if (KernelCore.IsRunTerminal)
-            ScriptedAgent.MarkTerminal();
+            Consultations.MarkTerminal();
         return result;
     }
 

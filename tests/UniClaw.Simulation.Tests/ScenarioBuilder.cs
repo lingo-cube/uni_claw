@@ -53,7 +53,7 @@ internal sealed class ScenarioBuilder
     private string? _scenarioId;
     private string? _scenarioVersion;
     private Func<IReadOnlyList<ScenarioStimulus>, IReadOnlyList<ScenarioStimulus>>? _screen;
-    private Func<AgentScriptStep, AgentScriptStep>? _decision;
+    private Func<PhaseAwareAgentScript, PhaseAwareAgentScript>? _decision;
     private Func<ScenarioExpectation, ScenarioExpectation>? _expectation;
     private readonly List<(ScenarioStimulus Stimulus, IStimulusScheduler Scheduler)> _injections = new();
 
@@ -80,8 +80,12 @@ internal sealed class ScenarioBuilder
         return this;
     }
 
-    /// <summary>决策面参数化：变换模板的 agent 脚本。</summary>
-    public ScenarioBuilder AgentDecides(Func<AgentScriptStep, AgentScriptStep> configure)
+    /// <summary>
+    /// 决策面参数化：变换模板的相位感知 turn 序列（SIM-004：变换
+    /// scripted consultation sequence，不重新发明 Product decision taxonomy——
+    /// turn 载荷即 Product 类型）。
+    /// </summary>
+    public ScenarioBuilder AgentDecides(Func<PhaseAwareAgentScript, PhaseAwareAgentScript> configure)
     {
         _decision = configure ?? throw new ArgumentNullException(nameof(configure));
         return this;
@@ -123,7 +127,7 @@ internal sealed class ScenarioBuilder
             ScenarioVersion = _scenarioVersion ?? template.ScenarioVersion,
             RuntimeArtifact = RuntimeArtifactIdentity.CaptureCurrent(),
             Stimuli = stimuli,
-            AgentScript = _decision is { } decision ? decision(template.AgentScript) : template.AgentScript,
+            PhaseScript = _decision is { } decision ? decision(template.PhaseScript) : template.PhaseScript,
             Expected = _expectation is { } expectation ? expectation(template.Expected) : template.Expected,
             BundleDigest = "",
         });

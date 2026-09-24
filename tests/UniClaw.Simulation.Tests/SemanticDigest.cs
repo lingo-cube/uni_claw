@@ -14,11 +14,11 @@ namespace UniClaw.Simulation.Tests;
 internal static class SemanticDigest
 {
     public static string Of(
-        SimulationHost host, ScriptedUniAgent agent, ScenarioStimulusFeed feed,
-        RunDriveResult result, GoalEvaluation? evaluation)
+        SimulationHost host, IReadOnlyList<AgentDecisionContext> agentCalls,
+        ScenarioStimulusFeed feed, RunDriveResult result, GoalEvaluation? evaluation)
     {
         ArgumentNullException.ThrowIfNull(host);
-        ArgumentNullException.ThrowIfNull(agent);
+        ArgumentNullException.ThrowIfNull(agentCalls);
         ArgumentNullException.ThrowIfNull(feed);
         ArgumentNullException.ThrowIfNull(result);
 
@@ -51,7 +51,7 @@ internal static class SemanticDigest
         foreach (var proof in host.AssuranceCore.OutcomeProofLog)
             lines.Add("proofs=" + proof.ProofId + ":" + proof.Classification);
 
-        foreach (var call in agent.Calls)
+        foreach (var call in agentCalls)
             lines.Add("agent=" + call.DecisionId + ":" + call.Phase);
 
         lines.Add(result.Outcome is null
