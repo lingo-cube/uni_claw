@@ -1,12 +1,14 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/UniClaw.Agent/UniClaw.Agent.csproj" />
+    <Project Path="src/UniClaw.Agent.Dsh/UniClaw.Agent.Dsh.csproj" />
     <Project Path="src/UniClaw.Core/UniClaw.Core.csproj" />
     <Project Path="src/UniClaw.Host/UniClaw.Host.csproj" />
     <Project Path="src/UniClaw.Kernel/UniClaw.Kernel.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj" />
+    <Project Path="tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj" />
     <Project Path="tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj" />
     <Project Path="tests/UniClaw.FileSystemRealization.Tests/UniClaw.FileSystemRealization.Tests.csproj" />
     <Project Path="tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj" />
