@@ -1,6 +1,6 @@
 # RUN-005 — L2 Policy Protocol & Runtime
 
-lifecycle_state: implementing (Slice A/B/C complete; awaiting final implementation-level review -> CLOSED) · design_state: frozen (v0.3.1) · disposition: none · depth: decision-heavy · base: 4022ce40
+lifecycle_state: closed · design_state: frozen (v0.3.1) · implementation_state: complete · final_review: passed · disposition: none · depth: decision-heavy · base: 4022ce40
 
 ## Status
 
@@ -184,3 +184,6 @@ Simulation baseline reopened? **NO** · AGT-001 修改：**NO**（禁令维持�
   ElementExists 未复活、无 traversal memory、FROZEN 设计未动）。
   下一步（owner 面）：RUN-005 最终实现级验收 → CLOSED（不直接进
   AGT-002）。
+- 2026-09-24 · final implementation review PASS · 758/758 · certification
+  29/29 · coverage 100% · RUN-004 regression PASS · architecture deviation
+  NONE → RUN-005 CLOSED。
