@@ -22,11 +22,19 @@
     "unconsumedStimuli": 1,
     "goalSatisfaction": "Unsatisfied"
   },
+  "execution": {
+    "kind": "golden-bundle",
+    "carrier": "wifi-cancel-late",
+    "options": {
+      "phased": true
+    }
+  },
   "certification": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "expectationsDigest": "7f4b1806e36b413ca49b16b4cdb7e702a181fb74ceb5da084945e2b252de70d6",
+    "executionDigest": "b823e11cbbeba98d2b21f47c496283b691f6ebf8bef86b52c9651eb2b0b14db2",
     "runtimeSourceHash": "6e00da87a0f30be019515e9be6434225f0075b597da1721518040db09091913b",
-    "certifiedByChange": "RUN-004",
+    "certifiedByChange": "SIM-003",
     "certifiedAt": "2026-09-24"
   },
   "security": {

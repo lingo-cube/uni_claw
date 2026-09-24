@@ -25,11 +25,16 @@
     "unconsumedStimuli": 0,
     "goalSatisfaction": "Satisfied"
   },
+  "execution": {
+    "kind": "golden-bundle",
+    "carrier": "wifi-off-to-on"
+  },
   "certification": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+    "executionDigest": "981ff6dac9b804f8e5e1208f622ef50567d89aba289df01f6410e1d635cbb8ae",
     "runtimeSourceHash": "6e00da87a0f30be019515e9be6434225f0075b597da1721518040db09091913b",
-    "certifiedByChange": "RUN-004",
+    "certifiedByChange": "SIM-003",
     "certifiedAt": "2026-09-24"
   },
   "security": {

@@ -16,6 +16,14 @@ Usage:
   python3 tools/scenario_certify.py --change SIM-002 --all
   python3 tools/scenario_certify.py --change RUN-004 --scenario SCN-WIFI-001
   python3 tools/scenario_certify.py --check            # verify only, no write
+  python3 tools/scenario_certify.py --print-source-hash # print runtimeSourceHash only
+
+SIM-003 G1: runtimeSourceHash hashes CRLF→LF-normalized bytes — the digest is
+checkout-invariant (LF and CRLF checkouts of the same content produce the same
+hash). .gitattributes eol pins are hygiene, not the correctness mechanism.
+SIM-003 G2: certification schema v2 pins TWO digests with separate duties:
+  expectationsDigest → what result is expected (cert-exp-v1 canonical)
+  executionDigest    → which executable carrier tests it (cert-exec-v1 canonical)
 """
 from __future__ import annotations
 
@@ -31,8 +39,10 @@ SCENARIOS = ROOT / "scenarios"
 SOURCE_PROJECTS = ("src/UniClaw.Kernel", "src/UniClaw.Agent")
 
 EXPECTATIONS_TAG = "cert-exp-v1"
+EXECUTION_TAG = "cert-exec-v1"
 SOURCE_TAG = "cert-src-v1"
-BLOCK_SCHEMA_VERSION = 1
+BLOCK_SCHEMA_VERSION = 2
+VALID_EXECUTION_KINDS = ("golden-bundle", "none")
 
 
 # ---- canonical renderings (byte-identical contract with the C# side) ----
@@ -52,6 +62,31 @@ def expectations_digest(exp: dict) -> str:
     return hashlib.sha256((EXPECTATIONS_TAG + "\n" + line2).encode("utf-8")).hexdigest()
 
 
+def _render_option_value(value) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
+def execution_digest(exec: dict) -> str:
+    """cert-exec-v1 canonical rendering（与 C# 侧逐字节一致）：
+    kind / carrier（null → "-"）/ options（key 稳定排序，k=v 逗号连接；
+    无 options → "-"）。只覆盖路由三元组，不混入期望值。"""
+    def opt(value):
+        return "-" if value is None else value
+
+    options = exec.get("options") or {}
+    rendered_options = ",".join(
+        f"{key}={_render_option_value(options[key])}" for key in sorted(options)
+    ) or "-"
+    line2 = (
+        f"kind={exec['kind']}"
+        f"|carrier={opt(exec.get('carrier'))}"
+        f"|options={rendered_options}"
+    )
+    return hashlib.sha256((EXECUTION_TAG + "\n" + line2).encode("utf-8")).hexdigest()
+
+
 def runtime_source_hash() -> str:
     files: list[str] = []
     for project in SOURCE_PROJECTS:
@@ -65,7 +100,8 @@ def runtime_source_hash() -> str:
     h = hashlib.sha256()
     h.update((SOURCE_TAG + "\0").encode("utf-8"))
     for rel in files:
-        data = (ROOT / rel).read_bytes()
+        # G1: 文本源统一 CRLF→LF 再哈希——LF/CRLF checkout 同 digest
+        data = (ROOT / rel).read_bytes().replace(b"\r\n", b"\n")
         h.update(f"{len(rel)}:{rel}{len(data)}:".encode("utf-8") + data)
     return h.hexdigest()
 
@@ -76,12 +112,17 @@ def verify_entry(data: dict, filename: str, source_hash: str) -> list[str]:
     problems: list[str] = []
     if "expectations" not in data:
         return [f"{filename}: 缺 expectations 块"]
+    if "execution" not in data or not isinstance(data["execution"], dict):
+        return [f"{filename}: 缺 execution 块（SIM-003 G3：execution.kind/carrier/options）"]
     cert = data.get("certification")
     if not isinstance(cert, dict):
         return [f"{filename}: 缺 certification 块（经 scenario_certify.py --change <致因change> 认证）"]
 
     if cert.get("schemaVersion") != BLOCK_SCHEMA_VERSION:
-        problems.append(f"{filename}: certification.schemaVersion 须为 {BLOCK_SCHEMA_VERSION}")
+        problems.append(
+            f"{filename}: certification.schemaVersion 须为 {BLOCK_SCHEMA_VERSION}"
+            f"（实际 {cert.get('schemaVersion')}；v1 已废弃——经 scenario_certify.py --change SIM-003 迁移）"
+        )
     if not cert.get("certifiedByChange"):
         problems.append(f"{filename}: certification.certifiedByChange 缺失（C8：期望改动必须搭乘致因 change）")
     if not cert.get("certifiedAt"):
@@ -93,6 +134,25 @@ def verify_entry(data: dict, filename: str, source_hash: str) -> list[str]:
             f"{filename}: expectations 摘要不匹配——期望值在认证后被改动且未重认证"
             f"（经 scenario_certify.py --change <致因change> 重认证）"
         )
+
+    execution = data["execution"]
+    if execution.get("kind") not in VALID_EXECUTION_KINDS:
+        problems.append(
+            f"{filename}: execution.kind 非法 '{execution.get('kind')}'（legal: {'|'.join(VALID_EXECUTION_KINDS)}）"
+        )
+    elif execution.get("kind") == "golden-bundle" and not execution.get("carrier"):
+        problems.append(f"{filename}: execution.kind=golden-bundle 须携带非空 carrier")
+    elif execution.get("kind") == "none" and execution.get("carrier"):
+        problems.append(f"{filename}: execution.kind=none 不得携带 carrier")
+
+    if "executionDigest" not in cert:
+        problems.append(f"{filename}: certification.executionDigest 缺失（SIM-003 G2 v2）")
+    elif execution.get("kind") in VALID_EXECUTION_KINDS:
+        if cert.get("executionDigest") != execution_digest(execution):
+            problems.append(
+                f"{filename}: execution 摘要不匹配——执行绑定在认证后被改动且未重认证"
+                f"（carrier/options 变更必须搭乘致因 change 经 scenario_certify.py 重认证）"
+            )
 
     if not cert.get("runtimeSourceHash"):
         problems.append(f"{filename}: certification.runtimeSourceHash 缺失")
@@ -107,9 +167,14 @@ def verify_entry(data: dict, filename: str, source_hash: str) -> list[str]:
 def certify_file(path: Path, change: str, source_hash: str, today: str) -> bool:
     """Write/refresh the certification block. Returns True when content changed."""
     data = json.loads(path.read_text(encoding="utf-8"))
+    if "execution" not in data:
+        raise SystemExit(
+            f"ERROR: {path.name} 缺 execution 块——先补 execution 绑定（SIM-003 G3），再认证"
+        )
     cert = {
         "schemaVersion": BLOCK_SCHEMA_VERSION,
         "expectationsDigest": expectations_digest(data["expectations"]),
+        "executionDigest": execution_digest(data["execution"]),
         "runtimeSourceHash": source_hash,
         "certifiedByChange": change,
         "certifiedAt": today,
@@ -129,7 +194,13 @@ def main() -> int:
     parser.add_argument("--scenario", help="单个场景 id，如 SCN-WIFI-001")
     parser.add_argument("--all", action="store_true", help="认证全部场景")
     parser.add_argument("--check", action="store_true", help="仅验证，不写入")
+    parser.add_argument("--print-source-hash", action="store_true",
+                        help="只打印当前 runtimeSourceHash（M5 跨语言对拍用，不写入）")
     args = parser.parse_args()
+
+    if args.print_source_hash:
+        print(runtime_source_hash())
+        return 0
 
     files = sorted(SCENARIOS.glob("SCN-*.json"))
     if args.scenario:

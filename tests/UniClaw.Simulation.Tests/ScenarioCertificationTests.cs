@@ -5,8 +5,9 @@ namespace UniClaw.Simulation.Tests;
 /// <summary>
 /// SIM-002 G2（S2）验收面：golden 认证持久化 + Verify-only。
 /// 验收语义（spec）：「修改 Expected 后重跑测试不再自动通过认证」——
-/// 本测试族对整个场景库执法：期望值摘要、运行时源码哈希、致因 change
-/// 引用三者钉扎在 certification 块中，test runtime 无写回路径。
+/// 本测试族对整个场景库执法：期望值摘要、执行绑定摘要（SIM-003 G2 v2）、
+/// 运行时源码哈希、致因 change 引用钉扎在 certification 块中，test
+/// runtime 无写回路径。
 /// </summary>
 public sealed class ScenarioCertificationTests
 {

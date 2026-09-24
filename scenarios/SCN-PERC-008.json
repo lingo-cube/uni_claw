@@ -23,11 +23,15 @@
     "unconsumedStimuli": 0,
     "goalSatisfaction": null
   },
+  "execution": {
+    "kind": "none"
+  },
   "certification": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "expectationsDigest": "4b272fd73ef58ede4eb2a817e583e30dbd588b319d777a8d0daffe3b1b604eeb",
+    "executionDigest": "681e3afcd6d1fd935c911386cf8d963361d8d875227b410c08df10f1c0b18fcd",
     "runtimeSourceHash": "6e00da87a0f30be019515e9be6434225f0075b597da1721518040db09091913b",
-    "certifiedByChange": "RUN-004",
+    "certifiedByChange": "SIM-003",
     "certifiedAt": "2026-09-24"
   },
   "security": {

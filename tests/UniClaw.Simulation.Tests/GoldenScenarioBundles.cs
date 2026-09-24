@@ -11,6 +11,12 @@ namespace UniClaw.Simulation.Tests;
 /// ScenarioBundleDigest.Sealed 钉扎）。资产 integrity = manifest 声明
 /// contentHash 与重算 hash 双核对（mismatch → ScenarioBundleException）。
 ///
+/// SIM-003 G7：期望不再手写——每个工厂的 Expected 由
+/// ScenarioExpectations.Load(expectationScenarioId) 从 certified JSON
+/// 投影（authoring truth 唯一 = scenarios/SCN-*.json）；参数默认值 =
+/// 该 carrier 的 primary SCN 条目，供非注册 fixture 复用。正式 SCN 场景
+/// 经 ScenarioLibrary.Load(scenarioId) 解析（certified execution 绑定）。
+///
 /// DUAL-SOURCE evidence（评审 D18 事实澄清）：主场景证据是双源的——
 /// occurrence 景观锚定在 golden response JSON 上，经真实 FastPerception +
 /// LiveVisionStrategy（perception 侧）派生；而 obligation 相关的 switch
@@ -31,7 +37,8 @@ internal static class GoldenScenarioBundles
 
     // ---- (a) S1：wifi off → tap → post-action on（happy path）----
 
-    public static MinimalScenarioBundle WifiToggleOffToOn() => ScenarioBundleDigest.Sealed(
+    public static MinimalScenarioBundle WifiToggleOffToOn(
+        string expectationScenarioId = "SCN-WIFI-001") => ScenarioBundleDigest.Sealed(
         new MinimalScenarioBundle
         {
             BundleId = "golden-wifi-off-to-on",
@@ -55,10 +62,7 @@ internal static class GoldenScenarioBundles
                 AgentScriptKind.Act,
                 new[] { Step("toggle", null, "tap", "true") },
                 Justification: "flip the wifi switch on"),
-            Expected = new ScenarioExpectation(
-                "Completed", "Completion", ExpectedEffects: 1,
-                ExpectedAgentConsultations: 2, ExpectedUnconsumedStimuli: 0,
-                ExpectedGoalSatisfaction: "Satisfied"),
+            Expected = ScenarioExpectations.Load(expectationScenarioId),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
                 new HashSet<string> { "live.frame", "switch.wifi" },
@@ -73,7 +77,8 @@ internal static class GoldenScenarioBundles
 
     // ---- (b) S2：已开 → NoAction 零 effect ----
 
-    public static MinimalScenarioBundle AlreadyOnZeroEffect() => ScenarioBundleDigest.Sealed(
+    public static MinimalScenarioBundle AlreadyOnZeroEffect(
+        string expectationScenarioId = "SCN-WIFI-002") => ScenarioBundleDigest.Sealed(
         new MinimalScenarioBundle
         {
             BundleId = "golden-wifi-already-on",
@@ -93,10 +98,7 @@ internal static class GoldenScenarioBundles
             AgentScript = new AgentScriptStep(
                 AgentScriptKind.NoAction, Array.Empty<ScriptActionStep>(),
                 Justification: "switch already on"),
-            Expected = new ScenarioExpectation(
-                "Completed", "Completion", ExpectedEffects: 0,
-                ExpectedAgentConsultations: 1, ExpectedUnconsumedStimuli: 0,
-                ExpectedGoalSatisfaction: "Satisfied"),
+            Expected = ScenarioExpectations.Load(expectationScenarioId),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
                 new HashSet<string> { "live.frame", "switch.wifi" },
@@ -111,7 +113,8 @@ internal static class GoldenScenarioBundles
 
     // ---- (c) 缺 post-action stimulus → WaitingForInput ----
 
-    public static MinimalScenarioBundle MissingPostActionStimulus()
+    public static MinimalScenarioBundle MissingPostActionStimulus(
+        string expectationScenarioId = "SCN-WIFI-004")
     {
         var full = WifiToggleOffToOn();
         return ScenarioBundleDigest.Sealed(full with
@@ -119,22 +122,15 @@ internal static class GoldenScenarioBundles
             BundleId = "golden-wifi-missing-post",
             ScenarioId = "wifi-missing-post-action",
             Stimuli = new[] { full.Stimuli[0] },
-            Expected = full.Expected with
-            {
-                ExpectedStatus = "WaitingForInput",
-                ExpectedClassification = null,
-                ExpectedEffects = 1,
-                ExpectedAgentConsultations = 1, // RUN-004：driver 自主等待，不需二次咨询
-                ExpectedUnconsumedStimuli = 0,
-                ExpectedGoalSatisfaction = null,
-            },
+            Expected = ScenarioExpectations.Load(expectationScenarioId),
         });
     }
 
     // ---- (d) S5（D21 rework）：初始帧仅 obs-1-initial；cancel + late 由
     // phased 测试经 Host.SubmitStimulus 两阶段注入（genuine waiting→cancel→late）。
 
-    public static MinimalScenarioBundle CancelThenLateStimulus() => ScenarioBundleDigest.Sealed(
+    public static MinimalScenarioBundle CancelThenLateStimulus(
+        string expectationScenarioId = "SCN-WIFI-005") => ScenarioBundleDigest.Sealed(
         new MinimalScenarioBundle
         {
             BundleId = "golden-wifi-cancel-late",
@@ -158,10 +154,7 @@ internal static class GoldenScenarioBundles
             // 终态期望（FinalizePhased 之后核对）：RUN-004 多轮协议下
             // cancel 由 driver 自主处理（预算截断），分类 Completed（run
             // 生命周期结束），goal 仍 Unsatisfied（目标未达成）。
-            Expected = new ScenarioExpectation(
-                "Completed", "SafeStop", ExpectedEffects: 1,
-                ExpectedAgentConsultations: 1, ExpectedUnconsumedStimuli: 1,
-                ExpectedGoalSatisfaction: "Unsatisfied"),
+            Expected = ScenarioExpectations.Load(expectationScenarioId),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
                 new HashSet<string> { "live.frame", "switch.wifi", "run.cancel-requested" },
@@ -198,7 +191,8 @@ internal static class GoldenScenarioBundles
     /// case-a-before）中均有 bounds 与 perceptionType "menuItem"——adapter
     /// 对 reviewed elements 全量发 occurrence，接地可解析。
     /// </summary>
-    public static MinimalScenarioBundle TwoStepToggleThenMenuItem() => ScenarioBundleDigest.Sealed(
+    public static MinimalScenarioBundle TwoStepToggleThenMenuItem(
+        string expectationScenarioId = "SCN-BARRIER-001") => ScenarioBundleDigest.Sealed(
         new MinimalScenarioBundle
         {
             BundleId = "golden-wifi-two-step",
@@ -229,10 +223,7 @@ internal static class GoldenScenarioBundles
                     Step("menuItem", null, "tap", null),
                 },
                 Justification: "flip the wifi switch on, then open the menu"),
-            Expected = new ScenarioExpectation(
-                "Completed", "Completion", ExpectedEffects: 2,
-                ExpectedAgentConsultations: 2, ExpectedUnconsumedStimuli: 0,
-                ExpectedGoalSatisfaction: "Satisfied"),
+            Expected = ScenarioExpectations.Load(expectationScenarioId),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
                 new HashSet<string> { "live.frame", "switch.wifi" },
@@ -253,7 +244,8 @@ internal static class GoldenScenarioBundles
     /// Expected 描述等待中状态（effects=1）；终态由 phased 测试驱动 cancel
     /// 后以 FinalizePhased report 核对（SafeStop、effects 仍 1）。
     /// </summary>
-    public static MinimalScenarioBundle TwoStepMissingMiddleEvidence() => ScenarioBundleDigest.Sealed(
+    public static MinimalScenarioBundle TwoStepMissingMiddleEvidence(
+        string expectationScenarioId = "SCN-BARRIER-002") => ScenarioBundleDigest.Sealed(
         new MinimalScenarioBundle
         {
             BundleId = "golden-wifi-two-step-missing-middle",
@@ -278,10 +270,7 @@ internal static class GoldenScenarioBundles
                     Step("menuItem", null, "tap", null),
                 },
                 Justification: "flip the wifi switch on, then open the menu"),
-            Expected = new ScenarioExpectation(
-                "WaitingForInput", null, ExpectedEffects: 1,
-                ExpectedAgentConsultations: 1, ExpectedUnconsumedStimuli: 0,
-                ExpectedGoalSatisfaction: null),
+            Expected = ScenarioExpectations.Load(expectationScenarioId),
             Contract = new ExecutionContract(
                 "s1-v1", "make-wifi-switch-on",
                 new HashSet<string> { "live.frame", "switch.wifi", "run.cancel-requested" },
@@ -297,6 +286,59 @@ internal static class GoldenScenarioBundles
                 RequiredClassification: "Completion", RequiredObligationIds: new[] { "wifi" }),
             BundleDigest = "",
         });
+
+    // ---- (f) BARRIER-003：post-action 帧与 DesiredState 矛盾 → Assurance
+    // fail closed，第二次 effect 被阻塞（TerminalNotProven）。SIM-003 G6：
+    // 从 test-local 变换升格为注册 carrier（certified execution 绑定）。----
+
+    /// <summary>
+    /// TwoStepToggleThenMenuItem 的 contradictory-post 变体：obs-2-post 的
+    /// toggle 元素 state 与 ReviewedStateClaims 全部翻转为 false——
+    /// post-action frame 存在 ≠ 上一步已验证，Assurance verification 必须
+    /// fail closed，不得仅凭 context 正确就放行 menuItem 的第二次 Effect。
+    /// </summary>
+    public static MinimalScenarioBundle TwoStepContradictoryPost(
+        string expectationScenarioId = "SCN-BARRIER-003")
+    {
+        var original = TwoStepToggleThenMenuItem();
+        var post = (ScenarioStimulus.ObservationFrame)original.Stimuli[1];
+        var contradictory = post with
+        {
+            ReviewedElements = post.ReviewedElements
+                .Select(element => element.Role == "toggle"
+                    ? element with { State = "false" }
+                    : element)
+                .ToList(),
+            ReviewedStateClaims = new[] { ("switch.wifi", "false") },
+        };
+        return ScenarioBundleDigest.Sealed(original with
+        {
+            ScenarioId = "wifi-two-step-contradictory-post",
+            Stimuli = new[] { original.Stimuli[0], contradictory, original.Stimuli[2] },
+            Expected = ScenarioExpectations.Load(expectationScenarioId),
+        });
+    }
+
+    // ---- (g) WIFI-006：SCN-002 D7 生成式等价场景（ScenarioBuilder 模板派生）----
+
+    /// <summary>
+    /// SCN-WIFI-006 注册 carrier：FromTemplate(wifi-off-to-on) 派生（同资产
+    /// /契约/脚本底座，ScenarioId 换生成身份）。certified Expected 是最后
+    /// 投影——模板期望被本场景条目的 certified 期望覆盖（G6 规则）。
+    /// </summary>
+    public static MinimalScenarioBundle WifiToggleOffToOnGenerated(
+        string expectationScenarioId = "SCN-WIFI-006")
+    {
+        var built = ScenarioBuilder
+            .FromTemplate(() => WifiToggleOffToOn())
+            .WithScenarioId("generated-wifi-off-to-on", "wifi-off-to-on-generated")
+            .Build();
+        return ScenarioBundleDigest.Sealed(built with
+        {
+            Expected = ScenarioExpectations.Load(expectationScenarioId),
+            BundleDigest = "",
+        });
+    }
 
     // ---- manifest 派生 helpers（fail closed：结构/内容不符 → 异常）----
 

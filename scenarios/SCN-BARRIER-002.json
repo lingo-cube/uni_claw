@@ -20,13 +20,21 @@
     "effects": 1,
     "agentConsultations": 1,
     "unconsumedStimuli": 0,
-    "goalSatisfaction": null
+    "goalSatisfaction": "Unsatisfied"
+  },
+  "execution": {
+    "kind": "golden-bundle",
+    "carrier": "wifi-two-step-missing-middle",
+    "options": {
+      "phased": true
+    }
   },
   "certification": {
-    "schemaVersion": 1,
-    "expectationsDigest": "cdc0b46c90746f43996dd335f20f6e02e64fd64d9c36497afe7540d5d78bef8e",
+    "schemaVersion": 2,
+    "expectationsDigest": "55ed6e38c5221c9ed84f111da61ee5637707a3db9b6f0ca307c62698fbb90442",
+    "executionDigest": "d02e4ff2ab99e50797abae43894280d905a27f8f291dc823e3226017cf122511",
     "runtimeSourceHash": "6e00da87a0f30be019515e9be6434225f0075b597da1721518040db09091913b",
-    "certifiedByChange": "RUN-004",
+    "certifiedByChange": "SIM-003",
     "certifiedAt": "2026-09-24"
   },
   "security": {

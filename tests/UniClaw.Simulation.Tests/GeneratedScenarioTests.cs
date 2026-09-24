@@ -9,23 +9,24 @@ namespace UniClaw.Simulation.Tests;
 /// 5（两次运行同 digest）、6（录制零回归——由既有 DeterministicScenario
 /// 全量承载）；4（JSON 入库）由 scenarios/SCN-WIFI-006.json + 覆盖率
 /// 工具承载（本测试带其 Scenario trait）。
+///
+/// SIM-003：SCN-WIFI-006 等价面经 ScenarioLibrary.Load 解析（certified
+/// execution 绑定：carrier=wifi-off-to-on-generated，期望由本条目 certified
+/// JSON 投影）；Inject/determinism/sugar 测试为 test-local 派生 fixture
+/// （非注册场景），保留 ScenarioBuilder 直用与 Expect 变换。
 /// </summary>
 public sealed class GeneratedScenarioTests
 {
-    private static MinimalScenarioBundle GeneratedWifiOffToOn() =>
-        ScenarioBuilder
-            .FromTemplate(GoldenScenarioBundles.WifiToggleOffToOn)
-            .WithScenarioId("generated-wifi-off-to-on", "wifi-off-to-on-generated")
-            .Build();
-
-    /// <summary>Acceptance 1+2：生成版经同一 runner 产生与录制版相同的
-    /// 全部语义结果（状态/分类/effect/咨询/未消费/goal + 消费轨迹）。</summary>
+    /// <summary>Acceptance 1+2：生成版（certified 载体）与录制版经同一
+    /// runner 产生相同的全部语义结果（状态/分类/effect/咨询/未消费/goal +
+    /// 消费轨迹）。等价断言是两 run 的关系不变量（Type-B），golden 值由
+    /// 各自 AcceptancePassed 承载。</summary>
     [Fact]
     [Trait("Scenario", "SCN-WIFI-006")]
     public void GeneratedWiFiOffToOn_IsEquivalentToRecorded()
     {
-        var recorded = ScenarioRunner.Run(GoldenScenarioBundles.WifiToggleOffToOn());
-        var generated = ScenarioRunner.Run(GeneratedWifiOffToOn());
+        var recorded = ScenarioRunner.Run(ScenarioLibrary.Load("SCN-WIFI-001").Bundle);
+        var generated = ScenarioRunner.Run(ScenarioLibrary.Load("SCN-WIFI-006").Bundle);
 
         Assert.Equal(recorded.Report.RunDriveStatus, generated.Report.RunDriveStatus);
         Assert.Equal(recorded.Report.Outcome?.Classification, generated.Report.Outcome?.Classification);
@@ -37,14 +38,14 @@ public sealed class GeneratedScenarioTests
         Assert.True(generated.Report.AcceptancePassed);
     }
 
-    /// <summary>Acceptance 5（层3）：同 bundle 两次运行 digest 一致；
-    /// 层1 旁证：两次 Build() 的 bundle digest 一致（构造幂等——API 面
-    /// 无 Random / 真实时钟，D6 类型契约）。</summary>
+    /// <summary>test-local：等价场景的确定性旁证（无注册条目——构造幂等
+    /// 与两次运行同 digest）。模板期望来自 SCN-WIFI-001 certified 投影。</summary>
     [Fact]
     public void GeneratedScenario_IsDeterministic_BuildAndRun()
     {
-        var first = GeneratedWifiOffToOn();
-        var second = GeneratedWifiOffToOn();
+        static MinimalScenarioBundle Build() => ScenarioLibrary.Load("SCN-WIFI-006").Bundle;
+        var first = Build();
+        var second = Build();
         Assert.Equal(first.BundleDigest, second.BundleDigest); // 层1：构造幂等
 
         var runA = ScenarioRunner.Run(first);
@@ -62,7 +63,7 @@ public sealed class GeneratedScenarioTests
     {
         var late = GoldenScenarioBundles.LatePostActionStimulus();
         var bundle = ScenarioBuilder
-            .FromTemplate(GoldenScenarioBundles.WifiToggleOffToOn)
+            .FromTemplate(() => GoldenScenarioBundles.WifiToggleOffToOn())
             .WithScenarioId("generated-wifi-late", "wifi-off-to-on-late")
             .Inject(late, afterStep: 1)
             .Expect(e => e with { ExpectedUnconsumedStimuli = 1 })
@@ -83,12 +84,12 @@ public sealed class GeneratedScenarioTests
     public void AfterStepSugar_ResolvesSamePositionAsExplicitScheduler()
     {
         var viaSugar = ScenarioBuilder
-            .FromTemplate(GoldenScenarioBundles.WifiToggleOffToOn)
+            .FromTemplate(() => GoldenScenarioBundles.WifiToggleOffToOn())
             .WithScenarioId("a", "sugar")
             .Inject(GoldenScenarioBundles.LatePostActionStimulus(), afterStep: 1)
             .Build();
         var viaScheduler = ScenarioBuilder
-            .FromTemplate(GoldenScenarioBundles.WifiToggleOffToOn)
+            .FromTemplate(() => GoldenScenarioBundles.WifiToggleOffToOn())
             .WithScenarioId("a", "scheduler")
             .Inject(GoldenScenarioBundles.LatePostActionStimulus(), new FixedTimingScheduler(1))
             .Build();

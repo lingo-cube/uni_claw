@@ -22,11 +22,16 @@
     "unconsumedStimuli": 1,
     "goalSatisfaction": null
   },
+  "execution": {
+    "kind": "golden-bundle",
+    "carrier": "wifi-two-step-contradictory-post"
+  },
   "certification": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "expectationsDigest": "3757929670677752beec06cf9cb50d4929ae878704b296eab0d8b2ababfa9b9a",
+    "executionDigest": "a16959ae6376dd47c4195fef7709bc71079d23f2231eaaf438853496332cb194",
     "runtimeSourceHash": "6e00da87a0f30be019515e9be6434225f0075b597da1721518040db09091913b",
-    "certifiedByChange": "RUN-004",
+    "certifiedByChange": "SIM-003",
     "certifiedAt": "2026-09-24"
   },
   "security": {

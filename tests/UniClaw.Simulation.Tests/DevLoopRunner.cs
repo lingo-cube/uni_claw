@@ -77,10 +77,14 @@ internal static class DevLoopRunner
             var assurance = new RuntimeAssurance(
                 new ProductFreshnessEvaluator(() => clock.Now, TimeSpan.FromMinutes(5)));
             // journal 必注入（D3）：产品路径不存在「未注入执行源」的默认（两档同律）
+            //（SIM-003 verify 期最小修复：using 保证 journal 句柄在 RunOnce 返回前
+            // 关闭——否则 Windows 上临时目录清理 Directory.Delete 因文件占用失败；
+            // 既有缺陷，与期望绑定无关，Linux 检出不触发）
+            using var journal = new FileExecutionJournal(journalPath);
             IEffectDriver delivery = makeDriver is not null
                 ? makeDriver(clock)
                 : new DeterministicEffectDriver();
-            var effectBoundary = new EffectBoundary(delivery, new FileExecutionJournal(journalPath));
+            var effectBoundary = new EffectBoundary(delivery, journal);
             var metrics = new RuntimeStageMetrics();
             var planPolicy = new AgentPlanPolicy();
             var traceScope = RunTraceFactory.BeginRun(new RunCorrelation("sim:dev-loop"));

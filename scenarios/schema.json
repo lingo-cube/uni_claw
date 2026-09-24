@@ -16,6 +16,7 @@
     "agentDecisionRealization",
     "goalEvaluationRealization",
     "expectations",
+    "execution",
     "certification",
     "security"
   ],
@@ -94,17 +95,58 @@
         "goalSatisfaction": { "type": ["string", "null"], "description": "期望 GoalSatisfaction" }
       }
     },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "description": "SIM-003 G3：executable carrier 绑定（经 certification.executionDigest 钉扎——kind=golden-bundle 的期望必须由 certified JSON 投影；kind=none 显式声明不在本投影保证内）",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["golden-bundle", "none"],
+          "description": "golden-bundle = ScenarioRunner 经 MinimalScenarioBundle 承载；none = 无 bundle carrier（如 PERC 自有 harness），期望绑定保证不适用"
+        },
+        "carrier": {
+          "type": ["string", "null"],
+          "description": "kind=golden-bundle 必填：GoldenScenarioBundles carrier 注册键（如 wifi-off-to-on）；kind=none 必须缺省或 null"
+        },
+        "options": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "RunOptions 投影（可选）",
+          "properties": {
+            "duplicateActivation": { "type": "boolean", "description": "S3 重复激活探针" },
+            "phased": { "type": "boolean", "description": "D21 phased 两阶段驱动" }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "golden-bundle" } } },
+          "then": { "required": ["carrier"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "none" } }, "required": ["kind"] },
+          "then": { "not": { "required": ["carrier"] } }
+        }
+      ]
+    },
     "certification": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schemaVersion", "expectationsDigest", "runtimeSourceHash", "certifiedByChange", "certifiedAt"],
-      "description": "G2 golden 认证（唯一写入口 tools/scenario_certify.py --change <致因change>）",
+      "required": ["schemaVersion", "expectationsDigest", "executionDigest", "runtimeSourceHash", "certifiedByChange", "certifiedAt"],
+      "description": "G2 golden 认证 v2（唯一写入口 tools/scenario_certify.py --change <致因change>）；expectationsDigest 钉「测什么结果」，executionDigest 钉「用什么 carrier 测」",
       "properties": {
-        "schemaVersion": { "type": "integer", "const": 1 },
+        "schemaVersion": { "type": "integer", "const": 2 },
         "expectationsDigest": {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$",
           "description": "期望值 canonical rendering SHA-256（cert-exp-v1）"
+        },
+        "executionDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "执行绑定 canonical rendering SHA-256（cert-exec-v1：kind/carrier/options）"
         },
         "runtimeSourceHash": {
           "type": "string",

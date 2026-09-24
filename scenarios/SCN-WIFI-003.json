@@ -10,22 +10,30 @@
     "run-model"
   ],
   "status": "passing",
-  "version": 1,
+  "version": 2,
   "agentDecisionRealization": "double",
   "goalEvaluationRealization": "real",
   "expectations": {
-    "status": "AlreadyTerminal",
+    "status": "Completed",
     "classification": "Completion",
     "effects": 1,
     "agentConsultations": 2,
     "unconsumedStimuli": 0,
     "goalSatisfaction": "Satisfied"
   },
+  "execution": {
+    "kind": "golden-bundle",
+    "carrier": "wifi-off-to-on",
+    "options": {
+      "duplicateActivation": true
+    }
+  },
   "certification": {
-    "schemaVersion": 1,
-    "expectationsDigest": "71f8b1aa9b1bee0ad1c6bec93738d3ab186874f04b9d13fe8c267f03269bfa2f",
+    "schemaVersion": 2,
+    "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+    "executionDigest": "f6f9802bd5ce7d7b59222c82754e252a8ec4547ff9cb76587943397366fca864",
     "runtimeSourceHash": "6e00da87a0f30be019515e9be6434225f0075b597da1721518040db09091913b",
-    "certifiedByChange": "RUN-004",
+    "certifiedByChange": "SIM-003",
     "certifiedAt": "2026-09-24"
   },
   "security": {

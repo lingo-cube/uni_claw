@@ -1,0 +1,9 @@
+# Repository hygiene: stable line endings for text surfaces.
+# NOTE (SIM-003 G1): this file is NOT the correctness mechanism for
+# certification hashes — runtimeSourceHash normalizes CRLF→LF in both
+# tools/scenario_certify.py and ScenarioCertification.cs, so any checkout
+# config reproduces identical digests. eol pins are a second line of defense.
+*.cs   text eol=lf
+*.py   text eol=lf
+*.json text eol=lf
+*.md   text eol=lf

@@ -22,11 +22,16 @@
     "unconsumedStimuli": 0,
     "goalSatisfaction": "Satisfied"
   },
+  "execution": {
+    "kind": "golden-bundle",
+    "carrier": "wifi-two-step-toggle-menu"
+  },
   "certification": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "expectationsDigest": "e70845d5e3000ddfb414741a304d86784719da988872676d98646580dfaaded5",
+    "executionDigest": "b772211aad026e21a4459e2b36d08f926623011ad712704046bd2eb85c7e3e9a",
     "runtimeSourceHash": "6e00da87a0f30be019515e9be6434225f0075b597da1721518040db09091913b",
-    "certifiedByChange": "RUN-004",
+    "certifiedByChange": "SIM-003",
     "certifiedAt": "2026-09-24"
   },
   "security": {
