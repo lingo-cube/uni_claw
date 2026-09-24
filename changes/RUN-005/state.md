@@ -1,6 +1,6 @@
 # RUN-005 — L2 Policy Protocol & Runtime
 
-lifecycle_state: implementing (Slice A+B owner-adjudicated PASS; Slice C in progress) · design_state: frozen (v0.3.1) · disposition: none · depth: decision-heavy · base: 4022ce40
+lifecycle_state: implementing (Slice A/B/C complete; awaiting final implementation-level review -> CLOSED) · design_state: frozen (v0.3.1) · disposition: none · depth: decision-heavy · base: 4022ce40
 
 ## Status
 
