@@ -8,21 +8,99 @@ public sealed class DeterministicDshPeer : IDshOpenedChannelPeer
 {
     private readonly Func<DecisionRequest, DecisionChannelResponse> _response;
     private readonly TimeSpan _delay;
+    private readonly TimeSpan _handshakeDelay;
+    private readonly TaskCompletionSource<bool>? _handshakeGate;
     private readonly bool _ignoreCancellation;
     private readonly Func<HandshakeRequest, HandshakeResponse>? _handshake;
-    public DeterministicDshPeer(Func<DecisionRequest, DecisionChannelResponse> response, TimeSpan? delay = null, bool ignoreCancellation = false, string sessionId = "dsh-test", Func<HandshakeRequest, HandshakeResponse>? handshake = null)
-    { _response = response; _delay = delay ?? TimeSpan.Zero; _ignoreCancellation = ignoreCancellation; DshSessionId = sessionId; _handshake = handshake; }
+    private readonly TaskCompletionSource<bool>? _decisionResponseGate;
+    private readonly TaskCompletionSource<bool>? _abortGate;
+    private readonly TaskCompletionSource<bool> _handshakeStarted = NewSignal();
+    private readonly TaskCompletionSource<bool> _decisionRequestStarted = NewSignal();
+    private readonly TaskCompletionSource<bool> _decisionResponseReturned = NewSignal();
+    private readonly TaskCompletionSource<bool> _abortStarted = NewSignal();
+
+    public DeterministicDshPeer(
+        Func<DecisionRequest, DecisionChannelResponse> response,
+        TimeSpan? delay = null,
+        bool ignoreCancellation = false,
+        string sessionId = "dsh-test",
+        Func<HandshakeRequest, HandshakeResponse>? handshake = null,
+        TimeSpan? handshakeDelay = null,
+        TaskCompletionSource<bool>? decisionResponseGate = null,
+        TaskCompletionSource<bool>? abortGate = null,
+        TaskCompletionSource<bool>? handshakeGate = null)
+    {
+        _response = response;
+        _delay = delay ?? TimeSpan.Zero;
+        _ignoreCancellation = ignoreCancellation;
+        DshSessionId = sessionId;
+        _handshake = handshake;
+        _handshakeDelay = handshakeDelay ?? TimeSpan.Zero;
+        _handshakeGate = handshakeGate;
+        _decisionResponseGate = decisionResponseGate;
+        _abortGate = abortGate;
+    }
+
     public string DshSessionId { get; }
-    public int HandshakeCount { get; private set; }
-    public int RequestCount { get; private set; }
-    public int AbortCount { get; private set; }
-    public bool Revoked { get; set; }
-    public async Task<HandshakeResponse> HandshakeAsync(HandshakeRequest request, CancellationToken cancellationToken)
-    { HandshakeCount++; return _handshake?.Invoke(request) ?? new(true, request.Protocol, request.ExpectedCapabilities, DshSessionId); }
-    public async Task<DecisionChannelResponse> ReceiveDecisionRequestAsync(DecisionRequest request, CancellationToken cancellationToken)
-    { RequestCount++; if (_delay > TimeSpan.Zero) await (_ignoreCancellation ? Task.Delay(_delay) : Task.Delay(_delay, cancellationToken)); return _response(request); }
-    public Task AbortCurrentTurnAsync(CancellationToken cancellationToken) { AbortCount++; return Task.CompletedTask; }
+    private int _handshakeCount;
+    private int _requestCount;
+    private int _abortCount;
+    public int HandshakeCount => Volatile.Read(ref _handshakeCount);
+    public int RequestCount => Volatile.Read(ref _requestCount);
+    public int AbortCount => Volatile.Read(ref _abortCount);
+    public Task HandshakeStarted => _handshakeStarted.Task;
+    public Task DecisionRequestStarted => _decisionRequestStarted.Task;
+    public Task DecisionResponseReturned => _decisionResponseReturned.Task;
+    public Task AbortStarted => _abortStarted.Task;
+
+    public void ReleaseHandshake() => _handshakeGate?.TrySetResult(true);
+    public void ReleaseDecisionResponse() => _decisionResponseGate?.TrySetResult(true);
+    public void ReleaseAbort() => _abortGate?.TrySetResult(true);
+
+    public async Task<HandshakeResponse> HandshakeAsync(
+        HandshakeRequest request,
+        CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _handshakeCount);
+        _handshakeStarted.TrySetResult(true);
+        if (_handshakeGate is not null)
+            await _handshakeGate.Task.ConfigureAwait(false);
+        else if (_handshakeDelay > TimeSpan.Zero)
+            await Task.Delay(_handshakeDelay, cancellationToken).ConfigureAwait(false);
+        return _handshake?.Invoke(request)
+            ?? new HandshakeResponse(true, request.Protocol, request.ExpectedCapabilities, DshSessionId);
+    }
+
+    public async Task<DecisionChannelResponse> ReceiveDecisionRequestAsync(
+        DecisionRequest request,
+        CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _requestCount);
+        _decisionRequestStarted.TrySetResult(true);
+        if (_decisionResponseGate is not null)
+            await _decisionResponseGate.Task.ConfigureAwait(false);
+        else if (_delay > TimeSpan.Zero)
+            await (_ignoreCancellation
+                ? Task.Delay(_delay)
+                : Task.Delay(_delay, cancellationToken)).ConfigureAwait(false);
+
+        var response = _response(request);
+        _decisionResponseReturned.TrySetResult(true);
+        return response;
+    }
+
+    public async Task AbortCurrentTurnAsync(CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _abortCount);
+        _abortStarted.TrySetResult(true);
+        if (_abortGate is not null)
+            await _abortGate.Task.ConfigureAwait(false);
+    }
+
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    private static TaskCompletionSource<bool> NewSignal() =>
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
 }
 
 public static class DecisionChannelFixture

@@ -73,9 +73,16 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
     private readonly IDshOpenedChannelPeer _peer;
     private readonly object _gate = new();
     private DecisionChannelAttachment? _attachment;
+    private Task<DecisionChannelAttachment>? _attachTask;
+    private int _attachWaiterCount;
+    private long _attachAttempt;
+    private long _attachmentEpoch;
     private string? _productSessionId;
     private string? _productRunId;
+    private string? _attachProductSessionId;
+    private string? _attachProductRunId;
     private string? _inFlightRequestId;
+    private CancellationTokenSource? _inFlightCancellation;
     private readonly HashSet<string> _completedRequestIds = new(StringComparer.Ordinal);
     private bool _revoked;
     private bool _disposed;
@@ -105,13 +112,13 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
+        Task<DecisionChannelAttachment> attachTask;
+        long? attachAttempt = null;
         lock (_gate)
         {
             ThrowIfDisposedLocked();
             if (_attachment is not null)
             {
-                if (_revoked)
-                    return new DecisionChannelAttachment(false, null, null, "attachment-revoked");
                 if (!string.Equals(_productSessionId, request.ProductSessionId,
                         StringComparison.Ordinal)
                     || !string.Equals(_productRunId, request.ProductRunId,
@@ -120,18 +127,89 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
                         "product-mapping-mismatch");
                 return _attachment;
             }
+
+            // A revoked channel may be attached again, but every caller shares
+            // the same physical handshake.  A caller's cancellation only
+            // cancels its wait; it never tears down the shared attempt.
+            if (_attachTask is null)
+            {
+                var attempt = ++_attachAttempt;
+                attachAttempt = attempt;
+                _attachWaiterCount++;
+                _attachProductSessionId = request.ProductSessionId;
+                _attachProductRunId = request.ProductRunId;
+                _revoked = false;
+                var task = AttachCoreAsync(request, attempt);
+                _attachTask = task;
+                attachTask = task;
+                _ = ClearAttachTaskWhenCompleteAsync(task, attempt);
+            }
+            else
+            {
+                if (!string.Equals(_attachProductSessionId, request.ProductSessionId,
+                        StringComparison.Ordinal)
+                    || !string.Equals(_attachProductRunId, request.ProductRunId,
+                        StringComparison.Ordinal))
+                {
+                    return new DecisionChannelAttachment(false, null, null,
+                        "product-mapping-mismatch");
+                }
+                attachTask = _attachTask;
+                attachAttempt = _attachAttempt;
+                _attachWaiterCount++;
+            }
         }
 
+        try
+        {
+            var attachment = await attachTask.WaitAsync(cancellationToken).ConfigureAwait(false);
+            if (attachAttempt is { } attempt)
+            {
+                lock (_gate)
+                {
+                    if (_attachAttempt != attempt || _revoked
+                        || (attachment.Accepted && _attachment is null))
+                    {
+                        return new DecisionChannelAttachment(false, null, null,
+                            "attachment-revoked");
+                    }
+                }
+                if (!attachment.Accepted)
+                    ClearAttachTaskIfCurrent(attachTask, attempt);
+            }
+            return attachment;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // A cancelled waiter does not cancel or retire the shared physical
+            // handshake; another caller must still be able to join it.
+            throw;
+        }
+        catch
+        {
+            if (attachAttempt is { } attempt)
+                ClearAttachTaskIfCurrent(attachTask, attempt);
+            throw;
+        }
+        finally
+        {
+            ReleaseAttachWaiter(attachTask, attachAttempt);
+        }
+    }
+
+    private async Task<DecisionChannelAttachment> AttachCoreAsync(
+        HandshakeRequest request,
+        long attempt)
+    {
         HandshakeResponse response;
         try
         {
-            response = await _peer.HandshakeAsync(request, cancellationToken)
+            response = await _peer.HandshakeAsync(request, CancellationToken.None)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            return new DecisionChannelAttachment(false, null, null,
-                "handshake-failed:" + ex.Message);
+            return new DecisionChannelAttachment(false, null, null, "handshake-failed:" + ex.Message);
         }
 
         var validation = ProductHandshake.Validate(request, response);
@@ -146,12 +224,68 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
         lock (_gate)
         {
             ThrowIfDisposedLocked();
-            if (_revoked)
+            // Revoke invalidates an in-flight attach as well as in-flight
+            // responses.  The attempt id prevents late handshake completion
+            // from creating a half-initialized attachment.
+            if (_attachAttempt != attempt || _revoked)
                 return new DecisionChannelAttachment(false, null, null, "attachment-revoked");
             _attachment = attachment;
             _productSessionId = request.ProductSessionId;
             _productRunId = request.ProductRunId;
+            _attachProductSessionId = null;
+            _attachProductRunId = null;
+            _attachmentEpoch++;
             return attachment;
+        }
+    }
+
+    private async Task ClearAttachTaskWhenCompleteAsync(
+        Task<DecisionChannelAttachment> task,
+        long attempt)
+    {
+        try
+        {
+            await task.ConfigureAwait(false);
+        }
+        catch
+        {
+            // The waiter receives the original failure; this observer only
+            // guarantees that a completed failed attempt is not retained.
+        }
+        finally
+        {
+            ClearAttachTaskIfCurrent(task, attempt);
+        }
+    }
+
+    private void ClearAttachTaskIfCurrent(Task<DecisionChannelAttachment> task, long attempt)
+    {
+        lock (_gate)
+        {
+            if (ReferenceEquals(_attachTask, task)
+                && _attachAttempt == attempt
+                && _attachWaiterCount == 0
+                && _attachment is null)
+            {
+                _attachTask = null;
+                _attachProductSessionId = null;
+                _attachProductRunId = null;
+            }
+        }
+    }
+
+    private void ReleaseAttachWaiter(Task<DecisionChannelAttachment> task, long? attempt)
+    {
+        lock (_gate)
+        {
+            if (attempt is not { } value
+                || !ReferenceEquals(_attachTask, task)
+                || _attachAttempt != value)
+                return;
+            if (_attachWaiterCount > 0)
+                _attachWaiterCount--;
+            if (task.IsCompleted)
+                ClearAttachTaskIfCurrent(task, value);
         }
     }
 
@@ -160,6 +294,8 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
+        long attachmentEpoch;
+        CancellationTokenSource turnCancellation;
         lock (_gate)
         {
             ThrowIfDisposedLocked();
@@ -178,66 +314,158 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
             if (_inFlightRequestId is not null)
                 return new DecisionChannelResponse(request.RequestId, request.Generation, null,
                     "one-in-flight");
+            attachmentEpoch = _attachmentEpoch;
             _inFlightRequestId = request.RequestId;
+            turnCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _inFlightCancellation = turnCancellation;
         }
 
+        Task<DecisionChannelResponse>? peerTask = null;
         try
         {
-            return await _peer.ReceiveDecisionRequestAsync(request, cancellationToken)
-                .ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
-        {
-            return new DecisionChannelResponse(request.RequestId, request.Generation, null,
-                "turn-aborted");
-        }
-        catch (Exception ex)
-        {
-            return new DecisionChannelResponse(request.RequestId, request.Generation, null,
-                "channel-error:" + ex.Message);
+            DecisionChannelResponse response;
+            try
+            {
+                peerTask = _peer.ReceiveDecisionRequestAsync(request, turnCancellation.Token);
+                response = await peerTask.WaitAsync(turnCancellation.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                lock (_gate)
+                {
+                    if (_revoked || attachmentEpoch != _attachmentEpoch)
+                        return new DecisionChannelResponse(request.RequestId, request.Generation,
+                            null, "attachment-revoked");
+                }
+                return new DecisionChannelResponse(request.RequestId, request.Generation, null,
+                    "turn-aborted");
+            }
+            catch (Exception ex)
+            {
+                return new DecisionChannelResponse(request.RequestId, request.Generation, null,
+                    "channel-error:" + ex.Message);
+            }
+
+            lock (_gate)
+            {
+                // Revoke is an attachment-generation boundary.  A response from
+                // the old generation is never allowed back through this seam.
+                if (_revoked || attachmentEpoch != _attachmentEpoch)
+                    return new DecisionChannelResponse(request.RequestId, request.Generation, null,
+                        "attachment-revoked");
+                if (turnCancellation.IsCancellationRequested)
+                    return new DecisionChannelResponse(request.RequestId, request.Generation, null,
+                        "turn-aborted");
+                return response;
+            }
         }
         finally
         {
             lock (_gate)
             {
-                _inFlightRequestId = null;
+                if (ReferenceEquals(_inFlightCancellation, turnCancellation))
+                {
+                    _inFlightCancellation = null;
+                    _inFlightRequestId = null;
+                }
                 _completedRequestIds.Add(request.RequestId);
             }
+
+            if (peerTask is null || peerTask.IsCompleted)
+                turnCancellation.Dispose();
+            else
+                _ = ObserveAndDisposeAsync(peerTask, turnCancellation);
+        }
+    }
+
+    private static async Task ObserveAndDisposeAsync(
+        Task<DecisionChannelResponse> peerTask,
+        CancellationTokenSource cancellation)
+    {
+        try
+        {
+            await peerTask.ConfigureAwait(false);
+        }
+        catch
+        {
+            // The caller has already received the cancellation result. Observe
+            // the abandoned peer task so a late failure cannot become unobserved.
+        }
+        finally
+        {
+            cancellation.Dispose();
+        }
+    }
+
+    private static void CancelSafely(CancellationTokenSource? cancellation)
+    {
+        try
+        {
+            cancellation?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // The peer completed and the channel already retired its token.
         }
     }
 
     public async Task AbortCurrentTurnAsync(CancellationToken cancellationToken)
     {
+        CancellationTokenSource? turnCancellation;
         lock (_gate)
         {
             ThrowIfDisposedLocked();
             if (_attachment is not { Accepted: true } || _revoked)
                 return;
+            turnCancellation = _inFlightCancellation;
         }
+
+        CancelSafely(turnCancellation);
         await _peer.AbortCurrentTurnAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public Task RevokeAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        CancellationTokenSource? turnCancellation;
         lock (_gate)
         {
             ThrowIfDisposedLocked();
             _revoked = true;
+            _attachment = null;
+            _attachTask = null;
+            _attachProductSessionId = null;
+            _attachProductRunId = null;
+            _attachWaiterCount = 0;
+            _attachAttempt++;
+            _attachmentEpoch++;
+            turnCancellation = _inFlightCancellation;
         }
+
+        CancelSafely(turnCancellation);
         return Task.CompletedTask;
     }
 
     public async ValueTask DisposeAsync()
     {
         bool disposePeer;
+        CancellationTokenSource? turnCancellation;
         lock (_gate)
         {
             if (_disposed) return;
             _revoked = true;
+            _attachment = null;
+            _attachTask = null;
+            _attachProductSessionId = null;
+            _attachProductRunId = null;
+            _attachWaiterCount = 0;
+            _attachAttempt++;
+            _attachmentEpoch++;
             _disposed = true;
             disposePeer = true;
+            turnCancellation = _inFlightCancellation;
         }
+        CancelSafely(turnCancellation);
         if (disposePeer)
             await _peer.DisposeAsync().ConfigureAwait(false);
     }
