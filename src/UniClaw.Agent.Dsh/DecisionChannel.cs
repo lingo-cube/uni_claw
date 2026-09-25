@@ -83,14 +83,22 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
     private string? _attachProductRunId;
     private string? _inFlightRequestId;
     private CancellationTokenSource? _inFlightCancellation;
+    private CancellationTokenSource? _attachCancellation;
     private readonly HashSet<string> _completedRequestIds = new(StringComparer.Ordinal);
     private bool _revoked;
     private bool _disposed;
 
-    public DshOpenedDecisionChannel(IDshOpenedChannelPeer peer)
+    public DshOpenedDecisionChannel(
+        IDshOpenedChannelPeer peer,
+        TimeSpan? attachTimeout = null)
     {
         _peer = peer ?? throw new ArgumentNullException(nameof(peer));
+        AttachTimeout = attachTimeout ?? TimeSpan.FromSeconds(30);
+        if (AttachTimeout <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(attachTimeout));
     }
+
+    public TimeSpan AttachTimeout { get; }
 
     public string? AttachmentId
     {
@@ -139,7 +147,9 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
                 _attachProductSessionId = request.ProductSessionId;
                 _attachProductRunId = request.ProductRunId;
                 _revoked = false;
-                var task = AttachCoreAsync(request, attempt);
+                var attachCancellation = new CancellationTokenSource(AttachTimeout);
+                _attachCancellation = attachCancellation;
+                var task = AttachCoreAsync(request, attempt, attachCancellation);
                 _attachTask = task;
                 attachTask = task;
                 _ = ClearAttachTaskWhenCompleteAsync(task, attempt);
@@ -199,18 +209,32 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
 
     private async Task<DecisionChannelAttachment> AttachCoreAsync(
         HandshakeRequest request,
-        long attempt)
+        long attempt,
+        CancellationTokenSource attachCancellation)
     {
         HandshakeResponse response;
+        Task<HandshakeResponse>? handshakeTask = null;
         try
         {
-            response = await _peer.HandshakeAsync(request, CancellationToken.None)
-                .ConfigureAwait(false);
+            var attachToken = attachCancellation.Token;
+            handshakeTask = _peer.HandshakeAsync(request, attachToken);
+            response = await handshakeTask.WaitAsync(attachToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (attachCancellation.IsCancellationRequested)
+        {
+            if (handshakeTask is { IsCompleted: false })
+                _ = ObserveHandshakeAsync(handshakeTask, attachCancellation);
+            else
+                attachCancellation.Dispose();
+            return new DecisionChannelAttachment(false, null, null, "handshake-timeout");
         }
         catch (Exception ex)
         {
+            attachCancellation.Dispose();
             return new DecisionChannelAttachment(false, null, null, "handshake-failed:" + ex.Message);
         }
+
+        attachCancellation.Dispose();
 
         var validation = ProductHandshake.Validate(request, response);
         if (!validation.Accepted)
@@ -223,7 +247,6 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
             response.DshSessionId);
         lock (_gate)
         {
-            ThrowIfDisposedLocked();
             // Revoke invalidates an in-flight attach as well as in-flight
             // responses.  The attempt id prevents late handshake completion
             // from creating a half-initialized attachment.
@@ -237,6 +260,15 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
             _attachmentEpoch++;
             return attachment;
         }
+    }
+
+    private static async Task ObserveHandshakeAsync(
+        Task<HandshakeResponse> handshakeTask,
+        CancellationTokenSource attachCancellation)
+    {
+        try { await handshakeTask.ConfigureAwait(false); }
+        catch { }
+        finally { attachCancellation.Dispose(); }
     }
 
     private async Task ClearAttachTaskWhenCompleteAsync(
@@ -421,13 +453,30 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
         }
 
         CancelSafely(turnCancellation);
-        await _peer.AbortCurrentTurnAsync(cancellationToken).ConfigureAwait(false);
+        var operation = _peer.AbortCurrentTurnAsync(cancellationToken);
+        try
+        {
+            await operation.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            if (!operation.IsCompleted)
+                _ = ObserveDetachedOperationAsync(operation);
+            throw;
+        }
+    }
+
+    private static async Task ObserveDetachedOperationAsync(Task operation)
+    {
+        try { await operation.ConfigureAwait(false); }
+        catch { }
     }
 
     public Task RevokeAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         CancellationTokenSource? turnCancellation;
+        CancellationTokenSource? attachCancellation;
         lock (_gate)
         {
             ThrowIfDisposedLocked();
@@ -440,9 +489,14 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
             _attachAttempt++;
             _attachmentEpoch++;
             turnCancellation = _inFlightCancellation;
+            attachCancellation = _attachCancellation;
+            _attachCancellation = null;
         }
 
+        CancelSafely(attachCancellation);
         CancelSafely(turnCancellation);
+        // The physical peer has no Product semantic authority here. Revoke is
+        // therefore complete as soon as the semantic fence is installed.
         return Task.CompletedTask;
     }
 
@@ -450,6 +504,7 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
     {
         bool disposePeer;
         CancellationTokenSource? turnCancellation;
+        CancellationTokenSource? attachCancellation;
         lock (_gate)
         {
             if (_disposed) return;
@@ -464,7 +519,10 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
             _disposed = true;
             disposePeer = true;
             turnCancellation = _inFlightCancellation;
+            attachCancellation = _attachCancellation;
+            _attachCancellation = null;
         }
+        CancelSafely(attachCancellation);
         CancelSafely(turnCancellation);
         if (disposePeer)
             await _peer.DisposeAsync().ConfigureAwait(false);

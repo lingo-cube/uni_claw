@@ -7,6 +7,26 @@ namespace UniClaw.Agent.Dsh.Tests;
 public sealed class AdapterLifecycleTests
 {
     [Fact]
+    public async Task Attach_Timeout_Fails_Closed_Without_Hanging_Consult()
+    {
+        var handshakeGate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var peer = new DeterministicDshPeer(
+            request => new DecisionChannelResponse(request.RequestId, request.Generation,
+                new AgentDecision.NoAction(new AgentNoActionProposal(request.Context.DecisionId, "unused"))),
+            handshakeGate: handshakeGate);
+        await using var channel = new DshOpenedDecisionChannel(peer, TimeSpan.FromMilliseconds(20));
+        await using var adapter = new DshAgentAdapter(
+            channel, "session-1", "run-1", TimeSpan.FromSeconds(1),
+            attachTimeout: TimeSpan.FromSeconds(1));
+
+        var result = await adapter.ConsultAsync(Context("decision-attach-timeout"))
+            .WaitAsync(ShortTestWindow);
+
+        Assert.Null(result);
+        Assert.Contains(adapter.Diagnostics, d => d.Code == "attachment-timeout");
+    }
+
+    [Fact]
     public async Task One_Run_Allows_One_Active_Consultation()
     {
         var transport = DecisionChannelFixture.Open(
@@ -104,6 +124,32 @@ public sealed class AdapterLifecycleTests
     }
 
     [Fact]
+    public async Task Abort_Acknowledgement_Timeout_Returns_Control_To_Product()
+    {
+        var responseGate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var abortGate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var peer = new DeterministicDshPeer(
+            request => new DecisionChannelResponse(request.RequestId, request.Generation,
+                new AgentDecision.NoAction(new AgentNoActionProposal(request.Context.DecisionId, "late"))),
+            ignoreCancellation: true,
+            decisionResponseGate: responseGate,
+            abortGate: abortGate);
+        await using var channel = new DshOpenedDecisionChannel(peer);
+        await using var adapter = new DshAgentAdapter(
+            channel, "session-1", "run-1", TimeSpan.FromMilliseconds(20),
+            abortTimeout: TimeSpan.FromMilliseconds(20));
+
+        var consultation = adapter.ConsultAsync(Context("decision-abort-timeout"));
+        await peer.DecisionRequestStarted.WaitAsync(ShortTestWindow);
+        var result = await consultation.WaitAsync(ShortTestWindow);
+
+        Assert.Null(result);
+        Assert.Contains(adapter.Diagnostics, d => d.Code == "abort-timeout");
+        responseGate.TrySetResult(true);
+        abortGate.TrySetResult(true);
+    }
+
+    [Fact]
     public async Task External_Cancellation_Exits_Promptly_And_Drops_Late_Response()
     {
         var responseGate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -160,7 +206,7 @@ public sealed class AdapterLifecycleTests
     }
 
     [Fact]
-    public async Task Revoke_Serializes_With_An_In_Flight_Attachment()
+    public async Task Revoke_Does_Not_Wait_For_An_In_Flight_Attachment()
     {
         var peer = new DeterministicDshPeer(request => new DecisionChannelResponse(
             request.RequestId, request.Generation,
@@ -173,12 +219,35 @@ public sealed class AdapterLifecycleTests
         var consultation = adapter.ConsultAsync(Context("decision-revoked-attach"));
         await channel.InnerAttachmentReturned.WaitAsync(ShortTestWindow);
         var revoke = adapter.RevokeAttachmentAsync();
-        await Task.Yield();
-        Assert.False(revoke.IsCompleted);
+        await revoke.WaitAsync(ShortTestWindow);
+        Assert.True(revoke.IsCompletedSuccessfully);
 
         channel.ReleaseAttachResult();
         await Task.WhenAll(consultation.WaitAsync(ShortTestWindow), revoke.WaitAsync(ShortTestWindow));
         Assert.Null(adapter.DshSessionId);
+    }
+
+    [Fact]
+    public async Task Revoke_Cleanup_Timeout_Preserves_Semantic_Fence()
+    {
+        var peer = new DeterministicDshPeer(request => new DecisionChannelResponse(
+            request.RequestId, request.Generation,
+            new AgentDecision.NoAction(new AgentNoActionProposal(request.Context.DecisionId, "ok"))));
+        await using var inner = new DshOpenedDecisionChannel(peer);
+        var channel = new HangingRevokeChannel(inner);
+        await using var adapter = new DshAgentAdapter(
+            channel, "session-1", "run-1", TimeSpan.FromSeconds(1),
+            revokeTimeout: TimeSpan.FromMilliseconds(20));
+
+        Assert.NotNull(await adapter.ConsultAsync(Context("decision-before-revoke")));
+        await adapter.RevokeAttachmentAsync().WaitAsync(ShortTestWindow);
+
+        Assert.Null(adapter.DshSessionId);
+        var response = await inner.PushAsync(
+            new DecisionRequest("retired", 99, "session-1", "run-1", Context("retired")),
+            CancellationToken.None);
+        Assert.Equal("channel-not-attached", response.Error);
+        channel.ReleaseCleanup();
     }
 
     private sealed class GatedAttachChannel : IDecisionChannel
@@ -211,6 +280,30 @@ public sealed class AdapterLifecycleTests
         public Task RevokeAsync(CancellationToken cancellationToken) =>
             _inner.RevokeAsync(cancellationToken);
 
+        public ValueTask DisposeAsync() => _inner.DisposeAsync();
+
+        private static TaskCompletionSource<bool> NewSignal() =>
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    private sealed class HangingRevokeChannel : IDecisionChannel
+    {
+        private readonly IDecisionChannel _inner;
+        private readonly TaskCompletionSource<bool> _cleanup = NewSignal();
+
+        public HangingRevokeChannel(IDecisionChannel inner) => _inner = inner;
+        public void ReleaseCleanup() => _cleanup.TrySetResult(true);
+        public Task<DecisionChannelAttachment> AttachAsync(HandshakeRequest request, CancellationToken cancellationToken) =>
+            _inner.AttachAsync(request, cancellationToken);
+        public Task<DecisionChannelResponse> PushAsync(DecisionRequest request, CancellationToken cancellationToken) =>
+            _inner.PushAsync(request, cancellationToken);
+        public Task AbortCurrentTurnAsync(CancellationToken cancellationToken) =>
+            _inner.AbortCurrentTurnAsync(cancellationToken);
+        public async Task RevokeAsync(CancellationToken cancellationToken)
+        {
+            await _inner.RevokeAsync(cancellationToken).ConfigureAwait(false);
+            await _cleanup.Task.ConfigureAwait(false);
+        }
         public ValueTask DisposeAsync() => _inner.DisposeAsync();
 
         private static TaskCompletionSource<bool> NewSignal() =>

@@ -5,8 +5,9 @@ lifecycle_state: verified · disposition: none · depth: decision-heavy · base:
 ## Status
 
 VERIFIED — Slice A protocol and Q21–Q23 decision-channel migration are complete;
-F1–F4 review fixes are verified; the formal Product transport is DSH-opened
-channel with Kernel semantic attachment.
+F1–F5 review fixes are verified; the formal Product transport is DSH-opened
+channel with Kernel semantic attachment. F5 freezes Attach, AbortCurrentTurn, and
+Revoke as bounded, cancelable, and fail-closed realization controls.
 Luna mechanical completion was reviewed by Sol.
 Model E2E remains blocked by the local environment: no DSH executable or
 `DEEPSEEK_API_KEY` is available, and the free-model smoke attempt through
@@ -25,6 +26,10 @@ AGT-001 and RUN-005 remain closed and unchanged.
   no runtime fallback to stdio is allowed.
 - 2026-09-25 · Kernel creates and pushes `DecisionRequest`; DSH returns `AgentDecision` via
   `submit_decision`. Q1–Q23 architecture grill reached shared understanding.
+- 2026-09-25 · F5 · Attach owns a shared internal timeout/cancellation source while
+  waiter cancellation remains local; adapter revoke fences the attachment epoch before
+  bounded physical cleanup; abort acknowledgement is awaited through a realization-level
+  deadline and late work is quarantined.
 
 ## Verification
 
@@ -36,14 +41,14 @@ verification:
     dotnet test tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj --no-restore
     dotnet test UniClaw.Kernel.slnx --no-restore
   expected: |
-    focused F1–F4 suite: 71 passed, 0 failed
-    Agent.Dsh suite: 87 passed, 0 failed
-    full solution: 847 passed, 0 failed
+    focused F1–F5 suite: 74 passed, 0 failed
+    Agent.Dsh suite: 90 passed, 0 failed
+    full solution: 850 passed, 0 failed
     only the existing NU1900 vulnerability-cache permission warning remains
   actual: |
-    focused F1–F4 suite: 71 passed, 0 failed
-    Agent.Dsh suite: 87 passed, 0 failed
-    full solution: 847 passed, 0 failed
+    focused F1–F5 suite: 74 passed, 0 failed
+    Agent.Dsh suite: 90 passed, 0 failed
+    full solution: 850 passed, 0 failed
     only the existing NU1900 vulnerability-cache permission warning remains
   evidence: |
     Command output from all three commands above reports zero failed tests and the
@@ -95,3 +100,11 @@ verification:
 - 2026-09-25 · VERIFY · Focused F1–F4 suite 71/71, full Agent.Dsh suite 87/87,
   and full solution 847/847 passed; only the existing NU1900 cache permission
   warning remains.
+- 2026-09-25 · IMPLEMENT · F5 bounded control-plane realization: physical attach
+  now uses a real shared CTS with timeout and fenced late completion; adapter attach
+  no longer holds a gate across handshake, so semantic revoke proceeds immediately;
+  abort acknowledgement and revoke cleanup are bounded with diagnostics and late
+  operation observation. Added deterministic A1–A5 coverage.
+- 2026-09-25 · VERIFY · Focused F1–F5 suite 74/74, full Agent.Dsh suite 90/90,
+  and full solution 850/850 passed; only the existing NU1900 cache permission
+  warning remains. AGT-002 F5 is complete with no upstream design conflict.

@@ -11,13 +11,16 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
 {
     private readonly IDecisionChannel _channel;
     private readonly TimeSpan _turnTimeout;
+    private readonly TimeSpan _attachTimeout;
+    private readonly TimeSpan _abortTimeout;
+    private readonly TimeSpan _revokeTimeout;
     private readonly object _gate = new();
     private readonly List<DshDiagnostic> _diagnostics = new();
-    private readonly SemaphoreSlim _attachmentGate = new(1, 1);
     private readonly HashSet<string> _retiredRequests = new(StringComparer.Ordinal);
     private readonly HashSet<string> _completedRequests = new(StringComparer.Ordinal);
     private bool _handshakeValidated;
     private long _attachmentEpoch;
+    private bool _revocationInProgress;
     private bool _disposed;
     private bool _active;
     private long _generation;
@@ -39,7 +42,10 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
         IDecisionChannel channel,
         string productSessionId,
         string productRunId,
-        TimeSpan? turnTimeout = null)
+        TimeSpan? turnTimeout = null,
+        TimeSpan? attachTimeout = null,
+        TimeSpan? abortTimeout = null,
+        TimeSpan? revokeTimeout = null)
     {
         _channel = channel ?? throw new ArgumentNullException(nameof(channel));
         ProductSessionId = Require(productSessionId, nameof(productSessionId));
@@ -47,6 +53,15 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
         _turnTimeout = turnTimeout ?? TimeSpan.FromSeconds(60);
         if (_turnTimeout <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(turnTimeout));
+        _attachTimeout = attachTimeout ?? TimeSpan.FromSeconds(30);
+        _abortTimeout = abortTimeout ?? TimeSpan.FromSeconds(30);
+        _revokeTimeout = revokeTimeout ?? TimeSpan.FromSeconds(30);
+        if (_attachTimeout <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(attachTimeout));
+        if (_abortTimeout <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(abortTimeout));
+        if (_revokeTimeout <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(revokeTimeout));
     }
 
     public string ProductSessionId { get; }
@@ -77,8 +92,20 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
             return null;
         }
 
+        long consultationEpoch;
+        lock (_gate)
+        {
+            if (_revocationInProgress)
+            {
+                AddDiagnosticLocked(new DshDiagnostic("attachment-revoked",
+                    "a Product consultation cannot start while realization revoke is in progress",
+                    DecisionId: context.DecisionId));
+                return null;
+            }
+            consultationEpoch = _attachmentEpoch;
+        }
         await WaitForPriorAbortAsync(cancellationToken).ConfigureAwait(false);
-        var attached = await EnsureAttachmentAsync(cancellationToken).ConfigureAwait(false);
+        var attached = await EnsureAttachmentAsync(cancellationToken, consultationEpoch).ConfigureAwait(false);
         if (!attached)
             return null;
 
@@ -91,6 +118,13 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
                 AddDiagnosticLocked(new DshDiagnostic("active-consultation-exists",
                     "a Product Run may have at most one active DSH consultation",
                     _activeRequestId, _generation, context.DecisionId));
+                return null;
+            }
+            if (!_handshakeValidated || _attachmentEpoch != consultationEpoch || _disposed)
+            {
+                AddDiagnosticLocked(new DshDiagnostic("attachment-revoked",
+                    "the realization attachment was revoked before the consultation started",
+                    DecisionId: context.DecisionId));
                 return null;
             }
 
@@ -200,52 +234,65 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
     public async Task RevokeAttachmentAsync(CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        await _attachmentGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        // Install the semantic fence before touching any physical cleanup. A
+        // concurrent attach therefore cannot make a new Product request valid.
+        lock (_gate)
+        {
+            _attachmentEpoch++;
+            _handshakeValidated = false;
+            DshSessionId = null;
+            _revocationInProgress = true;
+        }
+
         try
+        {
+            await AbortCurrentTurnAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            AddDiagnostic(new DshDiagnostic("revoke-wait-cancelled",
+                "revoke caller stopped waiting after the semantic fence was installed"));
+        }
+
+        try
+        {
+            await AwaitBoundedControlAsync(
+                token => _channel.RevokeAsync(token), _revokeTimeout, "revoke", cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            AddDiagnostic(new DshDiagnostic("revoke-wait-cancelled",
+                "revoke caller stopped waiting after the semantic fence was installed"));
+        }
+        finally
         {
             lock (_gate)
             {
                 _attachmentEpoch++;
                 _handshakeValidated = false;
                 DshSessionId = null;
-            }
-            try
-            {
-                await AbortCurrentTurnAsync(cancellationToken).ConfigureAwait(false);
-                await _channel.RevokeAsync(cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                // A consult may have entered the old attachment window while
-                // the channel revoke was in flight. Fence that late result.
-                lock (_gate)
-                {
-                    _attachmentEpoch++;
-                    _handshakeValidated = false;
-                    DshSessionId = null;
-                }
-            }
-            lock (_gate)
-            {
+                _revocationInProgress = false;
                 AddDiagnosticLocked(new DshDiagnostic(
                     "attachment-revoked",
                     "DSH realization attachment was revoked; Product Run remains Kernel-owned"));
             }
         }
-        finally
-        {
-            _attachmentGate.Release();
-        }
     }
 
-    private async Task<bool> EnsureAttachmentAsync(CancellationToken cancellationToken)
+    private async Task<bool> EnsureAttachmentAsync(
+        CancellationToken cancellationToken,
+        long expectedAttachmentEpoch)
     {
-        await _attachmentGate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            long attachmentEpoch;
+        using var attachWaitCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        attachWaitCancellation.CancelAfter(_attachTimeout);
+        long attachmentEpoch;
             lock (_gate)
             {
+                if (_attachmentEpoch != expectedAttachmentEpoch)
+                    return false;
+                if (_revocationInProgress)
+                    return false;
                 if (_handshakeValidated) return true;
                 attachmentEpoch = _attachmentEpoch;
             }
@@ -254,8 +301,17 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
             DecisionChannelAttachment attachment;
             try
             {
-                attachment = await _channel.AttachAsync(request, cancellationToken)
+                attachment = await _channel.AttachAsync(request, attachWaitCancellation.Token)
                     .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (attachWaitCancellation.IsCancellationRequested)
+            {
+                AddDiagnostic(new DshDiagnostic(
+                    cancellationToken.IsCancellationRequested ? "attachment-cancelled" : "attachment-timeout",
+                    cancellationToken.IsCancellationRequested
+                        ? "the attach waiter was cancelled"
+                        : "the realization attach deadline elapsed"));
+                return false;
             }
             catch (Exception ex)
             {
@@ -265,23 +321,22 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
 
             if (!attachment.Accepted)
             {
-                AddDiagnostic(new DshDiagnostic("handshake-rejected",
+                var code = string.Equals(attachment.FailureReason, "handshake-timeout",
+                    StringComparison.Ordinal) ? "attachment-timeout" : "handshake-rejected";
+                AddDiagnostic(new DshDiagnostic(code,
                     attachment.FailureReason ?? "channel attachment rejected"));
                 return false;
             }
             lock (_gate)
             {
-                if (_attachmentEpoch != attachmentEpoch || _disposed)
+                if (_attachmentEpoch != attachmentEpoch
+                    || _attachmentEpoch != expectedAttachmentEpoch
+                    || _disposed)
                     return false;
                 _handshakeValidated = true;
                 DshSessionId = attachment.DshSessionId;
             }
-            return true;
-        }
-        finally
-        {
-            _attachmentGate.Release();
-        }
+        return true;
     }
 
     private AgentDecision? AcceptTransportResponse(DecisionRequest request,
@@ -368,8 +423,58 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
 
     private async Task ObserveAbortAsync()
     {
-        try { await _channel.AbortCurrentTurnAsync(CancellationToken.None).ConfigureAwait(false); }
-        catch (Exception ex) { AddDiagnostic(new DshDiagnostic("abort-transport-error", ex.Message)); }
+        using var abortCancellation = new CancellationTokenSource(_abortTimeout);
+        Task? operation = null;
+        try
+        {
+            operation = _channel.AbortCurrentTurnAsync(abortCancellation.Token);
+            await operation.WaitAsync(abortCancellation.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (abortCancellation.IsCancellationRequested)
+        {
+            AddDiagnostic(new DshDiagnostic("abort-timeout",
+                "the realization did not acknowledge AbortCurrentTurn before its deadline"));
+            if (operation is { IsCompleted: false })
+                _ = ObserveDetachedOperationAsync(operation);
+        }
+        catch (Exception ex)
+        {
+            AddDiagnostic(new DshDiagnostic("abort-transport-error", ex.Message));
+        }
+    }
+
+    private async Task AwaitBoundedControlAsync(
+        Func<CancellationToken, Task> operationFactory,
+        TimeSpan timeout,
+        string operationName,
+        CancellationToken externalCancellation)
+    {
+        using var timeoutCancellation = CancellationTokenSource.CreateLinkedTokenSource(externalCancellation);
+        timeoutCancellation.CancelAfter(timeout);
+        Task? operation = null;
+        try
+        {
+            operation = operationFactory(timeoutCancellation.Token);
+            await operation.WaitAsync(timeoutCancellation.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (timeoutCancellation.IsCancellationRequested)
+        {
+            var code = externalCancellation.IsCancellationRequested
+                ? operationName + "-cancelled"
+                : operationName + "-timeout";
+            AddDiagnostic(new DshDiagnostic(code,
+                externalCancellation.IsCancellationRequested
+                    ? $"the caller stopped waiting for realization {operationName}"
+                    : $"the realization {operationName} did not complete before its deadline"));
+            if (operation is { IsCompleted: false })
+                _ = ObserveDetachedOperationAsync(operation);
+        }
+    }
+
+    private static async Task ObserveDetachedOperationAsync(Task operation)
+    {
+        try { await operation.ConfigureAwait(false); }
+        catch { }
     }
 
     private async Task AwaitAbortAsync(TurnState turn)
