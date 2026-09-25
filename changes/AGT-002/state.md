@@ -4,9 +4,9 @@ lifecycle_state: implementing · review_state: passed · disposition: accepted �
 
 ## Status
 
-IMPLEMENTING — Slice A protocol and the test-side transport realization are complete;
-the formal Product transport disposition is now DSH-opened channel with Kernel semantic
-attachment. Luna mechanical completion was reviewed by Sol.
+IMPLEMENTING — Slice A protocol and Q21–Q23 decision-channel migration are complete;
+the formal Product transport is DSH-opened channel with Kernel semantic attachment.
+Luna mechanical completion was reviewed by Sol.
 Model E2E remains blocked by the local environment: no DSH executable or
 `DEEPSEEK_API_KEY` is available, and the free-model smoke attempt through
 `opencode` failed before a model response (`Unexpected server error`).
@@ -32,8 +32,9 @@ verification:
   level: DETERMINISTIC
   method: dotnet test tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj --no-restore
   expected: malformed payloads, unknown capability, duplicate normalization, stale generation and generated artifacts are covered
-  actual: 21 passed, 0 failed; schema JSON and d.ts match ProductProtocolSchemaGenerator output
-  evidence: tests/UniClaw.Agent.Dsh.Tests/ProtocolFoundationTests.cs; tests/UniClaw.Agent.Dsh.Tests/AdapterLifecycleTests.cs
+  actual: 66 passed, 0 failed; schema JSON and d.ts match ProductProtocolSchemaGenerator output;
+    full solution 826 passed, 0 failed
+  evidence: tests/UniClaw.Agent.Dsh.Tests/ProtocolFoundationTests.cs; tests/UniClaw.Agent.Dsh.Tests/AdapterLifecycleTests.cs; tests/UniClaw.Agent.Dsh.Tests/DecisionChannelConformanceTests.cs; tests/UniClaw.Agent.Dsh.Tests/DecisionChannelClosureTests.cs
 ```
 
 ## Status log
@@ -55,3 +56,8 @@ verification:
 - 2026-09-25 · DISPOSITION · Q1–Q23 frozen: DSH-backed UniAgent Product Realization,
   DSH-opened physical channel, Kernel semantic attachment/revocation, test-only stdio,
   shared parameterized conformance suite, and no runtime fallback.
+- 2026-09-25 · IMPLEMENT · Q21–Q23 migrated: `IDecisionChannel` and
+  `DshOpenedDecisionChannel` are the Product seam/path; stdio/fake/replay moved to test
+  fixtures; closure and parameterized conformance tests added.
+- 2026-09-25 · VERIFY · Focused Agent.Dsh suite 66/66 and full solution 826/826 passed;
+  only the existing NU1900 vulnerability-cache permission warning remains.

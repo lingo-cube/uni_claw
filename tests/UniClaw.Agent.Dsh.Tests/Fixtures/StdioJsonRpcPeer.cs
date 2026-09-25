@@ -2,7 +2,9 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace UniClaw.Agent.Dsh;
+using UniClaw.Agent.Dsh;
+
+namespace UniClaw.Agent.Dsh.Tests.Fixtures;
 
 public sealed record DshProcessOptions(
     string FileName,
@@ -13,7 +15,7 @@ public sealed record DshProcessOptions(
 /// <summary>Minimal line-delimited JSON-RPC client for a local headless sidecar. It
 /// deliberately knows only initialize/consult/abort_current_turn; Product policy and
 /// effect authority stay in the Kernel.</summary>
-public sealed class JsonRpcStdioTransport : IDshTransport
+public sealed class StdioJsonRpcPeer : IDshOpenedChannelPeer
 {
     private readonly DshProcessOptions _options;
     private readonly JsonSerializerOptions _json = ProductProtocolJson.CreateOptions();
@@ -24,7 +26,7 @@ public sealed class JsonRpcStdioTransport : IDshTransport
     private int _rpcId;
     private bool _disposed;
 
-    public JsonRpcStdioTransport(DshProcessOptions options)
+    public StdioJsonRpcPeer(DshProcessOptions options)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
         if (string.IsNullOrWhiteSpace(options.FileName))
@@ -39,12 +41,12 @@ public sealed class JsonRpcStdioTransport : IDshTransport
         return result ?? throw new InvalidOperationException("sidecar returned null handshake");
     }
 
-    public async Task<DshTransportResponse> ConsultAsync(ConsultationRequest request,
+    public async Task<DecisionChannelResponse> ReceiveDecisionRequestAsync(DecisionRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await SendAsync<DshTransportResponse>("consult", request, cancellationToken)
+        var result = await SendAsync<DecisionChannelResponse>("consult", request, cancellationToken)
             .ConfigureAwait(false);
-        return result ?? new DshTransportResponse(request.RequestId, request.Generation, null,
+        return result ?? new DecisionChannelResponse(request.RequestId, request.Generation, null,
             "sidecar returned null consultation");
     }
 
@@ -148,6 +150,6 @@ public sealed class JsonRpcStdioTransport : IDshTransport
 
     private void ThrowIfDisposed()
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(JsonRpcStdioTransport));
+        if (_disposed) throw new ObjectDisposedException(nameof(StdioJsonRpcPeer));
     }
 }

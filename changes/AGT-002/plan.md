@@ -23,8 +23,9 @@
 4. Move `StdioDecisionChannel`, fake, and replay realizations to tests/Harness. They must
    implement the same contract but must not enter the Product Host composition root or act
    as runtime fallback.
-5. Add a DSH Product profile/plugin skeleton under `platforms/dsh/` with the same handshake
-   and `submit_decision` allowlist; do not bind the formal path to port 3080.
+5. Keep the deterministic stdio JSON-RPC sidecar only under
+   `tests/UniClaw.Agent.Dsh.Tests/Fixtures/`; the formal Product path is the
+   DSH-opened channel and is not bound to port 3080.
 
 ## Coverage evidence
 
@@ -40,7 +41,7 @@
 ## Review and verification
 
 - Sol reviews every Luna-owned test/fixture/documentation change.
-- Sol review result: PASS. Focused DSH suite 21/21 and full solution suite 781/781
+- Sol review result: PASS. Focused DSH suite 66/66 and full solution suite 826/826
   are green; only the NuGet vulnerability-cache permission warning remains.
 - Run contract, deterministic, and scenario tests; record the four tuple in state.md.
 - Only after Slice A/B and Sol review, run free/local model E2E, then DeepSeek Flash E2E.

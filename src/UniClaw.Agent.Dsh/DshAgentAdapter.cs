@@ -3,13 +3,13 @@ using UniClaw.Kernel.Runtime;
 namespace UniClaw.Agent.Dsh;
 
 /// <summary>
-/// Product-side supervisor for a headless DSH realization. It owns only the
-/// realization lifecycle and transport guards. Kernel remains the owner of when a
-/// consultation is requested and what happens after a decision is returned.
+/// Product-side supervisor for a DSH realization. It owns only the realization
+/// lifecycle and decision-channel guards. Kernel remains the owner of when a
+/// DecisionRequest is created and what happens after a decision is returned.
 /// </summary>
 public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
 {
-    private readonly IDshTransport _transport;
+    private readonly IDecisionChannel _channel;
     private readonly TimeSpan _turnTimeout;
     private readonly object _gate = new();
     private readonly List<DshDiagnostic> _diagnostics = new();
@@ -25,12 +25,12 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
     private CancellationTokenSource? _activeCancellation;
 
     public DshAgentAdapter(
-        IDshTransport transport,
+        IDecisionChannel channel,
         string productSessionId,
         string productRunId,
         TimeSpan? turnTimeout = null)
     {
-        _transport = transport ?? throw new ArgumentNullException(nameof(transport));
+        _channel = channel ?? throw new ArgumentNullException(nameof(channel));
         ProductSessionId = Require(productSessionId, nameof(productSessionId));
         ProductRunId = Require(productRunId, nameof(productRunId));
         _turnTimeout = turnTimeout ?? TimeSpan.FromSeconds(60);
@@ -66,11 +66,11 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
             return null;
         }
 
-        var handshake = await EnsureHandshakeAsync(cancellationToken).ConfigureAwait(false);
-        if (!handshake)
+        var attached = await EnsureAttachmentAsync(cancellationToken).ConfigureAwait(false);
+        if (!attached)
             return null;
 
-        ConsultationRequest request;
+        DecisionRequest request;
         CancellationTokenSource turnCancellation;
         lock (_gate)
         {
@@ -91,14 +91,14 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
             turnCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             _activeCancellation = turnCancellation;
             SemanticConsultationsStarted++;
-            request = new ConsultationRequest(requestId, generation, ProductSessionId,
+            request = new DecisionRequest(requestId, generation, ProductSessionId,
                 ProductRunId, context);
         }
 
-        Task<DshTransportResponse> operation;
+        Task<DecisionChannelResponse> operation;
         try
         {
-            operation = _transport.ConsultAsync(request, turnCancellation.Token);
+            operation = _channel.PushAsync(request, turnCancellation.Token);
         }
         catch (Exception ex)
         {
@@ -170,43 +170,58 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
         _ = ObserveAbortAsync();
     }
 
-    private async Task<bool> EnsureHandshakeAsync(CancellationToken cancellationToken)
+    /// <summary>Revokes only this realization's semantic attachment. The Product
+    /// Run remains owned by Kernel and is not cancelled or terminated.</summary>
+    public async Task RevokeAttachmentAsync(CancellationToken cancellationToken = default)
+    {
+        ThrowIfDisposed();
+        AbortCurrentTurn();
+        await _channel.RevokeAsync(cancellationToken).ConfigureAwait(false);
+        lock (_gate)
+        {
+            _handshakeValidated = false;
+            AddDiagnosticLocked(new DshDiagnostic(
+                "attachment-revoked",
+                "DSH realization attachment was revoked; Product Run remains Kernel-owned"));
+        }
+    }
+
+    private async Task<bool> EnsureAttachmentAsync(CancellationToken cancellationToken)
     {
         lock (_gate)
         {
             if (_handshakeValidated) return true;
         }
 
-        HandshakeResponse response;
+        var request = ProductHandshake.CreateRequest(ProductSessionId, ProductRunId);
+        DecisionChannelAttachment attachment;
         try
         {
-            response = await _transport.HandshakeAsync(
-                ProductHandshake.CreateRequest(ProductSessionId, ProductRunId),
-                cancellationToken).ConfigureAwait(false);
+            attachment = await _channel.AttachAsync(request, cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            AddDiagnostic(new DshDiagnostic("handshake-failed", ex.Message));
+            AddDiagnostic(new DshDiagnostic("attachment-failed", ex.Message));
             return false;
         }
 
-        var request = ProductHandshake.CreateRequest(ProductSessionId, ProductRunId);
-        var validation = ProductHandshake.Validate(request, response);
-        if (!validation.Accepted)
+        if (!attachment.Accepted)
         {
-            AddDiagnostic(new DshDiagnostic("handshake-rejected", validation.FailureReason!));
+            AddDiagnostic(new DshDiagnostic("handshake-rejected",
+                attachment.FailureReason ?? "channel attachment rejected"));
             return false;
         }
         lock (_gate)
         {
             _handshakeValidated = true;
-            DshSessionId = response.DshSessionId;
+            DshSessionId = attachment.DshSessionId;
         }
         return true;
     }
 
-    private AgentDecision? AcceptTransportResponse(ConsultationRequest request,
-        DshTransportResponse response)
+    private AgentDecision? AcceptTransportResponse(DecisionRequest request,
+        DecisionChannelResponse response)
     {
         lock (_gate)
         {
@@ -263,8 +278,8 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
         }
     }
 
-    private async Task ObserveLateResponseAsync(Task<DshTransportResponse> operation,
-        ConsultationRequest request, CancellationTokenSource cancellation)
+    private async Task ObserveLateResponseAsync(Task<DecisionChannelResponse> operation,
+        DecisionRequest request, CancellationTokenSource cancellation)
     {
         try
         {
@@ -286,7 +301,7 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
     {
         try
         {
-            await _transport.AbortCurrentTurnAsync(CancellationToken.None).ConfigureAwait(false);
+            await _channel.AbortCurrentTurnAsync(CancellationToken.None).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -294,7 +309,7 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
         }
     }
 
-    private void CloseActive(ConsultationRequest request, string code, string message)
+    private void CloseActive(DecisionRequest request, string code, string message)
     {
         lock (_gate)
         {
@@ -306,12 +321,12 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
         }
     }
 
-    private void RetireActive(ConsultationRequest request, string code, string message)
+    private void RetireActive(DecisionRequest request, string code, string message)
     {
         lock (_gate) RetireActiveLocked(request, code, message);
     }
 
-    private void RetireActiveLocked(ConsultationRequest request, string code, string message)
+    private void RetireActiveLocked(DecisionRequest request, string code, string message)
     {
         _active = false;
         _retiredRequests.Add(request.RequestId);
@@ -333,7 +348,7 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
     {
         if (_disposed) return;
         AbortCurrentTurn();
-        _transport.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        _channel.DisposeAsync().AsTask().GetAwaiter().GetResult();
         _disposed = true;
     }
 
@@ -341,7 +356,7 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
     {
         if (_disposed) return;
         AbortCurrentTurn();
-        await _transport.DisposeAsync().ConfigureAwait(false);
+        await _channel.DisposeAsync().ConfigureAwait(false);
         _disposed = true;
     }
 

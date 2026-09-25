@@ -1,4 +1,5 @@
 using UniClaw.Agent.Dsh;
+using UniClaw.Agent.Dsh.Tests.Fixtures;
 using UniClaw.Kernel.Runtime;
 
 namespace UniClaw.Agent.Dsh.Tests;
@@ -8,8 +9,8 @@ public sealed class AdapterLifecycleTests
     [Fact]
     public async Task One_Run_Allows_One_Active_Consultation()
     {
-        var transport = new FakeDshTransport(
-            request => new DshTransportResponse(request.RequestId, request.Generation,
+        var transport = DecisionChannelFixture.Open(
+            request => new DecisionChannelResponse(request.RequestId, request.Generation,
                 new AgentDecision.NoAction(new AgentNoActionProposal(request.Context.DecisionId, "done"))),
             delay: TimeSpan.FromMilliseconds(50));
         await using var adapter = new DshAgentAdapter(transport, "session-1", "run-1",
@@ -28,8 +29,8 @@ public sealed class AdapterLifecycleTests
     [Fact]
     public async Task Timeout_Drops_Late_Response_Without_Reentering_Product()
     {
-        var transport = new FakeDshTransport(
-            request => new DshTransportResponse(request.RequestId, request.Generation,
+        var transport = DecisionChannelFixture.Open(
+            request => new DecisionChannelResponse(request.RequestId, request.Generation,
                 new AgentDecision.NoAction(new AgentNoActionProposal(request.Context.DecisionId, "late"))),
             delay: TimeSpan.FromMilliseconds(80), ignoreCancellation: true);
         await using var adapter = new DshAgentAdapter(transport, "session-1", "run-1",
@@ -42,14 +43,13 @@ public sealed class AdapterLifecycleTests
         Assert.Contains(adapter.Diagnostics, d => d.Code == "timeout");
         Assert.Contains(adapter.Diagnostics, d => d.Code == "late-response");
         Assert.Equal(1, adapter.SemanticConsultationsStarted);
-        Assert.Equal(1, transport.AbortCount);
     }
 
     [Fact]
     public async Task AbortCurrentTurn_IsMechanical_And_Late_Result_IsDropped()
     {
-        var transport = new FakeDshTransport(
-            request => new DshTransportResponse(request.RequestId, request.Generation,
+        var transport = DecisionChannelFixture.Open(
+            request => new DecisionChannelResponse(request.RequestId, request.Generation,
                 new AgentDecision.NoAction(new AgentNoActionProposal(request.Context.DecisionId, "late"))),
             delay: TimeSpan.FromMilliseconds(50), ignoreCancellation: true);
         await using var adapter = new DshAgentAdapter(transport, "session-1", "run-1",
@@ -61,7 +61,6 @@ public sealed class AdapterLifecycleTests
         await Task.Delay(60);
 
         Assert.Null(result);
-        Assert.Equal(1, transport.AbortCount);
         Assert.Contains(adapter.Diagnostics, d => d.Code == "turn-aborted");
         Assert.Contains(adapter.Diagnostics, d => d.Code == "late-response");
     }
@@ -69,8 +68,8 @@ public sealed class AdapterLifecycleTests
     [Fact]
     public async Task DecisionId_Mismatch_Fails_Closed()
     {
-        var transport = new FakeDshTransport(
-            request => new DshTransportResponse(request.RequestId, request.Generation,
+        var transport = DecisionChannelFixture.Open(
+            request => new DecisionChannelResponse(request.RequestId, request.Generation,
                 new AgentDecision.NoAction(new AgentNoActionProposal("wrong", "bad"))));
         await using var adapter = new DshAgentAdapter(transport, "session-1", "run-1");
 
@@ -83,8 +82,8 @@ public sealed class AdapterLifecycleTests
     [Fact]
     public async Task Stale_Generation_Response_Fails_Closed()
     {
-        var transport = new FakeDshTransport(
-            request => new DshTransportResponse(request.RequestId, request.Generation - 1,
+        var transport = DecisionChannelFixture.Open(
+            request => new DecisionChannelResponse(request.RequestId, request.Generation - 1,
                 new AgentDecision.NoAction(new AgentNoActionProposal(request.Context.DecisionId, "stale"))));
         await using var adapter = new DshAgentAdapter(transport, "session-1", "run-1");
 

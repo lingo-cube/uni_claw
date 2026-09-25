@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.IO;
 using UniClaw.Agent.Dsh;
+using UniClaw.Agent.Dsh.Tests.Fixtures;
 using UniClaw.Kernel.Runtime;
 
 namespace UniClaw.Agent.Dsh.Tests;
@@ -42,7 +43,7 @@ public sealed class ProtocolFoundationTests
         var decisionId = AgentDecisionCorrelation.TryGetDecisionId(expected)!;
         var json = JsonSerializer.Serialize(expected, ProductProtocolJson.CreateOptions());
         await using var adapter = new DshAgentAdapter(
-            new ReplayDshTransport(new Dictionary<string, string> { [decisionId] = json }),
+            DecisionChannelFixture.Replay(new Dictionary<string, string> { [decisionId] = json }),
             "product-session", "run-1");
 
         var actual = await adapter.ConsultAsync(Context(decisionId));

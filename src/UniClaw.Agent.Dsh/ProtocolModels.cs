@@ -64,22 +64,6 @@ public sealed record HandshakeResponse(
     string? DshSessionId,
     string? FailureReason = null);
 
-/// <summary>One Kernel consultation crossing the realization seam. RequestId and
-/// Generation are transport-only fields; DecisionId remains the only Product
-/// semantic correlation.</summary>
-public sealed record ConsultationRequest(
-    string RequestId,
-    long Generation,
-    string ProductSessionId,
-    string ProductRunId,
-    AgentDecisionContext Context);
-
-public sealed record DshTransportResponse(
-    string RequestId,
-    long Generation,
-    AgentDecision? Decision,
-    string? Error = null);
-
 public sealed record DshDiagnostic(
     string Code,
     string Message,
