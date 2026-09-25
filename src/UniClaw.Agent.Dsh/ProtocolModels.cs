@@ -13,14 +13,17 @@ public static class ProductProtocolVersions
     public const string SchemaVersion = "uniclaw.agent.schema.v1";
 }
 
-/// <summary>Version and generated-schema identity exchanged at startup.</summary>
+/// <summary>Version and generated-schema identity exchanged at startup.
+/// F1: all six fields are mandatory protocol fields — there are no defaults.
+/// A peer that omits any field produces a null/empty stamp member, which the
+/// handshake validator rejects as a malformed handshake (fail closed).</summary>
 public sealed record ProtocolStamp(
     string ProtocolVersion,
     string SchemaVersion,
     string SchemaHash,
-    string ProfileId = UniagentProdProfile.ProfileId,
-    string ProfileVersion = UniagentProdProfile.ProfileVersion,
-    string CapabilityManifestHash = "");
+    string ProfileId,
+    string ProfileVersion,
+    string CapabilityManifestHash);
 
 /// <summary>Capabilities exposed by a Product DSH profile. The Product profile is
 /// intentionally a small positive allowlist.</summary>
@@ -103,30 +106,22 @@ public sealed record ProductProfile(
 
 public sealed record DshServiceEndpoint(Uri BaseUri)
 {
-    public static DshServiceEndpoint LocalWeb { get; } =
-        new(new Uri("http://127.0.0.1:3080/"));
-
     public void Validate()
     {
         if (!BaseUri.IsAbsoluteUri)
             throw new ArgumentException("DSH service URI must be absolute", nameof(BaseUri));
+        if (BaseUri.Scheme != "http" && BaseUri.Scheme != "https")
+            throw new ArgumentException("DSH service URI must be http(s)", nameof(BaseUri));
     }
 }
 
 /// <summary>Provider/model selection is configuration only. Replacing this
-/// value cannot change the Product decision protocol or Kernel semantics.</summary>
+/// value cannot change the Product decision protocol or Kernel semantics.
+/// F2: there is no hardcoded model catalog in Product code — provider, name,
+/// and service endpoint come from the single runtime config source
+/// (<see cref="UniagentProdYaml"/>).</summary>
 public sealed record ModelConfiguration(string Provider, string Name)
 {
-    public static ModelConfiguration Free { get; } =
-        new("opencode-go", "space-bunny-free");
-
-    public static ModelConfiguration DeepSeekFlash { get; } =
-        new("opencode-go", "deepseek-flash");
-
-    // Compatibility alias for callers that used the earlier local smoke name.
-    public static ModelConfiguration Local { get; } =
-        Free;
-
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(Provider)) throw new ArgumentException("provider is required", nameof(Provider));
@@ -137,13 +132,22 @@ public sealed record ModelConfiguration(string Provider, string Name)
 public sealed record UniagentProdConfiguration(
     ProductProfile Profile,
     ModelConfiguration Model,
-    DshServiceEndpoint Service)
+    DshServiceEndpoint Service,
+    string? SelectedModelKey = null)
 {
-    public static UniagentProdConfiguration Create(ModelConfiguration model)
+    /// <summary>Explicit construction for tests and fixtures. The composed
+    /// runtime loads its configuration from the single source
+    /// (<see cref="UniagentProdYaml.LoadDefault"/>), never from code constants.</summary>
+    public static UniagentProdConfiguration Create(
+        ModelConfiguration model,
+        DshServiceEndpoint service,
+        string? selectedModelKey = null)
     {
         ArgumentNullException.ThrowIfNull(model);
+        ArgumentNullException.ThrowIfNull(service);
         model.Validate();
-        return new(UniagentProdProfile.Current, model, DshServiceEndpoint.LocalWeb);
+        service.Validate();
+        return new(UniagentProdProfile.Current, model, service, selectedModelKey);
     }
 }
 

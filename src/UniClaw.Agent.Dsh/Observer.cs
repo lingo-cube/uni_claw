@@ -1,7 +1,14 @@
 namespace UniClaw.Agent.Dsh;
 
-/// <summary>Origin of an observer event. ProductTrace is canonical Product
-/// evidence; DshTrajectory and DshDiagnostic are realization evidence only.</summary>
+/// <summary>
+/// F3 (authority wording): Product truth is the canonical owner records and
+/// the RuntimeOutcome envelope. Product Trace is a Product-owned
+/// <b>diagnostic projection</b> over that truth — it is not itself canonical
+/// evidence. DSH trajectory and diagnostics are realization-owned diagnostic
+/// projections. The observer only unifies the display of these two projection
+/// families; it never participates in recovery, Run/World reconstruction, or
+/// outcome authority.
+/// </summary>
 public enum ObserverEvidenceSource
 {
     ProductTrace,
@@ -9,6 +16,13 @@ public enum ObserverEvidenceSource
     DshDiagnostic,
 }
 
+/// <summary>
+/// One observer timeline event. The optional correlation fields (F4) —
+/// DecisionId, Generation, PolicyId — exist only to correlate timeline rows
+/// with Product Session / Run / Decision / transport generation / Policy.
+/// They carry no authority: the unified timeline is a read model over
+/// Product-owned and realization-owned diagnostic projections.
+/// </summary>
 public sealed record ObserverEvent(
     DateTimeOffset At,
     ObserverEvidenceSource Source,
@@ -16,7 +30,10 @@ public sealed record ObserverEvent(
     string Message,
     string? ProductSessionId = null,
     string? DshSessionId = null,
-    string? RunId = null);
+    string? RunId = null,
+    string? DecisionId = null,
+    long? Generation = null,
+    string? PolicyId = null);
 
 /// <summary>Input projection assembled from existing Product and realization
 /// evidence. It is a read model and owns no mutable runtime state.</summary>

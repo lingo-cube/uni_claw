@@ -29,6 +29,17 @@ public static class ProductHandshake
     {
         ArgumentNullException.ThrowIfNull(expected);
         ArgumentNullException.ThrowIfNull(reported);
+
+        // F1: identity fields are mandatory protocol fields. A stamp that is
+        // missing any of the six fields is a malformed handshake: fail closed
+        // before any other comparison, and refuse the attachment.
+        var expectedStampFailure = RequireStampFields(expected.Protocol, "expected");
+        if (expectedStampFailure is not null)
+            return HandshakeValidation.Reject(expectedStampFailure);
+        var reportedStampFailure = RequireStampFields(reported.Protocol, "reported");
+        if (reportedStampFailure is not null)
+            return HandshakeValidation.Reject(reportedStampFailure);
+
         if (!reported.Accepted)
             return HandshakeValidation.Reject(reported.FailureReason ?? "sidecar rejected handshake");
         if (!string.Equals(expected.Protocol.ProtocolVersion, reported.Protocol.ProtocolVersion,
@@ -66,4 +77,22 @@ public static class ProductHandshake
             return HandshakeValidation.Reject("dsh-session-id-missing");
         return HandshakeValidation.Accept();
     }
+
+    /// <summary>F1: every protocol stamp field must be present. Missing
+    /// profileId / profileVersion / capabilityManifestHash (or any other
+    /// stamp member) is a malformed handshake.</summary>
+    private static string? RequireStampFields(ProtocolStamp stamp, string origin) =>
+        string.IsNullOrWhiteSpace(stamp.ProtocolVersion)
+            ? $"handshake-field-missing:{origin}:protocolVersion"
+        : string.IsNullOrWhiteSpace(stamp.SchemaVersion)
+            ? $"handshake-field-missing:{origin}:schemaVersion"
+        : string.IsNullOrWhiteSpace(stamp.SchemaHash)
+            ? $"handshake-field-missing:{origin}:schemaHash"
+        : string.IsNullOrWhiteSpace(stamp.ProfileId)
+            ? $"handshake-field-missing:{origin}:profileId"
+        : string.IsNullOrWhiteSpace(stamp.ProfileVersion)
+            ? $"handshake-field-missing:{origin}:profileVersion"
+        : string.IsNullOrWhiteSpace(stamp.CapabilityManifestHash)
+            ? $"handshake-field-missing:{origin}:capabilityManifestHash"
+        : null;
 }

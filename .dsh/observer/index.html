@@ -32,6 +32,14 @@
   const esc = value => String(value ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   document.querySelector('#summary').innerHTML = fields.map(([label,key]) =>
     `<div><dt>${esc(label)}</dt><dd>${esc(typeof p[key] === 'object' ? `${p[key]?.provider ?? ''}/${p[key]?.name ?? ''}` : p[key])}</dd></div>`).join('');
-  document.querySelector('#timeline').innerHTML = (p.timeline ?? []).map(e =>
-    `<li><span class="source">${esc(e.source)} · ${esc(e.stage)}</span> ${esc(e.message)}</li>`).join('') || '<li>暂无 trace</li>';
+  document.querySelector('#timeline').innerHTML = (p.timeline ?? []).map(e => {
+    // F4 correlation markers: decisionId / generation / policyId are display-only
+    // correlation over Product-owned and realization-owned diagnostic projections.
+    const corr = [
+      e.decisionId ? `decision ${esc(e.decisionId)}` : '',
+      e.generation != null ? `gen ${esc(e.generation)}` : '',
+      e.policyId ? `policy ${esc(e.policyId)}` : ''
+    ].filter(Boolean).join(' · ');
+    return `<li><span class="source">${esc(e.source)} · ${esc(e.stage)}${corr ? ' · ' + corr : ''}</span> ${esc(e.message)}</li>`;
+  }).join('') || '<li>暂无 trace</li>';
 </script>
