@@ -3,17 +3,19 @@
 ## Intent
 
 实现 AGT-001 冻结的 DSH Product UniAgent realization：`.NET` 产品协议记录是唯一
-authority，DSH 只能通过版本化 sidecar seam 提交一个结构化 `AgentDecision`。
+authority，DSH 只能通过版本化 decision-channel seam 提交一个结构化 `AgentDecision`。
 
 ## Scope
 
 - Slice A：协议元数据、由 `.NET` records 生成的 JSON Schema、schema hash、capability
   manifest、adapter handshake、fake/replay provider，以及 Act/Policy/NoAction/Defer
   roundtrip。
-- Slice B：local stdio sidecar skeleton、Product Session 与 DSH Session 显式映射、
-  一次 consultation 对应一个 turn、`submit_decision` 唯一正式输出面、DecisionId
-  校验、transport generation/request-id、AbortCurrentTurn、timeout、late/stale/
-  duplicate response 丢弃，以及每个 Run 至多一个 active consultation。
+- Slice B：DSH-backed UniAgent 主动建立 physical channel，Kernel 管理 semantic
+  attachment；Product Session 与 DSH Session 显式映射，一次 `DecisionRequest` 对应
+  一个 turn，`submit_decision` 是唯一正式模型输出面，包含 DecisionId 校验、transport
+  generation/request-id、AbortCurrentTurn、timeout、late/stale/duplicate response
+  丢弃，以及每个 Run 至多一个 active DecisionRequest。stdio 只保留为 test/fake/replay
+  realization，不进入 Product Host composition root。
 - Slice C：Luna 机械测试、fixtures、文档同步；由 Sol review 后才算完成。
 
 ## Out of scope
@@ -23,6 +25,8 @@ authority，DSH 只能通过版本化 sidecar seam 提交一个结构化 `AgentD
 - 新增 Product owner、durable consultation journal、跨进程 exactly-once、Agent
   continuation、Policy vocabulary 或 effect tool。
 - 真实 provider 权限扩大；DeepSeek Flash E2E 仅在协议闭合后进行。
+- Product Runtime 完整 Goal/Contract/Outcome/Evaluation realization；本 change 只实现
+  `DecisionRequest → AgentDecision` 垂直切片。
 
 ## Acceptance
 
@@ -47,4 +51,11 @@ authority，DSH 只能通过版本化 sidecar seam 提交一个结构化 `AgentD
   只属于 realization transport。
 - `AbortCurrentTurn` 只是机械中断，不拥有 Product cancel/preemption/lifecycle
   authority。
-- DSH sidecar headless-only，正式输出面只有 `submit_decision`。
+- DSH-backed UniAgent 是完整 Product Realization；Product Runtime / Kernel 仍拥有
+  Product Session、Goal、Contract、Run、Outcome、Evaluation 的 canonical authority。
+- 正式 Product path 只有 DSH-opened physical channel；Kernel 批准、绑定并可撤销 semantic
+  attachment。Product 不反向发现或连接 DSH。
+- stdio / fake / replay 只属于 tests/Harness realization，不得进入 Product dependency
+  closure，不得作为真实 channel 失败后的 runtime fallback。
+- 所有 channel realization 共用同一个 decision-channel contract 与 parameterized
+  conformance suite；trajectory、trace、progress 和 diagnostic 只能是非权威 evidence。

@@ -1,10 +1,12 @@
 # AGT-002 — DeepSeek Harness Realization
 
-lifecycle_state: implementing · review_state: passed · disposition: none · depth: decision-heavy · base: 04dd6457
+lifecycle_state: implementing · review_state: passed · disposition: accepted · depth: decision-heavy · base: 04dd6457
 
 ## Status
 
-IMPLEMENTING — Slice A/B complete and Luna mechanical completion reviewed by Sol.
+IMPLEMENTING — Slice A protocol and the test-side transport realization are complete;
+the formal Product transport disposition is now DSH-opened channel with Kernel semantic
+attachment. Luna mechanical completion was reviewed by Sol.
 Model E2E remains blocked by the local environment: no DSH executable or
 `DEEPSEEK_API_KEY` is available, and the free-model smoke attempt through
 `opencode` failed before a model response (`Unexpected server error`).
@@ -14,8 +16,14 @@ AGT-001 and RUN-005 remain closed and unchanged.
 
 - 2026-09-25 · `.NET` existing Kernel protocol records remain the Product protocol
   authority; the DSH project is an adapter/transport consumer, not a second protocol owner.
-- 2026-09-25 · Product sidecar is local stdio JSON-RPC with a minimal headless manifest;
-  actual DeepSeek provider wiring is deferred until conformance is green.
+- 2026-09-25 · DSH-backed UniAgent is the Product Realization; Product Runtime/Kernel
+  remains canonical authority. DSH opens the physical decision channel; Kernel registers
+  and may revoke the semantic attachment.
+- 2026-09-25 · stdio/fake/replay channels are test/Harness realizations only. They implement
+  the same decision-channel contract and are not reachable from the Product composition root;
+  no runtime fallback to stdio is allowed.
+- 2026-09-25 · Kernel creates and pushes `DecisionRequest`; DSH returns `AgentDecision` via
+  `submit_decision`. Q1–Q23 architecture grill reached shared understanding.
 
 ## Verification
 
@@ -43,3 +51,7 @@ verification:
 - 2026-09-25 · VERIFY · Free/local model smoke was attempted through the
   available `opencode` client but failed before model output; DeepSeek Flash
   E2E is not runnable because no DSH executable or provider credential is present.
+
+- 2026-09-25 · DISPOSITION · Q1–Q23 frozen: DSH-backed UniAgent Product Realization,
+  DSH-opened physical channel, Kernel semantic attachment/revocation, test-only stdio,
+  shared parameterized conformance suite, and no runtime fallback.
