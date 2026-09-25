@@ -17,6 +17,12 @@ authority，DSH 只能通过版本化 decision-channel seam 提交一个结构�
   丢弃，以及每个 Run 至多一个 active DecisionRequest。stdio 只保留为 test/fake/replay
   realization，不进入 Product Host composition root。
 - Slice C：Luna 机械测试、fixtures、文档同步；由 Sol review 后才算完成。
+- Slice D：`uniagent-prod` profile 与 model configuration 分离；startup handshake
+  额外校验 profileId、profileVersion、capabilityManifestHash；提供只读
+  `uniclaw-observer` projection/workspace 和 Act/Policy/NoAction/Defer、abort/late
+  response 的人可读 evidence。Observer 不拥有 Product 或 Agent authority，断开不
+  影响 Product Run。真实 bring-up 使用本机 DSH service `127.0.0.1:3080`；模型
+  由 OpenCode 选择 `opencode-go/space-bunny-free` 或 `opencode-go/deepseek-flash`。
 
 ## Out of scope
 
@@ -27,6 +33,7 @@ authority，DSH 只能通过版本化 decision-channel seam 提交一个结构�
 - 真实 provider 权限扩大；DeepSeek Flash E2E 仅在协议闭合后进行。
 - Product Runtime 完整 Goal/Contract/Outcome/Evaluation realization；本 change 只实现
   `DecisionRequest → AgentDecision` 垂直切片。
+- 完整正式 Product UI、Observer command 操作面、XML hierarchy / UI dump、模型排行。
 
 ## Acceptance
 
@@ -59,3 +66,6 @@ authority，DSH 只能通过版本化 decision-channel seam 提交一个结构�
   closure，不得作为真实 channel 失败后的 runtime fallback。
 - 所有 channel realization 共用同一个 decision-channel contract 与 parameterized
   conformance suite；trajectory、trace、progress 和 diagnostic 只能是非权威 evidence。
+- Profile 只定义 capability surface；provider/model 只定义 reasoning implementation。
+  两者切换不得改变 AgentDecisionContext、AgentDecision、Kernel 或 Decision Channel
+  语义。Observer 只能读取统一 projection；未来命令必须经 Product Command API。

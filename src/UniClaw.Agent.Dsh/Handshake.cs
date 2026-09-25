@@ -14,7 +14,10 @@ public static class ProductHandshake
         ArgumentException.ThrowIfNullOrWhiteSpace(productRunId);
         var schema = ProductProtocolSchema.Current;
         return new HandshakeRequest(
-            new ProtocolStamp(schema.ProtocolVersion, schema.SchemaVersion, schema.SchemaHash),
+            new ProtocolStamp(schema.ProtocolVersion, schema.SchemaVersion, schema.SchemaHash,
+                UniagentProdProfile.ProfileId,
+                UniagentProdProfile.ProfileVersion,
+                CapabilityManifest.ProductHeadless.ManifestHash),
             CapabilityManifest.ProductHeadless,
             productSessionId,
             productRunId);
@@ -37,6 +40,12 @@ public static class ProductHandshake
         if (!string.Equals(expected.Protocol.SchemaHash, reported.Protocol.SchemaHash,
                 StringComparison.Ordinal))
             return HandshakeValidation.Reject("schema-hash-mismatch");
+        if (!string.Equals(expected.Protocol.ProfileId, reported.Protocol.ProfileId,
+                StringComparison.Ordinal))
+            return HandshakeValidation.Reject("profile-id-mismatch");
+        if (!string.Equals(expected.Protocol.ProfileVersion, reported.Protocol.ProfileVersion,
+                StringComparison.Ordinal))
+            return HandshakeValidation.Reject("profile-version-mismatch");
 
         if (expected.ExpectedCapabilities.HasDuplicates || reported.ReportedCapabilities.HasDuplicates)
             return HandshakeValidation.Reject("capability-manifest-duplicate");
@@ -45,6 +54,9 @@ public static class ProductHandshake
         var reportedCapabilities = reported.ReportedCapabilities.NormalizedCapabilities;
         if (!expectedCapabilities.SequenceEqual(reportedCapabilities, StringComparer.Ordinal))
             return HandshakeValidation.Reject("capability-manifest-mismatch");
+        if (!string.Equals(expected.Protocol.CapabilityManifestHash,
+                reported.Protocol.CapabilityManifestHash, StringComparison.Ordinal))
+            return HandshakeValidation.Reject("capability-manifest-hash-mismatch");
         if (reportedCapabilities.Any(ProductCapabilities.ForbiddenProductCapabilities.Contains))
             return HandshakeValidation.Reject("forbidden-capability-reported");
         if (!reportedCapabilities.Contains(ProductCapabilities.SubmitDecision,

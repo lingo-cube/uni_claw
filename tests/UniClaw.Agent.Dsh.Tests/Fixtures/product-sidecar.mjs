@@ -9,6 +9,9 @@ import readline from 'node:readline';
 const protocolVersion = 'uniclaw.agent.protocol.v1';
 const schemaVersion = 'uniclaw.agent.schema.v1';
 const schemaHash = process.env.UNICLAW_SCHEMA_HASH ?? '';
+const profileId = 'uniagent-prod';
+const profileVersion = '1';
+const capabilityManifestHash = 'ba8855e41db09771081a7d217850bf99e263ddd84b30d5d076e4df245e1fd637';
 const capabilities = ['submit_decision'];
 const sessionId = process.env.DSH_SESSION_ID ?? `dsh-sidecar-${process.pid}`;
 const replay = process.env.DSH_REPLAY_FILE && fs.existsSync(process.env.DSH_REPLAY_FILE)
@@ -34,7 +37,7 @@ rl.on('line', (line) => {
         === JSON.stringify(capabilities);
     output(id, {
       accepted,
-      protocol: { protocolVersion, schemaVersion, schemaHash },
+      protocol: { protocolVersion, schemaVersion, schemaHash, profileId, profileVersion, capabilityManifestHash },
       reportedCapabilities: { capabilities },
       dshSessionId: sessionId,
       failureReason: accepted ? null : 'sidecar-handshake-mismatch',

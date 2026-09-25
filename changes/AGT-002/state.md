@@ -9,10 +9,23 @@ F1–F5 review fixes are verified; the formal Product transport is DSH-opened
 channel with Kernel semantic attachment. F5 freezes Attach, AbortCurrentTurn, and
 Revoke as bounded, cancelable, and fail-closed realization controls.
 Luna mechanical completion was reviewed by Sol.
-Model E2E remains blocked by the local environment: no DSH executable or
-`DEEPSEEK_API_KEY` is available, and the free-model smoke attempt through
-`opencode` failed before a model response (`Unexpected server error`).
+Model E2E is not yet closed. The local DSH web service is listening on
+`127.0.0.1:3080` and returns its expected authentication challenge; the existing
+Product decision-channel adapter is not yet wired to that service's authenticated
+API. OpenCode exposes the selectable `opencode-go/space-bunny-free` and
+`opencode-go/deepseek-flash` model identities for the bring-up. Shell-level
+OpenCode credentials are not present, so no real model response was produced by
+the previous command-line smoke attempt.
 AGT-001 and RUN-005 remain closed and unchanged.
+
+The AGT-002 bring-up slice now also contains the `uniagent-prod` profile/model
+separation and a read-only `uniclaw-observer` projection. Observer data is a
+timeline over Product Trace plus non-authoritative DSH trajectory/diagnostic
+evidence; it has no Product command or DSH mutation surface and remains
+disconnect-safe. The minimal human-facing surface is `.dsh/observer/index.html`;
+its only input is an injected projection snapshot. Human-readable
+Act/Policy/NoAction/Defer and abort/late-response demo evidence is recorded in
+`evidence/agt-002-observer-demo.md`.
 
 ## Decisions
 
@@ -42,19 +55,20 @@ verification:
     dotnet test UniClaw.Kernel.slnx --no-restore
   expected: |
     focused F1–F5 suite: 74 passed, 0 failed
-    Agent.Dsh suite: 90 passed, 0 failed
-    full solution: 850 passed, 0 failed
+    Agent.Dsh suite: 94 passed, 0 failed
+    full solution: 854 passed, 0 failed
     only the existing NU1900 vulnerability-cache permission warning remains
   actual: |
     focused F1–F5 suite: 74 passed, 0 failed
-    Agent.Dsh suite: 90 passed, 0 failed
-    full solution: 850 passed, 0 failed
+    Agent.Dsh suite: 94 passed, 0 failed
+    full solution: 854 passed, 0 failed
     only the existing NU1900 vulnerability-cache permission warning remains
   evidence: |
     Command output from all three commands above reports zero failed tests and the
-    stated pass counts. F1–F4 regressions are covered by ProtocolFoundationTests.cs,
+    stated pass counts. F1–F5 regressions are covered by ProtocolFoundationTests.cs,
     AdapterLifecycleTests.cs, DecisionChannelConformanceTests.cs, and
-    DecisionChannelClosureTests.cs; the full solution command also covers the
+    DecisionChannelClosureTests.cs; Slice D profile/Observer coverage is in
+    ObserverProjectionTests.cs; the full solution command also covers the
     remaining test projects.
 ```
 
@@ -71,9 +85,10 @@ verification:
   rejection, timeout abort dispatch, strict nested union payload validation,
   generated SubmitDecision/Envelope declarations, and replay coverage; focused
   DSH tests 21/21 and full solution tests 781/781 passed. No upstream conflict.
-- 2026-09-25 · VERIFY · Free/local model smoke was attempted through the
-  available `opencode` client but failed before model output; DeepSeek Flash
-  E2E is not runnable because no DSH executable or provider credential is present.
+- 2026-09-25 · VERIFY · The DSH web service was confirmed listening on
+  `127.0.0.1:3080`; unauthenticated HTTP returns the service's expected 401
+  challenge. This is a service/UI endpoint, not yet evidence of the Product
+  `submit_decision` channel.
 
 - 2026-09-25 · DISPOSITION · Q1–Q23 frozen: DSH-backed UniAgent Product Realization,
   DSH-opened physical channel, Kernel semantic attachment/revocation, test-only stdio,
@@ -108,3 +123,19 @@ verification:
 - 2026-09-25 · VERIFY · Focused F1–F5 suite 74/74, full Agent.Dsh suite 90/90,
   and full solution 850/850 passed; only the existing NU1900 cache permission
   warning remains. AGT-002 F5 is complete with no upstream design conflict.
+- 2026-09-25 · IMPLEMENT · Added `uniagent-prod` profile metadata, capability
+  manifest hash in the startup handshake, independent model configuration, and
+  read-only Observer projection/workspace. Existing stdio fixture was updated to
+  report the frozen profile metadata; no Product fallback or authority surface
+  was added.
+- 2026-09-25 · REVIEW · Slice D reviewed against spec and repo boundaries: profileId,
+  profileVersion and capabilityManifestHash are enforced in `ProductHandshake.Validate`;
+  model selection stays a separate configuration record; `UnifiedObserverProjection`/
+  `ObserverWorkspace` and the static observer page expose read-only projections with no
+  command, DSH mutator or Product lifecycle method; the DSH service endpoint is
+  configuration only and the Product runtime path is still the DSH-opened channel with
+  no stdio/fake/replay fallback. PASS; no upstream architecture conflict.
+- 2026-09-25 · VERIFY · Agent.Dsh suite 94/94 and full solution suite 854/854
+  passed; only the existing NU1900 vulnerability-cache permission warning remains.
+  Real provider/model E2E remains `E2E BLOCKED` pending authenticated
+  Product-channel wiring and model response evidence.

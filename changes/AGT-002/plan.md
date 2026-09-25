@@ -27,6 +27,21 @@
    `tests/UniClaw.Agent.Dsh.Tests/Fixtures/`; the formal Product path is the
    DSH-opened channel and is not bound to port 3080.
 
+## Slice D — profile/model and Observer bring-up
+
+1. Freeze `uniagent-prod` profile identity and capability manifest hash in the
+   startup handshake; keep provider/model selection in independent configuration.
+2. Use the running DSH service at `127.0.0.1:3080` as the external realization
+   host and select the OpenCode model as `opencode-go/space-bunny-free` or
+   `opencode-go/deepseek-flash`; the selected model must remain outside Product
+   protocol and Kernel semantics.
+3. Build a read-only `uniclaw-observer` projection over Product Trace,
+   `AgentDecision` records, DSH trajectory, and diagnostics. It may correlate a
+   timeline but cannot mutate Product, DSH, Policy, or Effect state.
+4. Add deterministic human-readable evidence for Act, Policy, NoAction, Defer,
+   and abort/timeout/late-response behavior. Keep real provider E2E evidence
+   environment-gated.
+
 ## Coverage evidence
 
 - Protocol tests cover malformed union payloads, unknown capability rejection,
@@ -45,8 +60,12 @@
   are green; only the NuGet vulnerability-cache permission warning remains.
 - Run contract, deterministic, and scenario tests; record the four tuple in state.md.
 - Only after Slice A/B and Sol review, run free/local model E2E, then DeepSeek Flash E2E.
-  Both model E2E gates remain pending because this environment has no DSH executable
-  or provider credential; the available free-model client failed before a response.
+  Both model E2E gates remain pending until the authenticated `127.0.0.1:3080`
+  service path is wired to the Product decision channel and a model response is
+  captured.
+- Slice D is locally verified through the Agent.Dsh suite and full solution suite;
+  external model E2E remains blocked until the authenticated service path produces
+  Product `submit_decision` evidence.
 
 ## Accepted architecture disposition — 2026-09-25
 

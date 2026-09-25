@@ -1,0 +1,37 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>UniClaw Observer</title>
+<style>
+  :root { color-scheme: dark; font: 15px system-ui, sans-serif; }
+  body { max-width: 960px; margin: 2rem auto; padding: 0 1rem; background:#10141b; color:#e8edf5; }
+  header, section { border:1px solid #2b3442; border-radius:10px; padding:1rem; margin: .8rem 0; background:#171d27; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.7rem; }
+  dt { color:#8fa3bd; font-size:.8rem; } dd { margin:.2rem 0 0; }
+  ol { margin:0; padding-left:1.5rem; } li { padding:.25rem 0; }
+  .source { color:#8fa3bd; font-size:.8rem; }
+</style>
+<header><h1>UniClaw Observer</h1><p>只读 projection。它不发送 Product command，也不修改 DSH session。</p></header>
+<section><dl class="grid" id="summary"></dl></section>
+<section><h2>Unified Trace</h2><ol id="timeline"></ol></section>
+<script>
+  // Host may inject a serialized UnifiedObserverProjection here. The page has
+  // no write path and remains usable when the projection stream is unavailable.
+  const p = globalThis.UNICLAW_OBSERVER_PROJECTION ?? {
+    workspaceId: 'uniclaw-observer', task: 'waiting for projection', goal: '',
+    runId: '', productSessionId: '', dshSessionId: null, model: null,
+    consultationCount: 0, currentDecision: null, currentPolicy: null,
+    policyApplications: 0, lastEffect: null, verification: null,
+    outcome: 'observer disconnected', timeline: []
+  };
+  const fields = [
+    ['Task','task'], ['Goal','goal'], ['Run','runId'], ['Product Session','productSessionId'],
+    ['DSH Session','dshSessionId'], ['Model','model'], ['Consultations','consultationCount'],
+    ['Decision','currentDecision'], ['Policy','currentPolicy'], ['Applications','policyApplications'],
+    ['Last Effect','lastEffect'], ['Verification','verification'], ['Outcome','outcome']
+  ];
+  const esc = value => String(value ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  document.querySelector('#summary').innerHTML = fields.map(([label,key]) =>
+    `<div><dt>${esc(label)}</dt><dd>${esc(typeof p[key] === 'object' ? `${p[key]?.provider ?? ''}/${p[key]?.name ?? ''}` : p[key])}</dd></div>`).join('');
+  document.querySelector('#timeline').innerHTML = (p.timeline ?? []).map(e =>
+    `<li><span class="source">${esc(e.source)} · ${esc(e.stage)}</span> ${esc(e.message)}</li>`).join('') || '<li>暂无 trace</li>';
+</script>

@@ -1,0 +1,20 @@
+# Product realization profile. This file defines what the agent may do.
+profileId: uniagent-prod
+profileVersion: "1"
+capabilities:
+  - submit_decision
+
+service:
+  baseUrl: http://127.0.0.1:3080
+
+# Model selection is intentionally a separate block. Changing provider/name does
+# not change Product protocol, DecisionId, Kernel, or the Observer authority.
+modelSelection:
+  selected: free
+  choices:
+    free:
+      provider: opencode-go
+      name: space-bunny-free
+    deepseekFlash:
+      provider: opencode-go
+      name: deepseek-flash

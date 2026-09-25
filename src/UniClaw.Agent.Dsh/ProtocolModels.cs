@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using UniClaw.Kernel.Runtime;
 
@@ -15,7 +17,10 @@ public static class ProductProtocolVersions
 public sealed record ProtocolStamp(
     string ProtocolVersion,
     string SchemaVersion,
-    string SchemaHash);
+    string SchemaHash,
+    string ProfileId = UniagentProdProfile.ProfileId,
+    string ProfileVersion = UniagentProdProfile.ProfileVersion,
+    string CapabilityManifestHash = "");
 
 /// <summary>Capabilities exposed by a Product DSH profile. The Product profile is
 /// intentionally a small positive allowlist.</summary>
@@ -33,6 +38,9 @@ public sealed record CapabilityManifest(IReadOnlyList<string> Capabilities)
 
     public bool HasDuplicates => Capabilities is null
         || Capabilities.Count != NormalizedCapabilities.Count;
+
+    public string ManifestHash => Convert.ToHexString(SHA256.HashData(
+        Encoding.UTF8.GetBytes(string.Join("\n", NormalizedCapabilities)))).ToLowerInvariant();
 }
 
 public static class ProductCapabilities
@@ -70,6 +78,74 @@ public sealed record DshDiagnostic(
     string? RequestId = null,
     long? Generation = null,
     string? DecisionId = null);
+
+/// <summary>Product realization profile. A profile is the allowlisted capability
+/// surface; it deliberately does not contain provider or model selection.</summary>
+public static class UniagentProdProfile
+{
+    public const string ProfileId = "uniagent-prod";
+    public const string ProfileVersion = "1";
+
+    public static ProductProfile Current => new(
+        ProfileId,
+        ProfileVersion,
+        CapabilityManifest.ProductHeadless,
+        ProductProtocolVersions.ProtocolVersion,
+        ProductProtocolVersions.SchemaVersion);
+}
+
+public sealed record ProductProfile(
+    string ProfileId,
+    string ProfileVersion,
+    CapabilityManifest Capabilities,
+    string ProtocolVersion,
+    string SchemaVersion);
+
+public sealed record DshServiceEndpoint(Uri BaseUri)
+{
+    public static DshServiceEndpoint LocalWeb { get; } =
+        new(new Uri("http://127.0.0.1:3080/"));
+
+    public void Validate()
+    {
+        if (!BaseUri.IsAbsoluteUri)
+            throw new ArgumentException("DSH service URI must be absolute", nameof(BaseUri));
+    }
+}
+
+/// <summary>Provider/model selection is configuration only. Replacing this
+/// value cannot change the Product decision protocol or Kernel semantics.</summary>
+public sealed record ModelConfiguration(string Provider, string Name)
+{
+    public static ModelConfiguration Free { get; } =
+        new("opencode-go", "space-bunny-free");
+
+    public static ModelConfiguration DeepSeekFlash { get; } =
+        new("opencode-go", "deepseek-flash");
+
+    // Compatibility alias for callers that used the earlier local smoke name.
+    public static ModelConfiguration Local { get; } =
+        Free;
+
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(Provider)) throw new ArgumentException("provider is required", nameof(Provider));
+        if (string.IsNullOrWhiteSpace(Name)) throw new ArgumentException("model name is required", nameof(Name));
+    }
+}
+
+public sealed record UniagentProdConfiguration(
+    ProductProfile Profile,
+    ModelConfiguration Model,
+    DshServiceEndpoint Service)
+{
+    public static UniagentProdConfiguration Create(ModelConfiguration model)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        model.Validate();
+        return new(UniagentProdProfile.Current, model, DshServiceEndpoint.LocalWeb);
+    }
+}
 
 /// <summary>JSON-RPC envelope used by the local stdio transport. The DSH protocol
 /// implementation may carry arbitrary JSON in Result; the adapter only accepts the
