@@ -162,3 +162,9 @@ verification:
   MODEL_CAPABILITY_FAIL (transport PASS); turn-deadline fail-closed E2E.
   Evidence: `evidence/agt-002-real-model-e2e.md`. Agent.Dsh 114/114
   (E2E env-gated: `UNICLAW_DSH_E2E_BASE`); full solution 874/874.
+
+- 2026-09-25 · VERIFY (canonical 3080 closure) · Owner-authorized restart of
+  the live GUI instance; plugin mounted on 127.0.0.1:3080; live frozen-stamp
+  handshake accepted (session-0124078e…); formal E2E suite 4/4 PASS against
+  the canonical port (6 s). AGT-002 authenticated bridge is a standing
+  capability of the live service.

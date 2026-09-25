@@ -126,3 +126,18 @@ transport/profile/schema PASS — they do).
 2. E2E instance on 3081 can be stopped with `pkill -f "port 3081"`.
 3. deepseek-flash tool-calling should be retried when the route's model
    behavior changes; no accommodation is permitted at the protocol level.
+
+
+## 8. Addendum — canonical 3080 closure (owner-authorized restart)
+
+The owner authorized restarting the live GUI instance. After the restart the
+`@uniclaw/dsh-decision-channel` plugin is mounted on the canonical
+`http://127.0.0.1:3080` service:
+
+- Live frozen-stamp handshake on 3080: `{"accepted":true, … profileId
+  "uniagent-prod" …, "dshSessionId":"session-0124078e-bf58-4ed0-aa03-a4eb4e165ab0"}`
+- Formal .NET E2E suite against `UNICLAW_DSH_E2E_BASE=http://127.0.0.1:3080/`:
+  4/4 PASS (handshake accepted, profile-drift rejected, consult channel
+  fail-closed/real-model round trip, abort harmless) — 6 s.
+- The authenticated Product channel is now a standing capability of the
+  owner's live instance (loads at every boot via the web profile patch).
