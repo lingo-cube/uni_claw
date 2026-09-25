@@ -1,31 +1,38 @@
 # AGT-002 — DeepSeek Harness Realization
 
-lifecycle_state: verified · disposition: none · depth: decision-heavy · base: 82ff9362
+lifecycle_state: verified (E2E slice: authenticated bridge + real-model evidence) · disposition: none · depth: decision-heavy · base: 534d0aef
 
 ## Status
 
-VERIFIED — Slice A protocol and Q21–Q23 decision-channel migration are complete;
-F1–F5 review fixes are verified; the formal Product transport is DSH-opened
-channel with Kernel semantic attachment. F5 freezes Attach, AbortCurrentTurn, and
-Revoke as bounded, cancelable, and fail-closed realization controls.
-Luna mechanical completion was reviewed by Sol.
-Model E2E is not yet closed. The local DSH web service is listening on
-`127.0.0.1:3080` and returns its expected authentication challenge; the existing
-Product decision-channel adapter is not yet wired to that service's authenticated
-API. OpenCode exposes the selectable `opencode-go/space-bunny-free` and
-`opencode-go/deepseek-flash` model identities for the bring-up. Shell-level
-OpenCode credentials are not present, so no real model response was produced by
-the previous command-line smoke attempt.
-AGT-001 and RUN-005 remain closed and unchanged.
+VERIFIED — F1–F4 review fixes at `534d0aef` are closed and committed
+(`76995514`): handshake identity fields are mandatory protocol fields (missing
+→ malformed handshake, fail closed, refuse attachment — negative coverage for
+profileId/profileVersion/capabilityManifestHash); runtime configuration has a
+single source (`.dsh/profiles/uniagent-prod.yaml` via the new
+`UniagentProdYaml` loader — provider/model/baseUrl changes need no Product
+recompile; the hardcoded model catalog and LocalWeb constants are deleted);
+observer authority wording distinguishes canonical owner records / RuntimeOutcome
+(Product truth) from Product Trace and DSH trajectory (diagnostic projections
+the observer merely displays together); `ObserverEvent` carries
+DecisionId/Generation/PolicyId correlation so decision-N timeout, decision-N+1
+start, and decision-N late response are unambiguous in one timeline.
 
-The AGT-002 bring-up slice now also contains the `uniagent-prod` profile/model
-separation and a read-only `uniclaw-observer` projection. Observer data is a
-timeline over Product Trace plus non-authoritative DSH trajectory/diagnostic
-evidence; it has no Product command or DSH mutation surface and remains
-disconnect-safe. The minimal human-facing surface is `.dsh/observer/index.html`;
-its only input is an injected projection snapshot. Human-readable
-Act/Policy/NoAction/Defer and abort/late-response demo evidence is recorded in
-`evidence/agt-002-observer-demo.md`.
+E2E: the authenticated 3080 DSH bridge is implemented and verified against a
+real DSH instance. `@uniclaw/dsh-decision-channel` (repo `dsh/uniclaw-decision-channel/`)
+registers the frozen single-tool `submit_decision` capability and the three
+authenticated Product routes on the /api lane; `DshOpenedHttpPeer` is the sole
+sanctioned concrete `IDshOpenedChannelPeer` (closure-guarded). Transport auth
+is the DSH browser-session cookie minted from the harness-home credential store
+(`DshWebCredential`, known-answer tested). Live evidence
+(`evidence/agt-002-real-model-e2e.md`): frozen-stamp handshake PASS on a real
+DSH session; full-stack real-model Act capture through the Product adapter
+(5.8 s, DecisionId echoed); §11-shaped Policy decision captured intact
+(match 24 / termination 20 / bounded applications / toggle-tap template,
+21.7 s); deepseek-flash config-only switch → MODEL_CAPABILITY_FAIL
+(no-submit prose answers; transport/schema PASS — no protocol accommodation);
+turn-deadline failure E2E fail-closed with zero invented decisions. The
+owner's live 3080 instance loads the plugin on its next restart (patch row
+already wired). AGT-001/RUN-005 unchanged; no stdio fallback anywhere.
 
 ## Decisions
 
@@ -139,3 +146,19 @@ verification:
   passed; only the existing NU1900 vulnerability-cache permission warning remains.
   Real provider/model E2E remains `E2E BLOCKED` pending authenticated
   Product-channel wiring and model response evidence.
+- 2026-09-25 · IMPLEMENT/VERIFY (review-fix + E2E slice, base `534d0aef`) ·
+  F1–F4 closed (commit `76995514`; Agent.Dsh 98/98, full solution 858/858).
+  Discovery mapped the real DSH web API (cookie-only auth; signed-cookie mint
+  from the harness-home credential store; `POST /api/<endpoint>` envelope;
+  plugin seam via `ctx.connection.fetch.register`). Implemented
+  `@uniclaw/dsh-decision-channel` (zero-dep profile plugin: submit_decision
+  tool + three authenticated routes; model-output normalization is defensive
+  shape-mapping only — semantic validation stays fail-closed) and
+  `DshOpenedHttpPeer` (sole concrete peer; closure guard updated to exactly
+  one implementer; 401/403 → fail-closed auth error). Live E2E against a
+  second real `dsh web` instance (port 3081, same web profile): frozen-stamp
+  handshake accepted; full-stack real-model Act captured through the Product
+  adapter; §11-shaped Policy captured intact; deepseek-flash →
+  MODEL_CAPABILITY_FAIL (transport PASS); turn-deadline fail-closed E2E.
+  Evidence: `evidence/agt-002-real-model-e2e.md`. Agent.Dsh 114/114
+  (E2E env-gated: `UNICLAW_DSH_E2E_BASE`); full solution 874/874.

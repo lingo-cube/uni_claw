@@ -152,7 +152,9 @@ public sealed class DecisionChannelClosureTests
             .ToArray();
 
         Assert.Equal<string>(["DshOpenedDecisionChannel"], channelImplementers);
-        Assert.Empty(peerImplementers);
+        // AGT-002 E2E slice: exactly one concrete peer is sanctioned — the
+        // authenticated 3080 HTTP transport. Any other implementer is a leak.
+        Assert.Equal<string>(["DshOpenedHttpPeer"], peerImplementers);
     }
 
     private static IReadOnlyList<ProjectNode> BuildProjectClosure(string rootAssemblyPath)

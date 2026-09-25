@@ -1,0 +1,11 @@
+{
+  "name": "@uniclaw/dsh-decision-channel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "UniClaw Product decision channel: exposes the uniagent-prod handshake/consult/abort surface on the authenticated /api lane and captures real-model AgentDecision submissions through the submit_decision tool (AGT-001 frozen seam).",
+  "type": "module",
+  "main": "src/index.js",
+  "dsh": {
+    "description": "UniClaw Product decision channel (AGT-002)"
+  }
+}
