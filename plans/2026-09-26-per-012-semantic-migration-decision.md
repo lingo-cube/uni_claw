@@ -1,10 +1,11 @@
 # PER-012 Semantic Migration Decision（设计计划）
 
-版本：v0.1；decision-only；未冻结。
+版本：v0.1.1；decision-only；focused grill PASS；FROZEN。
 
 本计划处理 PER-009 current realization 与 PER-010/011 forward design 的语义迁移
 不一致。PER-009 不重开，PER-010/011 保持 `FROZEN/closed`；PER-011 implementation
-在本 decision 通过前保持阻塞。
+在本 decision 通过前保持阻塞；当前 migration entry gate 已满足，implementation
+仍需另立 change。
 
 ## Decision frontier
 
@@ -22,5 +23,6 @@
 
 ## Gate
 
-先完成 mapping/compatibility/fixture/rollback 的 Human Gate，再另立实现 change。
-
+Human Gate 与 focused grill 已完成；本 contract 与
+`plans/2026-09-26-per-012-semantic-migration-fixture-matrix.md` 均标记为 `FROZEN`。
+PER-011 implementation 另立 change，本计划不包含实现。
