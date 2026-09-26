@@ -1,6 +1,6 @@
 # CSC-001 — Coordinate Space Contract
 
-lifecycle_state: verified · disposition: none · depth: decision-heavy · base: 5bd8432e
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 5bd8432e
 
 ## Intent（WHAT/WHY）
 
@@ -126,7 +126,9 @@ lifecycle_state: verified · disposition: none · depth: decision-heavy · base:
     留作 gap。
   全量回归 1015/1015（Host 61 含 2 live 门控；Kernel 611）；再认证
   change=CSC-001。
-- **OWNER_GATE：Owner 裁决（2026-09-27）**——Architecture direction
+- **OWNER_GATE：Owner 终裁 CLOSED（2026-09-27）**——必改五项验收通过；
+  后继 change 指令显式声明「Base: CSC-001 CLOSED 后最新 HEAD」= 终裁
+  依据；Host viewport fallback 移除冻结为正式语义。——Architecture direction
   PASS · Authority boundary PASS · Scope expansion NONE；**Host
   1080×2400 magic fallback：ACCEPT REMOVAL AND FREEZE**（正式语义：
   viewport 只能来自 实测 > 显式已验证配置，无 fallback 常量）；
@@ -169,6 +171,8 @@ evidence: >
 
 ## Status log
 
+- 2026-09-27 · verified→closed · Owner 终裁（后继 change base 声明）；
+  提交固化。
 - 2026-09-27 · verified·owner-hold · Owner 必改五项执行（缓存移除/动态
   回归/词汇/四元组/复跑）；等待终裁。
 - 2026-09-27 · implementing→owner-gate · Slice D（gate 矩阵 5 例）+ Slice E
