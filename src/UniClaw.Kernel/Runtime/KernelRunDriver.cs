@@ -2,6 +2,7 @@ using UniClaw.Kernel.Control;
 using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Outcome;
+using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Kernel.Run;
 using UniClaw.Kernel.World.UiRealization;
 using UniClaw.Kernel.World;
@@ -457,7 +458,11 @@ public sealed class KernelRunDriver
                     var step = steps[_stepIndex];
                     _plan.Adopt(new[]
                     {
-                        new TargetSpec(step.TargetRole, step.TargetDescriptor, step.EffectClass, step.DesiredState),
+                        // PER-014 R3：DesiredState → typed CheckedState（Policy
+                        // 模板 string 词汇经 FromPresentation 严格解析；未知词
+                        // = null = 无期望终态检查，不猜）。
+                        new TargetSpec(step.TargetRole, step.TargetDescriptor, step.EffectClass,
+                            CheckedSemantics.FromPresentation(step.DesiredState)),
                     });
 
                     // Act 链（Control → Grounding → Binding → Assurance → Gate → Dispatch）
@@ -604,7 +609,8 @@ public sealed class KernelRunDriver
 
                     var step = CurrentSteps()[_stepIndex];
                     var target = new TargetSpec(
-                        step.TargetRole, step.TargetDescriptor, step.EffectClass, step.DesiredState);
+                        step.TargetRole, step.TargetDescriptor, step.EffectClass,
+                        CheckedSemantics.FromPresentation(step.DesiredState));
                     var verification = _kernel.VerifyPostActionEffect(
                         target, post.ProcessedObservations, _lastDispatchAt);
                     if (!verification.IsVerified)
@@ -758,7 +764,6 @@ public sealed class KernelRunDriver
                     // 权威域外的悬案保持冲突 → 终局如实未证（诚实失败）。
                     _ = _kernel.ResolveAuthorityConflicts(ConflictFreshnessWindow);
                     return EvaluateTerminalOnce();
-
                 default:
                     return new RunDriveResult(RunDriveStatus.UnexpectedInput, "unknown-phase", null, 0);
             }
@@ -777,6 +782,27 @@ public sealed class KernelRunDriver
     private ConsultationBudget CurrentBudget(ExecutionContractView view) => new(
         RoundsRemaining: view.MaxConsultations - _consultCounter,
         StepsRemaining: view.MaxTotalSteps - _stepsDispatched);
+
+    /// <summary>
+    /// PER-014 R3：任一 mandatory obligation 已满足——走 typed 权威判定路径
+    ///（UniKernel.UnsatisfiedMandatoryObligations → RuntimeAssurance.
+    /// EvaluateObligations → R1 SemanticCheckedResolver 缝），与终局折抵
+    /// 同源同判，不再直读 legacy state subjects。Run/belief 未建立 → 如实
+    /// false（fail-closed，不猜）。
+    /// </summary>
+    private bool AnyMandatoryObligationSatisfied()
+    {
+        var state = _kernel.RunState;
+        if (state is null || _kernel.RunView is null || _kernel.CurrentBelief is null)
+            return false;
+        var mandatory = state.ProofObligations.Obligations
+            .Where(o => o.Mandatory)
+            .ToList();
+        if (mandatory.Count == 0)
+            return false;
+        var unsatisfied = _kernel.UnsatisfiedMandatoryObligations();
+        return mandatory.Any(o => unsatisfied.All(u => u.ObligationId != o.ObligationId));
+    }
 
     /// <summary>多轮咨询（V2）：构建 v2 上下文 + 递增 DecisionId + 锚点核验。</summary>
     private ConsultOutcome ConsultAgentV2(ExecutionContractView view)
@@ -938,17 +964,16 @@ public sealed class KernelRunDriver
             }
             case AgentDecision.NoAction no:
             {
-                // V4 hollow-completion（SR-074）
+                // V4 hollow-completion（SR-074）。PER-014 R3：满足判定改走
+                // typed 权威路径（UniKernel.UnsatisfiedMandatoryObligations →
+                // EvaluateObligations → R1 缝），不再直读 legacy state subjects。
                 var hasMandatory = _kernel.RunState?.ProofObligations.Obligations
                     .Any(o => o.Mandatory) == true;
                 if (hasMandatory && no.Proposal.Completion is null
                     && _consultCounter <= 1
                     && _stepsDispatched == 0
                     && _completedSteps.Count == 0
-                    && _kernel.RunState?.ProofObligations.Obligations
-                        .Any(o => o.Mandatory
-                            && _kernel.CurrentBelief?.WorldState.TryGetValue(o.Subject, out var claim) == true
-                            && claim.Value == o.RequiredValue) != true)
+                    && !AnyMandatoryObligationSatisfied())
                     return "hollow-completion";
                 break;
             }

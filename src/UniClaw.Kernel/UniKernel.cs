@@ -8,6 +8,7 @@ using UniClaw.Kernel.Outcome;
 using UniClaw.Kernel.Run;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World.UiRealization;
+using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Kernel.World;
 
 namespace UniClaw.Kernel;
@@ -455,12 +456,13 @@ public sealed class UniKernel
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(processedObservations);
 
-        // PER-009 C-2（评审修复）：D9 四门 XML 验证路由——目标属性∈权威域 ∧
-        // post 观察含 XML 映射 claim（映射构造保证身份唯一+checkable guard）∧
-        // dispatchTime 在案（门④时序执法）→ PostActionXmlRouter 裁决。
-        // 不过门 → 既有 occurrence 视觉验证路径（XML 失去本次资格 ≠ 视觉必胜）。
-        if (dispatchTime is { } dispatched && TryRouteXmlVerification(
-                target, processedObservations, dispatched) is { } routed)
+        // PER-014 R2：四门等价的 typed 验证路由——语义 checked 权威域
+        // （DesiredState ≠ null）∧ post belief 可经 R1 缝唯一解析目标
+        // occurrence 的 typed checked claim ∧ capture 时序在 dispatch 之后
+        // → typed 定案。不过门 / Unknown / Unsupported → 既有 occurrence
+        // 视觉验证路径（typed 失去本次资格 ≠ 视觉必胜；fail-closed）。
+        if (dispatchTime is { } dispatched && TryRouteTypedVerification(
+                target, dispatched) is { } routed)
             return routed;
 
         var root = _world.Current?.Containers is { Count: 1 } containers
@@ -472,42 +474,70 @@ public sealed class UniKernel
     }
 
     /// <summary>
-    /// XML 验证路由执行（C-2）：post 观察结果中存在目标 role 的共享层
-    /// state claim 且 establishing producer = XML 映射时，构造快照并经
-    /// PostActionXmlRouter 四门裁决；UseXml → 验证由 XML 定案值对
-    /// DesiredState 判定（occurrence 路径不触发——验收 8：标准控件零截图）。
+    /// typed 验证路由执行（PER-014 R2）：经 <see cref="SemanticCheckedResolver"/>
+    /// （R1 只读缝）对 post-action belief 解析目标 role 的 typed checked 值。
+    /// 四门等价重述：
+    /// ① 权威域 = DesiredState ≠ null（Click 型非状态权威域 → 视觉路径）；
+    /// ② 身份唯一 = occurrence 解析恰一（缝内零/多候选 → Unknown → 回视觉）；
+    /// ③ 属性有效 = typed claim 仅在 parser 能力/ExactProof 执法通过时发射
+    ///    （TypedHierarchyProposalProjector fail-closed），Observed 即证明；
+    ///    capability 缺席 → Unsupported → fail-closed 回视觉；
+    /// ④ 时序 = capture timestamp 严格晚于 dispatchTime。
+    /// 值判定：CheckedState 与 typed DesiredState 相等才 verified；Partial
+    /// 不通过且不回视觉（explicit insufficient-evidence）；Unchecked/Checked
+    /// 不等 = 如实未验证（mismatch 留档）。任一 Unknown/Unsupported → 返回
+    /// null 回 occurrence 视觉路径（fail-closed，不猜值）。
     /// </summary>
-    private PostActionEffectVerification? TryRouteXmlVerification(
+    private PostActionEffectVerification? TryRouteTypedVerification(
         TargetSpec target,
-        IReadOnlyList<KernelResult> processedObservations,
         DateTimeOffset dispatchTime)
     {
-        foreach (var result in processedObservations)
+        // 门①：字段权威域（无期望终态 = Click 型，非语义 checked 权威域）。
+        if (target.DesiredState is null)
+            return null;
+
+        var current = _world.Current;
+        if (current is null)
+            return null;
+
+        var resolution = SemanticCheckedResolver.ResolveDetailed(
+            current,
+            new World.UiRealization.TargetDescriptor(target.Role, target.SemanticDescriptor),
+            _ledger.CanonicalRecords);
+
+        // 门②/③：occurrence 唯一解析 + typed claim 在案。Unknown（无 claim /
+        // 歧义 / capture 不可判）与 Unsupported（capability 缺席）一律
+        // fail-closed 回视觉路径（不猜测、不降级）。
+        if (!resolution.IsObserved)
+            return null;
+
+        // 门④：时序——capture 必须严格晚于 dispatch（事后新鲜度）。
+        if (resolution.CaptureTimestamp is not { } captureTime || captureTime <= dispatchTime)
+            return null;
+
+        var resolved = resolution.Value.Value!;
+        if (resolved == CheckedState.Partial)
         {
-            if (result.ResultingRevision is not { } revision)
-                continue;
-            if (!revision.WorldState.TryGetValue($"{target.Role}.state", out var claim)
-                || claim.EstablishingProducer != World.ProducerTrust.XmlProducer)
-                continue;
-            if (!_ledger.CanonicalRecords.TryGetValue(claim.EvidenceId, out var record))
-                continue;
-
-            var snapshot = SnapshotFromLineage(record, claim.Value);
-            var route = World.PostActionXmlRouter.Route(target, snapshot, dispatchTime, record.Provenance.CaptureTime);
-            if (!route.UseXml || route.ResolvedState is null)
-                return null; // 任一门不过：回 occurrence 视觉验证（router Basis 已留档语义）
-
-            var verified = route.ResolvedState == target.DesiredState;
+            // Partial：tri-state 语义，不得折叠为 off/true——显式证据不足。
             return new PostActionEffectVerification(
-                revision.RevisionId, target, verified,
+                current.RevisionId, target, IsVerified: false,
                 new[]
                 {
-                    new AssuranceCheck("xml-route-four-gates", true),
-                    new AssuranceCheck("xml-state-matches-desired", verified),
+                    new AssuranceCheck("typed-route-four-gates", true),
+                    new AssuranceCheck("typed-checked-matches-desired", false),
                 },
-                verified ? null : $"xml-route: resolved={route.ResolvedState} desired={target.DesiredState} ({route.Basis})");
+                $"typed-route: insufficient-evidence (partial at {resolution.CaptureId})");
         }
-        return null;
+
+        var verified = resolved == target.DesiredState;
+        return new PostActionEffectVerification(
+            current.RevisionId, target, verified,
+            new[]
+            {
+                new AssuranceCheck("typed-route-four-gates", true),
+                new AssuranceCheck("typed-checked-matches-desired", verified),
+            },
+            verified ? null : $"typed-route: resolved={resolved} desired={target.DesiredState}");
     }
 
     private RunModel Run => _run ?? throw new InvalidOperationException("Uni Kernel 未组合 Run Model");
@@ -698,7 +728,8 @@ public sealed class UniKernel
             state.ProofObligations.Obligations.Select(o => o.Subject),
             state.ProofObligations.Obligations
                 .Where(o => o.EntityScope is not null)
-                .Select(o => (o.ObligationId, o.EntityScope!, o.RequiredValue)));
+                .Select(o => (o.ObligationId, o.EntityScope!, o.RequiredValue)),
+            _ledger.CanonicalRecords);
         return Assurance.EvaluateObligations(state.ProofObligations, beliefView, _ledger.CanonicalRecords)
             .Where(s => s.Mandatory && !s.Satisfied)
             .Select(s => state.ProofObligations.Obligations.Single(o => o.ObligationId == s.ObligationId))
@@ -725,10 +756,11 @@ public sealed class UniKernel
         var beliefView = _world.DeriveOutcomeAssuranceView(
             state.ProofObligations.Obligations.Select(o => o.Subject),
             // ESO-002：entity-scoped obligation (id, EntityScope, RequiredValue)
-            // 传入 view 派生（owner-derived tri-state fact 通道）
+            // 传入 view 派生（PER-014 R3：typed checked 缝，canonical 供时序）
             state.ProofObligations.Obligations
                 .Where(o => o.EntityScope is not null)
-                .Select(o => (o.ObligationId, o.EntityScope!, o.RequiredValue)));
+                .Select(o => (o.ObligationId, o.EntityScope!, o.RequiredValue)),
+            _ledger.CanonicalRecords);
         var proof = Assurance.JudgeOutcome(view, state.ProofObligations, beliefView, _ledger.CanonicalRecords);
         if (proof is null)
             return new TerminalEvaluation(null, new OutcomeTransition(false, "evidence-insufficient", null), null);

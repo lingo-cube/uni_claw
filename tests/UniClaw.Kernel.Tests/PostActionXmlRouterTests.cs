@@ -1,4 +1,5 @@
 using UniClaw.Kernel.Control;
+using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Kernel.World;
 using Xunit;
 
@@ -12,7 +13,7 @@ public sealed class PostActionXmlRouterTests
     private static readonly DateTimeOffset Dispatch = new(2026, 9, 22, 12, 0, 0, TimeSpan.Zero);
     private static readonly DateTimeOffset AfterDispatch = Dispatch.AddMilliseconds(500);
 
-    private static TargetSpec StateTarget(string desired = "on") =>
+    private static TargetSpec StateTarget(CheckedState desired = CheckedState.Checked) =>
         new("switch", "primary", "toggle", desired);
 
     private static TargetSpec ClickTarget() =>

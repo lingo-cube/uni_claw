@@ -76,7 +76,9 @@ try
         DeviceId = device,
         // 咨询缝 fail-closed（SIM-002 G1）：CLI 尚无可注入的真 agent 实现
         ConsultAgent = null,
-        TargetState = targetState ?? (LivePerception.LiveFrameFeed.ReadWifiState(device) == "on" ? "off" : "on"),
+        // PER-014 R3：TargetState 词汇 on/off → checked/unchecked；wifi 探针
+        // 读数（设备无线电态 on/off）仅作翻转方向输入（egress writer 零生产读者）。
+        TargetState = targetState ?? (LivePerception.LiveFrameFeed.ReadWifiState(device) == "on" ? "unchecked" : "checked"),
         Live = new LivePerception.LiveAssets(
             device,
             "wifi-settings",

@@ -168,43 +168,43 @@ public sealed class DescriptorMatcherDriftTests
             view.Result);
     }
 
-    // ---- 3：EntityObligation tri-state fact ≡ matcher（TargetEquality） ----
+    // ---- 3：EntityObligation tri-state fact（PER-014 R3 typed 迁移） ----
+    //
+    // R3：checked obligation 的 fulfillment 判定改经 R1 只读缝
+    //（SemanticCheckedResolver：matcher 唯一 occurrence 解析 → typed
+    // semantic.checked claim）。occurrence presentation state（"on"/"off"）
+    // 不再是满足权威——无 typed checked claim 时一律 Unknown（fail-closed，
+    // 不折叠）；缝内 occurrence 匹配仍由 OccurrenceDescriptorMatcher 单点
+    // 持有（漂移由 SemanticCheckedResolverTests 钉住）。
 
     public static readonly TheoryData<string, string?, string?, string> ObligationMatrix = new()
     {
-        { "button", null, null, "on" },      // 3 候选 → Unknown
-        { "button", "x", null, "on" },       // 2 候选 → Unknown
-        { "button", "x", "ctr-a", "on" },    // 恰一 + state 命中 → Satisfied
-        { "button", "x", "ctr-b", "on" },    // 恰一 + state 命中 → Satisfied
-        { "button", "y", null, "on" },       // 恰一但 state null → Unknown
-        { "label", "x", null, "on" },        // 恰一 + state "off" ≠ "on" → Unsatisfied
-        { "label", "x", null, "off" },       // 恰一 + state 命中 → Satisfied
-        { "toggle", "t", "ctr-a", "on" },    // 零候选 → Unknown
-        { "checkbox", null, null, "on" },    // 零候选 → Unknown
+        { "button", "x", "ctr-a", "checked" },
+        { "button", "x", "ctr-b", "checked" },
+        { "button", "y", null, "checked" },
+        { "label", "x", null, "unchecked" },
+        { "toggle", "t", "ctr-a", "checked" },
+        { "checkbox", null, null, "checked" },
     };
 
     [Theory]
     [MemberData(nameof(ObligationMatrix))]
-    public void EntityObligationFactsAgreeWithMatcherTargetEquality(
+    public void EntityObligationFacts_FailClosedWithoutTypedCheckedClaims(
         string role, string? desc, string? owner, string requiredState)
     {
         var world = SeededWorld();
-        var candidates = world.Current!.Occurrences!
-            .Where(o => OccurrenceDescriptorMatcher.Matches(
-                o.Role, o.SemanticDescriptor, o.OwningContainerId,
-                role, desc, owner, ContainerMatchMode.TargetEquality))
-            .ToList();
-        var expected = candidates.Count == 1 && candidates[0].State is not null
-            ? (candidates[0].State == requiredState
-                ? EntityObligationFactKind.Satisfied
-                : EntityObligationFactKind.Unsatisfied)
-            : EntityObligationFactKind.Unknown;
 
+        // 无 typed checked claim：Unknown/缺席 ≠ Satisfied/Unsatisfied（G2 零折叠）
         var view = world.DeriveOutcomeAssuranceView(
             Array.Empty<string>(),
             new[] { ("obl-drift", new TargetDescriptor(role, desc, owner), requiredState) });
-        var fact = Assert.Single(view.EntityFacts!);
-        Assert.Equal(expected, fact.Kind);
+        Assert.Equal(EntityObligationFactKind.Unknown, Assert.Single(view.EntityFacts!).Kind);
+
+        // legacy 值域（on/off）不再满足 obligation：如实 Unknown
+        var legacy = world.DeriveOutcomeAssuranceView(
+            Array.Empty<string>(),
+            new[] { ("obl-drift", new TargetDescriptor(role, desc, owner), "on") });
+        Assert.Equal(EntityObligationFactKind.Unknown, Assert.Single(legacy.EntityFacts!).Kind);
     }
 
     // ---- 4：DescriptorTargetPolicy ≡ matcher（ScopeMembership） ------------

@@ -23,6 +23,27 @@ public sealed class EntityObligationFulfillmentTests
 {
     private const string ObligationId = "obl-switch-on";
     private static readonly TargetDescriptor SwitchScope = new("switch", "primary");
+
+    /// <summary>PER-014 R3：typed semantic checked claim subject（R1 缝输入）。</summary>
+    private const string TypedSubject = "ui.node.cap-x#0.checked";
+
+    /// <summary>typed checked claim（PER-013 投影同构：occurrence-qualified
+    /// subject + Hierarchy descriptor provenance）。</summary>
+    private static ObservationProposal TypedCheckedClaim(string value, DateTimeOffset t) => new(
+        new ObservationClaim(TypedSubject, value),
+        IngressKind.Observation, ObservationContext.PostActionEffectFlow,
+        new Provenance(
+            UniClaw.Kernel.Perception.UiHierarchy.TypedHierarchyProposalProjector.Producer, t, $"scope:{TypedSubject}",
+            new[] { UniClaw.Kernel.Perception.UiHierarchy.TypedHierarchyProposalProjector.LineageMarker },
+            Hierarchy: new UniClaw.Kernel.Perception.UiHierarchy.HierarchyCaptureDescriptor(
+                CaptureId: "cap-x", AndroidApiLevel: 34,
+                UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyAcquirerKind.LegacyUiAutomatorXml, "1.0",
+                UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyFormat.UiAutomatorXml, "dev-1", "sess-1",
+                ObservationCycleId: null, CaptureTimestamp: t,
+                CaptureDuration: null, UniClaw.Kernel.Perception.UiHierarchy.HierarchyCapability.CheckedBooleanCollapsed,
+                UniClaw.Kernel.Perception.UiHierarchy.CoverageCompleteness.CompleteWithinDeclaredSurface,
+                CoverageLimitation: null, NodeLocalIndex: 0, ParentLocalIndex: null,
+                Field: "checked")));
     private static readonly DateTimeOffset ActTime = new(2026, 9, 8, 10, 5, 0, TimeSpan.Zero);
 
     // ---- 测试替身 ---------------------------------------------------------
@@ -69,7 +90,7 @@ public sealed class EntityObligationFulfillmentTests
     private static ExecutionContract SwitchContract() => new(
         Version: "v1",
         Objective: "turn-switch-on",
-        Scope: new HashSet<string> { UIWorldDoubles.Observed },
+        Scope: new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
         AllowedEffects: new HashSet<string> { "toggle" },
         ForbiddenEffects: new HashSet<string>(),
         ProofCriteria: new[] { "switch-on" },
@@ -85,13 +106,14 @@ public sealed class EntityObligationFulfillmentTests
     {
         var cid = ProbeContainerId("switch:primary@off");
         var world = new WorldModel(
-            new HashSet<string> { UIWorldDoubles.Observed },
+            new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
             new SeedContainerAssociationStrategy(),
             new StatefulObservationStrategy(cid),
             new RoleContinuityStrategy());
         var policy = new DescriptorTargetPolicy(new[]
         {
-            new TargetSpec("switch", "primary", "toggle", DesiredState: "on"),
+            new TargetSpec("switch", "primary", "toggle",
+                DesiredState: UniClaw.Kernel.Perception.UiHierarchy.CheckedState.Checked),
         });
         var kernel = new UniKernel(
             new EvidenceLedger(), world, DisabledRunTrace.Instance,
@@ -101,18 +123,23 @@ public sealed class EntityObligationFulfillmentTests
         return (kernel, world, cid);
     }
 
-    private static EntityObligationFact SingleFact(string observedValue)
+    private static EntityObligationFact SingleFact(
+        string observedValue, string? typedCheckedValue = null, string required = "checked")
     {
+        var ledger = new EvidenceLedger();
         var world = new WorldModel(
-            new HashSet<string> { UIWorldDoubles.Observed },
+            new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
             associationStrategy: null, new StatefulObservationStrategy());
         var kernel = new UniKernel(
-            new EvidenceLedger(), world, DisabledRunTrace.Instance);
-        kernel.Process(UIWorldDoubles.Observation(observedValue, UIWorldDoubles.T0));
+            ledger, world, DisabledRunTrace.Instance);
+        if (typedCheckedValue is not null)
+            kernel.Process(TypedCheckedClaim(typedCheckedValue, UIWorldDoubles.T0));
+        kernel.Process(UIWorldDoubles.Observation(observedValue, UIWorldDoubles.T1)); // 批尾：承载 occurrence
 
         var view = world.DeriveOutcomeAssuranceView(
             Array.Empty<string>(),
-            new[] { (ObligationId, SwitchScope, "on") });
+            new[] { (ObligationId, SwitchScope, required) },
+            ledger.CanonicalRecords);
         return Assert.Single(view.EntityFacts!);
     }
 
@@ -121,21 +148,24 @@ public sealed class EntityObligationFulfillmentTests
     [Fact]
     public void F1_FactDerivation_FiveCases_TriStateFailClosed()
     {
-        // 恰一匹配且 State==required → Satisfied
-        Assert.Equal(EntityObligationFactKind.Satisfied, SingleFact("switch:primary@on").Kind);
+        // 恰一匹配 + typed checked claim 命中 → Satisfied
+        Assert.Equal(EntityObligationFactKind.Satisfied,
+            SingleFact("switch:primary@on", "checked").Kind);
 
-        // 恰一匹配且 State 有值但 ≠ required → Unsatisfied
-        Assert.Equal(EntityObligationFactKind.Unsatisfied, SingleFact("switch:primary@off").Kind);
+        // 恰一匹配 + typed claim unchecked ≠ required → Unsatisfied
+        Assert.Equal(EntityObligationFactKind.Unsatisfied,
+            SingleFact("switch:primary@off", "unchecked").Kind);
+
+        // 无 typed checked claim（presentation state 在场也不满足）→ Unknown（零折叠）
+        Assert.Equal(EntityObligationFactKind.Unknown, SingleFact("switch:primary@on").Kind);
 
         // 零候选（Role 无匹配）→ Unknown
-        Assert.Equal(EntityObligationFactKind.Unknown, SingleFact("icon:x@on").Kind);
+        Assert.Equal(EntityObligationFactKind.Unknown,
+            SingleFact("icon:x@on", "checked").Kind);
 
         // 多候选（descriptor 帧内二义）→ Unknown（Identity never creates information）
         Assert.Equal(EntityObligationFactKind.Unknown,
-            SingleFact("switch:primary@on+switch:primary@off").Kind);
-
-        // State null（无 state 证据，非 false）→ Unknown
-        Assert.Equal(EntityObligationFactKind.Unknown, SingleFact("switch:primary").Kind);
+            SingleFact("switch:primary@on+switch:primary@off", "checked").Kind);
     }
 
     // ---- F2：OutcomeAssuranceView 携带 EntityFacts -------------------------
@@ -143,15 +173,18 @@ public sealed class EntityObligationFulfillmentTests
     [Fact]
     public void F2_OutcomeAssuranceView_CarriesEntityFacts()
     {
+        var ledger = new EvidenceLedger();
         var world = new WorldModel(
-            new HashSet<string> { UIWorldDoubles.Observed },
+            new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
             associationStrategy: null, new StatefulObservationStrategy());
-        var kernel = new UniKernel(new EvidenceLedger(), world, DisabledRunTrace.Instance);
-        kernel.Process(UIWorldDoubles.Observation("switch:primary@on", UIWorldDoubles.T0));
+        var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance);
+        kernel.Process(TypedCheckedClaim("checked", UIWorldDoubles.T0));
+        kernel.Process(UIWorldDoubles.Observation("switch:primary@on", UIWorldDoubles.T1));
 
         var view = world.DeriveOutcomeAssuranceView(
             Array.Empty<string>(),
-            new[] { (ObligationId, SwitchScope, "on") });
+            new[] { (ObligationId, SwitchScope, "checked") },
+            ledger.CanonicalRecords);
 
         var fact = Assert.Single(view.EntityFacts!);
         Assert.Equal(ObligationId, fact.ObligationId);
@@ -168,7 +201,7 @@ public sealed class EntityObligationFulfillmentTests
     {
         new RunObligation(
             ObligationId, RunObligationKind.Objective,
-            Subject: "switch", RequiredValue: "on", Mandatory: true,
+            Subject: "ui.role.switch.checked", RequiredValue: "checked", Mandatory: true,
             EntityScope: SwitchScope),
     });
 
@@ -246,7 +279,9 @@ public sealed class EntityObligationFulfillmentTests
         Assert.NotNull(grounded.Act!.Receipt);
         Assert.Equal(DispatchOutcome.DeliveryCompleted, grounded.Act.Receipt!.Outcome);
 
-        // post-action 帧：State="on" → fact Satisfied → EvaluateTerminal → Completion
+        // post-action：typed semantic.checked=checked（先）+ 帧批尾（State="on"）
+        // → fact Satisfied → EvaluateTerminal → Completion
+        kernel.Process(TypedCheckedClaim("checked", UIWorldDoubles.T1));
         kernel.Process(PostActionObservation("switch:primary@on", UIWorldDoubles.T1));
 
         var terminal = kernel.EvaluateTerminal();
@@ -273,7 +308,9 @@ public sealed class EntityObligationFulfillmentTests
         var grounded = kernel.ActViaCurrentGrounding(intent, SwitchScope);
         Assert.Equal(DispatchOutcome.DeliveryCompleted, grounded.Act!.Receipt!.Outcome);
 
-        // post-action 帧 State 仍 "off" → fact Unsatisfied → 证据不足，不猜测
+        // post-action：typed semantic.checked=unchecked ≠ required → Unsatisfied
+        // → 证据不足，不猜测
+        kernel.Process(TypedCheckedClaim("unchecked", UIWorldDoubles.T1));
         kernel.Process(PostActionObservation("switch:primary@off", UIWorldDoubles.T1));
 
         var terminal = kernel.EvaluateTerminal();

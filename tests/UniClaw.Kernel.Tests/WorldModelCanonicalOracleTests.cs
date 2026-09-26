@@ -767,7 +767,11 @@ public sealed class WorldModelCanonicalOracleTests(ITestOutputHelper output)
             "OutcomeView.ConflictingClaimCount", current, key,
             current.Conflicts.Count.ToString(), view.ConflictingClaimCount.ToString(), context);
 
-        // entity obligations: tri-state over occurrence state (CDS-001 semantics)
+        // entity obligations（PER-014 R3）：checked obligation 的 fulfillment
+        // 改经 R1 只读缝（SemanticCheckedResolver：matcher 唯一 occurrence 解析
+        // → typed semantic.checked claim）。本 oracle 世界无 typed checked
+        // claim，且 Required 取 occurrence presentation state（非 typed 值域）
+        // → 期望恒 Unknown（fail-closed，零折叠）。
         var obligations = (current.Occurrences ?? Array.Empty<OccurrenceBelief>())
             .Where(o => o.State is not null)
             .Take(8)
@@ -786,14 +790,8 @@ public sealed class WorldModelCanonicalOracleTests(ITestOutputHelper output)
                         && (obl.Scope.OwningContainerId is null
                             || o.OwningContainerId == obl.Scope.OwningContainerId))
                     .ToArray();
-                if (candidates.Length != 1)
-                    return nameof(EntityObligationFactKind.Unknown);
-                var state = candidates[0].State;
-                return state is null
-                    ? nameof(EntityObligationFactKind.Unknown)
-                    : state == obl.Required
-                        ? nameof(EntityObligationFactKind.Satisfied)
-                        : nameof(EntityObligationFactKind.Unsatisfied);
+                _ = candidates;
+                return nameof(EntityObligationFactKind.Unknown);
             }).ToArray();
             var facts = world.DeriveOutcomeAssuranceView(
                 scope, obligations.Select(o => (o.ObligationId, o.Scope, o.Required)));

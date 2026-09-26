@@ -396,6 +396,27 @@ public sealed class KernelRunDriverTests
         };
     }
 
+    /// <summary>PER-014 R3：typed semantic checked claim（R1 缝输入）。</summary>
+    private const string TypedSubject = "ui.node.cap-x#0.checked";
+
+    private static ObservationProposal TypedCheckedClaim(string value, DateTimeOffset t) => new(
+        new ObservationClaim(TypedSubject, value),
+        IngressKind.Observation, ObservationContext.PostActionEffectFlow,
+        new Provenance(
+            UniClaw.Kernel.Perception.UiHierarchy.TypedHierarchyProposalProjector.Producer, t,
+            $"scope:{TypedSubject}",
+            new[] { UniClaw.Kernel.Perception.UiHierarchy.TypedHierarchyProposalProjector.LineageMarker },
+            Hierarchy: new UniClaw.Kernel.Perception.UiHierarchy.HierarchyCaptureDescriptor(
+                CaptureId: "cap-x", AndroidApiLevel: 34,
+                UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyAcquirerKind.LegacyUiAutomatorXml, "1.0",
+                UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyFormat.UiAutomatorXml, "dev-1", "sess-1",
+                ObservationCycleId: null, CaptureTimestamp: t,
+                CaptureDuration: null,
+                UniClaw.Kernel.Perception.UiHierarchy.HierarchyCapability.CheckedBooleanCollapsed,
+                UniClaw.Kernel.Perception.UiHierarchy.CoverageCompleteness.CompleteWithinDeclaredSurface,
+                CoverageLimitation: null, NodeLocalIndex: 0, ParentLocalIndex: null,
+                Field: "checked")));
+
     private static ObservationProposal PostActionObservation(string value, DateTimeOffset t) => new(
         new ObservationClaim(UIWorldDoubles.Observed, value),
         IngressKind.Observation, ObservationContext.PostActionEffectFlow,
@@ -415,7 +436,11 @@ public sealed class KernelRunDriverTests
                     UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
                 })
                 : postActionArrived
-                    ? new RunDriverInput.Observation(new[] { PostActionObservation("switch:primary@on", UIWorldDoubles.T1) })
+                    ? new RunDriverInput.Observation(new[]
+                    {
+                        TypedCheckedClaim("checked", UIWorldDoubles.T1),
+                        PostActionObservation("switch:primary@on", UIWorldDoubles.T1),
+                    })
                     : null,
             ConsultAgent = MultiTurnCompat(ctx =>
                 new AgentDecision.Act(new AgentActionProposal(
@@ -427,7 +452,7 @@ public sealed class KernelRunDriverTests
         var kernel = new UniKernel(
             new EvidenceLedger(),
             new WorldModel(
-                new HashSet<string> { UIWorldDoubles.Observed },
+                new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
                 new SeedContainerAssociationStrategy(),
                 new StatefulObservationStrategy(cid),
                 new RoleContinuityStrategy()),
@@ -439,7 +464,7 @@ public sealed class KernelRunDriverTests
         Assert.True(kernel.AdmitContract(new ExecutionContract(
             Version: "v1",
             Objective: "turn-switch-on",
-            Scope: new HashSet<string> { UIWorldDoubles.Observed },
+            Scope: new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
             AllowedEffects: new HashSet<string> { "toggle" },
             ForbiddenEffects: new HashSet<string>(),
             ProofCriteria: new[] { "switch-on" },
@@ -447,7 +472,7 @@ public sealed class KernelRunDriverTests
             {
                 new RunObligation(
                     "obl-switch-on", RunObligationKind.Objective,
-                    Subject: "switch", RequiredValue: "on", Mandatory: true,
+                    Subject: "ui.role.switch.checked", RequiredValue: "checked", Mandatory: true,
                     EntityScope: new TargetDescriptor("switch", "primary")),
             })).Accepted);
 
@@ -505,7 +530,7 @@ public sealed class KernelRunDriverTests
         var kernel = new UniKernel(
             new EvidenceLedger(),
             new WorldModel(
-                new HashSet<string> { UIWorldDoubles.Observed },
+                new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
                 new SeedContainerAssociationStrategy(),
                 new StatefulObservationStrategy(cid),
                 new RoleContinuityStrategy()),
@@ -517,7 +542,7 @@ public sealed class KernelRunDriverTests
         Assert.True(kernel.AdmitContract(new ExecutionContract(
             Version: "v1",
             Objective: "turn-switch-on",
-            Scope: new HashSet<string> { UIWorldDoubles.Observed },
+            Scope: new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
             AllowedEffects: new HashSet<string> { "toggle" },
             ForbiddenEffects: new HashSet<string>(),
             ProofCriteria: new[] { "switch-on" },
@@ -525,7 +550,7 @@ public sealed class KernelRunDriverTests
             {
                 new RunObligation(
                     "obl-switch-on", RunObligationKind.Objective,
-                    Subject: "switch", RequiredValue: "on", Mandatory: true,
+                    Subject: "ui.role.switch.checked", RequiredValue: "checked", Mandatory: true,
                     EntityScope: new TargetDescriptor("switch", "primary")),
             })).Accepted);
 
@@ -639,7 +664,7 @@ public sealed class KernelRunDriverTests
             {
                 new RunObligation(
                     "obl-switch-on", RunObligationKind.Objective,
-                    Subject: "switch", RequiredValue: "on", Mandatory: true,
+                    Subject: "ui.role.switch.checked", RequiredValue: "checked", Mandatory: true,
                     EntityScope: new TargetDescriptor("switch", "primary")),
             })).Accepted);
 

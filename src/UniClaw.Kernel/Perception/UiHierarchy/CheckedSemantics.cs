@@ -108,6 +108,26 @@ public static class CheckedSemantics
     }
 
     /// <summary>
+    /// PER-014 R3：presentation-state 值域到 typed checked 的严格映射
+    /// （occurrence belief 侧 CDS-001 State 的消费面单点适配）。接受 typed 名
+    /// （checked/unchecked/partial）与既有 presentation 名（on/off、true/false）
+    /// 的一对一映射；无法映射（null / 空串 / 未知词）→ null = Unknown——
+    /// 调用方必须 fail-closed，不得折叠为 Unchecked/off。
+    /// </summary>
+    public static CheckedState? FromPresentation(string? presentation) => presentation switch
+    {
+        "checked" or "on" or "true" => CheckedState.Checked,
+        "unchecked" or "off" or "false" => CheckedState.Unchecked,
+        "partial" => CheckedState.Partial,
+        // PER-014 R3 fixture 迁移：Simulation/DevLoop 场景域的两态契约词
+        // （settings-row 域 enabled/disabled ≡ 该 claim domain 的
+        // checked/unchecked；一对一映射，非折叠）。
+        "enabled" => CheckedState.Checked,
+        "disabled" => CheckedState.Unchecked,
+        _ => null,
+    };
+
+    /// <summary>
     /// Exact 判定：capability 必须声明 Exact 且 proof 三项完整；任一不满足即视为
     /// Collapsed（false → Unknown(partial-unrepresentable)）。
     /// </summary>

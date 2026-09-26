@@ -4,6 +4,7 @@ using UniClaw.Kernel.Control;
 using UniClaw.Kernel.Diagnostics;
 using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
+using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Kernel.Run;
 using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
@@ -162,46 +163,76 @@ public sealed class Per009RemediationTests
     }
 
     [Fact]
-    public void XmlRoute_FourGates_VerifiesWithoutOccurrence()
+    public void TypedRoute_FourGates_VerifiesViaSemanticChecked()
     {
+        // PER-014 R2：typed 验证路由四门等价回归（替代 legacy xml-route）。
+        var typedSubject = "ui.node.cap-t1#0.checked";
         var world = new WorldModel(
-            new HashSet<string> { SwitchState, SharedSubjects.Screen },
-            new ProductAssociationStrategy());
+            new HashSet<string> { SharedSubjects.Screen, SharedSubjects.Frame, typedSubject },
+            new ProductAssociationStrategy(),
+            new HostSeededOccurrenceStrategy());
         var kernel = Compose(world);
 
         Observe(kernel, Claim(SharedSubjects.Screen, "s1", "host.live", T0));
-        // post 相 XML 映射 claim 直接确立（无既存 host 态 → establishing producer = XML）
-        var post = kernel.Process(Claim(SwitchState, "on", ProducerTrust.XmlProducer, T0,
-            new[] { "xml-map:switch_widget", "xml-checkable:true", "xml-unique:true" }));
-        var target = new TargetSpec("switch", null, "tap", "on");
+        // typed claim 先于帧批尾（occurrence 为 revision-local——承载 revision
+        // 的 record 必须最后处理，与 ResolutionCarriesOccurrences 同一约定）
+        var post = kernel.Process(TypedCheckedClaim(typedSubject, "checked", T0.AddSeconds(1)));
+        Observe(kernel, Claim(SharedSubjects.Frame,
+            "{\"role\":\"switch\",\"state\":\"on\",\"b\":[0.1,0.1,0.2,0.2]}", "host.live", T0));
+        var target = new TargetSpec("switch", null, "tap", CheckedState.Checked);
 
         var verification = kernel.VerifyPostActionEffect(
-            target, new[] { post }, dispatchTime: T0 - TimeSpan.FromSeconds(1));
+            target, new[] { post }, dispatchTime: T0);
 
         Assert.True(verification.IsVerified);
-        Assert.Contains(verification.Checks, c => c.Name == "xml-route-four-gates");
+        Assert.Contains(verification.Checks, c => c.Name == "typed-route-four-gates");
     }
 
     [Fact]
-    public void XmlRoute_TemporalGate_Fails_FallsBackToOccurrencePath()
+    public void TypedRoute_TemporalGate_Fails_FallsBackToOccurrencePath()
     {
+        var typedSubject = "ui.node.cap-t2#0.checked";
         var world = new WorldModel(
-            new HashSet<string> { SwitchState, SharedSubjects.Screen },
-            new ProductAssociationStrategy());
+            new HashSet<string> { SharedSubjects.Screen, SharedSubjects.Frame, typedSubject },
+            new ProductAssociationStrategy(),
+            new HostSeededOccurrenceStrategy());
         var kernel = Compose(world);
 
         Observe(kernel, Claim(SharedSubjects.Screen, "s1", "host.live", T0));
-        var post = kernel.Process(Claim(SwitchState, "on", ProducerTrust.XmlProducer, T0,
-            new[] { "xml-map:switch_widget", "xml-checkable:true", "xml-unique:true" }));
-        var target = new TargetSpec("switch", null, "tap", "on");
+        // typed claim 先于帧批尾（occurrence 为 revision-local——承载 revision
+        // 的 record 必须最后处理，与 ResolutionCarriesOccurrences 同一约定）
+        var post = kernel.Process(TypedCheckedClaim(typedSubject, "checked", T0.AddSeconds(1)));
+        Observe(kernel, Claim(SharedSubjects.Frame,
+            "{\"role\":\"switch\",\"state\":\"on\",\"b\":[0.1,0.1,0.2,0.2]}", "host.live", T0));
+        var target = new TargetSpec("switch", null, "tap", CheckedState.Unchecked);
 
-        // 门④：dump 时序不在 dispatch 之后 → 回 occurrence 路径（无 occurrence → 不通过）
+        // 门④：capture 不在 dispatch 之后 → typed 路由退位 → occurrence 视觉路径
+        //（presentation "on" ≠ unchecked → 如实未验证，无 typed-route 检查项）
         var verification = kernel.VerifyPostActionEffect(
             target, new[] { post }, dispatchTime: T0 + TimeSpan.FromSeconds(1));
 
         Assert.False(verification.IsVerified);
-        Assert.DoesNotContain(verification.Checks, c => c.Name == "xml-route-four-gates");
+        Assert.DoesNotContain(verification.Checks, c => c.Name == "typed-route-four-gates");
     }
+
+    /// <summary>typed checked claim（PER-013 投影同构：occurrence-qualified
+    /// subject + Hierarchy descriptor provenance，capture timestamp 可控）。</summary>
+    private static ObservationProposal TypedCheckedClaim(
+        string subject, string value, DateTimeOffset captureTime) => new(
+        new ObservationClaim(subject, value),
+        IngressKind.Observation, ObservationContext.PostActionEffectFlow,
+        new Provenance(
+            TypedHierarchyProposalProjector.Producer, captureTime, $"scope:{subject}",
+            new[] { TypedHierarchyProposalProjector.LineageMarker },
+            Hierarchy: new HierarchyCaptureDescriptor(
+                CaptureId: "cap-x", AndroidApiLevel: 34,
+                UiHierarchyAcquirerKind.LegacyUiAutomatorXml, "1.0",
+                UiHierarchyFormat.UiAutomatorXml, "dev-1", "sess-1",
+                ObservationCycleId: null, CaptureTimestamp: captureTime,
+                CaptureDuration: null, HierarchyCapability.CheckedBooleanCollapsed,
+                CoverageCompleteness.CompleteWithinDeclaredSurface,
+                CoverageLimitation: null, NodeLocalIndex: 0, ParentLocalIndex: null,
+                Field: "checked")));
 
     /// <summary>测试侧 occurrence 策略：从 screen.frame 帧派生 switch occurrence。</summary>
     private sealed class HostSeededOccurrenceStrategy : IUiObservationStrategy

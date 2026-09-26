@@ -1,3 +1,4 @@
+using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Kernel.World;
 
 using UniClaw.Kernel.World.UiRealization;
@@ -9,18 +10,21 @@ namespace UniClaw.Kernel.Control;
 /// effect」。Role 必须；SemanticDescriptor 可选收窄（null = 该 role 任意
 /// occurrence）；EffectClass 为拟施加的 effect 类。objective→target-spec 的
 /// authoring 语义显式 out-of-scope（由调用侧构造）。
-/// DesiredState（CDS-001 / ADR-0017）：可选期望终态（与 occurrence State
-/// 同一表示域，如 "true"/"false"）。非 null 时 policy 在签发 act 前做
-/// desired-state satisfaction 检查——非幂等物理动作（toggle 物理执行 =
-/// tap，对已满足目标再执行会破坏状态）的安全性必须在 action 发出之前
-/// 由 Control 的世界状态语义保证（I-3：post-action verification 只能发现
-/// 破坏，不能防止破坏）。null（Click 等无期望终态型）不做检查。
+/// DesiredState（CDS-001 / ADR-0017；PER-014 R3 值域迁移）：可选期望终态，
+/// 值域 = <see cref="CheckedState"/>（typed semantic checked；替代 legacy
+/// on/off 字符串域）。非 null 时 policy 在签发 act 前做 desired-state
+/// satisfaction 检查——非幂等物理动作（toggle 物理执行 = tap，对已满足目标
+/// 再执行会破坏状态）的安全性必须在 action 发出之前由 Control 的世界状态
+/// 语义保证（I-3：post-action verification 只能发现破坏，不能防止破坏）。
+/// null（Click 等无期望终态型）不做检查。occurrence presentation state 经
+/// <see cref="CheckedSemantics.FromPresentation"/> 严格映射后比较；映射
+/// 不出（Unknown）不判 satisfied（fail-closed，不折叠、不猜值）。
 /// </summary>
 public sealed record TargetSpec(
     string Role,
     string? SemanticDescriptor,
     string EffectClass,
-    string? DesiredState = null);
+    CheckedState? DesiredState = null);
 
 /// <summary>
 /// 参考确定性 policy（CTL-001 产品 realization；D9 先例「intent 选择可无需
@@ -78,9 +82,12 @@ public sealed class DescriptorTargetPolicy : IControlPolicy
             // Unsatisfied → Act（全链不变）。
             if (spec.DesiredState is not null)
             {
-                if (occurrence.State is null)
+                // PER-014 R3：presentation state → typed checked 严格映射；
+                // Unknown（含 null）不 Act 也不误判 satisfied（零折叠）。
+                var observed = CheckedSemantics.FromPresentation(occurrence.State);
+                if (observed is null)
                     continue; // Unknown：不 Act、不 visited
-                if (occurrence.State == spec.DesiredState)
+                if (observed == spec.DesiredState)
                 {
                     // Satisfied：目标已达成，零物理动作（I-3——防 tap 破坏）
                     _visited.Add((spec.Role, occurrence.SemanticDescriptor));

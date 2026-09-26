@@ -90,6 +90,28 @@ public sealed class KernelRunDriverFinalizationTests
     /// seedValue 必须与测试首条 External 观察的 claim value 逐字节一致——
     /// container id 内容寻址，探针值不一致 → occurrence 悬空（grounding 失败）。
     /// </summary>
+    /// <summary>PER-014 R3：typed semantic checked claim（R1 缝输入；subject
+    /// 须在 relevance scope）。</summary>
+    private const string TypedSubject = "ui.node.cap-x#0.checked";
+
+    private static ObservationProposal TypedCheckedClaim(string value, DateTimeOffset t) => new(
+        new ObservationClaim(TypedSubject, value),
+        IngressKind.Observation, ObservationContext.PostActionEffectFlow,
+        new Provenance(
+            UniClaw.Kernel.Perception.UiHierarchy.TypedHierarchyProposalProjector.Producer, t,
+            $"scope:{TypedSubject}",
+            new[] { UniClaw.Kernel.Perception.UiHierarchy.TypedHierarchyProposalProjector.LineageMarker },
+            Hierarchy: new UniClaw.Kernel.Perception.UiHierarchy.HierarchyCaptureDescriptor(
+                CaptureId: "cap-x", AndroidApiLevel: 34,
+                UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyAcquirerKind.LegacyUiAutomatorXml, "1.0",
+                UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyFormat.UiAutomatorXml, "dev-1", "sess-1",
+                ObservationCycleId: null, CaptureTimestamp: t,
+                CaptureDuration: null,
+                UniClaw.Kernel.Perception.UiHierarchy.HierarchyCapability.CheckedBooleanCollapsed,
+                UniClaw.Kernel.Perception.UiHierarchy.CoverageCompleteness.CompleteWithinDeclaredSurface,
+                CoverageLimitation: null, NodeLocalIndex: 0, ParentLocalIndex: null,
+                Field: "checked")));
+
     private static (UniKernel Kernel, KernelRunDriver Driver, AgentPlanPolicy Plan) ComposeOccurrenceWorld(
         Func<ObservationDirective, RunDriverInput?> nextInput,
         Func<UniKernel, Func<AgentDecisionContext, AgentDecision?>> consultFactory,
@@ -102,7 +124,7 @@ public sealed class KernelRunDriverFinalizationTests
         var kernel = new UniKernel(
             new EvidenceLedger(),
             new WorldModel(
-                new HashSet<string>(contract.Scope),
+                new HashSet<string>(contract.Scope.Append(TypedSubject)),
                 new SeedContainerAssociationStrategy(),
                 new StatefulObservationStrategy(cid),
                 new RoleContinuityStrategy()),
@@ -250,6 +272,7 @@ public sealed class KernelRunDriverFinalizationTests
                 })
                 : new RunDriverInput.Observation(new[]
                 {
+                    TypedCheckedClaim("checked", UIWorldDoubles.T1),
                     PostActionObservation("switch:primary@on", UIWorldDoubles.T1),
                 }),
             consultFactory: k => ctx =>
@@ -392,6 +415,7 @@ public sealed class KernelRunDriverFinalizationTests
                 // 第二步验证需要新 revision 才能过 post-action-reconciled 门
                 : new RunDriverInput.Observation(new[]
                 {
+                    TypedCheckedClaim("checked", UIWorldDoubles.T1.AddSeconds(postPulls)),
                     PostActionObservation(
                         $"switch:primary@on+menuItem:list@{(++postPulls == 1 ? "visible" : "visited")}",
                         UIWorldDoubles.T1.AddSeconds(postPulls)),
@@ -421,7 +445,7 @@ public sealed class KernelRunDriverFinalizationTests
                 new[]
                 {
                     new RunObligation(
-                        "obl-switch", RunObligationKind.Objective, "switch", "on", true,
+                        "obl-switch", RunObligationKind.Objective, "ui.role.switch.checked", "checked", true,
                         EntityScope: new TargetDescriptor("switch", "primary")),
                 },
                 MaxConsultations: 64),
@@ -499,6 +523,7 @@ public sealed class KernelRunDriverFinalizationTests
                 : postActionArrived
                     ? new RunDriverInput.Observation(new[]
                     {
+                        TypedCheckedClaim("checked", UIWorldDoubles.T1),
                         PostActionObservation("switch:primary@on", UIWorldDoubles.T1),
                     })
                     : null,
@@ -521,7 +546,7 @@ public sealed class KernelRunDriverFinalizationTests
                 new[]
                 {
                     new RunObligation(
-                        "obl-switch", RunObligationKind.Objective, "switch", "on", true,
+                        "obl-switch", RunObligationKind.Objective, "ui.role.switch.checked", "checked", true,
                         EntityScope: new TargetDescriptor("switch", "primary")),
                 }));
 

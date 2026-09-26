@@ -150,11 +150,13 @@ public sealed class WorldModelPerformanceTests(ITestOutputHelper output)
             });
 
         Assert.Equal(new[] { "claim-3", "claim-30" }, view.Conflicts.Select(c => c.Subject));
-        Assert.Equal(EntityObligationFactKind.Satisfied, Assert.Single(view.EntityFacts!).Kind);
+        // PER-014 R3：无 typed checked claim → Unknown（fail-closed，零折叠；
+        // presentation state "ready" 不再是满足权威）
+        Assert.Equal(EntityObligationFactKind.Unknown, Assert.Single(view.EntityFacts!).Kind);
         Assert.True(world.DeriveActionAssuranceView("claim-30").HasConflictOnTarget);
         var aggregate = metrics.WorldModelPerformance[WorldModelOperation.ConsumerViewDerivation];
         Assert.Equal(2, aggregate.Invocations);
-        Assert.Equal(53, aggregate.ScannedEntries); // 40 claims + 2 conflicts + 10 role candidates + 1 target lookup
+        Assert.Equal(183, aggregate.ScannedEntries); // 40 claims + 2 conflicts + R1 缝 entity fact 派生（100 occurrences + 40 WorldState + 3）
         WriteAggregate("consumer-views", aggregate);
     }
 

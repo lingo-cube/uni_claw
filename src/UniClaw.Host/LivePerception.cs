@@ -104,13 +104,23 @@ public static class LivePerception
         private readonly VisionServiceSession _session;
         private readonly AdbScreenshotAcquisition _acquisition;
         private readonly UiAutomatorDump.ProbeStateMachine _xmlProbe = new();
+        private readonly bool _legacyStateEgress;
         private int _phase;
 
-        public LiveFrameFeed(HostUtilities.VirtualClock clock, LiveAssets assets, Func<string> readSwitchState)
+        /// <summary>
+        /// PER-014 R5 / M-08：本次 run 是否实际动用了 legacy role-state 发射
+        /// （HostRunner 读此标记落 facts.legacyEgress = run 标记 legacy/degraded）。
+        /// </summary>
+        public bool LegacyEgressObserved { get; private set; }
+
+        public LiveFrameFeed(HostUtilities.VirtualClock clock, LiveAssets assets, Func<string> readSwitchState,
+            // PER-014 R5：legacy role-state 发射回滚旗（默认关，PER-012 M-08）。
+            bool legacyStateEgress = false)
         {
             _clock = clock;
             _assets = assets;
             _readSwitchState = readSwitchState;
+            _legacyStateEgress = legacyStateEgress;
             _session = new VisionServiceSession(assets.ProviderRoot, assets.PythonExecutable, assets.CacheRoot);
             _acquisition = new AdbScreenshotAcquisition(assets.DeviceId, "adb", () => clock.Now);
         }
@@ -143,13 +153,17 @@ public static class LivePerception
 
             // P-3（评审修复）：跨源碰头——XML 节点空间映射到共享层 {role}.state
             // P-6：Focused 时仅映射指令点名 subjects（真裁剪重扫 = Tier 1 管线支持后）
+            // PER-014 R5：legacy 发射旗门控——默认关（正常 typed run 零 role-state
+            // XML claims）；开 = 回滚路径恢复，且 run 由 HostRunner 标记 legacy/degraded。
             ObservationProposal? mapped = null;
-            if (dump is not null && SubjectInScope(directive))
+            if (_legacyStateEgress && dump is not null && SubjectInScope(directive))
             {
                 mapped = UiAutomatorDump.MapTargetStateClaim(
                     dump, "switch",
                     (detection.X1, detection.Y1, detection.X2, detection.Y2),
                     shot.Width, shot.Height, _clock.Now, expected);
+                if (mapped is not null)
+                    LegacyEgressObserved = true;
             }
 
             // P-1/C-2（评审修复）：post 相 XML-first——映射在场即权威定案通道

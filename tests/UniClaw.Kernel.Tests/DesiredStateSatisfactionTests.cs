@@ -82,7 +82,8 @@ public sealed class DesiredStateSatisfactionTests
         kernel.Process(UIWorldDoubles.Observation(SeedValue, UIWorldDoubles.T0));
 
     private static TargetSpec ToggleSpec(string? desiredState) =>
-        new("toggle", "wifi-switch", "set-switch", desiredState);
+        new("toggle", "wifi-switch", "set-switch",
+            UniClaw.Kernel.Perception.UiHierarchy.CheckedSemantics.FromPresentation(desiredState));
 
     // ---- S1 载荷：state 全链可见（strategy → belief → Slice） -----------
 

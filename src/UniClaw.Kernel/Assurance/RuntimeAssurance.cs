@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using UniClaw.Kernel.Control;
 using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
+using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Kernel.Run;
 using UniClaw.Kernel.World;
 
@@ -62,6 +63,9 @@ public sealed class RuntimeAssurance
                     || o.SemanticDescriptor == input.Target.SemanticDescriptor))
             .ToList();
         var observedState = candidates.Count == 1 ? candidates[0].State : null;
+        // PER-014 R3：DesiredState 已是 typed CheckedState 值域；occurrence
+        // presentation state 经严格映射比较（Unknown 不判 satisfied，零折叠）。
+        var observedChecked = CheckedSemantics.FromPresentation(observedState);
         var checks = new List<AssuranceCheck>
         {
             new("post-action-evidence-accepted", input.ProcessedObservations.Any(
@@ -70,7 +74,8 @@ public sealed class RuntimeAssurance
                 r => r.ResultingRevision is not null)),
             new("post-action-target-unique", candidates.Count == 1),
             new("post-action-desired-state-satisfied",
-                input.Target.DesiredState is null || observedState == input.Target.DesiredState),
+                input.Target.DesiredState is null
+                || (observedChecked is { } observed && observed == input.Target.DesiredState)),
         };
         var failed = checks.FirstOrDefault(c => !c.Passed)?.Name;
         var rejection = failed == "post-action-desired-state-satisfied"

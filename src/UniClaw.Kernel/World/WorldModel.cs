@@ -1232,7 +1232,8 @@ public sealed class WorldModel
     /// </summary>
     public OutcomeAssuranceView DeriveOutcomeAssuranceView(
         IEnumerable<string> subjects,
-        IEnumerable<(string ObligationId, TargetDescriptor Scope, string RequiredState)>? entityObligations = null)
+        IEnumerable<(string ObligationId, TargetDescriptor Scope, string RequiredState)>? entityObligations = null,
+        IReadOnlyDictionary<string, Evidence.EvidenceRecord>? canonicalRecords = null)
     {
         ArgumentNullException.ThrowIfNull(subjects);
         var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 OutcomeAssuranceView");
@@ -1265,8 +1266,11 @@ public sealed class WorldModel
             var facts = new List<EntityObligationFact>();
             foreach (var obligation in entityObligations)
             {
+                // PER-014 R3：entity-scoped checked obligation 的 fulfillment
+                // 判定改走 R1 只读缝（SemanticCheckedResolver，typed
+                // semantic.checked；Unknown/Unsupported ≠ Satisfied，零折叠）。
                 var kind = DeriveEntityObligationFactKind(
-                    obligation.Scope, obligation.RequiredState, out var scannedCandidates);
+                    obligation.Scope, obligation.RequiredState, canonicalRecords, out var scannedCandidates);
                 scannedEntries += scannedCandidates;
                 facts.Add(new EntityObligationFact(obligation.ObligationId, kind));
             }
@@ -1288,34 +1292,35 @@ public sealed class WorldModel
         return view;
     }
 
-    /// <summary>ESO-002 D1：单条 entity obligation 的 tri-state fact 匹配
-    ///（与 ResolveCurrent 同一机械确定性维度；Unknown 兜底 fail-closed）。</summary>
+    /// <summary>ESO-002 D1 + PER-014 R3：单条 entity checked obligation 的
+    /// tri-state fact 判定——改经 <see cref="SemanticCheckedResolver"/>（R1
+    /// 只读缝）：Role 唯一 occurrence 解析 → typed checked claim → 与
+    /// RequiredState 相等判定。RequiredState 经 <see cref="CheckedSemantics.
+    /// FromPresentation"/> 严格解析：typed 名（checked/unchecked/partial）
+    /// 与 PER-012 M-04 无损词对（on/off、true/false、enabled/disabled）
+    /// 接受；无法映射的未知词 → Unknown（fail-closed：不满足、不折叠）。
+    /// 零/多候选 / 无 claim / capture 不可判 → Unknown；capability 缺席 →
+    /// Unknown（Unsupported 也如实未满足）。Unknown 兜底 fail-closed；与
+    /// ResolveCurrent 同一 occurrence 匹配维度（缝内持有）。</summary>
     private EntityObligationFactKind DeriveEntityObligationFactKind(
         TargetDescriptor scope,
         string requiredState,
+        IReadOnlyDictionary<string, Evidence.EvidenceRecord>? canonicalRecords,
         out int scannedEntries)
     {
         ArgumentNullException.ThrowIfNull(scope);
         var current = Current!;
-        var index = IndexFor(current);
-        var roleCandidates = index.OccurrencesByRole.TryGetValue(scope.Role, out var bucket)
-            ? bucket
-            : Array.Empty<OccurrenceBelief>();
-        scannedEntries = roleCandidates.Count;
-        var candidates = roleCandidates
-            .Where(o => OccurrenceDescriptorMatcher.Matches(
-                o.Role, o.SemanticDescriptor, o.OwningContainerId,
-                scope.Role, scope.SemanticDescriptor, scope.OwningContainerId,
-                ContainerMatchMode.TargetEquality))
-            .ToArray();
-        if (candidates.Length != 1)
-            return EntityObligationFactKind.Unknown; // 零/多候选：不铸信息
-        var state = candidates[0].State;
-        if (state is null)
-            return EntityObligationFactKind.Unknown; // 无 state 证据 ≠ false
-        return state == requiredState
-            ? EntityObligationFactKind.Satisfied
-            : EntityObligationFactKind.Unsatisfied;
+        scannedEntries = (current.Occurrences?.Count ?? 0) + current.WorldState.Count;
+        var required = UniClaw.Kernel.Perception.UiHierarchy.CheckedSemantics.FromPresentation(requiredState);
+        if (required is null)
+            return EntityObligationFactKind.Unknown; // 非 typed checked 词汇：不满足、不折叠
+        var resolution = UniClaw.Kernel.Perception.UiHierarchy.SemanticCheckedResolver.Resolve(
+            current, scope, canonicalRecords);
+        return resolution.TryGetObserved(out var checkedState)
+            ? (checkedState == required
+                ? EntityObligationFactKind.Satisfied
+                : EntityObligationFactKind.Unsatisfied)
+            : EntityObligationFactKind.Unknown; // Unknown/Unsupported：如实未满足
     }
 
     private void RecordConsumerViewPerformance(
