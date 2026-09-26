@@ -113,3 +113,20 @@ enforcement change 落地（见 Consequences），本 ADR 只冻结规则。
   "experiment completed with findings" 关闭。
 - SKILL.md 的流程文字与本 ADR 的接线（预检步骤、fastpath 登记格式）
   随 enforcement change 一并修订，不在本 ADR 内完成。
+
+## Disposition note（2026-09-27，追加）
+
+本 ADR 的规则文本与上述全部结论保持不变，不追溯改写。追加本条仅记录
+一条后续处置事实：
+
+- 本 ADR 第 3 条要求的 mechanical enforcement（owner-ruling validator /
+  fastpath manifest）由 **Owner 裁决为 not pursued**，承接 change GATE-002
+  以 `closed / not-pursued` 收口。理由：mechanical owner-gate enforcement 的
+  workflow 复杂度高于其当前期望价值；治理规则保留，不新增执法子系统。
+- 因此第 3 条自本条起为**保留但未机械执法**：owner-gate 落档携带
+  owner-ruling reference（或显式授权 fastpath manifest）继续依赖人工遵守，
+  工具不再兜底。Owner 介入条件收敛为四条人工 stop rule（architecture /
+  authority 变化；多有效方案需人裁决；DECISION-HEAVY change；review 出现
+  substantive finding）。
+- 「执法落地」一项标记为 deferred-not-pursued，而非已交付。
+- GATE-001 的五起 `PROTOCOL_NON_COMPLIANCE` 永久保持，不因本条改写。
