@@ -1,5 +1,5 @@
 # CORE-004 — Core 与现有模型的责任对齐
-lifecycle_state: verified · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: working-tree
 triage_label: ready-for-agent
 children: CORE-005, CORE-006, CORE-007
 
@@ -31,6 +31,10 @@ evidence: docs/design/core-model-responsibility-matrix-v0.1.md
 
 ## Status log
 
+- 2026-09-27 · verified→closed · Owner final closure PASS（联合 OWNER_GATE
+  审阅：acceptance 6/6 机械证据、自定关闭条件满足——子规格 CORE-005/006
+  verified + CORE-007 closed、矩阵 Owner/Authority/Relation 齐全、无未登记
+  第二权威；closing 不暗示旧源码迁移完成，acceptance #6 口径保持）。
 2026-09-19 · planned · 根据 CORE-003 grill-with-doc 结果进入旧模型责任对齐规格化；未开始源码迁移。
 2026-09-19 · planned→verified · 完成第一版责任对齐矩阵；确认 Core 对象集不因现有类结构扩张，字段/使用契约缺口形成局部 gates；未修改产品源码。
 2026-09-19 · verified · 结构调整：CORE-005（World）和 CORE-006（Effect）标记为本 Change 的步骤子规格；CORE-004 保留统一规则、术语、Owner/Authority 和最终关闭条件。

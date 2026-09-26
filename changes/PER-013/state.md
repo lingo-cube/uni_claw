@@ -177,6 +177,7 @@ Architecture deviation NONE
 
 ## Status log
 
+- 2026-09-27 · closed·lineage-note · 依赖回指：本 change 的 HierarchyCaptureDescriptor 走 CORE-005 冻结的 provenance 通用透传缝（EvidenceLedger admission 判据零改动）——CORE-005 已于同日 Owner 终裁 CLOSED。
 - 2026-09-27 · closed·post-closure-fix · owner 反馈处置：①原 AVD snapshot-
   pending FATAL 修复（删 5 项运行时产物，~/.android 原目录直启 OK）；②
   HostLiveFull 全闭环根因定位与修复——exec.journal 实录 `input tap 967 1030`

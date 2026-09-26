@@ -1,5 +1,5 @@
 # CORE-005 — World Evidence 到 Claim 的责任对齐切片
-lifecycle_state: verified · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: working-tree
 triage_label: ready-for-agent
 parent_change: CORE-004
 
@@ -32,5 +32,11 @@ evidence: evidence/2026-09-19-core-005-world-alignment.md
 
 ## Status log
 
+- 2026-09-27 · verified→closed · Owner final closure PASS（联合 OWNER_GATE
+  审阅：acceptance 7/7 机械证据；其冻结的边界——Kernel 唯一 World/Evidence
+  authority、admission 判据零改动、provenance 通用透传——已被 PER-013
+  （HierarchyCaptureDescriptor 经此缝，EvidenceLedger.cs 注释在案）与
+  CSC-001/002（Space 字段同一通道）事实上当作 upstream authority；
+  CoreSemanticProjection 生产侧零调用符合「只读对齐、不迁移」承诺范围）。
 2026-09-19 · planned · 根据 CORE-004 矩阵和 codebase-design seam 评估，选择 World Evidence→Claim 作为第一条对齐切片；尚未实现。
 2026-09-19 · planned→verified · 现有最高 seam 和测试已验证 Evidence→Segment/Slice→Claim 责任对齐；确认 Kernel 保持唯一 World/Evidence authority，Core 仅只读投影；Effect/Attempt gates 保留后续。

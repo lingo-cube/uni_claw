@@ -171,6 +171,7 @@ evidence: >
 
 ## Status log
 
+- 2026-09-27 · closed·lineage-note · 依赖回指：frame claim w/h 与 Space 字段经 CORE-005 冻结的 admission/provenance 通道；DeliveryTarget/binding 空间载体与 CORE-006 的 TargetBinding/BasisReference 记录形状同族——CORE-005/006 已于同日 Owner 终裁 CLOSED。
 - 2026-09-27 · verified→closed · Owner 终裁（后继 change base 声明）；
   提交固化。
 - 2026-09-27 · verified·owner-hold · Owner 必改五项执行（缓存移除/动态

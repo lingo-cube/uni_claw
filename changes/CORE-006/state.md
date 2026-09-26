@@ -1,5 +1,5 @@
 # CORE-006 — Effect Attempt 与固定依据契约
-lifecycle_state: verified · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: working-tree
 triage_label: ready-for-agent
 parent_change: CORE-004
 
@@ -35,5 +35,11 @@ evidence: evidence/2026-09-19-core-006-effect-attempt-contract.md
 
 ## Status log
 
+- 2026-09-27 · verified→closed · Owner final closure PASS（联合 OWNER_GATE
+  审阅：acceptance 8/8 机械证据，契约类型实存 CoreRecords.cs 且有具名测试；
+  两条已登记 defer 的 transfer owner 在案——Attempt 生产投影 =
+  CORE-015 Step 2/3（数据源已定位），非 Slice BasisReference 投影 gate =
+  CORE-015/未来非 UI realization（FileSystemRealization.Tests 已是买方）；
+  CORE-015/state.md 已确认字段全备、无需新增 Core 对象）。
 2026-09-19 · planned · 根据 CORE-003 grill-with-doc 的 Effect/Attempt 与 BasisRef gates 建立规格；尚未实现。
 2026-09-19 · planned→verified · 完成 Core 最小契约和确定性测试；未迁移旧模型、未冻结最终字段/API/存储；Kernel 非 Slice 投影保留为后续 gate。

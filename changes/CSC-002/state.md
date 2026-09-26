@@ -88,6 +88,7 @@ evidence: >
 
 ## Status log
 
+- 2026-09-27 · closed·lineage-note · 依赖回指：DeviceViewportResolver 的唯一 resolution policy 落在 CORE-005 冻结的 Kernel authority 边界内（无第二 writer）；CORE-005 已于同日 Owner 终裁 CLOSED。
 - 2026-09-27 · verified→closed · Owner final closure PASS（A/B/C 三问全
   PASS；closure-only，Product code 零改动）。
 - 2026-09-27 · implemented→verified·owner-gate · 真机三件套 + live gates
