@@ -46,6 +46,11 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Assurance.OutcomeProof",
             "UniClaw.Kernel.Assurance.ProductFreshnessEvaluator",
             "UniClaw.Kernel.Assurance.RuntimeAssurance",
+            // PER-013 Slice D 增集：egress-only legacy 兼容投影（PER-012 §2；
+            // Compatibility namespace，不进 World/；closure 反射执法其不可达
+            // P2/Ledger/WorldModel）。
+            "UniClaw.Kernel.Compatibility.LegacyStateProjection",
+            "UniClaw.Kernel.Compatibility.LegacyStateProjectionResult",
             "UniClaw.Kernel.Control.ControlDecision",
             "UniClaw.Kernel.Control.ControlInputs",
             "UniClaw.Kernel.Control.ControlIntent",
@@ -113,6 +118,35 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Perception.LiveVisionStrategy",
             "UniClaw.Kernel.Perception.PngImage",
             "UniClaw.Kernel.Perception.RawArtifact",
+            // PER-013 Slice A 增集（PER-010 UiHierarchyObservation v1 typed
+            // contract）：UiHierarchy 域类型 21 项 + UiBounds。
+            "UniClaw.Kernel.Perception.UiHierarchy.CaptureMetadata",
+            "UniClaw.Kernel.Perception.UiHierarchy.CheckedCapability",
+            "UniClaw.Kernel.Perception.UiHierarchy.CheckedExactProof",
+            "UniClaw.Kernel.Perception.UiHierarchy.CheckedSemantics",
+            "UniClaw.Kernel.Perception.UiHierarchy.CheckedState",
+            "UniClaw.Kernel.Perception.UiHierarchy.CoverageCompleteness",
+            "UniClaw.Kernel.Perception.UiHierarchy.FieldProvenance",
+            "UniClaw.Kernel.Perception.UiHierarchy.FieldState",
+            "UniClaw.Kernel.Perception.UiHierarchy.HierarchyCapabilities",
+            "UniClaw.Kernel.Perception.UiHierarchy.HierarchyCapability",
+            // PER-013 Slice C 增集：evidence-payload descriptor（随 accepted
+            // Evidence 保留的结构 metadata；projector 保持 internal）。
+            "UniClaw.Kernel.Perception.UiHierarchy.HierarchyCaptureDescriptor",
+            "UniClaw.Kernel.Perception.UiHierarchy.HierarchyCoverage",
+            "UniClaw.Kernel.Perception.UiHierarchy.ObservedValue`1",
+            "UniClaw.Kernel.Perception.UiHierarchy.OccurrenceRef",
+            // PER-013 Slice E 增集：projector 升公开（真实 buyer = Host live
+            // feed 的 per-node evidence cutover；ADR-0026）。
+            "UniClaw.Kernel.Perception.UiHierarchy.TypedHierarchyProposalProjector",
+            "UniClaw.Kernel.Perception.UiHierarchy.UiBounds",
+            "UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyAcquirerKind",
+            "UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyCaptureOutcome",
+            "UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyCaptureResult",
+            "UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyFormat",
+            "UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyObservation",
+            "UniClaw.Kernel.Perception.UiHierarchy.UiNodeObservation",
+            "UniClaw.Kernel.Perception.UiHierarchy.UiWindowOccurrence",
             "UniClaw.Kernel.Perception.VisionServiceClient",
             "UniClaw.Kernel.Perception.VisionServiceDiagnostic",
             "UniClaw.Kernel.Perception.VisionServiceHost",

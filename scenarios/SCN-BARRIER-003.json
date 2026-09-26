@@ -30,9 +30,9 @@
     "schemaVersion": 2,
     "expectationsDigest": "3757929670677752beec06cf9cb50d4929ae878704b296eab0d8b2ababfa9b9a",
     "executionDigest": "a16959ae6376dd47c4195fef7709bc71079d23f2231eaaf438853496332cb194",
-    "runtimeSourceHash": "406a913c7b72092d5f8ec278c8c0ec9ce3a37b12cdf9736bac169a13d7c0c23f",
-    "certifiedByChange": "RUN-005",
-    "certifiedAt": "2026-09-24"
+    "runtimeSourceHash": "3fed65d3a32116276be47da19901374600ade16c46c65c0c9d7e57c89c07cb99",
+    "certifiedByChange": "PER-013",
+    "certifiedAt": "2026-09-26"
   },
   "security": {
     "sensitiveReview": "cleared"

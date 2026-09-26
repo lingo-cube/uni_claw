@@ -12,4 +12,10 @@
     <ProjectReference Include="..\UniClaw.Kernel\UniClaw.Kernel.csproj" />
   </ItemGroup>
 
+  <!-- internal test seam boundary（PER-013 Slice B，照 Kernel RFS-001 D23 先例）：
+       A-4 测试债的可测缝（CoObserveXml / TagDegradedNoXml）仅对 Host.Tests 可见。 -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="UniClaw.Host.Tests" />
+  </ItemGroup>
+
 </Project>

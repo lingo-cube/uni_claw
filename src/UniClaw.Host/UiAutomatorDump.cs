@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using System.Xml;
 using System.Xml.Linq;
 using UniClaw.Kernel.Evidence;
+using UniClaw.Kernel.Perception.UiHierarchy;
 
 namespace UniClaw.Host;
 
@@ -354,4 +356,381 @@ public static class UiAutomatorDump
         Add("selected", node.Selected ? "true" : "false");
         Add("bounds", node.Bounds);
     }
+
+    // ====================================================================
+    // PER-013 Slice B：typed 解析（legacy XML → UiHierarchyObservation v1）
+    // ====================================================================
+
+    /// <summary>
+    /// typed 解析的调用方输入（acquisition 侧持有设备/会话事实；API level 由
+    /// 调用方经 adb 查询提供——PER-010 metadata 必填，不做默认猜测）。
+    /// </summary>
+    public sealed record UiHierarchyParseContext(
+        string CaptureId,
+        DateTimeOffset CaptureTimestamp,
+        string DeviceId,
+        string SessionCorrelation,
+        int AndroidApiLevel,
+        string? ObservationCycleId = null,
+        TimeSpan? CaptureDuration = null,
+        string AcquirerVersion = "adb-uiautomator/legacy",
+        HierarchyCapabilities? Capabilities = null,
+        CheckedExactProof? ExactProof = null);
+
+    /// <summary>
+    /// legacy XML 的默认能力声明（PER-013 Slice B）：semantic text /
+    /// content-description / collapsed checked。visible-to-user、hint、
+    /// drawing-order、window、Compose、WebView 未声明——对应字段一律
+    /// <c>Unsupported</c>（capability &gt; acquirer &gt; API level）。
+    /// </summary>
+    public static HierarchyCapabilities LegacyXmlDefaultCapabilities { get; } =
+        new(HierarchyCapability.SemanticText
+            | HierarchyCapability.ContentDescription
+            | HierarchyCapability.CheckedBooleanCollapsed);
+
+    /// <summary>
+    /// PER-013 Slice B：legacy uiautomator XML → <see cref="UiHierarchyCaptureResult"/>
+    /// （typed、parse 层不再有 missing→false / bounds 默认值折叠）。
+    /// adapter field policy（显式声明，F-E4）：
+    /// - 结构非法（XmlException / 无根）→ outcome=Malformed，无部分节点；
+    /// - 字段级无法解析（布尔/checked/bounds 非法值、倒置 bounds）→ 该字段
+    ///   Unknown(reason)，不使整 capture Malformed、不猜默认值；
+    /// - 属性缺席 → Unknown(attribute-missing)；空串文本 → Observed("")（F-B1）；
+    /// - 未知属性名 → 忽略（不猜值、不报错、不进 ObservedValue；F-E1）；
+    /// - checked=false 按能力映射：默认 collapsed → Unknown(partial-unrepresentable)
+    ///   （PER-012 M-02）；仅 ExactProof 三项完整才 Unchecked（M-01）；
+    /// - checked="partial"：capability 声明 triState 才无损映射，否则
+    ///   Unknown(partial-unrepresentable)；
+    /// - password=true 节点的 Text/ContentDescription/Hint 脱敏为
+    ///   "[redacted:password]"，provenance.Normalization 记 redact:password（F-E2）。
+    /// 零节点 → Empty（≠ 世界 absence）；否则 Complete。
+    /// </summary>
+    public static UiHierarchyCaptureResult ParseHierarchyObservation(
+        string xml, UiHierarchyParseContext parseContext)
+    {
+        ArgumentNullException.ThrowIfNull(xml);
+        ArgumentNullException.ThrowIfNull(parseContext);
+
+        var capabilities = parseContext.Capabilities ?? LegacyXmlDefaultCapabilities;
+        XDocument document;
+        try
+        {
+            document = XDocument.Parse(xml);
+        }
+        catch (XmlException ex)
+        {
+            return new UiHierarchyCaptureResult(
+                UiHierarchyCaptureOutcome.Malformed, null, null,
+                Diagnostic: $"xml-structure-unparseable:{ex.GetType().Name}");
+        }
+
+        var root = document.Root;
+        if (root is null || root.Name != "hierarchy")
+        {
+            return new UiHierarchyCaptureResult(
+                UiHierarchyCaptureOutcome.Malformed, null, null,
+                Diagnostic: "xml-structure-unparseable:root-not-hierarchy");
+        }
+
+        var metadata = new CaptureMetadata(
+            CaptureId: parseContext.CaptureId,
+            AndroidApiLevel: parseContext.AndroidApiLevel,
+            AcquirerKind: UiHierarchyAcquirerKind.LegacyUiAutomatorXml,
+            AcquirerVersion: parseContext.AcquirerVersion,
+            HierarchyFormat: UiHierarchyFormat.UiAutomatorXml,
+            CaptureTimestamp: parseContext.CaptureTimestamp,
+            CaptureDuration: parseContext.CaptureDuration,
+            DeviceId: parseContext.DeviceId,
+            SessionCorrelation: parseContext.SessionCorrelation,
+            ObservationCycleId: parseContext.ObservationCycleId,
+            Capabilities: capabilities,
+            Coverage: new HierarchyCoverage(CoverageCompleteness.CompleteWithinDeclaredSurface));
+
+        var nodes = new List<UiNodeObservation>();
+        var localIndex = 0;
+        foreach (var element in root.Elements("node"))
+            AppendTypedNode(element, parseContext.CaptureId, capabilities, parseContext.ExactProof, nodes, ref localIndex, parent: null);
+
+        var observation = new UiHierarchyObservation(metadata, Array.Empty<UiWindowOccurrence>(), nodes);
+        var outcome = nodes.Count == 0 ? UiHierarchyCaptureOutcome.Empty : UiHierarchyCaptureOutcome.Complete;
+        var result = new UiHierarchyCaptureResult(outcome, metadata, observation, Diagnostic: null);
+        result.Validate();
+        return result;
+    }
+
+    private static void AppendTypedNode(
+        XElement element,
+        string captureId,
+        HierarchyCapabilities capabilities,
+        CheckedExactProof? exactProof,
+        List<UiNodeObservation> nodes,
+        ref int localIndex,
+        OccurrenceRef? parent)
+    {
+        var occurrence = new OccurrenceRef(captureId, localIndex++);
+        var provenance = new FieldProvenance(captureId);
+
+        var password = BoolField(element, "password", provenance);
+        var redact = password.TryGetObserved(out var passwordValue) && passwordValue;
+        var text = redact
+            ? RedactedStringField(provenance)
+            : StringField(element, "text", provenance);
+        var contentDescription = redact
+            ? RedactedStringField(provenance)
+            : StringField(element, "content-desc", provenance);
+
+        ObservedValue<string> hint = capabilities.Has(HierarchyCapability.Hint)
+            ? StringField(element, "hint", provenance)
+            : ObservedValue<string>.Unsupported("capability:hint-absent", provenance);
+        var visibleToUser = capabilities.Has(HierarchyCapability.Visibility)
+            ? BoolField(element, "visible-to-user", provenance)
+            : ObservedValue<bool>.Unsupported("capability:visibility-absent", provenance);
+
+        var node = new UiNodeObservation(
+            OccurrenceRef: occurrence,
+            ParentOccurrenceRef: parent,
+            WindowOccurrenceRef: null,
+            SiblingOrder: IntField(element, "index"),
+            DrawingOrder: null,
+            Class: StringField(element, "class", provenance),
+            ResourceId: StringField(element, "resource-id", provenance),
+            Package: StringField(element, "package", provenance),
+            Text: text,
+            ContentDescription: contentDescription,
+            Hint: hint,
+            Checkable: BoolField(element, "checkable", provenance),
+            Checked: CheckedField(element, capabilities, exactProof, provenance),
+            Enabled: BoolField(element, "enabled", provenance),
+            Selected: BoolField(element, "selected", provenance),
+            Focused: BoolField(element, "focused", provenance),
+            Scrollable: BoolField(element, "scrollable", provenance),
+            Clickable: BoolField(element, "clickable", provenance),
+            Focusable: BoolField(element, "focusable", provenance),
+            VisibleToUser: visibleToUser,
+            Password: password,
+            Bounds: BoundsField(element, provenance));
+        nodes.Add(node);
+
+        foreach (var child in element.Elements("node"))
+            AppendTypedNode(child, captureId, capabilities, exactProof, nodes, ref localIndex, parent: occurrence);
+    }
+
+    private static ObservedValue<string> StringField(
+        XElement element, string name, FieldProvenance provenance)
+    {
+        var attribute = element.Attribute(name);
+        return attribute is null
+            ? ObservedValue<string>.Unknown("attribute-missing", provenance)
+            : ObservedValue<string>.Observed(attribute.Value, provenance with { SourceField = name });
+    }
+
+    private static ObservedValue<string> RedactedStringField(FieldProvenance provenance) =>
+        ObservedValue<string>.Observed(
+            "[redacted:password]",
+            provenance with { Normalization = "redact:password" });
+
+    private static ObservedValue<bool> BoolField(
+        XElement element, string name, FieldProvenance provenance) =>
+        element.Attribute(name)?.Value switch
+        {
+            null => ObservedValue<bool>.Unknown("attribute-missing", provenance),
+            "true" => ObservedValue<bool>.Observed(true, provenance with { SourceField = name }),
+            "false" => ObservedValue<bool>.Observed(false, provenance with { SourceField = name }),
+            _ => ObservedValue<bool>.Unknown("malformed-field", provenance with { SourceField = name }),
+        };
+
+    private static int? IntField(XElement element, string name) =>
+        int.TryParse(element.Attribute(name)?.Value, out var value) ? value : null;
+
+    private static ObservedValue<CheckedState> CheckedField(
+        XElement element, HierarchyCapabilities capabilities, CheckedExactProof? exactProof, FieldProvenance provenance)
+    {
+        var raw = element.Attribute("checked")?.Value;
+        var declared = capabilities.ResolveCheckedCapability();
+        if (declared is null)
+        {
+            return ObservedValue<CheckedState>.Unsupported("capability:checked-absent", provenance);
+        }
+
+        switch (raw)
+        {
+            case null:
+                return ObservedValue<CheckedState>.Unknown("attribute-missing", provenance);
+            case "true":
+            case "false":
+                return CheckedSemantics.MapBoolean(raw == "true", declared.Value, exactProof, provenance);
+            case "partial":
+                return declared == CheckedCapability.CheckedTriState
+                    ? CheckedSemantics.MapTriState(CheckedState.Partial, provenance)
+                    : ObservedValue<CheckedState>.Unknown(CheckedSemantics.PartialUnrepresentableReason, provenance);
+            default:
+                return ObservedValue<CheckedState>.Unknown("malformed-field", provenance with { SourceField = "checked" });
+        }
+    }
+
+    private static ObservedValue<UiBounds> BoundsField(XElement element, FieldProvenance provenance)
+    {
+        var raw = element.Attribute("bounds")?.Value;
+        if (raw is null)
+        {
+            return ObservedValue<UiBounds>.Unknown("attribute-missing", provenance);
+        }
+
+        // uiautomator 格式 "[x1,y1][x2,y2]"
+        var parts = raw.Replace("][", ",").Replace("[", "").Replace("]", "").Split(',');
+        if (parts.Length != 4
+            || !int.TryParse(parts[0], out var x1) || !int.TryParse(parts[1], out var y1)
+            || !int.TryParse(parts[2], out var x2) || !int.TryParse(parts[3], out var y2))
+        {
+            return ObservedValue<UiBounds>.Unknown("malformed-bounds", provenance with { SourceField = "bounds" });
+        }
+
+        var bounds = new UiBounds(x1, y1, x2, y2);
+        return bounds.IsValid
+            ? ObservedValue<UiBounds>.Observed(bounds, provenance with { SourceField = "bounds" })
+            : ObservedValue<UiBounds>.Unknown("malformed-bounds", provenance with { SourceField = "bounds" });
+    }
+
+    // ====================================================================
+    // PER-013 Slice B：A-4 测试债的可测缝（PER-009 D8 语义，行为不变）
+    // ====================================================================
+
+    /// <summary>
+    /// D8 XML 并行观察的决策核心（internal test seam，PER-009 A-4 测试债）：
+    /// 探测门（60s×≤3）→ 传输 → 结构性/瞬时分类 → Parse。行为与
+    /// LivePerception.TryCoObserveXml 原实现一致；live 侧委托本核心。
+    /// PER-013 Slice E：同时返回原始 <paramref name="Xml"/>（typed 路由需要；
+    /// Dump 失败/非法时为 null）。
+    /// </summary>
+    /// <param name="probe">D8 探测状态机。</param>
+    /// <param name="now">当前时刻。</param>
+    /// <param name="captureTime">成功 dump 的 capture 时刻。</param>
+    /// <param name="context">观察上下文。</param>
+    /// <param name="transport">设备传输（可注入；live = TryDumpToDevice）。</param>
+    internal static (UiAutomatorDump.DumpResult? Dump, string? Xml, bool Degraded) CoObserveXml(
+        ProbeStateMachine probe,
+        DateTimeOffset now,
+        DateTimeOffset captureTime,
+        ObservationContext context,
+        Func<(string? Xml, bool IsStructural)> transport)
+    {
+        if (!probe.ShouldProbe(now))
+        {
+            return (null, null, probe.Exhausted); // 超限后持续标记 degraded
+        }
+
+        var (xml, isStructural) = transport();
+        if (xml is null)
+        {
+            if (isStructural)
+                probe.MarkUnavailable(now); // D8 结构性：占探测次数
+            else
+                probe.MarkTransient();      // D8 瞬时：不占，下周期重试
+            return (null, null, true);
+        }
+
+        try
+        {
+            return (Parse(xml, captureTime, context), xml, false);
+        }
+        catch (XmlException)
+        {
+            probe.MarkTransient(); // 非法 XML：瞬时（fail-closed，不产观察）
+            return (null, null, true);
+        }
+    }
+
+    /// <summary>
+    /// PER-013 Slice E（M-06）：live feed XML 证据的组合面——typed 路由
+    /// （per-node occurrence-qualified claims）完全替代 legacy `dump.Claims`
+    /// per-node 通道（observer 级 cutover；`ui.node.*` 零决策消费方，reader
+    /// inventory 见 changes/PER-013）。legacy `*.state` 映射 claim
+    /// （effect-critical，PER-012 egress surface）按原相位规则保留——两类
+    /// 路由各只产各的 subject，无 dual-read。
+    /// typed 路由不可用（xml 缺席 / typedContext null，如 API level 未知）→
+    /// per-node 证据诚实缺席，不回退 legacy 通道（rollback = routing-only，
+    /// 须显式并标 legacy/degraded）。
+    /// </summary>
+    /// <param name="xml">原始 dump XML（null = 本次无 XML）。</param>
+    /// <param name="mappedLegacyStateClaim">MapTargetStateClaim 输出（legacy 路由）。</param>
+    /// <param name="isPostPhase">post-action 相位（initial 相位才并置映射 claim）。</param>
+    /// <param name="typedContext">typed 解析上下文（null = typed 路由不可用）。</param>
+    /// <param name="context">观察上下文。</param>
+    internal static ObservationProposal[] ComposeXmlEvidence(
+        string? xml,
+        ObservationProposal? mappedLegacyStateClaim,
+        bool isPostPhase,
+        UiHierarchyParseContext? typedContext,
+        ObservationContext context)
+    {
+        var extras = new List<ObservationProposal>();
+        if (xml is not null && typedContext is not null
+            && ParseHierarchyObservation(xml, typedContext).Observation is { } observation)
+        {
+            extras.AddRange(TypedHierarchyProposalProjector.Project(observation, context));
+        }
+
+        if (!isPostPhase && mappedLegacyStateClaim is { } mapped)
+        {
+            extras.Add(mapped);
+        }
+
+        return extras.ToArray();
+    }
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, int> _apiLevelCache = new();
+
+    /// <summary>
+    /// 设备 API level（typed CaptureMetadata 必填事实；PER-010 不做默认猜测）。
+    /// adb getprop 单次查询 + 进程内缓存；失败 → null（typed 路由诚实缺席）。
+    /// </summary>
+    internal static int? TryGetApiLevel(string deviceId)
+    {
+        if (_apiLevelCache.TryGetValue(deviceId, out var cached))
+        {
+            return cached;
+        }
+
+        try
+        {
+            var info = new ProcessStartInfo("adb", $"-s {deviceId} shell getprop ro.build.version.sdk")
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+            using var process = Process.Start(info);
+            if (process is null)
+            {
+                return null;
+            }
+
+            var stdout = process.StandardOutput.ReadToEnd();
+            process.WaitForExit(3000);
+            return int.TryParse(stdout.Trim(), out var level) && level > 0
+                ? _apiLevelCache.GetOrAdd(deviceId, level)
+                : null;
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            return null; // 传输层失败：typed metadata 不完整 → 不产 typed 证据
+        }
+    }
+
+    /// <summary>
+    /// 缺席标记（D1：缺席即数据）：proposals 的 provenance lineage 追加
+    /// "degraded:no-xml"；provenance 为 null 的保持 null（不造 provenance）。
+    /// internal test seam（A-4）。
+    /// </summary>
+    internal static ObservationProposal[] TagDegradedNoXml(IReadOnlyList<ObservationProposal> proposals) =>
+        proposals.Select(p => p with
+        {
+            Provenance = p.Provenance is null
+                ? null
+                : p.Provenance with
+                {
+                    TransformationLineage = p.Provenance.TransformationLineage
+                        .Append("degraded:no-xml").ToArray(),
+                },
+        }).ToArray();
 }

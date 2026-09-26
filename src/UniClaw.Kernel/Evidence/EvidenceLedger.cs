@@ -86,7 +86,10 @@ public sealed class EvidenceLedger
 
     /// <summary>确定性内容哈希：相同 canonical semantic content（claim +
     /// kind + context + provenance）→ 相同 EvidenceId（ING-006 D5；拼法属
-    /// realization）。</summary>
+    /// realization）。PER-013 Slice C：provenance 携带 hierarchy descriptor 时
+    /// 附加其 canonical render（metadata 参与 id；legacy path 恒 null、
+    /// 不追加任何内容 → 既有 EvidenceId 字节不变）。
+    /// </summary>
     internal static string ComputeEvidenceId(ObservationProposal observation)
     {
         var claim = observation.Claim!;
@@ -100,6 +103,11 @@ public sealed class EvidenceLedger
             provenance.CaptureTime.UtcDateTime.ToString("O", System.Globalization.CultureInfo.InvariantCulture),
             provenance.Scope,
             string.Join('\x1E', provenance.TransformationLineage));
+        if (provenance.Hierarchy is { } hierarchy)
+        {
+            canonical += '\x1F' + hierarchy.RenderCanonical();
+        }
+
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(canonical));
         return "ev-" + Convert.ToHexString(hash).ToLowerInvariant();
     }

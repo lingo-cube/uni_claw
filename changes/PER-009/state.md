@@ -142,6 +142,18 @@ evidence: |
 
 ## Status log
 
+- 2026-09-27 · closed·**gate-0-ratified** · PER-013 Gate 0 docs-only Owner
+  ratification（leader 5.3）：Acceptance #4 拆分 = 已交付环路（Conflict → Focused
+  directive → subject-scoped reobserve → bounded retry → resolve/exhausted）/
+  转交真实 region crop + coordinate remap（owner：Tier 1 感知管线区域裁剪 change /
+  PER-011 escalation slice）；Acceptance #7 拆分 = 已交付 producer trust table +
+  A/B/C 语义 + authorization predicate / 转交 irreversible-effect production wiring
+  （owner：Grant/Phase 6 不可逆性分类 change）。与 evidence/2026-09-27-per009-
+  closure-audit.md C2/C3 裁决及 Deferred items ownership 表逐项一致；D1–D14 与
+  mechanism.md 零改动；未实现部分按 audit 如实记录、不称 PASS；closure criteria
+  与 actual（881/881）一致。**PER-009 = CLOSED 保持**；A-1/A-3/A-4/A-5 义务由
+  PER-013 承接（changes/PER-013/）。
+
 - 2026-09-27 · verifying→**closed** · closure audit（evidence/2026-09-27-per009-closure-audit.md）：
   **C1** truth = remediation（真机 HostLiveFull GREEN、XML 在场）；plan PENDING-ENV 为
   stale 文档，已同步。**C2**（#4）B——聚焦环路端到端交付且证明（全栈测试 + 双点接线），

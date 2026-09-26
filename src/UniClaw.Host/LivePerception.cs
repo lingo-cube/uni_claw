@@ -139,7 +139,7 @@ public static class LivePerception
             var detection = HostUtilities.ExtractJson(responseJson, "switch", $"live:{_assets.DeviceId}");
 
             // PER-009 D1：XML 永远并行（缺席即数据）；D8 探测状态机管节奏
-            var dump = TryCoObserveXml(expected, out var degraded);
+            var (dump, xml, xmlDegraded) = TryCoObserveXml(expected);
 
             // P-3（评审修复）：跨源碰头——XML 节点空间映射到共享层 {role}.state
             // P-6：Focused 时仅映射指令点名 subjects（真裁剪重扫 = Tier 1 管线支持后）
@@ -178,32 +178,46 @@ public static class LivePerception
             var input = Frame(detection, state, expected, stateClaim);
 
             // 缺席标记：附加到既有 claims 的 lineage（degraded:no-xml）
-            if (degraded && input is RunDriverInput.Observation obs)
+            // （标记逻辑在 UiAutomatorDump.TagDegradedNoXml——PER-013 A-4 可测缝）
+            if (xmlDegraded && input is RunDriverInput.Observation obs)
             {
-                var tagged = obs.Proposals.Select(p => p with
-                {
-                    Provenance = p.Provenance is null
-                        ? null
-                        : p.Provenance with
-                        {
-                            TransformationLineage = p.Provenance.TransformationLineage
-                                .Append("degraded:no-xml").ToArray(),
-                        },
-                }).ToArray();
-                input = new RunDriverInput.Observation(tagged);
+                input = new RunDriverInput.Observation(
+                    UiAutomatorDump.TagDegradedNoXml(obs.Proposals));
             }
 
-            // 双源合并：XML 私有层 claims +（initial 相的）映射 claim 附加进批
-            if (dump is not null && input is RunDriverInput.Observation o)
+            // PER-013 Slice E（M-06 observer cutover）：XML per-node 证据走
+            // typed 路由（occurrence-qualified claims，完全替代 legacy
+            // dump.Claims per-node 通道）；legacy {role}.state 映射
+            // （effect-critical，PER-012 egress surface）按原相位规则保留。
+            // typed 路由不可用（无 XML / API level 未知）→ per-node 证据诚实缺席。
+            if ((xml is not null || mapped is not null) && input is RunDriverInput.Observation o)
             {
-                var extras = new List<ObservationProposal>(dump.Claims);
-                if (!isPostPhase && mapped is { } initialMapped)
-                    extras.Add(initialMapped); // initial：双通道并置（分歧即真实冲突 → C-1 销案）
-                if (extras.Count > 0)
+                var extras = UiAutomatorDump.ComposeXmlEvidence(
+                    xml,
+                    mappedLegacyStateClaim: mapped,
+                    isPostPhase,
+                    typedContext: BuildTypedParseContext(),
+                    context: expected);
+                if (extras.Length > 0)
                     input = new RunDriverInput.Observation(o.Proposals.Concat(extras).ToArray());
             }
             return input;
         }
+
+        /// <summary>
+        /// PER-013 Slice E：typed 路由的 CaptureMetadata 输入（API level 经
+        /// adb getprop 缓存查询——PER-010 必填事实，不默认猜测；未知 → null，
+        /// typed 证据诚实缺席）。
+        /// </summary>
+        private UiAutomatorDump.UiHierarchyParseContext? BuildTypedParseContext() =>
+            UiAutomatorDump.TryGetApiLevel(_assets.DeviceId) is { } apiLevel
+                ? new UiAutomatorDump.UiHierarchyParseContext(
+                    CaptureId: $"cap-{Guid.NewGuid():N}",
+                    CaptureTimestamp: _clock.Now,
+                    DeviceId: _assets.DeviceId,
+                    SessionCorrelation: $"live:{_assets.DeviceId}:{_assets.ScreenId}",
+                    AndroidApiLevel: apiLevel)
+                : null;
 
         /// <summary>P-6：Focused 指令点名 subjects 时，仅映射被点名目标。</summary>
         private static bool SubjectInScope(ObservationDirective directive) =>
@@ -211,39 +225,17 @@ public static class LivePerception
             || subjects.Any(s => s == "switch" || s.StartsWith("switch.", StringComparison.Ordinal));
 
         /// <summary>
-        /// PER-009 D1/D8：XML 并行观察。探测状态机管节奏（60s × ≤3）；
-        /// 成功 → claims（producer=platform.uiautomator）；失败 → null +
-        /// degraded 标记（缺席即数据，记入 provenance lineage）。
+        /// PER-009 D1/D8：XML 并行观察。决策核心在
+        /// <see cref="UiAutomatorDump.CoObserveXml"/>（PER-013 Slice B 抽出的
+        /// 可测缝，行为不变）；live 侧只注入真传输。Slice E：同时回传原始
+        /// XML（typed 路由输入）。
         /// </summary>
-        private UiAutomatorDump.DumpResult? TryCoObserveXml(
-            ObservationContext context, out bool degraded)
+        private (UiAutomatorDump.DumpResult? Dump, string? Xml, bool Degraded) TryCoObserveXml(
+            ObservationContext context)
         {
-            degraded = false;
-            if (!_xmlProbe.ShouldProbe(_clock.Now))
-            {
-                degraded = _xmlProbe.Exhausted; // 超限后持续标记
-                return null;
-            }
-            var (xml, isStructural) = UiAutomatorDump.TryDumpToDevice(_assets.DeviceId);
-            if (xml is null)
-            {
-                if (isStructural)
-                    _xmlProbe.MarkUnavailable(_clock.Now); // D8 结构性：占探测次数
-                else
-                    _xmlProbe.MarkTransient();              // D8 瞬时：不占，下周期重试
-                degraded = true;
-                return null;
-            }
-            try
-            {
-                return UiAutomatorDump.Parse(xml, _clock.Now, context);
-            }
-            catch (System.Xml.XmlException)
-            {
-                _xmlProbe.MarkTransient(); // 非法 XML：瞬时（fail-closed，不产观察）
-                degraded = true;
-                return null;
-            }
+            return UiAutomatorDump.CoObserveXml(
+                _xmlProbe, _clock.Now, _clock.Now, context,
+                transport: () => UiAutomatorDump.TryDumpToDevice(_assets.DeviceId));
         }
 
         private RunDriverInput Frame(
