@@ -1,6 +1,6 @@
 # SIM-001 — 仿真 Host 插件化补全（SeamOverrides）
 
-lifecycle_state: implemented · disposition: none · depth: standard · base: 87b2247
+lifecycle_state: verified · disposition: none · depth: standard · base: 87b2247
 
 ## Intent
 
@@ -46,14 +46,48 @@ SimulationHost 工厂面的 5 个缝 + Agent 脚本全部 hard-code——
 
 ```yaml
 level: DETERMINISTIC
-method: dotnet test Simulation.Tests --filter SeamOverride + 全量回归
-expected: 4/4 新测试绿 + 105/27 与改动前一致（零回归）
-actual: 4/4 绿；全量 105 通过/27 失败 = 改动前精确同数
-evidence: commit f26bce1（含 SeamOverrideTests.cs 4 例）
+method: >
+  focused（SeamOverride* + SeamDefaultComposition*，行为级：Freshness
+  WasCalled / Driver Calls 计数 + 产品 facts 对账 / Agent seam）+
+  Simulation.Tests 全套 + 七套件全量 + git diff --check +
+  scenario_certify.py --check（HEAD=f37fb994 时点，2026-09-27 复跑）
+expected: >
+  六缝全部真实进入 Compose；注入件被实际调用（非仅 Assert.Same）；
+  null 默认路径行为不变；internal 保持；全量零失败
+actual: >
+  focused 7/7 · Simulation 184/184 · 全量 1029/1029 · diff-check CLEAN ·
+  certification PASS（29 files, 0 violations）；生产代码零改动
+  （改动仅 2 个测试文件 + 本 state）；旧 105/27 基线已废弃（当时为
+  本机环境 flake 时代记录，见 PER-009 status log）
+evidence: >
+  SeamOverrideTests.cs（.Reason 修正 + 行为断言）+
+  SeamDefaultCompositionTests.cs（六默认组合证明 + 默认 freshness
+  行为级）+ SimulationHost.cs:198-234 六缝接线 + 本文件 Review Gate 记录
+```
+
+## Review Gate（2026-09-27，5.3 正式 review）
+
+```text
+R1 六缝真实接入 Compose: PASS（SimulationHost.cs:200/201/202/203-204/205-206/218-228；
+   Continuity null 透传 = 既有语义，接线正确）
+R2 Freshness 行为级证据: PASS（InjectedFreshness_IsUsed WasCalled；默认
+   SatisfyingBasis 经 RuntimeAssurance.Judge 进 owner log）
+R3 Driver 行为级证据: PASS（InjectedDriver Calls 计数 + EffectReceipts/
+   EffectDeliveryCount 与产品 owner facts 同源）
+R4 null/默认兼容: PASS（184 个既有场景全绿 = 默认路径行为不变 + 组合级
+   证明测试；F3 注释不实已更正，行为零变更）
+R5 internal 保持: PASS（SimContract.cs:472/:505；IVT 链在案）
+R6 新增 authority/parallel runtime: NONE（test-assembly 旋钮，产品面零扩张）
+R7 全量干净: PASS（1029/1029 · certification PASS · diff-check CLEAN）
 ```
 
 ## Status log
 
+- 2026-09-27 · implemented→reviewed→verified · Review/Verify 执行
+  （Flash 补行为级/组合级测试 7 例 + Leader R1–R7 review 全 PASS）；
+  F1 WIP 编译错（.Basis→.Reason）、F2 轮次断言（1→2）、F3 Continuity
+  注释不实（更正为实际 null 语义）三 finding 处置在案；Verification
+  四元组刷新为当前事实（1029/1029）。OWNER_GATE 到达，待 Owner 终裁。
 - 2026-09-22 · created·persisted · grill 三问落定（全开/独立 record/独立 change）
 - 2026-09-22 · implemented · SeamOverrides 6 缝落地 + SimulationHost 工厂
   读取 + EffectDriver 类型改接口 + EffectDeliveryCount 便捷面 +

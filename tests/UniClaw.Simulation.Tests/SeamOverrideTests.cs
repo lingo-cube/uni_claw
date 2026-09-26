@@ -34,32 +34,84 @@ public sealed class SeamOverrideTests
         }
     }
 
+    /// <summary>
+    /// SIM-001 Backward compat（composition + 行为级）：Seams = null → 工厂
+    /// 默认组合照旧——ScriptedUniAgent（bundle PhaseScript）+
+    /// DeterministicEffectDriver，场景语义不变（Completed / 1 effect /
+    /// 2 consultations——WifiToggle 两轮：InitialPlanning 出 tap 决策 +
+    /// StepVerified 终局确认）。不是只断言 options.Seams == null。
+    /// </summary>
     [Fact]
     public void NullSeams_FactoryDefaultsUsed_BackwardsCompatible()
     {
-        // Seams = null → 全部走默认（与改动前行为一致）
-        var options = new RunOptions { Seams = null };
-        Assert.Null(options.Seams);
+        var bundle = GoldenScenarioBundles.WifiToggleOffToOn();
+        var host = SimulationHost.Compose(bundle, new RunOptions { Seams = null });
+        // composition inspection：默认 realization 就位
+        Assert.NotNull(host.ScriptedAgent); // bundle PhaseScript → ScriptedUniAgent
+        Assert.IsType<DeterministicEffectDriver>(host.EffectDriver);
+        // default 路径行为与既有回归一致
+        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.Driver.Activate().Accepted);
+        var result = host.DriveOnce();
+        Assert.Equal(RunDriveStatus.Completed, result.Status);
+        Assert.Equal(1, host.EffectDeliveryCount);
+        Assert.Equal(2, host.Consultations.Calls.Count); // InitialPlanning + StepVerified
+        Assert.Empty(host.Consultations.Violations);
     }
 
+    /// <summary>
+    /// SIM-001 行为级证明：注入 Freshness 经 RuntimeAssurance.Judge 的唯一
+    /// 执法点（FRS-007 D4）被真实调用——WasCalled 翻转 + 判定结果
+    /// （basis = "injected"）随 AssuranceJudgment.Freshness 进入 owner log。
+    /// </summary>
     [Fact]
     public void InjectedFreshness_IsUsed()
     {
         var freshness = new InjectedFreshness();
         Assert.False(freshness.WasCalled);
-        // 注入后 Freshness 会被 RuntimeAssurance 调用（需要完整场景跑通才验证）
-        // 此测试验证 SeamOverrides 构造和传递——行为级验证需要 SimulationHost 场景
-        var seams = new SeamOverrides { Freshness = freshness };
-        Assert.Same(freshness, seams.Freshness);
+        var bundle = GoldenScenarioBundles.WifiToggleOffToOn();
+        var host = SimulationHost.Compose(bundle, new RunOptions
+        {
+            Seams = new SeamOverrides { Freshness = freshness },
+        });
+        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.Driver.Activate().Accepted);
+        var result = host.DriveOnce();
+
+        Assert.True(freshness.WasCalled); // Host 真调用了注入 evaluator
+        Assert.Equal(RunDriveStatus.Completed, result.Status);
+        // 注入 evaluator 的确定性结果进入产品 owner facts（FRS-007 起 reason 字段名）
+        var judgment = Assert.Single(host.Facts.Judgments);
+        Assert.Equal(FreshnessSufficiency.Sufficient, judgment.Freshness.Sufficiency);
+        Assert.Equal("injected", judgment.Freshness.Reason);
+        Assert.Empty(host.Consultations.Violations);
     }
 
+    /// <summary>
+    /// SIM-001 行为级证明：注入 Driver 被 EffectBoundary 真实 dispatch——
+    /// 完整 drive 后 Calls == 预期 dispatch 数；EffectDeliveryCount /
+    /// EffectReceipts 继续来自产品 owner facts。
+    /// </summary>
     [Fact]
     public void InjectedDriver_IsUsed()
     {
         var driver = new InjectedDriver();
-        var seams = new SeamOverrides { Driver = driver };
-        Assert.Same(driver, seams.Driver);
         Assert.Equal(0, driver.Calls);
+        var bundle = GoldenScenarioBundles.WifiToggleOffToOn();
+        var host = SimulationHost.Compose(bundle, new RunOptions
+        {
+            Seams = new SeamOverrides { Driver = driver },
+        });
+        Assert.Same(driver, host.EffectDriver); // 组合采用注入实例
+        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.Driver.Activate().Accepted);
+        var result = host.DriveOnce();
+
+        Assert.Equal(RunDriveStatus.Completed, result.Status);
+        Assert.Equal(1, driver.Calls); // 行为级：注入 driver 被真实调用
+        Assert.Equal(1, host.EffectDeliveryCount); // 产品 facts 同源核对
+        Assert.Equal(1, host.KernelCore.EffectReceipts.Count);
+        Assert.Empty(host.Consultations.Violations);
     }
 
     /// <summary>

@@ -516,7 +516,10 @@ internal sealed record SeamOverrides
     /// <summary>效果驱动（默认 DeterministicEffectDriver）。</summary>
     public UniClaw.Kernel.Effects.IEffectDriver? Driver { get; init; }
 
-    /// <summary>连续性策略（默认 RoleContinuityStrategy）。</summary>
+    /// <summary>连续性策略（null = 不注入：WorldModel 既有 null 语义——
+    /// continuity demand 时 fail-closed；SIM-001 前后行为一致。此前注释
+    /// 所称 RoleContinuityStrategy 默认不实：该类型 internal 于
+    /// Kernel.Tests 程序集，本程序集不可达，review F3 更正）。</summary>
     public UniClaw.Kernel.World.UiRealization.IContinuityStrategy? Continuity { get; init; }
 
     /// <summary>
