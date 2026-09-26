@@ -1,6 +1,6 @@
 # CSC-001 — Coordinate Space Contract
 
-lifecycle_state: understanding · disposition: none · depth: decision-heavy · base: 5bd8432e
+lifecycle_state: verified · disposition: none · depth: decision-heavy · base: 5bd8432e
 
 ## Intent（WHAT/WHY）
 
@@ -126,11 +126,51 @@ lifecycle_state: understanding · disposition: none · depth: decision-heavy · 
     留作 gap。
   全量回归 1015/1015（Host 61 含 2 live 门控；Kernel 611）；再认证
   change=CSC-001。
-- **OWNER_GATE：到达（2026-09-27）**——十项汇报已交 Owner，等待裁决；
-  本 change 不自行 CLOSED。
+- **OWNER_GATE：Owner 裁决（2026-09-27）**——Architecture direction
+  PASS · Authority boundary PASS · Scope expansion NONE；**Host
+  1080×2400 magic fallback：ACCEPT REMOVAL AND FREEZE**（正式语义：
+  viewport 只能来自 实测 > 显式已验证配置，无 fallback 常量）；
+  Final closure：**HOLD**。必改五项已全部执行：
+  ① 跨 dispatch wm-size 缓存移除（每次 dispatch 实测；`ResolveDispatchSpace`
+  无状态）② 动态 viewport-change 回归（`ViewportChangeBetweenDispatches_
+  DetectedOnNextDispatch_Regression`：dispatch1 ×1920 → 设备改 2400 →
+  dispatch2 mismatch 零 effect → re-ground 后 dispatch3 恢复 ×2400）
+  ③ lifecycle_state 修正为合法词汇（understanding→verified；正文 gate
+  叙事保留）④ Verification 四元组补齐（下）⑤ focused 35/35 + 全量 +
+  再认证（见 Verification）。无重设计、无 authority 重开、无 PER-011
+  扩张。**等待 Owner 终裁 CLOSED。**
+
+## Verification
+
+```yaml
+level: DETERMINISTIC（live 项 = ENVIRONMENT，已执行）
+method: >
+  focused：CoordinateSpace/AdbViewportResolution（含动态 viewport-change
+  回归）/GroundingSpaceBinding/EffectGateMatrix 四套件；全量：dotnet test
+  七套件；场景库再认证（python3 tools/scenario_certify.py --change
+  CSC-001 --all → --check）；live（Slice E 时点，API 35 emulator
+  1080×1920）：LiveCoordinateGateTests 2/2 + HostLiveFull PASS +
+  TypedLiveChain PASS
+expected: >
+  Owner 必改五项后零回归；动态 viewport 变化在下一 dispatch 被捕获
+  （mismatch 零 effect → re-ground 恢复）；全量 0 失败；certification
+  0 violations
+actual: >
+  focused 35/35（含新增动态回归 3-phase 断言）；全量：Agent 17 ·
+  Agent.Dsh 121 · Core 14 · FileSystemRealization 9 · Host 61 ·
+  Kernel 611 · Simulation 182 —— 1015/1015（Owner 必改后复跑回填）；
+  certification PASS（29 files, 0 violations）
+evidence: >
+  本文件 + tests/UniClaw.Kernel.Tests/Effects/{AdbViewportResolution,
+  GroundingSpaceBinding,EffectGateMatrix}Tests.cs +
+  tests/UniClaw.Kernel.Tests/Perception/CoordinateSpaceTests.cs +
+  tests/UniClaw.Host.Tests/{ScreenFrameSpace,LiveCoordinateGate}Tests.cs
+```
 
 ## Status log
 
+- 2026-09-27 · verified·owner-hold · Owner 必改五项执行（缓存移除/动态
+  回归/词汇/四元组/复跑）；等待终裁。
 - 2026-09-27 · implementing→owner-gate · Slice D（gate 矩阵 5 例）+ Slice E
   （真机三件套：live gates 2/2、HostLiveFull PASS、TypedLiveChain PASS；
   全量 1015/1015）完成；OWNER_GATE 十项汇报交付，等待 Owner 裁决。

@@ -9,7 +9,7 @@
 | CORE-004 | verified | none | decision-heavy | CORE-004 — Core 与现有模型的责任对齐 |
 | CORE-005 | verified | none | decision-heavy | CORE-005 — World Evidence 到 Claim 的责任对齐切片 |
 | CORE-006 | verified | none | decision-heavy | CORE-006 — Effect Attempt 与固定依据契约 |
-| CSC-001 | understanding | none | decision-heavy | CSC-001 — Coordinate Space Contract |
+| CSC-001 | verified | none | decision-heavy | CSC-001 — Coordinate Space Contract |
 | GATE-001 | implementing | none | standard | GATE-001 — 门控再校准 shadow-mode 实验（两周期） |
 | SCN-001 | persisted | none | decision-heavy | SCN-001 — 场景库：可执行的场景定义 + 能力覆盖率 |
 | SIM-001 | implemented | none | standard | SIM-001 — 仿真 Host 插件化补全（SeamOverrides） |

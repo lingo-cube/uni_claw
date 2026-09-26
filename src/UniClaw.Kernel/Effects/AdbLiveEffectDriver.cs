@@ -35,7 +35,6 @@ public sealed class AdbLiveEffectDriver : IEffectDriver
     private readonly int? _configuredWidth;
     private readonly int? _configuredHeight;
     private readonly Func<DateTimeOffset> _clock;
-    private CoordinateSpace? _queriedViewport;
 
     /// <summary>
     /// 生产构造（真实进程 runner）。viewport 参数（CSC-001 Slice B 起）为
@@ -145,18 +144,16 @@ public sealed class AdbLiveEffectDriver : IEffectDriver
     }
 
     /// <summary>
-    /// CSC-001 Slice B：投影基准解析。优先 live device query（wm size，
-    /// Override 优先于 Physical；成功后缓存），次选构造期显式已验证配置。
-    /// rotation 基准 = None（设备查询维度；旋转态由 capture 空间与设备空间
-    /// 的 Matches 检查在 Slice C 执法）。
+    /// CSC-001：投影基准解析。优先 live device query（wm size，Override 优先
+    /// 于 Physical），次选构造期显式已验证配置。**每次 dispatch 实测——
+    /// 无跨 dispatch 缓存**（Owner 裁决 2026-09-27 必改 #1：两次 dispatch
+    /// 之间的 viewport 变化必须被下一次 dispatch 捕获，缓存会掩盖它）。
+    /// rotation 基准 = None（设备查询维度；旋转态由 capture 空间与设备
+    /// 空间的 Matches 检查执法）。查询成本 = 每 dispatch 一次 adb 往返
+    /// （串行 dispatch 语义下可忽略，HD-1 异步化时再评估）。
     /// </summary>
     private CoordinateSpace? ResolveDispatchSpace()
     {
-        if (_queriedViewport is { } cached)
-        {
-            return cached;
-        }
-
         var captured = _runner
             .RunCaptureAsync(_adbExecutable, new[] { "-s", _serial, "shell", "wm", "size" },
                 TimeSpan.FromSeconds(5), CancellationToken.None)
@@ -164,7 +161,7 @@ public sealed class AdbLiveEffectDriver : IEffectDriver
         if (captured is { Started: true, TimedOut: false, ExitCode: 0 } query
             && TryParseWmSize(System.Text.Encoding.UTF8.GetString(query.StandardOutput), out var width, out var height))
         {
-            return _queriedViewport = CoordinateSpace.DeviceViewport(width, height);
+            return CoordinateSpace.DeviceViewport(width, height);
         }
 
         return _configuredWidth is { } w && _configuredHeight is { } h

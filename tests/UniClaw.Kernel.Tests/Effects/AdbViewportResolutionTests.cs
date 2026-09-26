@@ -122,15 +122,36 @@ public class AdbViewportResolutionTests
     }
 
     [Fact]
-    public void QueryResult_Cached_SecondDispatchNoSecondQuery()
+    public void ViewportChangeBetweenDispatches_DetectedOnNextDispatch_Regression()
     {
-        var runner = new FakeRunner();
+        // Owner 必改 #2（动态 viewport-change 回归）：dispatch 之间设备
+        // viewport 变化，下一次 dispatch 必须按新实况执法——跨 dispatch
+        // 缓存会掩盖变化（已按 Owner 裁决移除），本测试锁死该语义。
+        var runner = new FakeRunner(); // wm = Override 1080×1920
         var driver = new AdbLiveEffectDriver("emulator-5554", null, null, runner: runner);
 
-        driver.Deliver(TapAt(0.5, 0.5));
-        runner.WmOutput = "Physical size: 999x999\n"; // 若二次查询会改变结果
-        var second = driver.Deliver(TapAt(0.5, 0.5));
+        // dispatch 1：1080×1920 grounding 与设备一致 → 投影 ×1920
+        var first = driver.Deliver(TapAt(0.5, 0.5));
+        Assert.Equal(DispatchOutcome.DeliveryCompleted, first.Outcome);
+        Assert.Contains("input tap 540 960", first.Report, StringComparison.Ordinal);
 
-        Assert.Contains("input tap 540 960", second.Report, StringComparison.Ordinal); // 仍是缓存值
+        // 设备 viewport 动态变化（两次 dispatch 之间）
+        runner.WmOutput = "Physical size: 320x640\nOverride size: 1080x2400\n";
+
+        // dispatch 2：同一 1080×1920 grounding 现已过期 → mismatch，零 effect
+        var second = driver.Deliver(TapAt(0.5, 0.5));
+        Assert.Equal(DispatchOutcome.DeliveryFailed, second.Outcome);
+        Assert.Contains("coordinate-space-mismatch", second.Reason, StringComparison.Ordinal);
+        Assert.Contains("device-viewport:1080x2400", second.Reason, StringComparison.Ordinal);
+        Assert.DoesNotContain("input tap", second.Report, StringComparison.Ordinal);
+
+        // dispatch 3：新 grounding（2400）与设备一致 → 恢复投影 ×2400
+        var regrounded = driver.Deliver(new DispatchRequest(
+            new DeliveryTarget("occ-2",
+                new SpatialLocator(0.45, 0.45, 0.55, 0.55, AdbEffectDriver.SupportedFrame),
+                Space: CoordinateSpace.DeviceViewport(1080, 2400)),
+            "tap", null, "rev-2"));
+        Assert.Equal(DispatchOutcome.DeliveryCompleted, regrounded.Outcome);
+        Assert.Contains("input tap 540 1200", regrounded.Report, StringComparison.Ordinal);
     }
 }
