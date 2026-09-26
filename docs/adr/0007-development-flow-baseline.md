@@ -1,6 +1,7 @@
 ---
 status: accepted
 date: 2026-09-07
+amended by: ADR-0029 (2026-09-26, gate semantics only: deterministic preflight, restricted closure C2 fastpath, owner-gate mechanical enforcement)
 ---
 
 # Adopt the Development Flow baseline (8-state spine) and re-scope UniFlow to execution engine
