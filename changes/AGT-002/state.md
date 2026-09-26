@@ -168,3 +168,21 @@ verification:
   handshake accepted (session-0124078e…); formal E2E suite 4/4 PASS against
   the canonical port (6 s). AGT-002 authenticated bridge is a standing
   capability of the live service.
+
+- 2026-09-26 · IMPLEMENT (B1 follow-up fix) · Restricted-session tool surface
+  rebuilt per docs/analysis/dsh-tool-scope-restricted-sessions.md: preset-scope
+  `restrict({allow: []})` + submit_decision registered at handshake into the
+  AGENT scope (child layer — restrictions exempt only the viewing scope's own
+  layer) + execution-time guard as second line; deny-snapshot and late-deny
+  (restrictCtx) mechanisms deleted; handshake verification is a pure check.
+  Dead-path dsh/agent-presets files annotated reference-only. Evidence
+  (M1 17/17 · M2 live handshake accepted with 23 MCP tools present · M3
+  counter-proof: old deny mechanism reproduces the 23-tool leak under the same
+  conditions · M4 evidence/agt-002-b1-restricted-session-fix.md):
+  evidence/agt-002-b1-restricted-session-fix.md.
+- 2026-09-26 · VERIFY (B1 follow-up) · M1 `node --test` 12/12 + 5/5; M2 real
+  instance (port 3082, snapshot-verified install): runtimeCapabilities
+  [submit_decision] with csharper-mcp(8) + cwm-roslyn-navigator(15) connected;
+  M3 swap-back reproduced session-capability-mismatch listing the 23 mcp__*
+  tools, fixed build restored and re-verified accepted. Instance stopped after
+  capture.

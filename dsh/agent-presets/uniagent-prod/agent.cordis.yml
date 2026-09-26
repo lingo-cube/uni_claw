@@ -1,3 +1,8 @@
+# REFERENCE ONLY — DSH does NOT read this directory (legacy preset format).
+# The real uniagent-prod preset is the @deepseek-ai/dsh-agent-preset
+# declaration row in ~/.dsh/profiles/web/cordis.patch.yml. Editing this file
+# has no effect; see docs/analysis/dsh-tool-scope-restricted-sessions.md §6.2.
+
 # uniagent-prod agent preset composition (AGT-002 B1).
 #
 # The session's ENTIRE tool surface is the frozen Product manifest. No persona
