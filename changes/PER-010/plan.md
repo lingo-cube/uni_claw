@@ -34,6 +34,6 @@ method: >-
   plans/PER-010 之外无工作区改动；git diff --check；逐项复读 PER-009 frozen
   mechanism 与 Product/UWorld baseline 的 authority boundary。
 expected: A1–A6 满足；无 Product code 或 frozen boundary 改动。
-actual: PASS，inventory 与 stable contract 已建立；v0.1.1 checked capability amendment 已纳入；focused re-grill 通过；待最终 exact-path audit。
+actual: PASS，inventory 与 stable contract 已建立；v0.1.1 checked capability amendment 已纳入；focused re-grill 通过；最终 exact-path audit 已完成。
 evidence: plans/2026-09-26-per-010-compatibility-inventory.md；本目录文件。
 ```

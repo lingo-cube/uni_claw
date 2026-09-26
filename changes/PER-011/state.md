@@ -32,8 +32,12 @@ findings 和后续 implementation slices，不写 Product implementation。
 - conflict 保留双方 evidence；authority 可产生 `Supported + overruled-source`，无
   authority 时 `Conflicted`，required property fail-closed。
 - derived proposal 必须携带 `DerivedFromEvidenceIds` 与去重后的
-  `TransitiveEvidenceBasis`；derived evidence 不计为独立 corroboration，传递链
-  `A+B→F1`、`F1+C→F2` 的独立 basis 分别为 `{A,B}`、`{A,B,C}`。
+  `TransitiveEvidenceBasis`；合法 shared leaf 通过多条 ancestry path 到达时只做
+  leaf 去重并保持 valid，传递链 `A+B→F1`、`F1+C→F2` 的独立 basis 分别为
+  `{A,B}`、`{A,B,C}`。self-reference、ancestry cycle、missing parent `EvidenceId`
+  或 basis 与实际 parent ancestry closure 不一致均为 `MalformedLineage`，必须在
+  P2/P3 admission 前拒绝、零新 belief contribution、不修复、不猜测、不降级为独立
+  evidence，并保留原始/direct source evidence。
 - fusion 只能输出带 provenance 的 derived ObservationProposal，经 P2→WorldModel；
   不直连 target、control、effect、Agent 或 identity。
 - escalation 由 evidence insufficiency/conflict 触发，按 buyer + bounded budget
@@ -60,7 +64,7 @@ level: CONTRACT
 method: >-
   required-section lint + PER-010 prerequisite + exact-path git status +
   git diff --check；逐项核对 Product/UWorld/PER-009 authority boundary。
-expected: Acceptance 1–7 满足；工作区既有 dirty 文件保持不变。
+expected: Acceptance 1–8 满足；工作区既有 dirty 文件保持不变。
 actual: PASS（矩阵、时间图、冲突/失败表、场景、provenance 与 bounded escalation
 均已写入 spec；PER-010 FROZEN 前置成立；无 Product code 或 baseline 改动）。
 evidence: changes/PER-011/spec.md; changes/PER-011/plan.md; changes/PER-010/state.md。

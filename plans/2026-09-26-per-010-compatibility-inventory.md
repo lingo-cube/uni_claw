@@ -83,7 +83,7 @@
 | `hint` / showing-hint | hint API；showing hint API 26+ | 同左 | XML 未导出 | 同左 | wrapper/XML 输出 `UNKNOWN` |
 | window/display/layer | AccessibilityWindowInfo API 21+；Service flag | 同左 | XML 未导出 | 同左 | XML acquirer coverage `UNKNOWN` |
 | checked tri-state | `isChecked()` boolean | `isChecked()` boolean | API 35 XML 实样为 boolean 资产；无 partial 实样 | `getChecked()` + FALSE/TRUE/PARTIAL API 36 | 仅 API 36 richer API 明确支持三态；旧通道如何表达 `UNKNOWN` |
-| checked boolean exact / collapsed | boolean source 只有在能证明 claim domain 二态时才是 `checkedBooleanExact`；无法证明时为 `checkedBooleanCollapsed` | 传统 XML 仅证明 `true/false` 字段形状，不证明 domain 没有 Partial | API 35 fixture 仍是 boolean | API 36 richer source 可提供 tri-state | false→Unchecked 需要 exact；collapsed false→Unknown(`partial-unrepresentable`) |
+| checked boolean exact / collapsed | `checkedBooleanExact` 不得从 AndroidApiLevel、checked attribute presence、class / role name alone、historical absence of Partial 或 empirical samples alone 推断；必须同时有 two-state contract、adapter capability metadata 的 Exact 声明和可追溯 contract / fixture evidence；否则为 `checkedBooleanCollapsed` | 传统 XML 仅证明 `true/false` 字段形状，不证明 domain 没有 Partial | API 35 fixture 仍是 boolean | API 36 richer source 可提供 tri-state | false→Unchecked 需要三项 exact proof；collapsed false→Unknown(`partial-unrepresentable`) |
 | Compose semantics merged/unmerged | 取决于 app/Compose library，不由 Android API band 单独决定 | 同左 | 同左 | 同左 | 官方语义树事实；采集器输出对应关系 `UNKNOWN` |
 | WebView | 版本/bridge 相关 | 同左 | 仓库只见 OCR 文本 | 同左 | `UNKNOWN` |
 | multi-window | AccessibilityWindowInfo 能力早于 API 28；系统 policy 另有版本变化 | API 31+ 大屏 policy 变化 | XML 无 window metadata | 同左 | runtime window capture `UNKNOWN` |
@@ -91,7 +91,7 @@
 ## 6. v0.1.1 checked capability mapping（设计机械约束）
 
 - `checkedTriState`：source 能完整表达 `Checked/Unchecked/Partial` 时按原值映射。
-- `checkedBooleanExact`：仅当 source 证明当前 claim domain 只有二态时，`true→Checked`、`false→Unchecked`。
+- `checkedBooleanExact`：仅当当前 semantic claim domain 有明确 two-state contract、adapter capability metadata 明确声明 Exact、且有可追溯 contract / fixture evidence 三项同时成立时，`true→Checked`、`false→Unchecked`；不得从 API level、checked attribute presence、class / role name alone、historical absence of Partial 或 empirical samples alone 推断。
 - `checkedBooleanCollapsed`：只能表达 lossy boolean；`true→Checked`，而 `false` 在可能存在 Partial 且 acquisition 无法表达时必须为 `Unknown(reason=partial-unrepresentable)`，不得输出 `Unchecked`。
 - Runtime 判断顺序固定为 `capability > acquirer > Android API level`；API level 只辅助选择 adapter，不能直接推出 claim authority。
 

@@ -120,7 +120,26 @@ ObservedValue<T>
 Checked | Unchecked | Partial
 ```
 
-外层仍使用 `ObservedValue<CheckedState>`，因此可表达 `Unknown` 与 `Unsupported`。能力必须区分：`checkedTriState` 可完整表达 `Checked/Unchecked/Partial`；`checkedBooleanExact` 只在 source 能证明当前 claim domain 只有二态时表达 `Checked/Unchecked`；`checkedBooleanCollapsed` 只能表达 lossy boolean。legacy XML 的 `checked=true` 可映射为 `Checked`；`checked=false` 仅在二态 domain 已被 source 证明时映射为 `Unchecked`，否则输出 `Unknown`，reason=`partial-unrepresentable`。不得把 boolean 伪造为 `Partial`，也不得在字段缺失时伪造 `Unchecked`。`checkable=false` 是后续状态权威使用的 validity guard，不会抹掉 raw observed checked evidence。
+外层仍使用 `ObservedValue<CheckedState>`，因此可表达 `Unknown` 与 `Unsupported`。能力必须区分：`checkedTriState` 可完整表达 `Checked/Unchecked/Partial`；`checkedBooleanExact` 只有在本节三项 exact proof 同时满足时才表达 `Checked/Unchecked`；`checkedBooleanCollapsed` 只能表达 lossy boolean。legacy XML 的 `checked=true` 可映射为 `Checked`；`checked=false` 仅在 exact proof 已满足时映射为 `Unchecked`，否则输出 `Unknown`，reason=`partial-unrepresentable`。不得把 boolean 伪造为 `Partial`，也不得在字段缺失时伪造 `Unchecked`。`checkable=false` 是后续状态权威使用的 validity guard，不会抹掉 raw observed checked evidence。
+
+#### `checkedBooleanExact` proof rule
+
+`checkedBooleanExact` MUST NOT be inferred from:
+
+- `AndroidApiLevel`；
+- checked attribute presence；
+- class / role name alone；
+- historical absence of `Partial`；
+- empirical samples alone。
+
+Exact 必须同时满足：
+
+1. 当前 semantic claim domain 有明确的 two-state contract；
+2. adapter capability metadata 明确声明 Exact；
+3. 有可追溯 contract / fixture evidence 支撑该声明。
+
+任一条件不满足，能力必须是 `checkedBooleanCollapsed`，不得输出
+`Observed(Unchecked)`；继续保持 `capability > acquirer > Android API level`。
 
 ### Capabilities
 
@@ -189,7 +208,7 @@ World belief → Control Intent → Grounding → Assurance → Effect
 | XML 结构非法 | `Malformed` | 解析到部分可信节点 |
 | 合法空树 | `Empty` + zero nodes | 世界 absence |
 | 部分窗口/裁剪/虚拟化 | `Partial` + coverage | 全页面 absence |
-| checked=false 且 `checkedBooleanExact` 已证明二态 | `Observed(Unchecked)` | Partial |
+| checked=false 且 `checkedBooleanExact` 三项 exact proof 已满足 | `Observed(Unchecked)` | Partial |
 | checked=false 且为 `checkedBooleanCollapsed`，domain 可能含 Partial | `Unknown` + `partial-unrepresentable` | Unchecked |
 | checked=partial 且 tri-state capability | `Observed(Partial)` | Unchecked |
 

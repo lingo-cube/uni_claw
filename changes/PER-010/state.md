@@ -18,7 +18,8 @@ design_status: FROZEN
 - API 28 是 v1 floor；compatibility band 只用于 coverage。
 - capability-driven > acquirer-driven > Android-version-driven。
 - `ObservedValue<T>` 的 `Observed | Unknown | Unsupported` 三态不可折叠。
-- checked 的值轴为 `Checked | Unchecked | Partial`；`checkedTriState` 完整表达；`checkedBooleanExact` 仅在二态 domain 已证明时表达 false→Unchecked；`checkedBooleanCollapsed` 在可能存在 Partial 时 false→Unknown(`partial-unrepresentable`)。
+- checked 的值轴为 `Checked | Unchecked | Partial`；`checkedTriState` 完整表达；`checkedBooleanExact` 仅在本 change 规定的三项 exact proof 同时满足时表达 false→Unchecked；`checkedBooleanCollapsed` 在可能存在 Partial 时 false→Unknown(`partial-unrepresentable`)。
+- `checkedBooleanExact` 不得从 `AndroidApiLevel`、checked attribute presence、class / role name alone、historical absence of `Partial` 或 empirical samples alone 推断；必须同时具备 two-state contract、adapter capability metadata 的 Exact 声明和可追溯 contract / fixture evidence，否则为 `checkedBooleanCollapsed`。
 - hierarchy node/window 都是 capture-local occurrence；任何 provider key 只能作为 association feature。
 - Capture timestamp/correlation 是 provenance 输入；freshness 由 Assurance 在具体消费时判断。
 - raw XML 不进入 Agent；bounds 不绕过 Grounding；acquisition 必须 bounded。
@@ -42,7 +43,7 @@ method: >-
   required-section lint + exact-path git status + git diff --check；逐项核对
   PER-009 mechanism、Product baseline、UWorld baseline；inventory evidence path
   复核。
-expected: Acceptance 1–6 满足；工作区既有 dirty 文件保持不变。
+expected: Acceptance 1–7 满足；工作区既有 dirty 文件保持不变。
 actual: PASS（设计稿与 inventory 已建立；PER-009/基线边界复核通过；无 Product code 改动）。
 evidence: changes/PER-010/spec.md; changes/PER-010/plan.md; plans/2026-09-26-per-010-compatibility-inventory.md。
 ```
@@ -50,7 +51,7 @@ evidence: changes/PER-010/spec.md; changes/PER-010/plan.md; plans/2026-09-26-per
 ## Grill findings disposition
 
 - 原冻结设计的 capture outcome、field state、capability、occurrence 和 temporal correlation 保持不变。
-- v0.1.1 focused re-grill 只攻击 F1：API 36 tri-state-capable environment 中，legacy XML `checked=false` 只有在 `checkedBooleanExact` 已证明二态时才是 `Unchecked`；`checkedBooleanCollapsed` 必须是 `Unknown(partial-unrepresentable)`。
+- v0.1.1 focused re-grill 只攻击 F1：API 36 tri-state-capable environment 中，legacy XML `checked=false` 只有在 `checkedBooleanExact` 已满足 two-state contract、Exact metadata 和 contract/fixture evidence 三项证明时才是 `Unchecked`；否则 `checkedBooleanCollapsed` 必须是 `Unknown(partial-unrepresentable)`。
 - F1 结果 `PASS`；没有需要重开 PER-009 的 `UPSTREAM_DESIGN_CONFLICT`。
 - Q11 结果 `PASS`：前向设计保持 FROZEN；已记录与 PER-009 current realization 的 semantic migration mismatch。该 mismatch 只形成 PER-011 implementation gate，不改变 PER-010 contract。
 - Freeze：PER-010 design FROZEN；PER-011 design 可依赖本 change 的 contract，但只有在 dedicated migration decision 完成后才可开始 implementation；该决策尚未在本 change 内执行。

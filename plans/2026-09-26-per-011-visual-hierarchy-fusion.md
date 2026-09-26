@@ -12,7 +12,7 @@
 - `changes/PER-011/plan.md`：垂直切片、acceptance、后续 implementation slices。
 - `changes/PER-011/state.md`：WHAT/WHY、冻结决策、Grill disposition、验证声明。
 
-本次只修三点：checked capability inheritance、derived evidence lineage/no-self-corroboration、以及 `Aligned = eligible for joint fusion` 的时间语义；Q11 另将已知 semantic migration mismatch 记录为 PER-011 implementation 前置闸门。
+本次只修三点：checked capability inheritance、derived evidence lineage/no-self-corroboration（合法 shared-leaf duplication 与 `MalformedLineage` 分离）、以及 `Aligned = eligible for joint fusion` 的时间语义；Q11 另将已知 semantic migration mismatch 记录为 PER-011 implementation 前置闸门。
 
 ## 关键验证问题
 

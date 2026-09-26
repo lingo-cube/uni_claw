@@ -69,7 +69,7 @@ valid 时才成立。否则结果退化为 `Unknown` / `Unsupported` / `Unaligne
 
 | 字段/claim | 可观察 source | 结构 authority | 辅助 source | 冲突处置 |
 |---|---|---|---|---|
-| `checked` / semantic toggle state | hierarchy、视觉 | hierarchy；要求 checked capability 足以表达当前 claim domain + `checkable=true` validity guard | visual/OCR 只能说明 rendered appearance | `checkedTriState` 或已证明二态的 `checkedBooleanExact` 才能完整承担 authority；`checkedBooleanCollapsed` 的 false 只能 `Unknown(partial-unrepresentable)`；否则 `Conflicted`/`Unknown`，不按 confidence 投票 |
+| `checked` / semantic toggle state | hierarchy、视觉 | hierarchy；要求 checked capability 足以表达当前 claim domain + `checkable=true` validity guard | visual/OCR 只能说明 rendered appearance | `checkedTriState` 或已满足三项 exact proof 的 `checkedBooleanExact` 才能完整承担 authority；`checkedBooleanCollapsed` 的 false 只能 `Unknown(partial-unrepresentable)`；否则 `Conflicted`/`Unknown`，不按 confidence 投票 |
 | `enabled` | hierarchy、视觉 | hierarchy `enabled` capability | visual appearance | 同上；过期/不唯一时不赋 hierarchy authority |
 | `selected` | hierarchy、视觉 | hierarchy selected capability | visual highlight | 保留双方 evidence；无有效 authority 时 `Conflicted` |
 | `focused` | hierarchy、视觉 | hierarchy focused capability（注明 accessibility focus 与 input focus 可能不同） | visual focus ring | 不把视觉焦点 ring 强行映射成同一 claim |
@@ -164,7 +164,55 @@ FusedObservation
 ```
 
 `DerivedFromEvidenceIds` 是当前 derived proposal 直接消费的 evidence；
-`TransitiveEvidenceBasis` 递归展开 lineage 后只保留真正 source evidence 的去重集合。
+`TransitiveEvidenceBasis` 仅对通过 lineage validity check 的合法 ancestry closure
+递归展开，并只保留真正 source evidence 的去重集合；malformed lineage 不得进入
+dedup 或 derived admission。
+
+### Lineage validity and leaf deduplication
+
+合法的 shared-leaf duplication 与 malformed lineage 必须分开处理。
+
+合法情况示例：
+
+```text
+A+B → F1
+A+C → F2
+F1+F2 → F3
+```
+
+A 通过多条合法 ancestry path 被重复到达时，处理为：
+
+```text
+TransitiveEvidenceBasis
+→ leaf 去重
+→ valid
+```
+
+`shared leaf duplication != malformed lineage`。合法去重只消除同一 source leaf 的重复
+计数，不改变 lineage validity，也不增加独立 corroboration。
+
+以下全部属于非法 lineage：
+
+- self-reference；
+- ancestry cycle；
+- missing parent `EvidenceId`；
+- declared `TransitiveEvidenceBasis` 与实际 parent ancestry closure 不一致。
+
+非法 lineage 必须按以下顺序处理：
+
+```text
+MalformedLineage
+→ reject derived proposal before P2/P3 admission
+→ zero new belief contribution
+→ do not repair
+→ do not guess
+→ do not downgrade to independent evidence
+→ preserve original/direct source evidence
+```
+
+如需重新计算，必须由新的合法 derivation attempt 生成新的 proposal；不能修改
+malformed proposal 后继续。
+
 derived evidence 永远不能作为其父 source 的独立 corroboration：
 
 ```text
@@ -274,8 +322,8 @@ Provenance 丢失、source id 不可解析、rule/version 不匹配时，derived
    判断。
 2. **checked ambiguity**：API 36 tri-state-capable environment 中 legacy XML
    `checked=false` 若只有 `checkedBooleanCollapsed`，结果为
-   `Unknown(partial-unrepresentable)`；只有 `checkedBooleanExact` 已证明二态时才
-   是 `Unchecked`。
+   `Unknown(partial-unrepresentable)`；只有 `checkedBooleanExact` 三项 exact proof
+   同时满足时才是 `Unchecked`。
 3. **权威域冲突**：hierarchy `checked=Unchecked`、visual 看起来 on；结果为
    hierarchy `Supported + overruled-source(visual)`，不做 confidence voting，冲突
    记录保留。
@@ -314,7 +362,8 @@ Provenance 丢失、source id 不可解析、rule/version 不匹配时，derived
 | ambiguous association | Ambiguous / no fused current claim | fusion capability |
 | authority conflict unresolved | Conflicted | WorldModel reconciliation after P2 |
 | provenance incomplete | fail-closed derived proposal | Evidence Ledger ingress |
-| derived lineage repeats a parent/source | dedup `TransitiveEvidenceBasis`; no extra corroboration | fusion capability |
+| shared leaf reached by multiple valid ancestry paths | dedup leaf；valid；no extra corroboration | fusion capability |
+| self-reference / cycle / missing parent / basis mismatch | `MalformedLineage`；reject before P2/P3 admission；zero new belief contribution | fusion capability / Evidence admission |
 | Aligned but field claims disagree | Conflicted or authority-conditioned overruled disposition | fusion/WorldModel |
 | escalation budget exhausted | Unknown/Conflicted, bounded stop | Control/Observation policy |
 

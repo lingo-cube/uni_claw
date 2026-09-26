@@ -10,7 +10,7 @@
 
 1. **Source Authority Matrix**：按 checked/enabled/selected/focused/text/bounds/visibility/icon/state/role/resource-id 固定结构 authority、辅助 source、冲突处理和有效性条件。
 2. **Temporal Alignment**：固定 CaptureId、ObservationCycleId、correlation、bounded window、mutation marker、frame conversion；`Aligned` 只表示 eligible for joint fusion，不证明 same-world-instant。
-3. **Association/Fusion**：固定 hierarchy occurrence ↔ visual occurrence ↔ OCR token 粒度，覆盖 Unique/ManyToOne/OneToMany/Ambiguous/Unassociated；derived proposal 携带 `DerivedFromEvidenceIds` 与去重后的 `TransitiveEvidenceBasis`。
+3. **Association/Fusion**：固定 hierarchy occurrence ↔ visual occurrence ↔ OCR token 粒度，覆盖 Unique/ManyToOne/OneToMany/Ambiguous/Unassociated；derived proposal 携带 `DerivedFromEvidenceIds` 与去重后的 `TransitiveEvidenceBasis`，并区分合法 shared-leaf duplication 与 `MalformedLineage`。
 4. **Conflict/Coverage**：固定 Supported/Conflicted/Unknown/Unsupported/Unaligned、absence/coverage、fail-closed 语义；Aligned + disagreement 仍可 Conflicted。
 5. **Escalation/Provenance**：固定 fast→hierarchy→focused→deep 的 buyer/budget/attempt 边界和完整 provenance。
 6. **Grill/disposition**：本次 v0.1.1 只对 F1/F2/F3 做 focused re-grill；结果保持 `design_status: FROZEN`。
@@ -32,7 +32,7 @@
 - A2 明确同周期/跨周期/mutation/stale/缺 correlation 的 temporal semantics；Aligned 只表示 eligible for joint fusion，禁止把它解释为 same-world-instant 或因而自动选源。
 - A3 明确 hierarchy occurrence、visual occurrence、OCR token 的 association 粒度及多对一/一对多/歧义处理。
 - A4 明确 absence/coverage，不把 omission 变成 false/absent。
-- A5 明确 conflict fail-closed、完整 provenance、`DerivedFromEvidenceIds`、`TransitiveEvidenceBasis` 和 bounded escalation；derived evidence 不得自我 corroborate。
+- A5 明确 conflict fail-closed、完整 provenance、`DerivedFromEvidenceIds`、`TransitiveEvidenceBasis` 和 bounded escalation；合法 shared-leaf duplication 只做 leaf 去重，self-reference/cycle/missing parent/basis mismatch 必须为 `MalformedLineage` 并在 P2/P3 admission 前拒绝，derived evidence 不得自我 corroborate。
 - A6 明确 fusion 不是第二 WorldModel，fused result 不直接变 target，Agent 不绕过 WorldModel。
 - A7 F1/F2/F3 focused re-grill 全 PASS、PER-010 前置保持 FROZEN、本 change design_status = FROZEN。
 - A8 已记录 PER-009 semantic migration mismatch；PER-011 implementation 明确以 dedicated migration decision 为前置；PER-009 未重开。
