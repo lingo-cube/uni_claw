@@ -1,5 +1,7 @@
 # PER-010 — Android UI Hierarchy Compatibility Layer
 
+版本：v0.1.1（narrow amendment；design-only）
+
 lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 2f633b04
 design_status: FROZEN
 
@@ -16,7 +18,7 @@ design_status: FROZEN
 - API 28 是 v1 floor；compatibility band 只用于 coverage。
 - capability-driven > acquirer-driven > Android-version-driven。
 - `ObservedValue<T>` 的 `Observed | Unknown | Unsupported` 三态不可折叠。
-- checked 的值轴为 `Checked | Unchecked | Partial`；boolean source 不伪造 Partial。
+- checked 的值轴为 `Checked | Unchecked | Partial`；`checkedTriState` 完整表达；`checkedBooleanExact` 仅在二态 domain 已证明时表达 false→Unchecked；`checkedBooleanCollapsed` 在可能存在 Partial 时 false→Unknown(`partial-unrepresentable`)。
 - hierarchy node/window 都是 capture-local occurrence；任何 provider key 只能作为 association feature。
 - Capture timestamp/correlation 是 provenance 输入；freshness 由 Assurance 在具体消费时判断。
 - raw XML 不进入 Agent；bounds 不绕过 Grounding；acquisition 必须 bounded。
@@ -28,7 +30,7 @@ design_status: FROZEN
 2. `UiHierarchyObservation v1` contract 覆盖 metadata/windows/nodes/capability/coverage/checked/identity/failure。
 3. absence、unknown、unsupported、partial、malformed、unavailable 语义可判定。
 4. Agent/Grounding/WorldModel authority boundaries 无越界。
-5. Grill checklist 12 项全部 PASS，后续 implementation slices 明确。
+5. v0.1.1 focused re-grill 的 F1 checked ambiguity PASS，后续 implementation slices 明确。
 6. `design_status: FROZEN`；没有写 Product code 或修改 frozen baseline。
 
 ## Verification
@@ -46,8 +48,9 @@ evidence: changes/PER-010/spec.md; changes/PER-010/plan.md; plans/2026-09-26-per
 
 ## Grill findings disposition
 
-- 第一轮：发现需要把 capture outcome、field state、capability、occurrence 和 temporal correlation 说成独立轴；已写入 `spec.md`。
-- Focused re-grill：12 项攻击均 PASS；没有 `UPSTREAM_DESIGN_CONFLICT`。
+- 原冻结设计的 capture outcome、field state、capability、occurrence 和 temporal correlation 保持不变。
+- v0.1.1 focused re-grill 只攻击 F1：API 36 tri-state-capable environment 中，legacy XML `checked=false` 只有在 `checkedBooleanExact` 已证明二态时才是 `Unchecked`；`checkedBooleanCollapsed` 必须是 `Unknown(partial-unrepresentable)`。
+- F1 结果 `PASS`；没有 `UPSTREAM_DESIGN_CONFLICT`。
 - Freeze：PER-010 design FROZEN；PER-011 可在本 change 的 contract 之上开始。
 
 ## Status log
@@ -55,4 +58,4 @@ evidence: changes/PER-010/spec.md; changes/PER-010/plan.md; plans/2026-09-26-per
 - 2026-09-26 · understanding→persisted · 读取用户路线、AGENTS.md、UniFlow、PER-009、Product/UWorld baseline；确认本 change 为 design-only。
 - 2026-09-26 · persisted→planned · 完成 stable observation contract、failure/capability/identity/grounding 边界草案；委派 Luna 做事实 inventory。
 - 2026-09-26 · planned→verified · inventory、required-section lint、exact-path audit 和 focused re-grill 通过；design_status 置为 FROZEN。
-- 2026-09-26 · verified→closed · 设计 acceptance 已证明；只新增 PER-010 文档与 inventory，既有 Product dirty 文件未触碰。
+- 2026-09-26 · verified→closed · v0.1.1 narrow amendment 已证明 checked capability 语义；PER-010 继续 FROZEN；只修改设计文档与 inventory，既有 Product dirty 文件未触碰。

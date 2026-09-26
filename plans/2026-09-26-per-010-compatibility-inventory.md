@@ -1,5 +1,7 @@
 # PER-010 Compatibility Inventory（资料与夹具事实）
 
+版本：v0.1.1；本次仅补充 checked capability 的机械映射规则，不改变 inventory 的事实边界。
+
 > 范围：只记录 Android/AOSP/API、采集器和仓库夹具可核实的事实。本文不定义 authority、identity、缺失语义、fusion precedence 或 WorldModel ownership；这些栏位若无法由来源直接证明，标为 `UNKNOWN`，留给 PER-010 架构裁决。
 >
 > 盘点日期：2026-09-26。官方 API 说明链接均为 Android Developers；仓库路径是当前共享工作区内的证据路径。
@@ -81,11 +83,19 @@
 | `hint` / showing-hint | hint API；showing hint API 26+ | 同左 | XML 未导出 | 同左 | wrapper/XML 输出 `UNKNOWN` |
 | window/display/layer | AccessibilityWindowInfo API 21+；Service flag | 同左 | XML 未导出 | 同左 | XML acquirer coverage `UNKNOWN` |
 | checked tri-state | `isChecked()` boolean | `isChecked()` boolean | API 35 XML 实样为 boolean 资产；无 partial 实样 | `getChecked()` + FALSE/TRUE/PARTIAL API 36 | 仅 API 36 richer API 明确支持三态；旧通道如何表达 `UNKNOWN` |
+| checked boolean exact / collapsed | boolean source 只有在能证明 claim domain 二态时才是 `checkedBooleanExact`；无法证明时为 `checkedBooleanCollapsed` | 传统 XML 仅证明 `true/false` 字段形状，不证明 domain 没有 Partial | API 35 fixture 仍是 boolean | API 36 richer source 可提供 tri-state | false→Unchecked 需要 exact；collapsed false→Unknown(`partial-unrepresentable`) |
 | Compose semantics merged/unmerged | 取决于 app/Compose library，不由 Android API band 单独决定 | 同左 | 同左 | 同左 | 官方语义树事实；采集器输出对应关系 `UNKNOWN` |
 | WebView | 版本/bridge 相关 | 同左 | 仓库只见 OCR 文本 | 同左 | `UNKNOWN` |
 | multi-window | AccessibilityWindowInfo 能力早于 API 28；系统 policy 另有版本变化 | API 31+ 大屏 policy 变化 | XML 无 window metadata | 同左 | runtime window capture `UNKNOWN` |
 
-## 6. 明确未核实项（保持 UNKNOWN）
+## 6. v0.1.1 checked capability mapping（设计机械约束）
+
+- `checkedTriState`：source 能完整表达 `Checked/Unchecked/Partial` 时按原值映射。
+- `checkedBooleanExact`：仅当 source 证明当前 claim domain 只有二态时，`true→Checked`、`false→Unchecked`。
+- `checkedBooleanCollapsed`：只能表达 lossy boolean；`true→Checked`，而 `false` 在可能存在 Partial 且 acquisition 无法表达时必须为 `Unknown(reason=partial-unrepresentable)`，不得输出 `Unchecked`。
+- Runtime 判断顺序固定为 `capability > acquirer > Android API level`；API level 只辅助选择 adapter，不能直接推出 claim authority。
+
+## 7. 明确未核实项（保持 UNKNOWN）
 
 1. API 28、29、30、34、36 各自真实 `uiautomator dump` 样本及 OEM 对字段省略/重命名/排序的差异。
 2. `visible-to-user`、`drawing-order`、`hint`、window/display/layer 在传统 XML 中是否可导出，以及 AndroidX UiAutomator 各版本 wrapper 的等价字段。
@@ -95,7 +105,7 @@
 6. multi-window、浮层、跨 display 的配对 screenshot + hierarchy capture 及时间/窗口关联事实。
 7. OEM 差异数据；当前没有可将单一 emulator/fixture 结果推广为平台兼容保证的证据。
 
-## 7. 证据路径索引
+## 8. 证据路径索引
 
 - `tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/*.xml`：7 个 hierarchy XML 夹具。
 - `tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/scenario-manifest.json`：API 35 emulator provenance。

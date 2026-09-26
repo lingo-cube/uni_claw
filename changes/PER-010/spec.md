@@ -1,5 +1,7 @@
 # PER-010 — Android UI Hierarchy Compatibility Layer
 
+版本：v0.1.1（narrow amendment；design-only；保持 FROZEN）
+
 ## Intent（WHAT/WHY）
 
 建立 Android UI Hierarchy Compatibility Layer，让 Product 依赖稳定的 typed observation，而不是依赖某一种 Android、UiAutomator 或 Accessibility XML 形状。本 change 只冻结设计和验收边界，不写 Product implementation。
@@ -109,14 +111,15 @@ ObservedValue<T>
 Checked | Unchecked | Partial
 ```
 
-外层仍使用 `ObservedValue<CheckedState>`，因此可表达 `Unknown` 与 `Unsupported`。只有声明 `checkedTriState` capability 且 source 实际给出 partial 时才可产生 `Partial`。只具 `checkedBoolean` 的 legacy XML 只能产生 `Checked` / `Unchecked`；不得把 boolean 伪造为 `Partial`，也不得在字段缺失时伪造 `Unchecked`。`checkable=false` 是后续状态权威使用的 validity guard，不会抹掉 raw observed checked evidence。
+外层仍使用 `ObservedValue<CheckedState>`，因此可表达 `Unknown` 与 `Unsupported`。能力必须区分：`checkedTriState` 可完整表达 `Checked/Unchecked/Partial`；`checkedBooleanExact` 只在 source 能证明当前 claim domain 只有二态时表达 `Checked/Unchecked`；`checkedBooleanCollapsed` 只能表达 lossy boolean。legacy XML 的 `checked=true` 可映射为 `Checked`；`checked=false` 仅在二态 domain 已被 source 证明时映射为 `Unchecked`，否则输出 `Unknown`，reason=`partial-unrepresentable`。不得把 boolean 伪造为 `Partial`，也不得在字段缺失时伪造 `Unchecked`。`checkable=false` 是后续状态权威使用的 validity guard，不会抹掉 raw observed checked evidence。
 
 ### Capabilities
 
 Capabilities 是 adapter 声明并可被测试的能力集合，至少覆盖：
 
 ```text
-checkedBoolean
+checkedBooleanExact
+checkedBooleanCollapsed
 checkedTriState
 drawingOrder
 hint
@@ -177,12 +180,19 @@ World belief → Control Intent → Grounding → Assurance → Effect
 | XML 结构非法 | `Malformed` | 解析到部分可信节点 |
 | 合法空树 | `Empty` + zero nodes | 世界 absence |
 | 部分窗口/裁剪/虚拟化 | `Partial` + coverage | 全页面 absence |
-| checked=false 且只有 boolean capability | `Observed(Unchecked)` + capability limit | Partial |
+| checked=false 且 `checkedBooleanExact` 已证明二态 | `Observed(Unchecked)` | Partial |
+| checked=false 且为 `checkedBooleanCollapsed`，domain 可能含 Partial | `Unknown` + `partial-unrepresentable` | Unchecked |
 | checked=partial 且 tri-state capability | `Observed(Partial)` | Unchecked |
 
 ## Grill findings disposition
 
-第一轮攻击按 PER-010 checklist 检查了 XML 第二 WorldModel、missing/false、Unsupported/Unknown、API 36 tri-state、stale hierarchy、node identity、Compose、raw XML/Agent、bounds/Grounding、bounded acquisition、API 28 floor、capability mapping。发现的风险已通过本 spec 的四态 capture result、`ObservedValue`、capture correlation、occurrence-local identity、format/capability 和 bounded seam 收敛；没有需要修改 Product baseline、WorldModel authority、Grounding authority或 AGT/RUN frozen boundary 的项。Focused re-grill 结果为 `PASS`，设计状态 `FROZEN`。
+原冻结设计已完成完整 PER-010 checklist；本次 v0.1.1 focused re-grill 只复查
+F1 checked ambiguity。API 36 tri-state-capable environment 中，legacy XML
+`checked=false` 按 capability 只能得到 `Unchecked`（已证明二态）或
+`Unknown(partial-unrepresentable)`（lossy boolean），不得无条件输出
+`Observed(Unchecked)`。结果 `PASS`；没有需要修改 Product baseline、WorldModel
+authority、Grounding authority 或 AGT/RUN frozen boundary 的项，设计状态保持
+`FROZEN`。
 
 ## References
 

@@ -1,5 +1,7 @@
 # PER-011 — Visual + Hierarchy Fusion Architecture
 
+版本：v0.1.1（narrow amendment；design-only；保持 FROZEN）
+
 ## 前置与 Intent
 
 前置条件：`PER-010 design_status = FROZEN`。本 change 不重新定义 XML / hierarchy semantics，而定义 hierarchy、screenshot、OCR 等 observation source 如何在时间、覆盖率和字段 authority 约束下形成可追溯的 World belief 输入。
@@ -57,7 +59,7 @@ valid 时才成立。否则结果退化为 `Unknown` / `Unsupported` / `Unaligne
 
 | 字段/claim | 可观察 source | 结构 authority | 辅助 source | 冲突处置 |
 |---|---|---|---|---|
-| `checked` / semantic toggle state | hierarchy、视觉 | hierarchy；要求 checked capability + `checkable=true` validity guard | visual/OCR 只能说明 rendered appearance | hierarchy 条件满足时保留 hierarchy claim，记录 visual overruled；条件不满足则 `Conflicted` 或 `Unknown`，不按 confidence 投票 |
+| `checked` / semantic toggle state | hierarchy、视觉 | hierarchy；要求 checked capability 足以表达当前 claim domain + `checkable=true` validity guard | visual/OCR 只能说明 rendered appearance | `checkedTriState` 或已证明二态的 `checkedBooleanExact` 才能完整承担 authority；`checkedBooleanCollapsed` 的 false 只能 `Unknown(partial-unrepresentable)`；否则 `Conflicted`/`Unknown`，不按 confidence 投票 |
 | `enabled` | hierarchy、视觉 | hierarchy `enabled` capability | visual appearance | 同上；过期/不唯一时不赋 hierarchy authority |
 | `selected` | hierarchy、视觉 | hierarchy selected capability | visual highlight | 保留双方 evidence；无有效 authority 时 `Conflicted` |
 | `focused` | hierarchy、视觉 | hierarchy focused capability（注明 accessibility focus 与 input focus 可能不同） | visual focus ring | 不把视觉焦点 ring 强行映射成同一 claim |
@@ -77,10 +79,12 @@ valid 时才成立。否则结果退化为 `Unknown` / `Unsupported` / `Unaligne
 
 每个 source observation 带 PER-010 `CaptureId`、`ObservationCycleId`（若有）、
 `CaptureTimestamp`、`SessionCorrelation`、source sequence 和 declared coverage。
-Fusion 产生如下 alignment disposition：
+Fusion 产生如下 alignment disposition。`Aligned` 的定义是 **eligible for joint
+fusion**；它不是 `same-world-instant proven`，也不保证两个 capture 描述完全相同
+的 UI 瞬间。
 
 ```text
-Aligned
+Aligned（eligible for joint fusion；不证明 same-world-instant）
 AlignedWithCoverageLimit
 Unaligned（不同 cycle、已知 mutation、或跨 revision）
 TemporalUnknown（缺 correlation/time）
@@ -92,14 +96,16 @@ capture cycle C
   ├─ hierarchy  t2
   └─ OCR        t3
        ↓
-  可对齐 = same correlation/cycle
-          + Δ 在调用方 bounded window 内
-          + 没有 mutation marker
-          + 坐标 frame 可转换
+  可联合融合 = same correlation/cycle
+             + Δ 在调用方 bounded window 内
+             + 没有已知 mutation marker
+             + 坐标 frame 可转换
 ```
 
 - screenshot t1 + hierarchy t2 只有在同一 correlation/cycle、时间差在 bounded
-  window 内且中间没有 mutation marker 时才可融合。
+  window 内且没有已知 mutation marker 时才具备联合融合资格；async UI mutation、
+  loading、timer、network callback、animation 或未观测 external mutation 仍可能
+  让 field claims 不一致。
 - 任一 source 在 dispatch 或 UI mutation 之后取得，必须进入新的 cycle；不得与
   mutation 前的 source 拼成 current state。
 - 缺 correlation 不能用相邻 wall-clock 猜相同页面；结果为 `TemporalUnknown`。
@@ -139,24 +145,48 @@ FusedObservation
 ├ association disposition
 ├ field disposition: Supported | Conflicted | Unknown | Unsupported | Unaligned
 ├ source EvidenceId[] / artifact refs
+├ DerivedFromEvidenceIds（immediate parents）
+├ TransitiveEvidenceBasis（去重后的 leaf/source EvidenceIds）
 ├ CaptureId[] / correlation / coverage
 ├ fusion rule + version
 ├ conflict disposition（none / overruled-source / unresolved）
 └ limitations / escalation history
 ```
 
+`DerivedFromEvidenceIds` 是当前 derived proposal 直接消费的 evidence；
+`TransitiveEvidenceBasis` 递归展开 lineage 后只保留真正 source evidence 的去重集合。
+derived evidence 永远不能作为其父 source 的独立 corroboration：
+
+```text
+A = XML
+B = Visual
+F1 = Fusion(A, B)
+F2 = Fusion(F1, C)
+
+independent basis(F1) = {A, B}
+independent basis(F2) = {A, B, C}
+F1/F2 不增加独立 source 数量
+```
+
+任何 corroboration 计数都以 `TransitiveEvidenceBasis` 的 leaf/source identity 去重；
+fusion interpretation、rule version 或二次 proposal 不能把同一 evidence 再投一票。
+`FusionDerivedEvidence` MUST NOT count as independent corroboration against any direct
+or transitive source evidence from which it was derived。
+
 ## Conflict Matrix
 
 | 情况 | fusion disposition | WorldModel 输入 | 控制含义 |
 |---|---|---|---|
-| authority 条件满足且双方一致 | `Supported` | derived proposal + 双方 provenance | 可由后续 assurance 判断能否消费 |
-| authority 条件满足但辅助 source 相反 | `Supported` + `overruled-source` 记录 | authority claim 和 conflict ledger 都保留 | 不静默删除辅助证据；required property 的最终 freshness/assurance 仍独立判断 |
+| authority 条件满足且双方一致 | `Supported` | derived proposal + 双方 provenance；lineage basis 去重 | 可由后续 assurance 判断能否消费 |
+| authority 条件满足但辅助 source 相反 | `Supported` + `overruled-source` 记录 | authority claim 和 conflict ledger 都保留；derived 不增加独立票数 | 不静默删除辅助证据；required property 的最终 freshness/assurance 仍独立判断 |
 | 两方相反且没有有效 authority | `Conflicted` | 两边证据都保留 | required property fail-closed，不 dispatch |
 | source 能力不存在 | `Unsupported` | 不产生伪造 claim | 不能把 Unsupported 当 Unknown/false |
 | source 理论支持但本次无法判定 | `Unknown` | 可请求有限 re-observe | 不产生 false/absent |
 | 时间、frame 或 mutation 不可对齐 | `Unaligned` | 各自 evidence 保留，不融合 | 不把跨时刻 claim 组合为 current truth |
 
-Conflict 永远不由 producer confidence、模型分数或多数投票静默消除。无法合理
+即使 alignment = `Aligned`，field disagreement 仍**可以**产生 `Conflicted`；若存在
+有效字段 authority，则可按矩阵记录 `Supported + overruled-source`，但 Aligned
+本身只授予联合融合资格，绝不自动选择 source。Conflict 永远不由 producer confidence、模型分数或多数投票静默消除。无法合理
 消解的冲突保持显式状态，进入 WorldModel 后由其 Reconciliation 记录 belief
 Conflict；fusion 不先行覆盖。
 
@@ -209,6 +239,8 @@ deep/VLM（后置、有限预算）
 Hierarchy EvidenceId / artifact id
 Visual frame id / artifact id
 OCR evidence id（如有）
+DerivedFromEvidenceIds（immediate parents）
+TransitiveEvidenceBasis（deduped leaf/source ids）
 CaptureId + ObservationCycleId + correlation
 Fusion rule/version
 Association disposition
@@ -223,27 +255,37 @@ Provenance 丢失、source id 不可解析、rule/version 不匹配时，derived
 
 ## Fusion scenarios
 
-1. **同周期 checked**：hierarchy `checked=Checked`、`checkable=true`，visual switch
+1. **同周期 checked**：hierarchy `checked=Checked`、`checkable=true`，且 capability
+   足以表达当前 domain，visual switch
    看起来 on；结果 `Supported`，保留两个 EvidenceId，后续 freshness 仍由 Assurance
    判断。
-2. **权威域冲突**：hierarchy `checked=Unchecked`、visual 看起来 on；结果为
+2. **checked ambiguity**：API 36 tri-state-capable environment 中 legacy XML
+   `checked=false` 若只有 `checkedBooleanCollapsed`，结果为
+   `Unknown(partial-unrepresentable)`；只有 `checkedBooleanExact` 已证明二态时才
+   是 `Unchecked`。
+3. **权威域冲突**：hierarchy `checked=Unchecked`、visual 看起来 on；结果为
    hierarchy `Supported + overruled-source(visual)`，不做 confidence voting，冲突
    记录保留。
-3. **stale hierarchy + fresh screenshot**：不同 cycle 或 mutation marker；结果
+4. **stale hierarchy + fresh screenshot**：不同 cycle 或 mutation marker；结果
    `Unaligned`，不融合成当前 checked，允许 bounded hierarchy re-observe。
-4. **fresh hierarchy + stale screenshot**：semantic state 由 hierarchy 支持；旧
+5. **fresh hierarchy + stale screenshot**：semantic state 由 hierarchy 支持；旧
    visual 只作为历史证据，不能覆盖当前 belief。
-5. **双源都没看到元素**：coverage 非完整或存在 scroll/virtualization 时结果
+6. **双源都没看到元素**：coverage 非完整或存在 scroll/virtualization 时结果
    `Unknown`，不输出 element absent。
-6. **Compose merged/unmerged**：一个 visual card 对多个 semantics occurrence，
+7. **Compose merged/unmerged**：一个 visual card 对多个 semantics occurrence，
    产生 ManyToOne/OneToMany；不铸造 stable element identity。
-7. **OCR 多 token**：一个 hierarchy text occurrence 对多个 OCR token，保留
+8. **OCR 多 token**：一个 hierarchy text occurrence 对多个 OCR token，保留
    OneToMany association；文本 claim 按 semantic/rendered 两轴处理。
-8. **multi-window/overlay**：window metadata 缺失或 frame 不同，`TemporalUnknown`
+9. **multi-window/overlay**：window metadata 缺失或 frame 不同，`TemporalUnknown`
    或 `Unaligned`；不把不同 window 的相同 bounds 误合并。
-9. **provenance 缺失**：任一 source id、capture correlation 或 rule version 无法回
+10. **provenance 缺失**：任一 source id、capture correlation 或 rule version 无法回
    溯，derived result fail-closed，不进入 current WorldModel path。
-10. **有界升档**：FastScreen 与 hierarchy 冲突，单次 focused rescan 仍未知，预算
+11. **no self-corroboration**：`A → Fusion(A)` 的 transitive basis 仍为 `{A}`；
+    `A+B → F1`、`F1+C → F2` 的 basis 为 `{A,B,C}`，不得把 F1 作为额外 source。
+12. **Aligned disagreement**：Screenshot t1、async UI changes、Hierarchy t2；即使
+    classifier 给出 `Aligned`，field disagreement 仍可为 `Conflicted`（或按有效
+    authority 保留 overruled disposition），不能自动选源。
+13. **有界升档**：FastScreen 与 hierarchy 冲突，单次 focused rescan 仍未知，预算
     用尽后保留 `Conflicted/Unknown`，不循环调用 VLM。
 
 ## Failure matrix
@@ -259,17 +301,17 @@ Provenance 丢失、source id 不可解析、rule/version 不匹配时，derived
 | ambiguous association | Ambiguous / no fused current claim | fusion capability |
 | authority conflict unresolved | Conflicted | WorldModel reconciliation after P2 |
 | provenance incomplete | fail-closed derived proposal | Evidence Ledger ingress |
+| derived lineage repeats a parent/source | dedup `TransitiveEvidenceBasis`; no extra corroboration | fusion capability |
+| Aligned but field claims disagree | Conflicted or authority-conditioned overruled disposition | fusion/WorldModel |
 | escalation budget exhausted | Unknown/Conflicted, bounded stop | Control/Observation policy |
 
 ## Grill findings disposition
 
-按 PER-011 checklist 攻击了第二 WorldModel、confidence voting、stale/fresh 混合、
-absence、Compose/virtual list association、多对一/一对多、fusion→target 直连、
-provenance 丢失、conflict fail-closed、bounded escalation 和 Agent 绕过 WorldModel。
-所有项已在本 spec 的 boundary、matrix、disposition、coverage、provenance 与 budget
-规则中收敛。Focused re-grill 结果 `PASS`；没有需要修改 Product baseline、
-WorldModel authority、Grounding authority 或 AGT/RUN frozen boundary 的项。
-设计状态 `FROZEN`。
+本次 v0.1.1 focused re-grill 只攻击三点：checked capability ambiguity、derived
+evidence no-self-corroboration（含 transitive lineage）、以及 Aligned 仅表示
+eligible for joint fusion。三项均 `PASS`；没有需要修改 Product baseline、
+WorldModel authority、Grounding authority 或 AGT/RUN frozen boundary 的项，设计
+状态保持 `FROZEN`。
 
 ## References
 
