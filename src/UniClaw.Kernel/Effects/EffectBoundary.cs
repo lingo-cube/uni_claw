@@ -106,6 +106,7 @@ public sealed class EffectBoundary
                     // DSE-002/003：executable target anchors（owner fact 从 view
                     // 携带；occurrence 无 locator → null，规则 B 判定归 driver）
                     TargetLocator: view.TargetOccurrenceLocator,
+                    TargetSpace: view.TargetOccurrenceSpace,
                     TargetNative: view.TargetOccurrenceNative))
             : Decide(
                 stale: candidate.SourceRevisionId != view.RevisionId,
@@ -258,7 +259,8 @@ public sealed class EffectBoundary
         Target: new DeliveryTarget(
             OccurrenceReference: binding.TargetOccurrenceId ?? binding.TargetSubject,
             Spatial: binding.TargetLocator,
-            Native: binding.TargetNative),
+            Native: binding.TargetNative,
+            Space: binding.TargetSpace),
         EffectClass: binding.EffectClass,
         Parameters: binding.TargetValue,
         RevisionId: binding.RevisionId);

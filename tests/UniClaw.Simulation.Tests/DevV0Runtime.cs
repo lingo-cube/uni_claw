@@ -80,7 +80,7 @@ public static class V0Runtime
                 ? $"{c.X1},{c.Y1},{c.X2},{c.Y2}"
                 : "0.40,0.50,0.60,0.70";
             var frameId = _bounds is null ? "v0.frame" : AdbEffectDriver.SupportedFrame;
-            var frame = $"{{\"role\":\"switch\",\"state\":\"{state}\",\"b\":[{b}],\"f\":\"{frameId}\"}}";
+            var frame = $"{{\"role\":\"switch\",\"state\":\"{state}\",\"b\":[{b}],\"w\":1080,\"h\":1920,\"f\":\"{frameId}\"}}";
             var proposals = new List<ObservationProposal>();
             // 屏幕身份 claim（stable value → ProductAssociationStrategy Matched，不铸新容器）
             proposals.Add(new ObservationProposal(
@@ -116,6 +116,13 @@ public static class V0Runtime
             var entry = document.RootElement;
             var bounds = entry.GetProperty("b").EnumerateArray().Select(e => e.GetDouble()).ToArray();
             var frameId = entry.TryGetProperty("f", out var f) ? f.GetString()! : "v0.frame";
+            // CSC-001 Slice B：capture 实测尺寸（可选字段；缺 w/h 的 legacy
+            // claim → Space null，不伪造——消费端 fail-closed）
+            var width = entry.TryGetProperty("w", out var w) && w.TryGetInt32(out var wi) ? wi : (int?)null;
+            var height = entry.TryGetProperty("h", out var h) && h.TryGetInt32(out var hi) ? hi : (int?)null;
+            var space = width is { } sw && height is { } sh
+                ? UniClaw.Kernel.Perception.CoordinateSpace.DeviceViewport(sw, sh)
+                : null;
             var owner = previous?.Containers.Count == 1
                 ? previous.Containers[0].Identity.ContainerId
                 : null;
@@ -126,7 +133,8 @@ public static class V0Runtime
                     Role: entry.GetProperty("role").GetString()!,
                     SemanticDescriptor: null,
                     State: entry.GetProperty("state").GetString(),
-                    Locator: new SpatialLocator(bounds[0], bounds[1], bounds[2], bounds[3], frameId)),
+                    Locator: new SpatialLocator(bounds[0], bounds[1], bounds[2], bounds[3], frameId),
+                    Space: space),
             };
         }
     }

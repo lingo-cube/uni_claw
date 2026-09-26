@@ -40,7 +40,8 @@ public sealed record OccurrenceBelief(
     IReadOnlyList<string> EvidenceBasis,
     string? State = null,
     SpatialLocator? Locator = null,
-    NativeLocator? Native = null);
+    NativeLocator? Native = null,
+    UniClaw.Kernel.Perception.CoordinateSpace? Space = null);
 
 /// <summary>
 /// LogicalItemBelief — owning Container 内、demand-gated + evidence-established
@@ -63,6 +64,9 @@ public sealed record LogicalItemBelief(
 /// seam，无 authority）：id 与 EvidenceBasis 由 WorldModel 铸造，strategy 不参与。
 /// State（CDS-001）：strategy 从 evidence 派生的 presentation state（可选；
 /// null = 该 occurrence 无 state 证据）。
+/// Space（CSC-001 Slice B）：Locator 归一化坐标的声明空间（可选；来自
+/// capture 实测尺寸，缺 w/h 的 legacy claim = null——不伪造）。grounding
+/// 消费（Slice C）：null space 的 locator 不可投影 dispatch（fail-closed）。
 /// </summary>
 public sealed record ProposedOccurrence(
     string? OwningContainerId,
@@ -70,7 +74,8 @@ public sealed record ProposedOccurrence(
     string? SemanticDescriptor,
     string? State = null,
     SpatialLocator? Locator = null,
-    NativeLocator? Native = null);
+    NativeLocator? Native = null,
+    UniClaw.Kernel.Perception.CoordinateSpace? Space = null);
 
 /// <summary>
 /// IUiObservationStrategy — owner-internal 确定性 occurrence 派生缝

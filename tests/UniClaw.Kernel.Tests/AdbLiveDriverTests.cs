@@ -20,7 +20,9 @@ public sealed class AdbLiveDriverTests
         AdbEffectDriver.SupportedFrame);
 
     private static DispatchRequest TapRequest => new(
-        new DeliveryTarget("occ-ref", RealSpatial), "tap", null, "rev-1");
+        new DeliveryTarget("occ-ref", RealSpatial,
+            Space: UniClaw.Kernel.Perception.CoordinateSpace.DeviceViewport(1080, 1920)),
+        "tap", null, "rev-1");
 
     private sealed class FakeRunner(Func<IReadOnlyList<string>, AdbProcessResult> behavior)
         : IAdbProcessRunner

@@ -385,7 +385,8 @@ public sealed class WorldModel
                     new[] { record.EvidenceId },
                     State: proposed.State,
                     Locator: proposed.Locator,
-                    Native: proposed.Native))
+                    Native: proposed.Native,
+                    Space: proposed.Space))
                 .ToImmutableArray();
             copiedEntries += occurrences.Count;
         }
@@ -1161,7 +1162,8 @@ public sealed class WorldModel
             HasTargetSubjectClaim: subject is not null && current.WorldState.ContainsKey(subject),
             HasTargetOccurrence: targetOccurrence is not null,
             TargetOccurrenceLocator: targetOccurrence?.Locator,
-            TargetOccurrenceNative: targetOccurrence?.Native);
+            TargetOccurrenceNative: targetOccurrence?.Native,
+            TargetOccurrenceSpace: targetOccurrence?.Space);
         RecordConsumerViewPerformance(
             start, allocationStart,
             scannedEntries: (subject is null ? 0 : 1) + (occurrenceId is null ? 0 : 1),

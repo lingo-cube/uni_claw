@@ -112,12 +112,16 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Perception.ArtifactMetadata",
             "UniClaw.Kernel.Perception.ArtifactObservation",
             "UniClaw.Kernel.Perception.CapturedScreenshot",
+            // CSC-001 Slice A 增集：坐标空间 typed contract（per-capture
+            // 声明；Kernel 只拥有 contract 与相等性执法，不拥有 viewport）。
+            "UniClaw.Kernel.Perception.CoordinateSpace",
             "UniClaw.Kernel.Perception.FastPerception",
             "UniClaw.Kernel.Perception.IFastPerceptionStrategy",
             "UniClaw.Kernel.Perception.IVersionedFastPerceptionStrategy",
             "UniClaw.Kernel.Perception.LiveVisionStrategy",
             "UniClaw.Kernel.Perception.PngImage",
             "UniClaw.Kernel.Perception.RawArtifact",
+            "UniClaw.Kernel.Perception.ScreenRotation",
             // PER-013 Slice A 增集（PER-010 UiHierarchyObservation v1 typed
             // contract）：UiHierarchy 域类型 21 项 + UiBounds。
             "UniClaw.Kernel.Perception.UiHierarchy.CaptureMetadata",

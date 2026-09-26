@@ -30,8 +30,11 @@ public sealed class HostRunner
 {
     public sealed record HostOptions(
         string? DeviceId = null,
-        int ViewportWidth = 1080,
-        int ViewportHeight = 2400,
+        // CSC-001 Slice B：viewport 魔数默认（1080×2400）已删除——
+        // null = 不配置（dispatch 前 wm size 实测，实测不到 fail-closed）；
+        // 显式值 = 已验证配置（优先级低于设备实况）。
+        int? ViewportWidth = null,
+        int? ViewportHeight = null,
         string TargetState = "on",
         LivePerception.LiveAssets? Live = null,
         Func<AgentDecisionContext, AgentDecision?>? ConsultAgent = null);

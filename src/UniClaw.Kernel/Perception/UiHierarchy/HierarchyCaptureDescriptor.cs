@@ -39,7 +39,8 @@ public sealed record HierarchyCaptureDescriptor(
     string? CoverageLimitation,
     int NodeLocalIndex,
     int? ParentLocalIndex,
-    string Field)
+    string Field,
+    CoordinateSpace? Space = null)
 {
     /// <summary>EvidenceId 参与的确定性 canonical 渲染（与 ComputeEvidenceId 一致）。</summary>
     public string RenderCanonical() =>
@@ -59,5 +60,6 @@ public sealed record HierarchyCaptureDescriptor(
             CoverageLimitation ?? "-",
             NodeLocalIndex.ToString(System.Globalization.CultureInfo.InvariantCulture),
             ParentLocalIndex?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "-",
-            Field);
+            Field,
+            Space is { } space ? $"{space.CoordinateSpaceId}" : "-");
 }

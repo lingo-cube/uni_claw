@@ -55,6 +55,41 @@ public sealed class AdbEffectDriver : IEffectDriver
             _clock(),
             Reason: $"{reason}: {detail}");
 
+    /// <summary>
+    /// CSC-001 Slice C：driver 支持集校验（locator 在场 / frame 在支持集 /
+    /// effect class 在支持集）——独立于投影。live driver 在坐标空间检查
+    /// **之前**调用，保持 frozen 拒绝语义（no-executable-locator /
+    /// unsupported-frame / unsupported-effect 不被空间检查遮蔽）。
+    /// </summary>
+    internal static bool ValidateSupport(
+        DispatchRequest request, out string? reason, out string? detail)
+    {
+        reason = detail = null;
+        if (request.Target.Spatial is not { } locator)
+        {
+            reason = "no-executable-locator";
+            detail = "DeliveryTarget 无 SpatialLocator（本 driver 支持集 = NormalizedSpatial × device-viewport；不消费 native）";
+            return false;
+        }
+
+        if (!string.Equals(locator.SpatialFrameId, SupportedFrame, StringComparison.Ordinal))
+        {
+            reason = "unsupported-frame";
+            detail = $"frame '{locator.SpatialFrameId}' 不在支持集（仅 {SupportedFrame}）";
+            return false;
+        }
+
+        var effect = request.EffectClass.ToLowerInvariant();
+        if (effect is not ("tap" or "click" or "set-switch"))
+        {
+            reason = "unsupported-effect";
+            detail = $"effect '{request.EffectClass}' 不在支持集（tap | click | set-switch；click 与 tap 物理同义 → input tap）";
+            return false;
+        }
+
+        return true;
+    }
+
     /// <summary>共享命令构造（ADB-001 提取；dry-run 与 live 同源——支持集与
     /// 投影的单一事实源）。失败输出 (reason, detail) 与 driver 拒绝语义对齐。</summary>
     internal static bool TryBuildTap(

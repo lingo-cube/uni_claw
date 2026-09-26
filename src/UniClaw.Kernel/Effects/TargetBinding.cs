@@ -71,7 +71,8 @@ public sealed record CanonicalBinding(
     string? OwningContainerId = null,
     string? LogicalItemId = null,
     SpatialLocator? TargetLocator = null,
-    NativeLocator? TargetNative = null);
+    NativeLocator? TargetNative = null,
+    UniClaw.Kernel.Perception.CoordinateSpace? TargetSpace = null);
 
 /// <summary>Binding 判定：Canonical 或 Rejected（D8）。</summary>
 public sealed record BindingDecision(CanonicalBinding? Canonical, BindingRejectionReason? RejectionReason);

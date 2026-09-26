@@ -137,7 +137,7 @@ public sealed class DevHalfRealEffectTests(ITestOutputHelper output)
                     initialState: before == "0" ? "off" : "on").Next, null),
                 targetState: flipped,
                 makeDriver: clock => new AdbLiveEffectDriver(
-                    "emulator-5554", 1080, 2400, adbExecutable: "adb", clock: () => clock.Now),
+                    "emulator-5554", 1080, 1920, adbExecutable: "adb", clock: () => clock.Now),
                 runName: "halfreal");
 
             output.WriteLine($"status={result.Status}({result.Reason}) outcome={result.OutcomeClassification} delivered={result.DeliveredEffects}");

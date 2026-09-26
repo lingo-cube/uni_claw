@@ -24,6 +24,13 @@ public sealed class ScreenFrameOccurrenceStrategy : IUiObservationStrategy
         var entry = document.RootElement;
         var bounds = entry.GetProperty("b").EnumerateArray().Select(e => e.GetDouble()).ToArray();
         var frameId = entry.TryGetProperty("f", out var f) ? f.GetString()! : "v0.frame";
+        // CSC-001 Slice B：capture 实测尺寸（可选字段；缺 w/h 的 legacy
+        // claim → Space null，不伪造——消费端 fail-closed）
+        var width = entry.TryGetProperty("w", out var w) && w.TryGetInt32(out var wi) ? wi : (int?)null;
+        var height = entry.TryGetProperty("h", out var h) && h.TryGetInt32(out var hi) ? hi : (int?)null;
+        var space = width is { } sw && height is { } sh
+            ? UniClaw.Kernel.Perception.CoordinateSpace.DeviceViewport(sw, sh)
+            : null;
         var owner = previous?.Containers.Count == 1
             ? previous.Containers[0].Identity.ContainerId
             : null;
@@ -34,7 +41,8 @@ public sealed class ScreenFrameOccurrenceStrategy : IUiObservationStrategy
                 Role: entry.GetProperty("role").GetString()!,
                 SemanticDescriptor: null,
                 State: entry.GetProperty("state").GetString(),
-                Locator: new SpatialLocator(bounds[0], bounds[1], bounds[2], bounds[3], frameId)),
+                Locator: new SpatialLocator(bounds[0], bounds[1], bounds[2], bounds[3], frameId),
+                Space: space),
         };
     }
 }

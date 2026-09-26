@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using UniClaw.Kernel.Perception;
 
 namespace UniClaw.Kernel.Effects;
 
@@ -31,15 +32,21 @@ public sealed class AdbLiveEffectDriver : IEffectDriver
     private readonly string _serial;
     private readonly string _adbExecutable;
     private readonly IAdbProcessRunner _runner;
-    private readonly int _viewportWidth;
-    private readonly int _viewportHeight;
+    private readonly int? _configuredWidth;
+    private readonly int? _configuredHeight;
     private readonly Func<DateTimeOffset> _clock;
+    private CoordinateSpace? _queriedViewport;
 
-    /// <summary>生产构造（真实进程 runner）。</summary>
+    /// <summary>
+    /// 生产构造（真实进程 runner）。viewport 参数（CSC-001 Slice B 起）为
+    /// **可选显式已验证配置**（优先级最低：live device query > config）；
+    /// null = 不配置——dispatch 前经 wm size 实测，实测不到即 fail-closed
+    /// （zero effect + diagnostic），绝不静默落到 1080×2400 类魔数默认。
+    /// </summary>
     public AdbLiveEffectDriver(
         string serial,
-        int viewportWidth,
-        int viewportHeight,
+        int? viewportWidth = null,
+        int? viewportHeight = null,
         string adbExecutable = "adb",
         Func<DateTimeOffset>? clock = null)
         : this(serial, viewportWidth, viewportHeight, null, adbExecutable, clock)
@@ -49,19 +56,21 @@ public sealed class AdbLiveEffectDriver : IEffectDriver
     /// <summary>测试构造（fake runner 注入；IAdbProcessRunner 是 internal seam）。</summary>
     internal AdbLiveEffectDriver(
         string serial,
-        int viewportWidth,
-        int viewportHeight,
+        int? viewportWidth,
+        int? viewportHeight,
         IAdbProcessRunner? runner,
         string adbExecutable = "adb",
         Func<DateTimeOffset>? clock = null)
     {
         if (string.IsNullOrWhiteSpace(serial))
             throw new ArgumentException("Resolved device serial is required.", nameof(serial));
-        if (viewportWidth <= 0 || viewportHeight <= 0)
-            throw new ArgumentException("viewport 尺寸必须为正");
+        if ((viewportWidth is null) != (viewportHeight is null))
+            throw new ArgumentException("viewport 配置必须成对（CSC-001：不完整的配置 = 无效）");
+        if (viewportWidth is { } badW && (badW <= 0 || viewportHeight is not { } h2 || h2 <= 0))
+            throw new ArgumentException("viewport 配置尺寸必须为正");
         _serial = serial;
-        _viewportWidth = viewportWidth;
-        _viewportHeight = viewportHeight;
+        _configuredWidth = viewportWidth;
+        _configuredHeight = viewportHeight;
         _runner = runner ?? new AdbProcessRunner();
         _adbExecutable = string.IsNullOrWhiteSpace(adbExecutable) ? "adb" : adbExecutable;
         _clock = clock ?? (() => DateTimeOffset.UtcNow);
@@ -71,7 +80,39 @@ public sealed class AdbLiveEffectDriver : IEffectDriver
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (!AdbEffectDriver.TryBuildTap(request, _viewportWidth, _viewportHeight,
+        // CSC-001 Slice C：先 driver 支持集（frozen 拒绝语义），后坐标空间链。
+        if (!AdbEffectDriver.ValidateSupport(request, out var supportReason, out var supportDetail))
+            return Fail(request, supportReason!, supportDetail!);
+
+        // CSC-001 Slice C：grounded space（binding 携带，来自 capture 实测）
+        // 必须与当前设备空间机械 Matches 才允许投影。
+        //  - grounded space 缺席 = legacy/unknown → 不可验证 → fail-closed；
+        //  - mismatch（rotation / viewport 变化 / 过期 capture）→ RE-GROUND /
+        //    RE-OBSERVE，不 dispatch（禁止旧截图坐标 × 当前设备尺寸直接 tap）。
+        var requestSpace = request.Target.Space;
+        if (requestSpace is null)
+        {
+            return Fail(request, "coordinate-space-unknown-on-target",
+                "grounding 未绑定 CoordinateSpace（claim 缺实测 w/h？）→ RE-OBSERVE，不 dispatch");
+        }
+
+        // CSC-001 Slice B：设备空间解析（live device query > 显式已验证配置）。
+        // 解析不到 → zero effect + explicit diagnostic（fail-closed，不猜）。
+        if (ResolveDispatchSpace() is not { } deviceSpace)
+        {
+            return Fail(request, "coordinate-space-unresolved",
+                $"无法确定设备 viewport（wm size 查询失败且无显式已验证配置）；"
+                + "拒绝投影归一化坐标（CSC-001：不静默使用默认值）");
+        }
+
+        if (!requestSpace.Matches(deviceSpace))
+        {
+            return Fail(request, "coordinate-space-mismatch",
+                $"grounded space {requestSpace.CoordinateSpaceId} ≠ device {deviceSpace.CoordinateSpaceId}"
+                + "（rotation/viewport 变化或过期 capture）→ RE-GROUND/RE-OBSERVE，不 dispatch");
+        }
+
+        if (!AdbEffectDriver.TryBuildTap(request, requestSpace.PixelWidth, requestSpace.PixelHeight,
                 out var x, out var y, out var deviceArgs, out var reason, out var detail))
             return Fail(request, reason!, detail!);
 
@@ -101,6 +142,55 @@ public sealed class AdbLiveEffectDriver : IEffectDriver
             command,
             _clock(),
             Reason: null);   // 命令已送达执行 ≠ world effect（不变量 33/34）
+    }
+
+    /// <summary>
+    /// CSC-001 Slice B：投影基准解析。优先 live device query（wm size，
+    /// Override 优先于 Physical；成功后缓存），次选构造期显式已验证配置。
+    /// rotation 基准 = None（设备查询维度；旋转态由 capture 空间与设备空间
+    /// 的 Matches 检查在 Slice C 执法）。
+    /// </summary>
+    private CoordinateSpace? ResolveDispatchSpace()
+    {
+        if (_queriedViewport is { } cached)
+        {
+            return cached;
+        }
+
+        var captured = _runner
+            .RunCaptureAsync(_adbExecutable, new[] { "-s", _serial, "shell", "wm", "size" },
+                TimeSpan.FromSeconds(5), CancellationToken.None)
+            .GetAwaiter().GetResult();
+        if (captured is { Started: true, TimedOut: false, ExitCode: 0 } query
+            && TryParseWmSize(System.Text.Encoding.UTF8.GetString(query.StandardOutput), out var width, out var height))
+        {
+            return _queriedViewport = CoordinateSpace.DeviceViewport(width, height);
+        }
+
+        return _configuredWidth is { } w && _configuredHeight is { } h
+            ? CoordinateSpace.DeviceViewport(w, h)
+            : null;
+    }
+
+    internal static bool TryParseWmSize(string output, out int width, out int height)
+    {
+        width = height = 0;
+        var overrideMatch = System.Text.RegularExpressions.Regex.Match(
+            output, @"Override size:\s*(\d+)x(\d+)");
+        if (overrideMatch.Success
+            && int.TryParse(overrideMatch.Groups[1].Value, out width)
+            && int.TryParse(overrideMatch.Groups[2].Value, out height)
+            && width > 0 && height > 0)
+        {
+            return true;
+        }
+
+        var physicalMatch = System.Text.RegularExpressions.Regex.Match(
+            output, @"Physical size:\s*(\d+)x(\d+)");
+        return physicalMatch.Success
+            && int.TryParse(physicalMatch.Groups[1].Value, out width)
+            && int.TryParse(physicalMatch.Groups[2].Value, out height)
+            && width > 0 && height > 0;
     }
 
     private DispatchResult Fail(DispatchRequest request, string reason, string detail) =>

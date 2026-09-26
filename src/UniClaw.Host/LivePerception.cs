@@ -175,7 +175,7 @@ public static class LivePerception
                     : null;
             }
 
-            var input = Frame(detection, state, expected, stateClaim);
+            var input = Frame(detection, shot.Width, shot.Height, state, expected, stateClaim);
 
             // 缺席标记：附加到既有 claims 的 lineage（degraded:no-xml）
             // （标记逻辑在 UiAutomatorDump.TagDegradedNoXml——PER-013 A-4 可测缝）
@@ -240,13 +240,18 @@ public static class LivePerception
 
         private RunDriverInput Frame(
             HostUtilities.AnchorDetection detection,
+            int shotWidth,
+            int shotHeight,
             string state,
             ObservationContext context,
             ObservationProposal? stateClaim)
         {
             _clock.Tick();
+            // CSC-001 Slice B：frame claim 携带 capture 实测尺寸（w/h）——
+            // 归一化坐标自此自描述，投影端可与设备实况机械对拍。
             var frame = $"{{\"role\":\"switch\",\"state\":\"{state}\","
                 + $"\"b\":[{detection.X1},{detection.Y1},{detection.X2},{detection.Y2}],"
+                + $"\"w\":{shotWidth},\"h\":{shotHeight},"
                 + $"\"f\":\"{AdbEffectDriver.SupportedFrame}\"}}";
             var proposals = new List<ObservationProposal>
             {

@@ -24,7 +24,8 @@ public sealed record BindingView(
     bool HasTargetSubjectClaim,
     bool HasTargetOccurrence = false,
     SpatialLocator? TargetOccurrenceLocator = null,
-    NativeLocator? TargetOccurrenceNative = null);
+    NativeLocator? TargetOccurrenceNative = null,
+    UniClaw.Kernel.Perception.CoordinateSpace? TargetOccurrenceSpace = null);
 
 /// <summary>
 /// ActionAssuranceView — World Model 为 RuntimeAssurance.Judge

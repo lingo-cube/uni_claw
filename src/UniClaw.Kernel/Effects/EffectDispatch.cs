@@ -19,7 +19,8 @@ namespace UniClaw.Kernel.Effects;
 public sealed record DeliveryTarget(
     string OccurrenceReference,
     SpatialLocator? Spatial = null,
-    NativeLocator? Native = null);
+    NativeLocator? Native = null,
+    UniClaw.Kernel.Perception.CoordinateSpace? Space = null);
 
 /// <summary>
 /// P14 Dispatch Request — Effect Boundary 发往 Capability Plane 的 bounded

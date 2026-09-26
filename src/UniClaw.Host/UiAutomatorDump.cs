@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Xml;
 using System.Xml.Linq;
 using UniClaw.Kernel.Evidence;
+using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.Perception.UiHierarchy;
 
 namespace UniClaw.Host;
@@ -375,7 +376,8 @@ public static class UiAutomatorDump
         TimeSpan? CaptureDuration = null,
         string AcquirerVersion = "adb-uiautomator/legacy",
         HierarchyCapabilities? Capabilities = null,
-        CheckedExactProof? ExactProof = null);
+        CheckedExactProof? ExactProof = null,
+        CoordinateSpace? Space = null);
 
     /// <summary>
     /// legacy XML 的默认能力声明（PER-013 Slice B）：semantic text /
