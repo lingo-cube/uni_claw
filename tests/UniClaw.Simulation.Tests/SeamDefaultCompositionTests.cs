@@ -9,7 +9,7 @@ namespace UniClaw.Simulation.Tests;
 /// <summary>
 /// SIM-001 Review/Verify：Seams=null 时六缝工厂默认的 composition 级证明。
 /// 与 <see cref="SeamOverrideTests.NullSeams_FactoryDefaultsUsed_BackwardsCompatible"/>
-/// （行为级：Completed / 1 effect / 1 consultation）互补——本文件只回答
+/// （行为级：Completed / 1 effect / 2 consultations）互补——本文件只回答
 /// 「每个缝默认到底是什么 realization」，不经由注入路径推断。
 /// 只读反射私有组合字段（WorldModel/RuntimeAssurance 未暴露策略面；
 /// 不为测试开新公开面——现有可及面纪律）。

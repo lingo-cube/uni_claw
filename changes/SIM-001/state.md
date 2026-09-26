@@ -1,6 +1,6 @@
 # SIM-001 — 仿真 Host 插件化补全（SeamOverrides）
 
-lifecycle_state: verified · disposition: none · depth: standard · base: 87b2247
+lifecycle_state: closed · disposition: none · depth: standard · base: 87b2247
 
 ## Intent
 
@@ -15,7 +15,8 @@ SimulationHost 工厂面的 5 个缝 + Agent 脚本全部 hard-code——
   · `IUiObservationStrategy?`（默认 ReplayFrameObservationStrategy）
   · `IFreshnessEvaluator?`（默认 SatisfyingFreshness）
   · `IEffectDriver?`（默认 DeterministicEffectDriver）
-  · `IContinuityStrategy?`（默认 RoleContinuityStrategy）
+  · `IContinuityStrategy?`（null = 不注入透传：WorldModel 既有 null 语义——
+    continuity demand 时 fail-closed；组合根无 RoleContinuityStrategy 兜底）
   · `ScriptedUniAgent?`（默认 bundle 内脚本构造的实例）
 - `RunOptions` 加 `SeamOverrides? Seams = null`（单一引用，不混入行为开关）
 - `SimulationHost` 工厂方法读取 Seams，null 走既有默认
@@ -83,6 +84,11 @@ R7 全量干净: PASS（1029/1029 · certification PASS · diff-check CLEAN）
 
 ## Status log
 
+- 2026-09-27 · verified→closed · Owner final closure PASS（六缝接线 /
+  Freshness+Driver 行为级 / null 兼容 / internal / 确定性无偏离全 PASS；
+  闭门前两处文档措辞更正：Continuity 默认 = null 透传语义、
+  SeamDefaultCompositionTests 注释 1→2 consultations）；closure-only，
+  Product code 零改动。验证证据与 Review Gate 记录保留（上节未动）。
 - 2026-09-27 · implemented→reviewed→verified · Review/Verify 执行
   （Flash 补行为级/组合级测试 7 例 + Leader R1–R7 review 全 PASS）；
   F1 WIP 编译错（.Basis→.Reason）、F2 轮次断言（1→2）、F3 Continuity
