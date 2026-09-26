@@ -41,12 +41,16 @@ public class AdbViewportResolutionTests
 
         public System.Threading.Tasks.Task<AdbCaptureResult> RunCaptureAsync(
             string executable, IReadOnlyList<string> arguments, TimeSpan timeout, CancellationToken ct)
-            => System.Threading.Tasks.Task.FromResult(new AdbCaptureResult(
+        {
+            WmCalls++;
+            return System.Threading.Tasks.Task.FromResult(new AdbCaptureResult(
                 Started: true, TimedOut: false, ExitCode: 0,
                 StandardOutput: System.Text.Encoding.UTF8.GetBytes(WmOutput),
                 StandardError: "", FailureReason: null));
+        }
 
         public string WmOutput { get; set; } = "Physical size: 320x640\nOverride size: 1080x1920\n";
+        public int WmCalls { get; private set; }
     }
 
     private static DispatchRequest TapAt(double cx, double cy) => new(
@@ -122,36 +126,55 @@ public class AdbViewportResolutionTests
     }
 
     [Fact]
-    public void ViewportChangeBetweenDispatches_DetectedOnNextDispatch_Regression()
+    public void V1_Driver_SessionCache_MultipleDispatchesSingleWmQuery()
     {
-        // Owner 必改 #2（动态 viewport-change 回归）：dispatch 之间设备
-        // viewport 变化，下一次 dispatch 必须按新实况执法——跨 dispatch
-        // 缓存会掩盖变化（已按 Owner 裁决移除），本测试锁死该语义。
-        var runner = new FakeRunner(); // wm = Override 1080×1920
+        // CSC-002 V1（driver 视角）：session 内多 dispatch 只查一次 wm size
+        var runner = new FakeRunner();
         var driver = new AdbLiveEffectDriver("emulator-5554", null, null, runner: runner);
 
-        // dispatch 1：1080×1920 grounding 与设备一致 → 投影 ×1920
+        for (var i = 0; i < 5; i++)
+        {
+            var result = driver.Deliver(TapAt(0.5, 0.5));
+            Assert.Equal(DispatchOutcome.DeliveryCompleted, result.Outcome);
+        }
+
+        Assert.Equal(1, runner.WmCalls);
+    }
+
+    [Fact]
+    public void V3_Driver_CaptureSignalInvalidates_OldGroundingRejected()
+    {
+        // CSC-002 V3：设备变化经 capture 信号暴露——旧 grounding 被拒，
+        // re-ground 后恢复；无 capture 变化时 session cache 复用（CSC-001
+        // 每-dispatch-查询语义已被 CSC-002 owner 指令取代）。
+        var runner = new FakeRunner(); // Override 1080×1920
+        var driver = new AdbLiveEffectDriver("emulator-5554", null, null, runner: runner);
+
+        // dispatch 1：1920 grounding 与设备一致 → 投影 ×1920
         var first = driver.Deliver(TapAt(0.5, 0.5));
         Assert.Equal(DispatchOutcome.DeliveryCompleted, first.Outcome);
         Assert.Contains("input tap 540 960", first.Report, StringComparison.Ordinal);
+        Assert.Equal(1, runner.WmCalls);
 
-        // 设备 viewport 动态变化（两次 dispatch 之间）
+        // 设备 viewport 变化 + 新 capture 观察到 2400 → 信号触发失效 → 重实测
         runner.WmOutput = "Physical size: 320x640\nOverride size: 1080x2400\n";
-
-        // dispatch 2：同一 1080×1920 grounding 现已过期 → mismatch，零 effect
-        var second = driver.Deliver(TapAt(0.5, 0.5));
-        Assert.Equal(DispatchOutcome.DeliveryFailed, second.Outcome);
-        Assert.Contains("coordinate-space-mismatch", second.Reason, StringComparison.Ordinal);
-        Assert.Contains("device-viewport:1080x2400", second.Reason, StringComparison.Ordinal);
-        Assert.DoesNotContain("input tap", second.Report, StringComparison.Ordinal);
-
-        // dispatch 3：新 grounding（2400）与设备一致 → 恢复投影 ×2400
-        var regrounded = driver.Deliver(new DispatchRequest(
+        var stale = driver.Deliver(new DispatchRequest(
             new DeliveryTarget("occ-2",
                 new SpatialLocator(0.45, 0.45, 0.55, 0.55, AdbEffectDriver.SupportedFrame),
-                Space: CoordinateSpace.DeviceViewport(1080, 2400)),
+                Space: CoordinateSpace.DeviceViewport(1080, 2400, captureId: "cap-new")),
             "tap", null, "rev-2"));
-        Assert.Equal(DispatchOutcome.DeliveryCompleted, regrounded.Outcome);
-        Assert.Contains("input tap 540 1200", regrounded.Report, StringComparison.Ordinal);
+        Assert.Equal(DispatchOutcome.DeliveryCompleted, stale.Outcome);
+        Assert.Contains("input tap 540 1200", stale.Report, StringComparison.Ordinal); // 新空间投影
+        Assert.Equal(2, runner.WmCalls); // 失效 → 恰一次重查
+
+        // 旧 grounding（1920）再 dispatch：capture 信号与 cache(2400) 冲突
+        // → 失效 → fresh 实测（#3，仍 2400）→ 旧 grounding mismatch → 零 effect
+        // （owner Slice D 原文：invalidate → fresh device resolution → old
+        // grounding invalid → RE-GROUND——冲突 capture 每次触发重实测是语义
+        // 本体，非缺陷）
+        var old = driver.Deliver(TapAt(0.5, 0.5));
+        Assert.Equal(DispatchOutcome.DeliveryFailed, old.Outcome);
+        Assert.Contains("coordinate-space-mismatch", old.Reason, StringComparison.Ordinal);
+        Assert.Equal(3, runner.WmCalls);
     }
 }

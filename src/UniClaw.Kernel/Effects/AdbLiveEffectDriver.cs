@@ -32,8 +32,7 @@ public sealed class AdbLiveEffectDriver : IEffectDriver
     private readonly string _serial;
     private readonly string _adbExecutable;
     private readonly IAdbProcessRunner _runner;
-    private readonly int? _configuredWidth;
-    private readonly int? _configuredHeight;
+    private readonly DeviceViewportResolver _viewport;
     private readonly Func<DateTimeOffset> _clock;
 
     /// <summary>
@@ -65,14 +64,32 @@ public sealed class AdbLiveEffectDriver : IEffectDriver
             throw new ArgumentException("Resolved device serial is required.", nameof(serial));
         if ((viewportWidth is null) != (viewportHeight is null))
             throw new ArgumentException("viewport 配置必须成对（CSC-001：不完整的配置 = 无效）");
-        if (viewportWidth is { } badW && (badW <= 0 || viewportHeight is not { } h2 || h2 <= 0))
-            throw new ArgumentException("viewport 配置尺寸必须为正");
         _serial = serial;
-        _configuredWidth = viewportWidth;
-        _configuredHeight = viewportHeight;
         _runner = runner ?? new AdbProcessRunner();
         _adbExecutable = string.IsNullOrWhiteSpace(adbExecutable) ? "adb" : adbExecutable;
         _clock = clock ?? (() => DateTimeOffset.UtcNow);
+        // CSC-002：唯一 resolver（live > validated config > unresolved；
+        // session-scoped cache + evidence-driven invalidation）。driver 只消费，
+        // 不复制 resolution 规则。
+        _viewport = new DeviceViewportResolver(
+            serial,
+            explicitConfig: viewportWidth is { } w && viewportHeight is { } h
+                ? CoordinateSpace.DeviceViewport(w, h)
+                : null,
+            liveQuery: QueryLiveViewport);
+    }
+
+    /// <summary>live device 实测（wm size，Override 优先；CSC-002 起为 resolver 的 liveQuery）。</summary>
+    private UniClaw.Kernel.Perception.CoordinateSpace? QueryLiveViewport()
+    {
+        var captured = _runner
+            .RunCaptureAsync(_adbExecutable, new[] { "-s", _serial, "shell", "wm", "size" },
+                TimeSpan.FromSeconds(5), CancellationToken.None)
+            .GetAwaiter().GetResult();
+        return captured is { Started: true, TimedOut: false, ExitCode: 0 } query
+            && TryParseWmSize(System.Text.Encoding.UTF8.GetString(query.StandardOutput), out var width, out var height)
+            ? CoordinateSpace.DeviceViewport(width, height)
+            : null;
     }
 
     public DispatchResult Deliver(DispatchRequest request)
@@ -95,23 +112,24 @@ public sealed class AdbLiveEffectDriver : IEffectDriver
                 "grounding 未绑定 CoordinateSpace（claim 缺实测 w/h？）→ RE-OBSERVE，不 dispatch");
         }
 
-        // CSC-001 Slice B：设备空间解析（live device query > 显式已验证配置）。
-        // 解析不到 → zero effect + explicit diagnostic（fail-closed，不猜）。
-        if (ResolveDispatchSpace() is not { } deviceSpace)
+        // CSC-002 Slice E：唯一 resolution 路径（resolver 内含 session cache
+        // 与 evidence-driven invalidation；driver 零复制）。
+        if (_viewport.Resolve(requestSpace) is not { } resolved)
         {
             return Fail(request, "coordinate-space-unresolved",
-                $"无法确定设备 viewport（wm size 查询失败且无显式已验证配置）；"
+                $"无法确定设备 viewport（live 查询失败且无可用的显式已验证配置）；"
                 + "拒绝投影归一化坐标（CSC-001：不静默使用默认值）");
         }
 
-        if (!requestSpace.Matches(deviceSpace))
+        if (!requestSpace.Matches(resolved.Space))
         {
             return Fail(request, "coordinate-space-mismatch",
-                $"grounded space {requestSpace.CoordinateSpaceId} ≠ device {deviceSpace.CoordinateSpaceId}"
-                + "（rotation/viewport 变化或过期 capture）→ RE-GROUND/RE-OBSERVE，不 dispatch");
+                $"grounded space {requestSpace.CoordinateSpaceId} ≠ device {resolved.Space.CoordinateSpaceId}"
+                + $"（source={resolved.Source}；rotation/viewport 变化或过期 capture）"
+                + "→ RE-GROUND/RE-OBSERVE，不 dispatch");
         }
 
-        if (!AdbEffectDriver.TryBuildTap(request, requestSpace.PixelWidth, requestSpace.PixelHeight,
+        if (!AdbEffectDriver.TryBuildTap(request, resolved.Space.PixelWidth, resolved.Space.PixelHeight,
                 out var x, out var y, out var deviceArgs, out var reason, out var detail))
             return Fail(request, reason!, detail!);
 
@@ -123,6 +141,13 @@ public sealed class AdbLiveEffectDriver : IEffectDriver
         var result = _runner
             .RunAsync(_adbExecutable, args, DispatchTimeout, CancellationToken.None)
             .GetAwaiter().GetResult();
+
+        // CSC-002 Slice B：transport 失败形态 → 保守失效 session cache
+        // （假失效无害：下一 dispatch 多一次 live 查询）
+        if (result is { Started: false } or { TimedOut: true } or { ExitCode: not 0 })
+        {
+            _viewport.ObserveTransportFailure();
+        }
 
         if (result.TimedOut)
             return new DispatchResult(
@@ -141,32 +166,6 @@ public sealed class AdbLiveEffectDriver : IEffectDriver
             command,
             _clock(),
             Reason: null);   // 命令已送达执行 ≠ world effect（不变量 33/34）
-    }
-
-    /// <summary>
-    /// CSC-001：投影基准解析。优先 live device query（wm size，Override 优先
-    /// 于 Physical），次选构造期显式已验证配置。**每次 dispatch 实测——
-    /// 无跨 dispatch 缓存**（Owner 裁决 2026-09-27 必改 #1：两次 dispatch
-    /// 之间的 viewport 变化必须被下一次 dispatch 捕获，缓存会掩盖它）。
-    /// rotation 基准 = None（设备查询维度；旋转态由 capture 空间与设备
-    /// 空间的 Matches 检查执法）。查询成本 = 每 dispatch 一次 adb 往返
-    /// （串行 dispatch 语义下可忽略，HD-1 异步化时再评估）。
-    /// </summary>
-    private CoordinateSpace? ResolveDispatchSpace()
-    {
-        var captured = _runner
-            .RunCaptureAsync(_adbExecutable, new[] { "-s", _serial, "shell", "wm", "size" },
-                TimeSpan.FromSeconds(5), CancellationToken.None)
-            .GetAwaiter().GetResult();
-        if (captured is { Started: true, TimedOut: false, ExitCode: 0 } query
-            && TryParseWmSize(System.Text.Encoding.UTF8.GetString(query.StandardOutput), out var width, out var height))
-        {
-            return CoordinateSpace.DeviceViewport(width, height);
-        }
-
-        return _configuredWidth is { } w && _configuredHeight is { } h
-            ? CoordinateSpace.DeviceViewport(w, h)
-            : null;
     }
 
     internal static bool TryParseWmSize(string output, out int width, out int height)

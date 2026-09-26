@@ -196,7 +196,7 @@ public static class LivePerception
                     xml,
                     mappedLegacyStateClaim: mapped,
                     isPostPhase,
-                    typedContext: BuildTypedParseContext(),
+                    typedContext: BuildTypedParseContext(shot.Width, shot.Height),
                     context: expected);
                 if (extras.Length > 0)
                     input = new RunDriverInput.Observation(o.Proposals.Concat(extras).ToArray());
@@ -205,18 +205,21 @@ public static class LivePerception
         }
 
         /// <summary>
-        /// PER-013 Slice E：typed 路由的 CaptureMetadata 输入（API level 经
-        /// adb getprop 缓存查询——PER-010 必填事实，不默认猜测；未知 → null，
+        /// PER-013 Slice E / CSC-002（inventory P3 裁决）：typed 路由的
+        /// CaptureMetadata 输入。Space 来自**同窗截图实测**（capture 并流；
+        /// 跨源串行 adb 的时序假设已在 PER-013 R5 记录，归 PER-011）。
+        /// API level 经 adb getprop 缓存查询（必填事实，不猜；未知 → null，
         /// typed 证据诚实缺席）。
         /// </summary>
-        private UiAutomatorDump.UiHierarchyParseContext? BuildTypedParseContext() =>
+        private UiAutomatorDump.UiHierarchyParseContext? BuildTypedParseContext(int shotWidth, int shotHeight) =>
             UiAutomatorDump.TryGetApiLevel(_assets.DeviceId) is { } apiLevel
                 ? new UiAutomatorDump.UiHierarchyParseContext(
                     CaptureId: $"cap-{Guid.NewGuid():N}",
                     CaptureTimestamp: _clock.Now,
                     DeviceId: _assets.DeviceId,
                     SessionCorrelation: $"live:{_assets.DeviceId}:{_assets.ScreenId}",
-                    AndroidApiLevel: apiLevel)
+                    AndroidApiLevel: apiLevel,
+                    Space: CoordinateSpace.DeviceViewport(shotWidth, shotHeight))
                 : null;
 
         /// <summary>P-6：Focused 指令点名 subjects 时，仅映射被点名目标。</summary>

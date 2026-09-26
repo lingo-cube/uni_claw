@@ -34,8 +34,8 @@
     "schemaVersion": 2,
     "expectationsDigest": "4b272fd73ef58ede4eb2a817e583e30dbd588b319d777a8d0daffe3b1b604eeb",
     "executionDigest": "9a31eb8f902b05d064cb7f15716a88785365b214501f2be16ccc3a90a999bf28",
-    "runtimeSourceHash": "720369f62ebe42383671512a4af595a13ef75994756c870af17713b977a50d70",
-    "certifiedByChange": "CSC-001",
+    "runtimeSourceHash": "d6c0e731688348e7b1ab38081f1ada8274e006864c3f8f15b569891c011b9717",
+    "certifiedByChange": "CSC-002",
     "certifiedAt": "2026-09-26"
   },
   "security": {
