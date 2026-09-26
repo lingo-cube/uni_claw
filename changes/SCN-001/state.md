@@ -1,6 +1,6 @@
 # SCN-001 — 场景库：可执行的场景定义 + 能力覆盖率
 
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: 1f01b52
+lifecycle_state: closed · disposition: superseded · depth: decision-heavy · base: 1f01b52
 
 ## Intent
 
@@ -38,6 +38,54 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
 - D4 目录：`scenarios/`（与 changes/、plans/、evidence/ 平级）
 - D5 覆盖率工具：确定性 python 脚本，扫 JSON → 聚合报告
 
+## Supersession record（Owner 终裁 2026-09-27：READINESS PASS · 禁止按原
+## 计划实施——duplicate-build risk HIGH · DOCS-ONLY CLOSE）
+
+原 Phase 1 scope → 交付 change（全部 closed，证据于各 state.md）：
+
+```text
+schema / scenario metadata
+→ SIM-002（schema.json v2 draft-07 真校验；commit 68f3ed47）
+
+execution-backed coverage / certification
+→ SIM-002（G3 coverage TRX 真值链）+ SIM-003（期望单源绑定 +
+  certification v2 executionDigest；commit fc571f42）
+
+parameterized scenario generation
+→ SCN-002（ScenarioBuilder + DynamicStimulusScheduler；closed）
+
+simulation seam injection
+→ SIM-001（SeamOverrides 六缝；closed）
+```
+
+## Acceptance disposition（Owner 终裁原文）
+
+```text
+A1 scenarios/ + schema
+→ SUPERSEDED / delivered by SIM-002
+
+A2 all scenarios JSON + srRef
+→ SUPERSEDED WITH STALE WORDING
+Reason:
+SCN-001 D2 already changed srRef from mandatory to source-dependent.
+Do not claim the literal old acceptance wording passed.
+
+A3 scenario coverage
+→ SUPERSEDED / stronger TRX execution-truth implementation in SIM-002
+
+A4 zero regression
+→ PASS using current verified repository evidence
+
+A5 component filtering
+→ SUPERSEDED / delivered by current coverage tooling
+```
+
+### Out-of-scope / future-buyer items（非 SCN-001 未完成项；无买家不建 owner）
+
+- interactive pause / inject / resume debugging
+- full 150-scenario ingestion
+- future Conditional/Adversarial scheduling beyond already owned scope
+
 ## Acceptance
 
 1. `scenarios/` 目录存在，含 schema 定义文件
@@ -49,5 +97,10 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
 
 ## Status log
 
+- 2026-09-27 · persisted→closed·superseded · Owner docs-only closure——
+  Phase 1 scope 全部由 SIM-002/SIM-003/SCN-002/SIM-001（均 closed）以
+  更强形态交付；A2 按 D2 措辞过时显式处置（SUPERSEDED WITH STALE
+  WORDING，不宣称旧字面 acceptance 通过）；交互调试 / 150 场景全量 /
+  未来调度保留为 future-buyer 项。零代码改动。
 - 2026-09-22 · created·persisted · grill 四问落定（A+B 先行 / srRef 强制 /
   8 字段 / 全量迁移 + 覆盖率工具）；用户愿景已录于 Vision 节
