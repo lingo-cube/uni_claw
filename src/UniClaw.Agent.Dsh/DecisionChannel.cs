@@ -62,6 +62,14 @@ public interface IDshOpenedChannelPeer : IAsyncDisposable
         CancellationToken cancellationToken);
 
     Task AbortCurrentTurnAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// S1 (AGT-002 review): realization-private detach. Retires the DSH-side
+    /// attachment (pending turn aborted, ProductSession↔DshSession mapping
+    /// released). Purely physical/realization cleanup — it must never
+    /// terminate a Product Run, create a decision, or write an Outcome.
+    /// </summary>
+    Task DetachAsync(CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -495,9 +503,30 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
 
         CancelSafely(attachCancellation);
         CancelSafely(turnCancellation);
-        // The physical peer has no Product semantic authority here. Revoke is
-        // therefore complete as soon as the semantic fence is installed.
-        return Task.CompletedTask;
+        // The semantic fence is installed; revoke is semantically complete.
+        // S1: fire the bounded realization-private detach so the DSH side also
+        // retires the attachment (pending turn aborted, mapping released).
+        // Peer failure cannot undo the fence and must not surface as a Product
+        // lifecycle fact; the bounded physical cleanup is awaited by the
+        // adapter's revoke timeout envelope.
+        return AwaitPeerDetachAsync(cancellationToken);
+    }
+
+    private async Task AwaitPeerDetachAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _peer.DetachAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            // Bounded physical cleanup failure is realization-diagnostic
+            // noise; the semantic fence already owns the transition.
+        }
     }
 
     public async ValueTask DisposeAsync()

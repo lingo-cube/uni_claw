@@ -73,7 +73,9 @@ public sealed record HandshakeResponse(
     ProtocolStamp Protocol,
     CapabilityManifest ReportedCapabilities,
     string? DshSessionId,
-    string? FailureReason = null);
+    string? FailureReason = null,
+    IReadOnlyList<string>? RuntimeCapabilities = null,
+    string? RuntimePreset = null);
 
 public sealed record DshDiagnostic(
     string Code,

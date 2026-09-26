@@ -228,6 +228,30 @@ public sealed class AdapterLifecycleTests
     }
 
     [Fact]
+    public async Task Revoke_Fires_Bounded_Peer_Detach_S1()
+    {
+        // S1: Product revoke attachment → the DSH-side attachment is retired
+        // via the peer's realization-private DetachAsync (physical cleanup
+        // only; the semantic fence stays local and immediate).
+        var peer = new DeterministicDshPeer(request => new DecisionChannelResponse(
+            request.RequestId, request.Generation,
+            new AgentDecision.NoAction(new AgentNoActionProposal(request.Context.DecisionId, "ok"))));
+        await using var channel = new DshOpenedDecisionChannel(peer);
+        await using var adapter = new DshAgentAdapter(channel, "session-1", "run-1",
+            TimeSpan.FromSeconds(2));
+
+        Assert.NotNull(await adapter.ConsultAsync(Context("decision-before-detach")));
+        Assert.Equal(0, peer.DetachCount);
+
+        await adapter.RevokeAttachmentAsync().WaitAsync(ShortTestWindow);
+
+        Assert.Equal(1, peer.DetachCount);
+        Assert.Null(adapter.DshSessionId);
+        // Detach is realization cleanup, not lifecycle: the adapter object and
+        // the Product run semantics are untouched by its invocation.
+    }
+
+    [Fact]
     public async Task Revoke_Cleanup_Timeout_Preserves_Semantic_Fence()
     {
         var peer = new DeterministicDshPeer(request => new DecisionChannelResponse(

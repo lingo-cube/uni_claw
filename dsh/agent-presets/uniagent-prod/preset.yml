@@ -1,0 +1,7 @@
+name: uniagent-prod
+description: >
+  UniClaw Product realization profile (AGT-001/AGT-002). The session runs with
+  exactly the frozen Product capability manifest: submit_decision plus nothing
+  else. The decision-channel host plugin provides the tool; this preset binds
+  the session's tool surface to it.
+order: 3

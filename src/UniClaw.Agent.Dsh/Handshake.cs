@@ -75,6 +75,20 @@ public static class ProductHandshake
             return HandshakeValidation.Reject("submit_decision-capability-missing");
         if (string.IsNullOrWhiteSpace(reported.DshSessionId))
             return HandshakeValidation.Reject("dsh-session-id-missing");
+        // B1: when the channel reports the session's ACTUAL model-visible tool
+        // catalog, it must equal the frozen Product manifest. A channel that
+        // reports a wider surface is not the uniagent-prod runtime.
+        if (reported.RuntimeCapabilities is { } runtimeCapabilities)
+        {
+            var actual = runtimeCapabilities
+                .Where(static c => !string.IsNullOrWhiteSpace(c))
+                .Select(static c => c.Trim())
+                .Order(StringComparer.Ordinal)
+                .ToArray();
+            if (!expectedCapabilities.SequenceEqual(actual, StringComparer.Ordinal))
+                return HandshakeValidation.Reject(
+                    $"session-capability-mismatch:actual=[{string.Join(",", actual)}]");
+        }
         return HandshakeValidation.Accept();
     }
 

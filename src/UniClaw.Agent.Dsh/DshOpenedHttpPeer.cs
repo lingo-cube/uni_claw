@@ -29,6 +29,7 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
     private const string HandshakePath = "/api/uniclaw-agent/handshake";
     private const string ConsultPath = "/api/uniclaw-agent/consult";
     private const string AbortPath = "/api/uniclaw-agent/abort";
+    private const string DetachPath = "/api/uniclaw-agent/detach";
 
     private readonly HttpClient _http;
     private readonly DshWebCredential _credential;
@@ -104,6 +105,10 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
                 : null,
             document.RootElement.TryGetProperty("error", out var error)
                 ? error.GetProperty("message").GetString()
+                : null,
+            ReadOptionalStrings(document.RootElement, "runtimeCapabilities"),
+            document.RootElement.TryGetProperty("runtimePreset", out var preset)
+                ? preset.GetString()
                 : null);
     }
 
@@ -152,6 +157,13 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
         await PostJsonAsync(AbortPath, new { }, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>S1: realization-private detach (physical cleanup only).</summary>
+    public async Task DetachAsync(CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        await PostJsonAsync(DetachPath, new { }, cancellationToken).ConfigureAwait(false);
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_disposed) return;
@@ -184,6 +196,11 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
             throw new HttpRequestException($"dsh-channel-malformed:{path}:{raw[..Math.Min(200, raw.Length)]}");
         }
     }
+
+    private static IReadOnlyList<string>? ReadOptionalStrings(JsonElement root, string name) =>
+        root.TryGetProperty(name, out var element) && element.ValueKind == JsonValueKind.Array
+            ? element.EnumerateArray().Select(item => item.GetString() ?? "").ToArray()
+            : null;
 
     private static ProtocolStamp ReadStamp(JsonElement element) => new(
         element.GetProperty("protocolVersion").GetString() ?? "",

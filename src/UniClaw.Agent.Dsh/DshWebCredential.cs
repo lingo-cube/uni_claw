@@ -129,9 +129,12 @@ public sealed record DshWebCredential(
         return Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     }
 
-    internal static byte[] Base64UrlDecode(string value)
+    public static byte[] Base64UrlDecode(string value)
     {
-        var normalized = value.Replace('-', '+').Replace('/', '_');
+        // M1: base64url alphabet ('-' and '_') must map to the standard
+        // alphabet ('+' and '/') before padding; the previous code reversed
+        // the second mapping, so any secret containing '_' decoded wrongly.
+        var normalized = value.Replace('-', '+').Replace('_', '/');
         normalized += new string('=', (4 - normalized.Length % 4) % 4);
         return Convert.FromBase64String(normalized);
     }

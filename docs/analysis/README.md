@@ -16,3 +16,5 @@
 | `uniclaw-product-architecture-migration-baseline-l0-l3.md` | 基线拆分导航（→ architecture/ 三资产） | SPLIT / ROUTER |
 | `per-005-algorithm-library-options.md` | OPT 系列候选调研（算法/库/优化） | CANDIDATE / NOT_ADOPTED |
 | `per-005-ocr-backend-research.md` | OCR/推理后端候选调研 | CANDIDATE / NOT_ADOPTED |
+| `dsh-tool-scope-restricted-sessions.md` | DSH 工具可见性语义与受限会话正确实现形状 | COMPLETE / EVIDENCE-BACKED |
+| `agt-002-b1-fix-instruction.md` | AGT-002 B1 工具面泄漏修复指令（据上篇起草） | CANDIDATE |

@@ -1,0 +1,11 @@
+{
+  "name": "@uniclaw/dsh-uniagent-restrict",
+  "version": "0.1.0",
+  "private": true,
+  "description": "uniagent-prod session capability binding: restricts the session's global tool surface to the frozen Product manifest [submit_decision] (AGT-002 B1).",
+  "type": "module",
+  "main": "src/index.js",
+  "dsh": {
+    "description": "UniClaw uniagent-prod tool restriction (AGT-002 B1)"
+  }
+}

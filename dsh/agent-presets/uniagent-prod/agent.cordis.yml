@@ -1,0 +1,8 @@
+# uniagent-prod agent preset composition (AGT-002 B1).
+#
+# The session's ENTIRE tool surface is the frozen Product manifest. No persona
+# row (the consultation prompt is carried per-turn by the decision channel),
+# no shell/filesystem/browser/terminal/subagent/todo/approval rows, no runtime
+# context. The restrict row masks every remaining global tool.
+- id: uniclaw-restrict
+  name: '@uniclaw/dsh-uniagent-restrict'

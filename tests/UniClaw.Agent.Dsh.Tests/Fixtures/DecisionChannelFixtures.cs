@@ -45,6 +45,10 @@ public sealed class DeterministicDshPeer : IDshOpenedChannelPeer
     private int _handshakeCount;
     private int _requestCount;
     private int _abortCount;
+    private int _detachCount;
+    private readonly TaskCompletionSource<bool> _detached = NewSignal();
+    public int DetachCount => _detachCount;
+    public Task Detached => _detached.Task;
     public int HandshakeCount => Volatile.Read(ref _handshakeCount);
     public int RequestCount => Volatile.Read(ref _requestCount);
     public int AbortCount => Volatile.Read(ref _abortCount);
@@ -95,6 +99,13 @@ public sealed class DeterministicDshPeer : IDshOpenedChannelPeer
         _abortStarted.TrySetResult(true);
         if (_abortGate is not null)
             await _abortGate.Task.ConfigureAwait(false);
+    }
+
+    public Task DetachAsync(CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _detachCount);
+        _detached.TrySetResult(true);
+        return Task.CompletedTask;
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;

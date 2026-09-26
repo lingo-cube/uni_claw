@@ -10,6 +10,7 @@ namespace UniClaw.Agent.Dsh.Tests;
 /// secrets. No real credentials are read; the environment override points at
 /// fixture files.
 /// </summary>
+[Collection("dsh-web-credential-environment")]
 public sealed class DshWebCredentialTests
 {
     private static readonly DshServiceEndpoint LocalWeb =

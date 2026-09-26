@@ -65,6 +65,25 @@ public sealed class StdioJsonRpcPeer : IDshOpenedChannelPeer
         }
     }
 
+    public async Task DetachAsync(CancellationToken cancellationToken)
+    {
+        // Realization-private detach: retire the sidecar attachment mapping
+        // (test fixture; best effort like abort).
+        try
+        {
+            await SendAsync<JsonElement>("detach", new { }, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            // Physical cleanup noise on a fixture transport.
+        }
+    }
+
     private async Task<T?> SendAsync<T>(string method, object parameters,
         CancellationToken cancellationToken)
     {
