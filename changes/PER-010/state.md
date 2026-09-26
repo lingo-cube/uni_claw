@@ -22,7 +22,7 @@ design_status: FROZEN
 - hierarchy node/window 都是 capture-local occurrence；任何 provider key 只能作为 association feature。
 - Capture timestamp/correlation 是 provenance 输入；freshness 由 Assurance 在具体消费时判断。
 - raw XML 不进入 Agent；bounds 不绕过 Grounding；acquisition 必须 bounded。
-- PER-009 的字段权威和验证机制保持不变；未发现 upstream design conflict。
+- PER-009 保持冻结且不重开；其现有 checked/`*.state` 语义与本前向 contract 的差异记录为 semantic migration mismatch，不在本 change 内回写或修复。
 
 ## Acceptance
 
@@ -32,6 +32,7 @@ design_status: FROZEN
 4. Agent/Grounding/WorldModel authority boundaries 无越界。
 5. v0.1.1 focused re-grill 的 F1 checked ambiguity PASS，后续 implementation slices 明确。
 6. `design_status: FROZEN`；没有写 Product code 或修改 frozen baseline。
+7. Q11 已裁决：PER-010/011 保持前向设计，PER-009 不重开；PER-011 实现前必须有独立 migration decision。
 
 ## Verification
 
@@ -50,8 +51,9 @@ evidence: changes/PER-010/spec.md; changes/PER-010/plan.md; plans/2026-09-26-per
 
 - 原冻结设计的 capture outcome、field state、capability、occurrence 和 temporal correlation 保持不变。
 - v0.1.1 focused re-grill 只攻击 F1：API 36 tri-state-capable environment 中，legacy XML `checked=false` 只有在 `checkedBooleanExact` 已证明二态时才是 `Unchecked`；`checkedBooleanCollapsed` 必须是 `Unknown(partial-unrepresentable)`。
-- F1 结果 `PASS`；没有 `UPSTREAM_DESIGN_CONFLICT`。
-- Freeze：PER-010 design FROZEN；PER-011 可在本 change 的 contract 之上开始。
+- F1 结果 `PASS`；没有需要重开 PER-009 的 `UPSTREAM_DESIGN_CONFLICT`。
+- Q11 结果 `PASS`：前向设计保持 FROZEN；已记录与 PER-009 current realization 的 semantic migration mismatch。该 mismatch 只形成 PER-011 implementation gate，不改变 PER-010 contract。
+- Freeze：PER-010 design FROZEN；PER-011 design 可依赖本 change 的 contract，但只有在 dedicated migration decision 完成后才可开始 implementation；该决策尚未在本 change 内执行。
 
 ## Status log
 
@@ -59,3 +61,4 @@ evidence: changes/PER-010/spec.md; changes/PER-010/plan.md; plans/2026-09-26-per
 - 2026-09-26 · persisted→planned · 完成 stable observation contract、failure/capability/identity/grounding 边界草案；委派 Luna 做事实 inventory。
 - 2026-09-26 · planned→verified · inventory、required-section lint、exact-path audit 和 focused re-grill 通过；design_status 置为 FROZEN。
 - 2026-09-26 · verified→closed · v0.1.1 narrow amendment 已证明 checked capability 语义；PER-010 继续 FROZEN；只修改设计文档与 inventory，既有 Product dirty 文件未触碰。
+- 2026-09-26 · grill→closed · Q11 保留 PER-010/011 前向设计、拒绝重开 PER-009；记录 semantic migration mismatch，并将 dedicated migration decision 设为 PER-011 implementation 前置条件。

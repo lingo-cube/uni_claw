@@ -14,6 +14,8 @@
 4. **Grill/disposition**：本次 v0.1.1 只对 F1 checked ambiguity 做 focused re-grill；必要修改只限本文档；完成后保持 design_status = FROZEN。
 5. **后续 implementation slices（未授权）**：adapter contracts → normalization fixtures → bounded acquisition → Evidence Ledger ingress → WorldModel mapping。这些不在本 change 内执行。
 
+实现前置：当前 PER-009 realization 与本前向 contract 的语义迁移不一致已记录；任何消费 PER-010 contract 的 PER-011 实现，必须先完成独立的 migration decision。该前置不重开 PER-009，也不在本 change 内实现迁移。
+
 ## Acceptance
 
 - A1 inventory 覆盖 API 28/29/30+/34/35/36 及要求字段、Compose、WebView、multi-window、OEM 事实；每格有 evidence path 或明确 `UNKNOWN`。

@@ -6,6 +6,16 @@
 
 前置条件：`PER-010 design_status = FROZEN`。本 change 不重新定义 XML / hierarchy semantics，而定义 hierarchy、screenshot、OCR 等 observation source 如何在时间、覆盖率和字段 authority 约束下形成可追溯的 World belief 输入。
 
+## Migration gate before implementation
+
+PER-010/011 保持前向设计，PER-009 保持冻结且不重开。已知 semantic migration
+mismatch 包括 legacy XML `checked=false` 的 lossy collapse、共享 `*.state` 的旧
+语义，以及本 change 要求的 semantic/rendered 分轴和 capability-aware `Unknown`。
+这些差异只被记录为迁移缺口；在任何 PER-011 implementation slice 开始前，必须由
+独立的 dedicated migration decision 明确 transition mapping、compatibility
+boundary 和 acceptance。该 decision 不属于本 design-only change，也不得通过
+静默回写 PER-009 来替代。
+
 Fusion 是 Capability Plane 的 association/derivation 能力，不是新的 authority owner，不拥有 WorldModel、identity、absence、control、grounding 或 assurance。
 
 ## Scope / Out of Scope
@@ -231,6 +241,9 @@ deep/VLM（后置、有限预算）
 - PER-009 已冻结的 Focused 语义可作为第一实现 slice；Deep 仍是后置 seam，不在
   本 change 实现。
 
+实现闸门：上述 dedicated migration decision 未完成前，后续实现只能停留在设计和
+fixture 讨论，不得把现有 PER-009 runtime path 宣称为已符合本 contract。
+
 ## Provenance
 
 任何 fused result 至少可回溯：
@@ -312,6 +325,10 @@ evidence no-self-corroboration（含 transitive lineage）、以及 Aligned 仅�
 eligible for joint fusion。三项均 `PASS`；没有需要修改 Product baseline、
 WorldModel authority、Grounding authority 或 AGT/RUN frozen boundary 的项，设计
 状态保持 `FROZEN`。
+
+Q11 `PASS`：保留 PER-010/011 前向设计并保持 FROZEN；PER-009 不重开。已记录
+semantic migration mismatch；dedicated migration decision 是 PER-011 implementation
+的硬前置，尚未在本 change 内执行。
 
 ## References
 

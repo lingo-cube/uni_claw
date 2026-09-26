@@ -24,6 +24,15 @@
 - 不承诺 DOM、WebView 内部树、Compose unmerged tree 或 OEM 私有字段始终可用。
 - 不实现 adapter、真机采集或 Product tests；这些属于后续 implementation slices。
 
+## Relationship to the current realization
+
+PER-010 v0.1.1 is a forward design. The current PER-009 realization has a recorded
+semantic migration mismatch: its legacy XML path can collapse `checked=false` into a
+shared `*.state=off` claim, while this contract requires capability-aware `Unknown` for
+lossy boolean sources and keeps semantic checked separate from rendered appearance.
+This mismatch is recorded as a migration decision point; it does not reopen PER-009,
+change this design, or authorize Product implementation.
+
 ## Stable Observation Contract v1
 
 ### Capture result

@@ -38,6 +38,9 @@ findings 和后续 implementation slices，不写 Product implementation。
   不直连 target、control、effect、Agent 或 identity。
 - escalation 由 evidence insufficiency/conflict 触发，按 buyer + bounded budget
   限制 focused/deep 次数；confidence 低不是单独触发条件。
+- PER-009 不重开；其 current realization 与本前向 contract 的 semantic migration
+  mismatch 已记录。任何 PER-011 implementation 必须先通过 dedicated migration
+  decision，明确 transition mapping、compatibility boundary 和 acceptance。
 
 ## Acceptance
 
@@ -46,8 +49,9 @@ findings 和后续 implementation slices，不写 Product implementation。
 3. Conflict Matrix、Failure Matrix、coverage/absence 语义完整。
 4. Association granularity 覆盖 Unique/ManyToOne/OneToMany/Ambiguous/Unassociated。
 5. provenance 字段和 bounded escalation 可追溯、可停机。
-6. v0.1.1 focused re-grill 的 F1/F2/F3 全 PASS；无 upstream design conflict。
+6. v0.1.1 focused re-grill 的 F1/F2/F3 全 PASS；没有需要重开 PER-009 的 upstream design conflict。
 7. `design_status: FROZEN`；PER-010 保持 FROZEN；无 Product code 改动。
+8. Q11 已完成：semantic migration mismatch 已记录；dedicated migration decision 是 PER-011 implementation 前置；PER-009 不重开。
 
 ## Verification
 
@@ -67,7 +71,9 @@ evidence: changes/PER-011/spec.md; changes/PER-011/plan.md; changes/PER-010/stat
 - 第一轮：将 authority、temporal alignment、coverage、association、conflict、
   provenance、escalation 分开检查；发现点已收敛到 `spec.md` 的独立矩阵。
 - 原冻结设计的完整 Grill 结论保持不变；本次只对 F1/F2/F3 做 focused re-grill。
-- F1/F2/F3 均 `PASS`；无 `UPSTREAM_DESIGN_CONFLICT`；后续只按 implementation slices 另立 change。
+- F1/F2/F3 均 `PASS`；无需重开 PER-009 的 `UPSTREAM_DESIGN_CONFLICT`；后续只按 implementation slices 另立 change。
+- Q11 `PASS`：PER-010/011 forward design 保持 FROZEN，PER-009 保持现状；semantic
+  mismatch 进入 dedicated migration decision gate，未进行迁移实现。
 
 ## Status log
 
@@ -79,3 +85,5 @@ evidence: changes/PER-011/spec.md; changes/PER-011/plan.md; changes/PER-010/stat
   audit 和 v0.1.1 focused re-grill（F1/F2/F3）通过；design_status 置为 FROZEN。
 - 2026-09-26 · verified→closed · v0.1.1 只修改三项设计语义；PER-010、PER-011
   均继续 FROZEN，Product baseline、PER-009、WorldModel、Grounding 均未重开。
+- 2026-09-26 · grill→closed · Q11 对齐完成；迁移缺口已持久化，PER-011 implementation
+  在 dedicated migration decision 完成前保持阻塞。

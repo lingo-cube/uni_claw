@@ -4,7 +4,7 @@
 
 ## 前置
 
-只有 `changes/PER-010/state.md` 的 `design_status: FROZEN` 成立后才进入本 change；PER-010 未冻结时不得开始正式 fusion design。
+只有 `changes/PER-010/state.md` 的 `design_status: FROZEN` 成立后才进入本 change；PER-010 未冻结时不得开始正式 fusion design。PER-011 implementation 另有硬前置：必须先完成 dedicated migration decision，处理当前 PER-009 realization 与本前向 contract 的 semantic migration mismatch；该决策不重开 PER-009。
 
 ## 垂直切片
 
@@ -14,7 +14,7 @@
 4. **Conflict/Coverage**：固定 Supported/Conflicted/Unknown/Unsupported/Unaligned、absence/coverage、fail-closed 语义；Aligned + disagreement 仍可 Conflicted。
 5. **Escalation/Provenance**：固定 fast→hierarchy→focused→deep 的 buyer/budget/attempt 边界和完整 provenance。
 6. **Grill/disposition**：本次 v0.1.1 只对 F1/F2/F3 做 focused re-grill；结果保持 `design_status: FROZEN`。
-7. **后续 implementation slices（未授权）**：source evidence fixtures → association fixtures → derived proposal ingress → bounded escalation telemetry → WorldModel scenario verification。
+7. **后续 implementation slices（未授权）**：dedicated migration decision → source evidence fixtures → association fixtures → derived proposal ingress → bounded escalation telemetry → WorldModel scenario verification。migration decision 未完成前不得执行其后的 implementation slices。
 
 ## Required artifacts
 
@@ -35,6 +35,7 @@
 - A5 明确 conflict fail-closed、完整 provenance、`DerivedFromEvidenceIds`、`TransitiveEvidenceBasis` 和 bounded escalation；derived evidence 不得自我 corroborate。
 - A6 明确 fusion 不是第二 WorldModel，fused result 不直接变 target，Agent 不绕过 WorldModel。
 - A7 F1/F2/F3 focused re-grill 全 PASS、PER-010 前置保持 FROZEN、本 change design_status = FROZEN。
+- A8 已记录 PER-009 semantic migration mismatch；PER-011 implementation 明确以 dedicated migration decision 为前置；PER-009 未重开。
 
 ## Verification（设计 change）
 
@@ -44,7 +45,7 @@ method: >-
   required-section lint（Authority Matrix/Temporal Diagram/Conflict Matrix/
   Failure Matrix/Scenarios）+ PER-010 prerequisite check + exact-path git status
   + git diff --check；复读 Product/UWorld/PER-009 authority boundary。
-expected: A1–A7 满足；无 Product implementation 或 upstream boundary 改动。
-actual: PASS，PER-010 FROZEN 前置成立；v0.1.1 三项窄修订、矩阵、场景和 focused re-grill 完成。
+expected: A1–A8 满足；无 Product implementation 或 upstream boundary 改动。
+actual: PASS，PER-010 FROZEN 前置成立；v0.1.1 三项窄修订、矩阵、场景和 focused re-grill 完成；migration mismatch 已记录且 implementation gate 已冻结为前置条件。
 evidence: changes/PER-011/spec.md; changes/PER-011/plan.md; changes/PER-010/state.md。
 ```

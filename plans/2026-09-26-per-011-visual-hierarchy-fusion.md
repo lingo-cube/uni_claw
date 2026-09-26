@@ -4,7 +4,7 @@
 
 ## 前置
 
-`changes/PER-010/state.md` 的 `design_status: FROZEN` 已成立。PER-011 不重新定义 hierarchy semantics。
+`changes/PER-010/state.md` 的 `design_status: FROZEN` 已成立。PER-011 不重新定义 hierarchy semantics。已知 PER-009 current realization 与本前向 contract 的 semantic migration mismatch 已记录；implementation 前必须先完成 dedicated migration decision，且不重开 PER-009。
 
 ## 设计交付
 
@@ -12,7 +12,7 @@
 - `changes/PER-011/plan.md`：垂直切片、acceptance、后续 implementation slices。
 - `changes/PER-011/state.md`：WHAT/WHY、冻结决策、Grill disposition、验证声明。
 
-本次只修三点：checked capability inheritance、derived evidence lineage/no-self-corroboration、以及 `Aligned = eligible for joint fusion` 的时间语义。
+本次只修三点：checked capability inheritance、derived evidence lineage/no-self-corroboration、以及 `Aligned = eligible for joint fusion` 的时间语义；Q11 另将已知 semantic migration mismatch 记录为 PER-011 implementation 前置闸门。
 
 ## 关键验证问题
 
@@ -27,4 +27,4 @@
 
 ## 后续实现切片（本轮不执行）
 
-source fixtures → association fixtures → derived proposal ingress → bounded escalation telemetry → WorldModel scenario verification。
+dedicated migration decision → source fixtures → association fixtures → derived proposal ingress → bounded escalation telemetry → WorldModel scenario verification。未完成 migration decision 前不进入后续 implementation。

@@ -693,6 +693,12 @@ _Avoid_: confidence score、数值权重、全局源排名
 同构留档（由谁定案、依据什么）。
 _Avoid_: 投票、平均、按源加权合并
 
+**Semantic Migration Mismatch（语义迁移不一致）**:
+已冻结的前向 observation/fusion contract 与现有 realization 在 claim domain、source
+authority 或 evidence lineage 上不一致的状态；该状态必须显式记录，并在新实现开始前
+由独立 migration decision 定义过渡边界与验收，不自动回写旧 change 或把现状宣称为已对齐。
+_Avoid_: silent compatibility、runtime-ready、automatic backport
+
 ### Memory（边界占位，未实现）
 
 **Memory Recall**: Memory System 的召回产出；只能以 prior / context /
