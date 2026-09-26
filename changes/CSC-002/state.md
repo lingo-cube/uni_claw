@@ -1,6 +1,6 @@
 # CSC-002 — Viewport Resolution Normalization & Validity Hardening
 
-lifecycle_state: verified · disposition: none · depth: decision-heavy · base: 3dca53b4
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 3dca53b4
 
 ## Intent（WHAT/WHY）
 
@@ -45,8 +45,22 @@ resolution 机制。
   HostLiveFull PASS（wifi 真翻转 Completion；session cache 真实生效）；
   LiveCoordinateGateTests 2/2（resolver live 路径 + stale grounding
   mismatch 真机负例）。
-- **OWNER_GATE：到达（2026-09-27）**——十项汇报已交 Owner（A/B/C 三问
-  附直接证据），等待终裁；不自行 CLOSED。
+- **OWNER_GATE：Owner 终裁 CLOSE（2026-09-27）**——A. Session cache +
+  evidence-driven invalidation PASS；B. Explicit config validity boundary
+  PASS；C. Single normalized viewport resolver PASS；Architecture
+  direction PASS · Authority boundary PASS · Scope expansion NONE；
+  Full regression 1027/1027 PASS · Certification 29 files/0 violations
+  PASS · Live validation PASS。**FINAL VERDICT: CLOSE。**
+  验证证据与四元组全部保留（上节未动）。
+
+### Remaining non-blocking gaps（Owner 原文记录）
+
+- capture/grounding → dispatch interval may theoretically contain an
+  unobserved viewport change; owner = future coordinate-space freshness
+  work, NOT PER-011.
+- rotation observation is not fully realized on all device paths; current
+  dimension mismatch covers normal rectangular rotation; square-display
+  rotation remains known non-blocking gap.
 
 ## Verification
 
@@ -74,6 +88,8 @@ evidence: >
 
 ## Status log
 
+- 2026-09-27 · verified→closed · Owner final closure PASS（A/B/C 三问全
+  PASS；closure-only，Product code 零改动）。
 - 2026-09-27 · implemented→verified·owner-gate · 真机三件套 + live gates
   全 PASS（clone→cold boot→测→清理）；归一化审计 PASS；OWNER_GATE 十项
   汇报交付，等待 Owner 终裁 A/B/C。
