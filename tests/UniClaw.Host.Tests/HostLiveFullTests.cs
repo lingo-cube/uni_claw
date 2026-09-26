@@ -65,6 +65,11 @@ public sealed class HostLiveFullTests(ITestOutputHelper output)
             var result = HostRunner.RunOnce(root, new HostRunner.HostOptions
             {
                 DeviceId = deviceId,
+                // viewport 必须与设备实况一致（本 AVD wm size override =
+                // 1080x1920；HostOptions 默认 2400 是 Pixel 形状魔数——按默认
+                // 投影会把 tap y 放大 1.25×，击中目标下方邻行，2026-09-27 实证）
+                ViewportWidth = 1080,
+                ViewportHeight = 1920,
                 TargetState = target,
                 Live = new LivePerception.LiveAssets(
                     deviceId,

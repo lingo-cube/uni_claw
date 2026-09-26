@@ -126,13 +126,18 @@ compatibility contract；不重写 UiAutomator、不实现 PER-011 fusion。
     健康设备上未强行制造失败，如实记录。
   - **post-action path 未旁路**：代码级保留（post 相 stateClaim 主通道不变，
     M06_PostPhase 测试）+ 四门 router 零改动。
-  - **全闭环（HostLiveFull，视觉+tap+复查）：environment-blocked，非
-    PER-013 回归**——headless 下三次失败（swiftshader×2/angle×1），形态相同
-    （delivered=1，wifi 未翻转）；**基线判别**：base commit 6b3c8e92
-    （零 PER-013 改动，worktree + 主仓库 venv）同样失败、同形态。2026-09-27
-    的 GREEN 记录为窗口化 emulator 环境。gap 记录：headless GPU 渲染下视觉
-    检测→tap 命中链不可用；不以 fixture 冒充（owner 规则），后续有窗口环境
-    复跑即可。
+  - **全闭环（HostLiveFull，视觉+tap+复查）：GREEN（2026-09-27 修复后）**。
+    最初三次失败（headless×2 + 窗口化×1，形态相同：delivered=1、wifi 未翻转）；
+    base commit 6b3c8e92 判别同败 = 非 PER-013 回归。深入诊断（临时 diag 测试
+    + exec.journal 取证 + provider 复现）定位**真根因**：`HostOptions` 默认
+    `ViewportHeight=2400`（Pixel 形状魔数），本 AVD 实况 1080×1920——归一化
+    center y ×2400 把 tap 打到 switch 下方 205px（journal 实录
+    `input tap 967 1030` vs 真实 switch 中心 824）。初判"headless 环境问题"
+    有误，已在案更正。修复：HostLiveFullTests 显式声明 viewport 1080×1920。
+    修复后 **PASS**（真截图→真视觉→真 tap→wifi 翻转→真复查→Completion），
+    途经 PER-013 typed cutover 生产链。遗留债：HostOptions viewport 魔数默认
+    对任意其他形状设备仍是 footgun——follow-up = `wm size` 自动探测或未设时
+    fail-closed（owner = 后续 Host change，非 PER-013）。
 
 ## Final Focused Grill（G1–G8，5.3 执行）
 
@@ -154,7 +159,8 @@ Verdict：**PASS**（G1–G8 全过，无 PASS_WITH_FINDINGS 级发现；live �
 
 ```text
 Gate 0 PASS · Slice A/B/C/D/E PASS · Slice F（M-10 deletion-blocked 如实
-记录 + required chain 真机 PASS + 全闭环 gap 含基线判别）
+记录 + required chain 真机 PASS + 全闭环修复后 GREEN——viewport 魔数根因，
+HostLiveFullTests 已按设备实况声明）
 Final Grill PASS · Full solution 974/974（live 门控套件另 +1 PASS）
 Architecture deviation NONE
 → PER-013 = CLOSED（design/implementation 契约面；legacy *.state surface
@@ -171,6 +177,13 @@ Architecture deviation NONE
 
 ## Status log
 
+- 2026-09-27 · closed·post-closure-fix · owner 反馈处置：①原 AVD snapshot-
+  pending FATAL 修复（删 5 项运行时产物，~/.android 原目录直启 OK）；②
+  HostLiveFull 全闭环根因定位与修复——exec.journal 实录 `input tap 967 1030`
+  vs 真实 switch 中心 (967,824)，根因 = HostOptions 默认 ViewportHeight=2400
+  × 本机 1080×1920；测试显式声明 viewport 后 PASS（wifi 真翻转、Completion）；
+  初判 headless 归因有误已在 Slice F 记录更正；遗留 viewport 魔数债登记
+  （owner = 后续 Host change）。Host 55/55。
 - 2026-09-27 · verified→**closed** · Slice F + Final Grill + CLOSED：
   M-10 deletion-blocked（四 gate 如实）；真机 required chain PASS（API 35
   emulator，TypedLiveChainTests，26×false→0 claims 实机执法 M-02）；
@@ -232,7 +245,7 @@ actual: >
   Simulation 182/182 ——合计 974/974，0 失败，0 环境失败；
   certification check PASS（29 files, 0 violations）；
   live：TypedLiveChainTests PASS（API 35 emulator，9285B real dump）；
-  HostLiveFull headless gap（base 判别非回归）
+  HostLiveFull PASS（viewport 修复后：真视觉→真 tap→翻转→Completion）
 evidence: >
   本文件 Gate 状态 + tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/*.cs +
   tests/UniClaw.Host.Tests/{UiHierarchyTypedParseTests,UiAutomatorDumpDebtTests}.cs +
