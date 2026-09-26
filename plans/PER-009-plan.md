@@ -1,8 +1,7 @@
 # PER-009 实现计划（Direct 路线，2026-09-22 开工）
 
-> 状态：执行中；完成一项勾一项并跑对应测试。
-> ENVIRONMENT 暂标（用户裁决 2026-09-22：本机无模拟器）：live/真机项
-> 标 PENDING-ENV，不阻塞纯逻辑切片；有模拟器环境复跑即验收。
+> 状态：已闭合（2026-09-27 closure audit；lifecycle → closed，判据见
+> evidence/2026-09-22-per009-remediation.md 与 evidence/2026-09-27-per009-closure-audit.md）。
 > 注：scope/lineage 字符串为 provenance 展示元数据，不参与比较，
 > 仅 claim subject 迁移到常量类（防手滑的目标面）。
 
@@ -30,16 +29,26 @@
       5 例探测状态机测试绿（live 行为 PENDING-ENV）
 - [x] S7 路由器（PostActionXmlRouter：四门纯函数，8/8 绿；含
       confidence 盲结构锁、tri-state、同名错配防线、时序约束）
-- [x] S7-wiring StepVerify 接线（2026-09-22 整改落地：XML→共享层映射 = 快照桥，
-      身份解析映射的 Kernel 侧落点 = TargetSpec.Role → resource-id
-      尾段约定，待真机校准后接入——PENDING-ENV）
+- [x] S7-wiring StepVerify 接线（2026-09-22 整改落地：XML→共享层映射 = 快照桥——
+      身份经 MapTargetStateClaim bounds 映射 + lineage 快照（xml-map/xml-checkable/
+      xml-unique）携带，Kernel 侧 `SnapshotFromLineage` 消费；真机 GREEN 判据见
+      remediation。原"TargetSpec.Role → resource-id 尾段"约定被此桥取代，作废）
 - [x] S8 值域断言（{on,off,partial}）+ 全量回归 + Verification 四元组回填
 
-## PENDING-ENV 清单（Acceptance 映射）
+## PENDING-ENV 清单结算（2026-09-27 closure 同步）
 
-- #2 前半（真机同帧双源 XML+视觉）→ PENDING-ENV
-- adb dump 拉取实测 / 60s×3 探测实测 → PENDING-ENV（解析与策略 fixture 全测）
-- #8 验证路由的 live 实测 → PENDING-ENV（路由逻辑 doubles 可测）
+- #2 前半（真机同帧双源 XML+视觉）→ **已结算**：真机 HostLiveFull GREEN（11s），
+  新传输通道 XML 在场，手动 dump 实证 checked/checkable/bounds 与视觉 bounds
+  IoU 高位对齐（remediation 判据；api35 布尔实发，partial 为前向兼容通道）。
+- adb dump 拉取实测 → **已结算**（定点文件+cat+rm 单次原子通道实测有效）；
+  60s×≤3 探测**耗尽路径** live 实测未单独留档（纯逻辑 5 例 fixture 全绿；
+  live 走的是成功路径）——登记为已知未覆盖面。
+- #8 验证路由的 live 实测 → **已结算**：post 相映射在场 ⇒ XML 路由由构造成立
+  （路由逻辑 router 8/8 + remediation 2 例锁定）；run trace 路由标记原文未引用，
+  登记在 closure audit 脚注。
+- 遗留递延（owner 见 closure audit）：P-2 门槛接线（Grant/Phase 6）；
+  P-6 真裁剪重扫（Tier 1 感知管线 / PER-011 slice）；D8 预算生产侧推导
+  （固定 3000ms/3s 占位，bounded acquisition seam 接手）。
 
 ## 本机环境事实（2026-09-22 记录，非 PER-009 回归）
 

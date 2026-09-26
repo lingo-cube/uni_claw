@@ -1,6 +1,6 @@
 # PER-009 — 多源观察与信任：XML producer + 冲突裁决 + 信任等级（竖切）
 
-lifecycle_state: verifying · disposition: none · depth: decision-heavy · base: d45bdda
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: d45bdda
 
 ## Intent
 
@@ -121,24 +121,41 @@ lifecycle_state: verifying · disposition: none · depth: decision-heavy · base
 ## Verification
 
 ```yaml
-level: DETERMINISTIC
-method: dotnet test 四套件全量（Kernel/Host/Core/FileSystemRealization）
-        + PER-009 新增 51 例测试逐项
+level: DETERMINISTIC（live 项 = ENVIRONMENT，判据见 remediation）
+method: dotnet test 全量套件 + PER-009 新增测试逐项
+        （closure 时点 HEAD 复跑，含原 env 失败套件）
 expected: 零 PER-009 回归；存量环境失败不增（stash 已证）
 actual: |
-  Kernel:    448 通过 / 4 失败（VisionServiceHost env，stash 证存量）
-  Host:      19 通过 / 4 失败（journal-lock env，stash 证存量）
-  Core:      14 通过 / 0 失败
-  FileSys:    9 通过 / 0 失败
-  ——合计 490 通过 / 8 存量 env，零 PER-009 回归——
+  落地时点（2026-09-22）：490 通过 / 8 存量 env（stash 证零回归）；
+  整改后全量 655/655 + 真机 HostLiveFull GREEN（11s，XML 在场）。
+  Closure 复验（2026-09-27，HEAD=400d7b53）：Agent 17 · Simulation 182 ·
+  Kernel 520 · Host 18 · Agent.Dsh 121 · Core 14 · FileSys 9
+  ——合计 881/881，0 失败，0 环境失败——
   PER-009 新增 51 例（dump 8 + probe 5 + resolver 9 + trust 6 +
   policy 6 + whitelist 1 + focused-loop 1 + router 8 + 存量迁移回归）全绿
 evidence: |
-  本文件 + 13 个提交（2e76ef6..b5b1dfa）逐切片四元组；
-  PENDING-ENV 项见 plans/PER-009-plan.md（真机/live 行为待模拟器环境复跑）
+  本文件 + 13 个提交（2e76ef6..b5b1dfa）逐切片四元组 +
+  evidence/2026-09-22-per009-remediation.md（live/整改判据）+
+  evidence/2026-09-27-per009-closure-audit.md（closure 审计 C1–C4 处置 +
+  deferred ownership + HEAD 复验）
 ```
 
 ## Status log
+
+- 2026-09-27 · verifying→**closed** · closure audit（evidence/2026-09-27-per009-closure-audit.md）：
+  **C1** truth = remediation（真机 HostLiveFull GREEN、XML 在场）；plan PENDING-ENV 为
+  stale 文档，已同步。**C2**（#4）B——聚焦环路端到端交付且证明（全栈测试 + 双点接线），
+  真裁剪重扫显式递延（owner：Tier 1 感知管线区域裁剪 / PER-011 escalation slice）。
+  **C3**（#7）B——信任表 + A/B/C 门槛语义交付；门槛接线递延，门槛函数零生产调用方
+  如实记录（owner：Grant/Phase 6 不可逆性分类；PER-009 不伪造分类模型）。
+  **C4** XML 事后路由/身份解析/真机证据在当前 Acceptance 下满足（路由标记 trace
+  原文未引用、role→resource-id 注记被 lineage 桥取代，两条脚注登记在案）。
+  审计新增 A-1（D8 预算固定 3000ms/3s 占位，fail-safe 方向，owner：bounded
+  acquisition seam）/ A-2（#11 实质由 PER-010 inventory 兑现，指针已记）/
+  A-3（值域无类型执法）/ A-4（MapTargetStateClaim 等映射层零确定性测试）/
+  A-5（missing→false 折叠 = PER-012 已登记迁移缺口）——均登记并移交
+  typed observation migration change 的 fixture/域类型职责。Closure 时点 HEAD
+  复验 881/881 全绿（0 环境失败）。frozen 语义（D1–D14 / mechanism.md）零改动。
 
 - 2026-09-22 · review-remediation·verifying · 评审 CHANGES_REQUIRED 全项处置
   （evidence/2026-09-22-per009-remediation.md）：
