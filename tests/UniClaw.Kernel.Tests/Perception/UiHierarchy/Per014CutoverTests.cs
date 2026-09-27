@@ -109,7 +109,7 @@ public sealed class Per014CutoverTests
     public void T7_AddingLegacySwitchStateClaim_DoesNotChangeOutcomes()
     {
         var typedSubject = "ui.node.cap-t7b#0.checked";
-        var legacySubject = SharedSubjects.State("switch");
+        var legacySubject = "switch.state";
         var kernel = ComposeTypedKernel(typedSubject, includeLegacySubject: true);
 
         kernel.Process(FrameProposal());
@@ -222,15 +222,7 @@ public sealed class Per014CutoverTests
     /// semantic.checked；生产 reader 合计 = 0，其余全为 writer/注释/常量。
     /// </summary>
     private static readonly IReadOnlyDictionary<string, int[]> FrozenInventory =
-        new Dictionary<string, int[]>
-        {
-            ["src/UniClaw.Host/UiAutomatorDump.cs"] = new[] { 19, 191, 231, 649 },
-            ["src/UniClaw.Host/HostRunner.cs"] = new[] { 39, 41 },
-            ["src/UniClaw.Host/LivePerception.cs"] = new[] { 154, 185, 187, 204 },
-            ["src/UniClaw.Kernel/Compatibility/LegacyStateProjection.cs"] = new[] { 23 },
-            ["src/UniClaw.Kernel/Evidence/SharedSubjects.cs"] = new[] { 6, 17, 18 },
-            ["src/UniClaw.Kernel/Runtime/AgentPlanPolicy.cs"] = new[] { 49 },
-        };
+        new Dictionary<string, int[]>();
 
     private static readonly Regex StateSurface = new(@"\.state\b", RegexOptions.Compiled);
 
@@ -308,7 +300,7 @@ public sealed class Per014CutoverTests
             SharedSubjects.Screen, SharedSubjects.Frame, typedSubject,
         };
         if (includeLegacySubject)
-            scope.Add(SharedSubjects.State("switch"));
+            scope.Add("switch.state");
         var world = new WorldModel(scope, new ProductAssociationStrategy(), new FrameSeededOccurrenceStrategy());
         var kernel = Compose(world);
         var admission = kernel.AdmitContract(new ExecutionContract(

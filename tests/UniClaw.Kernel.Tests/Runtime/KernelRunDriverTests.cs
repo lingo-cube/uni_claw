@@ -620,7 +620,7 @@ public sealed class KernelRunDriverTests
     public void FocusedLoop_DrivenByRealWorldConflict_NoManualInjection()
     {
         var cid = ProbeContainerId("switch:primary@off");
-        var conflictSubject = SharedSubjects.State("switch:primary");
+        var conflictSubject = "switch:primary.state";
         var plan = new AgentPlanPolicy();
         var focusedDirectives = new List<ObservationDirective>();
         RunDriverInput Observation() => new RunDriverInput.Observation(new ObservationProposal[]

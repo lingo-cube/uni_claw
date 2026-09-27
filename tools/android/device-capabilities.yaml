@@ -1,0 +1,8 @@
+android_device:
+  required: true
+  api_min: 35
+  adb: true
+  screenshot: true
+  uiautomator: true
+  wm_size: true
+  settings_fixture: true

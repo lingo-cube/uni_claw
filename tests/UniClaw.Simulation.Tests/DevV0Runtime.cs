@@ -89,7 +89,7 @@ public static class V0Runtime
                 new Provenance("host.v0", _clock.Now, "scope:ui.screen", new[] { $"v0:screen:{ScreenId}" })));
             if (includeStateClaim)
                 proposals.Add(new ObservationProposal(
-                    new ObservationClaim(SharedSubjects.State("switch"), state),
+                    new ObservationClaim("switch.state", state),
                     IngressKind.Observation, context,
                     new Provenance("host.v0", _clock.Now, "scope:switch.state", new[] { $"v0:state:{state}" })));
             // 内容 claim 放批尾：occurrence 是 revision-local（逐条证据重派生），

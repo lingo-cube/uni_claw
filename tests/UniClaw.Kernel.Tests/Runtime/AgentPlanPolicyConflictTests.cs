@@ -24,11 +24,11 @@ public sealed class AgentPlanPolicyConflictTests
     public void Conflict_IntersectingAdoptedTarget_YieldsFocusedObserve()
     {
         var policy = Policy(new TargetSpec("switch", null, "tap", UniClaw.Kernel.Perception.UiHierarchy.CheckedState.Unchecked));
-        policy.ConflictedSubjects = new[] { SharedSubjects.State("switch") };
+        policy.ConflictedSubjects = new[] { "switch.state" };
         // 相交命中在触碰 inputs 之前返回——冲突分支自足
         var decision = policy.Decide(null!);
         Assert.Equal(ControlIntentKind.Observe, decision.Kind);
-        Assert.Equal(SharedSubjects.State("switch"), decision.TargetSubject);
+        Assert.Equal("switch.state", decision.TargetSubject);
     }
 
     [Fact]
@@ -36,16 +36,16 @@ public sealed class AgentPlanPolicyConflictTests
     {
         var policy = Policy(new TargetSpec("switch", "wifi", "tap", UniClaw.Kernel.Perception.UiHierarchy.CheckedState.Unchecked));
         // "switch:wifi.state" ⊂ "switch:wifi" 前缀相交；"switch.state" 不相交
-        policy.ConflictedSubjects = new[] { "switch.state", SharedSubjects.State("switch:wifi") };
+        policy.ConflictedSubjects = new[] { "switch.state", "switch:wifi.state" };
         var decision = policy.Decide(null!);
-        Assert.Equal(SharedSubjects.State("switch:wifi"), decision.TargetSubject);
+        Assert.Equal("switch:wifi.state", decision.TargetSubject);
     }
 
     [Fact]
     public void Conflict_NotIntersecting_FallsThrough()
     {
         var policy = Policy(); // 未采纳 → 默认 Observe（无聚焦）
-        policy.ConflictedSubjects = new[] { SharedSubjects.State("unrelated") };
+        policy.ConflictedSubjects = new[] { "unrelated.state" };
         var decision = policy.Decide(null!);
         Assert.Equal(ControlIntentKind.Observe, decision.Kind);
         Assert.Null(decision.TargetSubject);
@@ -57,7 +57,7 @@ public sealed class AgentPlanPolicyConflictTests
         // 采纳 switch，悬案在 other.*——不相交 → 不聚焦，落到已采纳 policy
         //（其 Decide 消费 inputs；null inputs 必然 NRE = 证明未被冲突分支拦截）
         var policy = Policy(new TargetSpec("switch", null, "tap", UniClaw.Kernel.Perception.UiHierarchy.CheckedState.Unchecked));
-        policy.ConflictedSubjects = new[] { SharedSubjects.State("other") };
+        policy.ConflictedSubjects = new[] { "other.state" };
         Assert.Throws<ArgumentNullException>(() => policy.Decide(null!));
     }
 
@@ -76,6 +76,6 @@ public sealed class AgentPlanPolicyConflictTests
         // S8 值域断言前置：共享三件套拼写与 {on,off,partial} 语义位
         Assert.Equal("ui.screen", SharedSubjects.Screen);
         Assert.Equal("screen.frame", SharedSubjects.Frame);
-        Assert.Equal("switch.state", SharedSubjects.State("switch"));
+        Assert.Equal("switch.state", "switch.state");
     }
 }

@@ -47,7 +47,7 @@ public sealed class Per009RemediationTests
         IngressKind.Observation, ObservationContext.External,
         new Provenance(producer, capture, $"scope:{subject}", lineage ?? new[] { "test:claim" }));
 
-    private static string SwitchState => SharedSubjects.State("switch");
+    private static string SwitchState => "switch.state";
 
     private static void Observe(UniKernel kernel, ObservationProposal claim) =>
         kernel.Process(claim);

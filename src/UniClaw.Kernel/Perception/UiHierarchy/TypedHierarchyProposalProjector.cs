@@ -11,8 +11,7 @@ namespace UniClaw.Kernel.Perception.UiHierarchy;
 ///   观察——missing 不降级为 false，也不伪造 "unknown" 值 claim）；
 /// - subject occurrence-qualified：ui.node.{captureId}#{localIndex}.{field}
 ///   （grill F-D1：capture 限定，防跨 revision 误连续）；
-/// - checked 值域 = checked/unchecked/partial（typed 名；on/off 投影是 Slice D
-///   LegacyStateProjection 的 egress 职责）；
+/// - checked 值域 = checked/unchecked/partial（typed 名）；
 /// - lineage 仅进程标记 typed-hierarchy:v1——零结构语义字符串（CaptureId 等
 ///   只走 Provenance.Hierarchy descriptor，xml-map:/api:NN 协议禁止回潮）；
 /// - 无效 observation → 抛 InvalidOperationException（fail-closed，不产部分
@@ -71,7 +70,8 @@ public static class TypedHierarchyProposalProjector
                     CoverageLimitation: metadata.Coverage.Limitation,
                     NodeLocalIndex: node.OccurrenceRef.LocalIndex,
                     ParentLocalIndex: parentIndex,
-                    Field: field);
+                    Field: field,
+                    Space: metadata.Space);
                 proposals.Add(new ObservationProposal(
                     new ObservationClaim(subject, render),
                     IngressKind.Observation,

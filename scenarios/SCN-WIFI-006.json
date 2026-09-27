@@ -37,8 +37,8 @@
     "schemaVersion": 2,
     "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
     "executionDigest": "3860d1ec54225994504fa909570a0cc7e77fb294899627a8e324d143d61db740",
-    "runtimeSourceHash": "d5cd2f3fe232249be3878685342cbbbdf0045189c0ca084203010b5e187b2ff6",
-    "certifiedByChange": "PER-015",
+    "runtimeSourceHash": "eb9acbfd2e14d96f3636949cec759bd1c288833123ceee41339a368086c2c72d",
+    "certifiedByChange": "PER-011",
     "certifiedAt": "2026-09-27"
   }
 }

@@ -104,23 +104,13 @@ public static class LivePerception
         private readonly VisionServiceSession _session;
         private readonly AdbScreenshotAcquisition _acquisition;
         private readonly UiAutomatorDump.ProbeStateMachine _xmlProbe = new();
-        private readonly bool _legacyStateEgress;
         private int _phase;
 
-        /// <summary>
-        /// PER-014 R5 / M-08：本次 run 是否实际动用了 legacy role-state 发射
-        /// （HostRunner 读此标记落 facts.legacyEgress = run 标记 legacy/degraded）。
-        /// </summary>
-        public bool LegacyEgressObserved { get; private set; }
-
-        public LiveFrameFeed(HostUtilities.VirtualClock clock, LiveAssets assets, Func<string> readSwitchState,
-            // PER-014 R5：legacy role-state 发射回滚旗（默认关，PER-012 M-08）。
-            bool legacyStateEgress = false)
+        public LiveFrameFeed(HostUtilities.VirtualClock clock, LiveAssets assets, Func<string> readSwitchState)
         {
             _clock = clock;
             _assets = assets;
             _readSwitchState = readSwitchState;
-            _legacyStateEgress = legacyStateEgress;
             _session = new VisionServiceSession(assets.ProviderRoot, assets.PythonExecutable, assets.CacheRoot);
             _acquisition = new AdbScreenshotAcquisition(assets.DeviceId, "adb", () => clock.Now);
         }
@@ -143,6 +133,17 @@ public static class LivePerception
                     return null; // 合法等待
             }
 
+            // Each external observation owns a fresh virtual capture time. The
+            // post-action capture must be strictly later than dispatch; advance
+            // before XML/typed evidence and frame claims are assembled.
+            // Android Settings applies the Wi-Fi toggle asynchronously; wait for
+            // the UI hierarchy to settle before the post-action capture so the
+            // typed checked claim and the independent settings probe describe
+            // the same real state.
+            if (isPostPhase)
+                Thread.Sleep(1200);
+            _clock.Tick();
+
             // 真观察：实屏截图 → 真推理 → switch 检测（bounds 来自当前屏幕）
             var shot = _acquisition.CaptureAsync(CancellationToken.None).GetAwaiter().GetResult();
             var responseJson = _session.Analyze(shot.Artifact.Payload);
@@ -151,43 +152,10 @@ public static class LivePerception
             // PER-009 D1：XML 永远并行（缺席即数据）；D8 探测状态机管节奏
             var (dump, xml, xmlDegraded) = TryCoObserveXml(expected);
 
-            // P-3（评审修复）：跨源碰头——XML 节点空间映射到共享层 {role}.state
-            // P-6：Focused 时仅映射指令点名 subjects（真裁剪重扫 = Tier 1 管线支持后）
-            // PER-014 R5：legacy 发射旗门控——默认关（正常 typed run 零 role-state
-            // XML claims）；开 = 回滚路径恢复，且 run 由 HostRunner 标记 legacy/degraded。
-            ObservationProposal? mapped = null;
-            if (_legacyStateEgress && dump is not null && SubjectInScope(directive))
-            {
-                mapped = UiAutomatorDump.MapTargetStateClaim(
-                    dump, "switch",
-                    (detection.X1, detection.Y1, detection.X2, detection.Y2),
-                    shot.Width, shot.Height, _clock.Now, expected);
-                if (mapped is not null)
-                    LegacyEgressObserved = true;
-            }
-
-            // P-1/C-2（评审修复）：post 相 XML-first——映射在场即权威定案通道
-            // （四门之①③④由构造/序保证：目标态非空、checkable guard、post 相
-            // dump 时序必然后于 dispatch；Kernel VerifyPostActionEffect 再执法）。
-            // 映射缺席 → 回系统设置独立读态（原通道）。
-            string state;
-            ObservationProposal? stateClaim;
-            if (isPostPhase && mapped is { } mappedClaim)
-            {
-                state = mappedClaim.Claim.Value;
-                stateClaim = mappedClaim;
-            }
-            else
-            {
-                state = _readSwitchState();
-                stateClaim = isPostPhase
-                    ? new ObservationProposal(
-                        new ObservationClaim("switch.state", state),
-                        IngressKind.Observation, expected,
-                        new Provenance("host.live", _clock.Now, "scope:switch.state",
-                            new[] { $"live:state:{state}" }))
-                    : null;
-            }
+            // Post-action state is read independently from system settings;
+            // hierarchy evidence remains on the typed route.
+            var state = _readSwitchState();
+            ObservationProposal? stateClaim = null;
 
             var input = Frame(detection, shot.Width, shot.Height, state, expected, stateClaim);
 
@@ -199,17 +167,11 @@ public static class LivePerception
                     UiAutomatorDump.TagDegradedNoXml(obs.Proposals));
             }
 
-            // PER-013 Slice E（M-06 observer cutover）：XML per-node 证据走
-            // typed 路由（occurrence-qualified claims，完全替代 legacy
-            // dump.Claims per-node 通道）；legacy {role}.state 映射
-            // （effect-critical，PER-012 egress surface）按原相位规则保留。
-            // typed 路由不可用（无 XML / API level 未知）→ per-node 证据诚实缺席。
-            if ((xml is not null || mapped is not null) && input is RunDriverInput.Observation o)
+            // XML per-node evidence enters only through the typed route.
+            if (xml is not null && input is RunDriverInput.Observation o)
             {
                 var extras = UiAutomatorDump.ComposeXmlEvidence(
                     xml,
-                    mappedLegacyStateClaim: mapped,
-                    isPostPhase,
                     typedContext: BuildTypedParseContext(shot.Width, shot.Height),
                     context: expected);
                 if (extras.Length > 0)
@@ -236,11 +198,6 @@ public static class LivePerception
                     Space: CoordinateSpace.DeviceViewport(shotWidth, shotHeight))
                 : null;
 
-        /// <summary>P-6：Focused 指令点名 subjects 时，仅映射被点名目标。</summary>
-        private static bool SubjectInScope(ObservationDirective directive) =>
-            directive.Subjects is not { Count: > 0 } subjects
-            || subjects.Any(s => s == "switch" || s.StartsWith("switch.", StringComparison.Ordinal));
-
         /// <summary>
         /// PER-009 D1/D8：XML 并行观察。决策核心在
         /// <see cref="UiAutomatorDump.CoObserveXml"/>（PER-013 Slice B 抽出的
@@ -250,9 +207,20 @@ public static class LivePerception
         private (UiAutomatorDump.DumpResult? Dump, string? Xml, bool Degraded) TryCoObserveXml(
             ObservationContext context)
         {
-            return UiAutomatorDump.CoObserveXml(
-                _xmlProbe, _clock.Now, _clock.Now, context,
-                transport: () => UiAutomatorDump.TryDumpToDevice(_assets.DeviceId));
+            // API 35 uiautomator may transiently report an empty/timeout dump while
+            // Settings finishes its transition. Retry the transport in this same
+            // observation window; a structural failure still remains degraded.
+            (UiAutomatorDump.DumpResult? Dump, string? Xml, bool Degraded) last = default;
+            for (var attempt = 0; attempt < 3; attempt++)
+            {
+                last = UiAutomatorDump.CoObserveXml(
+                    _xmlProbe, _clock.Now, _clock.Now, context,
+                    transport: () => UiAutomatorDump.TryDumpToDevice(_assets.DeviceId));
+                if (last.Xml is not null || _xmlProbe.Exhausted)
+                    return last;
+                Thread.Sleep(300);
+            }
+            return last;
         }
 
         private RunDriverInput Frame(
@@ -263,7 +231,6 @@ public static class LivePerception
             ObservationContext context,
             ObservationProposal? stateClaim)
         {
-            _clock.Tick();
             // CSC-001 Slice B：frame claim 携带 capture 实测尺寸（w/h）——
             // 归一化坐标自此自描述，投影端可与设备实况机械对拍。
             var frame = $"{{\"role\":\"switch\",\"state\":\"{state}\","

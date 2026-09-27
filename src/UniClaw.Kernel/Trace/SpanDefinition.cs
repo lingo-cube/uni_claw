@@ -95,6 +95,7 @@ public static class TraceCatalog
         "kind-recognized",
         "context-recognized",
         "canonicalization",
+        "MalformedLineage",
     }.ToFrozenSet();
 
     private static FrozenSet<TraceReferenceKind> Kinds(params TraceReferenceKind[] kinds) => kinds.ToFrozenSet();

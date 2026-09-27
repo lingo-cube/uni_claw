@@ -353,7 +353,7 @@ public sealed class RunTraceBulletTests
         // G4：reason code 封闭集 = owner 词汇（EvidenceLedger check 名单）
         Assert.True(TraceCatalog.AdmissionRejected.ReasonCodeRequired);
         Assert.True(TraceCatalog.AdmissionRejected.AllowedReasonCodes.Contains("source-identity"));
-        Assert.Equal(9, TraceCatalog.AdmissionRejected.AllowedReasonCodes.Count);
+        Assert.Equal(10, TraceCatalog.AdmissionRejected.AllowedReasonCodes.Count);
         Assert.False(TraceCatalog.Admitted.ReasonCodeRequired);
         Assert.Empty(TraceCatalog.Admitted.AllowedReasonCodes);
 

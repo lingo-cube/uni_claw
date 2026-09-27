@@ -213,7 +213,7 @@ public sealed class WorldModel
         }
         else
         {
-            isRelevant = _relevanceScope.Contains(record.Claim.Subject);
+            isRelevant = IsInRelevanceScope(record.Claim.Subject);
             reason = isRelevant
                 ? "subject-in-relevance-scope"
                 : "subject-out-of-relevance-scope";
@@ -223,6 +223,14 @@ public sealed class WorldModel
         _relevanceLog.Add(judgment);
         return judgment;
     }
+
+    // Dynamic typed observation subjects (for example ui.node.{capture}#n.checked)
+    // use a capture-local identity. A scope entry ending in '*' explicitly admits
+    // that subject prefix; exact entries retain their original semantics.
+    private bool IsInRelevanceScope(string subject) =>
+        _relevanceScope.Contains(subject)
+        || _relevanceScope.Any(scope => scope.EndsWith('*')
+            && subject.StartsWith(scope[..^1], StringComparison.Ordinal));
 
     /// <summary>
     /// Reconciliation：accepted Evidence → 新 immutable revision（验收 2）。
@@ -1320,7 +1328,7 @@ public sealed class WorldModel
             ? (checkedState == required
                 ? EntityObligationFactKind.Satisfied
                 : EntityObligationFactKind.Unsatisfied)
-            : EntityObligationFactKind.Unknown; // Unknown/Unsupported：如实未满足
+                : EntityObligationFactKind.Unknown; // Unknown/Unsupported：如实未满足
     }
 
     private void RecordConsumerViewPerformance(

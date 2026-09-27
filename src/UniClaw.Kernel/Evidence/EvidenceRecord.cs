@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 namespace UniClaw.Kernel.Evidence;
 
 /// <summary>
@@ -13,4 +15,18 @@ public sealed record EvidenceRecord(
     ObservationClaim Claim,
     IngressKind Kind,
     ObservationContext Context,
-    Provenance Provenance);
+    Provenance Provenance)
+{
+    /// <summary>Immediate derived parents, empty for direct source evidence.</summary>
+    public IReadOnlyList<string> DerivedFromEvidenceIds { get; init; } = Array.Empty<string>();
+
+    /// <summary>Deduplicated direct-source leaf basis for derived evidence.</summary>
+    public IReadOnlySet<string> TransitiveEvidenceBasis { get; init; } =
+        FrozenSet<string>.Empty;
+
+    /// <summary>Fusion rule identity, when this record is derived.</summary>
+    public string? FusionRule { get; init; }
+
+    /// <summary>Fusion rule version, when this record is derived.</summary>
+    public string? FusionVersion { get; init; }
+}

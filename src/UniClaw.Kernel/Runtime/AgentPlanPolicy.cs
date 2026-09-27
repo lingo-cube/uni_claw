@@ -46,7 +46,7 @@ public sealed class AgentPlanPolicy : IControlPolicy
 
     /// <summary>
     /// 相交判定：conflicted subject == 目标序列化（"role[:desc]"）或以其为
-    /// 前缀（"switch.state" ⊂ "switch"）。无采纳目标 → 不聚焦（null）。
+    /// 目标前缀。无采纳目标 → 不聚焦（null）。
     /// </summary>
     private string? FirstConflictIntersectingTarget(IReadOnlyList<string> conflicts)
     {

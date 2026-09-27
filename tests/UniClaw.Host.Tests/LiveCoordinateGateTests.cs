@@ -13,16 +13,18 @@ namespace UniClaw.Host.Tests;
 /// → zero effect + RE-GROUND diagnostic（不猜、不投影）。ENVIRONMENT 门控
 /// DSH_TEST_PERCEPTION_LIVE=1；finally 恢复 wm size。
 /// </summary>
+[Collection("LiveDevice")]
 public sealed class LiveCoordinateGateTests(ITestOutputHelper output)
 {
     private static bool Enabled =>
         Environment.GetEnvironmentVariable("DSH_TEST_PERCEPTION_LIVE") == "1"
         && Environment.GetEnvironmentVariable("DSH_TEST_NO_ADB") != "1";
 
-    private static string Device =>
-        Environment.GetEnvironmentVariable("DSH_TEST_PERCEPTION_DEVICE") ?? "emulator-5554";
+    private string? _device;
 
-    private static string Shell(string args)
+    private string Device => _device ?? throw new InvalidOperationException("live device was not resolved");
+
+    private string Shell(string args)
     {
         var info = new System.Diagnostics.ProcessStartInfo("adb", $"-s {Device} shell {args}")
         {
@@ -35,7 +37,7 @@ public sealed class LiveCoordinateGateTests(ITestOutputHelper output)
         return output;
     }
 
-    private static void ApplyOverride(int width, int height)
+    private void ApplyOverride(int width, int height)
     {
         // 设置必须验证生效（adb 偶发静默失败会假绿/假红——机械确认）
         for (var attempt = 0; attempt < 3; attempt++)
@@ -59,6 +61,9 @@ public sealed class LiveCoordinateGateTests(ITestOutputHelper output)
             output.WriteLine("跳过：DSH_TEST_PERCEPTION_LIVE 未启用");
             return;
         }
+        var selected = LiveDeviceSelector.Resolve();
+        Assert.True(selected.IsUsable, $"{selected.Status}: {selected.Detail}");
+        _device = selected.Serial;
 
         // 前置：设备处于本 AVD 标准实况 1080×1920（机械确认；本 emulator
         // 配置锁死 wm override 不可改——已实证，故 negative case 采用镜像
@@ -92,6 +97,9 @@ public sealed class LiveCoordinateGateTests(ITestOutputHelper output)
             output.WriteLine("跳过：DSH_TEST_PERCEPTION_LIVE 未启用");
             return;
         }
+        var selected = LiveDeviceSelector.Resolve();
+        Assert.True(selected.IsUsable, $"{selected.Status}: {selected.Detail}");
+        _device = selected.Serial;
 
         var driver = new AdbLiveEffectDriver(Device, adbExecutable: "adb");
         var request = new DispatchRequest(

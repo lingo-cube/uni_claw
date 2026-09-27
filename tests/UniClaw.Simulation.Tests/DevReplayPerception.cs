@@ -108,7 +108,7 @@ public static class ReplayPerception
             };
             if (includeStateClaim)
                 proposals.Add(new ObservationProposal(
-                    new ObservationClaim(SharedSubjects.State("switch"), state),
+                    new ObservationClaim("switch.state", state),
                     IngressKind.Observation, expected,
                     new Provenance("host.replay", _clock.Now, "scope:switch.state",
                         new[] { $"replay:state:{state}" })));

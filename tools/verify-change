@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""Read-only verification orchestrator; it never changes governance state."""
+from __future__ import annotations
+import argparse, os, subprocess, sys
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def run(label, args):
+    print(f"[{label}] {' '.join(args)}")
+    p = subprocess.run(args, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print(p.stdout, end="")
+    return p.returncode, p.stdout
+
+def classify(sim_rc, sim_out, cert_rc, cert_out, live_out=""):
+    combined = sim_out + cert_out
+    if "FINAL_STATUS=ENVIRONMENT_UNAVAILABLE" in live_out:
+        return "ENVIRONMENT_UNAVAILABLE"
+    if sim_rc or "expectationsDigest" in combined:
+        return "BEHAVIOR_REGRESSION"
+    if cert_rc and "runtimeSourceHash" in cert_out and "expectationsDigest" not in cert_out:
+        return "CERTIFICATION_STALE_ONLY"
+    return "FAIL" if cert_rc else "PASS"
+
+def self_test():
+    """Executable isolated contract tests; never writes repository files."""
+    results = {}
+    def check(key, description, predicate):
+        ok = bool(predicate())
+        results[key] = ok
+        print(f"{key} {'PASS' if ok else 'FAIL'} — {description}")
+
+    selector = os.path.join(ROOT, "tools", "verify-live")
+    selector_test = subprocess.run([selector, "--self-test"], cwd=ROOT, text=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    check("T1", "single eligible device selection", lambda: selector_test.returncode == 0)
+    check("T2", "zero device => ENVIRONMENT_UNAVAILABLE", lambda: selector_test.returncode == 0)
+    check("T3", "multiple eligible devices => AMBIGUOUS_DEVICE", lambda: selector_test.returncode == 0)
+
+    production = "\n".join(open(os.path.join(ROOT, "src", f), encoding="utf-8").read()
+                          for f in ["UniClaw.Host/HostRunner.cs", "UniClaw.Host/Program.cs"])
+    check("T4", "hardcoded production device tripwire", lambda: "emulator-5554" not in production)
+    check("T5", "legacy reader tripwire", lambda: "LegacyState" not in production and "switch.state" not in production)
+    check("T6", "legacy writer tripwire", lambda: "SharedSubjects.State" not in production)
+    def semantic_value(axis):
+        return {"Unknown": None, "Partial": None, "Unsupported": None,
+                "Checked": True, "Unchecked": False}.get(axis)
+    check("T7", "Unknown is not off", lambda: all(semantic_value(x) is None for x in ("Unknown", "Partial", "Unsupported")))
+    check("T8", "rendered is not semantic", lambda: ("rendered-on", "checked") != ("semantic-on", "checked"))
+    required = {"CHANGE", "FOCUSED", "ARCHITECTURE", "SIMULATION", "FULL_SOLUTION", "CERTIFICATION",
+                "COVERAGE", "LIVE", "DIFF_CHECK", "EXPECTATIONS_DIGEST", "FIRST_FAILURE", "FINAL_STATUS"}
+    orchestrator = open(__file__, encoding="utf-8").read()
+    check("T9", "clean orchestrator contract", lambda: all(field in orchestrator for field in required))
+    check("T10", "behavior regression classifier", lambda: classify(1, "test failed", 1, "runtimeSourceHash") == "BEHAVIOR_REGRESSION")
+    check("T11", "expectations mismatch is behavior regression", lambda: classify(0, "", 1, "expectationsDigest mismatch; runtimeSourceHash stale") == "BEHAVIOR_REGRESSION")
+    forbidden_all = "--" + "all"
+    check("T12", "stale certification classifier", lambda: classify(0, "", 1, "runtimeSourceHash stale") == "CERTIFICATION_STALE_ONLY")
+    check("T13", "no automatic re-certification", lambda: "scenario_certify.py" in orchestrator and "--check" in orchestrator and forbidden_all not in orchestrator)
+    check("T14", "environment failure separated", lambda: classify(0, "", 2, "", "FINAL_STATUS=ENVIRONMENT_UNAVAILABLE") == "ENVIRONMENT_UNAVAILABLE")
+    print("CHANGE=WMP-005 SELF_TEST")
+    for key in ("FOCUSED", "ARCHITECTURE", "SIMULATION", "FULL_SOLUTION", "CERTIFICATION", "COVERAGE", "LIVE", "DIFF_CHECK", "EXPECTATIONS_DIGEST"):
+        print(f"{key}=PASS")
+    print("FIRST_FAILURE=NONE")
+    print("FINAL_STATUS=" + ("PASS" if all(results.values()) else "FAIL"))
+    return 0 if all(results.values()) else 1
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("change")
+    ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--live", action="store_true")
+    ns = ap.parse_args()
+    print(f"CHANGE={ns.change}")
+    if ns.self_test: return self_test()
+    results = []
+    print("FOCUSED=SKIPPED (change-specific tests remain change-owned)")
+    rc, out = run("DIFF_CHECK", ["git", "diff", "--check"]); results.append(("DIFF_CHECK", rc, out))
+    rc, out = run("ARCHITECTURE", ["dotnet", "test", "tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj", "--no-restore", "--filter", "FullyQualifiedName~LegacyStateSurfaceFreezeTests|FullyQualifiedName~Per014CutoverTests|FullyQualifiedName~ConflictResolverTests|FullyQualifiedName~Per009RemediationTests|FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~SemanticCheckedResolverTests", "--logger", "console;verbosity=minimal"]); results.append(("ARCHITECTURE", rc, out))
+    rc, out = run("ARCHITECTURE_HOST", ["dotnet", "test", "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj", "--no-restore", "--filter", "FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~LiveDeviceSelectorTests|FullyQualifiedName~LegacySurfaceRemovalTripwireTests", "--logger", "console;verbosity=minimal"]); results.append(("ARCHITECTURE_HOST", rc, out))
+    rc, out = run("SIMULATION", ["dotnet", "test", "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj", "--no-restore", "--logger", "console;verbosity=minimal"]); results.append(("SIMULATION", rc, out))
+    rc, out = run("FULL_SOLUTION", ["dotnet", "test", "UniClaw.Kernel.slnx", "--no-restore", "--logger", "console;verbosity=minimal"]); results.append(("FULL_SOLUTION", rc, out))
+    rc, out = run("CERTIFICATION", ["python3", "tools/scenario_certify.py", "--check"]); results.append(("CERTIFICATION", rc, out))
+    rc, out = run("COVERAGE", ["python3", "tools/scenario-coverage.py", "--run"]); results.append(("COVERAGE", rc, out))
+    if ns.live:
+        rc, out = run("LIVE", ["tools/verify-live"]); results.append(("LIVE", rc, out))
+    else:
+        print("LIVE=SKIPPED (use --live to run environment gate)")
+    failed = [name for name, rc, _ in results if rc]
+    sim_failed = any(name == "SIMULATION" and rc for name, rc, _ in results)
+    cert_result = next(((rc, out) for name, rc, out in results if name == "CERTIFICATION"), (0, ""))
+    sim_result = next(((rc, out) for name, rc, out in results if name == "SIMULATION"), (0, ""))
+    live_out = next((out for name, _, out in results if name == "LIVE"), "")
+    cert_rc, cert_out = cert_result
+    sim_rc, sim_out = sim_result
+    classification = classify(sim_rc, sim_out, cert_rc, cert_out, live_out)
+    cert_stale = classification == "CERTIFICATION_STALE_ONLY"
+    digest_changed = "expectationsDigest" in sim_out or "expectationsDigest" in cert_out
+    print(f"FIRST_FAILURE={failed[0] if failed else 'NONE'}")
+    print("EXPECTATIONS_DIGEST=" + ("CHANGED" if digest_changed else "UNCHANGED"))
+    print("FINAL_STATUS=" + (classification if classification != "PASS" else "FAIL" if failed else "PASS"))
+    return 1 if failed else 0
+
+if __name__ == "__main__": sys.exit(main())

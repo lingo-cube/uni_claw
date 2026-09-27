@@ -11,6 +11,7 @@ namespace UniClaw.Host.Tests;
 /// 真 ADB tap → **实屏复查 + 系统设置独立读态** → 验证由现实裁决。
 /// 这是「能用起来」的终点验收：整链无仿真帧。
 /// </summary>
+[Collection("LiveDevice")]
 public sealed class HostLiveFullTests(ITestOutputHelper output)
 {
     private static bool Enabled =>
@@ -42,7 +43,9 @@ public sealed class HostLiveFullTests(ITestOutputHelper output)
         }
 
         var repo = RepoRoot();
-        var deviceId = "emulator-5554";
+        var selected = LiveDeviceSelector.Resolve();
+        Assert.True(selected.IsUsable, $"{selected.Status}: {selected.Detail}");
+        var deviceId = selected.Serial!;
 
         // 前置：干净 Wi-Fi 设置根页（-S 强停；残留子页会零 switch——实证）
         var info = new System.Diagnostics.ProcessStartInfo(
@@ -55,8 +58,25 @@ public sealed class HostLiveFullTests(ITestOutputHelper output)
         start.WaitForExit();
         Thread.Sleep(TimeSpan.FromSeconds(3));
 
+        // The Android API 35 hierarchy advertises a collapsed boolean checked
+        // capability: checked=true is observable, while checked=false is
+        // intentionally Unknown. Normalize the fixture to off so this gate
+        // proves the typed checked terminal path without treating absence as
+        // unchecked.
+        var disable = new System.Diagnostics.ProcessStartInfo(
+            "adb", $"-s {deviceId} shell svc wifi disable")
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+        };
+        using var disableWifi = System.Diagnostics.Process.Start(disable)!;
+        disableWifi.WaitForExit();
+        Thread.Sleep(TimeSpan.FromSeconds(2));
+        Assert.NotNull(LiveDeviceSelector.WaitForSwitchHierarchy(deviceId));
+
         var before = LivePerception.LiveFrameFeed.ReadWifiState(deviceId);
-        var target = before == "on" ? "off" : "on";
+        Assert.Equal("off", before);
+        var target = "on";
         output.WriteLine($"initial wifi = {before}, target = {target}");
 
         var root = Path.Combine(Path.GetTempPath(), "uniclaw-host-full-" + Guid.NewGuid().ToString("N"));
@@ -70,7 +90,8 @@ public sealed class HostLiveFullTests(ITestOutputHelper output)
                 // 投影会把 tap y 放大 1.25×，击中目标下方邻行，2026-09-27 实证）
                 ViewportWidth = 1080,
                 ViewportHeight = 1920,
-                TargetState = target,
+                // Live system probe reports on/off; Host contract is typed checked/unchecked.
+                TargetState = target == "on" ? "checked" : "unchecked",
                 Live = new LivePerception.LiveAssets(
                     deviceId,
                     "wifi-settings",

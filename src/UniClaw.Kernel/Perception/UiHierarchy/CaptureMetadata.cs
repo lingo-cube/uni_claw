@@ -62,7 +62,8 @@ public sealed record CaptureMetadata(
     string SessionCorrelation,
     string? ObservationCycleId,
     HierarchyCapabilities Capabilities,
-    HierarchyCoverage Coverage)
+    HierarchyCoverage Coverage,
+    CoordinateSpace? Space = null)
 {
     /// <summary>构造期 fail-closed：必填标识非空、能力/覆盖有效、API level 合理。</summary>
     public bool IsValid =>

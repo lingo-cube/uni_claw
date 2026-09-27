@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+root="$(cd "$(dirname "$0")/.." && pwd)"
+if [[ "${1:-}" == "--self-test" ]]; then
+  exec dotnet test "$root/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj" --no-restore \
+    --filter 'FullyQualifiedName~LiveDeviceSelectorTests' --logger 'console;verbosity=minimal'
+fi
+run_dir=""
+status=PASS
+first_failure=""
+cleanup_status=PASS
+
+fail() { status=FAIL; [[ -n "$first_failure" ]] || first_failure="$1"; }
+environment_unavailable() {
+  echo "DEVICE=ENVIRONMENT_UNAVAILABLE"
+  echo "API_LEVEL=NOT_AVAILABLE"
+  echo "CAPABILITIES=NOT_AVAILABLE"
+  echo "READINESS=ENVIRONMENT_UNAVAILABLE"
+  echo "HOST_LIVE_FULL=NOT_RUN"
+  echo "TYPED_LIVE_CHAIN=NOT_RUN"
+  echo "COORDINATE_GATE=NOT_RUN"
+  echo "FIRST_DIVERGENCE=ENVIRONMENT_UNAVAILABLE"
+  echo "CLEANUP=NOT_STARTED"
+  echo "FINAL_STATUS=ENVIRONMENT_UNAVAILABLE"
+}
+
+if [[ -z "${UNICLAW_ANDROID_DEVICE:-}" ]]; then
+  set +e
+  provision_output=$("$root/tools/android/start-test-device.sh" 2>&1)
+  provision_exit=$?
+  set -e
+  printf '%s\n' "$provision_output"
+  if [[ $provision_exit -ne 0 ]]; then
+    environment_unavailable
+    exit 2
+  fi
+  eval "$(printf '%s\n' "$provision_output" | awk -F= '/^UNICLAW_ANDROID_(DEVICE|RUN_DIR)=/{print $1"=\""$2"\""}')"
+fi
+
+device="${UNICLAW_ANDROID_DEVICE:-}"
+run_dir="${UNICLAW_ANDROID_RUN_DIR:-}"
+echo "DEVICE=$device"
+echo "API_LEVEL=$(adb -s "$device" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r')"
+echo "CAPABILITIES=$(cat "$root/tools/android/device-capabilities.yaml" | tr '\n' ' ')"
+echo "READINESS=READY"
+
+run_gate() {
+  local label="$1" filter="$2"
+  set +e
+  DSH_TEST_PERCEPTION_LIVE=1 UNICLAW_ANDROID_DEVICE="$device" dotnet test "$root/UniClaw.Kernel.slnx" --no-restore --filter "$filter" --logger 'console;verbosity=minimal'
+  local code=$?
+  set -e
+  if [[ $code -eq 0 ]]; then echo "$label=PASS"; else echo "$label=FAIL"; fail "$label"; fi
+}
+
+run_gate HOST_LIVE_FULL 'FullyQualifiedName~HostLiveFullTests'
+run_gate TYPED_LIVE_CHAIN 'FullyQualifiedName~TypedLiveChainTests'
+run_gate COORDINATE_GATE 'FullyQualifiedName~LiveCoordinateGateTests'
+echo "FIRST_DIVERGENCE=${first_failure:-NONE}"
+
+if [[ -n "$run_dir" ]]; then
+  if ! "$root/tools/android/stop-test-device.sh" "$run_dir" >/dev/null 2>&1; then cleanup_status=FAIL; fi
+fi
+echo "CLEANUP=$cleanup_status"
+[[ "$cleanup_status" == PASS ]] || fail CLEANUP
+echo "FINAL_STATUS=$status"
+[[ "$status" == PASS ]] && exit 0 || exit 1

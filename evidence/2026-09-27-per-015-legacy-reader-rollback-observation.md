@@ -27,6 +27,10 @@ base：8ddc32c7
 | Simulation full | PASS 184/184 | 再认证后全绿 |
 | Host deterministic | PASS 63/63 | `dotnet test tests/UniClaw.Host.Tests/...` |
 | coordinate-space/live effect deterministic path | PASS 10/10 | LiveCoordinateGate 2 + Adb/LiveClosedLoop 8 |
+| live device capability manifest | PASS | API 35；ADB screenshot、uiautomator、wm size、settings 均可用；selector=`UNICLAW_ANDROID_DEVICE` |
+| real TypedLiveChain | PASS 1/1 | `UNICLAW_ANDROID_DEVICE=emulator-5556 DSH_TEST_PERCEPTION_LIVE=1`；real XML → typed projection → world path |
+| real LiveCoordinateGate | PASS 2/2 | 同一设备；坐标空间恢复与真实 tap 两门均通过 |
+| real HostLiveFull | PASS 1/1 | API 35 AVD；真实截图、视觉、ADB tap、post-action XML、独立 settings 复核；`status=Completed`, `delivered=1`, `legacyEgress=false` |
 | full solution | PASS 1051/1051 | `dotnet test UniClaw.Kernel.slnx --no-restore` |
 | scenario certification | PASS 29/29 | `scenario_certify.py --change PER-015 --check` |
 | scenario coverage truth chain | PASS | `scenario-coverage.py --run` |
@@ -36,13 +40,24 @@ base：8ddc32c7
 
 ## 真机观察
 
-尝试启用 `DSH_TEST_PERCEPTION_LIVE=1`：
+本轮使用由脚本约束的临时 AVD clone（`/tmp`，API 35，selector 通过
+`UNICLAW_ANDROID_DEVICE` 注入；无 `emulator-5554` 默认值）：
 
-- `TypedLiveChainTests`：FAIL，`adb` 无可用设备（`real dump 失败，structural=False`）。
-- `HostLiveFullTests`：FAIL，环境阻塞：`device 'emulator-5554' not found`。
-- 使用 `DSH_TEST_NO_ADB=1` 的门控运行只得到显式环境 skip，不能当作真机 PASS。
-- 未观察到 typed→legacy rollback；由于无设备，这一项是“无观察证据”，不是已证明的真实设备 NO。
-- 未发现 semantic blocker、post-action/RuntimeAssurance 依赖 legacy 的代码或确定性测试证据。
+- capability manifest PASS：ADB、API>=35、screenshot、uiautomator、`wm size`、
+  `settings` 均可用；设备 viewport 为 1080x1920 override。
+- `TypedLiveChainTests`：PASS 1/1。真实 XML 进入 typed projection 和
+  WorldModel；关闭态保持 Unknown/无 checked claim，未用 legacy reader 补值。
+- `LiveCoordinateGateTests`：PASS 2/2。真实坐标空间恢复、真实 tap 和复查均通过。
+- `HostLiveFullTests`：PASS 1/1。测试先用 `svc wifi disable` 将 API 35 AVD 固定到
+  可验证的 off 基线，再由真实截图、视觉、ADB tap、post-action XML 和独立 settings
+  复核完成 off→on；Host 终态 `Completed`，`delivered=1`，`legacyEgress=false`。
+  这条路径使用 typed checked=true 完成证明，不把 collapsed checked=false 缺席猜成 unchecked。
+- 本机默认 perception 配置包含不可用的 MPS provider；运行 HostLiveFull 时仅临时
+  移出这两个声明以使用 CPU-compatible fallback，测试后已恢复原文件。这是运行环境
+  处置，不是产品代码变更。
+- 未观察到 typed→legacy rollback（live result `legacyEgress=false`）；effect-critical
+  legacy dependency = NONE。Unknown/Partial 保持 fail-closed，未触发 legacy reader fallback。
+- 未发现 semantic blocker、post-action/RuntimeAssurance 依赖 legacy 的确定性测试证据。
 
 ## Gate 判定
 
@@ -53,23 +68,24 @@ base：8ddc32c7
 5. authority deviation：NONE
 6. Kernel regression：643/643
 7. Simulation：184/184
-8. HostLiveFull：FAIL（环境阻塞，exact blocker 见上）
-9. TypedLiveChain：FAIL（环境阻塞，exact blocker 见上）
-10. full solution：PASS（1051/1051）
-11. certification / coverage：PASS（29/29 + truth chain）
-12. typed→legacy rollback observed：NO（未观察到；真机证据不足）
-13. effect-critical legacy dependency：NONE（legacy 仅保留 rollback/egress surface）
-14. rollback observation window：HOLD
-15. PER-012 four removal gates：
+8. HostLiveFull：PASS（真实链 `Completed`, `delivered=1`, `legacyEgress=false`）
+9. TypedLiveChain：PASS（real XML → typed projection → world path）
+10. LiveCoordinateGate：PASS（2/2）
+11. full solution：PASS（1051/1051）
+12. certification / coverage：PASS（29/29 + truth chain）
+13. typed→legacy rollback observed：NO（本次 live result 无 legacy egress）
+14. effect-critical typed terminal proof：PASS（HostLiveFull real Completed）
+15. effect-critical legacy dependency：NONE
+16. rollback observation window：PASS（代表性真机窗口已闭合）
+17. PER-012 four removal gates：
     - Gate 1：PASS
     - Gate 2：PASS
     - Gate 3：PASS
-    - Gate 4：HOLD（无可用真机/模拟器，HostLiveFull 与 TypedLiveChain 无法取得代表性 PASS）
-16. verdict：NOT_READY_FOR_LEGACY_REMOVAL
+    - Gate 4：PASS（API 35 真实设备 HostLiveFull Completed）
+18. verdict：READY_FOR_LEGACY_REMOVAL
 
 ## 保留与停止点
 
 legacy writers、LegacyStateProjection、LegacyStateEgress、SharedSubjects legacy constants
-和 rollback support code 均保留；未启动 PER-011 Fusion。下一步只需在有
-`emulator-5554` 或等价设备的环境重跑 HostLiveFull 与 TypedLiveChain，并以同一
-Gate 4 标准重新裁决。
+和 rollback support code 在本 change 内仍保留；PER-011 Fusion 未启动。Gate 4 已闭合，
+因此后续 change 可按 owner gate 移除 production legacy surface，同时保留历史与 fixtures。

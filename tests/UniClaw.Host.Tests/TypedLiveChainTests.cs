@@ -14,6 +14,7 @@ namespace UniClaw.Host.Tests;
 /// 验证点：metadata 正确（getprop 对拍）、collapsed false 不变 Unchecked
 /// （checked claim 数 == 原始 XML checked="true" 数）、typed claims 进 belief。
 /// </summary>
+[Collection("LiveDevice")]
 public sealed class TypedLiveChainTests(ITestOutputHelper output)
 {
     private static bool Enabled =>
@@ -31,11 +32,22 @@ public sealed class TypedLiveChainTests(ITestOutputHelper output)
             return;
         }
 
-        var deviceId = Environment.GetEnvironmentVariable("DSH_TEST_PERCEPTION_DEVICE") ?? "emulator-5554";
+        var selected = LiveDeviceSelector.Resolve();
+        Assert.True(selected.IsUsable, $"{selected.Status}: {selected.Detail}");
+        var deviceId = selected.Serial!;
+        var info = new System.Diagnostics.ProcessStartInfo(
+            "adb", $"-s {deviceId} shell am start -S -a android.settings.WIFI_SETTINGS")
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+        };
+        using var start = System.Diagnostics.Process.Start(info)!;
+        start.WaitForExit();
+        var readyXml = LiveDeviceSelector.WaitForSwitchHierarchy(deviceId);
+        Assert.NotNull(readyXml);
 
         // 1. real XML capture（有界：D8 传输）
-        var (xml, isStructural) = UiAutomatorDump.TryDumpToDevice(deviceId);
-        Assert.True(xml is not null, $"real dump 失败（structural={isStructural}）——本测试要求真机/模拟器");
+        var xml = readyXml;
 
         // 2. metadata 事实：adb getprop 对拍
         var apiLevel = UiAutomatorDump.TryGetApiLevel(deviceId);

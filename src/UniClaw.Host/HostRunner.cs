@@ -35,15 +35,8 @@ public sealed class HostRunner
         // 显式值 = 已验证配置（优先级低于设备实况）。
         int? ViewportWidth = null,
         int? ViewportHeight = null,
-        // PER-014 R3：TargetState 词汇 on/off → checked/unchecked（typed
-        // semantic checked 值域；legacy *.state 仅剩 egress）。
+        // TargetState 使用 typed checked/unchecked 词汇。
         string TargetState = "checked",
-        // PER-014 R5 / PER-012 M-08：legacy `*.state` 回滚旗（默认关）。关 =
-        // 正常 typed run 零 XML role-state 发射（ConflictResolver legacy 路径
-        // 休眠）；开 = MapTargetStateClaim legacy 路由恢复，run 如实标记
-        // legacy/degraded（facts.legacyEgress）。wifi 探针 writer 不受此旗
-        // 影响（单一 producer egress，零生产读者）。
-        bool LegacyStateEgress = false,
         LivePerception.LiveAssets? Live = null,
         Func<AgentDecisionContext, AgentDecision?>? ConsultAgent = null);
 
@@ -82,11 +75,10 @@ public sealed class HostRunner
         {
             ProductAssociationStrategy.ScreenIdentitySubject,
             SharedSubjects.Frame,
-            SharedSubjects.State("switch"),
+            "ui.node.*",
         };
         var liveFeed = new LivePerception.LiveFrameFeed(
-            clock, options.Live, () => LivePerception.LiveFrameFeed.ReadWifiState(options.Live.DeviceId),
-            legacyStateEgress: options.LegacyStateEgress);
+            clock, options.Live, () => LivePerception.LiveFrameFeed.ReadWifiState(options.Live.DeviceId));
         try
         {
             var world = new WorldModel(
@@ -96,8 +88,10 @@ public sealed class HostRunner
             var assurance = new RuntimeAssurance(
                 new ProductFreshnessEvaluator(() => clock.Now, TimeSpan.FromMinutes(5)));
             // journal 必注入（D3）：产品路径不存在「未注入执行源」的默认
+            var deviceId = options.DeviceId
+                ?? throw new InvalidOperationException("ENVIRONMENT_UNAVAILABLE: HostOptions.DeviceId 是必需的。");
             IEffectDriver delivery = new AdbLiveEffectDriver(
-                options.DeviceId ?? "emulator-5554",
+                deviceId,
                 options.ViewportWidth,
                 options.ViewportHeight,
                 adbExecutable: "adb",
@@ -106,8 +100,9 @@ public sealed class HostRunner
             var metrics = new RuntimeStageMetrics();
             var planPolicy = new AgentPlanPolicy();
             var traceScope = RunTraceFactory.BeginRun(new RunCorrelation("host:v0-flip-switch"));
+            var ledger = new EvidenceLedger();
             var kernel = new UniKernel(
-                new EvidenceLedger(), world, traceScope.Trace,
+                ledger, world, traceScope.Trace,
                 new RunModel(), new ControlLoop(planPolicy), assurance, effectBoundary, metrics);
             var driver = new KernelRunDriver(
                 kernel, planPolicy,
@@ -165,9 +160,6 @@ public sealed class HostRunner
                 delivered = drive.DeliveredEffects,
                 receipts,
                 terminal = kernel.IsRunTerminal,
-                // PER-014 R5 / M-08：LegacyStateEgress 旗开启且实际发射过
-                // legacy role-state → run 标记 legacy/degraded（如实留档）。
-                legacyEgress = liveFeed.LegacyEgressObserved,
                 journalBytes = new FileInfo(journalPath).Length,
             };
             var factsJson = JsonSerializer.Serialize(facts, JsonOptions);

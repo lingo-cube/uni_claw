@@ -65,7 +65,7 @@ internal static class DevLoopRunner
         {
             ProductAssociationStrategy.ScreenIdentitySubject,
             SharedSubjects.Frame,
-            SharedSubjects.State("switch"),
+            "switch.state",
         };
         var (nextInput, feedOwner) = makeFeed(clock);
         try
@@ -110,7 +110,7 @@ internal static class DevLoopRunner
                 {
                     new RunObligation(
                         "obj-switch-state", RunObligationKind.Objective,
-                        Subject: SharedSubjects.State("switch"), RequiredValue: targetState, Mandatory: true),
+                        Subject: "switch.state", RequiredValue: targetState, Mandatory: true),
                 }));
             if (!admission.Accepted)
                 throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");

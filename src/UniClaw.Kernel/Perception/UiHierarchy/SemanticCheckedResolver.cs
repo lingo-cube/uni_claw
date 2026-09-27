@@ -88,6 +88,20 @@ internal static class SemanticCheckedResolver
         var associated = nodes
             .Where(node => IsAssociated(node, candidates[0]))
             .ToArray();
+        if (associated.Length > 1)
+        {
+            // Re-observations can retain older capture-local typed nodes while
+            // the current occurrence is re-grounded by geometry. Prefer one
+            // uniquely newest capture; equal-age candidates remain ambiguous.
+            var dated = associated.Where(node => node.CaptureTimestamp is not null).ToArray();
+            if (dated.Length > 0)
+            {
+                var newest = dated.Max(node => node.CaptureTimestamp!.Value);
+                var newestNodes = dated.Where(node => node.CaptureTimestamp == newest).ToArray();
+                if (newestNodes.Length == 1)
+                    associated = newestNodes;
+            }
+        }
         if (associated.Length == 0)
             return Fail(ObservedValue<CheckedState>.Unknown("checked-occurrence-unassociated"));
         if (associated.Length > 1)
@@ -172,6 +186,7 @@ internal static class SemanticCheckedResolver
     {
         public NodeRef Node { get; } = node;
         public List<TypedClaim> Claims { get; } = new();
+        public DateTimeOffset? CaptureTimestamp { get; set; }
         public HashSet<string> EvidenceIds { get; } = new(StringComparer.Ordinal);
         public HashSet<string> ResourceIds { get; } = new(StringComparer.Ordinal);
         public List<BoundsFact> Bounds { get; } = new();
@@ -213,6 +228,7 @@ internal static class SemanticCheckedResolver
                 continue;
             }
             node.EvidenceIds.Add(claim.EvidenceId);
+            node.CaptureTimestamp ??= descriptor?.CaptureTimestamp;
 
             if (field == "checked" && ParseChecked(claim.Value) is { } checkedValue)
             {
@@ -235,7 +251,12 @@ internal static class SemanticCheckedResolver
         TypedNode node,
         OccurrenceBelief occurrence)
     {
-        if (occurrence.EvidenceBasis.Any(node.EvidenceIds.Contains))
+        // An occurrence may carry the evidence id of a non-semantic field
+        // (package/text/bounds) from the same XML capture. That proves the
+        // node was observed, but cannot identify a checked-bearing node by
+        // itself; let the checked-bearing node continue through resource or
+        // geometric association instead of returning no-checked-claim early.
+        if (node.Claims.Count > 0 && occurrence.EvidenceBasis.Any(node.EvidenceIds.Contains))
             return true;
 
         if (occurrence.Native is { Kind: "android.resource-id" } native
@@ -250,14 +271,27 @@ internal static class SemanticCheckedResolver
     private static bool BoundsMatch(SpatialLocator locator, BoundsFact bounds)
     {
         if (bounds.Space is not { PixelWidth: > 0, PixelHeight: > 0 } space
-            || !string.Equals(locator.SpatialFrameId, space.CoordinateSpaceId, StringComparison.Ordinal)
+            || !(string.Equals(locator.SpatialFrameId, space.CoordinateSpaceId, StringComparison.Ordinal)
+                || space.CoordinateSpaceId.StartsWith(locator.SpatialFrameId + ":", StringComparison.Ordinal))
             || !TryParseBounds(bounds.Value, out var x1, out var y1, out var x2, out var y2))
             return false;
-        const double epsilon = 1e-6;
-        return Math.Abs(locator.X1 - x1 / space.PixelWidth) <= epsilon
-            && Math.Abs(locator.Y1 - y1 / space.PixelHeight) <= epsilon
-            && Math.Abs(locator.X2 - x2 / space.PixelWidth) <= epsilon
-            && Math.Abs(locator.Y2 - y2 / space.PixelHeight) <= epsilon;
+        var nx1 = x1 / space.PixelWidth;
+        var ny1 = y1 / space.PixelHeight;
+        var nx2 = x2 / space.PixelWidth;
+        var ny2 = y2 / space.PixelHeight;
+        var ix1 = Math.Max(locator.X1, nx1);
+        var iy1 = Math.Max(locator.Y1, ny1);
+        var ix2 = Math.Min(locator.X2, nx2);
+        var iy2 = Math.Min(locator.Y2, ny2);
+        if (ix2 <= ix1 || iy2 <= iy1)
+            return false;
+        var intersection = (ix2 - ix1) * (iy2 - iy1);
+        var union = (locator.X2 - locator.X1) * (locator.Y2 - locator.Y1)
+            + (nx2 - nx1) * (ny2 - ny1) - intersection;
+        // Vision and UiAutomator are independent captures. Require a strong
+        // geometric join while keeping the existing exact space guard; weaker
+        // overlap remains Unknown rather than selecting a nearby node.
+        return union > 0 && intersection / union >= 0.5;
     }
 
     private static bool TryParseNodeSubject(

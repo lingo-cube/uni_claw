@@ -18,7 +18,16 @@ public sealed class ScreenFrameOccurrenceStrategy : IUiObservationStrategy
     public IReadOnlyList<ProposedOccurrence> Derive(EvidenceRecord record, WorldBeliefRevision? previous)
     {
         if (record.Claim.Subject != "screen.frame")
-            return Array.Empty<ProposedOccurrence>();
+        {
+            // Typed hierarchy fields arrive as separate evidence records after
+            // the frame that established the actionable occurrence. Preserve
+            // that occurrence while the capture-local claims are reconciled;
+            // dropping it would make the typed resolver lose its referent.
+            return previous?.Occurrences?.Select(o => new ProposedOccurrence(
+                o.OwningContainerId, o.Role, o.SemanticDescriptor, o.State,
+                o.Locator, o.Native, o.Space)).ToArray()
+                ?? Array.Empty<ProposedOccurrence>();
+        }
 
         using var document = JsonDocument.Parse(record.Claim.Value);
         var entry = document.RootElement;

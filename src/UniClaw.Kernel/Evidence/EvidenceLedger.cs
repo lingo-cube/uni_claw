@@ -61,6 +61,9 @@ public sealed class EvidenceLedger
             new("canonicalization", integrityPassed && provenance is not null),
         };
 
+        var lineage = ValidateLineage(observation);
+        checks.Add(new("lineage-valid", lineage.Valid));
+
         AdmissionRecord admission;
         if (checks.All(c => c.Passed))
         {
@@ -69,7 +72,13 @@ public sealed class EvidenceLedger
             {
                 record = new EvidenceRecord(
                     id, observation.Claim!, observation.Kind, observation.Context,
-                    observation.Provenance!);
+                    observation.Provenance!)
+                {
+                    DerivedFromEvidenceIds = observation.DerivedFromEvidenceIds,
+                    TransitiveEvidenceBasis = observation.TransitiveEvidenceBasis,
+                    FusionRule = observation.FusionRule,
+                    FusionVersion = observation.FusionVersion,
+                };
                 _canonicalRecords[id] = record;
             }
             admission = new AdmissionRecord(AdmissionDecision.Accepted, checks, id, RejectionReason: null);
@@ -79,7 +88,9 @@ public sealed class EvidenceLedger
 
         admission = new AdmissionRecord(
             AdmissionDecision.Rejected, checks, EvidenceId: null,
-            RejectionReason: checks.First(c => !c.Passed).Name);
+            RejectionReason: !lineage.Valid
+                ? "MalformedLineage"
+                : checks.First(c => !c.Passed).Name);
         _admissionLog.Add(admission);
         return (admission, Record: null);
     }
@@ -108,7 +119,90 @@ public sealed class EvidenceLedger
             canonical += '\x1F' + hierarchy.RenderCanonical();
         }
 
+        if (observation.DerivedFromEvidenceIds is { Count: > 0 })
+        {
+            canonical += '\x1F' + string.Join('\x1E', observation.DerivedFromEvidenceIds
+                .OrderBy(id => id, StringComparer.Ordinal));
+            canonical += '\x1F' + string.Join('\x1E', observation.TransitiveEvidenceBasis
+                .OrderBy(id => id, StringComparer.Ordinal));
+            canonical += '\x1F' + (observation.FusionRule ?? "-");
+            canonical += '\x1F' + (observation.FusionVersion ?? "-");
+        }
+
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(canonical));
         return "ev-" + Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    private sealed record LineageValidation(bool Valid);
+
+    /// <summary>
+    /// Validates typed derived lineage before a proposal can become canonical.
+    /// Parent ids are resolved only against already-admitted records; lineage
+    /// strings are deliberately not interpreted as graph edges.
+    /// </summary>
+    private LineageValidation ValidateLineage(ObservationProposal observation)
+    {
+        var parents = observation.DerivedFromEvidenceIds ?? Array.Empty<string>();
+        var declaredBasis = observation.TransitiveEvidenceBasis
+            ?? new HashSet<string>(StringComparer.Ordinal);
+        var hasDerivedMetadata = parents.Count > 0
+            || declaredBasis.Count > 0
+            || observation.FusionRule is not null
+            || observation.FusionVersion is not null;
+
+        if (!hasDerivedMetadata)
+            return new(true);
+
+        if (observation.Claim is null || observation.Provenance is null)
+            return new(false);
+
+        if (parents.Count == 0
+            || parents.Any(string.IsNullOrWhiteSpace)
+            || parents.Distinct(StringComparer.Ordinal).Count() != parents.Count
+            || declaredBasis.Count == 0
+            || string.IsNullOrWhiteSpace(observation.FusionRule)
+            || string.IsNullOrWhiteSpace(observation.FusionVersion))
+            return new(false);
+
+        var candidateId = ComputeEvidenceId(observation);
+        if (parents.Contains(candidateId, StringComparer.Ordinal)
+            || declaredBasis.Contains(candidateId, StringComparer.Ordinal))
+            return new(false);
+
+        var leaves = new HashSet<string>(StringComparer.Ordinal);
+        var visiting = new HashSet<string>(StringComparer.Ordinal);
+
+        bool Visit(string id)
+        {
+            if (!_canonicalRecords.TryGetValue(id, out var parent))
+                return false; // missing parent
+            if (!visiting.Add(id))
+                return false; // ancestry cycle
+
+            var parentIds = parent.DerivedFromEvidenceIds ?? Array.Empty<string>();
+            if (parentIds.Count == 0)
+            {
+                leaves.Add(id);
+                visiting.Remove(id);
+                return true;
+            }
+
+            foreach (var parentId in parentIds)
+            {
+                if (parentId == candidateId || !Visit(parentId))
+                    return false;
+            }
+
+            visiting.Remove(id);
+            return true;
+        }
+
+        foreach (var parentId in parents)
+        {
+            if (!Visit(parentId))
+                return new(false);
+        }
+
+        return new(leaves.SetEquals(declaredBasis));
     }
 }

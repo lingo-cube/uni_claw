@@ -16,7 +16,7 @@ namespace UniClaw.Host;
 ///   （checkable 是 checked 的 validity guard，非状态）；bounds=空间证据；
 ///   resource-id/class/package=身份证据。
 /// 全部字段以 ui.node.* 私有命名空间落 claim（证据细节层）；共享层
-/// （*.state 等）由消费方按 IdentityMatched 解析后映射，解析器不做裁决。
+/// 由消费方按 IdentityMatched 解析后映射，解析器不做裁决。
 /// </summary>
 public static class UiAutomatorDump
 {
@@ -183,91 +183,6 @@ public static class UiAutomatorDump
                 return null;
         }
         return count == 1 ? hit : null;
-    }
-
-    /// <summary>
-    /// P-3（评审修复）：跨源碰头——目标 bounds 与 XML 节点空间映射。
-    /// 唯一最佳重叠（IoU ≥ 0.5 且领先次名 ≥ 0.25 余量）且 checkable=true
-    /// （D12 guard）时，产 {role}.state 共享 claim（producer=XML），值域
-    /// {on,off,partial}；lineage 携带 C-1 Kernel 侧裁决所需快照
-    /// （xml-map:{localId} / xml-checkable / xml-unique）。非唯一/不重叠/
-    /// 非 checkable → null（缺席即数据，不映射不裁决）。
-    /// </summary>
-    public static ObservationProposal? MapTargetStateClaim(
-        DumpResult dump,
-        string role,
-        (double X1, double Y1, double X2, double Y2) targetNormalizedBounds,
-        int viewportWidth,
-        int viewportHeight,
-        DateTimeOffset captureTime,
-        ObservationContext context)
-    {
-        ArgumentNullException.ThrowIfNull(dump);
-
-        NodeInfo? best = null;
-        var bestOverlap = 0.0;
-        var secondBest = 0.0;
-        foreach (var node in dump.Nodes)
-        {
-            var overlap = NormalizedOverlap(node, targetNormalizedBounds, viewportWidth, viewportHeight);
-            if (overlap > bestOverlap)
-            {
-                secondBest = bestOverlap;
-                bestOverlap = overlap;
-                best = node;
-            }
-            else if (overlap > secondBest)
-            {
-                secondBest = overlap;
-            }
-        }
-
-        if (best is null || bestOverlap < 0.5 || bestOverlap - secondBest < 0.25)
-            return null; // 非唯一/不重叠：不映射
-        if (!best.Checkable)
-            return null; // D12 guard：checkable=false 时 checked 不具权威
-
-        var value = best.Checked switch { "true" => "on", "false" => "off", var v => v };
-        var subject = $"{role}.state";
-        return new ObservationProposal(
-            new ObservationClaim(subject, value),
-            IngressKind.Observation,
-            context,
-            new Provenance(Producer, captureTime, $"scope:{subject}",
-                new[] { $"xml-map:{best.LocalId}", $"xml-checkable:{best.Checkable}", "xml-unique:true" }));
-    }
-
-    /// <summary>节点 bounds（px）归一化后与目标 bounds 的 IoU；解析失败 = 0。</summary>
-    private static double NormalizedOverlap(
-        NodeInfo node,
-        (double X1, double Y1, double X2, double Y2) target,
-        int viewportWidth,
-        int viewportHeight)
-    {
-        var parts = node.Bounds.Split(',');
-        if (parts.Length != 4
-            || !double.TryParse(parts[0], out var x1) || !double.TryParse(parts[1], out var y1)
-            || !double.TryParse(parts[2], out var x2) || !double.TryParse(parts[3], out var y2))
-            return 0;
-        if (viewportWidth <= 0 || viewportHeight <= 0 || x2 <= x1 || y2 <= y1)
-            return 0;
-
-        var nx1 = x1 / viewportWidth;
-        var ny1 = y1 / viewportHeight;
-        var nx2 = x2 / viewportWidth;
-        var ny2 = y2 / viewportHeight;
-
-        var ix1 = Math.Max(nx1, target.X1);
-        var iy1 = Math.Max(ny1, target.Y1);
-        var ix2 = Math.Min(nx2, target.X2);
-        var iy2 = Math.Min(ny2, target.Y2);
-        if (ix2 <= ix1 || iy2 <= iy1)
-            return 0;
-        var intersection = (ix2 - ix1) * (iy2 - iy1);
-        var union = (nx2 - nx1) * (ny2 - ny1)
-                    + (target.X2 - target.X1) * (target.Y2 - target.Y1)
-                    - intersection;
-        return union <= 0 ? 0 : intersection / union;
     }
 
     internal static string Sanitize(string resourceId)
@@ -446,7 +361,8 @@ public static class UiAutomatorDump
             SessionCorrelation: parseContext.SessionCorrelation,
             ObservationCycleId: parseContext.ObservationCycleId,
             Capabilities: capabilities,
-            Coverage: new HierarchyCoverage(CoverageCompleteness.CompleteWithinDeclaredSurface));
+            Coverage: new HierarchyCoverage(CoverageCompleteness.CompleteWithinDeclaredSurface),
+            Space: parseContext.Space);
 
         var nodes = new List<UiNodeObservation>();
         var localIndex = 0;
@@ -642,26 +558,9 @@ public static class UiAutomatorDump
         }
     }
 
-    /// <summary>
-    /// PER-013 Slice E（M-06）：live feed XML 证据的组合面——typed 路由
-    /// （per-node occurrence-qualified claims）完全替代 legacy `dump.Claims`
-    /// per-node 通道（observer 级 cutover；`ui.node.*` 零决策消费方，reader
-    /// inventory 见 changes/PER-013）。legacy `*.state` 映射 claim
-    /// （effect-critical，PER-012 egress surface）按原相位规则保留——两类
-    /// 路由各只产各的 subject，无 dual-read。
-    /// typed 路由不可用（xml 缺席 / typedContext null，如 API level 未知）→
-    /// per-node 证据诚实缺席，不回退 legacy 通道（rollback = routing-only，
-    /// 须显式并标 legacy/degraded）。
-    /// </summary>
-    /// <param name="xml">原始 dump XML（null = 本次无 XML）。</param>
-    /// <param name="mappedLegacyStateClaim">MapTargetStateClaim 输出（legacy 路由）。</param>
-    /// <param name="isPostPhase">post-action 相位（initial 相位才并置映射 claim）。</param>
-    /// <param name="typedContext">typed 解析上下文（null = typed 路由不可用）。</param>
-    /// <param name="context">观察上下文。</param>
+    /// <summary>Compose only typed XML hierarchy evidence.</summary>
     internal static ObservationProposal[] ComposeXmlEvidence(
         string? xml,
-        ObservationProposal? mappedLegacyStateClaim,
-        bool isPostPhase,
         UiHierarchyParseContext? typedContext,
         ObservationContext context)
     {
@@ -672,10 +571,6 @@ public static class UiAutomatorDump
             extras.AddRange(TypedHierarchyProposalProjector.Project(observation, context));
         }
 
-        if (!isPostPhase && mappedLegacyStateClaim is { } mapped)
-        {
-            extras.Add(mapped);
-        }
 
         return extras.ToArray();
     }

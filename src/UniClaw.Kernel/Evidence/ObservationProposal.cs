@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 namespace UniClaw.Kernel.Evidence;
 
 /// <summary>观察声明：某 producer 断言某 subject 具有某 value。</summary>
@@ -41,4 +43,25 @@ public sealed record ObservationProposal(
     ObservationClaim Claim,
     IngressKind Kind,
     ObservationContext Context,
-    Provenance? Provenance);
+    Provenance? Provenance)
+{
+    /// <summary>
+    /// Immediate source EvidenceIds consumed by a derived proposal. Empty means
+    /// this is a direct source observation. Parent references are validated by
+    /// the Evidence Ledger; TransformationLineage remains diagnostic only.
+    /// </summary>
+    public IReadOnlyList<string> DerivedFromEvidenceIds { get; init; } = Array.Empty<string>();
+
+    /// <summary>
+    /// Deduplicated source-leaf closure for the proposal. The Ledger recomputes
+    /// the closure and rejects mismatches before canonical admission.
+    /// </summary>
+    public IReadOnlySet<string> TransitiveEvidenceBasis { get; init; } =
+        FrozenSet<string>.Empty;
+
+    /// <summary>Fusion rule identity carried as provenance metadata.</summary>
+    public string? FusionRule { get; init; }
+
+    /// <summary>Fusion rule version carried as provenance metadata.</summary>
+    public string? FusionVersion { get; init; }
+}
