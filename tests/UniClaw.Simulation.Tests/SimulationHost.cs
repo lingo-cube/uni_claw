@@ -195,8 +195,11 @@ internal sealed class SimulationHost
 
         // SIM-001：缝注入旋钮（null = 工厂默认，向后兼容）
         var seams = options.Seams;
+        var relevanceScope = new HashSet<string>(bundle.Contract.Scope!, StringComparer.Ordinal);
+        foreach (var frame in bundle.Stimuli.OfType<ScenarioStimulus.ObservationFrame>())
+            relevanceScope.UnionWith(ScenarioPerceptionAdapter.TypedSubjects(frame));
         var world = new WorldModel(
-            bundle.Contract.Scope!,
+            relevanceScope,
             seams?.Association ?? new SeedingAssociationStrategy(),
             seams?.Observation ?? new ReplayFrameObservationStrategy(),
             seams?.Continuity);

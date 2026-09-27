@@ -55,6 +55,9 @@ public sealed class ReplayFrameObservationStrategy : IUiObservationStrategy
             var role = entry.TryGetProperty("role", out var roleProperty) && roleProperty.GetString() is { Length: > 0 } roleValue
                 ? roleValue
                 : cls;
+            var resourceId = entry.TryGetProperty("rid", out var resourceProperty)
+                ? resourceProperty.GetString()
+                : null;
             string? state = entry.TryGetProperty("st", out var stateProperty)
                 ? stateProperty.GetString()
                 : null;
@@ -64,7 +67,9 @@ public sealed class ReplayFrameObservationStrategy : IUiObservationStrategy
                 owner, role, SemanticDescriptor: null, State: state,
                 Locator: new SpatialLocator(bounds[0], bounds[1], bounds[2], bounds[3],
                     AdbEffectDriver.SupportedFrame),
-                Native: null));
+                Native: string.IsNullOrWhiteSpace(resourceId)
+                    ? null
+                    : new NativeLocator("android.resource-id", resourceId)));
         }
         return occurrences;
     }

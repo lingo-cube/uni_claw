@@ -58,7 +58,7 @@ public sealed class Per014CutoverTests
         {
             ["ui.node.cap-1#0.checked"] = TypedClaim("checked", "ev-typed-0000001"),
             ["rendered.toggleAppearance"] = PlainClaim("off", "ev-rendered-0001"),
-        }, Occ());
+        }, Occ(evidenceBasis: new[] { "ev-typed-0000001" }));
 
         var resolution = SemanticCheckedResolver.ResolveDetailed(belief, Switch);
 
@@ -91,8 +91,8 @@ public sealed class Per014CutoverTests
         var typedSubject = "ui.node.cap-t7#0.checked";
         var kernel = ComposeTypedKernel(typedSubject, includeLegacySubject: false);
 
+        kernel.Process(FrameProposal());
         kernel.Process(TypedCheckedProposal(typedSubject, "checked", T0.AddSeconds(1)));
-        kernel.Process(FrameProposal()); // 帧批尾：occurrence 载体 revision
 
         // verification：typed 唯一证据源即通过（typed route 四门全过、值相等）。
         var verification = kernel.VerifyPostActionEffect(
@@ -112,8 +112,8 @@ public sealed class Per014CutoverTests
         var legacySubject = SharedSubjects.State("switch");
         var kernel = ComposeTypedKernel(typedSubject, includeLegacySubject: true);
 
-        kernel.Process(TypedCheckedProposal(typedSubject, "unchecked", T0.AddSeconds(1)));
         kernel.Process(FrameProposal());
+        kernel.Process(TypedCheckedProposal(typedSubject, "unchecked", T0.AddSeconds(1)));
         var before = kernel.UnsatisfiedMandatoryObligations();
         var semanticBefore = SemanticCheckedResolver.Resolve(
             kernel.CurrentBelief!, Switch);
@@ -122,6 +122,7 @@ public sealed class Per014CutoverTests
         // 帧批尾跟随（revision-local occurrence 语义）。
         kernel.Process(PlainProposal(legacySubject, "on", "host.live", T0));
         kernel.Process(FrameProposal());
+        kernel.Process(TypedCheckedProposal(typedSubject, "unchecked", T0.AddSeconds(2)));
 
         var after = kernel.UnsatisfiedMandatoryObligations();
 
@@ -332,8 +333,9 @@ public sealed class Per014CutoverTests
             new(DispatchOutcome.DeliveryCompleted, "test", T0);
     }
 
-    private static OccurrenceBelief Occ(string role = "switch") =>
-        new("occ-1", null, role, null, Array.Empty<string>());
+    private static OccurrenceBelief Occ(
+        string role = "switch", IReadOnlyList<string>? evidenceBasis = null) =>
+        new("occ-1", null, role, null, evidenceBasis ?? Array.Empty<string>());
 
     private static WorldBeliefRevision Belief(
         IReadOnlyDictionary<string, WorldClaim> worldState,
@@ -386,12 +388,22 @@ public sealed class Per014CutoverTests
 
     /// <summary>测试侧 occurrence 策略：从 screen.frame 帧派生 switch occurrence
     ///（与 Per009RemediationTests 同一机械）。</summary>
-    private sealed class FrameSeededOccurrenceStrategy : IUiObservationStrategy
+    private sealed class FrameSeededOccurrenceStrategy(bool associateTyped = true) : IUiObservationStrategy
     {
         public IReadOnlyList<ProposedOccurrence> Derive(EvidenceRecord record, WorldBeliefRevision? previous)
         {
             if (record.Claim.Subject != SharedSubjects.Frame)
+            {
+                if (associateTyped && record.Claim.Subject.StartsWith("ui.node.", StringComparison.Ordinal)
+                    && previous?.Occurrences is { Count: 1 } prior
+                    && prior[0].Role == "switch")
+                {
+                    return new[] { new ProposedOccurrence(
+                        prior[0].OwningContainerId, prior[0].Role, prior[0].SemanticDescriptor,
+                        prior[0].State, prior[0].Locator, prior[0].Native, prior[0].Space) };
+                }
                 return Array.Empty<ProposedOccurrence>();
+            }
             var owner = previous?.Containers.Count == 1 ? previous.Containers[0].Identity.ContainerId : null;
             return new[]
             {

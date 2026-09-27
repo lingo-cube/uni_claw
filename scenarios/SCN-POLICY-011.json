@@ -34,7 +34,7 @@
     "schemaVersion": 2,
     "expectationsDigest": "400b1755b0e41e92f3af95979a13117a0329550c4907c34c39fe755e049fd778",
     "executionDigest": "eb39919ae14f4cc3f8de9a70819e8fd94a8776d2906a21fae4d4d9b774857378",
-    "runtimeSourceHash": "ce43a082c230ead7d952a1d866eead0f9cfc5613884d58b323c231ba7d8864d7",
+    "runtimeSourceHash": "c25827a43ea81752cc5e578cae8a441dd710c1addf38e15524662a032e43b947",
     "certifiedByChange": "PER-014",
     "certifiedAt": "2026-09-27"
   },

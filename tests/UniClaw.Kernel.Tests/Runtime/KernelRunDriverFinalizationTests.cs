@@ -22,6 +22,7 @@ namespace UniClaw.Kernel.Tests.Runtime;
 public sealed class KernelRunDriverFinalizationTests
 {
     private static readonly DateTimeOffset T0 = new(2026, 9, 24, 9, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset T1 = new(2026, 9, 24, 9, 5, 0, TimeSpan.Zero);
 
     private sealed class AlwaysFresh : IFreshnessEvaluator
     {
@@ -59,8 +60,17 @@ public sealed class KernelRunDriverFinalizationTests
     /// <summary>状态化 occurrence 世界（同 KernelRunDriverTests 约定）。</summary>
     private sealed class StatefulObservationStrategy(string? owner = null) : IUiObservationStrategy
     {
-        public IReadOnlyList<ProposedOccurrence> Derive(EvidenceRecord record, WorldBeliefRevision? previous) =>
-            record.Claim.Value.Split('+', StringSplitOptions.RemoveEmptyEntries)
+        public IReadOnlyList<ProposedOccurrence> Derive(EvidenceRecord record, WorldBeliefRevision? previous)
+        {
+            if (record.Claim.Subject.StartsWith("ui.node.", StringComparison.Ordinal)
+                && previous?.Occurrences is { Count: > 0 } prior)
+            {
+                return prior.Select(o => new ProposedOccurrence(
+                    owner, o.Role, o.SemanticDescriptor, o.State,
+                    o.Locator, o.Native, o.Space)).ToArray();
+            }
+
+            return record.Claim.Value.Split('+', StringSplitOptions.RemoveEmptyEntries)
                 .Select(segment =>
                 {
                     var roleParts = segment.Split(':', 2);
@@ -68,9 +78,13 @@ public sealed class KernelRunDriverFinalizationTests
                     return new ProposedOccurrence(
                         owner, roleParts[0],
                         descParts.Length == 2 ? descParts[0] : null,
-                        descParts.Length == 2 ? descParts[1] : null);
+                        descParts.Length == 2 ? descParts[1] : null,
+                        Native: roleParts[0] == "switch" && descParts.Length == 2 && descParts[0] == "primary"
+                            ? new NativeLocator("android.resource-id", "switch-primary")
+                            : null);
                 })
                 .ToArray();
+        }
     }
 
     private static string ProbeContainerId(string seedValue)
@@ -111,6 +125,22 @@ public sealed class KernelRunDriverFinalizationTests
                 UniClaw.Kernel.Perception.UiHierarchy.CoverageCompleteness.CompleteWithinDeclaredSurface,
                 CoverageLimitation: null, NodeLocalIndex: 0, ParentLocalIndex: null,
                 Field: "checked")));
+
+    private static ObservationProposal TypedResourceClaim(DateTimeOffset t) => new(
+        new ObservationClaim("ui.node.cap-x#0.resource_id", "switch-primary"),
+        IngressKind.Observation, ObservationContext.PostActionEffectFlow,
+        new Provenance(
+            UniClaw.Kernel.Perception.UiHierarchy.TypedHierarchyProposalProjector.Producer, t,
+            "scope:ui.node.cap-x#0.resource_id",
+            new[] { UniClaw.Kernel.Perception.UiHierarchy.TypedHierarchyProposalProjector.LineageMarker },
+            Hierarchy: new UniClaw.Kernel.Perception.UiHierarchy.HierarchyCaptureDescriptor(
+                CaptureId: "cap-x", AndroidApiLevel: 34,
+                UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyAcquirerKind.LegacyUiAutomatorXml, "1.0",
+                UniClaw.Kernel.Perception.UiHierarchy.UiHierarchyFormat.UiAutomatorXml, "dev-1", "sess-1",
+                ObservationCycleId: null, CaptureTimestamp: t, CaptureDuration: null,
+                UniClaw.Kernel.Perception.UiHierarchy.HierarchyCapability.CheckedBooleanCollapsed,
+                UniClaw.Kernel.Perception.UiHierarchy.CoverageCompleteness.CompleteWithinDeclaredSurface,
+                CoverageLimitation: null, NodeLocalIndex: 0, ParentLocalIndex: null, Field: "resource_id")));
 
     private static (UniKernel Kernel, KernelRunDriver Driver, AgentPlanPolicy Plan) ComposeOccurrenceWorld(
         Func<ObservationDirective, RunDriverInput?> nextInput,
@@ -272,8 +302,8 @@ public sealed class KernelRunDriverFinalizationTests
                 })
                 : new RunDriverInput.Observation(new[]
                 {
-                    TypedCheckedClaim("checked", UIWorldDoubles.T1),
                     PostActionObservation("switch:primary@on", UIWorldDoubles.T1),
+                    TypedCheckedClaim("checked", T1),
                 }),
             consultFactory: k => ctx =>
             {
@@ -298,7 +328,6 @@ public sealed class KernelRunDriverFinalizationTests
                 new[] { new RunObligation("obl-x", RunObligationKind.MaterialEffect, "x.state", "done", true) }));
 
         var result = driver.Drive();
-
         Assert.Equal(RunDriveStatus.Completed, result.Status);
         Assert.Equal(2, consults);
         var claim = kernel.CurrentBelief!.WorldState["x.state"];
@@ -415,10 +444,11 @@ public sealed class KernelRunDriverFinalizationTests
                 // 第二步验证需要新 revision 才能过 post-action-reconciled 门
                 : new RunDriverInput.Observation(new[]
                 {
-                    TypedCheckedClaim("checked", UIWorldDoubles.T1.AddSeconds(postPulls)),
-                    PostActionObservation(
-                        $"switch:primary@on+menuItem:list@{(++postPulls == 1 ? "visible" : "visited")}",
-                        UIWorldDoubles.T1.AddSeconds(postPulls)),
+                        PostActionObservation(
+                            $"switch:primary@on+menuItem:list@{(++postPulls == 1 ? "visible" : "visited")}",
+                            UIWorldDoubles.T1.AddSeconds(postPulls)),
+                        TypedCheckedClaim("checked", T1.AddSeconds(postPulls)),
+                        TypedResourceClaim(T1.AddSeconds(postPulls)),
                 }),
             consultFactory: _ => ctx =>
             {
@@ -439,7 +469,7 @@ public sealed class KernelRunDriverFinalizationTests
             },
             new ExecutionContract(
                 "ms-v1", "traverse",
-                new HashSet<string> { UIWorldDoubles.Observed },
+                new HashSet<string> { UIWorldDoubles.Observed, "ui.node.cap-x#0.resource_id" },
                 new HashSet<string> { "toggle", "tap" }, new HashSet<string>(),
                 new[] { "objective" },
                 new[]
@@ -523,8 +553,8 @@ public sealed class KernelRunDriverFinalizationTests
                 : postActionArrived
                     ? new RunDriverInput.Observation(new[]
                     {
-                        TypedCheckedClaim("checked", UIWorldDoubles.T1),
                         PostActionObservation("switch:primary@on", UIWorldDoubles.T1),
+                        TypedCheckedClaim("checked", T1),
                     })
                     : null,
             consultFactory: _ => ctx =>

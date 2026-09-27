@@ -28,8 +28,9 @@ public sealed class SemanticCheckedResolverTests
             Conflicts: Array.Empty<Conflict>(),
             Occurrences: occurrences);
 
-    private static OccurrenceBelief Occ(string role = "switch") =>
-        new("occ-1", null, role, null, Array.Empty<string>());
+    private static OccurrenceBelief Occ(
+        string role = "switch", IReadOnlyList<string>? evidenceBasis = null) =>
+        new("occ-1", null, role, null, evidenceBasis ?? Array.Empty<string>());
 
     private static WorldClaim Claim(string value, string evidenceId) =>
         new(value, evidenceId, TypedHierarchyProposalProjector.Producer);
@@ -37,7 +38,8 @@ public sealed class SemanticCheckedResolverTests
     private static EvidenceRecord TypedRecord(
         string subject, string value, string evidenceId,
         HierarchyCapability capabilities,
-        DateTimeOffset? captureTimestamp = null) =>
+        DateTimeOffset? captureTimestamp = null,
+        string captureId = "cap-1", int nodeLocalIndex = 0) =>
         new(evidenceId,
             new ObservationClaim(subject, value),
             IngressKind.Observation, ObservationContext.External,
@@ -45,7 +47,7 @@ public sealed class SemanticCheckedResolverTests
                 TypedHierarchyProposalProjector.Producer, T0, $"scope:{subject}",
                 new[] { TypedHierarchyProposalProjector.LineageMarker },
                 Hierarchy: new HierarchyCaptureDescriptor(
-                    CaptureId: "cap-1", AndroidApiLevel: 34,
+                    CaptureId: captureId, AndroidApiLevel: 34,
                     UiHierarchyAcquirerKind.LegacyUiAutomatorXml, "1.0",
                     UiHierarchyFormat.UiAutomatorXml, "dev-1", "sess-1",
                     ObservationCycleId: null,
@@ -53,7 +55,7 @@ public sealed class SemanticCheckedResolverTests
                     CaptureDuration: null, capabilities,
                     CoverageCompleteness.CompleteWithinDeclaredSurface,
                     CoverageLimitation: null,
-                    NodeLocalIndex: 0, ParentLocalIndex: null, Field: "checked")));
+                    NodeLocalIndex: nodeLocalIndex, ParentLocalIndex: null, Field: "checked")));
 
     [Fact]
     public void T1_CheckedClaim_ResolvesChecked()
@@ -65,7 +67,7 @@ public sealed class SemanticCheckedResolverTests
             {
                 ["ui.node.cap-1#0.checked"] = Claim("checked", "ev-checked-0001"),
             },
-            Occ());
+            Occ(evidenceBasis: new[] { "ev-checked-0001" }));
 
         var resolution = SemanticCheckedResolver.ResolveDetailed(belief, Switch, Canonical(record));
 
@@ -85,7 +87,7 @@ public sealed class SemanticCheckedResolverTests
             {
                 ["ui.node.cap-1#0.checked"] = Claim("unchecked", "ev-unchecked-01"),
             },
-            Occ());
+            Occ(evidenceBasis: new[] { "ev-unchecked-01" }));
 
         var resolution = SemanticCheckedResolver.ResolveDetailed(belief, Switch, Canonical(record));
 
@@ -103,7 +105,7 @@ public sealed class SemanticCheckedResolverTests
             {
                 ["ui.node.cap-1#0.checked"] = Claim("partial", "ev-partial-0001"),
             },
-            Occ());
+            Occ(evidenceBasis: new[] { "ev-partial-0001" }));
 
         var resolution = SemanticCheckedResolver.ResolveDetailed(belief, Switch, Canonical(record));
 
@@ -144,9 +146,9 @@ public sealed class SemanticCheckedResolverTests
 
         // capture mismatch：无 canonical 时序且多 capture 并存 → 不猜新旧
         var old = TypedRecord("ui.node.cap-old#0.checked", "checked", "ev-cap-old-0001",
-            HierarchyCapability.CheckedBooleanCollapsed);
+            HierarchyCapability.CheckedBooleanCollapsed, captureId: "cap-old");
         var newRecord = TypedRecord("ui.node.cap-new#0.checked", "checked", "ev-cap-new-0001",
-            HierarchyCapability.CheckedBooleanCollapsed, T0.AddSeconds(1));
+            HierarchyCapability.CheckedBooleanCollapsed, T0.AddSeconds(1), captureId: "cap-new");
         var mismatch = SemanticCheckedResolver.Resolve(
             Belief(
                 new Dictionary<string, WorldClaim>
@@ -157,7 +159,7 @@ public sealed class SemanticCheckedResolverTests
                 Occ()),
             Switch);
         Assert.Equal(FieldState.Unknown, mismatch.State);
-        Assert.Equal("checked-claim-ambiguous", mismatch.Reason);
+        Assert.Equal("checked-occurrence-unassociated", mismatch.Reason);
         _ = (old, newRecord);
     }
 
@@ -172,7 +174,7 @@ public sealed class SemanticCheckedResolverTests
             {
                 ["ui.node.cap-1#0.checked"] = Claim("checked", "ev-unsupported1"),
             },
-            Occ());
+            Occ(evidenceBasis: new[] { "ev-unsupported1" }));
 
         var resolution = SemanticCheckedResolver.ResolveDetailed(belief, Switch, Canonical(record));
 
@@ -181,19 +183,98 @@ public sealed class SemanticCheckedResolverTests
     }
 
     [Fact]
+    public void Association_TargetA_ResolvesOnlyCheckedClaimA()
+    {
+        var a = TypedRecord("ui.node.cap-1#0.checked", "checked", "ev-a-0001",
+            HierarchyCapability.CheckedBooleanExact);
+        var b = TypedRecord("ui.node.cap-1#1.checked", "unchecked", "ev-b-0001",
+            HierarchyCapability.CheckedBooleanExact, nodeLocalIndex: 1);
+        var belief = Belief(
+            new Dictionary<string, WorldClaim>
+            {
+                ["ui.node.cap-1#0.checked"] = Claim("checked", "ev-a-0001"),
+                ["ui.node.cap-1#1.checked"] = Claim("unchecked", "ev-b-0001"),
+            },
+            Occ(evidenceBasis: new[] { "ev-a-0001" }));
+
+        var resolution = SemanticCheckedResolver.ResolveDetailed(belief, Switch, Canonical(a, b));
+
+        Assert.Equal(CheckedState.Checked, resolution.Value.Value);
+        Assert.Equal("cap-1", resolution.CaptureId);
+        Assert.Equal("ev-a-0001", resolution.ClaimEvidenceId);
+    }
+
+    [Fact]
+    public void Association_TargetA_DoesNotResolveUnrelatedCheckedClaimB()
+    {
+        var b = TypedRecord("ui.node.cap-1#1.checked", "checked", "ev-b-0002",
+            HierarchyCapability.CheckedBooleanExact, nodeLocalIndex: 1);
+        var belief = Belief(
+            new Dictionary<string, WorldClaim>
+            {
+                ["ui.node.cap-1#1.checked"] = Claim("checked", "ev-b-0002"),
+            },
+            Occ(evidenceBasis: new[] { "ev-target-a" }));
+
+        var resolution = SemanticCheckedResolver.ResolveDetailed(belief, Switch, Canonical(b));
+
+        Assert.Equal(FieldState.Unknown, resolution.Value.State);
+        Assert.Equal("checked-occurrence-unassociated", resolution.Value.Reason);
+    }
+
+    [Fact]
+    public void Association_MultipleCheckedNodes_DoesNotGuess()
+    {
+        var a = TypedRecord("ui.node.cap-1#0.checked", "checked", "ev-a-0003",
+            HierarchyCapability.CheckedBooleanExact);
+        var b = TypedRecord("ui.node.cap-1#1.checked", "unchecked", "ev-b-0003",
+            HierarchyCapability.CheckedBooleanExact, nodeLocalIndex: 1);
+        var belief = Belief(
+            new Dictionary<string, WorldClaim>
+            {
+                ["ui.node.cap-1#0.checked"] = Claim("checked", "ev-a-0003"),
+                ["ui.node.cap-1#1.checked"] = Claim("unchecked", "ev-b-0003"),
+            },
+            Occ(evidenceBasis: new[] { "ev-a-0003", "ev-b-0003" }));
+
+        var resolution = SemanticCheckedResolver.ResolveDetailed(belief, Switch, Canonical(a, b));
+
+        Assert.Equal(FieldState.Unknown, resolution.Value.State);
+        Assert.Equal("checked-occurrence-ambiguous", resolution.Value.Reason);
+    }
+
+    [Fact]
+    public void Association_UniqueVisualOccurrenceWithoutTypedAssociation_IsUnknown()
+    {
+        var record = TypedRecord("ui.node.cap-1#0.checked", "checked", "ev-unrelated-01",
+            HierarchyCapability.CheckedBooleanExact);
+        var belief = Belief(
+            new Dictionary<string, WorldClaim>
+            {
+                ["ui.node.cap-1#0.checked"] = Claim("checked", "ev-unrelated-01"),
+            },
+            Occ());
+
+        var resolution = SemanticCheckedResolver.ResolveDetailed(belief, Switch, Canonical(record));
+
+        Assert.Equal(FieldState.Unknown, resolution.Value.State);
+        Assert.Equal("checked-occurrence-unassociated", resolution.Value.Reason);
+    }
+
+    [Fact]
     public void NewestCapture_Wins_WhenCanonicalTimestampsAvailable()
     {
         var old = TypedRecord("ui.node.cap-old#0.checked", "checked", "ev-cap-old-0001",
-            HierarchyCapability.CheckedBooleanCollapsed, T0);
+            HierarchyCapability.CheckedBooleanCollapsed, T0, captureId: "cap-old");
         var newer = TypedRecord("ui.node.cap-new#0.checked", "unchecked", "ev-cap-new-0002",
-            HierarchyCapability.CheckedBooleanExact, T0.AddSeconds(5));
+            HierarchyCapability.CheckedBooleanExact, T0.AddSeconds(5), captureId: "cap-new");
         var belief = Belief(
             new Dictionary<string, WorldClaim>
             {
                 ["ui.node.cap-old#0.checked"] = Claim("checked", "ev-cap-old-0001"),
                 ["ui.node.cap-new#0.checked"] = Claim("unchecked", "ev-cap-new-0002"),
             },
-            Occ());
+            Occ(evidenceBasis: new[] { "ev-cap-new-0002" }));
         var canonical = Canonical(old, newer);
 
         var resolution = SemanticCheckedResolver.ResolveDetailed(belief, Switch, canonical);

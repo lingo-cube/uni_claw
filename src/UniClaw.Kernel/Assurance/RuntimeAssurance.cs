@@ -47,6 +47,14 @@ public sealed class RuntimeAssurance
     internal IReadOnlyList<PostActionEffectVerification> PostActionVerificationLog =>
         _postActionVerificationLogView;
 
+    internal PostActionEffectVerification RecordPostActionVerification(
+        PostActionEffectVerification verification)
+    {
+        ArgumentNullException.ThrowIfNull(verification);
+        _postActionVerifications.Add(verification);
+        return verification;
+    }
+
     /// <summary>
     /// 不变量 43 的 Assurance 执法点：正确 context 的输入本身不构成验证。
     /// 必须至少有 accepted Evidence、完成一次 reconciliation，并在当前 scoped

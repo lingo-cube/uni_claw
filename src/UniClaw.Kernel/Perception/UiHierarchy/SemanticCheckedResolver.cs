@@ -16,15 +16,14 @@ namespace UniClaw.Kernel.Perception.UiHierarchy;
 /// Join 语义（机械确定性、fail-closed、零猜测）：
 /// ① occurrence 解析：候选恰一才继续；零 → Unknown(occurrence-absent)、
 ///    多 → Unknown(occurrence-ambiguous)（Identity never creates information）；
-/// ② typed checked claims：取 current WorldState 全部 typed checked claims，
-///    claim 值仅接受 checked/unchecked/partial（typed 名，PER-013 投影值域）；
-/// ③ capture 收敛：有 canonical records 时按 provenance.Hierarchy descriptor
-///    的 CaptureTimestamp 取最新 capture（多 capture 并存是常态——旧 capture
-///    的 occurrence-qualified subject 永不删除）；无 canonical（或 descriptor
-///    缺席）时 >1 个 captureId 即 Unknown(checked-claim-ambiguous)；
-/// ④ 唯一性：收敛后 checked claim 恰一才 Observed；多 → Unknown；零 → Unknown
-///   （collapsed capability 下 checked=false 不产 claim——缺席 ≠ Unchecked）；
-/// ⑤ Unsupported：最新 capture 的 capability 元数据声明无 checked 能力
+/// ② association：优先用 occurrence 的 EvidenceBasis 精确关联 typed node；
+///    若该证据带有既有 resource-id 或 bounds association evidence，才允许
+///    对同一 typed node 做确定性碰头。没有 association evidence 不猜；
+/// ③ typed checked claims：关联 node 的 claim 值仅接受 checked/unchecked/partial
+///    （typed 名，PER-013 投影值域）；无关 node 的 claim 永不参与；
+/// ④ 唯一性：关联 node 恰一且 checked claim 恰一才 Observed；多 → Unknown；零
+///    → Unknown（collapsed capability 下 checked=false 不产 claim——缺席 ≠ Unchecked）；
+/// ⑤ Unsupported：关联 node 的 capability 元数据声明无 checked 能力
 ///    （ResolveCheckedCapability() == null）→ Unsupported（capability 缺席
 ///    与本次判定不足分离）。
 ///
@@ -80,61 +79,45 @@ internal static class SemanticCheckedResolver
         if (candidates.Length > 1)
             return Fail(ObservedValue<CheckedState>.Unknown("occurrence-ambiguous"));
 
-        // ② typed checked claims（只认 occurrence-qualified typed 值域）。
-        var claims = belief.WorldState
-            .Where(kv => kv.Key.StartsWith(SubjectPrefix, StringComparison.Ordinal)
-                && kv.Key.EndsWith(CheckedSuffix, StringComparison.Ordinal))
-            .Select(kv => (Subject: kv.Key, Value: ParseChecked(kv.Value.Value), kv.Value.EvidenceId))
-            .Where(c => c.Value is { })
-            .Select(c => new TypedClaim(c.Subject, c.Value!.GetValueOrDefault(), c.EvidenceId))
-            .ToArray();
-        if (claims.Length == 0)
+        // ② association evidence + typed claims。只在既有 occurrence/claim
+        // 证据能确定同一 typed node 时继续；role 全局唯一绝不构成 association。
+        var nodes = BuildTypedNodes(belief, canonical);
+        if (nodes.Count == 0)
             return Fail(ObservedValue<CheckedState>.Unknown("no-checked-claim"));
 
-        // ③ capture 收敛：最新 capture 优先（canonical descriptor 提供时序）。
-        var stamped = new List<(TypedClaim Claim, DateTimeOffset? Timestamp)>();
-        foreach (var claim in claims)
-        {
-            stamped.Add(TryCaptureTimestamp(claim, canonical, out var ts)
-                ? (claim, (DateTimeOffset?)ts)
-                : (claim, null));
-        }
-        DateTimeOffset? newest = stamped
-            .Where(s => s.Timestamp is { })
-            .Select(s => s.Timestamp!.Value)
-            .DefaultIfEmpty(DateTimeOffset.MinValue)
-            .Max();
-        if (newest > DateTimeOffset.MinValue)
-        {
-            stamped = stamped.Where(s => s.Timestamp == newest).ToList();
-        }
-        else
-        {
-            // 无时序可依：多 capture 并存即不可判（不猜新旧）。
-            var captures = stamped.Select(s => CaptureIdOf(s.Claim.Subject)).Distinct().ToArray();
-            if (captures.Length > 1)
-                return Fail(ObservedValue<CheckedState>.Unknown("checked-claim-ambiguous"));
-        }
+        var associated = nodes
+            .Where(node => IsAssociated(node, candidates[0]))
+            .ToArray();
+        if (associated.Length == 0)
+            return Fail(ObservedValue<CheckedState>.Unknown("checked-occurrence-unassociated"));
+        if (associated.Length > 1)
+            return Fail(ObservedValue<CheckedState>.Unknown("checked-occurrence-ambiguous"));
+        var node = associated[0];
+        if (node.Claims.Count == 0)
+            return Fail(ObservedValue<CheckedState>.Unknown("no-checked-claim"));
+        if (node.Claims.Count > 1)
+            return Fail(ObservedValue<CheckedState>.Unknown("checked-claim-ambiguous"));
+        var claim = node.Claims[0];
+        var timestamp = TryCaptureTimestamp(claim, canonical, out var captured)
+            ? (DateTimeOffset?)captured
+            : null;
 
         // ⑤ Unsupported：最新 capture 声明无 checked 能力（capability 缺席）。
-        if (TryCaptureCapability(stamped[^1].Claim, canonical, out var capability)
+        if (TryCaptureCapability(claim, canonical, out var capability)
             && capability is null)
         {
             return new Resolution(
                 ObservedValue<CheckedState>.Unsupported("capability:checked-absent"),
-                CaptureIdOf(stamped[^1].Claim.Subject), newest == DateTimeOffset.MinValue ? null : newest,
+                claim.Node.CaptureId, timestamp,
                 null);
         }
 
         // ④ 唯一性定案。
-        if (stamped.Count > 1)
-            return Fail(ObservedValue<CheckedState>.Unknown("checked-claim-ambiguous"));
-        var resolved = stamped[0];
         return new Resolution(
-            ObservedValue<CheckedState>.Observed(resolved.Claim.Value),
-            CaptureIdOf(resolved.Claim.Subject),
-            newest == DateTimeOffset.MinValue ? null : newest,
-            resolved.Claim.EvidenceId);
+            ObservedValue<CheckedState>.Observed(claim.Value),
+            claim.Node.CaptureId,
+            timestamp,
+            claim.EvidenceId);
     }
 
     private static Resolution Fail(ObservedValue<CheckedState> value) =>
@@ -185,5 +168,129 @@ internal static class SemanticCheckedResolver
         return true;
     }
 
-    private readonly record struct TypedClaim(string Subject, CheckedState Value, string EvidenceId);
+    private sealed class TypedNode(NodeRef node)
+    {
+        public NodeRef Node { get; } = node;
+        public List<TypedClaim> Claims { get; } = new();
+        public HashSet<string> EvidenceIds { get; } = new(StringComparer.Ordinal);
+        public HashSet<string> ResourceIds { get; } = new(StringComparer.Ordinal);
+        public List<BoundsFact> Bounds { get; } = new();
+    }
+
+    private readonly record struct NodeRef(string CaptureId, int LocalIndex);
+
+    private readonly record struct TypedClaim(
+        string Subject, CheckedState Value, string EvidenceId, NodeRef Node);
+
+    private readonly record struct BoundsFact(
+        string Value, CoordinateSpace? Space, string EvidenceId);
+
+    private static IReadOnlyList<TypedNode> BuildTypedNodes(
+        WorldBeliefRevision belief,
+        IReadOnlyDictionary<string, EvidenceRecord>? canonical)
+    {
+        var nodes = new Dictionary<NodeRef, TypedNode>();
+        foreach (var (subject, claim) in belief.WorldState)
+        {
+            if (!TryParseNodeSubject(subject, out var nodeRef, out var field))
+                continue;
+            if (!nodes.TryGetValue(nodeRef, out var node))
+            {
+                node = new TypedNode(nodeRef);
+                nodes.Add(nodeRef, node);
+            }
+
+            EvidenceRecord? evidence = null;
+            if (canonical is not null)
+                canonical.TryGetValue(claim.EvidenceId, out evidence);
+            var descriptor = evidence?.Provenance.Hierarchy;
+            if (descriptor is not null
+                && (descriptor.CaptureId != nodeRef.CaptureId
+                    || descriptor.NodeLocalIndex != nodeRef.LocalIndex))
+            {
+                // Producer metadata 与 occurrence-qualified subject 矛盾：保留
+                // claim 但禁止把这条记录当 association evidence。
+                continue;
+            }
+            node.EvidenceIds.Add(claim.EvidenceId);
+
+            if (field == "checked" && ParseChecked(claim.Value) is { } checkedValue)
+            {
+                node.Claims.Add(new TypedClaim(subject, checkedValue, claim.EvidenceId, nodeRef));
+            }
+            else if (field == "resource_id" && !string.IsNullOrWhiteSpace(claim.Value))
+            {
+                node.ResourceIds.Add(claim.Value);
+            }
+            else if (field == "bounds")
+            {
+                node.Bounds.Add(new BoundsFact(claim.Value, descriptor?.Space, claim.EvidenceId));
+            }
+        }
+
+        return nodes.Values.ToArray();
+    }
+
+    private static bool IsAssociated(
+        TypedNode node,
+        OccurrenceBelief occurrence)
+    {
+        if (occurrence.EvidenceBasis.Any(node.EvidenceIds.Contains))
+            return true;
+
+        if (occurrence.Native is { Kind: "android.resource-id" } native
+            && node.ResourceIds.Contains(native.Value, StringComparer.Ordinal))
+            return true;
+
+        if (occurrence.Locator is not { } locator)
+            return false;
+        return node.Bounds.Any(bounds => BoundsMatch(locator, bounds));
+    }
+
+    private static bool BoundsMatch(SpatialLocator locator, BoundsFact bounds)
+    {
+        if (bounds.Space is not { PixelWidth: > 0, PixelHeight: > 0 } space
+            || !string.Equals(locator.SpatialFrameId, space.CoordinateSpaceId, StringComparison.Ordinal)
+            || !TryParseBounds(bounds.Value, out var x1, out var y1, out var x2, out var y2))
+            return false;
+        const double epsilon = 1e-6;
+        return Math.Abs(locator.X1 - x1 / space.PixelWidth) <= epsilon
+            && Math.Abs(locator.Y1 - y1 / space.PixelHeight) <= epsilon
+            && Math.Abs(locator.X2 - x2 / space.PixelWidth) <= epsilon
+            && Math.Abs(locator.Y2 - y2 / space.PixelHeight) <= epsilon;
+    }
+
+    private static bool TryParseNodeSubject(
+        string subject, out NodeRef node, out string field)
+    {
+        node = default;
+        field = string.Empty;
+        if (!subject.StartsWith(SubjectPrefix, StringComparison.Ordinal))
+            return false;
+        var body = subject[SubjectPrefix.Length..];
+        var hash = body.LastIndexOf('#');
+        var dot = body.LastIndexOf('.');
+        if (hash <= 0 || dot <= hash + 1 || dot == body.Length - 1
+            || !int.TryParse(body[(hash + 1)..dot], out var localIndex))
+            return false;
+        node = new NodeRef(body[..hash], localIndex);
+        field = body[(dot + 1)..];
+        return true;
+    }
+
+    private static bool TryParseBounds(
+        string value, out double x1, out double y1, out double x2, out double y2)
+    {
+        x1 = y1 = x2 = y2 = default;
+        var parts = value.Split(',');
+        return parts.Length == 4
+            && double.TryParse(parts[0], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out x1)
+            && double.TryParse(parts[1], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out y1)
+            && double.TryParse(parts[2], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out x2)
+            && double.TryParse(parts[3], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out y2);
+    }
 }

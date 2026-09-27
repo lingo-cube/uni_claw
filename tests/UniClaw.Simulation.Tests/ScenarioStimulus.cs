@@ -3,6 +3,7 @@ using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
+using UniClaw.Kernel.Perception.UiHierarchy;
 
 namespace UniClaw.Simulation.Tests;
 
@@ -211,8 +212,9 @@ internal sealed class ScenarioPerceptionAdapter
 
         var matched = new HashSet<string>(StringComparer.Ordinal);
         var joined = new List<string>();
-        foreach (var element in frame.ReviewedElements)
+        for (var elementIndex = 0; elementIndex < frame.ReviewedElements.Count; elementIndex++)
         {
+            var element = frame.ReviewedElements[elementIndex];
             var detection = detections.FirstOrDefault(d =>
                 !matched.Contains(d.Id)
                 && (d.X1 + d.X2) / 2 >= element.X1 && (d.X1 + d.X2) / 2 <= element.X2
@@ -223,8 +225,9 @@ internal sealed class ScenarioPerceptionAdapter
             if (!string.IsNullOrEmpty(detection.Id))
                 matched.Add(detection.Id);
             var stateSegment = element.State is null ? "" : $",\"st\":\"{element.State}\"";
+            var resourceId = TypedResourceId(frame.StimulusId, elementIndex);
             joined.Add($"{{\"id\":\"rev-{element.Role}\",\"cls\":\"{(string.IsNullOrEmpty(detection.Id) ? "reviewed" : detection.Cls)}\","
-                + $"\"role\":\"{element.Role}\"{stateSegment},\"b\":[{x1},{y1},{x2},{y2}]}}");
+                + $"\"role\":\"{element.Role}\"{stateSegment},\"rid\":\"{resourceId}\",\"b\":[{x1},{y1},{x2},{y2}]}}");
         }
         foreach (var detection in detections.Where(d => !matched.Contains(d.Id)).OrderBy(d => d.Id, StringComparer.Ordinal))
         {
@@ -246,6 +249,7 @@ internal sealed class ScenarioPerceptionAdapter
                 frame.Context,
                 new Provenance("sim.replay.join", frame.VirtualTime, "scope:live.frame", lineage)),
         };
+        result.AddRange(BuildTypedSemanticProposals(frame, lineage));
         foreach (var claim in frame.ReviewedStateClaims)
         {
             // Scope 缺省 = 既有约定 scope:{subject}（跨帧值变化 → 显式
@@ -259,5 +263,74 @@ internal sealed class ScenarioPerceptionAdapter
                     claim.Scope ?? $"scope:{claim.Subject}", lineage)));
         }
         return result;
+    }
+
+    private static string TypedResourceId(string stimulusId, int localIndex) =>
+        $"sim:{stimulusId}:{localIndex}";
+
+    private static IReadOnlyList<ObservationProposal> BuildTypedSemanticProposals(
+        ScenarioStimulus.ObservationFrame frame, IReadOnlyList<string> lineage)
+    {
+        var captureId = $"sim-capture:{frame.StimulusId}";
+        var metadata = new CaptureMetadata(
+            captureId, 35, UiHierarchyAcquirerKind.AccessibilityNodeInfo,
+            "simulation-typed-fixture/1", UiHierarchyFormat.AccessibilityTree,
+            frame.VirtualTime, null, "simulation", frame.StimulusId, frame.StimulusId,
+            new HierarchyCapabilities(HierarchyCapability.CheckedTriState),
+            new HierarchyCoverage(CoverageCompleteness.CompleteWithinDeclaredSurface));
+        var nodes = frame.ReviewedElements.Select((element, index) =>
+        {
+            var state = CheckedSemantics.FromPresentation(element.State);
+            var provenance = new FieldProvenance(captureId);
+            var x1 = (int)Math.Round(element.X1 * 1080, MidpointRounding.AwayFromZero);
+            var y1 = (int)Math.Round(element.Y1 * 1920, MidpointRounding.AwayFromZero);
+            var x2 = (int)Math.Round(element.X2 * 1080, MidpointRounding.AwayFromZero);
+            var y2 = (int)Math.Round(element.Y2 * 1920, MidpointRounding.AwayFromZero);
+            return new UiNodeObservation(
+                new OccurrenceRef(captureId, index), null, null, index, null,
+                ObservedValue<string>.Observed("simulation.reviewed", provenance),
+                ObservedValue<string>.Observed(TypedResourceId(frame.StimulusId, index), provenance),
+                ObservedValue<string>.Unknown("fixture-omitted", provenance),
+                ObservedValue<string>.Unknown("fixture-omitted", provenance),
+                ObservedValue<string>.Unknown("fixture-omitted", provenance),
+                ObservedValue<string>.Unsupported("capability:hint-absent", provenance),
+                ObservedValue<bool>.Observed(true, provenance),
+                state is { } checkedState
+                    ? ObservedValue<CheckedState>.Observed(checkedState, provenance)
+                    : ObservedValue<CheckedState>.Unknown("state-unresolved", provenance),
+                ObservedValue<bool>.Unknown("fixture-omitted", provenance),
+                ObservedValue<bool>.Unknown("fixture-omitted", provenance),
+                ObservedValue<bool>.Unknown("fixture-omitted", provenance),
+                ObservedValue<bool>.Unknown("fixture-omitted", provenance),
+                ObservedValue<bool>.Unknown("fixture-omitted", provenance),
+                ObservedValue<bool>.Unknown("fixture-omitted", provenance),
+                ObservedValue<bool>.Unknown("fixture-omitted", provenance),
+                ObservedValue<bool>.Observed(true, provenance),
+                ObservedValue<UiBounds>.Observed(new UiBounds(x1, y1, x2, y2), provenance));
+        }).ToArray();
+        var observation = new UiHierarchyObservation(metadata, Array.Empty<UiWindowOccurrence>(), nodes);
+        var context = frame.Context;
+        var projected = TypedHierarchyProposalProjector.Project(observation, context, "sim.typed-hierarchy");
+        return projected
+            .Select(p => p with
+            {
+                Provenance = p.Provenance with
+                {
+                    TransformationLineage = lineage.Concat(p.Provenance.TransformationLineage).ToArray()
+                }
+            }).ToArray();
+    }
+
+    internal static IEnumerable<string> TypedSubjects(ScenarioStimulus.ObservationFrame frame)
+    {
+        var captureId = $"sim-capture:{frame.StimulusId}";
+        var fields = new[] { "class", "resource_id", "checkable", "bounds" };
+        for (var index = 0; index < frame.ReviewedElements.Count; index++)
+        {
+            foreach (var field in fields)
+                yield return $"ui.node.{captureId}#{index}.{field}";
+            if (frame.ReviewedElements[index].State is not null)
+                yield return $"ui.node.{captureId}#{index}.checked";
+        }
     }
 }

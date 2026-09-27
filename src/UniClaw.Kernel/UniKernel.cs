@@ -459,11 +459,20 @@ public sealed class UniKernel
         // PER-014 R2：四门等价的 typed 验证路由——语义 checked 权威域
         // （DesiredState ≠ null）∧ post belief 可经 R1 缝唯一解析目标
         // occurrence 的 typed checked claim ∧ capture 时序在 dispatch 之后
-        // → typed 定案。不过门 / Unknown / Unsupported → 既有 occurrence
-        // 视觉验证路径（typed 失去本次资格 ≠ 视觉必胜；fail-closed）。
-        if (dispatchTime is { } dispatched && TryRouteTypedVerification(
-                target, dispatched) is { } routed)
-            return routed;
+        // → typed 定案。语义权威域一旦启用，门不过 / Unknown / Unsupported
+        // 都只能产生 insufficient evidence，禁止退回 occurrence 视觉状态。
+        if (target.DesiredState is not null)
+        {
+            // Semantic authority remains fail-closed even when the caller did
+            // not provide a dispatch timestamp; do not enter the visual path.
+            var current = _world.Current
+                ?? throw new InvalidOperationException("post-action verification requires current belief");
+            if (dispatchTime is not { } dispatched)
+                return InsufficientTypedVerification(current, target, "dispatch-time-missing");
+            var verification = TryRouteTypedVerification(target, dispatched)
+                ?? InsufficientTypedVerification(current, target, "semantic-checked-unresolved");
+            return Assurance.RecordPostActionVerification(verification);
+        }
 
         var root = _world.Current?.Containers is { Count: 1 } containers
             ? containers[0].Identity.ContainerId
@@ -478,15 +487,15 @@ public sealed class UniKernel
     /// （R1 只读缝）对 post-action belief 解析目标 role 的 typed checked 值。
     /// 四门等价重述：
     /// ① 权威域 = DesiredState ≠ null（Click 型非状态权威域 → 视觉路径）；
-    /// ② 身份唯一 = occurrence 解析恰一（缝内零/多候选 → Unknown → 回视觉）；
+    /// ② 身份唯一 = occurrence 解析恰一（缝内零/多候选 → Unknown → insufficient）；
     /// ③ 属性有效 = typed claim 仅在 parser 能力/ExactProof 执法通过时发射
     ///    （TypedHierarchyProposalProjector fail-closed），Observed 即证明；
-    ///    capability 缺席 → Unsupported → fail-closed 回视觉；
+    ///    capability 缺席 → Unsupported → fail-closed insufficient；
     /// ④ 时序 = capture timestamp 严格晚于 dispatchTime。
     /// 值判定：CheckedState 与 typed DesiredState 相等才 verified；Partial
     /// 不通过且不回视觉（explicit insufficient-evidence）；Unchecked/Checked
-    /// 不等 = 如实未验证（mismatch 留档）。任一 Unknown/Unsupported → 返回
-    /// null 回 occurrence 视觉路径（fail-closed，不猜值）。
+    /// 不等 = 如实未验证（mismatch 留档）。任一 Unknown/Unsupported 或时序
+    /// 门失败都返回 insufficient（fail-closed，不猜值）。
     /// </summary>
     private PostActionEffectVerification? TryRouteTypedVerification(
         TargetSpec target,
@@ -507,13 +516,14 @@ public sealed class UniKernel
 
         // 门②/③：occurrence 唯一解析 + typed claim 在案。Unknown（无 claim /
         // 歧义 / capture 不可判）与 Unsupported（capability 缺席）一律
-        // fail-closed 回视觉路径（不猜测、不降级）。
+        // fail-closed 为语义证据不足；不可降级到视觉 State。
         if (!resolution.IsObserved)
-            return null;
+            return InsufficientTypedVerification(current, target,
+                resolution.Value.Reason ?? "semantic-checked-unresolved");
 
         // 门④：时序——capture 必须严格晚于 dispatch（事后新鲜度）。
         if (resolution.CaptureTimestamp is not { } captureTime || captureTime <= dispatchTime)
-            return null;
+            return InsufficientTypedVerification(current, target, "capture-not-after-dispatch");
 
         var resolved = resolution.Value.Value!;
         if (resolved == CheckedState.Partial)
@@ -537,8 +547,23 @@ public sealed class UniKernel
                 new AssuranceCheck("typed-route-four-gates", true),
                 new AssuranceCheck("typed-checked-matches-desired", verified),
             },
-            verified ? null : $"typed-route: resolved={resolved} desired={target.DesiredState}");
+            verified ? null : "post-action-desired-state-not-satisfied");
     }
+
+    private static PostActionEffectVerification InsufficientTypedVerification(
+        WorldBeliefRevision current,
+        TargetSpec target,
+        string reason) =>
+        new(
+            current.RevisionId,
+            target,
+            IsVerified: false,
+            new[]
+            {
+                new AssuranceCheck("typed-route-four-gates", false),
+                new AssuranceCheck("typed-checked-matches-desired", false),
+            },
+            $"typed-route: insufficient-evidence ({reason})");
 
     private RunModel Run => _run ?? throw new InvalidOperationException("Uni Kernel 未组合 Run Model");
 

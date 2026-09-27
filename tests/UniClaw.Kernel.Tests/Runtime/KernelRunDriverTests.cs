@@ -359,8 +359,17 @@ public sealed class KernelRunDriverTests
     /// claim value 片段 "role:descriptor@state"，'+' 连接多 occurrence。</summary>
     private sealed class StatefulObservationStrategy(string? owner = null) : IUiObservationStrategy
     {
-        public IReadOnlyList<ProposedOccurrence> Derive(EvidenceRecord record, WorldBeliefRevision? previous) =>
-            record.Claim.Value.Split('+', StringSplitOptions.RemoveEmptyEntries)
+        public IReadOnlyList<ProposedOccurrence> Derive(EvidenceRecord record, WorldBeliefRevision? previous)
+        {
+            if (record.Claim.Subject.StartsWith("ui.node.", StringComparison.Ordinal)
+                && previous?.Occurrences is { Count: > 0 } prior)
+            {
+                return prior.Select(o => new ProposedOccurrence(
+                    owner, o.Role, o.SemanticDescriptor, o.State,
+                    o.Locator, o.Native, o.Space)).ToArray();
+            }
+
+            return record.Claim.Value.Split('+', StringSplitOptions.RemoveEmptyEntries)
                 .Select(segment =>
                 {
                     var roleParts = segment.Split(':', 2);
@@ -371,6 +380,7 @@ public sealed class KernelRunDriverTests
                         descParts.Length == 2 ? descParts[1] : null);
                 })
                 .ToArray();
+        }
     }
 
     /// <summary>SeedContainer 首条 evidence 探针：确定性预知 minted root container id。</summary>
@@ -438,8 +448,8 @@ public sealed class KernelRunDriverTests
                 : postActionArrived
                     ? new RunDriverInput.Observation(new[]
                     {
-                        TypedCheckedClaim("checked", UIWorldDoubles.T1),
                         PostActionObservation("switch:primary@on", UIWorldDoubles.T1),
+                        TypedCheckedClaim("checked", T1),
                     })
                     : null,
             ConsultAgent = MultiTurnCompat(ctx =>

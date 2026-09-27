@@ -57,10 +57,23 @@ public sealed class EntityObligationFulfillmentTests
     /// <summary>stateful observation double（CDS-001 State 载荷）：claim value
     /// 片段约定（测试域）"role:descriptor@state"，'+' 连接多 occurrence；
     /// descriptor / state 缺省 = null（Unknown 语义）。</summary>
-    private sealed class StatefulObservationStrategy(string? owner = null) : IUiObservationStrategy
+    private sealed class StatefulObservationStrategy(string? owner = null, bool associateTyped = false) : IUiObservationStrategy
     {
-        public IReadOnlyList<ProposedOccurrence> Derive(EvidenceRecord record, WorldBeliefRevision? previous) =>
-            record.Claim.Value.Split('+', StringSplitOptions.RemoveEmptyEntries)
+        public IReadOnlyList<ProposedOccurrence> Derive(EvidenceRecord record, WorldBeliefRevision? previous)
+        {
+            if (associateTyped && record.Claim.Subject.StartsWith("ui.node.", StringComparison.Ordinal))
+            {
+                var prior = previous?.Occurrences is { Count: 1 } occurrences
+                    ? occurrences[0]
+                    : null;
+                return prior is { Role: "switch", SemanticDescriptor: "primary" }
+                    ? new[] { new ProposedOccurrence(
+                        owner, prior.Role, prior.SemanticDescriptor, prior.State,
+                        prior.Locator, prior.Native, prior.Space) }
+                    : Array.Empty<ProposedOccurrence>();
+            }
+
+            return record.Claim.Value.Split('+', StringSplitOptions.RemoveEmptyEntries)
                 .Select(segment =>
                 {
                     var roleParts = segment.Split(':', 2);
@@ -71,6 +84,7 @@ public sealed class EntityObligationFulfillmentTests
                         descParts.Length == 2 ? descParts[1] : null);
                 })
                 .ToArray();
+        }
     }
 
     /// <summary>SeedContainer 首条 evidence 探针（ControlReferencePolicyTests
@@ -108,7 +122,7 @@ public sealed class EntityObligationFulfillmentTests
         var world = new WorldModel(
             new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
             new SeedContainerAssociationStrategy(),
-            new StatefulObservationStrategy(cid),
+            new StatefulObservationStrategy(cid, associateTyped: true),
             new RoleContinuityStrategy());
         var policy = new DescriptorTargetPolicy(new[]
         {
@@ -129,12 +143,12 @@ public sealed class EntityObligationFulfillmentTests
         var ledger = new EvidenceLedger();
         var world = new WorldModel(
             new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
-            associationStrategy: null, new StatefulObservationStrategy());
+            associationStrategy: null, new StatefulObservationStrategy(associateTyped: true));
         var kernel = new UniKernel(
             ledger, world, DisabledRunTrace.Instance);
+        kernel.Process(UIWorldDoubles.Observation(observedValue, UIWorldDoubles.T1)); // 批尾：承载 occurrence
         if (typedCheckedValue is not null)
             kernel.Process(TypedCheckedClaim(typedCheckedValue, UIWorldDoubles.T0));
-        kernel.Process(UIWorldDoubles.Observation(observedValue, UIWorldDoubles.T1)); // 批尾：承载 occurrence
 
         var view = world.DeriveOutcomeAssuranceView(
             Array.Empty<string>(),
@@ -176,10 +190,10 @@ public sealed class EntityObligationFulfillmentTests
         var ledger = new EvidenceLedger();
         var world = new WorldModel(
             new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
-            associationStrategy: null, new StatefulObservationStrategy());
+            associationStrategy: null, new StatefulObservationStrategy(associateTyped: true));
         var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance);
-        kernel.Process(TypedCheckedClaim("checked", UIWorldDoubles.T0));
         kernel.Process(UIWorldDoubles.Observation("switch:primary@on", UIWorldDoubles.T1));
+        kernel.Process(TypedCheckedClaim("checked", UIWorldDoubles.T0));
 
         var view = world.DeriveOutcomeAssuranceView(
             Array.Empty<string>(),
@@ -281,8 +295,8 @@ public sealed class EntityObligationFulfillmentTests
 
         // post-action：typed semantic.checked=checked（先）+ 帧批尾（State="on"）
         // → fact Satisfied → EvaluateTerminal → Completion
-        kernel.Process(TypedCheckedClaim("checked", UIWorldDoubles.T1));
         kernel.Process(PostActionObservation("switch:primary@on", UIWorldDoubles.T1));
+        kernel.Process(TypedCheckedClaim("checked", UIWorldDoubles.T1));
 
         var terminal = kernel.EvaluateTerminal();
         Assert.NotNull(terminal.Proof);
@@ -310,8 +324,8 @@ public sealed class EntityObligationFulfillmentTests
 
         // post-action：typed semantic.checked=unchecked ≠ required → Unsatisfied
         // → 证据不足，不猜测
-        kernel.Process(TypedCheckedClaim("unchecked", UIWorldDoubles.T1));
         kernel.Process(PostActionObservation("switch:primary@off", UIWorldDoubles.T1));
+        kernel.Process(TypedCheckedClaim("unchecked", UIWorldDoubles.T1));
 
         var terminal = kernel.EvaluateTerminal();
         Assert.Null(terminal.Proof);

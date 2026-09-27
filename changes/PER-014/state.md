@@ -1,6 +1,6 @@
 # PER-014 — Typed Semantic Consumer Migration（*.state 消费面 cutover）
 
-lifecycle_state: verified · disposition: none · depth: standard · base: 156f9c96
+lifecycle_state: closed · disposition: none · depth: standard · base: 156f9c96
 
 ## Intent（WHAT/WHY）
 
@@ -148,3 +148,9 @@ evidence: evidence/2026-09-26-per-014-cutover-evidence.md（§1–§6，含
   CLEAN。**STOP at Final Gate：G1–G5 全 PASS → ready for legacy
   removal decision（四条件中 rollback 观察窗未观测，不自动删除；不进入
   PER-011 Fusion）。**
+- 2026-09-27 · verified→closed · Owner final verdict CLOSE：S1/S2、G1–G5
+  全 PASS；Simulation.Tests 184/184；Certification 29/29；Coverage 29/29；
+  full solution PASS；architecture deviation NONE；expectationsDigest 未变。
+  保留现有 semantic association/fallback、Simulation shared typed producer 与
+  scenario expectations；不删除 legacy `*.state`（PER-012 rollback observation
+  window 未完成），不启动 PER-011 Fusion。

@@ -498,7 +498,7 @@ public sealed class KernelRunDriverPolicyExpandTests
         Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
         Assert.Equal(1, c.Effects.ReceiptLog.Count);
         Assert.Equal(AgentDecisionPhase.VerificationFailed, c.Consultations[1].Phase);
-        Assert.Equal("post-action-desired-state-not-satisfied", c.Consultations[1].FailureReason);
+        Assert.StartsWith("typed-route: insufficient-evidence", c.Consultations[1].FailureReason);
         var summary = c.Consultations[1].Progress.PolicyState;
         Assert.NotNull(summary);
         Assert.Equal("pol-1", summary!.PolicyId);
