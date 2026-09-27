@@ -1,6 +1,6 @@
 # PER-015 — Legacy Reader Retirement + Rollback Observation
 
-lifecycle_state: verified · disposition: hold · depth: standard · base: 8ddc32c7
+lifecycle_state: closed · disposition: none · depth: standard · base: 8ddc32c7
 
 ## Intent
 
@@ -49,11 +49,19 @@ no typed→legacy rollback, and an explicit Gate 4 PASS/HOLD verdict.
 actual: >
   ConflictResolver A1–A8 PASS；production *.state readers = 0；Kernel 643/643；
   Simulation 184/184；Host deterministic 63/63；full solution 1051/1051；
-  certification 29/29；coverage truth chain PASS；git diff --check PASS。
-  HostLiveFull 与 TypedLiveChain 在 DSH_TEST_PERCEPTION_LIVE=1 下均受环境阻塞：
-  adb 无 emulator-5554（real dump 失败 / device not found）。未观察到
-  typed→legacy rollback，但无真机代表性证据，因此 rollback observation window = HOLD。
+  certification 29/29；coverage truth chain PASS；git diff --check PASS；
+  Host deterministic 63/63；真实设备 selector/capability manifest 在 API 35 AVD
+  上通过；TypedLiveChain 3/3（TypedLiveChain 1 + LiveCoordinateGate 2）通过；
+  HostLiveFull 真实截图、视觉结果、ADB tap、post-action XML 与独立 settings
+  复核 PASS 1/1，status=Completed，delivered=1，legacyEgress=false。typed→legacy
+  rollback = 0，effect-critical legacy dependency = NONE，Unknown/Partial 未触发
+  reader fallback；Gate 4 PASS。scenario certification 29/29、coverage truth
+  chain PASS、full solution PASS。
 
 evidence: evidence/2026-09-27-per-015-legacy-reader-rollback-observation.md
 
-status: verified · Gate 4 HOLD · NOT_READY_FOR_LEGACY_REMOVAL
+status: closed · Gate 4 PASS · READY_FOR_LEGACY_REMOVAL
+
+## Status Log
+
+- 2026-09-27 · verified→closed · Owner final closure PASS；PER-015 Gate 1–4 PASS；PER-016 removal PASS；production legacy `*.state` readers/writers = 0、LegacyStateProjection buyers = 0、legacy surface removed；Simulation 184/184、HostLiveFull PASS、TypedLiveChain PASS、full solution 1051/1051、certification/coverage 29/29；既有 verification、real-device、Simulation、certification/coverage 与 rollback-window evidence 保持不变；PER-011 未启动。
