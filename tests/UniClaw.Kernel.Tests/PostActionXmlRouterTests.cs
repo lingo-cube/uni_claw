@@ -19,7 +19,7 @@ public sealed class PostActionXmlRouterTests
     private static TargetSpec ClickTarget() =>
         new("button", null, "tap", null); // Click 型：无 DesiredState
 
-    private static ConflictResolver.XmlAuthoritySnapshot Snapshot(
+    private static PostActionXmlRouter.XmlAuthoritySnapshot Snapshot(
         bool identityUnique = true,
         DateTimeOffset? dumpTime = null,
         bool checkable = true,

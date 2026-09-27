@@ -218,9 +218,8 @@ public sealed class Per014CutoverTests
     /// UiAutomatorDump / LivePerception = egress writer（R5 旗门控 / wifi 探针
     /// 单一 producer egress）；HostRunner = 回滚旗 + egress scope；SharedSubjects
     /// = 常量；LegacyStateProjection = egress 投影；AgentPlanPolicy = 通用
-    /// subject 前缀聚焦（subject-parametric）；ConflictResolver = legacy-only
-    /// 裁决 reader（R4 休眠 rollback 面，唯一保留 reader）。生产 reader 合计
-    /// = 1 处（ConflictResolver.cs:104-105），其余全为 writer/注释/常量。
+    /// subject 前缀聚焦（subject-parametric）。ConflictResolver 已迁到 typed
+    /// semantic.checked；生产 reader 合计 = 0，其余全为 writer/注释/常量。
     /// </summary>
     private static readonly IReadOnlyDictionary<string, int[]> FrozenInventory =
         new Dictionary<string, int[]>
@@ -231,7 +230,6 @@ public sealed class Per014CutoverTests
             ["src/UniClaw.Kernel/Compatibility/LegacyStateProjection.cs"] = new[] { 23 },
             ["src/UniClaw.Kernel/Evidence/SharedSubjects.cs"] = new[] { 6, 17, 18 },
             ["src/UniClaw.Kernel/Runtime/AgentPlanPolicy.cs"] = new[] { 49 },
-            ["src/UniClaw.Kernel/World/ConflictResolver.cs"] = new[] { 90, 101, 104, 105 },
         };
 
     private static readonly Regex StateSurface = new(@"\.state\b", RegexOptions.Compiled);
@@ -276,15 +274,15 @@ public sealed class Per014CutoverTests
             + "实际：[" + string.Join(", ", actualFrozen.Select(kv => $"{kv.Key}:{string.Join('/', kv.Value)}"))
             + "]；期望见 FrozenInventory");
 
-        // 零 UNJUSTIFIED readers：功能性 reader 触点只允许出现在
-        // ConflictResolver.cs（R4 显式 legacy-only rollback 路径）。
+        // 零 UNJUSTIFIED readers：本轮完成 typed cutover 后不得再出现
+        // 功能性 legacy reader。
         foreach (var (file, lines) in actualFrozen)
         {
             var source = File.ReadAllLines(RepoPath(file));
             foreach (var line in lines)
             {
-                if (ReaderPattern.IsMatch(source[line - 1]))
-                    Assert.Equal("src/UniClaw.Kernel/World/ConflictResolver.cs", file);
+                Assert.False(ReaderPattern.IsMatch(source[line - 1]),
+                    $"legacy *.state reader remains at {file}:{line}");
             }
         }
     }

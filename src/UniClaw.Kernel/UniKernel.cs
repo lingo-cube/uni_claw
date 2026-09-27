@@ -126,12 +126,11 @@ public sealed class UniKernel
         _world.DeriveControlBeliefViewOrNull()?.ConflictedSubjects ?? Array.Empty<string>();
 
     /// <summary>
-    /// PER-009 C-1（评审修复）：权威域冲突裁决 + owner 销案。对每个悬案
-    /// subject 构造 ConflictCase（双方 producer/value/captureTime 来自
-    /// CanonicalRecords）+ XmlAuthoritySnapshot（自 XML 侧 claim 的
-    /// provenance lineage：xml-map:{localId} / xml-checkable / 构造唯一性），
-    /// 经冻结 ConflictResolver 裁决；Tier 0 → WorldModel.ResolveConflict
-    /// 销案（D13：confidence 盲、不升档）。返回销案数。internal。
+    /// PER-009 C-1 / PER-014：权威域冲突裁决 + owner 销案。对每个悬案
+    /// subject 构造 ConflictCase，并从同一 occurrence 的 typed checked claim
+    /// 取得 semantic evidence；ConflictResolver 只消费该 typed 结果。没有
+    /// 唯一 occurrence、typed claim 或时序证据时保持 fail-closed，不回读
+    /// presentation/egress claim。返回销案数。internal。
     /// </summary>
     internal int ResolveAuthorityConflicts(TimeSpan freshnessWindow)
     {
@@ -147,8 +146,6 @@ public sealed class UniKernel
                 continue;
 
             var claims = new List<World.ConflictResolver.ConflictingClaim>();
-            Evidence.EvidenceRecord? xmlRecord = null;
-            string? xmlValue = null;
             foreach (var pair in new[]
                      {
                          (EvidenceId: conflict.EstablishedEvidenceId, Value: conflict.EstablishedValue),
@@ -157,18 +154,37 @@ public sealed class UniKernel
             {
                 if (!_ledger.CanonicalRecords.TryGetValue(pair.EvidenceId, out var record))
                     continue;
+                var domain = record.Provenance.Hierarchy?.Field == "checked"
+                    ? World.ConflictResolver.ClaimDomain.SemanticChecked
+                    : World.ConflictResolver.ClaimDomain.Other;
                 claims.Add(new World.ConflictResolver.ConflictingClaim(
-                    record.Provenance.Producer, pair.Value, record.Provenance.CaptureTime));
-                if (record.Provenance.Producer == World.ProducerTrust.XmlProducer)
-                {
-                    xmlRecord = record;
-                    xmlValue = pair.Value;
-                }
+                    record.Provenance.Producer, pair.Value, record.Provenance.CaptureTime, domain));
             }
 
+            if (_world.Current is not { Occurrences: { } occurrences })
+                continue;
+
+            // 仅接受与冲突 evidence 明确关联的 occurrence；多个候选不猜。
+            var conflictEvidence = new HashSet<string>(
+                new[] { conflict.EstablishedEvidenceId, conflict.ChallengingEvidenceId },
+                StringComparer.Ordinal);
+            var scopes = occurrences
+                .Where(o => o.EvidenceBasis.Any(conflictEvidence.Contains))
+                .Select(o => new World.UiRealization.TargetDescriptor(
+                    o.Role, o.SemanticDescriptor, o.OwningContainerId))
+                .Distinct()
+                .ToArray();
+            if (scopes.Length != 1)
+                continue;
+
+            var semantic = Perception.UiHierarchy.SemanticCheckedResolver.ResolveDetailed(
+                _world.Current,
+                scopes[0],
+                _ledger.CanonicalRecords);
             var disposition = World.ConflictResolver.Resolve(
                 new World.ConflictResolver.ConflictCase(subject, claims),
-                SnapshotFromLineage(xmlRecord, xmlValue),
+                semantic.Value,
+                semantic.CaptureTimestamp,
                 freshnessWindow);
 
             if (disposition.Tier == World.ConflictResolver.Tier.CategoryAuthority
@@ -182,29 +198,6 @@ public sealed class UniKernel
             }
         }
         return resolved;
-    }
-
-    /// <summary>
-    /// XML 侧快照（C-1）：共享层映射 claim（Host MapTargetStateClaim）的
-    /// lineage 携带节点身份与 guard——xml-map:{localId} / xml-checkable:{b} /
-    /// xml-unique:true（映射只在唯一最佳匹配时发射，构造保证 IdentityMatched）。
-    /// dump 时序 = claim 的 CaptureTime（D14）。无 XML 侧 → null（缺席即数据）。
-    /// </summary>
-    private static World.ConflictResolver.XmlAuthoritySnapshot? SnapshotFromLineage(
-        Evidence.EvidenceRecord? xmlRecord, string? xmlValue)
-    {
-        if (xmlRecord is null || xmlValue is null)
-            return null;
-        var localId = xmlRecord.Provenance.TransformationLineage
-            .FirstOrDefault(l => l.StartsWith("xml-map:", StringComparison.Ordinal))?["xml-map:".Length..];
-        var checkable = xmlRecord.Provenance.TransformationLineage
-            .Any(l => l == "xml-checkable:true");
-        var unique = xmlRecord.Provenance.TransformationLineage
-            .Any(l => l == "xml-unique:true");
-        var checkedRaw = xmlValue switch { "on" => "true", "off" => "false", var v => v };
-        return new World.ConflictResolver.XmlAuthoritySnapshot(
-            localId ?? "(unknown)", unique, xmlRecord.Provenance.CaptureTime,
-            checkable, checkedRaw, Enabled: null, Selected: null, Focused: null);
     }
 
     // ---- RFS-001 D20：Kernel 级 activation latch（composition/lifecycle 协调态）----
@@ -737,7 +730,7 @@ public sealed class UniKernel
     /// CAS）→ 接受后关闭 Effect Boundary delivery → 从 canonical Outcome
     /// State 投影 immutable Runtime Outcome（exactly once）。证据不足时
     /// 返回无 proof（保持 non-terminal，不猜测分类）；已 terminal / 竞争
-    /// <summary>
+    /// 终局调用由下方 obligation 折抵流程继续处理。
     /// RUN-004 裁决⑧ G2（终局收口）：折抵目标 = <b>未世界满足</b>的 mandatory
     /// 义务。与层1 判定同源（RuntimeAssurance.EvaluateObligations 权威，同一
     /// beliefView 派生）——已满足的义务不重复入证（避免对已满足义务写

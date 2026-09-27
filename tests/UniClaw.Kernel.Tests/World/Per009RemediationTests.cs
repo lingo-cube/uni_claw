@@ -53,7 +53,7 @@ public sealed class Per009RemediationTests
         kernel.Process(claim);
 
     [Fact]
-    public void Tier0Conflict_ResolvesClearsAndLogs_WithoutEscalation()
+    public void LegacyStateConflict_RemainsUnresolvedWithoutTypedSemanticEvidence()
     {
         var world = new WorldModel(new HashSet<string> { SwitchState });
         var kernel = Compose(world);
@@ -65,16 +65,11 @@ public sealed class Per009RemediationTests
 
         var resolved = kernel.ResolveAuthorityConflicts(Window);
 
-        // D13：Tier 0 销案、confidence 盲、不升档（零观察调用——纯裁决）
-        Assert.Equal(1, resolved);
-        Assert.DoesNotContain(world.Current!.Conflicts, c => c.Subject == SwitchState);
-        Assert.Equal("off", world.Current.WorldState[SwitchState].Value);
-        var entry = Assert.Single(world.ConflictResolutionLog);
-        Assert.Equal("category-authority", entry.Tier);
-        Assert.Equal("host.live", entry.OverruledProducer); // 高低置信同等待遇
-        // 演化留痕（销案走 Revise 语义痕迹链）
-        Assert.Contains(world.ClaimEvolutionLog,
-            l => l.Subject == SwitchState && l.Producer == "kernel.conflict-resolver");
+        // PER-014：legacy state conflict 没有 typed semantic.checked 证据时
+        // 保持 unresolved；不再把 XML presentation 映射成 semantic authority。
+        Assert.Equal(0, resolved);
+        Assert.Contains(world.Current!.Conflicts, c => c.Subject == SwitchState);
+        Assert.Empty(world.ConflictResolutionLog);
     }
 
     [Fact]
@@ -146,7 +141,7 @@ public sealed class Per009RemediationTests
         kernel.ResolveAuthorityConflicts(Window);
 
         Assert.Equal(occurrencesBefore, world.Current!.Occurrences!.Count); // 携带不丢
-        Assert.DoesNotContain(world.Current.Conflicts, c => c.Subject == SwitchState);
+        Assert.Contains(world.Current.Conflicts, c => c.Subject == SwitchState);
     }
 
     [Fact]

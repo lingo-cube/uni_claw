@@ -14,6 +14,18 @@ namespace UniClaw.Kernel.World;
 /// </summary>
 internal static class PostActionXmlRouter
 {
+    /// <summary>Rollback/egress-only XML snapshot. Production conflict resolution
+    /// consumes typed semantic.checked and does not use this compatibility shape.</summary>
+    public sealed record XmlAuthoritySnapshot(
+        string LocalId,
+        bool IdentityUnique,
+        DateTimeOffset DumpTime,
+        bool Checkable,
+        string Checked,
+        bool? Enabled,
+        bool? Selected,
+        bool? Focused);
+
     public sealed record RouteResult(
         bool UseXml,
         string? ResolvedState,    // {on,off,partial}（XML 定案值）；null = 回视觉
@@ -28,7 +40,7 @@ internal static class PostActionXmlRouter
     /// </summary>
     public static RouteResult Route(
         TargetSpec target,
-        ConflictResolver.XmlAuthoritySnapshot? snapshot,
+        XmlAuthoritySnapshot? snapshot,
         DateTimeOffset dispatchTime,
         DateTimeOffset dumpTime)
     {

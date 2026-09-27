@@ -12,7 +12,7 @@ namespace UniClaw.Kernel.Tests;
 /// PER-014 post-migration reality（R2/R4/R5 修订后）：
 /// - 本名单内允许的触点 = egress writers（UiAutomatorDump / LivePerception /
 ///   HostRunner scope）、rollback flag（HostRunner.LegacyStateEgress，默认关）、
-///   ConflictResolver legacy 裁决路径（R4 休眠 rollback 面）、SharedSubjects
+///   SharedSubjects
 ///   常量、LegacyStateProjection egress 投影、AgentPlanPolicy 通用 subject
 ///   前缀逻辑（subject-parametric，非 legacy 耦合）。
 /// - 生产 `*.state` reader = 0（零 UNJUSTIFIED readers）；T10
@@ -35,7 +35,6 @@ public sealed class LegacyStateSurfaceFreezeTests
         "src/UniClaw.Kernel/Compatibility/LegacyStateProjection.cs", // egress 投影（值域 on/off）
         "src/UniClaw.Kernel/Evidence/SharedSubjects.cs",             // State() 常量
         "src/UniClaw.Kernel/Runtime/AgentPlanPolicy.cs",             // subject 前缀聚焦
-        "src/UniClaw.Kernel/World/ConflictResolver.cs",               // *.state 冲突裁决（legacy-only，R4 休眠）
     };
 
     private static readonly Regex StateSurface = new(@"\.state\b|StateSubject", RegexOptions.Compiled);
