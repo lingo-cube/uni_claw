@@ -38,10 +38,22 @@
     ]
   },
   "anchors": [
-    {"path": "src/UniClaw.Kernel/Perception/SlowOrchestration.cs", "symbol": "SlowResultProjector"},
-    {"path": "src/UniClaw.Kernel/Perception/SlowContracts.cs", "symbol": "SlowPerceptionRequest"},
-    {"path": "src/UniClaw.Host/SettingsTraversalLiveFeed.cs", "symbol": "DeriveScreenIdentity"},
-    {"path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs", "symbol": "Consult"}
+    {
+      "path": "src/UniClaw.Kernel/Perception/SlowOrchestration.cs",
+      "symbol": "SlowResultProjector"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/SlowContracts.cs",
+      "symbol": "SlowPerceptionRequest"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsTraversalLiveFeed.cs",
+      "symbol": "DeriveScreenIdentity"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs",
+      "symbol": "Consult"
+    }
   ],
   "contract_refs": [
     "changes/AGT-009/state.md",
@@ -72,7 +84,10 @@
     "Plan 遵循度固定：≤1 个 ActItem（必须匹配 directive）+ 尾随 Observe/ControlItem，Items ≤ 4。",
     "Worker 在独立 worktree（agt009-worker 分支）实现；由 Leader 合并并做全量验收。"
   ],
-  "status": "pending",
-  "required_skills": ["codebase-design", "tdd"],
+  "status": "completed",
+  "required_skills": [
+    "codebase-design",
+    "tdd"
+  ],
   "required_capability": "implementation"
 }

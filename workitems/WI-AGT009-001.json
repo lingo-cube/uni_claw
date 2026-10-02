@@ -37,10 +37,22 @@
     ]
   },
   "anchors": [
-    {"path": "src/UniClaw.Kernel/Runtime/AgentDecision.cs", "symbol": "AgentDecision"},
-    {"path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs", "symbol": "ConsultAgentV2"},
-    {"path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs", "symbol": "Consult"},
-    {"path": "src/UniClaw.Kernel/Perception/SlowOrchestration.cs", "symbol": "SlowResultProjector"}
+    {
+      "path": "src/UniClaw.Kernel/Runtime/AgentDecision.cs",
+      "symbol": "AgentDecision"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+      "symbol": "ConsultAgentV2"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs",
+      "symbol": "Consult"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/SlowOrchestration.cs",
+      "symbol": "SlowResultProjector"
+    }
   ],
   "contract_refs": [
     "changes/AGT-009/state.md",
@@ -71,7 +83,11 @@
     "Slow 沿用 PER-017/018、P2、Evidence Ledger 和 provenance；晚到结果不能追溯授权。",
     "人工配置对不可逆动作、禁止项和审批要求拥有最终约束。"
   ],
-  "status": "pending",
-  "required_skills": ["codebase-design", "tdd", "uniclaw-debug-evidence"],
+  "status": "completed",
+  "required_skills": [
+    "codebase-design",
+    "tdd",
+    "uniclaw-debug-evidence"
+  ],
   "required_capability": "implementation"
 }

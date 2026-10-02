@@ -7,7 +7,7 @@
 | change | lifecycle_state | disposition | depth | title |
 |---|---|---|---|---|
 | AGT-004 | verified | none | decision-heavy | AGT-004 — Real Android Settings traversal verification closure |
-| AGT-009 | persisted | none | decision-heavy | AGT-009 — Settings 遍历抽象计划、Slow 接入与弹窗清障 |
+| AGT-009 | verified | none | decision-heavy | AGT-009 — Settings 遍历抽象计划、Slow 接入与弹窗清障 |
 | PER-017 | implemented | none | decision-heavy | PER-017 — Slow Perception orchestration 与模型管理基础 |
 | PER-018 | implemented | none | decision-heavy | PER-018 — Real Slow Perception Providers |
 | PNL-001 | implemented | none | decision-heavy | PNL-001 — UniClaw Task Workbench（DSH client 插件，第一片） |

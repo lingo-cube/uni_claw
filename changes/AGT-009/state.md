@@ -1,5 +1,5 @@
 # AGT-009 — Settings 遍历抽象计划、Slow 接入与弹窗清障
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: 7b49038d
+lifecycle_state: verified · disposition: none · depth: decision-heavy · base: 7b49038d
 
 ## Intent（WHAT/WHY）
 
@@ -105,14 +105,35 @@ Gate → Verification 链路。
 ## Verification
 
 ```yaml
-level: CONTRACT
-method: Plan/Slow/Director deterministic tests; focused Kernel and Host regression; full suite where available
-expected: "Plan contract, bounded transitions, no stale authorization, obstacle recovery and no-XML behavior satisfy Acceptance"
-actual: pending
-evidence: pending
+level: DETERMINISTIC + SCENARIO
+method: >
+  dotnet test UniClaw.Kernel.slnx（全量 1220 项）；
+  Kernel Plan 16 项（tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs）；
+  Slow seam 6 项（tests/UniClaw.Kernel.Tests/Perception/SlowConsultationTests.cs）；
+  popup 分类器/Slow 触发 14 项 + Director plan 9 项（tests/UniClaw.Host.Tests/）；
+  Drive 级弹窗清障闭环 1 项（SettingsCoverageScenarioTests.PopupEpisode_…）；
+  python3 tools/scenario_certify.py --check（29 场景 seal）；
+  git diff --check
+expected: >
+  Acceptance 1-8 全满足：V7 fail-closed 零 Effect；多 ActItem 逐个执行逐个
+  验证；Observe 零 Effect 不单独完成；相交冲突/验证失败废弃剩余计划；
+  Replan 消耗全局预算有界；Stop 零新 Effect 直接终局；Slow 仅经
+  SlowResultProjector/P2 入证、超时/未配置/晚到零授权；弹窗 obstacle 分支
+  同分类器前后测、清障后普通遍历恢复并完成覆盖
+actual: >
+  1220 项中 1219 通过；唯一失败 DocsMetadataTests.Architecture_DeclaresFrozenAuthority
+  为基线预存（快照 a4d3b391 上同样失败：PNL-003 未确认文档
+  uniclaw-workspace-architecture-v0.1.md 缺 FROZEN/CLOSED 声明，非本 change
+  范围）。场景 29/29 seal 一致（change=AGT-009）。真机验证未执行（本 change
+  验收为确定性测试；真机复跑 e1 场景属后续 AGT-010 解锁项，见 plans §3）。
+evidence: >
+  evidence/agt-009/kernel-plan-contract.md（Kernel 侧四元组）；
+  evidence/agt-009/WI-AGT009-002-evidence.md（Host/Slow/Director 侧四元组）；
+  tests/UniClaw.Host.Tests/SettingsCoverageScenarioTests.cs（Drive 级闭环）
 ```
 
 ## Status log
 
 - 2026-10-02 · persisted · 由 Settings traversal grill、行业一手资料审核和数学/职责完备性审阅收敛；等待 GLM Leader 实施。
 - 2026-10-02 · implemented · Leader 在独立 worktree（../uni_claw-agt009，快照 a4d3b391 = PER-017/018 + Settings Traversal + 确认改动）冻结 Plan 契约并落地 Kernel 侧（AgentDecision.cs / KernelRunDriver.cs PlanExpand / 16 项确定性测试 / 白名单 + tripwire / 场景重认证 AGT-009）；Worker（glm-5.3-flash，独立分支 agt009-worker）承接 Host/Slow/Director 接入（WI-AGT009-002）。实施期冻结决策见 §Decisions 7-14。
+- 2026-10-02 · verified · 合并 agt009-worker（bf7ee166）；白名单补 SlowConsultation 四型；合并树重认证 29 场景；补 Drive 级弹窗清障闭环测试（d4e71e7b）。全量 1219/1220（唯一失败为基线预存 DocsMetadataTests，见 Verification.actual）。验收四元组与证据落 evidence/agt-009/。
