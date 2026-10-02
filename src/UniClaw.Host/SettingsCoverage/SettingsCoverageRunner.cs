@@ -100,7 +100,8 @@ public sealed class SettingsCoverageRunner
         var liveFeed = options.FeedNext is null
             ? new SettingsTraversalLiveFeed(
                 clock, options.Live, evidenceDir,
-                evidenceSettings.PersistScreenshots, evidenceSettings.PersistHierarchies)
+                evidenceSettings.PersistScreenshots, evidenceSettings.PersistHierarchies,
+                coverageConfig: config)
             : null;
         var feedNext = options.FeedNext ?? liveFeed!.Next;
         var currentCaptureId = options.CurrentCaptureId
@@ -139,6 +140,9 @@ public sealed class SettingsCoverageRunner
             // ---- NextInput 包装缝：观察/回执交错记账 -----------------------
             var interleave = new InterleaveBookkeeper(kernel, feedNext, currentCaptureId, ledger, journal);
             director.SyncBeforeSnapshot = interleave.SyncNow;
+            // AGT-009：feed 的有界 Slow 咨询投影目标 = 当前 run kernel。
+            if (liveFeed is not null)
+                liveFeed.KernelProvider = () => kernel;
             var driver = new KernelRunDriver(
                 kernel, planPolicy,
                 new RunDriverInputs

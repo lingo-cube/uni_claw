@@ -130,4 +130,75 @@ public sealed class SettingsPopupClassifierTests
         Assert.Equal(UniClaw.Kernel.Evidence.AdmissionDecision.Accepted, result.Admission.Decision);
         Assert.Empty(kernel.EffectReceipts);
     }
+
+    // ---- AGT-009 §8：有界 Slow 触发谓词与请求构造 -------------------------
+
+    [Fact]
+    public void SlowTrigger_NoXml_Predicted()
+    {
+        Assert.Equal("NoXml", SettingsTraversalLiveFeed.DeriveSlowTrigger(
+            hierarchyAvailable: false, fastAvailable: true, clickableNodeCount: 0,
+            screenIdentity: "android.settings|route:Settings", popupPresentStreak: 0, slow: null));
+    }
+
+    [Fact]
+    public void SlowTrigger_StructuralVisualConflict_Predicted()
+    {
+        // fast 有检出而 hierarchy 零可点击节点（documented deterministic predicate）。
+        Assert.Equal("StructuralVisualConflict", SettingsTraversalLiveFeed.DeriveSlowTrigger(
+            hierarchyAvailable: true, fastAvailable: true, clickableNodeCount: 0,
+            screenIdentity: "android.settings|route:Settings", popupPresentStreak: 0, slow: null));
+        // 反向：fast 无检出而 hierarchy 有可点击节点。
+        Assert.Equal("StructuralVisualConflict", SettingsTraversalLiveFeed.DeriveSlowTrigger(
+            hierarchyAvailable: true, fastAvailable: false, clickableNodeCount: 5,
+            screenIdentity: "android.settings|route:Settings", popupPresentStreak: 0, slow: null));
+    }
+
+    [Fact]
+    public void SlowTrigger_PopupStreakAndSemanticUnclear_Predicted()
+    {
+        Assert.Equal("PopupConsecutiveFailures", SettingsTraversalLiveFeed.DeriveSlowTrigger(
+            hierarchyAvailable: true, fastAvailable: true, clickableNodeCount: 3,
+            screenIdentity: "android.settings|route:Settings", popupPresentStreak: 2,
+            slow: new UniClaw.Host.SettingsCoverage.SlowTriggerConfig()));
+        Assert.Equal("SemanticUnclear", SettingsTraversalLiveFeed.DeriveSlowTrigger(
+            hierarchyAvailable: true, fastAvailable: true, clickableNodeCount: 3,
+            screenIdentity: "android.settings", popupPresentStreak: 0, slow: null));
+        Assert.Null(SettingsTraversalLiveFeed.DeriveSlowTrigger(
+            hierarchyAvailable: true, fastAvailable: true, clickableNodeCount: 3,
+            screenIdentity: "android.settings|route:Settings", popupPresentStreak: 0, slow: null));
+    }
+
+    [Fact]
+    public void SlowRequest_BuildsFromTrigger_WithBoundedContext()
+    {
+        var now = DateTimeOffset.Parse("2026-10-02T09:00:00Z");
+        var request = SettingsTraversalLiveFeed.BuildSlowRequest(
+            "NoXml", visual: false, screenshot: new byte[] { 1 },
+            "capture-abc", now, "settings-cycle-001");
+        Assert.Equal("slow-NoXml-capture-abc", request.RequestId);
+        Assert.Equal("ui.screen.route", request.ClaimSubject);
+        Assert.False(request.RequiresRawArtifact);
+        Assert.Null(request.RawArtifact);
+        Assert.Equal("slow-trigger:NoXml", request.Reason);
+        Assert.Equal("settings-cycle-001", request.ObservationCycleId);
+
+        var popup = SettingsTraversalLiveFeed.BuildSlowRequest(
+            "PopupConsecutiveFailures", visual: true, screenshot: new byte[] { 1 },
+            "capture-abc", now, "settings-cycle-001");
+        Assert.Equal("ui.overlay.popup", popup.ClaimSubject);
+        Assert.True(popup.RequiresRawArtifact);
+        Assert.NotNull(popup.RawArtifact);
+    }
+
+    [Fact]
+    public void SlowTrace_FormatCarriesStatusAndProjection()
+    {
+        var trace = SettingsTraversalLiveFeed.FormatSlowTrace("NoXml",
+            new SlowConsultationOutcome(SlowConsultationStatus.TimedOut, false, 0, "timeout", false));
+        Assert.Equal("NoXml|TimedOut|projected=0", trace);
+        var late = SettingsTraversalLiveFeed.FormatSlowTrace("NoXml",
+            new SlowConsultationOutcome(SlowConsultationStatus.Succeeded, true, 1, null, true));
+        Assert.Equal("NoXml|Succeeded|projected=1|late", late);
+    }
 }

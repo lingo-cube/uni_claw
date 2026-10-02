@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Xml.Linq;
+using UniClaw.Host.SettingsCoverage;
+using UniClaw.Kernel;
 using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception;
@@ -45,6 +47,10 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     private readonly string? _evidenceDir;
     private readonly bool _persistScreenshots;
     private readonly bool _persistHierarchies;
+    private readonly SettingsCoverageConfig? _coverageConfig;
+    private Func<SlowConsultationRequest, UniKernel, bool, TimeSpan?, SlowConsultationOutcome> _slowConsult;
+    private int _popupPresentStreak;
+    private int _slowRequests;
     private int _cycle;
 
     public SettingsTraversalLiveFeed(HostUtilities.VirtualClock clock, LivePerception.LiveAssets assets)
@@ -59,7 +65,8 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         LivePerception.LiveAssets assets,
         string? evidenceDir,
         bool persistScreenshots = true,
-        bool persistHierarchies = true)
+        bool persistHierarchies = true,
+        SettingsCoverageConfig? coverageConfig = null)
     {
         _clock = clock;
         _assets = assets;
@@ -68,9 +75,22 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         _evidenceDir = evidenceDir;
         _persistScreenshots = persistScreenshots;
         _persistHierarchies = persistHierarchies;
+        _coverageConfig = coverageConfig;
+        _slowConsult = (request, kernel, effectCritical, boundedWait) =>
+            new SlowConsultation().Consult(request, kernel, effectCritical, boundedWait);
     }
 
     public IReadOnlyList<TraceEntry> Trace => _trace;
+
+    /// <summary>AGT-009：kernel 访问缝（runner 注入）——Slow 结果投影目标；
+    /// 未注入或 Slow 关闭时不发起咨询。</summary>
+    internal Func<UniKernel?>? KernelProvider { get; set; }
+
+    /// <summary>AGT-009：测试缝——替换默认 SlowConsultation 组合（确定性桩）。</summary>
+    internal Func<SlowConsultationRequest, UniKernel, bool, TimeSpan?, SlowConsultationOutcome> SlowConsultOverride
+    {
+        set => _slowConsult = value;
+    }
 
     public RunDriverInput? Next(ObservationDirective directive)
     {
@@ -98,7 +118,10 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
             : DeriveScreenIdentity(xmlResult.Xml);
         // AGT-009：弹窗结构分类——XML 可解析才有声明；与同一周期的其他 proposal
         // 同批进入证据流。
-        var popupState = DerivePopupState(xmlResult.Xml, "com.android.settings");
+        var popup = _coverageConfig?.PopupSettings;
+        var popupState = DerivePopupState(xmlResult.Xml,
+            popup?.HostPackage ?? "com.android.settings",
+            popup?.ResourceIds ?? SettingsCoverage.PopupClearanceConfig.DefaultPopupResourceIds);
 
         if (_evidenceDir is not null && _persistHierarchies && xmlResult.Xml is not null)
             WriteEvidenceFile(_evidenceDir, captureId + ".xml",
@@ -123,6 +146,13 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         var popupProposal = PopupProposal(popupState, captureId, observationCycleId, _clock.Now, directive.Context);
         if (popupProposal is not null)
             proposals.Add(popupProposal);
+
+        // AGT-009 §8：有界 Slow 触发（默认关闭；预算/超时/config 三重收口）。
+        var slowTrace = ConsultSlowIfTriggered(
+            trigger: DeriveSlowTrigger(
+                xmlResult.Xml is not null, fastAvailable, CountClickableNodes(xmlResult.Xml), screenIdentity,
+                UpdatePopupStreak(popupState), _coverageConfig?.SlowSettings),
+            captureId, observationCycleId, capture.Artifact.Payload, fastAvailable);
         if (xmlResult.Xml is not null)
         {
             var api = UiAutomatorDump.TryGetApiLevel(_assets.DeviceId);
@@ -141,7 +171,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
 
         _trace.Add(new TraceEntry(cycle, directive.Context.ToString(), captureId,
             observationCycleId, fastAvailable, xmlResult.Xml is not null,
-            proposals.Count, fastLatency, hierarchyLatency, screenIdentity, popupState));
+            proposals.Count, fastLatency, hierarchyLatency, screenIdentity, popupState, slowTrace));
         return new RunDriverInput.Observation(proposals);
     }
 
@@ -231,6 +261,102 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
                 new Provenance("host.live.settings", captureTime,
                     $"scope:ui.overlay.popup:{observationCycleId}",
                     new[] { "real-device", "capture:" + captureId, "popup-classifier" }));
+
+    /// <summary>AGT-009 — Fast 可视检测与 XML 结构点击数的确定性冲突谓词：
+    /// fast 有检出而 hierarchy 零可点击节点（或反之）。仅在 XML 在场时判定
+    ///（无 XML 由 NoXml 覆盖）。documented deterministic predicate。</summary>
+    internal static string? DeriveSlowTrigger(
+        bool hierarchyAvailable, bool fastAvailable, int clickableNodeCount,
+        string screenIdentity, int popupPresentStreak, SlowTriggerConfig? slow)
+    {
+        if (!hierarchyAvailable)
+            return "NoXml";
+        if ((fastAvailable && clickableNodeCount == 0)
+            || (!fastAvailable && clickableNodeCount > 0))
+            return "StructuralVisualConflict";
+        if (popupPresentStreak >= (slow?.PopupConsecutiveCycles ?? 2))
+            return "PopupConsecutiveFailures";
+        if (screenIdentity == "android.settings")
+            return "SemanticUnclear";
+        return null;
+    }
+
+    /// <summary>AGT-009 — trigger → SlowConsultationRequest（复用当前 Fast 上下文；
+    /// 视觉触发且 config 允许时携带截图 raw artifact；Reason 指名触发词）。</summary>
+    internal static SlowConsultationRequest BuildSlowRequest(
+        string trigger, bool visual, byte[]? screenshot,
+        string captureId, DateTimeOffset captureTime, string observationCycleId)
+    {
+        var popupTrigger = trigger == "PopupConsecutiveFailures";
+        return new SlowConsultationRequest(
+            RequestId: $"slow-{trigger}-{captureId}",
+            Target: "settings-screen",
+            ClaimSubject: popupTrigger ? ProductAssociationStrategy.PopupSubject
+                : ProductAssociationStrategy.ScreenRouteSubject,
+            ClaimField: popupTrigger ? "state" : "route",
+            RequiresRawArtifact: visual,
+            BuyerRef: "host.settings-coverage",
+            Reason: $"slow-trigger:{trigger}",
+            CaptureId: captureId,
+            CaptureTimestamp: captureTime,
+            ObservationCycleId: observationCycleId,
+            EvidenceIds: Array.Empty<string>(),
+            RawArtifact: visual ? screenshot : null);
+    }
+
+    /// <summary>AGT-009 — trace 摘要：trigger|status|projected=N[|late]。
+    /// 超时/未配置 → Defer/Unknown 语义留痕，不做静默降级声明。</summary>
+    internal static string FormatSlowTrace(string trigger, SlowConsultationOutcome outcome) =>
+        $"{trigger}|{outcome.Status}|projected={outcome.ProjectedProposals}{(outcome.IsLate ? "|late" : "")}";
+
+    private static int CountClickableNodes(string? xml)
+    {
+        if (xml is null)
+            return 0;
+        try
+        {
+            return XDocument.Parse(xml).Root?
+                .Descendants("node")
+                .Count(n => (string?)n.Attribute("clickable") == "true") ?? 0;
+        }
+        catch (Exception)
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>连续 present 周期计数：absent 归零；无声明（无 XML）保持不变
+    /// （结构事实不可得 ≠ 弹窗消失）。</summary>
+    private int UpdatePopupStreak(string? popupState)
+    {
+        if (popupState == "present")
+            _popupPresentStreak++;
+        else if (popupState == "absent")
+            _popupPresentStreak = 0;
+        return _popupPresentStreak;
+    }
+
+    /// <summary>AGT-009 §8 — 有界 Slow 咨询：config 关闭/预算尽/kernel 不可得 →
+    /// 不发起；否则 build request → Consult（有界等待，永不阻塞周期）；
+    /// 超时/未配置 → trace + 继续（Defer/Unknown 语义）。本路径零 Effect。</summary>
+    private string? ConsultSlowIfTriggered(
+        string? trigger, string captureId, string observationCycleId, byte[] screenshot, bool fastAvailable)
+    {
+        if (trigger is null)
+            return null;
+        var slow = _coverageConfig?.SlowSettings;
+        if (slow is not { Enabled: true } || _slowRequests >= slow.MaxRequestsPerRun)
+            return $"{trigger}|Skipped";
+        var kernel = KernelProvider?.Invoke();
+        if (kernel is null)
+            return $"{trigger}|Skipped";
+        _slowRequests++;
+        var visual = slow.VisualEnabled && fastAvailable;
+        var request = BuildSlowRequest(trigger, visual, screenshot, captureId, _clock.Now, observationCycleId);
+        var outcome = _slowConsult(request, kernel, false,
+            TimeSpan.FromMilliseconds(slow.BoundedWaitMs));
+        return FormatSlowTrace(trigger, outcome);
+    }
 
     private bool TryFast(byte[] png)
     {
