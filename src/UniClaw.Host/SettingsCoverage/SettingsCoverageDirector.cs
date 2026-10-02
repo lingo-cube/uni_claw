@@ -33,6 +33,10 @@ public sealed class SettingsCoverageDirector
     private readonly List<ConsultRecord> _log = new();
     private readonly List<(string DecisionId, string? Directive, AgentActionStep Step)> _adoptedSteps = new();
     private string? _terminalJustification;
+    private int _obstacleAttempts;
+
+    /// <summary>AGT-009：advisory Plan 的最大项数（超出 fail closed）。</summary>
+    internal const int MaxPlanItems = 4;
 
     public SettingsCoverageDirector(
         Func<AgentDecisionContext, AgentDecision?> underlying,
@@ -75,6 +79,38 @@ public sealed class SettingsCoverageDirector
         var snapshot = _ledger.Snapshot(_config);
         var directive = snapshot.NextDirective;
         var kind = snapshot.NextDirectiveKind;
+
+        // AGT-009 §1：弹窗在场优先于一切普通遍历指令——先清障，弹窗回到
+        // absent 才恢复普通遍历。有界重试（config MaxObstacleRetries）；
+        // 超界仍 present → fail closed bounded stop（理由进 ConsultLog）。
+        if (snapshot.PopupState == "present")
+        {
+            if (_obstacleAttempts >= _config.PopupSettings.MaxObstacleRetries)
+            {
+                _terminalJustification = "bounded-stop:popup-not-cleared";
+                _log.Add(new ConsultRecord(
+                    context.DecisionId, context.Phase.ToString(), null, null,
+                    "noAction", null, 0, "bounded-stop:popup-not-cleared"));
+                return new AgentDecision.NoAction(new AgentNoActionProposal(
+                    context.DecisionId, "settings-coverage:bounded-stop:popup-not-cleared"));
+            }
+            // 清障目标从当前可见元素发现（config 词汇优先序，确定性）；
+            // 词汇内无可见目标时无法 grounding——回落普通遍历指令。
+            var obstacle = _config.PopupSettings.Targets
+                .FirstOrDefault(target => snapshot.Visible.Contains(target));
+            if (obstacle is not null)
+            {
+                _obstacleAttempts++;
+                directive =
+                    $"Clear the popup overlay by tapping '<{obstacle}>' before resuming traversal.";
+                kind = "obstacle";
+            }
+        }
+        else if (snapshot.PopupState == "absent")
+        {
+            _obstacleAttempts = 0; // 清障成功：恢复普通遍历预算
+        }
+
         // AGT-006 修复：路由回退身份（页面无标题，如启动过渡屏）≠ 已知
         // 非根页——"back" 会指挥幻影目标。未知页面 → Defer 有界重观察，
         // 等屏幕定形；配额尽（DeferRoundsExhausted 相位）→ 诚实 bounded stop。
@@ -141,16 +177,26 @@ public sealed class SettingsCoverageDirector
         {
             attempts++;
             var decision = _underlying(derived);
+            AgentActionStep? adoptedStep = null;
             deviation = decision is null
                 ? "no-response"
-                : ValidateAdherence(decision, directive, kind!);
+                : ValidateAdherence(decision, directive, kind!, out adoptedStep);
+            var adopted = adoptedStep;
             if (deviation is null)
             {
-                var act = (AgentDecision.Act)decision!;
-                _adoptedSteps.Add((context.DecisionId, directive, act.Proposal.Steps[0]));
+                // Act 单步与受约束 Plan 的唯一 ActItem 都物化为 AgentActionStep
+                // 归属（归因/journal 路径不变；Plan 的执行由 driver 负责）。
+                _adoptedSteps.Add((context.DecisionId, directive, adopted!));
                 _log.Add(new ConsultRecord(
                     context.DecisionId, context.Phase.ToString(), directive, kind,
-                    "act", lastDeviation, attempts, act.Proposal.Justification));
+                    decision is AgentDecision.Plan ? "plan" : "act",
+                    lastDeviation, attempts,
+                    decision switch
+                    {
+                        AgentDecision.Act act => act.Proposal.Justification,
+                        AgentDecision.Plan plan => plan.Proposal.Justification,
+                        _ => null,
+                    }));
                 return decision;
             }
             lastDeviation = deviation;
@@ -164,16 +210,66 @@ public sealed class SettingsCoverageDirector
         return null; // fail closed
     }
 
-    private string? ValidateAdherence(AgentDecision decision, string directive, string kind)
+    /// <summary>
+    /// AGT-009 §11：计划符合性校验。接受两种形态：
+    /// (a) Act 单步（原行为）；(b) 受约束 advisory Plan——Items.Count &lt;= 4、
+    /// 至多一个 ActItem 且必须满足与 Act 相同的 directive 匹配、其余项只能是
+    /// ObserveItem/ControlItem。其余（多 ActItem、Act 失配、未知项、超尺寸）
+    /// → deviation，fail closed 零 Effect。被采纳的 ActItem 经
+    /// <paramref name="adopted"/> 物化为 AgentActionStep（归因/journal 不变）。
+    /// </summary>
+    private string? ValidateAdherence(AgentDecision decision, string directive, string kind, out AgentActionStep? adopted)
     {
-        if (decision is not AgentDecision.Act act)
+        adopted = null;
+        if (decision is AgentDecision.Plan plan)
+        {
+            if (plan.Proposal.Items.Count > MaxPlanItems)
+                return $"plan-oversized:{plan.Proposal.Items.Count}";
+            AgentActionStep? actStep = null;
+            foreach (var item in plan.Proposal.Items)
+            {
+                switch (item)
+                {
+                    case PlanItem.ActItem act:
+                        if (actStep is not null)
+                            return "plan-multiple-acts";
+                        actStep = new AgentActionStep(act.TargetRole, act.TargetDescriptor,
+                            act.EffectClass, act.DesiredState);
+                        break;
+                    case PlanItem.ObserveItem:
+                    case PlanItem.ControlItem:
+                        break;
+                    default:
+                        return "plan-unknown-item";
+                }
+            }
+            if (actStep is null)
+                return "plan-requires-single-act";
+            if (actStep.DesiredState is not null)
+                return "plan-act-must-not-carry-desiredState";
+            var actDeviation = ValidateStepAgainstDirective(actStep, directive, kind);
+            if (actDeviation is not null)
+                return $"plan-{actDeviation}";
+            adopted = actStep;
+            return null;
+        }
+
+        if (decision is not AgentDecision.Act actDecision)
             return $"expected-act-for-directive:{kind}";
-        if (act.Proposal.Steps.Count != 1)
-            return $"directive-requires-single-step:{act.Proposal.Steps.Count}";
-        var step = act.Proposal.Steps[0];
+        if (actDecision.Proposal.Steps.Count != 1)
+            return $"directive-requires-single-step:{actDecision.Proposal.Steps.Count}";
+        var step = actDecision.Proposal.Steps[0];
         if (step.DesiredState is not null)
             return "directive-step-must-not-carry-desiredState";
-        return kind switch
+        var deviation = ValidateStepAgainstDirective(step, directive, kind);
+        if (deviation is null)
+            adopted = step;
+        return deviation;
+    }
+
+    /// <summary>单步与 directive 的匹配规则（Act 与 Plan ActItem 同律）。</summary>
+    private string? ValidateStepAgainstDirective(AgentActionStep step, string directive, string kind) =>
+        kind switch
         {
             "enter" or "re-enter" => IsTap(step) && step.TargetDescriptor == TargetOf(directive)
                 ? null
@@ -185,9 +281,11 @@ public sealed class SettingsCoverageDirector
             "back" => IsTap(step) && step.TargetDescriptor == _config.BackDescriptor
                 ? null
                 : $"directive-back-mismatch:{step.TargetDescriptor ?? "<null>"}",
+            "obstacle" => IsTap(step) && step.TargetDescriptor == TargetOf(directive)
+                ? null
+                : $"directive-obstacle-mismatch:{step.TargetDescriptor ?? "<null>"}",
             _ => "unknown-directive-kind",
         };
-    }
 
     private static bool IsTap(AgentActionStep step) =>
         step.EffectClass is "tap" or "click";
