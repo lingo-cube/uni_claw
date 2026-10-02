@@ -42,6 +42,10 @@ public sealed class ProductAssociationStrategy : IAssociationStrategy
     /// container association.</summary>
     public const string ScreenRouteSubject = "ui.screen.route";
 
+    /// <summary>AGT-009：弹窗/覆盖层 typed 声明 subject（结构分类器产物；
+    /// 普通世界证据，不参与 container association）。</summary>
+    public const string PopupSubject = "ui.overlay.popup";
+
     public AssociationProposal Propose(AssociationInput input)
     {
         ArgumentNullException.ThrowIfNull(input);

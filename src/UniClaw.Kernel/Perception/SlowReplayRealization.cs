@@ -18,6 +18,9 @@ internal sealed class DeterministicSlowRealization
     private readonly SlowModelManagement _models;
     private readonly Dictionary<string, SlowReplayResponse> _responses = new(StringComparer.Ordinal);
 
+    /// <summary>AGT-009：binding 解析来源透传（公开 Slow 缝的 NotConfigured 预检用）。</summary>
+    public SlowModelManagement Models => _models;
+
     public DeterministicSlowRealization(SlowModelManagement? models = null)
         => _models = models ?? SlowReplayProfiles.CreateDefault();
 

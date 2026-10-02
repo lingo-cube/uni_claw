@@ -383,4 +383,75 @@ public sealed class SettingsCoverageConfigTests
         var yaml = MinimalConfig().Replace("backDescriptor: Navigate up", "");
         AssertInvalid(yaml, "config-missing:backDescriptor");
     }
+
+    // ---- AGT-009：popup / slow 可选段 -------------------------------------
+
+    [Fact]
+    public void PopupAndSlow_AbsentSections_DefaultToCurrentBehavior()
+    {
+        var loaded = SettingsCoverageConfig.Load(WriteConfig(MinimalConfig()));
+        Assert.Equal("com.android.settings", loaded.PopupSettings.HostPackage);
+        Assert.Equal(
+            new[] { "android:id/alertTitle", "android:id/parentPanel", "android:id/buttonPanel" },
+            loaded.PopupSettings.ResourceIds);
+        Assert.Equal(new[] { "CANCEL", "button2", "DISMISS", "button1" }, loaded.PopupSettings.Targets);
+        Assert.Equal(2, loaded.PopupSettings.MaxObstacleRetries);
+        Assert.False(loaded.SlowSettings.Enabled);
+        Assert.Equal(2000, loaded.SlowSettings.BoundedWaitMs);
+        Assert.Equal(4, loaded.SlowSettings.MaxRequestsPerRun);
+        Assert.False(loaded.SlowSettings.VisualEnabled);
+        Assert.Equal(2, loaded.SlowSettings.PopupConsecutiveCycles);
+    }
+
+    [Fact]
+    public void PopupAndSlow_ExplicitSections_AreHonored()
+    {
+        var yaml = MinimalConfig() + """
+
+            popup:
+              hostPackage: com.android.settings
+              popupResourceIds:
+                - android:id/alertTitle
+              obstacleTargets:
+                - CANCEL
+                - DISMISS
+              maxObstacleRetries: 3
+            slow:
+              enabled: true
+              boundedWaitMs: 500
+              maxRequestsPerRun: 2
+              visualEnabled: true
+              popupConsecutiveCycles: 3
+            """;
+        var loaded = SettingsCoverageConfig.Load(WriteConfig(yaml));
+        Assert.Equal(3, loaded.PopupSettings.MaxObstacleRetries);
+        Assert.Equal(new[] { "android:id/alertTitle" }, loaded.PopupSettings.ResourceIds);
+        Assert.Equal(new[] { "CANCEL", "DISMISS" }, loaded.PopupSettings.Targets);
+        Assert.True(loaded.SlowSettings.Enabled);
+        Assert.Equal(500, loaded.SlowSettings.BoundedWaitMs);
+        Assert.Equal(2, loaded.SlowSettings.MaxRequestsPerRun);
+        Assert.True(loaded.SlowSettings.VisualEnabled);
+        Assert.Equal(3, loaded.SlowSettings.PopupConsecutiveCycles);
+    }
+
+    [Fact]
+    public void Slow_InvalidBoundedWait_FailsClosed()
+    {
+        var yaml = MinimalConfig() + """
+
+            slow:
+              enabled: true
+              boundedWaitMs: 0
+            """;
+        var path = WriteConfig(yaml);
+        try
+        {
+            var error = Assert.Throws<InvalidOperationException>(() => SettingsCoverageConfig.Load(path));
+            Assert.StartsWith("config-invalid:slow.boundedWaitMs", error.Message);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
 }

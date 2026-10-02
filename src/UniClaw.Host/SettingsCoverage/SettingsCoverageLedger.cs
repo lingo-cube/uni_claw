@@ -39,13 +39,20 @@ public sealed record CoverageSnapshot(
     string? CurrentRoute,
     int StepsVerified,
     string? NextDirective,
-    string? NextDirectiveKind);             // "enter"|"scroll"|"back"|"re-enter"|null
+    string? NextDirectiveKind,              // "enter"|"scroll"|"back"|"re-enter"|"obstacle"|null
+    string? PopupState = null,              // AGT-009：最新弹窗分类声明（present/absent/null=无声明）
+    IReadOnlyList<string>? VisibleDescriptors = null) // AGT-009：最新观察的可见 descriptor（清障目标发现）
+{
+    /// <summary>AGT-009：可见 descriptor（无观察时为空集，不返回 null）。</summary>
+    public IReadOnlyList<string> Visible => VisibleDescriptors ?? Array.Empty<string>();
+}
 
 public sealed class SettingsCoverageLedger
 {
     private sealed record EnteredEntry(string RouteAfter, string? ReceiptId, long Sequence);
 
     private readonly List<(long Sequence, string Route, IReadOnlyList<(string Role, string? Descriptor)> Occurrences)> _observations = new();
+    private readonly List<(long Sequence, string State)> _popupStates = new();
     private readonly List<(long Sequence, CoverageStepRecord Step)> _steps = new();
     private readonly HashSet<int> _duplicateEffectStepIndexes = new();
     private long _sequence;
@@ -113,6 +120,22 @@ public sealed class SettingsCoverageLedger
 
     public void RecordConsultRound(string decisionId) => _consultRounds++;
 
+    /// <summary>
+    /// AGT-009：记录每周期弹窗分类声明（"present"/"absent"）。小 additive API——
+    /// director 经 Snapshot.PopupState 分支，不经 Kernel。
+    /// </summary>
+    public void RecordPopupState(string state)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(state);
+        if (state is not ("present" or "absent"))
+            throw new ArgumentException($"popup state must be 'present' or 'absent', got '{state}'", nameof(state));
+        _popupStates.Add((++_sequence, state));
+    }
+
+    /// <summary>AGT-009：最新弹窗声明（从未记录 → null = 无声明）。</summary>
+    public string? LatestPopupState =>
+        _popupStates.Count > 0 ? _popupStates[^1].State : null;
+
     public CoverageSnapshot Snapshot(SettingsCoverageConfig config)
     {
         var (items, _, _, _, _, _, _) = Recompute(config);
@@ -149,7 +172,9 @@ public sealed class SettingsCoverageLedger
             CurrentRoute: currentRoute,
             StepsVerified: _steps.Count(entry => entry.Step.Verified),
             NextDirective: directive,
-            NextDirectiveKind: directiveKind);
+            NextDirectiveKind: directiveKind,
+            PopupState: LatestPopupState,
+            VisibleDescriptors: CurrentVisibleDescriptors()?.ToList());
     }
 
     public CoverageReport Report(SettingsCoverageConfig config)

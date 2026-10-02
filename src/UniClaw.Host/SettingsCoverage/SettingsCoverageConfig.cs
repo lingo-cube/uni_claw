@@ -11,6 +11,44 @@ public sealed record CoverageTermination(bool OnCoverageComplete, bool OnMaxStep
 /// <summary>AGT-008：证据工件持久化开关（缺省 true——追溯性默认留存）。</summary>
 public sealed record CoverageEvidenceOptions(bool PersistScreenshots = true, bool PersistHierarchies = true);
 
+/// <summary>
+/// AGT-009：弹窗识别与清障配置。HostPackage = 结构分类器的 host 包身份；
+/// PopupResourceIds = 弹窗结构 resource-id 白名单；ObstacleTargets = 清障
+/// 点击的 descriptor 优先序（CANCEL/button2 优先，DISMISS/button1 次之）；
+/// MaxObstacleRetries = 有界清障重试（超出即 fail closed bounded stop）。
+/// </summary>
+public sealed record PopupClearanceConfig(
+    string HostPackage = "com.android.settings",
+    IReadOnlyList<string>? PopupResourceIds = null,
+    IReadOnlyList<string>? ObstacleTargets = null,
+    int MaxObstacleRetries = 2)
+{
+    /// <summary>弹窗结构 resource-id 缺省白名单（e1 真机实证）。</summary>
+    public static readonly string[] DefaultPopupResourceIds =
+    {
+        "android:id/alertTitle", "android:id/parentPanel", "android:id/buttonPanel",
+    };
+
+    /// <summary>清障目标缺省优先序。</summary>
+    public static readonly string[] DefaultObstacleTargets = { "CANCEL", "button2", "DISMISS", "button1" };
+
+    public IReadOnlyList<string> ResourceIds => PopupResourceIds ?? DefaultPopupResourceIds;
+    public IReadOnlyList<string> Targets => ObstacleTargets ?? DefaultObstacleTargets;
+}
+
+/// <summary>
+/// AGT-009：有界 Slow 触发配置（ADR-0030：Effect Gate 永不调用/等待 Slow）。
+/// Enabled 缺省 false——关闭时现有行为逐字节不变；BoundedWaitMs 有界等待；
+/// MaxRequestsPerRun 每 run 预算；VisualEnabled 允许携带截图 raw artifact；
+/// PopupConsecutiveCycles = PopupConsecutiveFailures 触发的连续周期数 N。
+/// </summary>
+public sealed record SlowTriggerConfig(
+    bool Enabled = false,
+    int BoundedWaitMs = 2000,
+    int MaxRequestsPerRun = 4,
+    bool VisualEnabled = false,
+    int PopupConsecutiveCycles = 2);
+
 public sealed record SettingsCoverageConfig(
     string ConfigVersion,
     CoverageSessionConfig Session,
@@ -21,10 +59,18 @@ public sealed record SettingsCoverageConfig(
     string RootRoute,
     string ScrollContainerDescriptor,
     string BackDescriptor,
-    CoverageEvidenceOptions? Evidence = null)
+    CoverageEvidenceOptions? Evidence = null,
+    PopupClearanceConfig? Popup = null,
+    SlowTriggerConfig? Slow = null)
 {
     /// <summary>证据持久化（缺省全开；旧配置无该段时保持缺省）。</summary>
     public CoverageEvidenceOptions EvidenceSettings => Evidence ?? new CoverageEvidenceOptions();
+
+    /// <summary>AGT-009：弹窗/清障配置（缺省 = 记录的缺省词汇与有界重试）。</summary>
+    public PopupClearanceConfig PopupSettings => Popup ?? new PopupClearanceConfig();
+
+    /// <summary>AGT-009：Slow 触发配置（缺省关闭——现有行为不变）。</summary>
+    public SlowTriggerConfig SlowSettings => Slow ?? new SlowTriggerConfig();
 
     public const string DefaultConfigRelativePath = ".dsh/profiles/settings-coverage.yaml";
     public const string ConfigPathEnvironmentVariable = "UNICLAW_SETTINGS_COVERAGE_CONFIG";
@@ -72,6 +118,8 @@ public sealed record SettingsCoverageConfig(
             Termination: ValidateTermination(document, path),
             RootRoute: RequireNamed(document, ["rootRoute"], path),
             Evidence: ReadEvidenceOptions(document, path),
+            Popup: ReadPopupOptions(document, path),
+            Slow: ReadSlowOptions(document, path),
             ScrollContainerDescriptor: RequireNamed(document, ["scrollContainerDescriptor"], path),
             BackDescriptor: RequireNamed(document, ["backDescriptor"], path));
     }
@@ -159,6 +207,41 @@ public sealed record SettingsCoverageConfig(
         return new CoverageEvidenceOptions(
             PersistScreenshots: screenshots ?? true,
             PersistHierarchies: hierarchies ?? true);
+    }
+
+    /// <summary>AGT-009：可选 popup 段（缺省 = 记录的缺省词汇；显式值非法 fail closed）。</summary>
+    private static PopupClearanceConfig? ReadPopupOptions(YamlDocument document, string path)
+    {
+        var hostPackage = document.OptionalScalar(["popup", "hostPackage"]);
+        var resourceIds = document.OptionalList(["popup", "popupResourceIds"]);
+        var obstacleTargets = document.OptionalList(["popup", "obstacleTargets"]);
+        var maxRetries = document.OptionalInt(["popup", "maxObstacleRetries"], minimum: 0);
+        if (hostPackage is null && resourceIds is null && obstacleTargets is null && maxRetries is null)
+            return null; // 段缺失 → 调用方缺省
+        return new PopupClearanceConfig(
+            HostPackage: hostPackage ?? "com.android.settings",
+            PopupResourceIds: resourceIds,
+            ObstacleTargets: obstacleTargets,
+            MaxObstacleRetries: maxRetries ?? 2);
+    }
+
+    /// <summary>AGT-009：可选 slow 段（缺省 Disabled=false——现有行为不变）。</summary>
+    private static SlowTriggerConfig? ReadSlowOptions(YamlDocument document, string path)
+    {
+        var enabled = document.OptionalBool(["slow", "enabled"]);
+        var boundedWaitMs = document.OptionalInt(["slow", "boundedWaitMs"], minimum: 1);
+        var maxRequests = document.OptionalInt(["slow", "maxRequestsPerRun"], minimum: 0);
+        var visualEnabled = document.OptionalBool(["slow", "visualEnabled"]);
+        var popupCycles = document.OptionalInt(["slow", "popupConsecutiveCycles"], minimum: 1);
+        if (enabled is null && boundedWaitMs is null && maxRequests is null
+            && visualEnabled is null && popupCycles is null)
+            return null; // 段缺失 → 调用方缺省（关闭）
+        return new SlowTriggerConfig(
+            Enabled: enabled ?? false,
+            BoundedWaitMs: boundedWaitMs ?? 2000,
+            MaxRequestsPerRun: maxRequests ?? 4,
+            VisualEnabled: visualEnabled ?? false,
+            PopupConsecutiveCycles: popupCycles ?? 2);
     }
 
     private static string RequireNamed(YamlDocument document, string[] pathSegments, string path)
@@ -278,6 +361,27 @@ public sealed record SettingsCoverageConfig(
                 : throw new InvalidOperationException(
                     $"config-invalid:{string.Join(".", path)}:{value} ({path.Last()} 须为布尔)");
         }
+
+        /// <summary>AGT-009：可选标量读取——缺路径/缺值 → null。</summary>
+        public string? OptionalScalar(string[] path) =>
+            Walk(path) is string value && !string.IsNullOrWhiteSpace(value) ? value : null;
+
+        /// <summary>AGT-009：可选整数读取——缺路径 → null；值存在但非整数/
+        /// 低于下限 → fail closed（与必填整数同一严格度）。</summary>
+        public int? OptionalInt(string[] path, int minimum)
+        {
+            if (Walk(path) is not string value || string.IsNullOrWhiteSpace(value))
+                return null;
+            var display = string.Join(".", path);
+            if (!int.TryParse(value, out var parsed) || parsed < minimum)
+                throw new InvalidOperationException(
+                    $"config-invalid:{display}:{value} ({path.Last()} 须为 ≥{minimum} 的整数)");
+            return parsed;
+        }
+
+        /// <summary>AGT-009：可选字符串列表读取——缺路径 → null。</summary>
+        public IReadOnlyList<string>? OptionalList(string[] path) =>
+            Walk(path) is string[] list ? list : null;
 
         public string RequireScalar(string[] path)
         {
