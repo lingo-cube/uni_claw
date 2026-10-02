@@ -8,7 +8,7 @@
       "workitems/WI-PNL003-003.json"
     ],
     "read_hints": [
-      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "docs/design/uniclaw-workspace-architecture-v0.1.md",
       "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
       "schemas/workspace/README.md",
       "schemas/workspace/capability.schema.json",
@@ -32,7 +32,7 @@
     {"path": "web/uniclaw-workspace/src/core/index.js", "symbol": "WorkspaceQueryCore"}
   ],
   "contract_refs": [
-    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/design/uniclaw-workspace-architecture-v0.1.md",
     "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
     "schemas/workspace/README.md",
     "schemas/workspace/capability.schema.json"

@@ -121,11 +121,12 @@ expected: >
   SlowResultProjector/P2 入证、超时/未配置/晚到零授权；弹窗 obstacle 分支
   同分类器前后测、清障后普通遍历恢复并完成覆盖
 actual: >
-  1220 项中 1219 通过；唯一失败 DocsMetadataTests.Architecture_DeclaresFrozenAuthority
-  为基线预存（快照 a4d3b391 上同样失败：PNL-003 未确认文档
-  uniclaw-workspace-architecture-v0.1.md 缺 FROZEN/CLOSED 声明，非本 change
-  范围）。场景 29/29 seal 一致（change=AGT-009）。真机验证未执行（本 change
-  验收为确定性测试；真机复跑 e1 场景属后续 AGT-010 解锁项，见 plans §3）。
+  1220 项全通过。唯一基线预存失败 DocsMetadataTests.Architecture_DeclaresFrozenAuthority
+  已按 ARCH-DOC-015 sanctioned 路径修复：PNL-003 未裁决草案（自述 Pre-Grill
+  Draft）从 architecture/ 迁回 design/ 并补 Status/Authority 头（判据是文档
+  状态，不是作者意图；引用与 design/ 索引同步更新）。场景 29/29 seal 一致
+  （change=AGT-009）。真机验证未执行（本 change 验收为确定性测试；真机复跑
+  e1 场景属后续 AGT-010 解锁项，见 plans §3）。
 evidence: >
   evidence/agt-009/kernel-plan-contract.md（Kernel 侧四元组）；
   evidence/agt-009/WI-AGT009-002-evidence.md（Host/Slow/Director 侧四元组）；
@@ -137,3 +138,4 @@ evidence: >
 - 2026-10-02 · persisted · 由 Settings traversal grill、行业一手资料审核和数学/职责完备性审阅收敛；等待 GLM Leader 实施。
 - 2026-10-02 · implemented · Leader 在独立 worktree（../uni_claw-agt009，快照 a4d3b391 = PER-017/018 + Settings Traversal + 确认改动）冻结 Plan 契约并落地 Kernel 侧（AgentDecision.cs / KernelRunDriver.cs PlanExpand / 16 项确定性测试 / 白名单 + tripwire / 场景重认证 AGT-009）；Worker（glm-5.3-flash，独立分支 agt009-worker）承接 Host/Slow/Director 接入（WI-AGT009-002）。实施期冻结决策见 §Decisions 7-14。
 - 2026-10-02 · verified · 合并 agt009-worker（bf7ee166）；白名单补 SlowConsultation 四型；合并树重认证 29 场景；补 Drive 级弹窗清障闭环测试（d4e71e7b）。全量 1219/1220（唯一失败为基线预存 DocsMetadataTests，见 Verification.actual）。验收四元组与证据落 evidence/agt-009/。
+- 2026-10-02 · verified·post-verify-hygiene · Owner 授权自主修复无需裁决项：①基线预存 DocsMetadataTests 失败——PNL-003 草案按 ARCH-DOC-015 分类学迁回 design/（含引用与索引更新）；②Worker 测试两条 CS8620 nullable 警告清零；③已合并 worker worktree 清理（分支保留）。全量 1220/1220。

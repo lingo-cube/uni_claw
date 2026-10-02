@@ -11,7 +11,7 @@
     "read_hints": [
       "web/uniclaw-workspace/src/features/workspace-view-model.js",
       "web/uniclaw-workspace/tests/workspace-view-model.test.js",
-      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "docs/design/uniclaw-workspace-architecture-v0.1.md",
       "plans/PNL-003-plan.md"
     ]
   },
@@ -28,7 +28,7 @@
     {"path": "web/uniclaw-workspace/src/features/workspace-view-model.js", "symbol": "createWorkspaceViewModel"}
   ],
   "contract_refs": [
-    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/design/uniclaw-workspace-architecture-v0.1.md",
     "plans/PNL-003-plan.md",
     "schemas/workspace/README.md"
   ],

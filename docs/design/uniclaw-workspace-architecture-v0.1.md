@@ -1,6 +1,10 @@
 # UniClaw Workspace 架构方案 v0.1（Pre-Grill Draft）
 
+> Status: DRAFT / REVIEW_REQUIRED（设计草案，等待一轮决策型 Grill；裁决接受后按 docs/README.md §3 迁入对应权威目录，修订经 change）
+> Authority: NONE
+
 > 状态：设计草案，等待一轮决策型 Grill。本文定义目标、边界、分层、数据形状和前端组织；不授权产品实现，也不改变 Product Runtime 的权威边界。
+> （AGT-009 基线卫生修复：按 ARCH-DOC-015 分类学从 architecture/ 迁回 design/——判据是文档状态，不是作者意图。）
 
 ## 1. 目标
 

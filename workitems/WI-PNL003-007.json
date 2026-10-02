@@ -11,7 +11,7 @@
       "web/uniclaw-workspace/src/features/workspace-controller.js",
       "web/uniclaw-workspace/tests/workspace-controller.test.js",
       "web/uniclaw-workspace/src/core/index.js",
-      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "docs/design/uniclaw-workspace-architecture-v0.1.md",
       "plans/PNL-003-plan.md"
     ]
   },
@@ -29,7 +29,7 @@
     {"path": "web/uniclaw-workspace/src/core/index.js", "symbol": "sourceMeta"}
   ],
   "contract_refs": [
-    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/design/uniclaw-workspace-architecture-v0.1.md",
     "schemas/workspace/README.md",
     "plans/PNL-003-plan.md"
   ],

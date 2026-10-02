@@ -24,7 +24,7 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 
 ## Decisions（Rounds 1–5）
 
-- 设计主文档：`docs/architecture/uniclaw-workspace-architecture-v0.1.md`。
+- 设计主文档：`docs/design/uniclaw-workspace-architecture-v0.1.md`。
 - 数据流采用 source → correlation → normalization → projection → query → render。
 - 统一记录保留 `source`、`authority`、`correlationId` 和 `detailRef`，前端只消费读模型。
 - Workspace v0.1 是只读观察产品，不包含停止、重试、批准或任务编辑。
@@ -122,10 +122,10 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 ```yaml
 verification:
   level: CONTRACT
-  method: "阅读 docs/architecture/uniclaw-workspace-architecture-v0.1.md，并检查 git diff --check 与工作区变更清单"
+  method: "阅读 docs/design/uniclaw-workspace-architecture-v0.1.md，并检查 git diff --check 与工作区变更清单"
   expected: "需求、边界、分层、数据契约、目录规则、验收标准和 Human Gates 齐全；无实现代码变更"
   actual: "五轮 Grill 决策已写入架构方案、Change State、glossary 和 ADR；schema foundation、Query Core、DSH Adapter 三个只读切片已分别通过 Leader Review/Verify，最终 UI 与运行时挂载仍未宣称完成"
-  evidence: "docs/architecture/uniclaw-workspace-architecture-v0.1.md；plans/PNL-003-plan.md；evidence/PNL-003-WI-PNL003-001.md；evidence/PNL-003-WI-PNL003-002.md；evidence/PNL-003-WI-PNL003-003.md"
+  evidence: "docs/design/uniclaw-workspace-architecture-v0.1.md；plans/PNL-003-plan.md；evidence/PNL-003-WI-PNL003-001.md；evidence/PNL-003-WI-PNL003-002.md；evidence/PNL-003-WI-PNL003-003.md"
 ```
 
 ## Residual risks

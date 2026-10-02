@@ -35,7 +35,7 @@
     {"path": "dsh/uniclaw-task-workbench/src/client.js", "symbol": "apply"}
   ],
   "contract_refs": [
-    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/design/uniclaw-workspace-architecture-v0.1.md",
     "plans/PNL-003-plan.md",
     ".agents/skills/dsh-plugin-static-client-ui/SKILL.md"
   ],

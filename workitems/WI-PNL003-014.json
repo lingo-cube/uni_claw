@@ -27,7 +27,7 @@
     {"path": "web/uniclaw-workspace/tests/workspace-renderer.test.js", "symbol": "render"}
   ],
   "contract_refs": [
-    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/design/uniclaw-workspace-architecture-v0.1.md",
     "plans/PNL-003-plan.md"
   ],
   "acceptance": [

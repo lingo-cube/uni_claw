@@ -32,7 +32,7 @@
     {"path": "web/uniclaw-workspace/src/app/create-workspace-app.js", "symbol": "createWorkspaceApp"}
   ],
   "contract_refs": [
-    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/design/uniclaw-workspace-architecture-v0.1.md",
     "plans/PNL-003-plan.md",
     "schemas/workspace/README.md"
   ],

@@ -59,15 +59,15 @@ public sealed class SettingsCoverageDirectorPlanTests
     {
         var ledger = new SettingsCoverageLedger();
         ledger.RecordObservation(RootRoute,
-            new[] { ("ui.element", Entry), ("ui.element", "CANCEL") });
+            new (string, string?)[] { ("ui.element", Entry), ("ui.element", "CANCEL") });
         return ledger;
     }
 
-    private static SettingsCoverageLedger PopupLedger() 
+    private static SettingsCoverageLedger PopupLedger()
     {
         var ledger = new SettingsCoverageLedger();
         ledger.RecordObservation(RootRoute,
-            new[] { ("ui.element", Entry), ("ui.element", "CANCEL"), ("ui.element", "button1") });
+            new (string, string?)[] { ("ui.element", Entry), ("ui.element", "CANCEL"), ("ui.element", "button1") });
         ledger.RecordPopupState("present");
         return ledger;
     }

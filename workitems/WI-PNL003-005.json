@@ -12,7 +12,7 @@
       "web/uniclaw-workspace/tests/core.test.js",
       "schemas/workspace/capability.schema.json",
       "schemas/workspace/query-error.schema.json",
-      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "docs/design/uniclaw-workspace-architecture-v0.1.md",
       "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md"
     ]
   },
@@ -32,7 +32,7 @@
   "contract_refs": [
     "schemas/workspace/capability.schema.json",
     "schemas/workspace/query-error.schema.json",
-    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/design/uniclaw-workspace-architecture-v0.1.md",
     "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md"
   ],
   "acceptance": [

@@ -7,7 +7,7 @@
       "tools/validate-workspace-schemas.py"
     ],
     "read_hints": [
-      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "docs/design/uniclaw-workspace-architecture-v0.1.md",
       "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
       "CONTEXT.md",
       "schemas/agt-002/product-protocol.schema.json",
@@ -26,7 +26,7 @@
   },
   "anchors": [
     {
-      "path": "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "path": "docs/design/uniclaw-workspace-architecture-v0.1.md",
       "symbol": "RecordEnvelope / Workspace Query Core / v0.1 reliability contract"
     },
     {
@@ -34,7 +34,7 @@
     }
   ],
   "contract_refs": [
-    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/design/uniclaw-workspace-architecture-v0.1.md",
     "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
     "changes/PNL-003/state.md"
   ],

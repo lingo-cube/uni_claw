@@ -9,7 +9,7 @@
     ],
     "read_hints": [
       "schemas/workspace/",
-      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "docs/design/uniclaw-workspace-architecture-v0.1.md",
       "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
       "plans/PNL-003-plan.md",
       "evidence/PNL-003-WI-PNL003-001.md"
@@ -31,13 +31,13 @@
       "symbol": "RecordEnvelope / capability / QueryError"
     },
     {
-      "path": "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "path": "docs/design/uniclaw-workspace-architecture-v0.1.md",
       "symbol": "source → correlation → normalization → projection → query → render"
     }
   ],
   "contract_refs": [
     "schemas/workspace/README.md",
-    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/design/uniclaw-workspace-architecture-v0.1.md",
     "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
     "changes/PNL-003/state.md"
   ],
