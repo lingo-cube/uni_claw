@@ -126,4 +126,71 @@ public abstract record AgentDecision
     /// 基线 D2 要求其存在，此处为两条款的合并落形，非词汇扩展。
     /// </summary>
     public sealed record Policy(string DecisionId, PolicyProposal Proposal) : AgentDecision;
+
+    /// <summary>
+    /// AGT-009（§11）：advisory 抽象遍历计划——高层策略进入既有执行链的
+    /// 载荷，不是第二控制器。DecisionId 同律回带（D2 防串话；Policy 先例）。
+    /// Kernel 每次最多采纳一个 ActItem，且每个 ActItem 都独立走既有
+    /// Grounding → Assurance → Effect Gate → dispatch → post-action
+    /// verification 全链；ObserveItem 零 Effect；ControlItem 只允许
+    /// Reobserve / Replan / Stop 的有界转移（Replan 消耗当前 Run 的全局
+    /// 咨询预算，不重新获得新预算）。
+    /// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
+    /// </summary>
+    public sealed record Plan(string DecisionId, AgentPlanProposal Proposal) : AgentDecision;
 }
+
+/// <summary>
+/// AGT-009 — Plan 流程控制词汇（ControlItem 唯一 Kind；closed enum）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
+/// </summary>
+public enum PlanControlKind
+{
+    /// <summary>有界重新观察：废弃剩余计划，拉取一轮外部观察后回决策边界。</summary>
+    Reobserve,
+
+    /// <summary>重新规划：废弃剩余计划，回决策边界（消耗全局咨询预算）。</summary>
+    Replan,
+
+    /// <summary>安全终止：废弃剩余计划，零新 Effect 进入终局评估。</summary>
+    Stop,
+}
+
+/// <summary>
+/// AGT-009 — advisory 遍历计划项（closed union，§11 已定形状）。只携带
+/// 语义目标与意图：结构上不存在坐标、occurrence、过期 selector 或直接
+/// Effect 授权字段（「不能包含」由类型形状执法，非运行时过滤）。closed
+/// union 之外的派生类型由 driver 以 plan:unknown-item fail closed 拒绝。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
+/// </summary>
+public abstract record PlanItem
+{
+    /// <summary>
+    /// 单步语义动作：语义目标（角色/描述）+ effect class + 可选期望终态。
+    /// 形状与 AgentActionStep 对齐（driver 逐项物化为单步，复用 Act 链）。
+    /// </summary>
+    public sealed record ActItem(
+        string TargetRole,
+        string? TargetDescriptor,
+        string EffectClass,
+        string? DesiredState) : PlanItem;
+
+    /// <summary>
+    /// 记录或补证（record-only）：零 Effect，也不能单独宣告任务完成
+    ///（Settings record-only 结果由既有 coverage ledger 记录）。
+    /// Subject 非 null = 定向补证（聚焦复查通道）。
+    /// </summary>
+    public sealed record ObserveItem(string? Subject) : PlanItem;
+
+    /// <summary>流程控制：Reobserve / Replan / Stop（有界转移）。</summary>
+    public sealed record ControlItem(PlanControlKind Kind, string? Reason) : PlanItem;
+}
+
+/// <summary>
+/// AGT-009 — advisory 遍历计划载荷：有界有序 PlanItem 列表（非 DAG），
+/// 步数上限与预算由 KernelRunDriver 机械执法（V7）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
+/// </summary>
+public sealed record AgentPlanProposal(
+    IReadOnlyList<PlanItem> Items,
+    string? Justification);
