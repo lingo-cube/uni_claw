@@ -1,0 +1,409 @@
+{
+  "status": "TerminalNotProven",
+  "reason": "evidence-insufficient",
+  "outcome": null,
+  "delivered": 25,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0.6666666666666666,
+  "stepSuccessRate": 1,
+  "uncovered": [
+    "scroll-discovered-entry",
+    "repeated-entry"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": null,
+  "evidenceDir": "/Users/fran/Documents/Code/spacex/uni_claw-agt009/evidence/agt-010/live-rerun/run-20261002-155017-713/evidence",
+  "evidenceFiles": 51,
+  "journalBytes": 38713,
+  "consults": [
+    {
+      "decisionId": "decision-024b7c98d54c-1",
+      "phase": "InitialPlanning",
+      "directive": "Enter the Settings first-level entry \u0027\u003CNetwork \u0026 internet\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-2",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-3",
+      "phase": "StepVerified",
+      "directive": "Scroll the Settings list down with swipe-up on \u0027\u003Ccom.android.settings:id/main_content_scrollable_container\u003E\u0027",
+      "directiveKind": "scroll",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-4",
+      "phase": "StepVerified",
+      "directive": "Enter the scroll-discovered Settings entry \u0027\u003CSearch settings\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-5",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-6",
+      "phase": "StepVerified",
+      "directive": "Enter the scroll-discovered Settings entry \u0027\u003CSound \u0026 vibration\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-7",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-8",
+      "phase": "StepVerified",
+      "directive": "Enter the scroll-discovered Settings entry \u0027\u003CDisplay\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-9",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-10",
+      "phase": "StepVerified",
+      "directive": "Enter the scroll-discovered Settings entry \u0027\u003CWallpaper\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-11",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-12",
+      "phase": "StepVerified",
+      "directive": "Enter the scroll-discovered Settings entry \u0027\u003CAccessibility\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-13",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-14",
+      "phase": "StepVerified",
+      "directive": "Enter the scroll-discovered Settings entry \u0027\u003CSecurity \u0026 privacy\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-15",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-16",
+      "phase": "StepVerified",
+      "directive": "Enter the scroll-discovered Settings entry \u0027\u003CLocation\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-17",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-18",
+      "phase": "StepVerified",
+      "directive": "Enter the scroll-discovered Settings entry \u0027\u003CSafety \u0026 emergency\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-19",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-20",
+      "phase": "StepVerified",
+      "directive": "Enter the scroll-discovered Settings entry \u0027\u003CPasswords, passkeys \u0026 accounts\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-21",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-22",
+      "phase": "StepVerified",
+      "directive": "Enter the scroll-discovered Settings entry \u0027\u003CSystem\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-23",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-24",
+      "phase": "StepVerified",
+      "directive": "Scroll the Settings list down with swipe-up on \u0027\u003Ccom.android.settings:id/main_content_scrollable_container\u003E\u0027",
+      "directiveKind": "scroll",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-25",
+      "phase": "StepVerified",
+      "directive": "Enter the scroll-discovered Settings entry \u0027\u003CAbout emulated device\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-26",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    }
+  ],
+  "steps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-fe0588f89104-3-1"
+    },
+    {
+      "decision": 2,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-190ea3692705-1-2"
+    },
+    {
+      "decision": 3,
+      "step": 0,
+      "receipt": "receipt-bind-intent-3-occ-c3fde21cd263-2-3"
+    },
+    {
+      "decision": 4,
+      "step": 0,
+      "receipt": "receipt-bind-intent-4-occ-bb2ed1028642-0-4"
+    },
+    {
+      "decision": 5,
+      "step": 0,
+      "receipt": "receipt-bind-intent-5-occ-7b52887ff57b-0-5"
+    },
+    {
+      "decision": 6,
+      "step": 0,
+      "receipt": "receipt-bind-intent-6-occ-56ac9f3decb4-2-6"
+    },
+    {
+      "decision": 7,
+      "step": 0,
+      "receipt": "receipt-bind-intent-7-occ-dc5d2fc55f21-1-7"
+    },
+    {
+      "decision": 8,
+      "step": 0,
+      "receipt": "receipt-bind-intent-8-occ-e2c294430354-3-8"
+    },
+    {
+      "decision": 9,
+      "step": 0,
+      "receipt": "receipt-bind-intent-9-occ-184e5d8fbe71-1-9"
+    },
+    {
+      "decision": 10,
+      "step": 0,
+      "receipt": "receipt-bind-intent-10-occ-037a5982d93f-4-10"
+    },
+    {
+      "decision": 11,
+      "step": 0,
+      "receipt": "receipt-bind-intent-11-occ-d9d2ecf094ec-1-11"
+    },
+    {
+      "decision": 12,
+      "step": 0,
+      "receipt": "receipt-bind-intent-12-occ-2aab027e1ba8-5-12"
+    },
+    {
+      "decision": 13,
+      "step": 0,
+      "receipt": "receipt-bind-intent-13-occ-add51cd4fb59-1-13"
+    },
+    {
+      "decision": 14,
+      "step": 0,
+      "receipt": "receipt-bind-intent-14-occ-d9912505da29-6-14"
+    },
+    {
+      "decision": 15,
+      "step": 0,
+      "receipt": "receipt-bind-intent-15-occ-c38a8ba88fa7-1-15"
+    },
+    {
+      "decision": 16,
+      "step": 0,
+      "receipt": "receipt-bind-intent-16-occ-3bbb204a8358-7-16"
+    },
+    {
+      "decision": 17,
+      "step": 0,
+      "receipt": "receipt-bind-intent-17-occ-20618fa97fa7-1-17"
+    },
+    {
+      "decision": 18,
+      "step": 0,
+      "receipt": "receipt-bind-intent-18-occ-09f2b7904027-8-18"
+    },
+    {
+      "decision": 19,
+      "step": 0,
+      "receipt": "receipt-bind-intent-19-occ-130c175aa5a0-1-19"
+    },
+    {
+      "decision": 20,
+      "step": 0,
+      "receipt": "receipt-bind-intent-20-occ-6b30124fe971-9-20"
+    },
+    {
+      "decision": 21,
+      "step": 0,
+      "receipt": "receipt-bind-intent-21-occ-749941bf9bc0-1-21"
+    },
+    {
+      "decision": 22,
+      "step": 0,
+      "receipt": "receipt-bind-intent-22-occ-d6965124774a-10-22"
+    },
+    {
+      "decision": 23,
+      "step": 0,
+      "receipt": "receipt-bind-intent-23-occ-2fdb53faf548-1-23"
+    },
+    {
+      "decision": 24,
+      "step": 0,
+      "receipt": "receipt-bind-intent-24-occ-b57fe1ecf75a-1-24"
+    },
+    {
+      "decision": 25,
+      "step": 0,
+      "receipt": "receipt-bind-intent-25-occ-d619a13646e5-10-25"
+    }
+  ]
+}

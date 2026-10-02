@@ -76,18 +76,32 @@ RouteKey，并建立与身份独立的 ViewportDigest 视口摘要。
 ## Verification
 
 ```yaml
-level: DETERMINISTIC + SCENARIO
+level: DETERMINISTIC + SCENARIO + ENVIRONMENT
 method: >
   dotnet test tests/UniClaw.Host.Tests（SettingsRouteKeyTests 语料区分度 5 项
   + 撞名 e2e（FullCoverageMission 含撞名页断言）+ ScrollAtBottom 滚动到底
-  有界停止 + 配置/账本迁移回归）；dotnet test UniClaw.Kernel.slnx 全量；
-  python3 tools/scenario_certify.py --check；git diff --check
+  有界停止 + 配置/账本迁移回归）；API 35 p26_pixel emulator 上执行
+  DSH_TEST_PERCEPTION_LIVE=1 dotnet test tests/UniClaw.Host.Tests
+  --filter FullyQualifiedName~SettingsCoverageLiveTests；dotnet test
+  UniClaw.Kernel.slnx 全量；python3 tools/scenario_certify.py --check；
+  git diff --check
 expected: "撞名可判、同页稳定、滚动分支有界、配置迁移后全绿"
 actual: >
-  全量 1227/1227 通过（Host 137 含新增 6 项）；场景 29/29 seal 一致
-  （仅 Host 源变更，不触发重认证）。真机复跑 e1（settings-coverage-neg-c）
-  环境不可用（无设备/adb），如实 blocked——解锁后按 plans §3 主路径复跑。
-evidence: evidence/agt-010/routekey-offline-analysis.md
+  离线与场景验证保持全绿：全量 1227/1227 通过（Host 137 含新增 6 项），
+  场景 29/29 seal 一致。真机复跑已在 API 35 p26_pixel emulator
+  （emulator-5554，1080x2400）完成：dotnet build 0 errors；
+  SettingsCoverageLiveTests 1/1 通过，共 25 步且 25 步 verified；
+  Security & privacy 为 step 13，RouteAfter=
+  android.settings|rk1:Settings|src=title|up=1，无 target-unique 失败；
+  verified swipe 2 次；终局 BoundedStop，未覆盖项为 scroll-discovered-entry
+  与 repeated-entry（无 obstacle consult）。回归全量测试 1237 通过，
+  scenario_certify.py --check 为 29/29 PASS，git diff --check 通过。
+  真机证据见 evidence/agt-010/live-rerun/run-20261002-155017-713/，
+  结果四元组见 evidence/agt-010/live-rerun-result.md。
+evidence: evidence/agt-010/routekey-offline-analysis.md; evidence/agt-010/live-rerun-result.md;
+  evidence/agt-010/live-rerun/run-20261002-155017-713/coverage-steps.json;
+  evidence/agt-010/live-rerun/run-20261002-155017-713/coverage-report.json;
+  evidence/agt-010/live-rerun/run-20261002-155017-713/facts.json
 ```
 
 ## Status log
@@ -95,3 +109,4 @@ evidence: evidence/agt-010/routekey-offline-analysis.md
 - 2026-10-02 · persisted · 由 owner 指令立项（"尝试修复 AGT-010"）；离线区分度分析完成（23 份实录 XML，字段冻结见 Decisions 1-3）。
 - 2026-10-02 · verified · DeriveRouteKey（标题×来源×up；sc 字段被语料证伪剔除，Decision 6）+ DeriveViewportDigest（独立摘要，TraceEntry 接线）落地；RootRoute 迁移（测试 yaml/LedgerTests/LoadDefault profile）；撞名 e2e 与滚动到底确定性背书全绿（1227/1227）；真机复跑如实 blocked。
 - 2026-10-02 · verified·live-rerun-prepared · 更正：本机有 adb + API35 AVD（此前「环境无设备」判断错误，已收回）；ENV 门控真机终考 harness 已写入 tests/UniClaw.Host.Tests/SettingsCoverageLiveTests.cs（neg-c 同源 + rk1 RootRoute，consult=本地指令跟随 double；编译验证被中止，由执行方预检）。执行与收尾指令固化于 evidence/agt-010/live-rerun-INSTRUCTIONS.md，移交下一 agent。
+- 2026-10-02 · verified·live-rerun · emulator 真机链路通过：撞名 Security & privacy 可验证进入，列表底部 verified swipe 可达；终局为带未覆盖项的诚实 BoundedStop。证据与 e1 step 20/digest 55291AC… 对照已落盘，AGT-010 唯一悬空项关闭。

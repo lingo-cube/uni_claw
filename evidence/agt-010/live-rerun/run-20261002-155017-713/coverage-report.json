@@ -1,0 +1,53 @@
+{
+  "status": "BoundedStop",
+  "items": [
+    {
+      "requirement": "root-page",
+      "detail": "root route observed",
+      "covered": true,
+      "evidence": "android.settings|rk1:Settings|src=homepage_title|up=0"
+    },
+    {
+      "requirement": "first-level-all-visible",
+      "detail": "entered 1/1",
+      "covered": true,
+      "evidence": "entered:Network \u0026 internet-\u003Eandroid.settings|rk1:Internet|src=title|up=1;entered:Search settings-\u003Eandroid.settings;entered:Sound \u0026 vibration-\u003Eandroid.settings|rk1:Media volume|src=title|up=1;entered:Display-\u003Eandroid.settings|rk1:Brightness|src=title|up=1;entered:Wallpaper-\u003Eandroid.settings|rk1:Gallery|src=title|up=1;entered:Accessibility-\u003Eandroid.settings|rk1:Display|src=title|up=1;entered:Security \u0026 privacy-\u003Eandroid.settings|rk1:Settings|src=title|up=1;entered:Location-\u003Eandroid.settings|rk1:Recent access|src=title|up=1;entered:Safety \u0026 emergency-\u003Eandroid.settings|rk1:Emergency information|src=title|up=1;entered:Passwords, passkeys \u0026 accounts-\u003Eandroid.settings|rk1:Choose your preferred service to save data for sign-in and autofill suggestions. Turn on additional services if you\u0027d like them to provide suggestions too.|src=title|up=1;entered:System-\u003Eandroid.settings|rk1:Languages|src=title|up=1;entered:About emulated device-\u003Eandroid.settings"
+    },
+    {
+      "requirement": "scroll-discovered-entry",
+      "detail": "entered 1/99 scroll-discovered",
+      "covered": false,
+      "evidence": "About emulated device"
+    },
+    {
+      "requirement": "second-level-pages",
+      "detail": "distinct second-level routes 11/2",
+      "covered": true,
+      "evidence": "android.settings|rk1:Internet|src=title|up=1;android.settings;android.settings|rk1:Media volume|src=title|up=1;android.settings|rk1:Brightness|src=title|up=1;android.settings|rk1:Gallery|src=title|up=1;android.settings|rk1:Display|src=title|up=1;android.settings|rk1:Settings|src=title|up=1;android.settings|rk1:Recent access|src=title|up=1;android.settings|rk1:Emergency information|src=title|up=1;android.settings|rk1:Choose your preferred service to save data for sign-in and autofill suggestions. Turn on additional services if you\u0027d like them to provide suggestions too.|src=title|up=1;android.settings|rk1:Languages|src=title|up=1"
+    },
+    {
+      "requirement": "back-navigation",
+      "detail": "back verified 11",
+      "covered": true,
+      "evidence": "Navigate up"
+    },
+    {
+      "requirement": "repeated-entry",
+      "detail": "satisfied 0/1",
+      "covered": false,
+      "evidence": null
+    }
+  ],
+  "coverageRate": 0.6666666666666666,
+  "stepSuccessRate": 1,
+  "uncoveredItems": [
+    "scroll-discovered-entry",
+    "repeated-entry"
+  ],
+  "firstDivergence": null,
+  "stepsExecuted": 25,
+  "stepsVerified": 25,
+  "scrollsUsed": 2,
+  "scrollAttempts": 2,
+  "consultRounds": 26
+}
