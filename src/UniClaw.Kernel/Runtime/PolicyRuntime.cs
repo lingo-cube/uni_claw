@@ -1,4 +1,5 @@
 using UniClaw.Kernel.Run;
+using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
 
@@ -364,6 +365,9 @@ internal static class PolicyValidation
         if (string.IsNullOrWhiteSpace(template.EffectClass)
             || !view.AllowedEffects.Contains(template.EffectClass))
             return "policy:effect-class-not-allowed";
+        if (template.DesiredState is not null
+            && CheckedSemantics.FromPresentation(template.DesiredState) is null)
+            return "policy:unsupported-desired-state";
 
         // V6c：0 < MaxApplications ≤ StepsRemaining
         if (proposal.MaxApplications <= 0)

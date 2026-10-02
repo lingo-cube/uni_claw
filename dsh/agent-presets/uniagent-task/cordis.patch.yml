@@ -1,0 +1,15 @@
+# REFERENCE ONLY — source row for the DSH profile's dedicated uniagent-task
+# preset (PNL-001 决策 6, slice S2). The active profile must include this row
+# as preset id `preset-uniclaw-task`;核对 config.allow 与部署实例 live catalog
+# 后再启用（restrict 逐名校验，未知名字 mount 即抛错）。
+- insert:
+    - id: preset-uniclaw-task
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: uniclaw-task
+        order: 4
+        plugins:
+          - id: uniclaw-task-scope
+            name: '@uniclaw/dsh-task-scope'
+            config:
+              allow: ['read', 'glob', 'grep', 'bash']

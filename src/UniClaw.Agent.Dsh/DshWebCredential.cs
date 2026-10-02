@@ -4,7 +4,8 @@ using System.Text;
 namespace UniClaw.Agent.Dsh;
 
 /// <summary>
-/// Transport credential for the local DSH web service (127.0.0.1:3080).
+/// Transport credential for a local DSH web service. Live tests use a
+/// dedicated port; the owner's 3080 instance is never managed by this code.
 ///
 /// The service authenticates browser-session requests with an authority-bound
 /// HMAC-SHA256 signed cookie whose signing secret lives in the harness home's

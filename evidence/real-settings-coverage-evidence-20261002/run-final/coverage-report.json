@@ -1,0 +1,50 @@
+{
+  "status": "CoverageComplete",
+  "items": [
+    {
+      "requirement": "root-page",
+      "detail": "root route observed",
+      "covered": true,
+      "evidence": "android.settings|route:Settings"
+    },
+    {
+      "requirement": "first-level-all-visible",
+      "detail": "entered 7/7",
+      "covered": true,
+      "evidence": "entered:Network \u0026 internet-\u003Eandroid.settings|route:Internet;entered:Connected devices-\u003Eandroid.settings|route:Pair new device;entered:Apps-\u003Eandroid.settings|route:All apps;entered:Apps-\u003Eandroid.settings|route:All apps;entered:Notifications-\u003Eandroid.settings|route:Manage;entered:Battery-\u003Eandroid.settings|route:Battery usage;entered:Storage-\u003Eandroid.settings|route:Storage manager;entered:Sound \u0026 vibration-\u003Eandroid.settings|route:Media volume;entered:Search settings-\u003Eandroid.settings"
+    },
+    {
+      "requirement": "scroll-discovered-entry",
+      "detail": "entered 1/1 scroll-discovered",
+      "covered": true,
+      "evidence": "Search settings"
+    },
+    {
+      "requirement": "second-level-pages",
+      "detail": "distinct second-level routes 8/2",
+      "covered": true,
+      "evidence": "android.settings|route:Internet;android.settings|route:Pair new device;android.settings|route:All apps;android.settings|route:Manage;android.settings|route:Battery usage;android.settings|route:Storage manager;android.settings|route:Media volume;android.settings"
+    },
+    {
+      "requirement": "back-navigation",
+      "detail": "back verified 9",
+      "covered": true,
+      "evidence": "Navigate up"
+    },
+    {
+      "requirement": "repeated-entry",
+      "detail": "satisfied 1/1",
+      "covered": true,
+      "evidence": "Apps"
+    }
+  ],
+  "coverageRate": 1,
+  "stepSuccessRate": 1,
+  "uncoveredItems": [],
+  "firstDivergence": null,
+  "stepsExecuted": 19,
+  "stepsVerified": 19,
+  "scrollsUsed": 1,
+  "scrollAttempts": 1,
+  "consultRounds": 20
+}

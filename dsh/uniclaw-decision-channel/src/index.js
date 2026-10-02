@@ -37,6 +37,7 @@
  * Routes (all on the authenticated /api lane):
  *   POST /api/uniclaw-agent/handshake
  *   POST /api/uniclaw-agent/consult
+ *   POST /api/uniclaw-agent/slow
  *   POST /api/uniclaw-agent/abort
  *   POST /api/uniclaw-agent/detach
  */
@@ -46,9 +47,20 @@ import { mkdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { homedir } from 'node:os'
+import { createRequire } from 'node:module'
+
+/** Sync availability probe for the profile-only typert-protocol package. */
+const panelProtocolAvailable = () => {
+  try {
+    createRequire(import.meta.url).resolve('@deepseek-ai/dsh-typert-protocol')
+    return true
+  } catch {
+    return false
+  }
+}
 
 export const name = 'uniclaw-decision-channel'
-export const inject = ['tools', 'connection', 'sessionController', 'agents']
+export const inject = ['tools', 'connection', 'sessionController', 'agents', 'workspaceRegistry']
 
 // ---------------------------------------------------------------------------
 // Generated protocol artifact (single source; B2).
@@ -185,6 +197,14 @@ function validateToSchema(value, schemaNode, rootSchema, path, errors) {
     errors.push(`${path || 'value'}: expected ${node.type}, got ${Array.isArray(value) ? 'array' : typeof value}`)
     return false
   }
+  if (typeof value === 'number' && node.minimum !== undefined && value < node.minimum) {
+    errors.push(`${path || 'value'}: must be >= ${node.minimum}`)
+    return false
+  }
+  if (typeof value === 'number' && node.maximum !== undefined && value > node.maximum) {
+    errors.push(`${path || 'value'}: must be <= ${node.maximum}`)
+    return false
+  }
   if (node.type === 'array' && Array.isArray(value) && node.items !== undefined) {
     value.forEach((item, index) => validateToSchema(item, node.items, rootSchema, `${path}[${index}]`, errors))
   }
@@ -208,6 +228,26 @@ function validateToSchema(value, schemaNode, rootSchema, path, errors) {
   return errors.length === 0
 }
 
+// Completion evidence is consumed by the Product verifier, so a successful
+// noAction completion must carry machine-checkable anchors.  Keeping this
+// small shape check at the channel boundary lets the same physical DSH turn
+// correct prose checklists instead of escalating an avoidable formatting
+// error to the human adjudication gate.
+function validateCompletionAnchors(decision, errors) {
+  if (decision?.kind !== 'noAction' || decision.proposal?.completion === undefined) return
+  const checklist = decision.proposal.completion?.checklist
+  if (!Array.isArray(checklist) || checklist.length === 0) {
+    errors.push('decision.proposal.completion.checklist: at least one trace anchor is required')
+    return
+  }
+  for (const [index, anchor] of checklist.entries()) {
+    if (typeof anchor !== 'string'
+      || !/^(?:step:\d+\.\d+|dispatch:\S+|obs:\S+)$/.test(anchor)) {
+      errors.push(`decision.proposal.completion.checklist[${index}]: expected step:N.M, dispatch:ID, or obs:ID anchor`)
+    }
+  }
+}
+
 /** Derive the submit_decision tool parameter map from the artifact itself. */
 function toolParametersFromSchema(artifact) {
   const decision = deref(artifact.schema, artifact.schema.$defs.AgentDecision)
@@ -222,21 +262,21 @@ function toolParametersFromSchema(artifact) {
     if (resolved.properties?.spec !== undefined) requiresSpec = true
     if (resolved.properties?.proposal !== undefined) requiresProposal = true
   }
-  return {
+  const properties = {
     kind: {
       type: 'string',
       enum: kinds,
-      required: true,
       description: `AgentDecision kind (derived from the generated Product protocol artifact, schemaHash ${artifact.schemaHash.slice(0, 12)}…)`,
     },
-    decisionId: { type: 'string', required: true, description: 'Correlation id; MUST equal context.decisionId.' },
+    decisionId: { type: 'string', description: 'Correlation id; MUST equal context.decisionId.' },
     ...(requiresProposal
-      ? { proposal: { type: 'json', required: false, description: 'act/noAction/policy proposal payload (exact Product schema shape).' } }
+      ? { proposal: { type: 'object', additionalProperties: true, description: 'act/noAction/policy proposal payload (exact Product schema shape).' } }
       : {}),
     ...(requiresSpec
-      ? { spec: { type: 'json', required: false, description: 'defer ObserveSpec {subject, maxRounds} (exact Product schema shape).' } }
+      ? { spec: { type: 'object', additionalProperties: true, description: 'defer ObserveSpec {subject, maxRounds} (exact Product schema shape).' } }
       : {}),
   }
+  return { type: 'object', properties, required: ['kind', 'decisionId'], additionalProperties: false }
 }
 
 // ---------------------------------------------------------------------------
@@ -253,9 +293,35 @@ const EXPECTED_SESSION_TOOLS = ['submit_decision']
 const DEFAULT_TURN_TIMEOUT_MS = 60_000
 const MAX_TURN_TIMEOUT_MS = 120_000
 
+// ---------------------------------------------------------------------------
+// Process-local event ledger (PNL-001). Observation only — never a Product
+// truth source; the panel service below is a projection of this ledger.
+// ---------------------------------------------------------------------------
+
+const LEDGER_LIMIT = 500
+const ledger = []
+const recordEvent = (kind, fields = {}) => {
+  ledger.push({ ts: new Date().toISOString(), kind, ...fields })
+  if (ledger.length > LEDGER_LIMIT) ledger.splice(0, ledger.length - LEDGER_LIMIT)
+}
+
+/** Projection of the channel runtime for the control panel / tests. */
+export function panelSnapshot() {
+  return {
+    attached: state.attached,
+    inFlight: {
+      consult: state.pending !== null,
+      slow: state.slowPending !== null,
+    },
+    events: ledger.slice(),
+  }
+}
+
 const state = {
   attached: null, // { productSessionId, productRunId, dshSessionId }
-  pending: null,  // { requestId, decisionId, resolve, timer, captured }
+  pending: null,  // { requestId, decisionId, resolve, timer, captured, lastError }
+  activeTurn: null, // { sessionId, turnEnd, resolveTurnEnd, pending }
+  slowPending: null, // { requestId, sessionId, resolve, timer, text }
   sessionTool: null, // tool definition published by the session-scoped mount (B1)
   sessionToolDisposer: null, // live agent-scope registration for the attached session
 }
@@ -305,6 +371,8 @@ async function sessionToolCatalog(ctx, sessionId) {
 function consultationPrompt(request, artifact) {
   return [
     'You are the UniAgent decision component of the UniClaw Product runtime.',
+    `This is the CURRENT consultation turn. The current Product DecisionId is ${request.context.decisionId}.`,
+    'Ignore decisionIds from all previous turns in this task session; they are historical and must not be reused.',
     'Answer this consultation by calling the submit_decision tool exactly once,',
     'with a payload that validates against the Product AgentDecision schema',
     `(protocol ${PROTOCOL_VERSION}, schema ${SCHEMA_VERSION}, schemaHash ${artifact.schemaHash}).`,
@@ -320,6 +388,19 @@ function consultationPrompt(request, artifact) {
     'CRITICAL: proposal/spec are JSON OBJECTS (never strings); lists are JSON',
     'arrays. decisionId MUST equal context.decisionId. Choose the semantically',
     'correct kind for the context. Respond with the tool call only — no prose.',
+    'For noAction completion, checklist must contain one or more exact trace anchors',
+    '(use step:N.M for a completed decision N and zero-based step M; dispatch:ID / obs:ID',
+    'are allowed only when those exact ids are present in the context; never invent ids);',
+    'do not put explanatory prose in checklist items. If the mandatory objective is',
+    'already satisfied by the current observation and you cannot name exact anchors,',
+    'omit completion entirely; the current typed evidence is the traceable proof.',
+    'For act/policy targets, copy targetDescriptor exactly from the selected',
+    'element text/semantic descriptor. Do not prefix it with text=, append',
+    'bounds, coordinates, or invent a composite locator; grounding owns those.',
+    'desiredState is only the typed switch state: checked, unchecked, partial,',
+    'on, off, enabled, disabled, true, or false. Omit desiredState for a',
+    'navigation or ordinary click target; a navigation target may disappear',
+    'after the tap and is verified by the fresh route observation.',
     '',
     '=== AgentDecisionContext (JSON) ===',
     JSON.stringify(request.context, null, 2),
@@ -345,12 +426,28 @@ export function apply(ctx, config) {
   const sessionScoped = config !== null && typeof config === 'object'
     && config.sessionScoped === true
   const controller = sessionScoped ? undefined : ctx.get('sessionController')
+  const workspaceRegistry = sessionScoped ? undefined : ctx.get('workspaceRegistry')
+  const configuredString = (key, fallback) => {
+    const value = config !== null && typeof config === 'object' ? config[key] : undefined
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : fallback
+  }
+  const configuredBoolean = (key, fallback) =>
+    config !== null && typeof config === 'object' && typeof config[key] === 'boolean'
+      ? config[key] : fallback
+  const workspaceTitle = configuredString('workspaceTitle', 'UniClaw Product Sessions')
+  const sessionTitle = configuredString('sessionTitle', 'UniClaw Product Consultation')
+  const slowSessionTitle = configuredString('slowSessionTitle', `${sessionTitle} · Slow`)
+  const workspaceKey = configuredString('workspaceKey', workspaceTitle)
+  const workspaceReuse = configuredBoolean('workspaceReuse', false)
+  const autoCloseTurn = configuredBoolean('autoCloseTurn', false)
   // Root for the Product sessions' dedicated workspaces. Overridable so an
   // operator (or a test) can place them outside the default DSH home.
   const workspaceRoot = config !== null && typeof config === 'object'
     && typeof config.workspaceRoot === 'string' && config.workspaceRoot.length > 0
     ? config.workspaceRoot
     : join(homedir(), '.dsh', 'uniagent-workspaces')
+  const workspacePath = (productSessionId) => join(workspaceRoot,
+    (workspaceReuse ? workspaceKey : productSessionId).replace(/[^a-zA-Z0-9._-]/g, '_'))
 
   // ---- submit_decision tool: parameters derived from the artifact (B2).
   // Built once; WHERE it is registered depends on the mount mode (below),
@@ -367,28 +464,64 @@ export function apply(ctx, config) {
         properties: { accepted: { type: 'boolean' }, reason: { type: 'string' } },
         additionalProperties: false,
       },
-      render: (value) => (value && value.accepted
-        ? `submit_decision accepted: ${value.reason ?? ''}`
-        : `submit_decision rejected: ${value && value.reason ? value.reason : 'unknown'}`),
+      // DSH tool output renderers return content blocks. Returning a bare
+      // string makes the real runtime call `content.some(...)` on a string
+      // and turns an otherwise captured decision into a tool execution error.
+      render: (_args, value) => [{
+        type: 'text',
+        text: value && value.accepted
+          ? `submit_decision accepted: ${value.reason ?? ''}`
+          : `submit_decision rejected: ${value && value.reason ? value.reason : 'unknown'}`,
+      }],
     },
     execute: (args) => {
       const pending = state.pending
       if (pending === null) return { accepted: false, reason: 'no-pending-consultation' }
       if (pending.captured !== null) return { accepted: false, reason: 'decision-already-captured' }
       if (typeof args.decisionId !== 'string' || args.decisionId !== pending.decisionId) {
-        pending.captured = { ok: false, error: { code: 'decision-id-mismatch', message: `expected ${pending.decisionId}` } }
+        const received = typeof args.decisionId === 'string' ? args.decisionId : '<missing>'
+        pending.lastError = { code: 'decision-id-mismatch', message: `expected ${pending.decisionId}; received ${received}` }
       } else {
         // B3: representation normalization only, then schema-driven validation.
         const normalized = normalizeToSchema(args, artifact.schema.$defs.AgentDecision, artifact.schema)
         const errors = []
         validateToSchema(normalized, artifact.schema.$defs.AgentDecision, artifact.schema, 'decision', errors)
-        pending.captured = errors.length === 0
-          ? { ok: true, decision: normalized }
-          : { ok: false, error: { code: 'decision-schema-invalid', message: errors.slice(0, 4).join('; ') } }
+        if (errors.length === 0) validateCompletionAnchors(normalized, errors)
+        if (errors.length === 0) {
+          pending.captured = { ok: true, decision: normalized }
+          recordEvent('decision-captured', {
+            requestId: pending.requestId, decisionId: pending.decisionId, decisionKind: normalized.kind,
+          })
+        } else {
+          pending.lastError = { code: 'decision-schema-invalid', message: errors.slice(0, 4).join('; ') }
+          recordEvent('decision-rejected', {
+            requestId: pending.requestId, decisionId: pending.decisionId, code: 'decision-schema-invalid',
+          })
+        }
+      }
+      if (pending.captured === null) {
+        // Keep the physical turn alive after a malformed tool call. The model
+        // receives the rejection content and can correct the same consultation
+        // without creating a second Product DecisionId or DSH session.
+        if (pending.lastError !== null && pending.lastError.code !== 'decision-schema-invalid') {
+          recordEvent('decision-rejected', {
+            requestId: pending.requestId, decisionId: pending.decisionId, code: pending.lastError.code,
+          })
+        }
+        return { accepted: false, reason: pending.lastError.code }
       }
       if (pending.timer !== null) clearTimeout(pending.timer)
       const resolve = pending.resolve
       state.pending = null
+      // The semantic decision is already captured. Close the physical DSH
+      // turn before the next task consultation so trailing tool/event work
+      // cannot overlap the next pending decision on the same session.
+      const attached = state.attached
+      const controller = ctx.get('sessionController')
+      if (autoCloseTurn && pending.captured.ok === true && attached !== null
+        && controller !== undefined && typeof controller.cancel === 'function') {
+        try { controller.cancel({ sessionId: attached.dshSessionId }) } catch (error) { /* fail closed at the turn barrier */ }
+      }
       resolve(pending.captured)
       return { accepted: pending.captured.ok, reason: pending.captured.ok ? 'decision captured' : pending.captured.error.code }
     },
@@ -397,31 +530,70 @@ export function apply(ctx, config) {
   // ---- session journal watch: B3 — turn end WITHOUT capture is a failure.
   ctx.on('session/event', (session, event) => {
     const attached = state.attached
+    const slowPending = state.slowPending
+    if (slowPending !== null && session.id === slowPending.sessionId) {
+      const type = event && typeof event.type === 'string' ? event.type : ''
+      if (type === 'assistant/message') {
+        const blocks = event.data?.message?.content
+        if (Array.isArray(blocks)) {
+          const text = blocks.filter(block => block && block.type === 'text'
+            && typeof block.text === 'string').map(block => block.text).join('')
+          if (text.trim().length > 0) slowPending.text = text
+        }
+      }
+      if (type === 'assistant/attempt') {
+        const stream = event.data?.stream
+        if (Array.isArray(stream)) {
+          const text = stream.flatMap(chunk => chunk?.type === 'text-chunks' && Array.isArray(chunk.texts)
+            ? chunk.texts : []).filter(value => typeof value === 'string').join('')
+          if (text.trim().length > 0) slowPending.text = text
+        }
+      }
+      if (type === 'turn/end') {
+        if (slowPending.timer !== null) clearTimeout(slowPending.timer)
+        state.slowPending = null
+        slowPending.resolve(slowPending.text === null
+          ? { ok: false, error: { code: 'no-slow-result', message: `model finished without structured SlowResult text${event.data?.reason ? ` (${JSON.stringify(event.data.reason).slice(0, 240)})` : ''}` } }
+          : { ok: true, text: slowPending.text })
+      }
+      return
+    }
     if (attached === null || session.id !== attached.dshSessionId) return
     const pending = state.pending
+    const activeTurn = state.activeTurn
     const type = event && typeof event.type === 'string' ? event.type : ''
-    if (type === 'turn/end' && pending !== null && pending.captured === null) {
+      if (type === 'turn/end' && pending !== null && pending.captured === null) {
       // The model finished its turn without calling submit_decision. Prose is
       // trajectory evidence only — NEVER promoted to a Product decision.
       pending.captured = {
         ok: false,
-        error: { code: 'no-submit-decision', message: 'model finished the turn without calling submit_decision' },
+        error: pending.lastError ?? { code: 'no-submit-decision', message: 'model finished the turn without calling submit_decision' },
       }
       if (pending.timer !== null) clearTimeout(pending.timer)
       state.pending = null
       pending.resolve(pending.captured)
     }
+    if (type === 'turn/end' && activeTurn !== null && activeTurn.sessionId === session.id) {
+      if (state.activeTurn === activeTurn) state.activeTurn = null
+      activeTurn.resolveTurnEnd()
+    }
   })
 
   const retirePending = () => {
     const pending = state.pending
-    if (pending === null) return
-    if (pending.timer !== null) clearTimeout(pending.timer)
-    state.pending = null
-    if (pending.captured === null) {
-      pending.captured = { ok: false, error: { code: 'turn-aborted', message: 'aborted before completion' } }
+    if (pending !== null) {
+      if (pending.timer !== null) clearTimeout(pending.timer)
+      state.pending = null
+      if (pending.captured === null) {
+        pending.captured = { ok: false, error: { code: 'turn-aborted', message: 'aborted before completion' } }
+      }
+      pending.resolve(pending.captured)
     }
-    pending.resolve(pending.captured)
+    const activeTurn = state.activeTurn
+    if (activeTurn !== null) {
+      state.activeTurn = null
+      activeTurn.resolveTurnEnd()
+    }
   }
 
   // ---- Product channel routes on the authenticated /api lane (host mode).
@@ -489,8 +661,12 @@ export function apply(ctx, config) {
           `schema-hash-mismatch:product=${expected.schemaHash.slice(0, 12)}…:dsh-local=${artifact.schemaHash.slice(0, 12)}…`)
       }
 
-      const reported = Array.isArray(body.reportedCapabilities?.capabilities)
-        ? [...new Set(body.reportedCapabilities.capabilities.map(String))].sort()
+      // The Product client sends its requested capability manifest as
+      // `expectedCapabilities`; accept the historical `reportedCapabilities`
+      // spelling only for compatibility with older peers.
+      const capabilityInput = body.expectedCapabilities ?? body.reportedCapabilities
+      const reported = Array.isArray(capabilityInput?.capabilities)
+        ? [...new Set(capabilityInput.capabilities.map(String))].sort()
         : null
       if (reported === null) return fail(200, 'handshake-rejected', 'capability-manifest-missing')
       if (reported.join('\n') !== CAPABILITIES.join('\n')) {
@@ -510,6 +686,9 @@ export function apply(ctx, config) {
         if (controller === undefined || typeof controller.create !== 'function') {
           return fail(500, 'session-controller-unavailable', 'the host session controller is not available to this plugin')
         }
+        if (workspaceRegistry === undefined || typeof workspaceRegistry.create !== 'function') {
+          return fail(500, 'workspace-registry-unavailable', 'the host workspace registry is not available to this plugin')
+        }
         try {
           // B1: the session MUST run under the restricted uniagent-prod preset.
           // It gets a DEDICATED empty workspace so the Product session never
@@ -518,15 +697,18 @@ export function apply(ctx, config) {
           // level, and their `cwd` config only sets the server process's
           // working directory. Tool visibility is owned entirely by the preset
           // composition (see the B1 note at the top of this file).
-          const workspaceDir = join(workspaceRoot,
-            productSessionId.replace(/[^a-zA-Z0-9._-]/g, '_'))
+          const workspaceDir = workspacePath(productSessionId)
           mkdirSync(workspaceDir, { recursive: true })
-          const created = await controller.create({ agentPreset: AGENT_PRESET_ID, cwd: workspaceDir })
+          const workspace = await workspaceRegistry.create(workspaceDir, workspaceTitle)
+          const created = await controller.create({ agentPreset: AGENT_PRESET_ID, workspaceId: workspace.id })
           dshSessionId = typeof created === 'string'
             ? created
             : (created && (created.sessionId ?? created.id))
           if (typeof dshSessionId !== 'string' || dshSessionId.length === 0) {
             return fail(200, 'dsh-session-create-failed', `unexpected session identity: ${JSON.stringify(created).slice(0, 120)}`)
+          }
+          if (typeof controller.rename === 'function') {
+            await controller.rename({ sessionId: dshSessionId, title: sessionTitle })
           }
         } catch (error) {
           return fail(200, 'dsh-session-create-failed', String(error && error.message ? error.message : error))
@@ -575,6 +757,7 @@ export function apply(ctx, config) {
       }
 
       state.attached = { productSessionId, productRunId, dshSessionId }
+      recordEvent('attach', { productSessionId, productRunId, dshSessionId })
       log('handshake accepted', { productSessionId, productRunId, dshSessionId })
       return json(200, {
         accepted: true,
@@ -591,6 +774,92 @@ export function apply(ctx, config) {
         runtimePreset: AGENT_PRESET_ID,
         dshSessionId,
       })
+    },
+  })
+
+  ctx.connection.fetch.register({
+    path: '/api/uniclaw-agent/slow',
+    methods: ['POST'],
+    requestBody: 'buffered',
+    fetch: async (request) => {
+      const body = await readJson(request)
+      if (body === null) return fail(400, 'gateway/bad-request', 'slow body must be a JSON object')
+      const attached = state.attached
+      if (attached === null) return fail(200, 'channel-not-attached', 'handshake required before slow')
+      if (typeof body.requestId !== 'string' || body.requestId.length === 0
+        || typeof body.prompt !== 'string' || body.prompt.length === 0) {
+        return fail(400, 'gateway/bad-request', 'slow requires requestId and prompt')
+      }
+      if (state.pending !== null || state.slowPending !== null)
+        return fail(200, 'one-in-flight', 'a consultation is already in progress')
+      if (controller === undefined || typeof controller.prompt !== 'function')
+        return fail(500, 'session-controller-unavailable', 'the host session controller is not available to this plugin')
+
+      const timeoutMs = Number.isInteger(body.turnTimeoutMs) && body.turnTimeoutMs > 0
+        ? Math.min(body.turnTimeoutMs, MAX_TURN_TIMEOUT_MS) : DEFAULT_TURN_TIMEOUT_MS
+      let settled
+      const completion = new Promise(resolve => { settled = resolve })
+      let slowSessionId
+      try {
+        const workspaceDir = workspacePath(`slow-${body.requestId}`)
+        mkdirSync(workspaceDir, { recursive: true })
+        if (workspaceRegistry === undefined || typeof workspaceRegistry.create !== 'function') {
+          return fail(500, 'workspace-registry-unavailable', 'the host workspace registry is not available to this plugin')
+        }
+        const workspace = await workspaceRegistry.create(workspaceDir, workspaceTitle)
+        const created = await controller.create({ agentPreset: 'uniclaw-slow', workspaceId: workspace.id })
+        slowSessionId = typeof created === 'string' ? created : (created && (created.sessionId ?? created.id))
+        if (typeof slowSessionId !== 'string' || slowSessionId.length === 0)
+          return fail(200, 'dsh-session-create-failed', 'slow session identity missing')
+        if (typeof controller.rename === 'function') {
+          await controller.rename({ sessionId: slowSessionId, title: slowSessionTitle })
+        }
+      } catch (error) {
+        return fail(200, 'dsh-session-create-failed', String(error && error.message ? error.message : error))
+      }
+      const slowPending = { requestId: body.requestId, sessionId: slowSessionId, resolve: settled, text: null, timer: null }
+      state.slowPending = slowPending
+      recordEvent('slow-start', { requestId: body.requestId })
+      slowPending.timer = setTimeout(() => {
+        if (state.slowPending === slowPending) {
+          state.slowPending = null
+          recordEvent('slow-failed', { requestId: body.requestId, code: 'turn-timeout' })
+          settled({ ok: false, error: { code: 'turn-timeout', message: `slow turn deadline elapsed (${timeoutMs}ms)` } })
+        }
+      }, timeoutMs)
+      try {
+        if (body.model !== null && typeof body.model === 'object'
+          && typeof body.model.provider === 'string' && typeof body.model.model === 'string'
+          && typeof controller.selectModel === 'function') {
+          await controller.selectModel({ sessionId: slowSessionId,
+            provider: body.model.provider, model: body.model.model })
+        }
+        const content = [{ type: 'text', text: body.prompt }]
+        if (body.image !== null && typeof body.image === 'object'
+          && body.image.mediaType === 'image/png' && typeof body.image.data === 'string'
+          && body.image.data.length > 0) {
+          content.push({ type: 'image', mediaType: 'image/png', data: body.image.data,
+            ...(typeof body.image.name === 'string' && body.image.name.length > 0
+              ? { name: body.image.name } : {}) })
+        }
+        await controller.prompt({ requestId: `${body.requestId}-${Date.now()}`,
+          sessionId: slowSessionId, mode: 'queue', content }, AbortSignal.timeout(timeoutMs))
+      } catch (error) {
+        if (state.slowPending === slowPending) {
+          if (slowPending.timer !== null) clearTimeout(slowPending.timer)
+          state.slowPending = null
+        }
+        return fail(200, 'prompt-failed', String(error && error.message ? error.message : error))
+      }
+      const captured = await completion
+      if (captured.ok !== true) {
+        recordEvent('slow-failed', { requestId: body.requestId, code: captured.error.code })
+        return json(200, { requestId: body.requestId, text: null,
+          error: captured.error.code, diagnostics: captured.error })
+      }
+      recordEvent('slow-complete', { requestId: body.requestId })
+      return json(200, { requestId: body.requestId, text: captured.text,
+        error: null, diagnostics: { source: 'assistant/message' } })
     },
   })
 
@@ -613,7 +882,13 @@ export function apply(ctx, config) {
       if (typeof body.productSessionId === 'string' && body.productSessionId !== attached.productSessionId) {
         return fail(200, 'product-mapping-mismatch', 'consult product session differs from attachment')
       }
-      if (state.pending !== null) {
+      if (typeof body.productRunId === 'string' && body.productRunId !== attached.productRunId) {
+        return fail(200, 'product-mapping-mismatch', 'consult product run differs from attachment')
+      }
+      if (typeof body.dshSessionId === 'string' && body.dshSessionId !== attached.dshSessionId) {
+        return fail(200, 'dsh-session-mapping-mismatch', 'consult DSH session differs from attachment')
+      }
+      if (state.pending !== null || state.activeTurn !== null) {
         return fail(200, 'one-in-flight', 'a consultation is already in progress')
       }
       if (controller === undefined || typeof controller.prompt !== 'function') {
@@ -626,14 +901,28 @@ export function apply(ctx, config) {
       const startedAt = Date.now()
       let settled
       const completion = new Promise((resolve) => { settled = resolve })
+      let resolveTurnEnd
+      const turnEnd = new Promise((resolve) => { resolveTurnEnd = resolve })
       state.pending = {
         requestId: body.requestId,
         decisionId: context.decisionId,
         resolve: settled,
         captured: null,
+        lastError: null,
         timer: null,
       }
       const pending = state.pending
+      const activeTurn = {
+        sessionId: attached.dshSessionId,
+        turnEnd,
+        resolveTurnEnd,
+        pending,
+      }
+      state.activeTurn = activeTurn
+      recordEvent('consult-start', {
+        requestId: body.requestId, decisionId: context.decisionId,
+        dshSessionId: attached.dshSessionId,
+      })
       pending.timer = setTimeout(() => {
         if (state.pending === pending && pending.captured === null) {
           pending.captured = { ok: false, error: { code: 'turn-timeout', message: `consult turn deadline elapsed (${timeoutMs}ms)` } }
@@ -652,23 +941,56 @@ export function apply(ctx, config) {
             model: body.model.model,
           })
         }
+        const content = [{ type: 'text', text: consultationPrompt(body, artifact) }]
+        if (body.image !== null && typeof body.image === 'object'
+          && body.image.mediaType === 'image/png' && typeof body.image.data === 'string'
+          && body.image.data.length > 0) {
+          content.push({
+            type: 'image',
+            mediaType: 'image/png',
+            data: body.image.data,
+            ...(typeof body.image.name === 'string' && body.image.name.length > 0
+              ? { name: body.image.name } : {}),
+          })
+        }
         await controller.prompt({
           requestId: `${body.requestId}-${startedAt}`,
           sessionId: attached.dshSessionId,
           mode: 'queue',
-          content: [{ type: 'text', text: consultationPrompt(body, artifact) }],
+          content,
         }, AbortSignal.timeout(timeoutMs))
       } catch (error) {
         if (state.pending === pending) {
           if (pending.timer !== null) clearTimeout(pending.timer)
           state.pending = null
         }
+        if (state.activeTurn === activeTurn) {
+          state.activeTurn = null
+          activeTurn.resolveTurnEnd()
+        }
+        recordEvent('consult-failed', { requestId: body.requestId, code: 'prompt-failed' })
         return fail(200, 'prompt-failed', String(error && error.message ? error.message : error))
       }
 
       const captured = await completion
+      if (captured.ok === true) {
+        // submit_decision resolves the semantic result before the DSH turn has
+        // necessarily emitted turn/end. Keep the task session serialized until
+        // that physical turn boundary is observed, otherwise a late tool call
+        // from the previous turn can be captured by the next pending decision.
+        // Keep the shared DSH session reusable without cancelling its physical
+        // turn.  Provider/model latency can exceed the old short grace window;
+        // wait up to the consultation deadline for the natural turn boundary.
+        await Promise.race([
+          activeTurn.turnEnd,
+          new Promise(resolve => setTimeout(resolve, timeoutMs)),
+        ])
+      }
       const durationMs = Date.now() - startedAt
       if (captured.ok !== true) {
+        recordEvent('consult-failed', {
+          requestId: body.requestId, code: captured.error.code, durationMs,
+        })
         log('consult failed', { requestId: body.requestId, code: captured.error.code, durationMs })
         return json(200, {
           requestId: body.requestId,
@@ -679,11 +1001,26 @@ export function apply(ctx, config) {
         })
       }
       log('consult captured', { requestId: body.requestId, kind: captured.decision.kind, durationMs })
+      recordEvent('consult-complete', {
+        requestId: body.requestId, decisionId: captured.decision.decisionId,
+        decisionKind: captured.decision.kind, durationMs,
+      })
+      const decisionDiagnostics = {
+        durationMs,
+        source: 'submit_decision',
+        schemaHash: artifact.schemaHash,
+        productSessionId: attached.productSessionId,
+        productRunId: attached.productRunId,
+        decisionId: captured.decision.decisionId,
+        ...(captured.decision.kind === 'policy'
+          ? { policyId: captured.decision.proposal.policyId }
+          : {}),
+      }
       return json(200, {
         requestId: body.requestId,
         generation: typeof body.generation === 'number' ? body.generation : 0,
         decision: captured.decision,
-        diagnostics: { durationMs, source: 'submit_decision', schemaHash: artifact.schemaHash },
+        diagnostics: decisionDiagnostics,
       })
     },
   })
@@ -695,7 +1032,14 @@ export function apply(ctx, config) {
     fetch: async (request) => {
       const body = await readJson(request)
       if (body === null) return fail(400, 'gateway/bad-request', 'abort body must be a JSON object')
+      recordEvent('abort')
       retirePending()
+      if (state.slowPending !== null) {
+        const slow = state.slowPending
+        if (slow.timer !== null) clearTimeout(slow.timer)
+        state.slowPending = null
+        slow.resolve({ ok: false, error: { code: 'turn-aborted', message: 'aborted before completion' } })
+      }
       const attached = state.attached
       if (attached !== null && controller !== undefined && typeof controller.cancel === 'function') {
         try { controller.cancel({ sessionId: attached.dshSessionId }) } catch (error) { log('abort cancel failed', String(error)) }
@@ -713,10 +1057,17 @@ export function apply(ctx, config) {
       const body = await readJson(request)
       if (body === null) return fail(400, 'gateway/bad-request', 'detach body must be a JSON object')
       const hadAttachment = state.attached !== null
+      recordEvent('detach', { hadAttachment })
       // Retire the pending turn first (late decisions are dropped with the
       // mapping), then release the ProductSession ↔ DshSession mapping and the
       // agent-scope tool registration that went with it.
       retirePending()
+      if (state.slowPending !== null) {
+        const slow = state.slowPending
+        if (slow.timer !== null) clearTimeout(slow.timer)
+        state.slowPending = null
+        slow.resolve({ ok: false, error: { code: 'turn-aborted', message: 'detached before completion' } })
+      }
       state.attached = null
       if (state.sessionToolDisposer !== null) {
         try { state.sessionToolDisposer() } catch (error) { log('tool release failed', String(error)) }
@@ -731,5 +1082,85 @@ export function apply(ctx, config) {
     },
   })
 
-  log(`registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,abort,detach} (schemaHash ${artifact.schemaHash.slice(0, 12)}…)`)
+  // ---- PNL-001: control panel data service (host mount only). Static Client
+  // half calls uniclawDecisionPanel.overview() through the Typert gateway's
+  // SRC runtime resolution (same proven pattern as provider-usage). The
+  // typert-protocol package exists in the DSH profile but not in the offline
+  // test environment — degrade to ledger-only there. Probe with a SYNC
+  // require.resolve first: a failed dynamic import inside the node --test
+  // child leaves module-resolution sockets that stall the runner (~60s).
+  if (!sessionScoped && panelProtocolAvailable()) {
+    import('@deepseek-ai/dsh-typert-protocol').then(({ TypertRemoteService, Remote }) => {
+      class DecisionPanelHost extends TypertRemoteService {
+        static inject = []
+        constructor(ctxRef) { super(ctxRef, 'uniclawDecisionPanel') }
+        async overview() {
+          const snap = panelSnapshot()
+          return { success: true, queriedAt: new Date().toISOString(), ...snap }
+        }
+      }
+      const panelDecorator = Remote('overview')
+      let panelInitializer = null
+      panelDecorator(DecisionPanelHost.prototype.overview, {
+        kind: 'method', name: 'overview', private: false, static: false, metadata: undefined,
+        access: { get: () => DecisionPanelHost.prototype.overview },
+        addInitializer(fn) { panelInitializer = fn },
+      })
+      if (panelInitializer) panelInitializer.call(Object.create(DecisionPanelHost.prototype))
+      new DecisionPanelHost(ctx)
+
+      const PANEL_DESCRIPTOR = {
+        id: 'uniclawDecisionPanel.overview',
+        service: 'uniclawDecisionPanel',
+        namespace: 'uniclawDecisionPanel',
+        method: 'overview',
+        invocation: { kind: 'direct' },
+        parameters: [],
+        result: {
+          mode: 'strict',
+          typeSymbol: 'uniclaw-decision-channel/JsonValue',
+          // This typert build validates `create` (a schema FACTORY returning
+          // { parse }) on the codec object itself; the older `schema: { parse }`
+          // shape is rejected with "strict codec has no create() factory".
+          create: () => ({ parse: (value) => value }),
+        },
+      }
+      const registerTypertEndpoint = () => {
+        const typert = ctx.get('typert')
+        if (typert === undefined) return false
+        try {
+          typert.register({
+            package: '@uniclaw/dsh-decision-channel',
+            face: 'host',
+            schemas: [],
+            model: { services: [], events: [], objects: [] },
+            invocations: [PANEL_DESCRIPTOR],
+          })
+          return true
+        } catch (error) {
+          const message = error && error.message ? error.message : String(error)
+          if (/already registered|endpoint .* already|invocation id .* already/.test(message)) return true
+          log('typert.register failed:', message)
+          return false
+        }
+      }
+      if (!registerTypertEndpoint()) {
+        let attempts = 0
+        const delay = () => {
+          if (attempts++ >= 20) return
+          if (registerTypertEndpoint()) return
+          const timer = ctx.get('timer')
+          if (timer !== undefined) timer.timeout(delay, 500)
+          else if (typeof setTimeout === 'function') setTimeout(delay, 500)
+        }
+        delay()
+      }
+      log('panel service registered: uniclawDecisionPanel.overview')
+    }).catch((error) => {
+      log('panel service unavailable (typert-protocol not importable):',
+        String(error && error.message ? error.message : error).slice(0, 160))
+    })
+  }
+
+  log(`registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash ${artifact.schemaHash.slice(0, 12)}…)`)
 }

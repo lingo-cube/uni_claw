@@ -1,0 +1,67 @@
+{
+  "id": "WI-PNL003-003",
+  "objective": "建立 DSH Host Adapter，把现有只读 workbench 投影成五类 Workspace capability，证明 DSH 可替换而不进入 Query Core。",
+  "scope": {
+    "write": [
+      "dsh/uniclaw-task-workbench/src/workspace-capabilities.js",
+      "dsh/uniclaw-task-workbench/tests/workspace-capabilities.test.mjs",
+      "workitems/WI-PNL003-003.json"
+    ],
+    "read_hints": [
+      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
+      "schemas/workspace/README.md",
+      "schemas/workspace/capability.schema.json",
+      "web/uniclaw-workspace/src/core/index.js",
+      "dsh/uniclaw-task-workbench/src/index.js",
+      "dsh/uniclaw-task-workbench/tests/workbench.test.mjs"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "DSH 只实现 Host Adapter：消费注入的 panel 只读能力和显式 ProductSession↔DSH session 映射，输出 Query Core 可消费的五类 capability envelope。没有显式映射时必须返回 uncorrelated，不能把 DSH session 升级成产品任务。",
+    "core_points": [
+      "Adapter 不拥有 Product authority、缓存、归档或写操作。",
+      "DSH panel 的 workspace/session/trace/artifact 形状只能在 adapter 内部消化。",
+      "每个成功响应带 snapshotId 或 revision 或 observedAt；来源局部失败必须结构化保留。",
+      "Detail 只接受受控相对引用，不接受绝对路径、协议 URL 或任意外部读取。"
+    ]
+  },
+  "anchors": [
+    {"path": "dsh/uniclaw-task-workbench/src/index.js", "symbol": "createTaskPanelService"},
+    {"path": "dsh/uniclaw-task-workbench/src/index.js", "symbol": "sessionDetailCore"},
+    {"path": "web/uniclaw-workspace/src/core/index.js", "symbol": "WorkspaceQueryCore"}
+  ],
+  "contract_refs": [
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
+    "schemas/workspace/README.md",
+    "schemas/workspace/capability.schema.json"
+  ],
+  "acceptance": [
+    "导出 createDshWorkspaceCapabilities({ panel, resolveProductSession, now, revision })，不读取 DSH globals、文件系统、网络或 Product Runtime。",
+    "提供 TaskQuery、SessionQuery、TraceQuery、EvidenceQuery、DetailQuery 五个 capability；每个 capability 只读、结果包含 ok 和 snapshotId/revision/observedAt 至少一个快照元数据。",
+    "TaskQuery 只投影 panel.workspace() 的项目和任务；未显式带 productSessionId 的 DSH/observed 实例保留为未关联标记，不能生成 ProductSession。",
+    "Session/Timeline/Trace/Evidence/Detail 必须通过显式 resolveProductSession 取得 dshSessionId；映射缺失返回 code=uncorrelated，不能静默使用传入的 DSH sessionId。",
+    "能把现有 session 投影中的 conversation、dshTrace、uniclawTrace、uniflowTrace、evidence 映射为稳定的 capability data；来源分类保留。",
+    "Detail 仅调用注入 panel.artifact({sessionId, ref})，拒绝绝对路径、协议 URL、路径 traversal 和缺少 ProductSession 映射的请求；panel 错误映射为结构化 QueryError。",
+    "测试覆盖成功映射、未关联、局部失败、旧 revision/快照元数据、detail 引用拒绝和 DSH session 不升级为 ProductSession；npm test 全部通过。",
+    "变更只落在 WorkItem scope；node --check、git diff --check 和 DSH package tests 通过。"
+  ],
+  "forbidden": [
+    "不得修改 web/uniclaw-workspace/src/core/index.js 或 schemas/workspace/。",
+    "不得修改 DSH HTTP/typert 旧 API、client bundle、Product Runtime、CONTEXT.md、ADR 或架构方案。",
+    "不得直接导入或依赖 React、DOM、fetch、node:fs、node:path、DSH globals、sessionController 或 Host transport。",
+    "不得把 dsh sessionId 当作 productSessionId，不得新增 Product authority、写操作、缓存、归档或删除接口。",
+    "不得在 schema 未定义的情况下发明新的 Query capability 或错误 code；发现契约冲突必须报告 UPSTREAM_DESIGN_CONFLICT。"
+  ],
+  "frozen_decisions": [
+    "TaskInstance identity is ProductSessionId; DSH session is host reference.",
+    "Host-neutral Query Core consumes narrow capabilities; DSH is an adapter only.",
+    "Workspace v0.1 is read-only; source/authority conflicts and local failures remain visible.",
+    "Host/Source owns retention, cache, archive and delete."
+  ],
+  "dependencies": ["WI-PNL003-001", "WI-PNL003-002"],
+  "status": "done",
+  "required_skills": ["codebase-design", "tdd"],
+  "required_capability": "implementation"
+}

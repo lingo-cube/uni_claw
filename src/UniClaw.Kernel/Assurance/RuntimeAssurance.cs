@@ -71,6 +71,14 @@ public sealed class RuntimeAssurance
                     || o.SemanticDescriptor == input.Target.SemanticDescriptor))
             .ToList();
         var observedState = candidates.Count == 1 ? candidates[0].State : null;
+        // A navigation tap legitimately removes the tapped row from the new
+        // hierarchy.  The old target is only allowed to disappear when the
+        // caller proved it was unique before dispatch and the route fingerprint
+        // changed across the post-action reconciliation.  This keeps a stale
+        // or incomplete hierarchy fail-closed while making multi-step
+        // navigation verifiable.
+        var targetObservedOrNavigationTransition = candidates.Count == 1
+            || input.TargetDisappearedAfterRouteChange;
         // PER-014 R3：DesiredState 已是 typed CheckedState 值域；occurrence
         // presentation state 经严格映射比较（Unknown 不判 satisfied，零折叠）。
         var observedChecked = CheckedSemantics.FromPresentation(observedState);
@@ -80,11 +88,25 @@ public sealed class RuntimeAssurance
                 r => r.Admission.Decision == AdmissionDecision.Accepted)),
             new("post-action-reconciled", input.ProcessedObservations.Any(
                 r => r.ResultingRevision is not null)),
-            new("post-action-target-unique", candidates.Count == 1),
+            new("post-action-target-unique", targetObservedOrNavigationTransition),
             new("post-action-desired-state-satisfied",
                 input.Target.DesiredState is null
                 || (observedChecked is { } observed && observed == input.Target.DesiredState)),
         };
+        if (input.TargetDisappearedAfterRouteChange)
+            checks.Add(new AssuranceCheck("post-action-navigation-transition", true));
+        // AGT-005：swipe 步骤的专属验证语义——滚动改变可见内容而不改变页面。
+        // 路由变化（滚动误触导航/滚动中页面跳转）或内容未变（滚动到底/
+        // 未生效）都 fail closed；通过 = PriorRoute==CurrentRoute ∧ 内容集变化。
+        if (Effects.AdbEffectDriver.IsSwipeEffect(input.Target.EffectClass.ToLowerInvariant()))
+        {
+            checks.Add(new AssuranceCheck("post-action-route-unchanged",
+                input.PriorRoute is not null
+                && input.CurrentRoute is not null
+                && string.Equals(input.PriorRoute, input.CurrentRoute, StringComparison.Ordinal)));
+            checks.Add(new AssuranceCheck("post-action-content-transition",
+                input.ScrollContentChanged == true));
+        }
         var failed = checks.FirstOrDefault(c => !c.Passed)?.Name;
         var rejection = failed == "post-action-desired-state-satisfied"
             ? "post-action-desired-state-not-satisfied"

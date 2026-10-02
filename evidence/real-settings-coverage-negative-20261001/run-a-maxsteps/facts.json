@@ -1,0 +1,123 @@
+{
+  "status": "Completed",
+  "reason": "terminal-emitted",
+  "outcome": "Completion",
+  "delivered": 6,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": true,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0.5,
+  "stepSuccessRate": 1,
+  "uncovered": [
+    "first-level-all-visible",
+    "scroll-discovered-entry",
+    "repeated-entry"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": "bounded-stop:max-steps",
+  "journalBytes": 9231,
+  "consults": [
+    {
+      "decisionId": "decision-c92d0f9dfd81-1",
+      "phase": "InitialPlanning",
+      "directive": "Enter the Settings first-level entry \u0027\u003CNetwork \u0026 internet\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-c92d0f9dfd81-2",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-c92d0f9dfd81-3",
+      "phase": "StepVerified",
+      "directive": "Enter the Settings first-level entry \u0027\u003CConnected devices\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-c92d0f9dfd81-4",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-c92d0f9dfd81-5",
+      "phase": "StepVerified",
+      "directive": "Enter the Settings first-level entry \u0027\u003CApps\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-c92d0f9dfd81-6",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-c92d0f9dfd81-7",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": null,
+      "decisionKind": "noAction",
+      "deviationReason": null,
+      "attempts": 0
+    }
+  ],
+  "steps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-b1b65338a4c3-3-1"
+    },
+    {
+      "decision": 2,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-1a4bcb2d2a88-1-2"
+    },
+    {
+      "decision": 3,
+      "step": 0,
+      "receipt": "receipt-bind-intent-3-occ-0c75c1f18f19-4-3"
+    },
+    {
+      "decision": 4,
+      "step": 0,
+      "receipt": "receipt-bind-intent-4-occ-8d3f582b1454-1-4"
+    },
+    {
+      "decision": 5,
+      "step": 0,
+      "receipt": "receipt-bind-intent-5-occ-d64eb356f56e-5-5"
+    },
+    {
+      "decision": 6,
+      "step": 0,
+      "receipt": "receipt-bind-intent-6-occ-97ddac8c1a0f-1-6"
+    }
+  ]
+}

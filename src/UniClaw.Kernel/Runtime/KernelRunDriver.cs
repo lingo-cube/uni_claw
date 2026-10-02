@@ -153,6 +153,7 @@ public sealed class KernelRunDriver
 
     /// <summary>层2 归档：每步验证成功时追加（decisionN, stepIndex, receiptId）。</summary>
     private readonly List<(int DecisionN, int StepIndex, string ReceiptId)> _completedSteps = new();
+    private WorldBeliefRevision? _preDispatchBelief;
 
     /// <summary>裁决⑧层3：等待人工终裁旗。</summary>
     private bool _awaitingRuling;
@@ -553,6 +554,7 @@ public sealed class KernelRunDriver
                             null, 0);
                     }
 
+                    _preDispatchBelief = _kernel.CurrentBelief;
                     var grounded = _kernel.ActViaCurrentGrounding(
                         intent, new TargetDescriptor(step.TargetRole, step.TargetDescriptor));
                     if (grounded.Act is null)
@@ -612,7 +614,7 @@ public sealed class KernelRunDriver
                         step.TargetRole, step.TargetDescriptor, step.EffectClass,
                         CheckedSemantics.FromPresentation(step.DesiredState));
                     var verification = _kernel.VerifyPostActionEffect(
-                        target, post.ProcessedObservations, _lastDispatchAt);
+                        target, post.ProcessedObservations, _lastDispatchAt, _preDispatchBelief);
                     if (!verification.IsVerified)
                     {
                         var reason = verification.RejectionReason ?? "verification-failed";
@@ -635,6 +637,7 @@ public sealed class KernelRunDriver
                     // 层2 归档：每步验证成功时追加
                     _completedSteps.Add((_consultCounter, _stepIndex,
                         _kernel.EffectReceipts.LastOrDefault()?.ReceiptId ?? ""));
+                    _preDispatchBelief = null;
                     _stepIndex++;
                     if (_policy is not null)
                     {
@@ -812,14 +815,21 @@ public sealed class KernelRunDriver
 
         var state = _kernel.RunState!;
         var claims = _kernel.CurrentBelief?.WorldState;
+        // Typed hierarchy fields are evidence for the WorldModel's semantic
+        // occurrence projection; they are not Agent-facing world claims.  A
+        // full ui.node.* dump overwhelms a real model and duplicates the
+        // Elements projection. Preserve the existing claim surface for
+        // product subjects while suppressing only raw hierarchy fields.
         var claimSummaries = claims is null
             ? new Dictionary<string, ClaimSummary>()
-            : claims.ToDictionary(
-                kv => kv.Key,
-                kv => new ClaimSummary(
-                    kv.Value.Value,
-                    DispositionOf(kv.Key, kv.Value),
-                    _kernel.CurrentConflictedSubjects.Contains(kv.Key)));
+            : claims
+                .Where(kv => !kv.Key.StartsWith("ui.node.", StringComparison.Ordinal))
+                .ToDictionary(
+                    kv => kv.Key,
+                    kv => new ClaimSummary(
+                        kv.Value.Value,
+                        DispositionOf(kv.Key, kv.Value),
+                        _kernel.CurrentConflictedSubjects.Contains(kv.Key)));
 
         var context = new AgentDecisionContext(
             DecisionId: decisionId,
@@ -928,8 +938,16 @@ public sealed class KernelRunDriver
             return Array.Empty<ElementSummary>();
         return occurrences
             .Select(o => new ElementSummary(
-                o.Role, null, null, null, null, null,
-                ElementEpistemic.Partial)) // v1：occurrence 投影，视觉单源
+                o.Role,
+                o.SemanticDescriptor,
+                o.Locator is { } locator
+                    ? $"{locator.X1:0.####},{locator.Y1:0.####},{locator.X2:0.####},{locator.Y2:0.####}"
+                    : null,
+                Clickable: o.Role is "ui.element" or "switch",
+                Checkable: o.Role == "switch",
+                Enabled: true,
+                ElementEpistemic.Observed,
+                State: o.State))
             .ToList();
     }
 
@@ -1080,6 +1098,10 @@ public sealed class KernelRunDriver
             ? (evidence, results)
             : null;
 
+    /// <summary>只读证据投影：已通过 post-action 屏障的 step 锚。</summary>
+    public IReadOnlyList<(int DecisionN, int StepIndex, string ReceiptId)> CompletedSteps =>
+        _completedSteps.ToArray();
+
     /// <summary>层3：人工终裁恢复（rejected = 持久 settlement，防环）。</summary>
     public RunDriveResult ResumeWithAdjudication(bool approved, string? note)
     {
@@ -1215,6 +1237,9 @@ public sealed class KernelRunDriver
                 return "missing-effect-class";
             if (!view.AllowedEffects.Contains(step.EffectClass))
                 return "effect-class-not-allowed";
+            if (step.DesiredState is not null
+                && CheckedSemantics.FromPresentation(step.DesiredState) is null)
+                return "unsupported-desired-state";
         }
         return null;
     }

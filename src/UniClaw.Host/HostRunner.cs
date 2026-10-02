@@ -37,8 +37,10 @@ public sealed class HostRunner
         int? ViewportHeight = null,
         // TargetState 使用 typed checked/unchecked 词汇。
         string TargetState = "checked",
+        string TargetSemanticDescriptor = "Wi-Fi",
         LivePerception.LiveAssets? Live = null,
-        Func<AgentDecisionContext, AgentDecision?>? ConsultAgent = null);
+        Func<AgentDecisionContext, AgentDecision?>? ConsultAgent = null,
+        bool SettingsTraversal = false);
 
     public sealed record HostRunResult(
         string RunDir,
@@ -74,17 +76,33 @@ public sealed class HostRunner
         var scope = new HashSet<string>
         {
             ProductAssociationStrategy.ScreenIdentitySubject,
+            ProductAssociationStrategy.ScreenRouteSubject,
             SharedSubjects.Frame,
             "ui.node.*",
         };
-        var liveFeed = new LivePerception.LiveFrameFeed(
-            clock, options.Live, () => LivePerception.LiveFrameFeed.ReadWifiState(options.Live.DeviceId));
+        LivePerception.LiveFrameFeed? liveFeed = null;
+        SettingsTraversalLiveFeed? settingsFeed = null;
+        Func<ObservationDirective, RunDriverInput?> nextInput;
+        IUiObservationStrategy observationStrategy;
+        if (options.SettingsTraversal)
+        {
+            settingsFeed = new SettingsTraversalLiveFeed(clock, options.Live);
+            nextInput = settingsFeed.Next;
+            observationStrategy = new UiHierarchyOccurrenceStrategy();
+        }
+        else
+        {
+            liveFeed = new LivePerception.LiveFrameFeed(
+                clock, options.Live, () => LivePerception.LiveFrameFeed.ReadWifiState(options.Live.DeviceId));
+            nextInput = liveFeed.Next;
+            observationStrategy = new ScreenFrameOccurrenceStrategy();
+        }
         try
         {
             var world = new WorldModel(
                 scope,
                 new ProductAssociationStrategy(),
-                new ScreenFrameOccurrenceStrategy());
+                observationStrategy);
             var assurance = new RuntimeAssurance(
                 new ProductFreshnessEvaluator(() => clock.Now, TimeSpan.FromMinutes(5)));
             // journal 必注入（D3）：产品路径不存在「未注入执行源」的默认
@@ -108,14 +126,16 @@ public sealed class HostRunner
                 kernel, planPolicy,
                 new RunDriverInputs
                 {
-                    NextInput = liveFeed.Next,
+                    NextInput = nextInput,
                     ConsultAgent = options.ConsultAgent,
                 });
 
             // ---- 单次 run ---------------------------------------------------
             var admission = kernel.AdmitContract(new ExecutionContract(
                 Version: "v0",
-                Objective: "flip-switch",
+                Objective: options.SettingsTraversal
+                    ? "Confirm the Wi-Fi state in Android Settings and leave Wi-Fi enabled. Choose every next control only from the current semantic hierarchy; navigate as needed to reach the Wi-Fi control, and never toggle it when the observed state is already enabled."
+                    : "flip-switch",
                 Scope: scope,
                 AllowedEffects: new HashSet<string> { "tap" },
                 ForbiddenEffects: new HashSet<string>(),
@@ -131,7 +151,8 @@ public sealed class HostRunner
                         "obj-switch-checked", RunObligationKind.Objective,
                         Subject: "ui.role.switch.checked",
                         RequiredValue: options.TargetState, Mandatory: true,
-                        EntityScope: new TargetDescriptor("switch")),
+                        EntityScope: new TargetDescriptor(
+                            "switch", options.SettingsTraversal ? options.TargetSemanticDescriptor : null)),
                 }));
             if (!admission.Accepted)
                 throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");
@@ -148,6 +169,8 @@ public sealed class HostRunner
             // ---- 产物落盘 ---------------------------------------------------
             var artifact = traceScope.FinalizeArtifact();
             WriteText(runDir, "trace.json", TryJson(artifact));
+            if (settingsFeed is not null)
+                WriteText(runDir, "settings-trace.json", TryJson(settingsFeed.Trace));
 
             var receipts = kernel.EffectReceipts
                 .Select(r => r.Outcome.ToString())
@@ -161,6 +184,12 @@ public sealed class HostRunner
                 receipts,
                 terminal = kernel.IsRunTerminal,
                 journalBytes = new FileInfo(journalPath).Length,
+                completionAnchors = driver.PendingCompletionDossier?.Results
+                    .Select(r => new { anchor = r.Anchor, verified = r.Verified })
+                    .ToArray(),
+                completedSteps = driver.CompletedSteps
+                    .Select(s => new { decision = s.DecisionN, step = s.StepIndex, receipt = s.ReceiptId })
+                    .ToArray(),
             };
             var factsJson = JsonSerializer.Serialize(facts, JsonOptions);
             WriteText(runDir, "facts.json", factsJson);
@@ -173,7 +202,8 @@ public sealed class HostRunner
         }
         finally
         {
-            liveFeed.Dispose();
+            settingsFeed?.Dispose();
+            liveFeed?.Dispose();
         }
     }
 

@@ -1,0 +1,1 @@
+{"schemaVersion":"uniclaw.workspace.capability.v1","contractVersion":"uniclaw.workspace.contract.v1","capability":"TaskQuery","capabilityVersion":"v1","requestId":"req-task","ok":true,"data":{"projects":[],"errors":[],"nextCursor":"page-2"},"observedAt":"2026-10-02T10:00:00Z"}

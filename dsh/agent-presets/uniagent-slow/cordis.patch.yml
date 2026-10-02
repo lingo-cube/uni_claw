@@ -1,0 +1,11 @@
+# Source row for the DSH profile's dedicated Slow provider session.
+# The active 3080 profile must include this row as preset id `uniclaw-slow`.
+- insert:
+    - id: preset-uniclaw-slow
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: uniclaw-slow
+        order: 3
+        plugins:
+          - id: uniclaw-restrict
+            name: '@uniclaw/dsh-uniagent-restrict'

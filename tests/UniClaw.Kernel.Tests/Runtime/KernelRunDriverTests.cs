@@ -293,6 +293,27 @@ public sealed class KernelRunDriverTests
     }
 
     [Fact]
+    public void Drive_UnsupportedDesiredState_FailsClosed()
+    {
+        var c = Compose(
+            nextInput: _ => SeedObservation(),
+            consult: ctx => new AgentDecision.Act(new AgentActionProposal(
+                ctx.DecisionId,
+                new[] { new AgentActionStep("ui.element", "Network & internet", "tap",
+                    "Wi-Fi settings screen visible") },
+                "navigation-state-must-be-omitted")));
+        Assert.True(c.Kernel.AdmitContract(Contract()).Accepted);
+        var driver = new KernelRunDriver(c.Kernel, c.Plan, c.Inputs);
+        Assert.True(driver.Activate().Accepted);
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, result.Status);
+        Assert.Equal("unsupported-desired-state", result.Reason);
+        Assert.Empty(c.Effects.ReceiptLog);
+    }
+
+    [Fact]
     public void Drive_UnknownDecisionKind_FailsClosed_DefensiveDefault()
     {
         var c = Compose(

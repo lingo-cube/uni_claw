@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unicaw.invalid/dsh-task-workbench/task-protocol",
+  "protocolVersion": "1",
+  "$defs": {
+    "ProjectRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "workspaceId": { "type": "string" }
+      }
+    },
+    "TaskDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["taskId", "title", "requirement", "status", "createdAt"],
+      "properties": {
+        "taskId": { "type": "string", "pattern": "^task-[0-9a-f]{16}$" },
+        "title": { "type": "string", "minLength": 1 },
+        "requirement": { "type": "string", "minLength": 1 },
+        "projectRef": { "$ref": "#/$defs/ProjectRef" },
+        "status": { "enum": ["draft", "active", "archived"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "TaskInstance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instanceId", "sessionId", "status", "startedAt"],
+      "properties": {
+        "instanceId": { "type": "string", "pattern": "^psi-[0-9a-f]{16}$" },
+        "sessionId": { "type": "string" },
+        "status": { "enum": ["starting", "active", "ended", "failed"] },
+        "startedAt": { "type": "string" },
+        "endedAt": { "type": "string" }
+      }
+    },
+    "CreateTaskRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "requirement"],
+      "properties": {
+        "taskId": { "type": "string" },
+        "title": { "type": "string", "minLength": 1 },
+        "requirement": { "type": "string", "minLength": 1 },
+        "projectRef": { "$ref": "#/$defs/ProjectRef" },
+        "status": { "enum": ["draft", "active"] }
+      }
+    },
+    "InstantiateRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["taskId"],
+      "properties": {
+        "taskId": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

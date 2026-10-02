@@ -301,7 +301,17 @@ public static class ProductProtocolSchemaGenerator
                     .Where(static p => p.GetMethod is not null)
                     .OrderBy(static p => p.Name, StringComparer.Ordinal))
                 {
-                    properties[ToCamelCase(property.Name)] = SchemaFor(property.PropertyType);
+                    var propertySchema = SchemaFor(property.PropertyType);
+                    // These two fields are bounded protocol inputs, not arbitrary
+                    // numbers. Keep the bounds in the generated artifact so the
+                    // DSH-side validator rejects invalid plans before Product
+                    // transport sees them.
+                    if ((type == typeof(ObserveSpec) && property.Name == nameof(ObserveSpec.MaxRounds))
+                        || (type == typeof(PolicyProposal) && property.Name == nameof(PolicyProposal.MaxApplications)))
+                    {
+                        ((JsonObject)propertySchema)["minimum"] = 1;
+                    }
+                    properties[ToCamelCase(property.Name)] = propertySchema;
                     var propertyNullability = nullability.Create(property);
                     if (Nullable.GetUnderlyingType(property.PropertyType) is null
                         && propertyNullability.ReadState != NullabilityState.Nullable)
@@ -327,7 +337,9 @@ public static class ProductProtocolSchemaGenerator
             if (type == typeof(string) || type == typeof(Guid) || type == typeof(DateTimeOffset))
                 return new JsonObject { ["type"] = "string" };
             if (type == typeof(bool)) return new JsonObject { ["type"] = "boolean" };
-            if (type == typeof(int) || type == typeof(long) || type == typeof(double) || type == typeof(decimal))
+            if (type == typeof(int) || type == typeof(long))
+                return new JsonObject { ["type"] = "integer" };
+            if (type == typeof(double) || type == typeof(decimal))
                 return new JsonObject { ["type"] = "number" };
             if (type == typeof(JsonElement)) return new JsonObject();
             if (type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)

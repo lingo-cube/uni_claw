@@ -1,0 +1,77 @@
+{
+  "id": "WI-AGT009-001",
+  "objective": "实现 AGT-009：让 UniAgent 通过 advisory Plan 提供抽象遍历策略，并把 Slow 与弹窗清障接入现有 Kernel 安全执行链。",
+  "scope": {
+    "write": [
+      "changes/AGT-009/state.md",
+      "src/UniClaw.Kernel/Runtime/AgentDecision.cs",
+      "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+      "src/UniClaw.Kernel/Runtime/RunDriverInputs.cs",
+      "src/UniClaw.Host/SettingsTraversalLiveFeed.cs",
+      "src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs",
+      "src/UniClaw.Kernel/Perception/SlowContracts.cs",
+      "src/UniClaw.Kernel/Perception/SlowOrchestration.cs",
+      "tests/UniClaw.Kernel.Tests/Runtime",
+      "tests/UniClaw.Host.Tests",
+      "tests/UniClaw.Kernel.Tests/Perception",
+      "evidence/agt-009/"
+    ],
+    "read_hints": [
+      "plans/2026-10-02-settings-traversal-remaining-issues.md",
+      "docs/architecture/product-architecture-baseline-l0-l3.md",
+      "docs/adr/0030-slow-perception-first-class-capability-bounded-async-consumption.md",
+      "src/UniClaw.Kernel/Runtime/AgentDecision.cs",
+      "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+      "src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs",
+      "src/UniClaw.Kernel/Perception/SlowOrchestration.cs"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "建立有界 advisory AgentDecision.Plan；Kernel 每次最多执行一个 Act 并重新 grounding/验证；Slow 只补充语义证据；Settings Director 允许受约束的 obstacle、Reobserve、Replan。",
+    "core_points": [
+      "PlanItem 只有 Act、Observe、Control；Control 只有 Reobserve、Replan、Stop。",
+      "Observe 不产生 Effect；Forbidden 只有绑定人工策略时才是强约束。",
+      "无 XML 不等于不可动作；无足够 grounding 证据才安全停止。",
+      "Replan 消耗 Run 全局预算；晚到 Slow 结果不能授权过期动作。",
+      "Leader 先冻结 Plan 契约，再派 Worker 做 Host/Slow 接入。"
+    ]
+  },
+  "anchors": [
+    {"path": "src/UniClaw.Kernel/Runtime/AgentDecision.cs", "symbol": "AgentDecision"},
+    {"path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs", "symbol": "ConsultAgentV2"},
+    {"path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs", "symbol": "Consult"},
+    {"path": "src/UniClaw.Kernel/Perception/SlowOrchestration.cs", "symbol": "SlowResultProjector"}
+  ],
+  "contract_refs": [
+    "changes/AGT-009/state.md",
+    "plans/2026-10-02-settings-traversal-remaining-issues.md",
+    "docs/adr/0030-slow-perception-first-class-capability-bounded-async-consumption.md",
+    "docs/architecture/product-architecture-baseline-l0-l3.md"
+  ],
+  "acceptance": [
+    "Plan 具有 DecisionId 相关性、有限步数和合法字段校验；malformed/unknown/超预算计划零 Effect。",
+    "多步 Plan 逐步执行：每次最多一个 Act，动作前完成 fresh grounding/Assurance/Effect Gate，动作后完成 verification。",
+    "Observe 不产生 Effect，也不能单独宣布覆盖完成；Settings record-only 由既有 coverage ledger 记录。",
+    "无 XML 但 grounding 证据充分时可以继续；证据不足时进入有界 Reobserve、Replan 或 fail closed。",
+    "Slow 在无 XML、结构/视觉冲突、弹窗连续失败或语义不明确时可异步发起；超时、未配置、冲突或晚到结果不授权动作。",
+    "弹窗可走 obstacle 分支；清障前后有同一分类器证据，弹窗未消失时不进入普通遍历。",
+    "SettingsCoverageDirector 接受受约束的 Reobserve、Replan 和 obstacle 分支，仍由 Coverage 配额和终止条件收口。",
+    "相关 Kernel/Host/Slow 测试、git diff --check、WorkItem schema 校验通过，并提供 evidence 引用。"
+  ],
+  "forbidden": [
+    "不得直接在当前共享脏工作区实现；必须使用独立 worktree 或等价隔离目录。",
+    "不得把 AgentDecision.Policy 改造成遍历脚本，不得新增第二套执行器、状态机、Evidence 或 WorldModel 权威。",
+    "不得修改通用 scenarios/schema.json、model-routing.yaml、legacy uni-agent 或 UniAgent Goal Evaluation 职责。",
+    "不得让 Slow、记忆、外部资料或模型 confidence 直接授权 Effect。",
+    "不得把 AGT-010 RouteKey/ViewportDigest 或 AGT-011 evidence/candidate cleanup 混入本 WorkItem。"
+  ],
+  "frozen_decisions": [
+    "AgentDecision.Plan 是 advisory、有界、有序计划，不包含坐标、occurrence、过期 selector 或直接 Effect 授权。",
+    "Kernel 每次最多执行一个 Act；Replan 消耗当前 Run 全局咨询预算。",
+    "Slow 沿用 PER-017/018、P2、Evidence Ledger 和 provenance；晚到结果不能追溯授权。",
+    "人工配置对不可逆动作、禁止项和审批要求拥有最终约束。"
+  ],
+  "status": "pending",
+  "required_skills": ["codebase-design", "tdd", "uniclaw-debug-evidence"],
+  "required_capability": "implementation"
+}

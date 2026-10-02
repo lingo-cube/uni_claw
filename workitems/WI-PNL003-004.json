@@ -1,0 +1,66 @@
+{
+  "id": "WI-PNL003-004",
+  "objective": "闭合 Workspace capability 响应契约，使 Query Core 与 DSH Adapter 的成功、失败、快照和分页响应可以直接由 schema 校验。",
+  "scope": {
+    "write": [
+      "schemas/workspace/capability.schema.json",
+      "schemas/workspace/examples/valid/capability-response-success.json",
+      "schemas/workspace/examples/valid/capability-response-failure.json",
+      "schemas/workspace/README.md",
+      "tools/validate-workspace-schemas.py",
+      "workitems/WI-PNL003-004.json"
+    ],
+    "read_hints": [
+      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
+      "schemas/workspace/capability.schema.json",
+      "schemas/workspace/query-error.schema.json",
+      "web/uniclaw-workspace/src/core/index.js",
+      "dsh/uniclaw-task-workbench/src/workspace-capabilities.js",
+      "tools/validate-workspace-schemas.py"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "当前 capability schema 只声明元数据，实际 Query Core/DSH Adapter 已返回 data、error、revision、observedAt。补齐版本化响应契约和正反例，保持五类只读能力与局部失败语义，不改变运行时行为。",
+    "core_points": [
+      "成功响应必须有 ok=true 与 data；失败响应必须有 ok=false 与结构化 error。",
+      "snapshotId、revision、observedAt 至少一项，且不宣称跨来源原子一致性。",
+      "分页、局部 errors 和 capability metadata 必须有明确可选形状。",
+      "未知关键字段继续 fail closed，非关键扩展保持兼容策略。"
+    ]
+  },
+  "anchors": [
+    {"path": "schemas/workspace/capability.schema.json"},
+    {"path": "web/uniclaw-workspace/src/core/index.js", "symbol": "success"},
+    {"path": "dsh/uniclaw-task-workbench/src/workspace-capabilities.js", "symbol": "envelope"}
+  ],
+  "contract_refs": [
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
+    "schemas/workspace/README.md"
+  ],
+  "acceptance": [
+    "capability.schema.json 能直接校验 Query Core/DSH Adapter 的成功与失败响应：成功要求 ok=true、data；失败要求 ok=false、error；capability、版本和 requestId 必须保留。",
+    "响应至少声明 snapshotId、revision、observedAt 之一；字段类型和空值规则明确，不能用空值伪造快照。",
+    "分页 nextCursor、局部 errors、productSessionId 和 capability-specific data 保持可扩展但不放宽未知关键字段；QueryError 引用现有 schema。",
+    "新增成功/失败正例，并新增至少一个未知关键字段或错误响应缺字段反例；validator 能报告文件、JSON path 和原因。",
+    "README 说明 capability schema 是请求/响应 envelope 的契约，明确数据载荷由五类 capability 自己定义且仍为只读。",
+    "不改变 Query Core、DSH Adapter、DSH 旧 API 或 Product Runtime；发现需要改变运行时形状时停止并报告 UPSTREAM_DESIGN_CONFLICT。",
+    "python3 tools/validate-workspace-schemas.py、git diff --check 和 WorkItem schema 校验通过。"
+  ],
+  "forbidden": [
+    "不得修改 web/uniclaw-workspace/src/core/index.js 或 dsh/uniclaw-task-workbench/。",
+    "不得新增 Query capability、Product authority、写操作、缓存/归档/删除接口。",
+    "不得把 data 内部字段收敛成 DSH 专有形状或放宽 absolute path/URL/Host session 约束。",
+    "不得删除已有错误样例或把 malformed response 当作兼容。"
+  ],
+  "frozen_decisions": [
+    "五类窄 capability 是共享契约；Workspace v0.1 只读。",
+    "DSH session 只能作为 host reference，ProductSession authority 由产品侧提供。",
+    "snapshot metadata 不代表跨来源原子一致性；错误必须显式呈现。"
+  ],
+  "dependencies": ["WI-PNL003-001", "WI-PNL003-002", "WI-PNL003-003"],
+  "status": "done",
+  "required_skills": ["codebase-design", "tdd"],
+  "required_capability": "implementation"
+}

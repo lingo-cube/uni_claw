@@ -34,9 +34,10 @@
 - `config/pipeline.json`：默认管道（= 历史行为，行为冻结）；配置面 = fusion
   四 knob（`interactiveExtraLabels` / `promoteUnmatchedOcr` / `stabilize` /
   `maxOcrDistanceRatio`）+ impl 声明（须与 cfg 推导一致，fail-closed）。
-- `config/pipeline-variants/*.json`：预声明变体（启动全量 lint）；请求经
-  `X-Pipeline-Variant: <variantId>` 选择（只可选、不可携带配置内容；未知 →
-  400）。示例变体：`promote-off`。
+- `config/pipeline-variants/*.json`：预声明变体；启动默认只激活 CPU 变体，
+  请求经 `X-Pipeline-Variant: <variantId>` 选择（只可选、不可携带配置内容；未知 →
+  400）。通过 `UNICLAW_PIPELINE_VARIANTS=a,b` 显式管理激活集合；硬件相关变体
+  不会因为文件存在而阻塞 CPU 服务启动，未激活变体仍可由测试直接加载并验证。
 - 四层身份（`uniclaw_perception/identity.py`）：modelId / configId /
   pipelineRevision / deploymentId——响应 metadata additive 携带（变体各持
   configId/deploymentId）。
@@ -66,6 +67,10 @@ ENVIRONMENT 验收（A4/A5）：`DSH_TEST_PERCEPTION_LIVE=1 dotnet test
 - 变体：`X-Pipeline-Variant: fastscreen-integration`（YOLO/OCR 原样 +
   screenparse 救援 step）/ `fastscreen-replacement`（detect 换
   ScreenParser，OCR 留；`-mps` 同义 MPS 版）。A/B 互斥，lint fail-closed。
+- 默认不启用 `fastscreen-replacement-mps`。确认
+  `torch.backends.mps.is_available()` 后，才设置
+  `UNICLAW_PIPELINE_VARIANTS=fastscreen-replacement-mps`；MPS 声明仍保持
+  fail-closed，不会静默改用 CPU。
 - **权重前置**：ScreenParser v2（YOLO11-L，55 类）**不入 git**，用变体前
   需自行下载（源 `huggingface.co/docling-project/ScreenParser` `main`
   分支 `best.pt`，153,259,543 B，sha256

@@ -108,6 +108,17 @@ def _run_b1(name: str, *, variant_config: pipeline.PipelineConfig) -> dict:
 # ── impl 注册表 lint（确定性，不依赖帧/权重）─────────────────────────────
 
 class TestImplRegistryLint:
+    def test_active_variants_default_excludes_optional_mps(self, monkeypatch):
+        variants = load_variants()
+        monkeypatch.delenv("UNICLAW_PIPELINE_VARIANTS", raising=False)
+        assert "fastscreen-replacement-mps" not in pipeline.active_variant_ids(variants)
+        assert "fastscreen-replacement" in pipeline.active_variant_ids(variants)
+
+    def test_active_variants_can_enable_declared_mps(self, monkeypatch):
+        variants = load_variants()
+        monkeypatch.setenv("UNICLAW_PIPELINE_VARIANTS", "fastscreen-replacement-mps")
+        assert pipeline.active_variant_ids(variants) == ("fastscreen-replacement-mps",)
+
     def test_screenparser_declarable(self):
         config = pipeline.parse_pipeline_config(
             {"schemaVersion": 1, "detect": {"impl": "screenparser"}})

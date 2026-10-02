@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.dev/schemas/workspace/capability/v1",
+  "title": "UniClaw Workspace Capability Envelope",
+  "type": "object", "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": "uniclaw.workspace.capability.v1"},
+    "contractVersion": {"const": "uniclaw.workspace.contract.v1"},
+    "capability": {"enum": ["TaskQuery", "SessionQuery", "TraceQuery", "EvidenceQuery", "DetailQuery"]},
+    "capabilityVersion": {"const": "v1"},
+    "requestId": {"type": "string", "minLength": 1},
+    "productSessionId": {"type": "string", "minLength": 1},
+    "ok": {"type": "boolean"},
+    "data": {},
+    "error": {"$ref": "https://uniclaw.dev/schemas/workspace/query-error/v1"},
+    "snapshotId": {"type": "string", "minLength": 1},
+    "revision": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "string", "minLength": 1}]},
+    "observedAt": {"type": "string", "format": "date-time"},
+    "nextCursor": {"type": "string", "minLength": 1},
+    "errors": {"type": "array", "items": {"$ref": "https://uniclaw.dev/schemas/workspace/query-error/v1"}},
+    "params": {"type": "object", "additionalProperties": true}
+  },
+  "required": ["schemaVersion", "contractVersion", "capability", "capabilityVersion", "requestId", "ok"],
+  "allOf": [
+    {"anyOf": [
+      {"required": ["snapshotId"]},
+      {"required": ["revision"]},
+      {"required": ["observedAt"]}
+    ]},
+    {"if": {"properties": {"ok": {"const": true}}}, "then": {"required": ["data"], "not": {"required": ["error"]}},
+    "else": {"required": ["error"], "not": {"required": ["data"]}}}
+  ]
+}

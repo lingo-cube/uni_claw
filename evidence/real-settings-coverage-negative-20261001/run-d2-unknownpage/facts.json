@@ -1,0 +1,61 @@
+{
+  "status": "TerminalNotProven",
+  "reason": "evidence-insufficient",
+  "outcome": null,
+  "delivered": 0,
+  "receipts": [],
+  "terminal": false,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0,
+  "stepSuccessRate": 0,
+  "uncovered": [
+    "root-page",
+    "first-level-all-visible",
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "back-navigation",
+    "repeated-entry"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": "bounded-stop:unknown-page",
+  "journalBytes": 0,
+  "consults": [
+    {
+      "decisionId": "decision-119bee1e065b-1",
+      "phase": "InitialPlanning",
+      "directive": "Observe again: current page identity is unknown (\u0027android.settings\u0027).",
+      "directiveKind": "defer-unknown-page",
+      "decisionKind": "defer",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-119bee1e065b-2",
+      "phase": "InitialPlanning",
+      "directive": "Observe again: current page identity is unknown (\u0027android.settings\u0027).",
+      "directiveKind": "defer-unknown-page",
+      "decisionKind": "defer",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-119bee1e065b-3",
+      "phase": "InitialPlanning",
+      "directive": "Observe again: current page identity is unknown (\u0027android.settings\u0027).",
+      "directiveKind": "defer-unknown-page",
+      "decisionKind": "defer",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-119bee1e065b-4",
+      "phase": "DeferRoundsExhausted",
+      "directive": null,
+      "directiveKind": null,
+      "decisionKind": "noAction",
+      "deviationReason": null,
+      "attempts": 0
+    }
+  ],
+  "steps": []
+}

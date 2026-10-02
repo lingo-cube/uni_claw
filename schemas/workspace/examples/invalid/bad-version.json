@@ -1,0 +1,1 @@
+{"schemaVersion":"uniclaw.workspace.record-envelope.v0","contractVersion":"uniclaw.workspace.contract.v1","recordId":"bad-002","kind":"trace","source":"uniclaw","authority":"uniclaw-runtime","taskInstanceId":"task-001","productSessionId":"ps-001","correlationId":"trace-001","occurredAt":"2026-10-02T10:00:00Z","summary":"bad version"}

@@ -10,7 +10,7 @@ service:
 # Model selection is intentionally a separate block. Changing provider/name does
 # not change Product protocol, DecisionId, Kernel, or the Observer authority.
 modelSelection:
-  selected: free
+  selected: glm53Flash
   choices:
     free:
       provider: opencode-go
@@ -18,3 +18,6 @@ modelSelection:
     deepseekFlash:
       provider: opencode-go
       name: deepseek-flash
+    glm53Flash:
+      provider: zai-coding-cn
+      name: glm-5.3-flash

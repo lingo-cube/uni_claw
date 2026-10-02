@@ -1,0 +1,61 @@
+{
+  "id": "WI-PNL003-007",
+  "objective": "建立 Host-neutral Workspace View Model，把功能状态投影成可由不同渲染器消费的项目导航、任务卡片、Uni-Agent 时间线和 Trace/Evidence 视图。",
+  "scope": {
+    "write": [
+      "web/uniclaw-workspace/src/features/workspace-view-model.js",
+      "web/uniclaw-workspace/tests/workspace-view-model.test.js",
+      "workitems/WI-PNL003-007.json"
+    ],
+    "read_hints": [
+      "web/uniclaw-workspace/src/features/workspace-controller.js",
+      "web/uniclaw-workspace/tests/workspace-controller.test.js",
+      "web/uniclaw-workspace/src/core/index.js",
+      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "plans/PNL-003-plan.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "用纯函数把 Controller state 投影为 renderer-neutral View Model：左侧项目/任务导航，主区任务摘要与请求→决策→结果时间线，Trace/Evidence/Metadata 分组和 Detail 操作。只保留用户主线信息，底层来源与错误作为可展开诊断信息。",
+    "core_points": [
+      "View Model 不调用 Query Core，不改写状态，不依赖 React/DOM/DSH/CSS。",
+      "Uni-Agent 主线按 request、decision、result 分组，保持 correlationId、source、authority 和 detailRef。",
+      "DSH/UniClaw/外部 trace 在同一 Trace pane 内按 source 分组，不造第二套模型。",
+      "Evidence 卡片必须保留 detail action、权限/缺失/未关联等状态。"
+    ]
+  },
+  "anchors": [
+    {"path": "web/uniclaw-workspace/src/features/workspace-controller.js", "symbol": "getState"},
+    {"path": "web/uniclaw-workspace/src/core/index.js", "symbol": "sourceMeta"}
+  ],
+  "contract_refs": [
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "schemas/workspace/README.md",
+    "plans/PNL-003-plan.md"
+  ],
+  "acceptance": [
+    "导出纯函数 `createWorkspaceViewModel(state, options)`，不执行读取、不调用 Query Core、不修改输入 state。",
+    "输出包含 navigation、taskHeader、conversationTimeline、tracePane、evidencePane、metadataPane、detailActions 和 notices/status；各区保留 loading/ready/partial/error/idle 状态。",
+    "navigation 将项目和任务实例投影为卡片；任务身份只使用 productSessionId，未关联实例显示 correlationStatus，不生成产品身份。",
+    "conversationTimeline 按 request、decision、result 分组；主卡片显示 Uni-Agent 摘要，原始 conversation/trace 作为可展开 detail，不把全部原文堆在主线。",
+    "tracePane 在同一面板内按 source 分组并保留 authority、correlationId、detailRef；evidencePane 生成证据卡片，明确 detail 可用、权限拒绝、缺失或未关联。",
+    "局部错误、partial、stale、permission-denied、uncorrelated 进入 notices 或对应 pane，不能转换为空成功；缺 detailRef 时 detailActions 不可用。",
+    "测试覆盖 standalone fixture + controller state 的完整投影、请求→决策→结果分组、来源分组、局部错误、未关联任务、detail action 和输入不可变。",
+    "npm test、node --check、精确依赖扫描、git diff --check 和 WorkItem schema 校验通过。"
+  ],
+  "forbidden": [
+    "不得修改 Query Core、任何 adapter、Workspace schema、DSH、Product Runtime 或 controller。",
+    "不得导入 React、DOM、CSS、fetch、文件系统、Host globals 或实现具体渲染器。",
+    "不得新增 capability、写操作、缓存/归档/删除或第二套任务/trace/evidence 数据模型。",
+    "不得把 DSH sessionId、panel method 或 Host CSS 写入 View Model 公共接口。"
+  ],
+  "frozen_decisions": [
+    "通用前端 canonical source 独立于 DSH；功能、基础 UI、styles 分层。",
+    "ProductSessionId 是任务身份；Workspace v0.1 只读。",
+    "Uni-Agent 主线聚焦请求→决策→结果，底层来源信息可展开。"
+  ],
+  "dependencies": ["WI-PNL003-001", "WI-PNL003-002", "WI-PNL003-004", "WI-PNL003-005", "WI-PNL003-006"],
+  "status": "done",
+  "required_skills": ["codebase-design", "tdd"],
+  "required_capability": "implementation"
+}

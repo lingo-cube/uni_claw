@@ -1,0 +1,25 @@
+{
+  "status": "Completed",
+  "reason": "terminal-emitted",
+  "outcome": "Completion",
+  "delivered": 2,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": true,
+  "journalBytes": 3070,
+  "completionAnchors": null,
+  "completedSteps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-c2ee9bfb938c-1-1"
+    },
+    {
+      "decision": 2,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-d5b3e102e6a2-1-2"
+    }
+  ]
+}

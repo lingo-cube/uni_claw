@@ -1,0 +1,52 @@
+{
+  "id": "WI-PNL003-013",
+  "objective": "修复 Query Core 对 capability 失败 envelope 的信息丢失，使失败状态保留 capability、source、revision/snapshot 元数据。",
+  "scope": {
+    "write": [
+      "web/uniclaw-workspace/src/core/index.js",
+      "web/uniclaw-workspace/tests/core.test.js",
+      "workitems/WI-PNL003-013.json"
+    ],
+    "read_hints": [
+      "schemas/workspace/capability.schema.json",
+      "schemas/workspace/query-error.schema.json",
+      "web/uniclaw-workspace/src/features/workspace-controller.js",
+      "workitems/WI-PNL003-012.json"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Capability 失败不是只有 error code；Query Core 必须把 capability 名称和失败响应的快照元数据保留到可观察 read model，供 Workspace 定位来源和 stale。",
+    "core_points": [
+      "错误 read model 至少保留 error、capability、source 以及 revision/snapshotId/observedAt 中实际存在的元数据。",
+      "成功响应行为、旧 revision 防覆盖和现有错误 code 语义保持不变。",
+      "错误 envelope 仍不应被当作成功数据或空数组成功。"
+    ]
+  },
+  "anchors": [
+    {"path": "web/uniclaw-workspace/src/core/index.js", "symbol": "WorkspaceQueryCore"},
+    {"path": "web/uniclaw-workspace/tests/core.test.js", "symbol": "capability"}
+  ],
+  "contract_refs": [
+    "schemas/workspace/capability.schema.json",
+    "schemas/workspace/query-error.schema.json",
+    "plans/PNL-003-plan.md"
+  ],
+  "acceptance": [
+    "失败 capability 进入 getSession/getTimeline/getTraces/getEvidence/resolveDetail 与分页查询后，public read model 保留 capability、error/source 和 envelope 中实际存在的 revision/snapshotId/observedAt。",
+    "stale、permission-denied、uncorrelated、timeout/unavailable 仍保持原 code/retryable 语义；错误不变成成功空数据。",
+    "成功响应、旧 revision 防覆盖、五类 capability 和 Host-neutral 依赖边界不回归。",
+    "npm test、node --check、依赖边界扫描、WorkItem schema 校验和 git diff --check 通过。"
+  ],
+  "forbidden": [
+    "不得修改 DSH adapter、Standalone adapter、Controller、Renderer、DSH API 或 Product Runtime。",
+    "不得新增错误码、写操作、缓存、重试策略或跨来源一致性承诺。"
+  ],
+  "frozen_decisions": [
+    "Query Core 只规范化 capability envelope，不拥有来源权限真相。",
+    "失败事实必须可见，不能通过空数组伪装成功。"
+  ],
+  "dependencies": ["WI-PNL003-002", "WI-PNL003-004", "WI-PNL003-012"],
+  "status": "done",
+  "required_skills": ["tdd", "codebase-design"],
+  "required_capability": "implementation"
+}

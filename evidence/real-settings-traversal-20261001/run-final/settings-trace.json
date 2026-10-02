@@ -1,0 +1,53 @@
+[
+  {
+    "cycle": 1,
+    "context": "External",
+    "captureId": "capture-37716def3ec847f98d930b758176ba5d",
+    "observationCycleId": "settings-cycle-001",
+    "fastAvailable": true,
+    "hierarchyAvailable": true,
+    "proposalCount": 584,
+    "fastLatency": "00:00:02.2694828",
+    "hierarchyLatency": "00:00:01.9450192",
+    "screenIdentity": "android.settings|route:Settings",
+    "slow": null,
+    "grounding": null,
+    "assurance": null,
+    "effect": null,
+    "verification": null
+  },
+  {
+    "cycle": 2,
+    "context": "PostActionEffectFlow",
+    "captureId": "capture-4d3965416b884681b7b43a10a667edca",
+    "observationCycleId": "settings-cycle-002",
+    "fastAvailable": true,
+    "hierarchyAvailable": true,
+    "proposalCount": 634,
+    "fastLatency": "00:00:00.5235189",
+    "hierarchyLatency": "00:00:01.9522261",
+    "screenIdentity": "android.settings|route:Internet",
+    "slow": null,
+    "grounding": null,
+    "assurance": null,
+    "effect": null,
+    "verification": null
+  },
+  {
+    "cycle": 3,
+    "context": "PostActionEffectFlow",
+    "captureId": "capture-f3593e5f74bb430bbad77065244bc8f1",
+    "observationCycleId": "settings-cycle-003",
+    "fastAvailable": true,
+    "hierarchyAvailable": true,
+    "proposalCount": 687,
+    "fastLatency": "00:00:00.5727595",
+    "hierarchyLatency": "00:00:02.6325685",
+    "screenIdentity": "android.settings|route:T-Mobile",
+    "slow": null,
+    "grounding": null,
+    "assurance": null,
+    "effect": null,
+    "verification": null
+  }
+]

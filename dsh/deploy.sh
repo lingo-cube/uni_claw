@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# dsh/deploy.sh — deploy the two @uniclaw DSH profile plugins into the DSH web
+# dsh/deploy.sh — deploy the four @uniclaw DSH profile plugins into the DSH web
 # profile (~/.dsh/profiles/web) with mechanical drift detection.
 #
 # WHY THIS EXISTS: pnpm `file:` deps are SNAPSHOT COPIES, not symlinks, and pnpm
@@ -12,7 +12,7 @@
 # This script turns that discipline into tooling: pnpm remove+add per package,
 # marker verification, and a full recursive diff (repo vs installed snapshot).
 #
-# HARD SIDE-EFFECT RULES: the only mutations are `pnpm remove/add` of the two
+# HARD SIDE-EFFECT RULES: the only mutations are `pnpm remove/add` of the four
 # @uniclaw packages under PROFILE_DIR (touching only node_modules there).
 # Nothing else under ~/.dsh is ever modified; no instance is restarted here
 # (restarting the owner's instance is a human decision).
@@ -39,14 +39,16 @@ usage() {
 Usage: dsh/deploy.sh [--check-only] [--port N]
 
 Deploys the @uniclaw DSH profile plugins (dsh-uniagent-restrict,
-dsh-decision-channel) into the DSH web profile as file: snapshot deps,
+dsh-decision-channel, dsh-task-workbench, dsh-task-scope) into the DSH web
+profile as file: snapshot deps,
 verifies installed markers, and compares every repo file against the
 installed snapshot to detect drift.
 
 Options:
   --check-only   Run ONLY the drift check (no pnpm mutations). Exit 0 clean / 1 drift.
-  --port N       After deploying, print (but do NOT run) the exact restart command
-                 for the given port, plus the preset-reload reminder.
+  --port N       After deploying, print (but do NOT run) the exact start command
+                 for a dedicated test instance on the given port, plus the
+                 preset-reload reminder. Do not pass the owner's 3080 port.
   -h, --help     Show this help.
 
 Environment:
@@ -65,7 +67,7 @@ preflight() {
   printf 'profile dir: %s\n' "$PROFILE_DIR"
   [ -d "$PROFILE_DIR" ] || die "profile dir not found: $PROFILE_DIR"
   local pkg name
-  for pkg in uniclaw-restrict uniclaw-decision-channel; do
+  for pkg in uniclaw-restrict uniclaw-decision-channel uniclaw-task-workbench uniclaw-task-scope; do
     [ -f "$REPO_DIR/dsh/$pkg/package.json" ] || die "missing $REPO_DIR/dsh/$pkg/package.json"
     [ -f "$REPO_DIR/dsh/$pkg/src/index.js" ] || die "missing $REPO_DIR/dsh/$pkg/src/index.js"
   done
@@ -78,7 +80,16 @@ deploy_one() {
   say "Deploy $name (remove + add, to defeat content-addressed snapshot reuse)"
   printf '$ %s remove %s --ignore-workspace (cwd %s)\n' "$PNPM_BIN" "$name" "$PROFILE_DIR"
   out="$(cd "$PROFILE_DIR" && "$PNPM_BIN" remove "$name" --ignore-workspace 2>&1)" \
-    || { printf '%s\n' "$out"; die "pnpm remove $name failed"; }
+    || {
+      # First-time install: the package is not a profile dependency yet, so
+      # remove has nothing to do. Only THIS error is tolerated; any other
+      # remove failure stays fatal.
+      if grep -q 'ERR_PNPM_CANNOT_REMOVE_MISSING_DEPS' <<<"$out"; then
+        echo "not yet a dependency (first install); skip remove"
+      else
+        printf '%s\n' "$out"; die "pnpm remove $name failed"
+      fi
+    }
   printf '$ %s add %s@file:%s --ignore-workspace\n' "$PNPM_BIN" "$name" "$dir"
   out="$(cd "$PROFILE_DIR" && "$PNPM_BIN" add "$name@file:$dir" --ignore-workspace 2>&1)" \
     || { printf '%s\n' "$out"; die "pnpm add $name failed (profile dependency state may need manual attention)"; }
@@ -88,8 +99,12 @@ deploy_one() {
 # marker_present <file> <marker>: true if marker appears on a non-comment line.
 marker_present() {
   local file="$1" marker="$2"
-  # Strip comment-ish lines (/* opener, * continuation, // line) then grep literally.
-  grep -v -E '^[[:space:]]*(/\*|\*|//)' "$file" 2>/dev/null | grep -Fq -- "$marker"
+  # Strip comment-ish lines (/* opener, * continuation, // line) then grep
+  # literally. NOTE: no `grep -q` here — -q exits at the first match and
+  # SIGPIPEs the upstream grep -v under `set -o pipefail`, turning a present
+  # marker into a false failure once the file crosses the pipe-buffer size
+  # (seen with decision-channel src/index.js). Plain grep drains its input.
+  grep -v -E '^[[:space:]]*(/\*|\*|//)' "$file" 2>/dev/null | grep -F -- "$marker" >/dev/null 2>&1
 }
 
 verify_markers() {
@@ -102,11 +117,25 @@ verify_markers() {
   expected (outside comments): ctx.tools.restrict({ allow: [] })"
   fi
   f="$PROFILE_DIR/node_modules/@uniclaw/dsh-decision-channel/src/index.js"
-  if marker_present "$f" 'sessionToolDisposer = agentCtx.tools.register'; then
+  if marker_present "$f" 'state.sessionToolDisposer = agentCtx.tools.register'; then
     echo "OK: decision-channel marker present in $f"
   else
     die "marker missing in $f
-  expected (outside comments): sessionToolDisposer = agentCtx.tools.register"
+  expected (outside comments): state.sessionToolDisposer = agentCtx.tools.register"
+  fi
+  f="$PROFILE_DIR/node_modules/@uniclaw/dsh-task-workbench/src/index.js"
+  if marker_present "$f" 'ctx.connection.fetch.register'; then
+    echo "OK: task-workbench marker present in $f"
+  else
+    die "marker missing in $f
+  expected (outside comments): ctx.connection.fetch.register"
+  fi
+  f="$PROFILE_DIR/node_modules/@uniclaw/dsh-task-scope/src/index.js"
+  if marker_present "$f" 'ctx.tools.restrict({ allow })'; then
+    echo "OK: task-scope marker present in $f"
+  else
+    die "marker missing in $f
+  expected (outside comments): ctx.tools.restrict({ allow })"
   fi
 }
 
@@ -115,8 +144,11 @@ verify_markers() {
 drift_check() {
   say "Drift check (repo vs installed snapshot)"
   local pkg name repo installed n=0 bad=0 rel
-  for pkg in uniclaw-restrict uniclaw-decision-channel; do
-    name="@uniclaw/dsh-$([ "$pkg" = uniclaw-restrict ] && echo uniagent-restrict || echo decision-channel)"
+  for pkg in uniclaw-restrict uniclaw-decision-channel uniclaw-task-workbench uniclaw-task-scope; do
+    case "$pkg" in
+      uniclaw-restrict) name="@uniclaw/dsh-uniagent-restrict" ;;
+      *) name="@uniclaw/dsh-${pkg#uniclaw-}" ;;
+    esac
     repo="$REPO_DIR/dsh/$pkg"
     installed="$PROFILE_DIR/node_modules/$name"
     echo "-- $name"
@@ -140,14 +172,17 @@ drift_check() {
 }
 
 port_hint() {
-  say "Restart hint (--port $PORT_HINT)"
+  say "Dedicated test-service hint (--port $PORT_HINT)"
   cat <<EOF
-NEXT STEP (run manually — this script never restarts anything):
+NEXT STEP (run manually — this script never starts or restarts anything):
   cd /Users/fran/Documents/Code/dk-harness && node apps/cli/lib/bin.js web --no-open --port $PORT_HINT
+
+This is a dedicated test instance. It must use a port other than 3080.
+The script never starts, restarts, or kills the owner's 3080 instance.
 
 Reminder: profile patch preset rows (e.g. the @deepseek-ai/dsh-agent-preset
 declaration lines in cordis.patch.yml) only load at boot — preset-composition
-changes require an instance restart to take effect.
+changes require the dedicated test instance to be started again.
 EOF
 }
 
@@ -162,6 +197,10 @@ main() {
     shift
   done
 
+  if [ -n "$PORT_HINT" ] && [ "$PORT_HINT" = "3080" ]; then
+    die "--port 3080 is reserved for the owner's live service; choose a dedicated test port such as 3081"
+  fi
+
   preflight
 
   if [ "$CHECK_ONLY" -eq 1 ]; then
@@ -173,6 +212,8 @@ main() {
   echo "mode: deploy"
   deploy_one '@uniclaw/dsh-uniagent-restrict' "$REPO_DIR/dsh/uniclaw-restrict"
   deploy_one '@uniclaw/dsh-decision-channel' "$REPO_DIR/dsh/uniclaw-decision-channel"
+  deploy_one '@uniclaw/dsh-task-workbench' "$REPO_DIR/dsh/uniclaw-task-workbench"
+  deploy_one '@uniclaw/dsh-task-scope' "$REPO_DIR/dsh/uniclaw-task-scope"
   verify_markers
   drift_check
   [ -n "$PORT_HINT" ] && port_hint

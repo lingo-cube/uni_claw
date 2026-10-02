@@ -1,0 +1,35 @@
+{
+  "id": "WI-PNL001-007",
+  "objective": "client 半部重塑：唯一 UI = UniClaw trace 视图（session 选择 + 语义 trace 时间线），删除任务定义/对话 tab UI。",
+  "scope": {
+    "write": [
+      "dsh/uniclaw-task-workbench/src/client.js",
+      "dsh/uniclaw-task-workbench/tests/client.test.mjs"
+    ],
+    "read_hints": [
+      "dsh/uniclaw-task-workbench/src/client.js"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Q16：对话/列表复用 DSH 原生 UI。client 只保留一个入口（sidebar 按钮，label 改 'UniClaw Trace'）+ overlay：顶部 session 下拉（sessions() 数据，uniclaw 标记高亮），下方 trace({sessionId}) 时间线（gate/outcome/evidence 徽标 + token + 证据引用可复制）。",
+    "core_points": [
+      "RPC 只调两个方法：sessions() 与 trace({sessionId})；descriptor 形状遵循文件内既有 create 工厂 + 参数对象模式",
+      "时间线 entry 徽标按 kind 着色：outcome 绿/红（COMPLETE、VERIFICATION_FAILED）、gate 中性、evidence 蓝",
+      "空态：无 session / 无语义条目都要有明确文案；RPC 失败结构化显示不崩",
+      "样式继续内联 style 对象 + dsw token；无构建无依赖"
+    ]
+  },
+  "acceptance": [
+    "A1 method=`cd dsh/uniclaw-task-workbench && npm test` expected=client 冒烟用例更新后全绿（loader id、exports.apply/inject、descriptor 参数对象形状）actual=Worker 填写",
+    "A2 method=`node --check src/client.js` expected=通过 actual=Worker 填写",
+    "A3 RPC 调用点仅 sessions/trace 两方法且参数字段名与 host 冻结 API 一致"
+  ],
+  "forbidden": [
+    "写 scope.write 之外路径；改 src/index.js、repository.js",
+    "恢复任务定义表单/对话事件流 tab；引入构建或依赖"
+  ],
+  "frozen_decisions": [
+    "PNL-001 Q16 方向修正"
+  ],
+  "status": "done"
+}

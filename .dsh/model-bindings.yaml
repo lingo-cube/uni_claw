@@ -10,7 +10,7 @@ version: 1
 
 bindings:
   leader:
-    primary:   { provider: zai,         model: glm-5.2 }
+    primary:   { provider: zai-coding-cn, model: glm-5.3-flash }
     fallback:  { provider: opencode-go, model: glm-5.2 }
   expert:
     primary:   { provider: opencode-go, model: deepseek-v4-pro }
@@ -18,6 +18,16 @@ bindings:
     primary:   { provider: opencode-go, model: deepseek-v4-flash }
   fast:
     primary:   { provider: opencode-go, model: mimo-v2.5 }
+
+# Slow perception realization profiles. These are concrete adapter bindings,
+# not Product logical profiles or a second registry. Availability is still
+# verified by a live DSH provider probe; these strings are never treated as
+# proof that a model is installed or healthy.
+slowProfiles:
+  slow.semantic.text:
+    primary: { provider: opencode-go, model: deepseek-v4.1-flash }
+  slow.semantic.visual:
+    primary: { provider: opencode-go, model: deepseek-v4-flash-vision-exp }
 
 # 失败策略(执行 model-routing.yaml policy):
 #   primary 不可用 → fallback(如有);

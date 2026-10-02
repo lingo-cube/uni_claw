@@ -1,0 +1,60 @@
+{
+  "id": "WI-PNL003-010",
+  "objective": "建立 Standalone Host wrapper，把 fixture source、Workspace Query Core 和 App wrapper 组装成可独立启动的 Host 入口。",
+  "scope": {
+    "write": [
+      "web/uniclaw-workspace/src/hosts/create-standalone-host.js",
+      "web/uniclaw-workspace/tests/standalone-host.test.js",
+      "workitems/WI-PNL003-010.json"
+    ],
+    "read_hints": [
+      "web/uniclaw-workspace/src/app/create-workspace-app.js",
+      "web/uniclaw-workspace/src/adapters/standalone-fixture.js",
+      "web/uniclaw-workspace/src/core/index.js",
+      "web/uniclaw-workspace/src/ui/render-workspace-html.js",
+      "plans/PNL-003-plan.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Standalone Host 只负责装配 fixture capability、Query Core、App wrapper 和注入 mount；外部可以替换 fixture、renderer、mount 和 revision，验证通用前端不依赖 DSH。",
+    "core_points": [
+      "Host wrapper 不重新实现查询、状态或渲染逻辑。",
+      "默认使用 standalone fixture adapter 与通用 renderer，mount 由调用者提供。",
+      "Host restart 不创建第二个 ProductSession，复用同一只读 fixture identity。",
+      "fixture/query/render/mount 错误保持可观察。"
+    ]
+  },
+  "anchors": [
+    {"path": "web/uniclaw-workspace/src/app/create-workspace-app.js", "symbol": "createWorkspaceApp"},
+    {"path": "web/uniclaw-workspace/src/adapters/standalone-fixture.js", "symbol": "createStandaloneFixtureCapabilities"},
+    {"path": "web/uniclaw-workspace/src/core/index.js", "symbol": "WorkspaceQueryCore"}
+  ],
+  "contract_refs": [
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "plans/PNL-003-plan.md",
+    "schemas/workspace/README.md"
+  ],
+  "acceptance": [
+    "导出 `createStandaloneWorkspaceHost({ fixture, mount, render?, viewOptions?, now?, revision? })`，内部只组装 standalone fixture capability、WorkspaceQueryCore 和 createWorkspaceApp。",
+    "返回 start、stop、getApp、getController、getState、getError；启动后可以加载项目并通过 controller 选择 ProductSession task。",
+    "同一 fixture identity 在重复 start/stop→start 中保持一致，不创建第二个 ProductSession 或修改 fixture。",
+    "调用者注入的 mount 收到 App wrapper 的 `{html, viewModel, state}`；render/mount/query 错误可观察。",
+    "Standalone Host 不依赖 DSH、DOM、React、Host globals、fetch、fs/path 或网络；不把 DSH sessionId 暴露给公共接口。",
+    "测试覆盖启动、项目/任务选择、restart、错误透传、fixture 不可变和依赖扫描；npm test、node --check、git diff --check、WorkItem schema 校验通过。"
+  ],
+  "forbidden": [
+    "不得修改 core、controller、view-model、renderer、standalone fixture adapter、Workspace schema、DSH 或 Product Runtime。",
+    "不得新增 DOM mount、HTTP、认证、文件系统、缓存、写操作或第二套任务 identity。",
+    "不得把 DSH sessionId、panel method 或 Host transport 加入 Standalone Host API。",
+    "不得吞掉 App/Query/Renderer/Mount 错误。"
+  ],
+  "frozen_decisions": [
+    "通用前端 canonical source 独立于 DSH；Host 只装配 capability 与 mount。",
+    "ProductSessionId 是任务身份；Workspace v0.1 只读。",
+    "Standalone 与 DSH 共享 Query Core、功能层、View Model 和 Renderer。"
+  ],
+  "dependencies": ["WI-PNL003-001", "WI-PNL003-002", "WI-PNL003-004", "WI-PNL003-005", "WI-PNL003-006", "WI-PNL003-007", "WI-PNL003-008", "WI-PNL003-009"],
+  "status": "done",
+  "required_skills": ["codebase-design", "tdd"],
+  "required_capability": "implementation"
+}

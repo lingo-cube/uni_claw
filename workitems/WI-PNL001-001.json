@@ -1,0 +1,58 @@
+{
+  "id": "WI-PNL001-001",
+  "objective": "实现 task-workbench 插件 host 半部（HTTP 协议入口 + 校验 + instantiate 会话创建），使 PNL-001 S1/S2 的服务面可运行、可测试。",
+  "scope": {
+    "write": [
+      "dsh/uniclaw-task-workbench/src/index.js",
+      "dsh/uniclaw-task-workbench/tests/workbench.test.mjs",
+      "dsh/uniclaw-task-workbench/package.json",
+      "dsh/uniclaw-task-workbench/README.md"
+    ],
+    "read_hints": [
+      "dsh/uniclaw-decision-channel/src/index.js",
+      "dsh/uniclaw-decision-channel/tests/plugin.test.mjs",
+      "dsh/uniclaw-task-workbench/src/repository.js",
+      "dsh/uniclaw-task-workbench/schema/task-protocol.schema.json"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "新插件 @uniclaw/dsh-task-workbench 的 host 入口：三个 authenticated HTTP 路由（列任务/建任务/实例化），协议用 schema+hash 自校验后以最小校验器验证，实例化经 mock-able 的 sessionController/workspaceRegistry 建 DSH session 并记录 Task Instance。",
+    "core_points": [
+      "路由模式照抄 decision-channel（json/fail/readJson helpers，错误体 {ok:false,error:{code,message}}）",
+      "校验器只支持 schema 用到的子集：type/enum/required/properties/additionalProperties/minLength/$ref(#/$defs)",
+      "instantiate 只允许 active 任务；sessionId 来自 controller.create({agentPreset:'uniagent-task', workspaceId})",
+      "workspace 解析：projectRef.path → workspaceRegistry.resolveByPath ?? create(path)"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "dsh/uniclaw-decision-channel/src/index.js",
+      "symbol": "apply"
+    },
+    {
+      "path": "dsh/uniclaw-task-workbench/src/repository.js",
+      "symbol": "createTaskRepository"
+    }
+  ],
+  "contract_refs": [
+    "changes/PNL-001/state.md"
+  ],
+  "acceptance": [
+    "A1 method=`cd dsh/uniclaw-task-workbench && npm test` expected=全部用例通过 actual=由 Worker 填写 evidence=tests/workbench.test.mjs",
+    "A2 用例必须覆盖：schema-hash 自校验失败时 apply 抛错；POST /api/uniclaw-task/tasks 合法体 200 且 JSON store 落盘可读回；非法体（缺 requirement / 多余字段 / 非法 status）400 且 code=gateway/bad-request；instantiate 成功返回 instanceId 匹配 ^psi-[0-9a-f]{16}$、sessionId 为 mock 值、status=active 且持久化；instantiate 未知 taskId → task-not-found；instantiate 非 active → task-not-active",
+    "A3 method=`node --check src/index.js` expected=语法通过 actual=由 Worker 填写 evidence=命令输出",
+    "A4 README.md 含 安装/回滚/验证 三节"
+  ],
+  "forbidden": [
+    "写入 scope.write 之外的任何路径",
+    "修改 src/repository.js 与 schema/ 目录（Leader 冻结产物）",
+    "修改 dsh/uniclaw-decision-channel/ 下任何文件",
+    "引入 npm 依赖或构建步骤",
+    "在 package.json 声明 exports['./client']（client.js 尚不存在，会拖垮 profile）"
+  ],
+  "frozen_decisions": [
+    "PNL-001 决策 1-10（changes/PNL-001/state.md）",
+    "错误码集合：gateway/bad-request | task-not-found | task-not-active | workspace-resolve-failed | session-create-failed | store-corrupted"
+  ],
+  "status": "done"
+}

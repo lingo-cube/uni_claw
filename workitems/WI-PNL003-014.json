@@ -1,0 +1,51 @@
+{
+  "id": "WI-PNL003-014",
+  "objective": "修复 Workspace 导航投影中项目任务卡与当前任务列表重复渲染的问题。",
+  "scope": {
+    "write": [
+      "web/uniclaw-workspace/src/ui/render-workspace-html.js",
+      "web/uniclaw-workspace/tests/workspace-renderer.test.js",
+      "workitems/WI-PNL003-014.json"
+    ],
+    "read_hints": [
+      "web/uniclaw-workspace/src/features/workspace-view-model.js",
+      "web/uniclaw-workspace/src/ui/render-workspace-html.js",
+      "dsh/uniclaw-task-workbench/tests/dual-entry.test.mjs",
+      "evidence/PNL-003-WI-PNL003-012.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "当 navigation.projects 已包含 task cards 时，navigation.taskInstances 不能再次把同一 ProductSession 渲染成重复导航卡；两种入口的数据形状仍需兼容。",
+    "core_points": [
+      "同一 ProductSessionId 在导航中最多出现一次。",
+      "如果 project card 没有嵌套 tasks，当前 taskInstances 仍必须可见。",
+      "未关联 DSH 观察项保持可见，不得因去重被静默丢弃。"
+    ]
+  },
+  "anchors": [
+    {"path": "web/uniclaw-workspace/src/ui/render-workspace-html.js", "symbol": "renderWorkspaceHtml"},
+    {"path": "web/uniclaw-workspace/tests/workspace-renderer.test.js", "symbol": "render"}
+  ],
+  "contract_refs": [
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "plans/PNL-003-plan.md"
+  ],
+  "acceptance": [
+    "Standalone/DSH 形状下同一 ProductSessionId 在最终导航 HTML 中只出现一次。",
+    "项目没有嵌套 task cards 时，当前 taskInstances 仍正常渲染。",
+    "未关联任务仍显示并带有 uncorrelated 标识；Detail/Evidence、timeline、Trace、Metadata 不改变。",
+    "Web npm test、node --check、依赖扫描和 git diff --check 通过。"
+  ],
+  "forbidden": [
+    "不得修改 View Model 数据契约、Query Core、Host adapter、DSH API 或 Product Runtime。",
+    "不得通过删除 taskInstances 数据来隐藏重复，只能在 renderer 导航投影处去重。"
+  ],
+  "frozen_decisions": [
+    "ProductSessionId 是产品任务 identity。",
+    "共享 renderer 只消费 renderer-neutral View Model，不读取 Host session。"
+  ],
+  "dependencies": ["WI-PNL003-007", "WI-PNL003-008", "WI-PNL003-012"],
+  "status": "done",
+  "required_skills": ["tdd", "codebase-design"],
+  "required_capability": "implementation"
+}

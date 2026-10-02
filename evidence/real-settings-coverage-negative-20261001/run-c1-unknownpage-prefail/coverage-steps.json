@@ -1,0 +1,39 @@
+[
+  {
+    "index": 0,
+    "decisionId": "decision-119bee1e065b-1",
+    "dshSessionId": "session-93b35550-f011-4c70-ac45-0af11b268a7d",
+    "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": false,
+    "receiptId": "receipt-bind-intent-1-occ-1fcb6a1b6af6-0-1",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 94 193",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-51a15f239cd04e2b9554ea5654405d35",
+    "verified": false,
+    "failureReason": "post-action-target-unique",
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": false
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      }
+    ]
+  }
+]

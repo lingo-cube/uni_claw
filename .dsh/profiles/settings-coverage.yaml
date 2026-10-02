@@ -1,0 +1,39 @@
+# Settings menu coverage traversal profile (AGT-005).
+configVersion: "1"
+session:
+  taskTitle: 遍历设置菜单覆盖测试
+  workspace: UniClaw_Product_Tasks
+  workspaceReuse: true
+  autoCloseTurn: false
+bounds:
+  maxSteps: 24
+  maxConsultRounds: 24
+  maxScrolls: 4
+  maxConsecutiveFailures: 3
+  maxDirectiveRetries: 1
+coverage:
+  rootPage: true
+  firstLevelMode: all-visible
+  scrollDiscoveredEntries: 1
+  secondLevelPages: 2
+  backNavigation: true
+  repeatedEntries: 1
+targetPages:
+  - Network & internet
+  - Connected devices
+  - Apps
+  - Notifications
+  - Battery
+  - Storage
+  - Sound & vibration
+termination:
+  onCoverageComplete: true
+  onMaxSteps: true
+  onMaxScrolls: true
+  onConsecutiveFailures: true
+evidence:
+  persistScreenshots: true
+  persistHierarchies: true
+rootRoute: android.settings|route:Settings
+scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
+backDescriptor: Navigate up

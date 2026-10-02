@@ -95,8 +95,8 @@ public sealed class ObserverProjectionTests
         // (the single runtime config source); no hardcoded catalog is consulted.
         var configuration = UniagentProdYaml.LoadDefault();
 
-        Assert.Equal("free", configuration.SelectedModelKey);
-        Assert.Equal(new ModelConfiguration("opencode-go", "space-bunny-free"), configuration.Model);
+        Assert.Equal("glm53Flash", configuration.SelectedModelKey);
+        Assert.Equal(new ModelConfiguration("zai-coding-cn", "glm-5.3-flash"), configuration.Model);
         Assert.Equal("http://127.0.0.1:3080/", configuration.Service.BaseUri.ToString());
         Assert.Equal(UniagentProdProfile.ProfileId, configuration.Profile.ProfileId);
         Assert.Equal(CapabilityManifest.ProductHeadless.ManifestHash,

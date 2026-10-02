@@ -1,0 +1,1 @@
+{"schemaVersion":"uniclaw.workspace.capability.v1","contractVersion":"uniclaw.workspace.contract.v1","capability":"TaskQuery","capabilityVersion":"v1","requestId":"req-bad-unknown","ok":true,"data":{"projects":[]},"snapshotId":"snap-bad","criticalField":"must-fail"}

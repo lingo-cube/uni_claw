@@ -4,6 +4,7 @@
     <Project Path="src/UniClaw.Agent.Dsh/UniClaw.Agent.Dsh.csproj" />
     <Project Path="src/UniClaw.Core/UniClaw.Core.csproj" />
     <Project Path="src/UniClaw.Host/UniClaw.Host.csproj" />
+    <Project Path="src/UniClaw.Host.Dsh/UniClaw.Host.Dsh.csproj" />
     <Project Path="src/UniClaw.Kernel/UniClaw.Kernel.csproj" />
   </Folder>
   <Folder Name="/tests/">

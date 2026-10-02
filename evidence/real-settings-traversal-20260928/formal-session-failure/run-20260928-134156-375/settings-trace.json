@@ -1,0 +1,34 @@
+[
+  {
+    "cycle": 1,
+    "context": "External",
+    "captureId": "capture-61f552c2ad294853b71b6e405a070eab",
+    "observationCycleId": "settings-cycle-001",
+    "fastAvailable": true,
+    "hierarchyAvailable": true,
+    "proposalCount": 584,
+    "fastLatency": "00:00:02.7982038",
+    "hierarchyLatency": "00:00:01.9685028",
+    "slow": null,
+    "grounding": null,
+    "assurance": null,
+    "effect": null,
+    "verification": null
+  },
+  {
+    "cycle": 2,
+    "context": "PostActionEffectFlow",
+    "captureId": "capture-8b0462ba5ea8427481abe1d866ca9a20",
+    "observationCycleId": "settings-cycle-002",
+    "fastAvailable": true,
+    "hierarchyAvailable": true,
+    "proposalCount": 622,
+    "fastLatency": "00:00:00.6070841",
+    "hierarchyLatency": "00:00:01.9930677",
+    "slow": null,
+    "grounding": null,
+    "assurance": null,
+    "effect": null,
+    "verification": null
+  }
+]

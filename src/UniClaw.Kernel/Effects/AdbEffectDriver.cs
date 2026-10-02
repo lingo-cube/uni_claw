@@ -11,9 +11,12 @@ namespace UniClaw.Kernel.Effects;
 ///   → pixel（clamp）→ "adb shell input tap X Y"（legacy
 ///   CoordinateMapper.ToPixelCenter 数学平移，DIRECT IDEA）。
 /// 规则 B（driver-supported executable locator）执法：
-///   locator 缺失 / frame ≠ device-viewport / effect ∉ {tap, set-switch}
-///   → DeliveryFailed + reason（fail-closed；locator 失效的正确后继 =
-///   上游 re-observe → re-ground → 新 binding → 新 DispatchRequest）。
+///   locator 缺失 / frame ≠ device-viewport / effect ∉ {tap, set-switch,
+///   swipe-up, swipe-down} → DeliveryFailed + reason（fail-closed；locator
+///   失效的正确后继 = 上游 re-observe → re-ground → 新 binding → 新
+///   DispatchRequest）。swipe 的目标是 scrollable 容器 occurrence：起止点由
+///   该容器自身 bounds 派生（swipe-up = 手指上移 = 内容下滚，露出下方
+///   条目；swipe-down 反向），不引入坐标魔数。
 /// 确定性：clock 注入（无 wall-clock；测试传固定值）。
 /// </summary>
 public sealed class AdbEffectDriver : IEffectDriver
@@ -38,13 +41,13 @@ public sealed class AdbEffectDriver : IEffectDriver
         ArgumentNullException.ThrowIfNull(request);
 
         if (!TryBuildTap(request, _viewportWidth, _viewportHeight,
-                out var x, out var y, out _, out var reason, out var detail))
+                out var x, out var y, out var deviceArgs, out var reason, out var detail))
             return Fail(request, reason!, detail!);
 
         // dry-run：命令构造即产物（Report = attempt evidence 溯源，非执行证明）
         return new DispatchResult(
             DispatchOutcome.DeliveryCompleted,
-            $"adb shell input tap {x} {y}",
+            $"adb {string.Join(' ', deviceArgs)}",
             _clock(),
             Reason: null);
     }
@@ -80,15 +83,23 @@ public sealed class AdbEffectDriver : IEffectDriver
         }
 
         var effect = request.EffectClass.ToLowerInvariant();
-        if (effect is not ("tap" or "click" or "set-switch"))
+        if (!IsSupportedEffect(effect))
         {
             reason = "unsupported-effect";
-            detail = $"effect '{request.EffectClass}' 不在支持集（tap | click | set-switch；click 与 tap 物理同义 → input tap）";
+            detail = $"effect '{request.EffectClass}' 不在支持集（tap | click | set-switch | swipe-up | swipe-down；click 与 tap 物理同义 → input tap）";
             return false;
         }
 
         return true;
     }
+
+    /// <summary>AGT-005：swipe effect 词汇（目标 = scrollable 容器；方向由
+    /// 词汇携带——swipe-up 手指上移 = 内容下滚）。</summary>
+    internal static bool IsSwipeEffect(string effectClass) =>
+        effectClass is "swipe-up" or "swipe-down";
+
+    private static bool IsSupportedEffect(string effect) =>
+        effect is "tap" or "click" or "set-switch" or "swipe-up" or "swipe-down";
 
     /// <summary>共享命令构造（ADB-001 提取；dry-run 与 live 同源——支持集与
     /// 投影的单一事实源）。失败输出 (reason, detail) 与 driver 拒绝语义对齐。</summary>
@@ -115,16 +126,30 @@ public sealed class AdbEffectDriver : IEffectDriver
             return false;
         }
         var effect = request.EffectClass.ToLowerInvariant();
-        if (effect is not ("tap" or "click" or "set-switch"))
+        if (!IsSupportedEffect(effect))
         {
             reason = "unsupported-effect";
-            detail = $"effect '{request.EffectClass}' 不在支持集（tap | click | set-switch；click 与 tap 物理同义 → input tap）";
+            detail = $"effect '{request.EffectClass}' 不在支持集（tap | click | set-switch | swipe-up | swipe-down；click 与 tap 物理同义 → input tap）";
             return false;
         }
 
-        // 物理翻译：归一化 center → viewport pixel（clamp 到有效域）
+        // 物理翻译：归一化 bounds → viewport pixel（clamp 到有效域）
         x = Math.Clamp((int)(locator.CenterX * viewportWidth), 0, viewportWidth - 1);
         y = Math.Clamp((int)(locator.CenterY * viewportHeight), 0, viewportHeight - 1);
+        if (IsSwipeEffect(effect))
+        {
+            // AGT-005：swipe 起止点由目标容器自身 bounds 派生（上下各留 15%
+            // 边距，保证手势落在容器内且行程充分）；duration 固定 300ms——
+            // 过快会被部分容器识别为 fling，语义不可控。
+            var top = Math.Clamp((int)(locator.Y1 * viewportHeight), 0, viewportHeight - 1);
+            var bottom = Math.Clamp((int)(locator.Y2 * viewportHeight), 0, viewportHeight - 1);
+            var margin = Math.Max(1, (bottom - top) * 15 / 100);
+            var startY = effect == "swipe-up" ? bottom - margin : top + margin;
+            var endY = effect == "swipe-up" ? top + margin : bottom - margin;
+            deviceArgs = ["shell", "input", "swipe", x.ToString(), startY.ToString(),
+                x.ToString(), endY.ToString(), "300"];
+            return true;
+        }
         deviceArgs = ["shell", "input", "tap", x.ToString(), y.ToString()];
         return true;
     }

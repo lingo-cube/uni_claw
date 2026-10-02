@@ -85,9 +85,23 @@ internal static class SemanticCheckedResolver
         if (nodes.Count == 0)
             return Fail(ObservedValue<CheckedState>.Unknown("no-checked-claim"));
 
-        var associated = nodes
-            .Where(node => IsAssociated(node, candidates[0]))
-            .ToArray();
+        // A native resource id is a stronger node identity than geometric
+        // overlap.  Android rows contain the switch inside several ancestor
+        // rectangles; accepting every intersecting bounds record makes the
+        // checked claim ambiguous even when the switch resource id is unique.
+        // Prefer the exact native match and use geometry only when no native
+        // identity is available.
+        var occurrence = candidates[0];
+        var associated = occurrence.Native is { Kind: "android.resource-id" } native
+            ? nodes.Where(node => node.ResourceIds.Contains(native.Value, StringComparer.Ordinal)).ToArray()
+            : Array.Empty<TypedNode>();
+        // Some deterministic fixtures and older captures carry the native id
+        // only on the occurrence, while the typed claim still has the exact
+        // bounds association.  Keep that established association as a
+        // fallback; use the id match whenever it actually exists so ancestor
+        // rectangles cannot reintroduce ambiguity on Android.
+        if (associated.Length == 0)
+            associated = nodes.Where(node => IsAssociated(node, occurrence)).ToArray();
         if (associated.Length > 1)
         {
             // Re-observations can retain older capture-local typed nodes while

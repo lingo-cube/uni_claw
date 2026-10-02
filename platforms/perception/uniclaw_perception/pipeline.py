@@ -13,6 +13,7 @@ config.py（env > label-mapping.json），单一真相源不复制。
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any, Literal
 
@@ -240,6 +241,26 @@ def load_variants() -> dict[str, PipelineVariant]:
             raise PipelineValidationError(f"变体名冲突: {variant.variant_id!r}")
         variants[variant.variant_id] = variant
     return variants
+
+
+def active_variant_ids(available: dict[str, PipelineVariant]) -> tuple[str, ...]:
+    """Resolve the startup variant allow-list from configuration.
+
+    The provider ships experimental variants (including MPS) so they can be
+    tested without making every deployment depend on that hardware.  The
+    default is the CPU set; setting ``UNICLAW_PIPELINE_VARIANTS`` is the
+    explicit operator switch for another declared variant.
+    """
+    raw = os.environ.get("UNICLAW_PIPELINE_VARIANTS")
+    if raw is None or not raw.strip():
+        requested = ("fastscreen-replacement", "fastscreen-integration", "promote-off")
+    else:
+        requested = tuple(part.strip() for part in raw.split(",") if part.strip())
+    unknown = sorted(set(requested) - set(available))
+    if unknown:
+        raise PipelineValidationError(
+            f"UNICLAW_PIPELINE_VARIANTS 包含未声明变体: {unknown}")
+    return requested
 
 
 def identity_content(config: PipelineConfig, variant_id: str | None) -> dict[str, Any]:

@@ -1,0 +1,61 @@
+{
+  "id": "WI-PNL003-005",
+  "objective": "提供不依赖 DSH 的 fixture-backed standalone adapter，用同一 Workspace Query Core 读取项目、任务、timeline、trace、evidence 和 detail。",
+  "scope": {
+    "write": [
+      "web/uniclaw-workspace/src/adapters/standalone-fixture.js",
+      "web/uniclaw-workspace/tests/standalone-fixture.test.js",
+      "workitems/WI-PNL003-005.json"
+    ],
+    "read_hints": [
+      "web/uniclaw-workspace/src/core/index.js",
+      "web/uniclaw-workspace/tests/core.test.js",
+      "schemas/workspace/capability.schema.json",
+      "schemas/workspace/query-error.schema.json",
+      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "用纯内存 fixture 实现五类 Workspace capability，输出与 DSH Adapter 相同的 versioned envelope，让同一个 Query Core 在没有 DSH、DOM、网络或文件系统时仍能完成第一条只读主流程。",
+    "core_points": [
+      "fixture adapter 是 standalone source，不是第二套 Query Core。",
+      "fixture 数据包含一个项目、一个 ProductSession task、conversation、三类 trace、evidence 和受控 detail。",
+      "缺失 session/detail、权限拒绝和 stale 必须返回结构化 QueryError，不折叠为空。",
+      "所有读取结果带 observedAt/revision，刷新不修改 fixture。"
+    ]
+  },
+  "anchors": [
+    {"path": "web/uniclaw-workspace/src/core/index.js", "symbol": "WorkspaceQueryCore"},
+    {"path": "web/uniclaw-workspace/tests/core.test.js", "symbol": "fixture"}
+  ],
+  "contract_refs": [
+    "schemas/workspace/capability.schema.json",
+    "schemas/workspace/query-error.schema.json",
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md"
+  ],
+  "acceptance": [
+    "导出 createStandaloneFixtureCapabilities({ fixture, now, revision })，返回 TaskQuery、SessionQuery、TraceQuery、EvidenceQuery、DetailQuery 五个 capability；不导入 DSH、React、DOM、fetch、node:fs、node:path 或 Host globals。",
+    "fixture adapter 输出可被 capability.schema.json 校验的成功/失败 envelope，所有成功读取带 revision 或 observedAt。",
+    "同一 WorkspaceQueryCore 接入 fixture adapter 后，能完成项目列表→任务实例→session→timeline→trace/evidence→detail 主流程，ProductSessionId 全程保持一致。",
+    "缺失 session/detail、权限拒绝和 stale 响应返回对应 QueryError；不会把错误伪装成空数组；fixture 不被读取操作修改。",
+    "测试覆盖来源替换、重复读取幂等、旧 revision 被 Query Core 拒绝、受控 detail ref 和无 DSH 依赖静态扫描。",
+    "npm test、node --check、git diff --check 和 WorkItem schema 校验通过。"
+  ],
+  "forbidden": [
+    "不得修改 web/uniclaw-workspace/src/core/index.js、schemas/workspace/、dsh/ 或 Product Runtime。",
+    "不得实现 HTTP、认证、文件系统、缓存、归档、写操作或 UI 组件。",
+    "不得新增 capability 或把 fixture 专有字段写入共享 schema。",
+    "不得把 sessionId 当作 ProductSessionId；detail 只能使用 fixture 中显式允许的相对 ref。"
+  ],
+  "frozen_decisions": [
+    "Query Core 是 Host-neutral canonical core；来源通过五类 capability 接入。",
+    "ProductSessionId 是 TaskInstance identity；Host session 只能是来源引用。",
+    "Workspace v0.1 只读，局部失败和 snapshot/revision 必须可见。"
+  ],
+  "dependencies": ["WI-PNL003-001", "WI-PNL003-002", "WI-PNL003-004"],
+  "status": "done",
+  "required_skills": ["codebase-design", "tdd"],
+  "required_capability": "implementation"
+}

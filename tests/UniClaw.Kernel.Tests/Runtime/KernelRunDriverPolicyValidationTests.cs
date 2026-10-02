@@ -224,6 +224,19 @@ public sealed class KernelRunDriverPolicyValidationTests
         AssertFailClosed(c, driver.Drive(), "policy:missing-target-role");
     }
 
+    [Fact]
+    public void Drive_PolicyUnsupportedDesiredState_FailsClosed()
+    {
+        var c = ComposeSeeded(ctx => Policy(ctx.DecisionId,
+            template: new PolicyActionTemplate("minus-button", null, "tap",
+                "Wi-Fi settings screen visible")));
+        Assert.True(c.Kernel.AdmitContract(Contract()).Accepted);
+        var driver = new KernelRunDriver(c.Kernel, c.Plan, c.Inputs);
+        Assert.True(driver.Activate().Accepted);
+
+        AssertFailClosed(c, driver.Drive(), "policy:unsupported-desired-state");
+    }
+
     // ---- V6g lease 绑定 -------------------------------------------------------------
 
     [Fact]

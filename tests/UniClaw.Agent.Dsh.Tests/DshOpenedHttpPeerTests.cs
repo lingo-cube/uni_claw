@@ -93,6 +93,38 @@ public sealed class DshOpenedHttpPeerTests
     }
 
     [Fact]
+    public async Task Consult_AfterHandshake_ReusesReturnedDshSession()
+    {
+        var expected = HandshakeRequest();
+        string? consultBody = null;
+        var handler = new ScriptedHandler(async (request, _) =>
+        {
+            if (request.RequestUri!.AbsolutePath.EndsWith("/handshake", StringComparison.Ordinal))
+            {
+                return Json(HttpStatusCode.OK,
+                    HandshakeBody
+                        .Replace("<hash>", expected.Protocol.SchemaHash)
+                        .Replace("<manifest>", expected.Protocol.CapabilityManifestHash));
+            }
+
+            consultBody = await request.Content!.ReadAsStringAsync();
+            return Json(HttpStatusCode.OK,
+                """{"requestId":"dsh-req-00000001","generation":1,"decision":{"kind":"noAction","decisionId":"decision-1","proposal":{"decisionId":"decision-1","justification":"already on"}}}""");
+        });
+        await using var peer = new DshOpenedHttpPeer(
+            new DshServiceEndpoint(new Uri("http://127.0.0.1:3080/", UriKind.Absolute)),
+            credential: Credential(), handler: handler);
+
+        var attached = await peer.HandshakeAsync(expected, CancellationToken.None);
+        Assert.True(attached.Accepted);
+        await peer.ReceiveDecisionRequestAsync(new DecisionRequest(
+            "dsh-req-00000001", 1, "product-session-1", "run-1",
+            Context("decision-1")), CancellationToken.None);
+
+        Assert.Contains("\"dshSessionId\":\"dsh-9\"", consultBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Consult_ReturnsErrorPayload_WhenChannelFailsClosed()
     {
         var handler = new ScriptedHandler((_, _) => Task.FromResult(Json(HttpStatusCode.OK,
@@ -107,6 +139,31 @@ public sealed class DshOpenedHttpPeerTests
 
         Assert.Null(response.Decision);
         Assert.Equal("no-submit-decision", response.Error);
+    }
+
+    [Fact]
+    public async Task Consult_RetriesSelectedModelCapacity_OnSameRequest()
+    {
+        var attempts = 0;
+        var handler = new ScriptedHandler((_, _) =>
+        {
+            attempts++;
+            var body = attempts == 1
+                ? "{\"requestId\":\"dsh-req-capacity\",\"generation\":1,\"decision\":null,\"error\":\"Selected model is at capacity. Please try a different model.\"}"
+                : "{\"requestId\":\"dsh-req-capacity\",\"generation\":1,\"decision\":{\"kind\":\"noAction\",\"decisionId\":\"decision-capacity\",\"proposal\":{\"decisionId\":\"decision-capacity\",\"justification\":\"done\"}}}";
+            return Task.FromResult(Json(HttpStatusCode.OK, body));
+        });
+        await using var peer = new DshOpenedHttpPeer(
+            new DshServiceEndpoint(new Uri("http://127.0.0.1:3080/", UriKind.Absolute)),
+            credential: Credential(), handler: handler);
+
+        var response = await peer.ReceiveDecisionRequestAsync(new DecisionRequest(
+            "dsh-req-capacity", 1, "product-session-1", "run-1",
+            Context("decision-capacity")), CancellationToken.None);
+
+        Assert.Null(response.Error);
+        Assert.IsType<AgentDecision.NoAction>(response.Decision);
+        Assert.Equal(2, attempts);
     }
 
     [Theory]

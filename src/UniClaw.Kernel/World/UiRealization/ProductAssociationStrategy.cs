@@ -37,6 +37,11 @@ public sealed class ProductAssociationStrategy : IAssociationStrategy
     /// </summary>
     public const string ScreenIdentitySubject = "ui.screen";
 
+    /// <summary>Optional route fingerprint consumed by post-action navigation
+    /// verification. It is ordinary world evidence and never participates in
+    /// container association.</summary>
+    public const string ScreenRouteSubject = "ui.screen.route";
+
     public AssociationProposal Propose(AssociationInput input)
     {
         ArgumentNullException.ThrowIfNull(input);

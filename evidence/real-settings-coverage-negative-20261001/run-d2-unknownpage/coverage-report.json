@@ -1,0 +1,57 @@
+{
+  "status": "BoundedStop",
+  "items": [
+    {
+      "requirement": "root-page",
+      "detail": "root route not observed",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "first-level-all-visible",
+      "detail": "entered 0/1",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "scroll-discovered-entry",
+      "detail": "entered 0/99 scroll-discovered",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "second-level-pages",
+      "detail": "distinct second-level routes 0/2",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "back-navigation",
+      "detail": "back verified 0",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "repeated-entry",
+      "detail": "satisfied 0/1",
+      "covered": false,
+      "evidence": null
+    }
+  ],
+  "coverageRate": 0,
+  "stepSuccessRate": 0,
+  "uncoveredItems": [
+    "root-page",
+    "first-level-all-visible",
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "back-navigation",
+    "repeated-entry"
+  ],
+  "firstDivergence": null,
+  "stepsExecuted": 0,
+  "stepsVerified": 0,
+  "scrollsUsed": 0,
+  "scrollAttempts": 0,
+  "consultRounds": 4
+}

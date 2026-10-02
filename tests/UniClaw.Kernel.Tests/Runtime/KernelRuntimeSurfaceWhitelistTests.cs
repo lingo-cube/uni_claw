@@ -21,6 +21,8 @@ namespace UniClaw.Kernel.Tests;
 /// PolicyState 投影）。求值机制面（PolicyEvaluationView/GuardCursor/lease/
 /// V6 校验器）保持 internal（ControlBeliefView 先例），不入本名单。
 /// v0.3.1 修订：ElementExists 从 v1 词汇删除（DEFER coverage-aware buyer）。
+/// AGT-005 增集（1）：PostActionEffectVerification——逐步 post-action 验证
+/// 判定产物的 Host 消费面（覆盖遍历 trace）；Assurance 判定权威不变。
 /// </summary>
 public sealed class KernelRuntimeSurfaceWhitelistTests
 {
@@ -44,6 +46,7 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Assurance.FreshnessSufficiency",
             "UniClaw.Kernel.Assurance.IFreshnessEvaluator",
             "UniClaw.Kernel.Assurance.OutcomeProof",
+            "UniClaw.Kernel.Assurance.PostActionEffectVerification",
             "UniClaw.Kernel.Assurance.ProductFreshnessEvaluator",
             "UniClaw.Kernel.Assurance.RuntimeAssurance",
             "UniClaw.Kernel.Control.ControlDecision",

@@ -1,0 +1,33 @@
+{
+  "status": "AgentDecisionFailed",
+  "reason": "no-response",
+  "outcome": null,
+  "delivered": 0,
+  "receipts": [],
+  "terminal": false,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0.16666666666666666,
+  "stepSuccessRate": 0,
+  "uncovered": [
+    "first-level-all-visible",
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "back-navigation",
+    "repeated-entry"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": null,
+  "journalBytes": 0,
+  "consults": [
+    {
+      "decisionId": "decision-119bee1e065b-1",
+      "phase": "InitialPlanning",
+      "directive": "Scroll the Settings list down with swipe-up on \u0027\u003Ccom.android.settings:id/main_content_scrollable_container\u003E\u0027",
+      "directiveKind": "scroll",
+      "decisionKind": null,
+      "deviationReason": "directive-scroll-mismatch:swipe-up:com.android.permissioncontroller:id/recycler_view",
+      "attempts": 2
+    }
+  ],
+  "steps": []
+}

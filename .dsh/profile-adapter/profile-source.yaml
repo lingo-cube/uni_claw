@@ -1,0 +1,43 @@
+# DSH Profile Source & Model Bindings — UniClaw Profile Core consumer config
+#
+# DSH 只消费这里的机器可读绑定；模型目录仍由 DSH profile 的 provider 配置提供。
+# 该文件是 repo 侧绑定真源，供 dsh-uniflow-agent-loop 读取。
+#
+# --- human-readable fields (parsed loosely) ---
+profile_source:
+  root: .
+  schema_version: 1
+  source_revision: 7b49038d332d90a6d0c8a861f09813f7598103a5
+  validation_command: git diff --check
+  mode: local
+
+state_dir: .dsh/profile-adapter/state
+
+# --- machine-readable block (authoritative JSON) ---
+#BEGIN JSON
+{
+  "protocol_version": 1,
+  "profile_source": {
+    "root": ".",
+    "schema_version": 1,
+    "source_revision": "7b49038d332d90a6d0c8a861f09813f7598103a5",
+    "validation_command": "git diff --check",
+    "mode": "local"
+  },
+  "model_bindings": {
+    "decision_frontier": {
+      "primary": {"provider": "zai-coding-cn", "model": "glm-5.3-flash", "reasoning": "high"},
+      "fallback": {"provider": "opencode-go", "model": "glm-5.2", "reasoning": "high"}
+    },
+    "implementation_efficient": {
+      "primary": {"provider": "opencode-go", "model": "deepseek-v4-flash", "reasoning": "high"}
+    },
+    "semantic_read": {
+      "primary": {"provider": "opencode-go", "model": "deepseek-v4-pro", "reasoning": "high"}
+    },
+    "tool_only": {
+      "primary": {"model": "none"}
+    }
+  }
+}
+#END JSON

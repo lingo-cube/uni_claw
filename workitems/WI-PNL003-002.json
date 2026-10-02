@@ -1,0 +1,69 @@
+{
+  "id": "WI-PNL003-002",
+  "objective": "实现 Host-neutral Workspace Query Core，消费五类只读 capability 并输出稳定读模型，为 DSH Adapter、standalone Adapter 和共享前端提供唯一组合入口。",
+  "scope": {
+    "write": [
+      "web/uniclaw-workspace/package.json",
+      "web/uniclaw-workspace/src/core/",
+      "web/uniclaw-workspace/tests/"
+    ],
+    "read_hints": [
+      "schemas/workspace/",
+      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
+      "plans/PNL-003-plan.md",
+      "evidence/PNL-003-WI-PNL003-001.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "在独立 web workspace 包内实现纯 Query Core：由五类 capability 注入来源，完成只读查询、correlation、projection、snapshot/stale 和局部错误投影；不得依赖 DSH、React、DOM、HTTP、文件系统或 Product Runtime 写操作。",
+    "core_points": [
+      "Query Core 是唯一组合入口，feature/UI 不直接持有来源客户端",
+      "ProductSessionId 是任务身份；Host/DSH 只作为显式关联；无 mapping 的观察不能升级为 TaskInstance",
+      "来源错误必须保持 unavailable/uncorrelated/stale/permission-denied/not-found/timeout 语义，不能静默变成空列表",
+      "查询结果必须带 snapshot/revision/observedAt 之一或明确不可用；旧快照不能覆盖新快照",
+      "只用内存 fixture 和纯函数测试证明来源替换、幂等读取和局部失败"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "schemas/workspace/",
+      "symbol": "RecordEnvelope / capability / QueryError"
+    },
+    {
+      "path": "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "symbol": "source → correlation → normalization → projection → query → render"
+    }
+  ],
+  "contract_refs": [
+    "schemas/workspace/README.md",
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
+    "changes/PNL-003/state.md"
+  ],
+  "acceptance": [
+    "A1 method=`cd web/uniclaw-workspace && npm test` expected=Query Core 纯内存测试全部通过 actual=Worker 填写 evidence=tests/",
+    "A2 Query Core 只通过注入的 TaskQuery/SessionQuery/TraceQuery/EvidenceQuery/DetailQuery 读取来源；静态检查确认无 dsh、react、DOM、fetch、fs、Typert import/reference",
+    "A3 同一组 fixture 替换来源实现后，TaskInstance、timeline、Trace、Evidence 读模型的语义字段一致；source/authority/correlation 保留",
+    "A4 未关联、unavailable、uncorrelated、stale、permission-denied、not-found、timeout 各有可断言的结构化结果，不能被转换为空数组或成功状态",
+    "A5 重复查询无写操作且结果幂等；当新 snapshot/revision 已提交时，迟到的旧结果不能覆盖当前结果",
+    "A6 method=`git diff --check` expected=通过且 git status 只显示 WorkItem scope 内新增/修改 actual=Worker 填写"
+  ],
+  "forbidden": [
+    "修改 dsh/、src/、tests/、schemas/、tools/、CONTEXT.md、docs/、changes/ 或 evidence/",
+    "实现 DSH/standalone Adapter、HTTP/RPC、React、DOM、样式或文件系统读取",
+    "把来源 sessionId 当成 ProductSessionId，或对未关联数据静默生成 TaskInstance",
+    "用空数组隐藏 source failure、stale、permission-denied 或 uncorrelated",
+    "引入新的 Product authority、写操作、实时事件协议或 OTel 采集"
+  ],
+  "frozen_decisions": [
+    "PNL-003 五轮 Grill 已裁决",
+    "WI-PNL003-001：Workspace schema foundation",
+    "ADR-0031：Host-neutral Query Core 与 Host-owned Retention"
+  ],
+  "dependencies": ["WI-PNL003-001"],
+  "status": "done",
+  "required_skills": ["codebase-design", "tdd"],
+  "required_capability": "implementation",
+  "role_profile": "worker"
+}

@@ -21,7 +21,11 @@ public sealed record ElementSummary(
     bool? Clickable,
     bool? Checkable,
     bool? Enabled,
-    ElementEpistemic Epistemic);
+    ElementEpistemic Epistemic,
+    // Semantic state is part of the advisory projection so the agent can
+    // avoid a non-idempotent tap when the current checked state is already
+    // satisfied.  Canonical authority remains the WorldModel occurrence.
+    string? State = null);
 
 /// <summary>claim 摘要（值 + 判别 + 冲突标记）。</summary>
 public sealed record ClaimSummary(string Value, string Disposition, bool InConflict);

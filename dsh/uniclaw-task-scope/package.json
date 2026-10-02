@@ -1,0 +1,14 @@
+{
+  "name": "@uniclaw/dsh-task-scope",
+  "version": "0.1.0",
+  "private": true,
+  "description": "uniagent-task session capability binding: restricts the task session's tool surface to a preset-config allow-list (PNL-001 决策 6, S2).",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node --test tests/scope.test.mjs"
+  },
+  "dsh": {
+    "description": "UniClaw uniagent-task tool restriction (PNL-001 S2)"
+  }
+}

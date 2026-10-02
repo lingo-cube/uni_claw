@@ -1,0 +1,57 @@
+{
+  "id": "WI-PNL001-005",
+  "objective": "S5 部署面：deploy.sh 扩到四个 @uniclaw 包；decision-channel client 半部按决策 11 迁移回收（workbench 外壳已就位）；dsh/README 增补。",
+  "scope": {
+    "write": [
+      "dsh/deploy.sh",
+      "dsh/uniclaw-decision-channel/package.json",
+      "dsh/uniclaw-decision-channel/tests/plugin.test.mjs",
+      "dsh/README.md",
+      "dsh/uniclaw-decision-channel/src/client.js"
+    ],
+    "read_hints": [
+      "dsh/deploy.sh",
+      "dsh/uniclaw-decision-channel/src/client.js",
+      "dsh/uniclaw-task-workbench/package.json",
+      "dsh/uniclaw-task-scope/package.json"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "deploy.sh 目前只部署 restrict+decision-channel 两包，需加 task-workbench 与 task-scope；decision-channel 的 client 半部（src/client.js + package.json 声明 + 对应冒烟测试）按 PNL-001 决策 11 迁移回收——骨架已迁入 workbench，decision-channel 回到纯 host 形态，保留事件台账与 uniclawDecisionPanel typert 服务。",
+    "core_points": [
+      "deploy.sh 的 HARD RULE 不变：只做 pnpm remove/add，不动 profile 其它内容、不重启实例；四处都要加（deploy_one 列表、marker 校验、递归 diff、usage 文案）",
+      "client 半部回收 = 删除 src/client.js + package.json 去掉 exports['./client']/dsh.client/capabilities 'ui' + 删除 plugin.test.mjs 里的 client 冒烟用例；ledger/panelSnapshot/typert 服务/其余测试一字不动",
+      "README 增补两行新包说明 + preset 行是 Owner 手动部署动作的提示"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "dsh/deploy.sh",
+      "symbol": "deploy_one"
+    },
+    {
+      "path": "dsh/uniclaw-decision-channel/package.json"
+    }
+  ],
+  "contract_refs": [
+    "changes/PNL-001/state.md"
+  ],
+  "acceptance": [
+    "A1 method=`bash -n dsh/deploy.sh` expected=语法通过 actual=Worker 填写",
+    "A2 method=`bash dsh/deploy.sh --check-only` expected=exit 1（部署前 drift 属预期）且输出覆盖全部四个包的对比，无脚本错误 actual=Worker 填写",
+    "A3 method=`grep -c 'deploy_one' dsh/deploy.sh` + 人工核对 expected=四个包各一次 deploy_one 调用（restrict/decision-channel/task-workbench/task-scope）actual=Worker 填写",
+    "A4 method=`cd dsh/uniclaw-decision-channel && npm test` expected=回收 client 用例后其余测试全部通过（21 个）actual=Worker 填写 evidence=tests/plugin.test.mjs",
+    "A5 dsh/README.md 含两个新包各一行说明与 preset 手动部署提示；decision-channel 的 package.json 不再含 ./client 导出与 ui capability"
+  ],
+  "forbidden": [
+    "执行 dsh/deploy.sh 的部署动作（只允许 --check-only）；修改 ~/.dsh/ 下任何文件",
+    "动 decision-channel 的 src/index.js（ledger/panel 服务保留）、task-workbench/、task-scope/ 下任何文件",
+    "改 deploy.sh 的 HARD RULE 语义（pnpm remove/add 之外的 mutation 都禁止）"
+  ],
+  "frozen_decisions": [
+    "PNL-001 决策 11（client 骨架迁移 workbench；decision-channel 回纯 host 形态）",
+    "deploy.sh 头部注释的部署纪律（remove+add→marker 验证→diff→重启属人）"
+  ],
+  "dependencies": [],
+  "status": "done"
+}

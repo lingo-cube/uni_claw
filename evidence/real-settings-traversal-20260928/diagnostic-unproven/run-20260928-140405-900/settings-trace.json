@@ -1,0 +1,50 @@
+[
+  {
+    "cycle": 1,
+    "context": "External",
+    "captureId": "capture-594241d743fe472c9acf2a153c1b3247",
+    "observationCycleId": "settings-cycle-001",
+    "fastAvailable": true,
+    "hierarchyAvailable": true,
+    "proposalCount": 584,
+    "fastLatency": "00:00:02.2896767",
+    "hierarchyLatency": "00:00:01.9904500",
+    "slow": null,
+    "grounding": null,
+    "assurance": null,
+    "effect": null,
+    "verification": null
+  },
+  {
+    "cycle": 2,
+    "context": "PostActionEffectFlow",
+    "captureId": "capture-c01188ebb2d042858d6145c700e09f0c",
+    "observationCycleId": "settings-cycle-002",
+    "fastAvailable": true,
+    "hierarchyAvailable": true,
+    "proposalCount": 622,
+    "fastLatency": "00:00:00.6069167",
+    "hierarchyLatency": "00:00:01.9801661",
+    "slow": null,
+    "grounding": null,
+    "assurance": null,
+    "effect": null,
+    "verification": null
+  },
+  {
+    "cycle": 3,
+    "context": "PostActionEffectFlow",
+    "captureId": "capture-6d2d6d7d99634c69aac86385e009f264",
+    "observationCycleId": "settings-cycle-003",
+    "fastAvailable": true,
+    "hierarchyAvailable": true,
+    "proposalCount": 577,
+    "fastLatency": "00:00:00.5665016",
+    "hierarchyLatency": "00:00:02.0285520",
+    "slow": null,
+    "grounding": null,
+    "assurance": null,
+    "effect": null,
+    "verification": null
+  }
+]

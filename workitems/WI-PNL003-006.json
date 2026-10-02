@@ -1,0 +1,60 @@
+{
+  "id": "WI-PNL003-006",
+  "objective": "建立 Host-neutral Workspace 功能状态层，把 Query Core 读模型编排成可替换渲染器消费的工作区状态。",
+  "scope": {
+    "write": [
+      "web/uniclaw-workspace/src/features/workspace-controller.js",
+      "web/uniclaw-workspace/tests/workspace-controller.test.js",
+      "workitems/WI-PNL003-006.json"
+    ],
+    "read_hints": [
+      "web/uniclaw-workspace/src/core/index.js",
+      "web/uniclaw-workspace/src/adapters/standalone-fixture.js",
+      "web/uniclaw-workspace/tests/standalone-fixture.test.js",
+      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "plans/PNL-003-plan.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "在 Query Core 与未来渲染器之间增加纯函数/状态控制层：负责项目、任务、Uni-Agent timeline、trace/evidence tabs、detail lazy load、刷新和局部错误；不依赖 React/DSH/DOM/样式。",
+    "core_points": [
+      "UI 状态层消费 Query Core，不直接消费 panel 或 adapter。",
+      "主流程聚焦 Uni-Agent，请求→决策→结果 timeline 与来源分类 trace/evidence。",
+      "每个局部读取保留 ready/loading/error/partial 和 snapshot metadata。",
+      "旧请求不能覆盖新选择或新 revision；重复刷新幂等。"
+    ]
+  },
+  "anchors": [
+    {"path": "web/uniclaw-workspace/src/core/index.js", "symbol": "WorkspaceQueryCore"},
+    {"path": "web/uniclaw-workspace/src/adapters/standalone-fixture.js", "symbol": "createStandaloneFixtureCapabilities"}
+  ],
+  "contract_refs": [
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "schemas/workspace/capability.schema.json",
+    "plans/PNL-003-plan.md"
+  ],
+  "acceptance": [
+    "导出 createWorkspaceController({ queryCore })，提供只读 action：loadProjects、selectProject、selectTaskInstance、loadSession、loadTimeline、loadTraces、loadEvidence、resolveDetail、refresh。",
+    "状态按 projects/selection/session/timeline/traces/evidence/detail 分区，分别保留 loading、ready、partial、error、items/data/errors 及 snapshot metadata；不存在数据不伪装为空成功。",
+    "选择任务后只用 productSessionId 驱动 session/timeline/trace/evidence 读取；不接受或派生 DSH sessionId。",
+    "detail 是按需读取；缺少 detailRef、未关联、permission-denied、not-found、timeout/stale 保留 QueryError。",
+    "并发或过期响应不能覆盖当前选中任务和更新 revision；重复 refresh 不修改 Query Core 之外的事实。",
+    "测试使用 standalone fixture + Query Core，覆盖主流程、局部失败、任务切换、旧响应、detail lazy load 和无 React/DOM/DSH 依赖。",
+    "npm test、node --check、精确依赖扫描、git diff --check 和 WorkItem schema 校验通过。"
+  ],
+  "forbidden": [
+    "不得修改 Query Core、任何 adapter、Workspace schema、DSH 或 Product Runtime。",
+    "不得导入 React、DOM、CSS、fetch、文件系统、Host globals 或实现渲染器。",
+    "不得新增写操作、任务控制、缓存/归档/删除或第二套数据模型。",
+    "不得把 DSH sessionId、panel method 或 adapter shape 暴露给功能状态层。"
+  ],
+  "frozen_decisions": [
+    "通用前端 canonical source 独立于 DSH；功能、基础 UI、styles 分层。",
+    "ProductSessionId 是任务身份，Workspace v0.1 只读。",
+    "错误、来源、authority、snapshot/revision 由 Query Core 读模型传递。"
+  ],
+  "dependencies": ["WI-PNL003-001", "WI-PNL003-002", "WI-PNL003-004", "WI-PNL003-005"],
+  "status": "done",
+  "required_skills": ["codebase-design", "tdd"],
+  "required_capability": "implementation"
+}

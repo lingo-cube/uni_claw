@@ -1,0 +1,52 @@
+{
+  "id": "WI-PNL001-003",
+  "objective": "task-workbench host 侧 GUI 数据缝：uniclawTaskPanel typert 服务（overview/createTask/instantiate/conversation/trace/diagnostic 六方法），接 sessionQuery 与 controller.prompt。",
+  "scope": {
+    "write": [
+      "dsh/uniclaw-task-workbench/src/index.js",
+      "dsh/uniclaw-task-workbench/tests/workbench.test.mjs"
+    ],
+    "read_hints": [
+      "dsh/uniclaw-decision-channel/src/index.js",
+      "dsh/uniclaw-task-workbench/src/repository.js"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "在现有 host 半部上加 SRC 标记 typert 服务供 client 半部 RPC 调用；对话/物理 trace 数据来自 ctx.get('sessionQuery').listEvents；诊断=向实例 session 注入冻结模板 prompt。",
+    "core_points": [
+      "typert 注册照抄 decision-channel 的 panel 块（panelProtocolAvailable 同步探测 + Remote 手动装饰 + ctx.typert.register 重试），探测失败降级不影响 HTTP 路由",
+      "instantiate 逻辑与 HTTP 路由共用同一内部函数，协议形状（路由/错误码/响应体）不变",
+      "conversation/trace 对事件做最小投影 {seq,type,role?,summary≤200chars}，不透传大 payload",
+      "diagnostic 的 skill 是冻结枚举 diagnosing-bugs|uniclaw-debug-evidence，prompt 模板冻结在 host"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "dsh/uniclaw-decision-channel/src/index.js",
+      "symbol": "panelProtocolAvailable"
+    },
+    {
+      "path": "dsh/uniclaw-task-workbench/src/index.js",
+      "symbol": "apply"
+    }
+  ],
+  "contract_refs": [
+    "changes/PNL-001/state.md"
+  ],
+  "acceptance": [
+    "冻结 API（方法名/参数/返回形状，见 semantic_brief 与 workitems 契约正文，实现必须逐字对齐）：overview()→{success,tasks:[{taskId,title,requirement,projectRef,status,createdAt,instanceCount}]}；createTask({title,requirement,projectRef?})→{success,task}；instantiate({taskId})→{success,instance}；conversation({taskId,instanceId?})→{success,events:[{seq,type,role?,summary}],sessionAvailable}；trace({taskId,instanceId?})→{success,physical:[同conversation事件],semantic:{version:1,entries:[]}}；diagnostic({taskId,skill})→{success,injected:true}",
+    "A1 method=`cd dsh/uniclaw-task-workbench && npm test` expected=既有 9 用例不改不删全部通过 + 新增用例通过 actual=Worker 填写 evidence=tests/workbench.test.mjs",
+    "A2 新增用例须覆盖：mock sessionQuery 返回 3 条 fixture 事件 → conversation/trace 投影正确且 semantic.entries 为空数组占位；sessionQuery 缺失 → {success:false,error.code:'session-query-unavailable'}；diagnostic('diagnosing-bugs') → controller.prompt 收到含 skill 名的模板文本 + 正确 sessionId；无 active 实例 → error.code='no-active-instance'；skill 非法 → 'invalid-skill'；typert 探测失败时 HTTP 路由照常工作",
+    "A3 method=`node --check src/index.js` expected=通过 actual=Worker 填写"
+  ],
+  "forbidden": [
+    "改 HTTP 协议形状（路由路径/错误码/响应体字段）",
+    "写 scope.write 之外路径；改 src/repository.js、schema/、dsh/uniclaw-decision-channel/",
+    "引入依赖；把语义 trace entries 填任何假数据（占位必须是空数组）"
+  ],
+  "frozen_decisions": [
+    "PNL-001 决策 7/8/9/10（对话=事件流；语义 trace 占位；诊断=prompt 注入+冻结 skill 枚举；字段集）"
+  ],
+  "dependencies": [],
+  "status": "done"
+}

@@ -1,0 +1,50 @@
+{
+  "id": "WI-PNL001-002",
+  "objective": "实现 uniagent-task 预设的能力收窄件：@uniclaw/dsh-task-scope 插件（config 驱动 allow-list restrict）+ preset 声明行参考文档 + 包测试。",
+  "scope": {
+    "write": [
+      "dsh/uniclaw-task-scope/src/index.js",
+      "dsh/uniclaw-task-scope/tests/scope.test.mjs",
+      "dsh/uniclaw-task-scope/package.json",
+      "dsh/uniclaw-task-scope/README.md",
+      "dsh/agent-presets/uniagent-task/cordis.patch.yml"
+    ],
+    "read_hints": [
+      "dsh/uniclaw-restrict/src/index.js",
+      "dsh/agent-presets/uniagent-slow/cordis.patch.yml"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "任务 session 的工具面收窄插件：与 uniagent-restrict 同构但 allow-list 来自 preset 行 config（非空字符串数组）；空/缺失/类型不符一律 mount 时抛错 fail-closed。",
+    "core_points": [
+      "ctx.tools.restrict({ allow }) 语义：名单外全部不可见，晚注册的 MCP 工具默认不进",
+      "allow 名单必须是非空字符串数组，否则抛错（不得回退 deny 或空表）",
+      "preset 参考文档照 uniagent-slow 的 cordis.patch.yml 形状：id preset-uniclaw-task，plugins 含 uniclaw-task-scope 行并带 config.allow 示例"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "dsh/uniclaw-restrict/src/index.js",
+      "symbol": "apply"
+    }
+  ],
+  "contract_refs": [
+    "changes/PNL-001/state.md"
+  ],
+  "acceptance": [
+    "A1 method=`cd dsh/uniclaw-task-scope && npm test` expected=用例通过：合法 allow → ctx.tools.restrict 恰好被调用一次且参数一致；缺失/空数组/非字符串元素/非数组 → apply 抛错且信息含 uniclaw-task-scope actual=由 Worker 填写 evidence=tests/scope.test.mjs",
+    "A2 method=`node --check src/index.js` expected=语法通过 actual=由 Worker 填写",
+    "A3 dsh/agent-presets/uniagent-task/cordis.patch.yml 存在且形状对齐 uniagent-slow 参考件（REFERENCE ONLY 头注释 + insert 行）",
+    "A4 README.md 含 安装/回滚/验证 三节，说明 allow 名单需与部署实例 live catalog 核对"
+  ],
+  "forbidden": [
+    "写入 scope.write 之外的任何路径",
+    "修改 dsh/uniclaw-restrict/（AGT-002 冻结语义 allow:[]）",
+    "修改真实 profile（~/.dsh/）下任何文件",
+    "引入 npm 依赖"
+  ],
+  "frozen_decisions": [
+    "PNL-001 决策 6（uniagent-task preset；name 级 allow-list；命令级白名单 out of scope）"
+  ],
+  "status": "done"
+}

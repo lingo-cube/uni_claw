@@ -1,0 +1,14 @@
+{
+  "status": "Completed",
+  "reason": "terminal-emitted",
+  "outcome": "Completion",
+  "delivered": 2,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": true,
+  "journalBytes": 3070,
+  "completionAnchors": null,
+  "completedSteps": []
+}

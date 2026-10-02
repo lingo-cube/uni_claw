@@ -1,0 +1,96 @@
+{
+  "id": "WI-PNL003-015",
+  "objective": "确定并实现通用 Workspace 到真实 DSH static Client 的最小浏览器分发与挂载缝，避免复制 renderer 或把 DSH 语义写回共享前端。",
+  "scope": {
+    "write": [
+      "workitems/WI-PNL003-015.json"
+    ],
+    "read_hints": [
+      "dsh/uniclaw-task-workbench/src/client.js",
+      "dsh/uniclaw-task-workbench/package.json",
+      "dsh/uniclaw-task-workbench/src/create-workspace-host.js",
+      "web/uniclaw-workspace/package.json",
+      "web/uniclaw-workspace/src/ui/render-workspace-html.js",
+      ".agents/skills/dsh-plugin-static-client-ui/SKILL.md",
+      "plans/PNL-003-plan.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "真实 DSH 入口需要消费通用 Workspace UI，但 DSH classic client bundle 与当前 CommonJS shared source 之间没有分发缝；本项先锁定可替换的 bundle/bridge 形状，再实现实际挂载。",
+    "core_points": [
+      "共享前端 canonical source 只能有一份，DSH client 只能是打包/Host adapter，不得复制 renderer 语义。",
+      "挂载必须复用 ProductSession identity、DetailRef 和错误/快照 read model。",
+      "静态 Client 的 strict codec、remote mount、重启和 profile copy 行为必须纳入验收。"
+    ]
+  },
+  "anchors": [
+    {"path": "dsh/uniclaw-task-workbench/src/client.js", "symbol": "apply"},
+    {"path": "dsh/uniclaw-task-workbench/src/create-workspace-host.js", "symbol": "createDshWorkspaceHost"}
+  ],
+  "contract_refs": [
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "plans/PNL-003-plan.md",
+    ".agents/skills/dsh-plugin-static-client-ui/SKILL.md"
+  ],
+  "acceptance": [
+    "审计给出当前 DSH classic client、Host RPC、shared CommonJS source 的真实调用链和最小 bridge/bundle seam。",
+    "明确哪些文件需要实现、哪些现有 API 保持不变，以及如何证明 shared renderer 没有复制或反向依赖 DSH。",
+    "提供可执行的离线 bundle smoke、strict codec、Host mount 和重启后浏览器验收方法；若当前 package 结构不能安全实现，明确 UPSTREAM_DESIGN_CONFLICT，不伪造完成。",
+    "本项审计期间不修改 Product Runtime、旧 DSH API、shared renderer/core/schema 或现有 client 行为。"
+  ],
+  "forbidden": [
+    "不得把 DSH sessionId 变成 shared ProductSession identity。",
+    "不得复制一份仅供 DSH 的 renderer、View Model 或错误归一化逻辑。",
+    "不得在没有 bundle/profile/restart 证据时宣称真实 DSH 挂载完成。"
+  ],
+  "frozen_decisions": [
+    "web/uniclaw-workspace 是通用前端 canonical source。",
+    "DSH static Client 只承担 UI bundle、RPC descriptor 和 Host mount。"
+  ],
+  "dependencies": ["WI-PNL003-011", "WI-PNL003-014"],
+  "audit": {
+    "verdict": "UPSTREAM_DESIGN_CONFLICT",
+    "audited_at": "2026-10-02",
+    "current_call_chain": [
+      "DSH web plugin table serves package exports ./client -> src/client.js",
+      "classic window.__ModuleLoader__.load registers apply/inject; apply injects sidebar.footer.action and shell.overlay",
+      "first workspace/session/artifact action calls remote.$mount(contribution), then remote.uniclawTaskPanel.{workspace,session,artifact}",
+      "the existing DSH panel service in src/index.js maps those RPCs to DSH repository/session/artifact data",
+      "createDshWorkspaceHost is a separate Node-side assembly: panel -> createDshWorkspaceCapabilities -> WorkspaceQueryCore -> createWorkspaceApp -> caller mount; it is not referenced by src/client.js and cannot be called from the browser bundle"
+    ],
+    "feasibility_boundary": [
+      "The host-neutral QueryCore/App/Controller/ViewModel/HTML renderer are CommonJS and can be consumed by Node Host wrappers through createRequire.",
+      "The current classic client cannot directly consume those CommonJS modules: it has no bundler/module-loader bridge for web/uniclaw-workspace and the existing client embeds a second React renderer/state/RPC projection.",
+      "The current client strict codec helper puts parse under create(); the static-client skill requires strict codec schema.parse. This requires a focused descriptor/client seam correction before real DSH verification.",
+      "Therefore the current source is not evidence of shared renderer reuse or a complete browser bridge; implementation must stop at this audit."
+    ],
+    "recommended_seam": {
+      "bundle": "Add a browser-targeted, generated-or-explicit client bridge entry under the DSH package that imports a browser-compatible shared UI facade (renderer/ViewModel/controller facade) and emits the classic ModuleLoader factory. Keep it as an adapter/bundle layer; do not copy renderer semantics into client.js.",
+      "rpc": "Keep DSH static client responsible for remote.$mount descriptors and strict codecs only. The Host side owns the panel service and maps ProductSessionId through the explicit resolver; DSH sessionId remains hostSessionRef.",
+      "shared": "Keep web/uniclaw-workspace/src/core, features, ui, styles as canonical source. If CommonJS cannot be bundled safely, introduce a source-level browser build entry or package export with identical contracts, then prove parity; do not make the browser load Node createRequire."
+    },
+    "files_to_add_or_change": [
+      "dsh/uniclaw-task-workbench/src/client-bridge.js (or an equivalent explicit browser bundle source)",
+      "dsh/uniclaw-task-workbench/src/client.js (thin generated/static loader output only, after bridge contract is frozen)",
+      "dsh/uniclaw-task-workbench/tests/client-bridge.test.mjs and/or client bundle smoke tests",
+      "web/uniclaw-workspace/package.json and a browser-compatible export only if the chosen bundling seam requires it"
+    ],
+    "do_not_change": [
+      "Product Runtime and legacy uni-agent",
+      "DSH HTTP/RPC service semantics and existing workspace/session/artifact API names",
+      "ProductSession identity or resolver semantics",
+      "canonical shared renderer/ViewModel/core semantics except through an explicit, tested browser export",
+      "create-workspace-host.js unless its public adapter contract needs a separately reviewed mount bridge"
+    ],
+    "verification": {
+      "offline_bundle_smoke": "Evaluate the static bundle with a fake window.__ModuleLoader__ and fake require('react'), assert loader id, exports.apply/inject, and no Node globals; separately execute the bridge against a fake mount.",
+      "strict_codec": "Capture remote.$mount contribution and assert every parameter/result codec has mode strict, typeSymbol, and schema.parse; reject create-only codec shapes.",
+      "host_mount": "Use the existing fake panel plus resolver to run project -> task -> session -> timeline/trace/evidence -> detail and assert mount receives host-redacted ViewModel/state while ProductSessionId stays public.",
+      "profile_restart": "Synchronize the changed client/package into the DSH web profile with cp or pnpm install, restart DSH, then force-refresh the browser; verify the plugin loads and stale client behavior is absent.",
+      "browser_acceptance": "From the sidebar enter UniClaw Workspace, select a task, observe request -> decision -> result, switch DSH Trace/UniClaw Trace/Metadata/Evidence, open detail, and verify structured RPC failure plus uncorrelated mapping are visible."
+    }
+  },
+  "status": "blocked",
+  "required_skills": ["dsh-plugin-static-client-ui", "codebase-design"],
+  "required_capability": "analysis"
+}

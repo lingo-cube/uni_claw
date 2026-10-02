@@ -1,0 +1,40 @@
+{
+  "id": "WI-PNL001-006",
+  "objective": "host 侧 trace API 重塑：按 sessionId 提供语义 trace（从 sessionQuery 事件提取 UniFlow gate/outcome/evidence 条目），sessions 列表方法供面板选会话。",
+  "scope": {
+    "write": [
+      "dsh/uniclaw-task-workbench/src/index.js",
+      "dsh/uniclaw-task-workbench/tests/workbench.test.mjs"
+    ],
+    "read_hints": [
+      "dsh/uniclaw-task-workbench/src/index.js",
+      "dsh/uniclaw-task-workbench/src/repository.js"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Q16 方向修正：面板不再按任务定义组织，改为按 session。host 面服务新增 sessions()/trace(sessionId)；trace 从 listEvents 的文本里提取 UniFlow 语义条目，零假数据；createTask/instantiate/diagnostic 保留但 diagnostic 改按 sessionId。",
+    "core_points": [
+      "新 API：sessions()→{success,sessions:[{sessionId,title,lastActiveAt,uniclaw}]}（sessionQuery.listSessions+readTitles；uniclaw=出现在 repository 实例里）",
+      "trace({sessionId})→{success,entries:[{ts,kind:'gate'|'outcome'|'evidence',token,text,evidenceRefs:[string]}],sessionAvailable}",
+      "提取规则：事件文本中匹配 UniFlow outcome token（EXPLORE_RESOLVED|STAY_IN_EXPLORE|STAY_IN_DIAGNOSIS|EXECUTION_READY|VERIFIED|VERIFICATION_FAILED|COMPLETE）与 evidence 引用（evidence/ 开头的路径），每命中一条产出一个 entry；无命中=空数组",
+      "diagnostic({sessionId, skill})：按 sessionId 找 active 实例或任意会话直接 controller.prompt；skill 枚举不变",
+      "conversation({taskId...}) 方法删除（原生 UI 承担）；旧 trace({taskId}) 改为 trace({sessionId})",
+      "HTTP 路由不动；typert 注册的 descriptor/参数声明同步更新（codec create 工厂 + {name,wire,source,codec} 参数对象 + 位置收参 wrapper，见文件内既有模式）"
+    ]
+  },
+  "acceptance": [
+    "A1 method=`cd dsh/uniclaw-task-workbench && npm test` expected=用例更新后全绿（既有无关用例保留）actual=Worker 填写 evidence=tests/workbench.test.mjs",
+    "A2 新用例：mock sessionQuery 返回含 'EXPLORE_RESOLVED' 文本与 'evidence/foo.md' 引用的事件 → trace 产出 gate/outcome/evidence 条目且 token/refs 正确；无语义命中 → entries=[]；sessionQuery 缺失 → session-query-unavailable",
+    "A3 method=`node --check src/index.js` expected=通过 actual=Worker 填写"
+  ],
+  "forbidden": [
+    "写 scope.write 之外路径；改 repository.js、schema/、decision-channel",
+    "语义条目造任何非事件来源的数据（提取器只认事件文本）",
+    "动 HTTP 协议形状"
+  ],
+  "frozen_decisions": [
+    "PNL-001 Q16 方向修正",
+    "Q12 决策（语义 trace 数据结构 version:1 形状不变）"
+  ],
+  "status": "done"
+}

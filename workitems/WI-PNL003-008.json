@@ -1,0 +1,60 @@
+{
+  "id": "WI-PNL003-008",
+  "objective": "实现首个 Host-neutral Workspace HTML renderer 与独立样式 token，把 View Model 渲染成可复用的任务工作区界面。",
+  "scope": {
+    "write": [
+      "web/uniclaw-workspace/src/ui/render-workspace-html.js",
+      "web/uniclaw-workspace/src/styles/workspace.css",
+      "web/uniclaw-workspace/tests/workspace-renderer.test.js",
+      "workitems/WI-PNL003-008.json"
+    ],
+    "read_hints": [
+      "web/uniclaw-workspace/src/features/workspace-view-model.js",
+      "web/uniclaw-workspace/tests/workspace-view-model.test.js",
+      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "plans/PNL-003-plan.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "把 renderer-neutral View Model 转成语义化 HTML：左侧项目/任务卡片，主区 Uni-Agent 请求→决策→结果时间线，右侧 Trace/Evidence/Metadata panes 和受控 Detail action；样式独立于功能与 Host。",
+    "core_points": [
+      "renderer 只消费 View Model，不调用 Query Core、adapter 或 Host API。",
+      "主界面优先展示 Uni-Agent 摘要，原始 raw 只进入 data/detail 入口。",
+      "错误、partial、stale、uncorrelated 通过可读状态和 data 属性保留。",
+      "所有外部文本必须 HTML escape；Detail action 使用 data-ref，不直写文件路径或 URL。"
+    ]
+  },
+  "anchors": [
+    {"path": "web/uniclaw-workspace/src/features/workspace-view-model.js", "symbol": "createWorkspaceViewModel"}
+  ],
+  "contract_refs": [
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "plans/PNL-003-plan.md",
+    "schemas/workspace/README.md"
+  ],
+  "acceptance": [
+    "导出纯函数 `renderWorkspaceHtml(viewModel, options)`，不读取、不修改 state，不调用 Query Core/adapter，不依赖 DOM、React、DSH、fetch 或 Host globals。",
+    "输出稳定根节点与语义区域：workspace navigation、task header、conversation timeline、trace pane、evidence pane、metadata pane、detail drawer/action 和 notices。",
+    "项目/任务卡片显示 productSessionId、status、correlationStatus；未关联任务保持可见但没有产品身份升级。",
+    "请求→决策→结果按三组卡片渲染；主卡片展示 summary/source/status，raw 不直接铺满主线。",
+    "Trace 按 source 分组；Evidence 卡片显示 detail 可用性、permission-denied/not-found/uncorrelated 状态；可用 detail 使用 data-detail-ref，禁用按钮不带 action。",
+    "所有用户文本、属性值和 detail ref 经过 HTML escaping；渲染结果不注入绝对路径、任意 URL 或 DSH session 语义。",
+    "workspace.css 独立维护 token、布局、卡片、timeline、pane、状态色和响应式规则，renderer 不包含大段 inline style。",
+    "测试覆盖完整 View Model、局部错误、未关联任务、禁用 detail、HTML escaping、样式选择器和无 Host 依赖；npm test、node --check、依赖扫描、git diff --check 和 WorkItem schema 校验通过。"
+  ],
+  "forbidden": [
+    "不得修改 Query Core、Controller、View Model、任何 adapter、Workspace schema、DSH 或 Product Runtime。",
+    "不得导入 React、DOM、CSS-in-JS、fetch、文件系统、Host globals 或实现 DSH 挂载。",
+    "不得在 HTML 或 CSS 中写入 DSH sessionId、绝对文件路径、任意 URL 或写操作按钮。",
+    "不得把 Trace/Evidence 原始 payload 全量铺到主时间线，必须保持摘要优先。"
+  ],
+  "frozen_decisions": [
+    "通用前端 canonical source 独立于 DSH；功能、基础 UI、styles 分层。",
+    "Uni-Agent 主线聚焦请求→决策→结果；底层来源信息可展开。",
+    "Workspace v0.1 只读，Detail 通过受控引用懒加载。"
+  ],
+  "dependencies": ["WI-PNL003-001", "WI-PNL003-002", "WI-PNL003-004", "WI-PNL003-005", "WI-PNL003-006", "WI-PNL003-007"],
+  "status": "done",
+  "required_skills": ["codebase-design", "tdd"],
+  "required_capability": "implementation"
+}

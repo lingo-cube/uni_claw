@@ -1,0 +1,1 @@
+{"schemaVersion":"uniclaw.workspace.record-envelope.v1","contractVersion":"uniclaw.workspace.contract.v1","recordId":"bad-001","kind":"trace","source":"dsh","authority":"dsh-host","taskInstanceId":"task-001","correlationId":"trace-001","occurredAt":"2026-10-02T10:00:00Z","summary":"missing product session"}

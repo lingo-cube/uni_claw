@@ -1,0 +1,64 @@
+{
+  "id": "WI-PNL003-016",
+  "objective": "建立可复现的 browser bridge/generated bundle，让真实 DSH static Client 复用通用 Workspace renderer/view model/core，并完成离线与浏览器入口验收。",
+  "scope": {
+    "write": [
+      "web/uniclaw-workspace/src/browser/entry.js",
+      "web/uniclaw-workspace/scripts/build-browser-bundle.mjs",
+      "web/uniclaw-workspace/package.json",
+      "dsh/uniclaw-task-workbench/src/client.js",
+      "dsh/uniclaw-task-workbench/tests/client-bridge.test.mjs",
+      "dsh/uniclaw-task-workbench/package.json",
+      "workitems/WI-PNL003-016.json"
+    ],
+    "read_hints": [
+      "web/uniclaw-workspace/src/core/index.js",
+      "web/uniclaw-workspace/src/features/workspace-controller.js",
+      "web/uniclaw-workspace/src/features/workspace-view-model.js",
+      "web/uniclaw-workspace/src/ui/render-workspace-html.js",
+      "web/uniclaw-workspace/src/styles/workspace.css",
+      "dsh/uniclaw-task-workbench/src/client.js",
+      "dsh/uniclaw-task-workbench/src/index.js",
+      ".agents/skills/dsh-plugin-static-client-ui/SKILL.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "把 canonical Workspace source 生成 browser bridge，由 DSH static Client 只负责 ModuleLoader、strict RPC descriptor、Host mount 和 slot 注册；不复制 renderer 或改 Product Runtime。",
+    "core_points": [
+      "browser entry 必须复用 shared core/features/ui 的源码或由确定性 bundler 生成，不能手工复制语义。",
+      "DSH RPC 仍只提供 Task/Session/Detail 事实，ProductSession identity 和错误/快照语义来自 shared bridge contract。",
+      "所有参数/result codec 必须直接具备 strict schema.parse；profile copy、重启、强刷和浏览器主流程必须可验证。"
+    ]
+  },
+  "anchors": [
+    {"path": "web/uniclaw-workspace/src/browser/entry.js", "symbol": "createDshWorkspaceBrowserBridge"},
+    {"path": "dsh/uniclaw-task-workbench/src/client.js", "symbol": "apply"}
+  ],
+  "contract_refs": [
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "plans/PNL-003-plan.md",
+    ".agents/skills/dsh-plugin-static-client-ui/SKILL.md"
+  ],
+  "acceptance": [
+    "提供确定性的 browser entry/build 命令，输出 classic ModuleLoader 可加载的 DSH client bridge；shared renderer/ViewModel/core 仍只有一份 canonical source。",
+    "DSH client.js 收缩为 loader、strict RPC descriptors、slot 注册和 bridge mount，不再维护第二套请求/决策/结果、Trace/Evidence/Metadata 投影逻辑。",
+    "离线 bundle smoke 可用 fake window.__ModuleLoader__、fake require/react、fake remote 验证 exports.apply/inject、strict codec 的 schema.parse、workspace/session/artifact RPC 和 mount 生命周期。",
+    "DSH client bridge 使用 ProductSessionId；DSH sessionId 仅作为 Host RPC 参数，不进入 shared identity/view model。",
+    "现有 DSH client、Host panel API、HTTP/typert API、Product Runtime 和 web shared source 的既有测试不回归；完成 profile copy/restart/强刷后的浏览器主流程与局部错误验收。",
+    "npm test、browser bundle build、node --check、schema validator、依赖边界扫描和 git diff --check 通过。"
+  ],
+  "forbidden": [
+    "不得复制 renderer、View Model、错误归一化或 ProductSession 关联逻辑到 DSH client。",
+    "不得改变现有 workspace/session/artifact RPC 名称、HTTP 路由、Product Runtime 或旧 DSH session 语义。",
+    "不得以未执行 profile copy/restart/浏览器验证的静态 bundle 代替真实挂载证据。"
+  ],
+  "frozen_decisions": [
+    "web/uniclaw-workspace 是共享前端唯一真相源。",
+    "DSH static Client 是 bundle/Host mount adapter，不是另一套产品前端。",
+    "DSH sessionId 是 hostSessionRef，ProductSessionId 是产品任务 identity。"
+  ],
+  "dependencies": ["WI-PNL003-011", "WI-PNL003-014", "WI-PNL003-015"],
+  "status": "in_progress",
+  "required_skills": ["dsh-plugin-static-client-ui", "tdd", "codebase-design"],
+  "required_capability": "implementation"
+}

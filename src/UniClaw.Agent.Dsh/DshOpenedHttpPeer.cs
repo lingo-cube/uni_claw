@@ -7,7 +7,7 @@ using UniClaw.Kernel.Runtime;
 namespace UniClaw.Agent.Dsh;
 
 /// <summary>
-/// The formal authenticated 3080 peer (AGT-002 E2E slice): the single
+/// The formal authenticated local-web peer (AGT-002 E2E slice): the single
 /// sanctioned concrete <see cref="IDshOpenedChannelPeer"/>. It speaks the
 /// uniagent-prod decision-channel routes that the
 /// <c>@uniclaw/dsh-decision-channel</c> DSH profile plugin mounts on the
@@ -26,8 +26,11 @@ namespace UniClaw.Agent.Dsh;
 /// </summary>
 public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
 {
+    private const int MaxCapacityRetries = 2;
+    private static readonly TimeSpan CapacityRetryDelay = TimeSpan.FromSeconds(2);
     private const string HandshakePath = "/api/uniclaw-agent/handshake";
     private const string ConsultPath = "/api/uniclaw-agent/consult";
+    private const string SlowPath = "/api/uniclaw-agent/slow";
     private const string AbortPath = "/api/uniclaw-agent/abort";
     private const string DetachPath = "/api/uniclaw-agent/detach";
 
@@ -36,6 +39,7 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
     private readonly bool _ownsHttp;
     private readonly JsonSerializerOptions _json = ProductProtocolJson.CreateOptions();
     private readonly ModelConfiguration? _model;
+    private string? _dshSessionId;
     private bool _disposed;
 
     public DshOpenedHttpPeer(
@@ -96,7 +100,7 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
                 null,
                 $"{code ?? "handshake-rejected"}:{message ?? ""}");
         }
-        return new HandshakeResponse(
+        var response = new HandshakeResponse(
             root.GetProperty("accepted").GetBoolean(),
             ReadStamp(document.RootElement.GetProperty("protocol")),
             ReadManifest(document.RootElement.GetProperty("reportedCapabilities")),
@@ -110,6 +114,8 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
             document.RootElement.TryGetProperty("runtimePreset", out var preset)
                 ? preset.GetString()
                 : null);
+        _dshSessionId = response.Accepted ? response.DshSessionId : null;
+        return response;
     }
 
     public async Task<DecisionChannelResponse> ReceiveDecisionRequestAsync(
@@ -128,27 +134,128 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
             ["context"] = JsonDocument.Parse(contextJson).RootElement.Clone(),
             ["turnTimeoutMs"] = (int)TimeSpan.FromSeconds(75).TotalMilliseconds,
         };
+        if (_dshSessionId is { Length: > 0 })
+            body["dshSessionId"] = _dshSessionId;
+        if (request.ImagePng is { Length: > 0 })
+            body["image"] = new
+            {
+                mediaType = "image/png",
+                data = Convert.ToBase64String(request.ImagePng),
+                name = request.Context.Screen?.ContainerId is { Length: > 0 } id ? id + ".png" : "capture.png",
+            };
         if (_model is { } model)
             body["model"] = new { provider = model.Provider, model = model.Name };
-        var document = await PostJsonAsync(ConsultPath, body, cancellationToken).ConfigureAwait(false);
-        var root = document.RootElement;
-        AgentDecision? decision = null;
-        if (root.TryGetProperty("decision", out var decisionElement)
-            && decisionElement.ValueKind is JsonValueKind.Object or JsonValueKind.String)
+        for (var retry = 0; ; retry++)
         {
-            decision = decisionElement.ValueKind == JsonValueKind.String
-                ? JsonSerializer.Deserialize<AgentDecision>(decisionElement.GetString()!, _json)
-                : JsonSerializer.Deserialize<AgentDecision>(decisionElement.GetRawText(), _json);
+            var document = await PostJsonAsync(ConsultPath, body, cancellationToken).ConfigureAwait(false);
+            var response = DecodeDecisionResponse(document, request);
+            if (retry >= MaxCapacityRetries || !IsCapacityFailure(response))
+                return response;
+            await Task.Delay(CapacityRetryDelay, cancellationToken).ConfigureAwait(false);
         }
-        return new DecisionChannelResponse(
-            root.GetProperty("requestId").GetString() ?? request.RequestId,
-            root.TryGetProperty("generation", out var generation) && generation.TryGetInt64(out var value)
-                ? value
-                : request.Generation,
-            decision,
-            root.TryGetProperty("error", out var consultError)
-                ? consultError.GetString()
-                : null);
+    }
+
+    private DecisionChannelResponse DecodeDecisionResponse(
+        JsonDocument document, DecisionRequest request)
+    {
+        try
+        {
+            var root = document.RootElement;
+            if (root.TryGetProperty("ok", out var ok)
+                && ok.ValueKind == JsonValueKind.False)
+            {
+                return new DecisionChannelResponse(
+                    request.RequestId, request.Generation, null, ReadErrorMessage(root));
+            }
+            AgentDecision? decision = null;
+            if (root.TryGetProperty("decision", out var decisionElement)
+                && decisionElement.ValueKind is JsonValueKind.Object or JsonValueKind.String)
+            {
+                decision = decisionElement.ValueKind == JsonValueKind.String
+                    ? JsonSerializer.Deserialize<AgentDecision>(decisionElement.GetString()!, _json)
+                    : JsonSerializer.Deserialize<AgentDecision>(decisionElement.GetRawText(), _json);
+            }
+            var errorMessage = ReadErrorMessage(root);
+            if (root.TryGetProperty("diagnostics", out var diagnostics)
+                && diagnostics.ValueKind == JsonValueKind.Object
+                && diagnostics.TryGetProperty("message", out var diagnosticMessage)
+                && diagnosticMessage.ValueKind == JsonValueKind.String
+                && !string.IsNullOrWhiteSpace(diagnosticMessage.GetString()))
+            {
+                errorMessage = string.IsNullOrWhiteSpace(errorMessage)
+                    ? diagnosticMessage.GetString()
+                    : $"{errorMessage}:{diagnosticMessage.GetString()}";
+            }
+            return new DecisionChannelResponse(
+                root.GetProperty("requestId").GetString() ?? request.RequestId,
+                root.TryGetProperty("generation", out var generation) && generation.TryGetInt64(out var value)
+                    ? value : request.Generation,
+                decision, errorMessage);
+        }
+        catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
+        {
+            var payload = document.RootElement.GetRawText();
+            return new DecisionChannelResponse(
+                request.RequestId, request.Generation, null,
+                $"decision-decode-error:{ex.Message}:payload={payload[..Math.Min(2000, payload.Length)]}");
+        }
+    }
+
+    private static bool IsCapacityFailure(DecisionChannelResponse response)
+    {
+        var text = response.Error ?? string.Empty;
+        return text.Contains("429", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("529", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("capacity", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("too many", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("selected model is at capacity", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Runs a DSH-backed Slow prompt and returns only the captured
+    /// assistant text. Product-side schema validation remains the caller's
+    /// responsibility; no assistant prose is promoted here.</summary>
+    public async Task<DshSlowResponse> ExecuteSlowAsync(
+        string requestId,
+        string prompt,
+        ModelConfiguration model,
+        byte[]? imagePng = null,
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
+        ArgumentNullException.ThrowIfNull(model);
+        model.Validate();
+        var body = new Dictionary<string, object?>
+        {
+            ["requestId"] = requestId,
+            ["prompt"] = prompt,
+            ["turnTimeoutMs"] = (int)TimeSpan.FromSeconds(110).TotalMilliseconds,
+            ["model"] = new { provider = model.Provider, model = model.Name },
+        };
+        if (imagePng is { Length: > 0 })
+            body["image"] = new { mediaType = "image/png", data = Convert.ToBase64String(imagePng), name = "capture.png" };
+        for (var retry = 0; ; retry++)
+        {
+            var document = await PostJsonAsync(SlowPath, body, cancellationToken).ConfigureAwait(false);
+            var root = document.RootElement;
+            var result = new DshSlowResponse(
+                root.TryGetProperty("requestId", out var id) ? id.GetString() ?? requestId : requestId,
+                root.TryGetProperty("text", out var text) && text.ValueKind == JsonValueKind.String ? text.GetString() : null,
+                root.TryGetProperty("error", out var error) && error.ValueKind == JsonValueKind.String ? error.GetString() : null,
+                root.TryGetProperty("diagnostics", out var diagnostics) ? diagnostics.GetRawText() : null);
+            if (retry >= MaxCapacityRetries || !IsCapacityFailure(result)) return result;
+            await Task.Delay(CapacityRetryDelay, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static bool IsCapacityFailure(DshSlowResponse response)
+    {
+        var text = (response.Error ?? "") + " " + (response.Diagnostic ?? "");
+        return text.Contains("429", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("529", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("capacity", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("too many", StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task AbortCurrentTurnAsync(CancellationToken cancellationToken)
@@ -162,12 +269,14 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         await PostJsonAsync(DetachPath, new { }, cancellationToken).ConfigureAwait(false);
+        _dshSessionId = null;
     }
 
     public async ValueTask DisposeAsync()
     {
         if (_disposed) return;
         _disposed = true;
+        _dshSessionId = null;
         if (_ownsHttp)
             _http.Dispose();
         await ValueTask.CompletedTask.ConfigureAwait(false);
@@ -201,6 +310,25 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
         root.TryGetProperty(name, out var element) && element.ValueKind == JsonValueKind.Array
             ? element.EnumerateArray().Select(item => item.GetString() ?? "").ToArray()
             : null;
+
+    private static string? ReadErrorMessage(JsonElement root)
+    {
+        if (!root.TryGetProperty("error", out var error)) return null;
+        if (error.ValueKind == JsonValueKind.String) return error.GetString();
+        if (error.ValueKind != JsonValueKind.Object) return error.GetRawText();
+
+        var code = error.TryGetProperty("code", out var codeElement)
+            && codeElement.ValueKind == JsonValueKind.String
+            ? codeElement.GetString()
+            : null;
+        var message = error.TryGetProperty("message", out var messageElement)
+            && messageElement.ValueKind == JsonValueKind.String
+            ? messageElement.GetString()
+            : null;
+        return string.IsNullOrWhiteSpace(message)
+            ? code
+            : string.IsNullOrWhiteSpace(code) ? message : $"{code}:{message}";
+    }
 
     private static ProtocolStamp ReadStamp(JsonElement element) => new(
         element.GetProperty("protocolVersion").GetString() ?? "",

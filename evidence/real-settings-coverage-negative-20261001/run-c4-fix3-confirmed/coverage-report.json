@@ -1,0 +1,53 @@
+{
+  "status": "BoundedStop",
+  "items": [
+    {
+      "requirement": "root-page",
+      "detail": "root route observed",
+      "covered": true,
+      "evidence": "android.settings|route:Settings"
+    },
+    {
+      "requirement": "first-level-all-visible",
+      "detail": "entered 1/1",
+      "covered": true,
+      "evidence": "entered:Network \u0026 internet-\u003Eandroid.settings|route:Internet;entered:Search settings-\u003Eandroid.settings;entered:Notifications-\u003Eandroid.settings|route:Manage;entered:Battery-\u003Eandroid.settings|route:Battery usage;entered:Storage-\u003Eandroid.settings|route:Storage manager;entered:Sound \u0026 vibration-\u003Eandroid.settings|route:Media volume;entered:Display-\u003Eandroid.settings|route:Brightness;entered:Wallpaper-\u003Eandroid.settings|route:Gallery;entered:Accessibility-\u003Eandroid.settings|route:Display"
+    },
+    {
+      "requirement": "scroll-discovered-entry",
+      "detail": "entered 0/99 scroll-discovered",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "second-level-pages",
+      "detail": "distinct second-level routes 9/2",
+      "covered": true,
+      "evidence": "android.settings|route:Internet;android.settings;android.settings|route:Manage;android.settings|route:Battery usage;android.settings|route:Storage manager;android.settings|route:Media volume;android.settings|route:Brightness;android.settings|route:Gallery;android.settings|route:Display"
+    },
+    {
+      "requirement": "back-navigation",
+      "detail": "back verified 9",
+      "covered": true,
+      "evidence": "Navigate up"
+    },
+    {
+      "requirement": "repeated-entry",
+      "detail": "satisfied 0/1",
+      "covered": false,
+      "evidence": null
+    }
+  ],
+  "coverageRate": 0.6666666666666666,
+  "stepSuccessRate": 0.8695652173913043,
+  "uncoveredItems": [
+    "scroll-discovered-entry",
+    "repeated-entry"
+  ],
+  "firstDivergence": "step 20 decision decision-119bee1e065b-21: post-action-target-unique",
+  "stepsExecuted": 23,
+  "stepsVerified": 20,
+  "scrollsUsed": 2,
+  "scrollAttempts": 2,
+  "consultRounds": 24
+}

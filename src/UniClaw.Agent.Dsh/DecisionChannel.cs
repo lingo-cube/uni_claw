@@ -39,13 +39,16 @@ public sealed record DecisionRequest(
     long Generation,
     string ProductSessionId,
     string ProductRunId,
-    AgentDecisionContext Context);
+    AgentDecisionContext Context,
+    byte[]? ImagePng = null);
 
 public sealed record DecisionChannelResponse(
     string RequestId,
     long Generation,
     AgentDecision? Decision,
     string? Error = null);
+
+public sealed record DshSlowResponse(string RequestId, string? Text, string? Error, string? Diagnostic = null);
 
 /// <summary>
 /// The implementation-side peer for a DSH-opened physical channel. This is a
@@ -243,6 +246,10 @@ public sealed class DshOpenedDecisionChannel : IDecisionChannel
         }
 
         attachCancellation.Dispose();
+
+        if (!response.Accepted)
+            return new DecisionChannelAttachment(false, null, response.DshSessionId,
+                response.FailureReason ?? "handshake-rejected");
 
         var validation = ProductHandshake.Validate(request, response);
         if (!validation.Accepted)

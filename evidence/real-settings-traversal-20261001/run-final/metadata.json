@@ -1,0 +1,20 @@
+{
+  "runDir": "/private/tmp/real-settings-ag004-final/run-20261001-102834-640",
+  "device": "emulator-5556",
+  "androidApi": 35,
+  "wmSize": "1080x1920",
+  "dshEndpoint": "http://127.0.0.1:3081/",
+  "productModel": "zai-coding-cn/glm-5.3-flash",
+  "productSessionTitle": "遍历设置菜单",
+  "workspace": "UniClaw_Product_Tasks",
+  "dshSessionId": "session-04de3df7-3221-4dc6-875a-c12f6360ce60",
+  "productSessionId": "settings-traversal-session-78afa201af724221a14ea382f2b7c143",
+  "status": "Completed",
+  "outcome": "Completion",
+  "deliveredEffects": 2,
+  "receipts": ["DeliveryCompleted", "DeliveryCompleted"],
+  "completedSteps": 2,
+  "fastAvailable": true,
+  "hierarchyAvailable": true,
+  "routes": ["android.settings|route:Settings", "android.settings|route:Internet", "android.settings|route:T-Mobile"]
+}

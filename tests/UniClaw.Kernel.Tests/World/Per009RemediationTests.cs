@@ -337,6 +337,80 @@ public sealed class Per009RemediationTests
         Assert.DoesNotContain(verification.Checks, c => c.Name == "typed-route-four-gates");
     }
 
+    [Fact]
+    public void NavigationTargetDisappearance_AfterRouteFingerprintChange_IsVerified()
+    {
+        var world = new WorldModel(
+            new HashSet<string>
+            {
+                ProductAssociationStrategy.ScreenIdentitySubject,
+                ProductAssociationStrategy.ScreenRouteSubject,
+            },
+            new ProductAssociationStrategy(), new NavigationOccurrenceStrategy());
+        var kernel = Compose(world);
+
+        Observe(kernel, ScreenClaim("android.settings", T0, ObservationContext.External));
+        Observe(kernel, ScreenRouteClaim("android.settings|route:Settings", T0,
+            ObservationContext.External));
+        var before = kernel.CurrentBelief!;
+        Assert.Single(before.Occurrences!);
+        Assert.Equal("Network & internet", before.Occurrences![0].SemanticDescriptor);
+
+        var post = kernel.Process(ScreenRouteClaim("android.settings|route:Network", T0.AddSeconds(1),
+            ObservationContext.PostActionEffectFlow));
+        Assert.Equal("android.settings|route:Settings",
+            before.WorldState[ProductAssociationStrategy.ScreenRouteSubject].Value);
+        Assert.Equal("android.settings|route:Network",
+            kernel.CurrentBelief!.WorldState[ProductAssociationStrategy.ScreenRouteSubject].Value);
+        var verification = kernel.VerifyPostActionEffect(
+            new TargetSpec("ui.element", "Network & internet", "tap"),
+            new[] { post }, T0, before);
+
+        Assert.True(verification.IsVerified,
+            $"reason={verification.RejectionReason}; checks={string.Join(',', verification.Checks.Select(c => c.Name + "=" + c.Passed))}");
+        Assert.Contains(verification.Checks,
+            check => check.Name == "post-action-navigation-transition" && check.Passed);
+    }
+
+    private static ObservationProposal ScreenClaim(
+        string value, DateTimeOffset capture, ObservationContext context) => new(
+        new ObservationClaim(ProductAssociationStrategy.ScreenIdentitySubject, value),
+        IngressKind.Observation, context,
+        new Provenance("host.live.settings", capture, "scope:ui.screen",
+            new[] { "real-device", "screen-identity" }));
+
+    private static ObservationProposal ScreenRouteClaim(
+        string value, DateTimeOffset capture, ObservationContext context) => new(
+        new ObservationClaim(ProductAssociationStrategy.ScreenRouteSubject, value),
+        IngressKind.Observation, context,
+        new Provenance("host.live.settings", capture,
+            "scope:ui.screen.route:" + capture.ToUnixTimeMilliseconds(),
+            new[] { "real-device", "route-fingerprint" }));
+
+    private sealed class NavigationOccurrenceStrategy : IUiObservationStrategy
+    {
+        public IReadOnlyList<ProposedOccurrence> Derive(
+            EvidenceRecord record, WorldBeliefRevision? previous)
+        {
+            if (record.Claim.Subject != ProductAssociationStrategy.ScreenRouteSubject)
+                return previous?.Occurrences?.Select(o => new ProposedOccurrence(
+                    o.OwningContainerId, o.Role, o.SemanticDescriptor, o.State,
+                    o.Locator, o.Native, o.Space)).ToArray()
+                    ?? Array.Empty<ProposedOccurrence>();
+            var descriptor = record.Claim.Value.EndsWith("route:Settings", StringComparison.Ordinal)
+                ? "Network & internet"
+                : "Internet";
+            var owner = previous?.Containers is { Count: 1 } containers
+                ? containers[0].Identity.ContainerId
+                : null;
+            return new[]
+            {
+                new ProposedOccurrence(owner, "ui.element", descriptor, null,
+                    new SpatialLocator(0.1, 0.1, 0.9, 0.2, "test.frame")),
+            };
+        }
+    }
+
     /// <summary>typed checked claim（PER-013 投影同构：occurrence-qualified
     /// subject + Hierarchy descriptor provenance，capture timestamp 可控）。</summary>
     private static ObservationProposal TypedCheckedClaim(

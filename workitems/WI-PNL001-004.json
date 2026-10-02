@@ -1,0 +1,49 @@
+{
+  "id": "WI-PNL001-004",
+  "objective": "task-workbench 静态 Client 半部：任务列表/新建/详情（对话事件流分类 tab + trace + 诊断操作）的 GUI 面板 bundle。",
+  "scope": {
+    "write": [
+      "dsh/uniclaw-task-workbench/src/client.js",
+      "dsh/uniclaw-task-workbench/tests/client.test.mjs",
+      "dsh/uniclaw-task-workbench/package.json"
+    ],
+    "read_hints": [
+      "dsh/uniclaw-decision-channel/src/client.js",
+      "dsh/uniclaw-decision-channel/tests/plugin.test.mjs"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "手写模块系统 bundle（window.__ModuleLoader__.load），照 provider-usage/decision-channel 已验证模式：手写 $mount strict 透传贡献 → remote.uniclawTaskPanel.* 六方法；sidebar.footer.action 入口 + shell.overlay 面板。",
+    "core_points": [
+      "面板结构：左侧任务列表+新建表单（title/requirement/project path）；详情三 tab：对话（分类子 tab：全部/用户/工具/系统）、Trace（物理时间线+语义空态）、操作（实例化 + 两个诊断按钮）",
+      "样式内联 style 对象 + var(--dsw-alias-*) token，无 CSS/构建；React 由 require('react') 解析",
+      "所有 RPC 失败显示结构化错误（error.code+message），面板不崩",
+      "package.json 追加 exports['./client'] 与 dsh.client（platform web, inject 两包）+ capabilities 含 'ui'——必须先确认 src/client.js 真实存在且语法正确（profile 启动会因缺失文件聚合抛错）"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "dsh/uniclaw-decision-channel/src/client.js",
+      "symbol": "window.__ModuleLoader__.load"
+    }
+  ],
+  "contract_refs": [
+    "changes/PNL-001/state.md"
+  ],
+  "acceptance": [
+    "A1 method=`cd dsh/uniclaw-task-workbench && npm test` expected=新增 client 冒烟用例通过（假 __ModuleLoader__+react 桩执行 factory：id 正确、exports.apply/inject 就位、无 slots 时静默降级） actual=Worker 填写 evidence=tests/client.test.mjs",
+    "A2 method=`node --check src/client.js` expected=通过 actual=Worker 填写",
+    "A3 RPC 六方法调用点与冻结 API 逐字对齐（uniclawTaskPanel.overview/createTask/instantiate/conversation/trace/diagnostic），参数/返回字段名不得自创",
+    "A4 package.json 声明后 `node -e \"require('node:fs').accessSync('src/client.js')\"` 式检查通过（文件存在）"
+  ],
+  "forbidden": [
+    "写 scope.write 之外路径；改 src/index.js、src/repository.js、schema/、tests/workbench.test.mjs",
+    "引入构建步骤/CSS 文件/新依赖；内嵌任何真实模型名或 provider 名",
+    "声明 exports['./client'] 时 client.js 不存在（会拖垮 profile 启动）"
+  ],
+  "frozen_decisions": [
+    "PNL-001 决策 7/8/9/10；typert strict 透传 codec 模式（dsh-plugin-static-client-ui 蒸馏）"
+  ],
+  "dependencies": [],
+  "status": "done"
+}

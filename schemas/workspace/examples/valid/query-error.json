@@ -1,0 +1,1 @@
+{"schemaVersion":"uniclaw.workspace.query-error.v1","contractVersion":"uniclaw.workspace.contract.v1","code":"stale","message":"source revision changed","retryable":true,"source":"filesystem","correlationId":"evidence-001"}

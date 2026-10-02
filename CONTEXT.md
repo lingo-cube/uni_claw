@@ -133,11 +133,11 @@ raw artifact 派生 `ObservationProposal` 的 typed capability；跨 owner 的�
 assurance 或 binding authority。
 _Avoid_: L1/L2 Owner、canonical authority、直连 World Model
 
-**Fast / Slow Perception**: Perception 内部用于选择与组合观察推导方式的
-realization category，不是顶层产品组件、跨组件协议参与者或 authority class；
-具体 realization 必须产生兼容的观察 / association evidence，并经同一 P2/P3
-链汇入 UIWorld Authority。
-_Avoid_: 顶层 Fast/Slow 模块、固定算法、独立 authority、跨组件直接依赖具体 realization
+**Fast / Slow Perception**: Perception Capability Plane 中的两种能力层级；Fast
+与 Slow 都是可被 Perception pipeline 集成和编排的 capability，具体模型、provider
+或算法只是 realization。两者都必须产生兼容的 observation / association evidence，
+并经同一 P2/P3 链汇入 UIWorld Authority。
+_Avoid_: realization category、顶层 Owner、固定算法、独立 authority、绕过 P2 直连 WorldModel
 
 **Evidence Record**: Evidence Ledger admission 通过后形成的不可变
 canonical 观察依据记录（EvidenceId + claim + kind + observation
@@ -649,6 +649,54 @@ Continuation 的 realization 载体；与 Memory Recall 同受 non-evidentiary
 纪律）。
 _Avoid_: shadow state、第二 World Model、cached world summary（作权威义）、
 execution log
+
+### Task Workbench（PNL-001 立项 2026-09-30）
+
+**UniClaw Task**: 任务定义——一项可重复发起的工作的规范：需求文本、
+项目归类、状态；不承载执行过程。同一 Task 可被实例化多次。
+_Avoid_: WorkItem（委派契约）、ticket、Product Session、plan
+
+**Task Instance**: 任务的一次执行实例；身份即 Product Session
+（productSessionId）。对话、trace、诊断过程都属于实例，不属于 Task。
+_Avoid_: task run（与 Primary Run 混淆）、subagent、execution
+
+**Task Discovery Authority**: 只有 Product Runtime 或 Task Repository 对
+TaskInstance/ProductSession identity 做确认；仅有 Host session、transcript 或
+扫描到的运行产物时，Workspace 只能展示未关联观察，不能自动升级为任务实例。
+_Avoid_: observed task、session-as-task、host-discovered task
+
+**UniClaw Workspace**: 面向 Task Project 和 Task Instance 的只读观察面；它组合
+Product Session 的对话、Trace、Evidence 和 Metadata 投影，允许按来源查看详情，
+但不拥有停止、重试、批准、任务编辑或任何 Product Runtime Authority。Workspace
+可以把一个 Product Session 映射到一个 primary Host Session；Host Session 的
+生命周期和 transcript 仍属于 Host realization。
+_Avoid_: control plane、Product Runtime、DSH workspace（Host 承载称呼）
+
+**Workspace Query Core**: Workspace 的 Host-neutral 查询、关联、规范化和读模型
+投影核心；它不拥有来源数据、权限真相或 Product Runtime Authority。独立 Web、DSH
+和其他 Host 通过各自 Adapter 提供来源、权限、传输和挂载能力。
+_Avoid_: DSH service、万能数据服务、Product Runtime query owner
+
+**Workspace Snapshot**: 一次 Workspace 查询涉及的各来源结果、版本或读取时间的
+可识别组合；来源不支持历史读取时只能表达读取时间和一致性范围，不能宣称跨来源原子
+一致性。新结果不能覆盖更新快照中的旧结果。
+_Avoid_: canonical world snapshot、global transaction、source truth
+
+**Host-owned Retention**: 来源 Host 或 Source 自己负责缓存、归档、删除、保留和权限
+撤销；Workspace 不复制并长期保留来源事实。Workspace 只能通过显式 capability 读取或
+管理这些能力，不能直接访问 Host 存储。
+_Avoid_: Workspace archive、UI-owned retention、second source of truth
+
+**Auxiliary Execution**: Product Session 下为完成、解释或诊断主任务而发生的辅助能力
+执行；可以由 DSH 子 session、外部工具、文件解析器、Trace 查询器或其他 capability
+提供。它通过 `AuxiliaryExecutionRef` 和 correlation 关系归属于 Product Session，
+不创建新的 Task Instance/Product Session，不取得 Product Authority，也不自动成为
+主时间线节点。
+_Avoid_: second task、second Product Session、DSH-only session、canonical run
+
+**Task Project**: 任务的归类维度——"一堆任务的分组"；在 DSH realization
+上落为一个 workspace。产品语义层称 Project，不称 workspace。
+_Avoid_: workspace（产品语义层）、repo、directory
 
 ### Simulation Substrate（RFS-001 落定）
 

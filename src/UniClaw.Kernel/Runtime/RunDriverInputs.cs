@@ -30,13 +30,17 @@ public enum ObservationDepth
 
     /// <summary>定向复查（悬案聚焦：Subjects 必非空）。</summary>
     Focused,
+
+    /// <summary>Slow capability route hint；不携带 logical profile 或模型细节。</summary>
+    Slow,
 }
 
 /// <summary>
 /// 观察指令：driver 当前期望的观察方向（context + 深度 + 聚焦 subjects）。
 /// PER-009 A 方案（台账 #20 用户裁决）：聚焦复查经 Kernel 驱动面传导——
 /// Observation Control 权威保持在 Control Loop（baseline §14），双 Host
-/// 生而同构（§24.8）。Subjects 非空 ⇔ Depth=Focused。
+/// 生而同构（§24.8）。Focused 要求 Subjects 非空；Slow 只作路线提示，
+/// 不把 logical profile、provider/model 或 EvidenceContext 带入该 surface。
 /// </summary>
 public sealed record ObservationDirective(
     ObservationContext Context,

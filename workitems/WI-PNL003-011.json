@@ -1,0 +1,63 @@
+{
+  "id": "WI-PNL003-011",
+  "objective": "建立 DSH Host wrapper，把现有 DSH panel 与显式 ProductSession 映射接入同一 Workspace App。",
+  "scope": {
+    "write": [
+      "dsh/uniclaw-task-workbench/src/create-workspace-host.js",
+      "dsh/uniclaw-task-workbench/tests/workspace-host.test.mjs",
+      "workitems/WI-PNL003-011.json"
+    ],
+    "read_hints": [
+      "dsh/uniclaw-task-workbench/src/workspace-capabilities.js",
+      "dsh/uniclaw-task-workbench/tests/workspace-capabilities.test.mjs",
+      "web/uniclaw-workspace/src/app/create-workspace-app.js",
+      "web/uniclaw-workspace/src/core/index.js",
+      "web/uniclaw-workspace/src/features/workspace-controller.js",
+      "web/uniclaw-workspace/src/features/workspace-view-model.js",
+      "web/uniclaw-workspace/src/ui/render-workspace-html.js",
+      "plans/PNL-003-plan.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "DSH Host wrapper 只装配 DSH panel adapter、Workspace Query Core、通用 App 和注入 mount；现有 DSH API 保持不变，ProductSession→DSH session 必须显式 resolver，未关联与 panel 错误继续可见。",
+    "core_points": [
+      "共享前端代码由 web/uniclaw-workspace 提供，DSH 只提供 Host adapter/挂载。",
+      "DSH sessionId 只能在 adapter 内部出现，不进入 App 公共接口或 View Model identity。",
+      "DSH panel workspace/session/trace/artifact 通过五类 capability 进入 Query Core。",
+      "DSH Host restart 不创建第二个 ProductSession，mount 与错误生命周期复用 App contract。"
+    ]
+  },
+  "anchors": [
+    {"path": "dsh/uniclaw-task-workbench/src/workspace-capabilities.js", "symbol": "createDshWorkspaceCapabilities"},
+    {"path": "web/uniclaw-workspace/src/app/create-workspace-app.js", "symbol": "createWorkspaceApp"}
+  ],
+  "contract_refs": [
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "plans/PNL-003-plan.md",
+    "schemas/workspace/README.md"
+  ],
+  "acceptance": [
+    "导出 `createDshWorkspaceHost({ panel, resolveProductSession, mount, render?, viewOptions?, now?, revision? })`，内部装配 DSH capabilities、WorkspaceQueryCore 和通用 createWorkspaceApp。",
+    "返回 start、stop、getApp、getController、getState、getError；fake DSH panel 可完成项目加载、显式 ProductSession task 选择、session/timeline/trace/evidence/detail 读取。",
+    "ProductSession→DSH session 只通过显式 resolver；未关联 session 返回 uncorrelated，不创建或推断 ProductSession。",
+    "DSH panel 的 unavailable/not-found/permission-denied/stale 与 renderer/mount 错误通过 App state/error 可观察。",
+    "stop→start 复用同一 App contract；公共 Host API 和 mount View Model 不暴露 DSH sessionId。",
+    "不修改 DSH HTTP/typert/client、createTaskPanelService、Product Runtime 或共享 web 代码；测试覆盖 Host 装配、映射、错误、restart 和依赖边界。",
+    "npm test、node --check、精确依赖扫描、git diff --check 和 WorkItem schema 校验通过。"
+  ],
+  "forbidden": [
+    "不得修改 dsh/uniclaw-task-workbench/src/index.js、client.js、旧 HTTP/typert API、Product Runtime 或 web/uniclaw-workspace。",
+    "不得在共享前端引入 DSH import、DSH globals、panel method 或 Host session 语义。",
+    "不得自动从任意 dshSessionId 推导 ProductSessionId，不得新增写操作、缓存、归档或删除接口。",
+    "不得吞掉 panel、resolver、Query Core、renderer 或 mount 错误。"
+  ],
+  "frozen_decisions": [
+    "DSH 是 Host Adapter，不是共享前端产品语义来源。",
+    "ProductSessionId 是任务 identity，DSH sessionId 是 hostSessionRef。",
+    "Standalone 与 DSH 复用 Query Core、Controller、View Model、Renderer 和 App wrapper。"
+  ],
+  "dependencies": ["WI-PNL003-003", "WI-PNL003-004", "WI-PNL003-006", "WI-PNL003-007", "WI-PNL003-008", "WI-PNL003-009", "WI-PNL003-010"],
+  "status": "done",
+  "required_skills": ["codebase-design", "tdd"],
+  "required_capability": "implementation"
+}

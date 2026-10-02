@@ -28,6 +28,7 @@ from .pipeline import (
     PipelineConfig,
     PipelineValidationError,
     detect_device,
+    active_variant_ids,
     load_default,
     load_variants,
     lint_against_config,
@@ -93,7 +94,9 @@ async def lifespan(app: FastAPI):
     try:
         lint_against_config(default_pipeline, _config)
         _pipelines[DEFAULT_PIPELINE_KEY] = (default_pipeline, {})
-        for variant_id, variant in load_variants().items():
+        variants = load_variants()
+        for variant_id in active_variant_ids(variants):
+            variant = variants[variant_id]
             lint_against_config(variant.config, _config)
             _pipelines[variant_id] = (variant.config, {})
     except PipelineValidationError:

@@ -1,0 +1,52 @@
+{
+  "status": "BoundedStop",
+  "items": [
+    {
+      "requirement": "root-page",
+      "detail": "root route observed",
+      "covered": true,
+      "evidence": "android.settings|route:Settings"
+    },
+    {
+      "requirement": "first-level-all-visible",
+      "detail": "entered 1/1",
+      "covered": true,
+      "evidence": "entered:Network \u0026 internet-\u003Eandroid.settings|route:Internet;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings;entered:Search settings-\u003Eandroid.settings"
+    },
+    {
+      "requirement": "scroll-discovered-entry",
+      "detail": "entered 1/99 scroll-discovered",
+      "covered": false,
+      "evidence": "Search settings"
+    },
+    {
+      "requirement": "second-level-pages",
+      "detail": "distinct second-level routes 2/2",
+      "covered": true,
+      "evidence": "android.settings|route:Internet;android.settings"
+    },
+    {
+      "requirement": "back-navigation",
+      "detail": "back verified 29",
+      "covered": true,
+      "evidence": "Navigate up"
+    },
+    {
+      "requirement": "repeated-entry",
+      "detail": "satisfied 1/1",
+      "covered": true,
+      "evidence": "Search settings"
+    }
+  ],
+  "coverageRate": 0.8333333333333334,
+  "stepSuccessRate": 1,
+  "uncoveredItems": [
+    "scroll-discovered-entry"
+  ],
+  "firstDivergence": null,
+  "stepsExecuted": 60,
+  "stepsVerified": 60,
+  "scrollsUsed": 1,
+  "scrollAttempts": 1,
+  "consultRounds": 60
+}

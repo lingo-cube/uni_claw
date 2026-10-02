@@ -1,0 +1,31 @@
+{
+  "name": "@uniclaw/dsh-task-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "description": "UniClaw Product Workspace host half (PNL-002): authenticated task surface plus read-only project, session, Kernel Trace, metadata, and evidence projections backed by the task-protocol artifact and TaskRepository JSON store.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./src/*": "./src/*",
+    "./package.json": "./package.json",
+    "./client": "./src/client.js"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:bridge": "node --test tests/client-bridge.test.mjs"
+  },
+  "dsh": {
+    "description": "UniClaw Product Workspace host surface (PNL-002)",
+    "capabilities": [
+      "ui"
+    ],
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-api-remotes"
+      ],
+      "platform": "web"
+    }
+  }
+}

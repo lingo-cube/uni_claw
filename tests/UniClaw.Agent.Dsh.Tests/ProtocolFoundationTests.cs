@@ -54,6 +54,38 @@ public sealed class ProtocolFoundationTests
     }
 
     [Fact]
+    public async Task Accepted_Output_Remains_Traceable_To_Product_Session_Run_And_Request()
+    {
+        DecisionRequest? observed = null;
+        var transport = DecisionChannelFixture.Open(request =>
+        {
+            observed = request;
+            var decision = new AgentDecision.Policy(request.Context.DecisionId, new PolicyProposal(
+                "policy-trace-1",
+                new[] { new PolicyPredicate.ClaimEquals("wifi.state", "off") },
+                new PolicyActionTemplate("switch", "wifi", "tap", "on"),
+                new[] { new PolicyPredicate.ClaimEquals("wifi.state", "on") },
+                new[] { new PolicyGuard.ObservationUnchanged("wifi.state", 2) },
+                2, "traceable policy"));
+            return new DecisionChannelResponse(request.RequestId, request.Generation, decision);
+        });
+        await using var adapter = new DshAgentAdapter(transport, "product-session-trace", "run-trace");
+
+        var result = await adapter.ConsultAsync(Context("decision-trace", "run-trace"));
+
+        Assert.NotNull(result);
+        Assert.NotNull(observed);
+        Assert.Equal("product-session-trace", observed!.ProductSessionId);
+        Assert.Equal("run-trace", observed.ProductRunId);
+        Assert.Equal("run-trace", observed.Context.RunId);
+        Assert.Equal("decision-trace", observed.Context.DecisionId);
+        var policy = Assert.IsType<AgentDecision.Policy>(result);
+        Assert.Equal("decision-trace", policy.DecisionId);
+        Assert.Equal("policy-trace-1", policy.Proposal.PolicyId);
+        Assert.Empty(adapter.Diagnostics);
+    }
+
+    [Fact]
     public void Handshake_Rejects_Version_Hash_And_Capability_Mismatch()
     {
         var expected = ProductHandshake.CreateRequest("session-1", "run-1");
@@ -98,10 +130,37 @@ public sealed class ProtocolFoundationTests
     [InlineData("{\"kind\":\"future\",\"decisionId\":\"d\"}")]
     [InlineData("{\"kind\":\"noAction\",\"decisionId\":\"d\",\"proposal\":{\"decisionId\":\"d\",\"justification\":\"ok\"},\"extra\":1}")]
     [InlineData("{\"kind\":\"noAction\",\"decisionId\":\"d\",\"proposal\":{\"decisionId\":\"other\",\"justification\":\"ok\"}}")]
+    [InlineData("{\"kind\":\"defer\",\"decisionId\":\"d\",\"spec\":{\"subject\":\"wifi\",\"maxRounds\":0}}")]
+    [InlineData("{\"kind\":\"policy\",\"decisionId\":\"d\",\"proposal\":{\"policyId\":\"p\",\"match\":[],\"actionTemplate\":{\"targetRole\":\"switch\",\"effectClass\":\"tap\"},\"termination\":[],\"guards\":[],\"maxApplications\":0}}")]
     public void Malformed_Decision_Payload_Is_Rejected(string payload)
     {
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<AgentDecision>(
             payload, ProductProtocolJson.CreateOptions()));
+    }
+
+    [Fact]
+    public void Generated_Schema_Expresses_Bounded_Decision_Inputs()
+    {
+        using var document = JsonDocument.Parse(ProductProtocolSchema.Current.Json);
+        var definitions = document.RootElement.GetProperty("$defs");
+        var maxRounds = definitions.GetProperty("ObserveSpec").GetProperty("properties").GetProperty("maxRounds");
+        var maxApplications = definitions.GetProperty("PolicyProposal").GetProperty("properties").GetProperty("maxApplications");
+        Assert.Equal("integer", maxRounds.GetProperty("type").GetString());
+        Assert.Equal(1, maxRounds.GetProperty("minimum").GetInt32());
+        Assert.Equal("integer", maxApplications.GetProperty("type").GetString());
+        Assert.Equal(1, maxApplications.GetProperty("minimum").GetInt32());
+    }
+
+    [Fact]
+    public void Generated_Schema_Exposes_Optional_Element_State_For_Safe_Actions()
+    {
+        using var document = JsonDocument.Parse(ProductProtocolSchema.Current.Json);
+        var elementSummary = document.RootElement.GetProperty("$defs").GetProperty("ElementSummary");
+        var state = elementSummary.GetProperty("properties").GetProperty("state");
+
+        Assert.Equal("string", state.GetProperty("type").GetString());
+        Assert.DoesNotContain("state", elementSummary.GetProperty("required")
+            .EnumerateArray().Select(value => value.GetString()));
     }
 
     [Fact]
@@ -122,8 +181,8 @@ public sealed class ProtocolFoundationTests
         return directory?.FullName ?? throw new DirectoryNotFoundException("repository root");
     }
 
-    private static AgentDecisionContext Context(string decisionId) => new(
-        decisionId, "run-1", "v0", "objective", new HashSet<string> { "tap" },
+    private static AgentDecisionContext Context(string decisionId, string runId = "run-1") => new(
+        decisionId, runId, "v0", "objective", new HashSet<string> { "tap" },
         new Dictionary<string, ClaimSummary>(), Array.Empty<AgentObligationView>(),
         AgentDecisionPhase.InitialPlanning);
 

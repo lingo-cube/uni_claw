@@ -1,0 +1,908 @@
+[
+  {
+    "index": 0,
+    "decisionId": "decision-119bee1e065b-1",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Enter the Settings first-level entry \u0027\u003CNetwork \u0026 internet\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Network \u0026 internet",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-1-occ-80e2c63a0a36-3-1",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 866",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings|route:Internet",
+    "postCaptureId": "capture-0d8e5171a1d749b6ae8cb8e1ecb140e7",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "decisionId": "decision-119bee1e065b-2",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-2-occ-efddd22c8cac-1-2",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 73 182",
+    "routeBefore": "android.settings|route:Internet",
+    "routeAfter": "android.settings|route:Settings",
+    "postCaptureId": "capture-562f280484464199aebcb2c032f7ba07",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "decisionId": "decision-119bee1e065b-3",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Scroll the Settings list down with swipe-up on \u0027\u003Ccom.android.settings:id/main_content_scrollable_container\u003E\u0027",
+    "targetRole": "scrollable",
+    "targetDescriptor": "com.android.settings:id/main_content_scrollable_container",
+    "effectClass": "swipe-up",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-3-occ-66a11ecf0fae-2-3",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input swipe 540 1638 540 907 300",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings|route:Settings",
+    "postCaptureId": "capture-cb43d7004e3c4f6aba0b08932620a7ae",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-route-unchanged",
+        "value": true
+      },
+      {
+        "key": "post-action-content-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "decisionId": "decision-119bee1e065b-4",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Enter the scroll-discovered Settings entry \u0027\u003CSearch settings\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Search settings",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-4-occ-b73f01a59beb-0-4",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 219",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-5fc9260d3d444ee4972d34139897d7d6",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "decisionId": "decision-119bee1e065b-5",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-5-occ-ca54ffaa54fc-0-5",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 94 193",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|route:Settings",
+    "postCaptureId": "capture-5782ae7435c54818ac8b6e922f50d6ea",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "decisionId": "decision-119bee1e065b-6",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Enter the scroll-discovered Settings entry \u0027\u003CNotifications\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Notifications",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-6-occ-75594cab8b46-2-6",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 445",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings|route:Manage",
+    "postCaptureId": "capture-4506365420e945ca9633cd724da621f9",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "decisionId": "decision-119bee1e065b-7",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-7-occ-b83014733f9e-1-7",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 73 182",
+    "routeBefore": "android.settings|route:Manage",
+    "routeAfter": "android.settings|route:Settings",
+    "postCaptureId": "capture-ce9dc483a8d947e0bb306acd870c0e17",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "decisionId": "decision-119bee1e065b-8",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Enter the scroll-discovered Settings entry \u0027\u003CBattery\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Battery",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-8-occ-34c011468795-3-8",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 675",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings|route:Battery usage",
+    "postCaptureId": "capture-81437845dfbb4f8a8576f6c0f048b15c",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "decisionId": "decision-119bee1e065b-9",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-9-occ-b2996a70bd11-1-9",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 73 182",
+    "routeBefore": "android.settings|route:Battery usage",
+    "routeAfter": "android.settings|route:Settings",
+    "postCaptureId": "capture-91e542f33491499b997923aaf0d0d232",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 9,
+    "decisionId": "decision-119bee1e065b-10",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Enter the scroll-discovered Settings entry \u0027\u003CStorage\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Storage",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-10-occ-29d7f2bcf0b8-4-10",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 906",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings|route:Storage manager",
+    "postCaptureId": "capture-d9c23ae7707f495bb5d44214fa3351b5",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 10,
+    "decisionId": "decision-119bee1e065b-11",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-11-occ-3eb4f8c4e847-1-11",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 73 182",
+    "routeBefore": "android.settings|route:Storage manager",
+    "routeAfter": "android.settings|route:Settings",
+    "postCaptureId": "capture-a606b409fc1a478b8dde3a28f8dd0fcb",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 11,
+    "decisionId": "decision-119bee1e065b-12",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Enter the scroll-discovered Settings entry \u0027\u003CSound \u0026 vibration\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Sound \u0026 vibration",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-12-occ-a6814ec84365-5-12",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 1137",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings|route:Media volume",
+    "postCaptureId": "capture-0cbcc9f5596a42b0945d286bd0a68512",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 12,
+    "decisionId": "decision-119bee1e065b-13",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-13-occ-c4b141c657f1-1-13",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 73 182",
+    "routeBefore": "android.settings|route:Media volume",
+    "routeAfter": "android.settings|route:Settings",
+    "postCaptureId": "capture-c918a06abe4f45059622c4b4908d69b3",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 13,
+    "decisionId": "decision-119bee1e065b-14",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Enter the scroll-discovered Settings entry \u0027\u003CDisplay\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Display",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-14-occ-21a121a7bd93-6-14",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 1368",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings|route:Brightness",
+    "postCaptureId": "capture-59549790572441f7bec6f7e23020d716",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 14,
+    "decisionId": "decision-119bee1e065b-15",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-15-occ-2011429266cb-1-15",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 73 182",
+    "routeBefore": "android.settings|route:Brightness",
+    "routeAfter": "android.settings|route:Settings",
+    "postCaptureId": "capture-17eb2ea0b72d46e690aca6032714afd2",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 15,
+    "decisionId": "decision-119bee1e065b-16",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Enter the scroll-discovered Settings entry \u0027\u003CWallpaper\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Wallpaper",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-16-occ-3e0130f379dd-7-16",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 1599",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings|route:Gallery",
+    "postCaptureId": "capture-9fcd8c886b614e9f9c89639467d33938",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 16,
+    "decisionId": "decision-119bee1e065b-17",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-17-occ-286307db1618-1-17",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 73 182",
+    "routeBefore": "android.settings|route:Gallery",
+    "routeAfter": "android.settings|route:Settings",
+    "postCaptureId": "capture-732a466e51c142a5ab171f092a11b6c9",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 17,
+    "decisionId": "decision-119bee1e065b-18",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Enter the scroll-discovered Settings entry \u0027\u003CAccessibility\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Accessibility",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-18-occ-e70d555c7562-8-18",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 1754",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings|route:Display",
+    "postCaptureId": "capture-620eafc8e5bf496597923d4dbf85b03a",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 18,
+    "decisionId": "decision-119bee1e065b-19",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-19-occ-46007ac87941-1-19",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 73 182",
+    "routeBefore": "android.settings|route:Display",
+    "routeAfter": "android.settings|route:Settings",
+    "postCaptureId": "capture-85bdbc93895140f18c8fdd237247a7cc",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 19,
+    "decisionId": "decision-119bee1e065b-20",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Scroll the Settings list down with swipe-up on \u0027\u003Ccom.android.settings:id/main_content_scrollable_container\u003E\u0027",
+    "targetRole": "scrollable",
+    "targetDescriptor": "com.android.settings:id/main_content_scrollable_container",
+    "effectClass": "swipe-up",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-20-occ-c2664a34c076-1-20",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input swipe 540 1575 540 549 300",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings|route:Settings",
+    "postCaptureId": "capture-803eebd819594ed5bba98c722b6fb22b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-route-unchanged",
+        "value": true
+      },
+      {
+        "key": "post-action-content-transition",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 20,
+    "decisionId": "decision-119bee1e065b-21",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Enter the scroll-discovered Settings entry \u0027\u003CSecurity \u0026 privacy\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Security \u0026 privacy",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": false,
+    "receiptId": "receipt-bind-intent-21-occ-5d5651d47480-3-21",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 523",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings|route:Settings",
+    "postCaptureId": "capture-0123c73278394ba49001ff15e4eab637",
+    "verified": false,
+    "failureReason": "post-action-target-unique",
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": false
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 21,
+    "decisionId": "decision-119bee1e065b-22",
+    "dshSessionId": "session-b0a7855f-3637-48d8-a73e-ac692aaba144",
+    "directive": "Enter the scroll-discovered Settings entry \u0027\u003CDismiss\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Dismiss",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-22-occ-adf84e651784-3-22",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 943 985",
+    "routeBefore": "android.settings|route:Settings",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-e8beefbb1c4d481f95406ae94728c1ab",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      }
+    ]
+  }
+]

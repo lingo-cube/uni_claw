@@ -1,0 +1,11 @@
+{
+  "status": "TerminalNotProven",
+  "reason": "evidence-insufficient",
+  "outcome": null,
+  "delivered": 1,
+  "receipts": [
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "journalBytes": 1534
+}

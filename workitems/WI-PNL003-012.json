@@ -1,0 +1,58 @@
+{
+  "id": "WI-PNL003-012",
+  "objective": "验证 Standalone 与 DSH 两个 Host 入口复用同一 Workspace App contract，并留下主流程与失败路径的可复现运行证据。",
+  "scope": {
+    "write": [
+      "web/uniclaw-workspace/tests/dual-entry.test.js",
+      "dsh/uniclaw-task-workbench/tests/dual-entry.test.mjs",
+      "workitems/WI-PNL003-012.json"
+    ],
+    "read_hints": [
+      "web/uniclaw-workspace/src/hosts/create-standalone-host.js",
+      "web/uniclaw-workspace/src/app/create-workspace-app.js",
+      "dsh/uniclaw-task-workbench/src/create-workspace-host.js",
+      "dsh/uniclaw-task-workbench/src/workspace-capabilities.js",
+      "plans/PNL-003-plan.md",
+      "docs/architecture/uniclaw-workspace-architecture-v0.1.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "两个入口用各自来源装配同一个 Host-neutral App；验证完整只读主流程、局部失败、未关联、stale、权限/超时和 restart 语义，不引入浏览器或 DSH 依赖到共享层。",
+    "core_points": [
+      "Standalone 与 DSH 的 mount 输出必须包含同一组 renderer-neutral 区域和请求→决策→结果主线。",
+      "失败必须保留 capability/error/source/revision 事实，不用空数组伪装成功。",
+      "Host restart 不创建第二个 ProductSession，也不泄漏 DSH session identity。",
+      "运行证据必须能复现入口、输入、状态输出和失败结果；截图只作为视觉补充。"
+    ]
+  },
+  "anchors": [
+    {"path": "web/uniclaw-workspace/src/hosts/create-standalone-host.js", "symbol": "createStandaloneWorkspaceHost"},
+    {"path": "dsh/uniclaw-task-workbench/src/create-workspace-host.js", "symbol": "createDshWorkspaceHost"}
+  ],
+  "contract_refs": [
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "plans/PNL-003-plan.md",
+    "schemas/workspace/README.md"
+  ],
+  "acceptance": [
+    "Standalone 与 DSH fake host 都完成项目→任务→session→timeline→trace/evidence→detail 主流程，并由同一 App contract 输出 mount html/viewModel/state。",
+    "两个入口都验证 uncorrelated、permission-denied/unavailable/timeout 或 stale 的局部错误可见，成功数据不会被错误折叠为空数组。",
+    "两个入口都验证 stop→start 可恢复且 ProductSessionId 保持不变；DSH public state/viewModel 不出现 sessionId/dshSessionId。",
+    "测试输出记录 method/expected/actual/evidence，必要时生成可供浏览器打开的静态 HTML；不修改 Product Runtime、旧 DSH API、共享 renderer/core/schema。",
+    "npm test、node --check、依赖边界扫描、WorkItem schema 校验和 git diff --check 通过。"
+  ],
+  "forbidden": [
+    "不得把浏览器 DOM、React、fetch、文件系统或 DSH transport 引入 web/uniclaw-workspace 共享层。",
+    "不得新增写操作、实时事件、缓存、归档、删除或第二个 ProductSession。",
+    "不得把截图当作契约验证的唯一证据。"
+  ],
+  "frozen_decisions": [
+    "Standalone 与 DSH 是两种 Host realization，共享 Query Core、Controller、View Model、Renderer 和 App。",
+    "ProductSessionId 是产品身份；DSH sessionId 只属于 Host Adapter。",
+    "局部错误和未关联必须显式呈现。"
+  ],
+  "dependencies": ["WI-PNL003-009", "WI-PNL003-010", "WI-PNL003-011"],
+  "status": "done",
+  "required_skills": ["tdd", "ego-browser"],
+  "required_capability": "implementation"
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.dev/schemas/workspace/record-envelope/v1",
+  "title": "UniClaw Workspace RecordEnvelope",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": "uniclaw.workspace.record-envelope.v1"},
+    "contractVersion": {"const": "uniclaw.workspace.contract.v1"},
+    "recordId": {"type": "string", "minLength": 1},
+    "kind": {"enum": ["conversation", "trace", "evidence", "metadata", "outcome"]},
+    "source": {"type": "string", "enum": ["uniclaw", "dsh", "otel", "filesystem", "external"]},
+    "authority": {"type": "string", "enum": ["uniclaw-runtime", "dsh-host", "external-system"]},
+    "taskInstanceId": {"type": "string", "minLength": 1},
+    "productSessionId": {"type": "string", "minLength": 1},
+    "hostSessionRef": {"$ref": "#/$defs/hostSessionRef"},
+    "auxiliaryExecutionRef": {"$ref": "#/$defs/auxiliaryExecutionRef"},
+    "correlationId": {"type": "string", "minLength": 1},
+    "occurredAt": {"type": "string", "format": "date-time"},
+    "summary": {"type": "string"},
+    "detailRef": {"$ref": "#/$defs/detailRef"},
+    "rawRef": {"$ref": "#/$defs/detailRef"}
+  },
+  "required": ["schemaVersion", "contractVersion", "recordId", "kind", "source", "authority", "taskInstanceId", "productSessionId", "correlationId", "occurredAt", "summary"],
+  "$defs": {
+    "hostSessionRef": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"host": {"type": "string", "enum": ["dsh", "other"]}, "sessionId": {"type": "string", "minLength": 1}},
+      "required": ["host", "sessionId"]
+    },
+    "auxiliaryExecutionRef": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"executionId": {"type": "string", "minLength": 1}, "provider": {"type": "string", "minLength": 1}, "kind": {"type": "string", "enum": ["dsh", "tool", "file-analysis", "trace-query", "other"]}},
+      "required": ["executionId", "provider", "kind"]
+    },
+    "detailRef": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"refId": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!//)(?![A-Za-z]:[\\\\/])(?![A-Za-z][A-Za-z0-9+.-]*://)(?!.*[\\u0000-\\u001F\\u007F]).+$"}, "source": {"type": "string", "enum": ["uniclaw", "dsh", "otel", "filesystem", "external"]}, "detailType": {"enum": ["structured", "text", "image", "binary"]}, "revision": {"type": "string", "minLength": 1}},
+      "required": ["refId", "source", "detailType"]
+    }
+  }
+}

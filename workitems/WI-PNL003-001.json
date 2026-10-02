@@ -1,0 +1,65 @@
+{
+  "id": "WI-PNL003-001",
+  "objective": "建立 UniClaw Workspace 第一版语言无关契约，使 Query Core、DSH Adapter、独立 Web 和前端共享同一组可校验边界。",
+  "scope": {
+    "write": [
+      "schemas/workspace/",
+      "tools/validate-workspace-schemas.py"
+    ],
+    "read_hints": [
+      "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
+      "CONTEXT.md",
+      "schemas/agt-002/product-protocol.schema.json",
+      "tools/scenario-coverage.py"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "只实现 Workspace 的共享 schema foundation：RecordEnvelope、五类 query capability、结构化 query error、正反例与确定性校验。ProductSession 是产品身份；Host/DSH 只作为显式关联，不进入产品 authority。",
+    "core_points": [
+      "契约真相放在 schemas/workspace/，不能以 DSH API 或前端 TypeScript 类型替代",
+      "RecordEnvelope 必须保留 kind/source/authority/productSessionId/correlationId/schemaVersion，并支持受控 DetailRef/AuxiliaryExecutionRef",
+      "capability 只允许 TaskQuery、SessionQuery、TraceQuery、EvidenceQuery、DetailQuery 五类窄能力并带版本",
+      "错误必须区分 unavailable、uncorrelated、stale、permission-denied、not-found、timeout 等可观察状态",
+      "所有示例由 validator 正向和反向验证，错误样例不能静默通过"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+      "symbol": "RecordEnvelope / Workspace Query Core / v0.1 reliability contract"
+    },
+    {
+      "path": "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md"
+    }
+  ],
+  "contract_refs": [
+    "docs/architecture/uniclaw-workspace-architecture-v0.1.md",
+    "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
+    "changes/PNL-003/state.md"
+  ],
+  "acceptance": [
+    "A1 method=`python3 tools/validate-workspace-schemas.py` expected=所有 schemas/workspace schema 与 examples 正向/反向校验通过，退出码为 0 actual=Worker 填写 evidence=validator output",
+    "A2 正例覆盖 RecordEnvelope、TaskQuery/SessionQuery/TraceQuery/EvidenceQuery/DetailQuery 五类 capability 和每种 query error；反例至少覆盖缺少 productSessionId、schemaVersion 不匹配、未知关键字段、未声明 capability",
+    "A3 所有公共 schema 有稳定 $id、明确 schemaVersion/contractVersion、public object additionalProperties=false；新增非关键字段不会破坏兼容说明",
+    "A4 共享 schema 不包含 DSH import、DSH RPC、文件绝对路径、任意 URL 或 Product Runtime 写操作；Host session 只能是显式 reference",
+    "A5 校验失败输出文件、JSON path 和原因；错误样例不会静默通过",
+    "A6 method=`git diff --check` expected=通过且 git status 只显示 WorkItem scope 内新增/修改 actual=Worker 填写"
+  ],
+  "forbidden": [
+    "修改 dsh/、src/、tests/ 运行时代码、web/ 前端、CONTEXT.md、docs/architecture/、docs/adr/ 或 changes/PNL-003/state.md",
+    "实现 Query Core、DSH Adapter、standalone Adapter、React UI 或任何 Product Runtime 写操作",
+    "引入新的 Product Session、TaskInstance、Trace authority 或未经 Grill 决定的字段语义",
+    "把 DSH sessionId 偷换为 ProductSessionId，或把来源缓存/归档 owner 放入 Workspace schema",
+    "增加依赖或访问网络；若现有 jsonschema 工具不可用，停止并报告 ROUTING_CAPABILITY_LIMIT，不绕过校验"
+  ],
+  "frozen_decisions": [
+    "PNL-003 五轮 Grill 已裁决：Workspace 只读、ProductSession authority、Host-neutral Query Core、Host-owned Retention、显式 correlation、v0.1 reliability contract",
+    "ADR-0031：共享 schema 与 Query Core 边界"
+  ],
+  "dependencies": [],
+  "status": "done",
+  "required_skills": ["codebase-design", "tdd"],
+  "required_capability": "implementation",
+  "role_profile": "worker"
+}

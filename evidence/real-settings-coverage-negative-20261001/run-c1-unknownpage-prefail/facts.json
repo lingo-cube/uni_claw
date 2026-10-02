@@ -1,0 +1,45 @@
+{
+  "status": "TerminalNotProven",
+  "reason": "evidence-insufficient",
+  "outcome": null,
+  "delivered": 1,
+  "receipts": [
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0,
+  "stepSuccessRate": 0,
+  "uncovered": [
+    "root-page",
+    "first-level-all-visible",
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "back-navigation",
+    "repeated-entry"
+  ],
+  "firstDivergence": "step 0 decision decision-119bee1e065b-1: post-action-target-unique",
+  "terminalJustification": null,
+  "journalBytes": 1533,
+  "consults": [
+    {
+      "decisionId": "decision-119bee1e065b-1",
+      "phase": "InitialPlanning",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1
+    },
+    {
+      "decisionId": "decision-119bee1e065b-2",
+      "phase": "VerificationFailed",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": null,
+      "deviationReason": "expected-act-for-directive:back",
+      "attempts": 2
+    }
+  ],
+  "steps": []
+}

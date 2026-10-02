@@ -264,8 +264,12 @@ public sealed class UniKernel
     public RunState? RunState => _run?.State;
 
     /// <summary>Effect Receipt log（只读透传；Effect Boundary 仍是唯一 owner）。</summary>
-    public IReadOnlyList<EffectReceipt> EffectReceipts =>
-        _effects?.ReceiptLog ?? Array.Empty<EffectReceipt>();
+    public IReadOnlyList<EffectReceipt> EffectReceipts =>        _effects?.ReceiptLog ?? Array.Empty<EffectReceipt>();
+
+    /// <summary>AGT-005：post-action verification log 只读透传（逐步 trace
+    /// 消费面；Assurance 仍是唯一 judgment owner）。</summary>
+    public IReadOnlyList<UniClaw.Kernel.Assurance.PostActionEffectVerification> PostActionVerifications =>
+        _assurance.PostActionVerificationLog;
 
     /// <summary>
     /// 处理一条观察输入：
@@ -444,7 +448,8 @@ public sealed class UniKernel
     internal PostActionEffectVerification VerifyPostActionEffect(
         TargetSpec target,
         IReadOnlyList<KernelResult> processedObservations,
-        DateTimeOffset? dispatchTime = null)
+        DateTimeOffset? dispatchTime = null,
+        WorldBeliefRevision? preActionBelief = null)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(processedObservations);
@@ -471,9 +476,49 @@ public sealed class UniKernel
             ? containers[0].Identity.ContainerId
             : throw new InvalidOperationException("post-action verification requires one root container");
         var slice = DeriveSlice(root);
+        var targetWasUniqueBeforeDispatch = preActionBelief?.Occurrences is { } priorOccurrences
+            && priorOccurrences.Count(o => MatchesTarget(o.Role, o.SemanticDescriptor, target)) == 1;
+        var currentTargetCount = slice.Occurrences.Count(o => MatchesTarget(o, target));
+        var priorRoute = preActionBelief?.WorldState.TryGetValue(
+            ProductAssociationStrategy.ScreenRouteSubject, out var priorRouteClaim) == true
+            ? priorRouteClaim.Value
+            : null;
+        var currentRoute = _world.Current?.WorldState.TryGetValue(
+            ProductAssociationStrategy.ScreenRouteSubject, out var currentRouteClaim) == true
+            ? currentRouteClaim.Value
+            : null;
+        var routeChanged = priorRoute is not null && currentRoute is not null
+            && !string.Equals(priorRoute, currentRoute, StringComparison.Ordinal);
+        var navigationTransition = targetWasUniqueBeforeDispatch
+            && currentTargetCount == 0
+            && routeChanged;
+        // AGT-005：滚动内容变化 = pre-dispatch 与当前可见 occurrence
+        // (role, descriptor) 集合不对称（滚动露出新条目/收起旧条目均算）；
+        // 集合对称的滚动 = 未生效，由 Assurance fail closed。
+        bool? scrollContentChanged = null;
+        if (global::UniClaw.Kernel.Effects.AdbEffectDriver.IsSwipeEffect(target.EffectClass.ToLowerInvariant())
+            && preActionBelief?.Occurrences is { } beforeOccurrences)
+        {
+            var before = beforeOccurrences
+                .Select(o => (o.Role, o.SemanticDescriptor)).ToHashSet();
+            var after = slice.Occurrences
+                .Select(o => (o.Role, o.SemanticDescriptor)).ToHashSet();
+            scrollContentChanged = !before.SetEquals(after);
+        }
         return Assurance.VerifyPostActionEffect(
-            new PostActionEffectVerificationInput(target, slice, processedObservations));
+            new PostActionEffectVerificationInput(target, slice, processedObservations,
+                TargetDisappearedAfterRouteChange: navigationTransition,
+                PriorRoute: priorRoute,
+                CurrentRoute: currentRoute,
+                ScrollContentChanged: scrollContentChanged));
     }
+
+    private static bool MatchesTarget(OccurrenceFact occurrence, TargetSpec target) =>
+        MatchesTarget(occurrence.Role, occurrence.SemanticDescriptor, target);
+
+    private static bool MatchesTarget(string role, string? descriptor, TargetSpec target) =>
+        role == target.Role
+        && (target.SemanticDescriptor is null || descriptor == target.SemanticDescriptor);
 
     /// <summary>
     /// typed 验证路由执行（PER-014 R2）：经 <see cref="SemanticCheckedResolver"/>
