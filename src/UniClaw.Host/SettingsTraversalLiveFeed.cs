@@ -29,6 +29,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         TimeSpan FastLatency,
         TimeSpan HierarchyLatency,
         string ScreenIdentity,
+        string? Popup = null,
         string? Slow = null,
         string? Grounding = null,
         string? Assurance = null,
@@ -95,6 +96,9 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         var screenIdentity = xmlResult.Xml is null
             ? "android.settings"
             : DeriveScreenIdentity(xmlResult.Xml);
+        // AGT-009：弹窗结构分类——XML 可解析才有声明；与同一周期的其他 proposal
+        // 同批进入证据流。
+        var popupState = DerivePopupState(xmlResult.Xml, "com.android.settings");
 
         if (_evidenceDir is not null && _persistHierarchies && xmlResult.Xml is not null)
             WriteEvidenceFile(_evidenceDir, captureId + ".xml",
@@ -116,6 +120,9 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
             new Provenance("host.live.settings", _clock.Now,
                 $"scope:ui.screen.route:{observationCycleId}",
                 new[] { "real-device", "capture:" + captureId, "route-fingerprint" })));
+        var popupProposal = PopupProposal(popupState, captureId, observationCycleId, _clock.Now, directive.Context);
+        if (popupProposal is not null)
+            proposals.Add(popupProposal);
         if (xmlResult.Xml is not null)
         {
             var api = UiAutomatorDump.TryGetApiLevel(_assets.DeviceId);
@@ -134,7 +141,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
 
         _trace.Add(new TraceEntry(cycle, directive.Context.ToString(), captureId,
             observationCycleId, fastAvailable, xmlResult.Xml is not null,
-            proposals.Count, fastLatency, hierarchyLatency, screenIdentity));
+            proposals.Count, fastLatency, hierarchyLatency, screenIdentity, popupState));
         return new RunDriverInput.Observation(proposals);
     }
 
@@ -170,6 +177,60 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
             return "android.settings";
         }
     }
+
+    /// <summary>
+    /// AGT-009 §1 — 确定性 XML 结构弹窗分类器。present 当且仅当 XML 可解析且
+    ///（窗口根 package ≠ hostPackage ∨ 任一 node resource-id ∈ 弹窗白名单）；
+    /// absent = 可解析且条件全不成立；xml 为 null 或不可解析 → null（无 XML
+    /// ⇒ 无弹窗声明——绝不从 Fast/截图伪造结构事实）。几何不作判据。
+    /// </summary>
+    /// <returns>"present" | "absent" | null（无声明）</returns>
+    internal static string? DerivePopupState(string? xml, string hostPackage) =>
+        DerivePopupState(xml, hostPackage, SettingsCoverage.PopupClearanceConfig.DefaultPopupResourceIds);
+
+    internal static string? DerivePopupState(string? xml, string hostPackage, IReadOnlyList<string> popupResourceIds)
+    {
+        if (xml is null)
+            return null;
+        XElement? root;
+        try
+        {
+            root = XDocument.Parse(xml).Root;
+        }
+        catch (Exception)
+        {
+            return null; // 不可解析 → 无声明（不猜测）
+        }
+        if (root is null)
+            return null;
+        var nodes = root.Descendants("node").ToList();
+        var windowPackage = (string?)nodes.FirstOrDefault()?.Attribute("package");
+        if (windowPackage is not null && windowPackage != hostPackage)
+            return "present";
+        var whitelist = popupResourceIds.ToHashSet(StringComparer.Ordinal);
+        var hasWhitelistedId = nodes
+            .Select(n => (string?)n.Attribute("resource-id"))
+            .Any(id => id is not null && whitelist.Contains(id));
+        return hasWhitelistedId ? "present" : "absent";
+    }
+
+    /// <summary>
+    /// AGT-009 — 弹窗 typed 声明 proposal（ui.overlay.popup = present/absent）。
+    /// 与既有 route claim 同形（producer host.live.settings；scope/lineage 携带
+    /// capture 与 observationCycleId）；popupState 为 null（无 XML）→ 不产 proposal。
+    /// </summary>
+    internal static ObservationProposal? PopupProposal(
+        string? popupState, string captureId, string observationCycleId,
+        DateTimeOffset captureTime, ObservationContext context) =>
+        popupState is null
+            ? null
+            : new ObservationProposal(
+                new ObservationClaim(ProductAssociationStrategy.PopupSubject, popupState),
+                IngressKind.Observation,
+                context,
+                new Provenance("host.live.settings", captureTime,
+                    $"scope:ui.overlay.popup:{observationCycleId}",
+                    new[] { "real-device", "capture:" + captureId, "popup-classifier" }));
 
     private bool TryFast(byte[] png)
     {

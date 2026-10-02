@@ -88,6 +88,7 @@ public sealed class SettingsCoverageRunner
         {
             ProductAssociationStrategy.ScreenIdentitySubject,
             ProductAssociationStrategy.ScreenRouteSubject,
+            ProductAssociationStrategy.PopupSubject, // AGT-009：弹窗 typed 声明
             SharedSubjects.Frame,
             "ui.node.*",
         };
@@ -287,6 +288,10 @@ public sealed class SettingsCoverageRunner
             // (前 route=上一周期, 后 route=本周期) 配对入 journal。
             var routeNow = RouteOf(input);
             var captureNow = _currentCaptureId();
+            // AGT-009：本周期弹窗声明入账本（director 快照分支依据）。
+            var popupNow = PopupStateOf(input);
+            if (popupNow is not null)
+                _ledger.RecordPopupState(popupNow);
             var receipts = _kernel.EffectReceipts;
             for (var i = _syncedReceipts; i < receipts.Count; i++)
                 _journal.Enqueue(receipts[i], _lastCycleRoute, routeNow, captureNow);
@@ -326,6 +331,15 @@ public sealed class SettingsCoverageRunner
             input is RunDriverInput.Observation observation
                 ? observation.Proposals
                     .Where(p => p.Claim.Subject == ProductAssociationStrategy.ScreenRouteSubject)
+                    .Select(p => p.Claim.Value)
+                    .FirstOrDefault()
+                : null;
+
+        /// <summary>AGT-009：从本周期 batch 提取弹窗声明（无声明 → null）。</summary>
+        private static string? PopupStateOf(RunDriverInput? input) =>
+            input is RunDriverInput.Observation observation
+                ? observation.Proposals
+                    .Where(p => p.Claim.Subject == ProductAssociationStrategy.PopupSubject)
                     .Select(p => p.Claim.Value)
                     .FirstOrDefault()
                 : null;
