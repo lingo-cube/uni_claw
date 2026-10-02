@@ -94,3 +94,4 @@ evidence: evidence/agt-010/routekey-offline-analysis.md
 
 - 2026-10-02 · persisted · 由 owner 指令立项（"尝试修复 AGT-010"）；离线区分度分析完成（23 份实录 XML，字段冻结见 Decisions 1-3）。
 - 2026-10-02 · verified · DeriveRouteKey（标题×来源×up；sc 字段被语料证伪剔除，Decision 6）+ DeriveViewportDigest（独立摘要，TraceEntry 接线）落地；RootRoute 迁移（测试 yaml/LedgerTests/LoadDefault profile）；撞名 e2e 与滚动到底确定性背书全绿（1227/1227）；真机复跑如实 blocked。
+- 2026-10-02 · verified·live-rerun-prepared · 更正：本机有 adb + API35 AVD（此前「环境无设备」判断错误，已收回）；ENV 门控真机终考 harness 已写入 tests/UniClaw.Host.Tests/SettingsCoverageLiveTests.cs（neg-c 同源 + rk1 RootRoute，consult=本地指令跟随 double；编译验证被中止，由执行方预检）。执行与收尾指令固化于 evidence/agt-010/live-rerun-INSTRUCTIONS.md，移交下一 agent。
