@@ -32,6 +32,7 @@ public sealed class AgentScriptTaxonomyTripwireTests
         Assert.Contains(nameof(AgentDecision.NoAction), variantNames);
         Assert.Contains(nameof(AgentDecision.Defer), variantNames);
         Assert.Contains(nameof(AgentDecision.Policy), variantNames);
+        Assert.Contains(nameof(AgentDecision.Plan), variantNames);
     }
 
     /// <summary>

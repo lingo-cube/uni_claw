@@ -28,9 +28,9 @@
     "schemaVersion": 2,
     "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
     "executionDigest": "681e3afcd6d1fd935c911386cf8d963361d8d875227b410c08df10f1c0b18fcd",
-    "runtimeSourceHash": "e84b21792f4109eed51f90e14c8dac74b5e287e9bb65e1d56cc32b9d8bd396de",
-    "certifiedByChange": "AGT-005",
-    "certifiedAt": "2026-10-01"
+    "runtimeSourceHash": "a175affe4a7c57d838a54df9b7256160070fcaef1071d4f09b845887bc2b9f3b",
+    "certifiedByChange": "AGT-009",
+    "certifiedAt": "2026-10-02"
   },
   "security": {
     "sensitiveReview": "cleared"

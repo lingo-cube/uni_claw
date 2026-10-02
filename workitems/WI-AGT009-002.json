@@ -1,0 +1,78 @@
+{
+  "id": "WI-AGT009-002",
+  "objective": "AGT-009 Worker：Host/Settings/Slow 接入——SettingsTraversalLiveFeed 接入既有 Slow 异步能力（最小 public Perception seam）、弹窗结构分类器与 obstacle 清障分支、SettingsCoverageDirector 受约束 Reobserve/Replan/obstacle 适配，全部带确定性测试。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Kernel/Perception/SlowConsultation.cs",
+      "src/UniClaw.Host/SettingsTraversalLiveFeed.cs",
+      "src/UniClaw.Host/SettingsCoverage/SettingsCoverageConfig.cs",
+      "src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs",
+      "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs",
+      "src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.cs",
+      "tests/UniClaw.Kernel.Tests/Perception/SlowConsultationTests.cs",
+      "tests/UniClaw.Host.Tests/SettingsPopupClassifierTests.cs",
+      "tests/UniClaw.Host.Tests/SettingsCoverageDirectorPlanTests.cs",
+      "tests/UniClaw.Host.Tests/SettingsCoverageConfigTests.cs",
+      "tests/UniClaw.Host.Tests/SettingsCoverageScenarioTests.cs"
+    ],
+    "read_hints": [
+      "changes/AGT-009/state.md",
+      "plans/2026-10-02-settings-traversal-remaining-issues.md",
+      "docs/adr/0030-slow-perception-first-class-capability-bounded-async-consumption.md",
+      "src/UniClaw.Kernel/Runtime/AgentDecision.cs",
+      "src/UniClaw.Kernel/Perception/SlowContracts.cs",
+      "src/UniClaw.Kernel/Perception/SlowOrchestration.cs",
+      "src/UniClaw.Kernel/Perception/SlowReplayRealization.cs",
+      "tests/UniClaw.Kernel.Tests/Perception/SlowReplayRealizationTests.cs",
+      "evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Slow 只补语义证据并经 SlowResultProjector/P2 入证；弹窗由 XML 结构分类器判定并走有界 obstacle 分支；Director 接受受约束的 Plan/Reobserve/Replan/obstacle，仍由 Coverage 配额与终止条件收口。",
+    "core_points": [
+      "Slow 永远不能直接授权 Effect；超时/未配置/冲突/晚到结果零授权。",
+      "弹窗判定只用 XML 结构事实（窗口根 package ≠ hostPackage ∨ 命中 alertTitle/parentPanel/buttonPanel）；无 XML 不产 popup 声明。",
+      "obstacle 步骤前后用同一分类器证据验证弹窗消失；未消失不回普通遍历，有界重试后诚实 bounded-stop。",
+      "Plan 遵循度校验：至多一个 ActItem 且与当前 directive 语义一致，尾随 Observe/ControlItem 有界（≤4 项）。",
+      "禁止修改 Kernel Runtime 计划契约（AgentDecision.cs/KernelRunDriver.cs）与白名单测试——由 Leader 拥有。"
+    ]
+  },
+  "anchors": [
+    {"path": "src/UniClaw.Kernel/Perception/SlowOrchestration.cs", "symbol": "SlowResultProjector"},
+    {"path": "src/UniClaw.Kernel/Perception/SlowContracts.cs", "symbol": "SlowPerceptionRequest"},
+    {"path": "src/UniClaw.Host/SettingsTraversalLiveFeed.cs", "symbol": "DeriveScreenIdentity"},
+    {"path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs", "symbol": "Consult"}
+  ],
+  "contract_refs": [
+    "changes/AGT-009/state.md",
+    "plans/2026-10-02-settings-traversal-remaining-issues.md#§1",
+    "plans/2026-10-02-settings-traversal-remaining-issues.md#§8",
+    "plans/2026-10-02-settings-traversal-remaining-issues.md#§11",
+    "docs/adr/0030-slow-perception-first-class-capability-bounded-async-consumption.md"
+  ],
+  "acceptance": [
+    "SlowConsultation public seam：未配置→NotConfigured 零 proposal；成功→经 SlowResultProjector/P2 入证（request/capture/observation cycle/provenance 齐全）；超时/晚到→不入证或标记 IsLate，均零 Effect 授权路径。",
+    "弹窗分类器：e1 录制语料上 present/absent 判定正确；每周期把 ui.overlay.popup 声明写入证据流（有 XML 才有声明；无 XML 不产声明）。",
+    "SettingsTraversalLiveFeed 在无 XML、结构/视觉冲突、弹窗连续失败、页面语义不明确时发起有界 Slow 请求，复用 Fast 文本/布局/截图上下文并带 request/capture/cycle/provenance；预算耗尽不再发起。",
+    "SettingsCoverageDirector：popup=present → obstacle 分支（CANCEL 优先），验证 absent 后回普通遍历；连续失败有界重试后 bounded-stop:popup-not-cleared。",
+    "Director 接受受约束 advisory Plan（至多一个 ActItem 匹配 directive + 有界 Observe/Control 尾项）与既有 Defer 重观察；非法 Plan 记 deviation 并 fail closed。",
+    "新增 Host/Slow/Director 确定性测试全绿；既有 SettingsCoverage/Host 测试无回归。"
+  ],
+  "forbidden": [
+    "不得修改 src/UniClaw.Kernel/Runtime/**、tests/UniClaw.Kernel.Tests/Runtime/**、tests/UniClaw.Simulation.Tests/**、src/UniClaw.Agent.Dsh/**、schemas/**、scenarios/**、model-routing.yaml。",
+    "不得让 Slow 结果、记忆、外部资料或模型 confidence 直接授权 Effect，不得绕过 SlowResultProjector/P2/Evidence。",
+    "不得新增第二套执行器、状态机、Evidence/WorldModel 权威或第二套 Slow 编排。",
+    "不得用 Fast/截图在无 XML 时伪造结构事实（popup 声明只来自 XML）。",
+    "不得扩大到 AGT-010（RouteKey/ViewportDigest）或 AGT-011（证据接线/候选质量）范围。"
+  ],
+  "frozen_decisions": [
+    "seam 公开类型名固定：SlowConsultation / SlowConsultationRequest / SlowConsultationOutcome / SlowConsultationStatus（白名单条目由 Leader 添加）。",
+    "popup 判据固定：窗口根 package ≠ hostPackage ∨ resource-id ∈ {android:id/alertTitle, android:id/parentPanel, android:id/buttonPanel}；几何形态不作判据。",
+    "obstacle 词汇优先序固定：CANCEL/button2 优先，DISMISS/button1 次之，来自配置。",
+    "Plan 遵循度固定：≤1 个 ActItem（必须匹配 directive）+ 尾随 Observe/ControlItem，Items ≤ 4。",
+    "Worker 在独立 worktree（agt009-worker 分支）实现；由 Leader 合并并做全量验收。"
+  ],
+  "status": "pending",
+  "required_skills": ["codebase-design", "tdd"],
+  "required_capability": "implementation"
+}

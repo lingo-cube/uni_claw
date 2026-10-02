@@ -122,6 +122,15 @@ public sealed class KernelRunDriver
         /// </summary>
         PolicyExpand,
 
+        /// <summary>
+        /// AGT-009 §11：advisory Plan 展开轮（每轮恰消费一项；良基——每轮
+        /// 消费一项 / 物化单步进 StepAct 链 / 有界转移退出）。ActItem 物化
+        /// 为单步复用 StepAct→StepVerify 全链（零新执行器）；ObserveItem
+        /// 拉取一轮外部观察（零 Effect）；ControlItem 只做 Reobserve /
+        /// Replan / Stop 的有界转移。
+        /// </summary>
+        PlanExpand,
+
         /// <summary>terminal 编排（P16/P17/P18）。</summary>
         TerminalEvaluation,
     }
@@ -215,6 +224,21 @@ public sealed class KernelRunDriver
 
     /// <summary>policy 级结局捕获（§8：活到下次咨询、消费即清；Progress.PolicyState 数据源）。</summary>
     private PendingPolicyOutcome? _pendingPolicyOutcome;
+
+    // ---- AGT-009：advisory Plan 展开运行时（全部 driver ephemeral——
+    //      不持久化、非 recovery state、非 authority）----
+
+    /// <summary>advisory 计划项数上限（V7 执法；与 MaxProposalSteps 同界）。</summary>
+    private const int MaxPlanItems = 16;
+
+    /// <summary>已采纳 Plan 项（null = 无活跃 plan）。</summary>
+    private IReadOnlyList<PlanItem>? _planItems;
+
+    /// <summary>当前 Plan 项游标（_completedSteps 归档索引 = 项序）。</summary>
+    private int _planItemIndex;
+
+    /// <summary>当前 ActItem 物化的单步（目标来自计划——Kernel 零猜测）。</summary>
+    private AgentActionStep? _planStep;
 
     private readonly RunDriverInputs _inputs;
     private readonly object _driverIdentity = new();
@@ -433,6 +457,24 @@ public sealed class KernelRunDriver
                             _phase = DrivePhase.PolicyExpand;
                             continue;
                         }
+                        case AgentDecision.Plan plan:
+                        {
+                            // AGT-009：V7 机械校验（fail closed，零新 Effect，
+                            // 映射回既有 AgentDecisionFailed 语义）。
+                            var rejection = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
+                            if (rejection is not null)
+                                return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, rejection, null, 0);
+
+                            // 采纳（V7 通过即采纳，原子）：计划项进入 ephemeral
+                            // 游标；PlanExpand 逐项物化——每次最多一个 Act。
+                            _planItems = plan.Proposal.Items;
+                            _planItemIndex = 0;
+                            _lastAnswer = _adoptedDecision;
+                            _deferRoundsUsed = 0;
+                            _deferExhaustedPending = false;
+                            _phase = DrivePhase.PlanExpand;
+                            continue;
+                        }
                         default:
                             return new RunDriveResult(
                                 RunDriveStatus.AgentDecisionFailed, "unknown-decision-kind", null, 0);
@@ -447,10 +489,14 @@ public sealed class KernelRunDriver
                     if (_stepIndex >= steps.Count)
                     {
                         // E1（RUN-004）：提案耗尽 → 回 NeedDecision（StepVerified）
+                        //（plan 模式步列表恒为物化单步，此分支不可达——防御清空）
                         _pendingFailureReason = null;
                         _pendingFailurePhase = null;
                         _pendingFailedStepIndex = null;
                         _adoptedDecision = null; // 清空触发再咨询
+                        _planItems = null;
+                        _planItemIndex = 0;
+                        _planStep = null;
                         _phase = DrivePhase.NeedDecision;
                         continue;
                     }
@@ -473,6 +519,7 @@ public sealed class KernelRunDriver
                     if (root is null)
                     {
                         VoidActivePolicyForStepFailure(AgentDecisionPhase.StepRejected, "no-single-root-container");
+                        VoidActivePlanForStepFailure();
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = "no-single-root-container";
@@ -528,6 +575,14 @@ public sealed class KernelRunDriver
                                 }
                                 continue;
                             }
+                            // AGT-009：plan 展开中 = 当前 ActItem 目标已满足
+                            //（零 dispatch）→ 消费本项继续计划（E4 语义）
+                            if (_planItems is not null)
+                            {
+                                _planItemIndex++;
+                                _phase = DrivePhase.PlanExpand;
+                                continue;
+                            }
                             _phase = DrivePhase.TerminalEvaluation;
                             continue;
                         }
@@ -561,6 +616,7 @@ public sealed class KernelRunDriver
                     {
                         var reason = $"grounding:{grounded.View.Result}";
                         VoidActivePolicyForStepFailure(AgentDecisionPhase.StepRejected, reason);
+                        VoidActivePlanForStepFailure();
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = reason;
@@ -577,6 +633,7 @@ public sealed class KernelRunDriver
                         var reason = grounded.Act.Binding?.RejectionReason?.ToString()
                             ?? grounded.Act.Gate?.Reason ?? "gate-rejected";
                         VoidActivePolicyForStepFailure(AgentDecisionPhase.StepRejected, reason);
+                        VoidActivePlanForStepFailure();
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = reason;
@@ -619,6 +676,7 @@ public sealed class KernelRunDriver
                     {
                         var reason = verification.RejectionReason ?? "verification-failed";
                         VoidActivePolicyForStepFailure(AgentDecisionPhase.VerificationFailed, reason);
+                        VoidActivePlanForStepFailure();
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = reason;
@@ -634,8 +692,10 @@ public sealed class KernelRunDriver
                             null,
                             _kernel.EffectReceipts.Count);
                     }
-                    // 层2 归档：每步验证成功时追加
-                    _completedSteps.Add((_consultCounter, _stepIndex,
+                    // 层2 归档：每步验证成功时追加（plan 模式 stepIndex =
+                    // 计划项序——多 ActItem 锚点 step:N.{item} 保持唯一可核验）
+                    _completedSteps.Add((_consultCounter,
+                        _planItems is not null ? _planItemIndex : _stepIndex,
                         _kernel.EffectReceipts.LastOrDefault()?.ReceiptId ?? ""));
                     _preDispatchBelief = null;
                     _stepIndex++;
@@ -646,6 +706,13 @@ public sealed class KernelRunDriver
                         _policy = _policy with { ApplicationsUsed = _policy.ApplicationsUsed + 1 };
                         UpdateGuardCursors();
                         _phase = DrivePhase.PolicyExpand;
+                    }
+                    else if (_planItems is not null)
+                    {
+                        // AGT-009：本 ActItem verified（不变量 43 屏障已过）→
+                        // 消费该项，回 PlanExpand 取下一项
+                        _planItemIndex++;
+                        _phase = DrivePhase.PlanExpand;
                     }
                     else
                     {
@@ -759,6 +826,105 @@ public sealed class KernelRunDriver
                     _stepIndex = 0;
                     _phase = DrivePhase.StepAct;
                     continue;
+                }
+
+                case DrivePhase.PlanExpand:
+                {
+                    // AGT-009 §11：advisory 计划逐项消费（良基：每轮恰消费
+                    // 一项 / 物化单步 / 有界转移退出；ActItem 复用
+                    // StepAct→StepVerify 全链，零新执行器）。
+                    var items = _planItems!;
+
+                    if (_planItemIndex >= items.Count)
+                    {
+                        // 计划耗尽 → 决策边界。注意：耗尽不构成 completion
+                        // proof——ObserveItem 与耗尽都不能单独宣告任务完成，
+                        // 终局仍由 NoAction+Completion / TerminalEvaluation 判定。
+                        ExitPlan(AgentDecisionPhase.StepVerified, "plan-exhausted");
+                        continue;
+                    }
+
+                    switch (items[_planItemIndex])
+                    {
+                        case PlanItem.ActItem act:
+                        {
+                            // 冲突失效（冻结决策 11）：ActItem 物化前世界存在
+                            // 与其语义目标相交的权威域悬案 → 废弃剩余计划回决策
+                            // 边界（下次咨询携带原因；预算由 NeedDecision 既有
+                            // 门执法）。相交判定与 AgentPlanPolicy 聚焦复查
+                            // 同律（"role[:desc]" 相等或前缀）——非相交悬案由
+                            // 既有冲突裁决/聚焦机制处理，不一刀切废弃。
+                            // Observe/Control 不受此门限制——它们正是冲突的
+                            // 补证/转移路径。
+                            if (PlanTargetConflicted(_kernel.CurrentConflictedSubjects, act))
+                            {
+                                ExitPlan(AgentDecisionPhase.StepRejected, "plan:world-conflict");
+                                continue;
+                            }
+                            // 步预算逐项复检（V3 同律；采纳时已总检）
+                            if (CurrentBudget(view).StepsRemaining <= 0)
+                            {
+                                ExitPlan(AgentDecisionPhase.StepRejected, "plan:steps-exhausted");
+                                continue;
+                            }
+                            // 物化单步（目标来自计划——Kernel 零猜测）
+                            _planStep = new AgentActionStep(
+                                act.TargetRole, act.TargetDescriptor,
+                                act.EffectClass, act.DesiredState);
+                            _stepIndex = 0;
+                            _phase = DrivePhase.StepAct;
+                            continue;
+                        }
+                        case PlanItem.ObserveItem observe:
+                        {
+                            // 记录/补证（零 Effect）：拉取一轮外部观察经 P2 入证
+                            //（WaitingForInput 可恢复：phase 与游标保持，续跑重拉）
+                            var observed = PullObservations(
+                                ObservationContext.External, "plan-observe",
+                                subjects: observe.Subject is null ? null : new[] { observe.Subject });
+                            if (observed.Stop is not null)
+                                return observed.Stop;
+                            _planItemIndex++;
+                            continue;
+                        }
+                        case PlanItem.ControlItem control:
+                        {
+                            switch (control.Kind)
+                            {
+                                case PlanControlKind.Reobserve:
+                                    // 有界重观察：废弃剩余计划 + 拉取一轮外部
+                                    // 观察，回决策边界（下次咨询消耗全局预算；
+                                    // Defer 同构——WaitingForInput 后续跑咨询）
+                                    ExitPlan(AgentDecisionPhase.StepVerified, "plan:reobserve");
+                                    var reobserved = PullObservations(
+                                        ObservationContext.External, "plan-reobserve");
+                                    if (reobserved.Stop is not null)
+                                        return reobserved.Stop;
+                                    continue;
+                                case PlanControlKind.Replan:
+                                    // 重新规划：废弃剩余计划，回决策边界（全局
+                                    // 咨询预算共享、不重置——NeedDecision 既有执法）
+                                    ExitPlan(AgentDecisionPhase.StepVerified, "plan:replan");
+                                    continue;
+                                case PlanControlKind.Stop:
+                                    // 安全终止：废弃剩余计划，零新 Effect 进终局评估
+                                    _planItems = null;
+                                    _planItemIndex = 0;
+                                    _planStep = null;
+                                    _adoptedDecision = null;
+                                    _phase = DrivePhase.TerminalEvaluation;
+                                    continue;
+                                default:
+                                    // 枚举闭合之外的 Kind（防御面）→ fail closed
+                                    ExitPlan(AgentDecisionPhase.StepRejected, "plan:unknown-control");
+                                    continue;
+                            }
+                        }
+                        default:
+                            // closed union 之外的派生 PlanItem → fail closed（零 Effect）
+                            ExitPlan(AgentDecisionPhase.StepRejected, "plan:unknown-item");
+                            continue;
+                    }
                 }
 
                 case DrivePhase.TerminalEvaluation:
@@ -875,6 +1041,9 @@ public sealed class KernelRunDriver
             // RUN-005 V6e：Policy 同律回带 DecisionId（防串话；Defer 先例——
             // correlation 字段在 union 成员上，与 PolicyId 正交）
             case AgentDecision.Policy p: answeredId = p.DecisionId; break;
+            // AGT-009：Plan 同律回带 DecisionId（D2 防串话适用于每一次
+            // consultation response；Policy 先例）
+            case AgentDecision.Plan plan: answeredId = plan.DecisionId; break;
             default: return new ConsultOutcome(null, "unknown-decision-kind");
         }
         if (answeredId != decisionId)
@@ -1023,6 +1192,18 @@ public sealed class KernelRunDriver
                     return $"policy:{lease.Rejection}";
                 break;
             }
+            case AgentDecision.Plan plan:
+            {
+                // AGT-009 V7：形态/未知项/预算（纯函数面；malformed /
+                // unknown / 超预算计划零 Effect）
+                var shape = ValidatePlanProposal(plan.Proposal, view);
+                if (shape is not null)
+                    return shape;
+                var actItemCount = plan.Proposal.Items.OfType<PlanItem.ActItem>().Count();
+                if (actItemCount > remaining.StepsRemaining)
+                    return "budget-exceeded:steps";
+                break;
+            }
         }
         return null;
     }
@@ -1131,14 +1312,17 @@ public sealed class KernelRunDriver
     // ---- RUN-005 Slice B：Policy 展开运行时 helpers（§5/§7/§8）-----------------
 
     /// <summary>
-    /// 当前执行 steps：Policy 展开轮 = 模板物化的单步（目标来自模板——
-    /// Kernel 零猜测）；否则 = 采纳的 Act proposal steps。StepAct/StepVerify
-    /// 主链经此统一取步，Act 路径行为不变。
+    /// 当前执行 steps：Policy 展开轮 = 模板物化的单步；Plan 展开轮 =
+    /// ActItem 物化的单步（目标均来自上游建议——Kernel 零猜测）；否则 =
+    /// 采纳的 Act proposal steps。StepAct/StepVerify 主链经此统一取步，
+    /// Act 路径行为不变。
     /// </summary>
     private IReadOnlyList<AgentActionStep> CurrentSteps() =>
         _policyStep is { } policyStep
             ? new[] { policyStep }
-            : ((AgentDecision.Act)_adoptedDecision!).Proposal.Steps;
+            : _planStep is { } planStep
+                ? new[] { planStep }
+                : ((AgentDecision.Act)_adoptedDecision!).Proposal.Steps;
 
     /// <summary>
     /// §8 GuardCursor 更新（verified application 后）：第一份样本只初始化
@@ -1217,6 +1401,64 @@ public sealed class KernelRunDriver
     }
 
     /// <summary>
+    /// AGT-009：ActItem 目标与权威域悬案的相交判定——与
+    /// AgentPlanPolicy.FirstConflictIntersectingTarget 同律（"role[:desc]"
+    /// 相等或以其为前缀），保证 plan 失效门与 Control 聚焦复查对「同一
+    /// 悬案是否触及同一目标」的判定一致。
+    /// </summary>
+    private static bool PlanTargetConflicted(
+        IReadOnlyList<string> conflictedSubjects, PlanItem.ActItem act)
+    {
+        var target = act.TargetDescriptor is null
+            ? act.TargetRole
+            : $"{act.TargetRole}:{act.TargetDescriptor}";
+        foreach (var conflicted in conflictedSubjects)
+        {
+            if (conflicted == target
+                || conflicted.StartsWith(target + ".", StringComparison.Ordinal))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// AGT-009 §11：步链失败（grounding/gate/verification/no-root）时的
+    /// plan 作废——镜像 VoidActivePolicyForStepFailure：只清空 plan 执行态
+    ///（尚未执行的剩余计划项全部废弃，冻结决策 11），既有
+    /// StepRejected/VerificationFailed 转移与 pendingFailure 捕获不变。
+    /// 无活跃 plan 时零副作用。
+    /// </summary>
+    private void VoidActivePlanForStepFailure()
+    {
+        _planItems = null;
+        _planItemIndex = 0;
+        _planStep = null;
+    }
+
+    /// <summary>
+    /// AGT-009 §11：plan 级出口（耗尽/转移/失效共用）——清空 plan 执行态，
+    /// 回 NeedDecision。StepRejected 语义的失效把原因经 _pendingFailure*
+    /// 捕获（E2/E3 同构），下次咨询携带；正常出口（耗尽/Reobserve/Replan）
+    /// 不设失败上下文。预算门与 ExitPolicy 同律（F10(b) 同构）：失效时
+    /// RoundsRemaining ≤ 0 → 由 NeedDecision 既有 consult-budget-exhausted
+    /// 检查如实终局（同语义零重复执法）。
+    /// </summary>
+    private void ExitPlan(AgentDecisionPhase phase, string reason)
+    {
+        if (phase == AgentDecisionPhase.StepRejected)
+        {
+            _pendingFailureReason = reason;
+            _pendingFailurePhase = AgentDecisionPhase.StepRejected;
+            _pendingFailedStepIndex = _planItemIndex;
+        }
+        _planItems = null;
+        _planItemIndex = 0;
+        _planStep = null;
+        _adoptedDecision = null;
+        _phase = DrivePhase.NeedDecision;
+    }
+
+    /// <summary>
     /// P25 机械入口校验（proposal 级 + per-step 级；RFS-001 D23 评审 S3）。
     /// 返回 null = 通过；非 null = fail closed 原因。
     /// 注意：capability / risk / budget 级入口校验显式 deferred——尚无 owning
@@ -1240,6 +1482,46 @@ public sealed class KernelRunDriver
             if (step.DesiredState is not null
                 && CheckedSemantics.FromPresentation(step.DesiredState) is null)
                 return "unsupported-desired-state";
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// AGT-009 V7：advisory Plan 入口机械校验（proposal 级 + per-item 级）。
+    /// 返回 null = 通过；非 null = fail closed 原因。malformed / 未知
+    /// PlanItem（closed union 外派生类型）/ 超步数一律零 Effect。
+    /// </summary>
+    private static string? ValidatePlanProposal(AgentPlanProposal proposal, ExecutionContractView view)
+    {
+        if (proposal.Items.Count == 0)
+            return "plan:empty";
+        if (proposal.Items.Count > MaxPlanItems)
+            return "plan:too-many-items";
+        foreach (var item in proposal.Items)
+        {
+            switch (item)
+            {
+                case PlanItem.ActItem act:
+                    if (string.IsNullOrWhiteSpace(act.TargetRole))
+                        return "plan:missing-target-role";
+                    if (string.IsNullOrWhiteSpace(act.EffectClass))
+                        return "plan:missing-effect-class";
+                    if (!view.AllowedEffects.Contains(act.EffectClass))
+                        return "plan:effect-class-not-allowed";
+                    if (act.DesiredState is not null
+                        && CheckedSemantics.FromPresentation(act.DesiredState) is null)
+                        return "plan:unsupported-desired-state";
+                    break;
+                case PlanItem.ObserveItem:
+                    break; // 记录/补证：零 Effect，无准入字段
+                case PlanItem.ControlItem control:
+                    if (control.Kind is not
+                        (PlanControlKind.Reobserve or PlanControlKind.Replan or PlanControlKind.Stop))
+                        return "plan:unknown-control";
+                    break;
+                default:
+                    return "plan:unknown-item";
+            }
         }
         return null;
     }

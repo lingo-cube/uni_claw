@@ -27,16 +27,16 @@ public sealed class PolicyProtocolTests
     // ---- §2 第四成员与 closed vocabulary --------------------------------------
 
     [Fact]
-    public void Policy_IsFourthMemberOfAgentDecisionUnion()
+    public void Policy_RemainsMemberOfClosedAgentDecisionUnion()
     {
         var decision = new AgentDecision.Policy("decision-x-1", ValidProposal());
 
         Assert.IsType<AgentDecision.Policy>(decision);
         Assert.Equal("decision-x-1", decision.DecisionId);
         Assert.Equal("pol-1", decision.Proposal.PolicyId);
-        // 封闭 union 恰四成员（Act/NoAction/Defer/Policy）
+        // 封闭 union（Act/NoAction/Defer/Policy + AGT-009 Plan 第五成员）
         Assert.Equal(
-            new[] { "Act", "Defer", "NoAction", "Policy" },
+            new[] { "Act", "Defer", "NoAction", "Plan", "Policy" },
             typeof(AgentDecision).GetNestedTypes().Select(t => t.Name).OrderBy(n => n, StringComparer.Ordinal));
     }
 

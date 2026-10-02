@@ -203,12 +203,14 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.AgentDecision+Act",
             "UniClaw.Kernel.Runtime.AgentDecision+Defer",
             "UniClaw.Kernel.Runtime.AgentDecision+NoAction",
+            "UniClaw.Kernel.Runtime.AgentDecision+Plan",
             "UniClaw.Kernel.Runtime.AgentDecision+Policy",
             "UniClaw.Kernel.Runtime.AgentDecisionContext",
             "UniClaw.Kernel.Runtime.AgentDecisionPhase",
             "UniClaw.Kernel.Runtime.AgentNoActionProposal",
             "UniClaw.Kernel.Runtime.AgentObligationView",
             "UniClaw.Kernel.Runtime.AgentPlanPolicy",
+            "UniClaw.Kernel.Runtime.AgentPlanProposal",
             "UniClaw.Kernel.Runtime.ClaimSummary",
             "UniClaw.Kernel.Runtime.CompletionEvidence",
             "UniClaw.Kernel.Runtime.ConsultationBudget",
@@ -219,6 +221,15 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.ObservationDepth",
             "UniClaw.Kernel.Runtime.ObservationDirective",
             "UniClaw.Kernel.Runtime.ObserveSpec",
+            // AGT-009 增集（§11 advisory 遍历计划词汇）：AgentDecision
+            //（+Plan）/ AgentPlanProposal / PlanItem（+ActItem/ObserveItem/
+            // ControlItem）/ PlanControlKind。展开运行时（PlanExpand 游标、
+            // V7 校验器）保持 internal，不入本名单。
+            "UniClaw.Kernel.Runtime.PlanControlKind",
+            "UniClaw.Kernel.Runtime.PlanItem",
+            "UniClaw.Kernel.Runtime.PlanItem+ActItem",
+            "UniClaw.Kernel.Runtime.PlanItem+ControlItem",
+            "UniClaw.Kernel.Runtime.PlanItem+ObserveItem",
             "UniClaw.Kernel.Runtime.PolicyActionTemplate",
             "UniClaw.Kernel.Runtime.PolicyGuard",
             "UniClaw.Kernel.Runtime.PolicyGuard+ObservationUnchanged",
