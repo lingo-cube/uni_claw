@@ -143,6 +143,13 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Perception.PngImage",
             "UniClaw.Kernel.Perception.RawArtifact",
             "UniClaw.Kernel.Perception.ScreenRotation",
+            // AGT-009 增集（§8 Host→Slow 最小公开缝）：SlowConsultation 四型。
+            // 复用内部 orchestrator/projector（PER-017/018 internals 保持
+            // internal）；唯一 ingress = 既有 P2，无 Effect 路径。
+            "UniClaw.Kernel.Perception.SlowConsultation",
+            "UniClaw.Kernel.Perception.SlowConsultationOutcome",
+            "UniClaw.Kernel.Perception.SlowConsultationRequest",
+            "UniClaw.Kernel.Perception.SlowConsultationStatus",
             // PER-013 Slice A 增集（PER-010 UiHierarchyObservation v1 typed
             // contract）：UiHierarchy 域类型 21 项 + UiBounds。
             "UniClaw.Kernel.Perception.UiHierarchy.CaptureMetadata",

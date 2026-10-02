@@ -42,6 +42,8 @@ public sealed class SettingsCoverageScenarioTests
         private int _captureCounter;
         private int _scrollOffset;
         private int _transitionalCycles;
+        private bool _popupArmed;
+        private bool _popupActive;
 
         public string Route { get; private set; } = RootRoute;
 
@@ -52,11 +54,25 @@ public sealed class SettingsCoverageScenarioTests
             Route = "android.settings";
         }
 
+        /// <summary>AGT-009：下一次进入二级页时弹 permissioncontroller 弹窗。</summary>
+        public void ArmPopupOnNextSecondLevelEntry() => _popupArmed = true;
+
+        /// <summary>AGT-009：弹窗是否在场（清障后应 false）。</summary>
+        public bool PopupActive => _popupActive;
+
         public (string Descriptor, int X1, int Y1, int X2, int Y2)[] HitRegions =>
-            CurrentEntries
-                .Select((descriptor, index) => (descriptor, 0, 260 + index * 150, Width, 260 + index * 150 + 140))
-                .Concat(new[] { ("Navigate up", 0, 40, 150, 190) })
-                .ToArray();
+            (_popupActive
+                ? new[]
+                {
+                    // 词汇优先序：CANCEL（button2）在 DISMISS（button1）之前
+                    ("CANCEL", 540, 900, 900, 1000),
+                    ("DISMISS", 180, 900, 540, 1000),
+                }
+                : Array.Empty<(string, int, int, int, int)>())
+            .Concat(CurrentEntries
+                .Select((descriptor, index) => (descriptor, 0, 260 + index * 150, Width, 260 + index * 150 + 140)))
+            .Concat(new[] { ("Navigate up", 0, 40, 150, 190) })
+            .ToArray()!;
 
         private string[] CurrentEntries => _scrollOffset == 0 ? VisiblePages : ScrolledPages;
 
@@ -65,6 +81,11 @@ public sealed class SettingsCoverageScenarioTests
             var region = HitRegions.FirstOrDefault(r => x >= r.X1 && x < r.X2 && y >= r.Y1 && y < r.Y2);
             if (region.Descriptor is null or "")
                 return "miss";
+            if (region.Descriptor is "CANCEL" or "DISMISS")
+            {
+                _popupActive = false;
+                return region.Descriptor;
+            }
             if (region.Descriptor == "Navigate up")
             {
                 if (Route != RootRoute)
@@ -72,7 +93,15 @@ public sealed class SettingsCoverageScenarioTests
                 return "Navigate up";
             }
             if (Route == RootRoute)
+            {
                 Route = $"android.settings|route:{region.Descriptor}";
+                if (_popupArmed)
+                {
+                    // AGT-009：随进入二级页弹窗出现（permissioncontroller 覆盖层）
+                    _popupArmed = false;
+                    _popupActive = true;
+                }
+            }
             return region.Descriptor;
         }
 
@@ -82,6 +111,24 @@ public sealed class SettingsCoverageScenarioTests
         {
             var builder = new StringBuilder();
             builder.Append("""<?xml version='1.0' encoding='UTF-8'?><hierarchy rotation="0">""");
+            if (_popupActive)
+            {
+                // AGT-009 §1：弹窗结构事实——窗口根 package ≠ hostPackage
+                //（permissioncontroller）∨ 命中 alertTitle/parentPanel/buttonPanel
+                // 白名单；首个 node 即窗口根。几何不作判据。
+                builder.Append(Node("android:id/parentPanel", "android.widget.LinearLayout",
+                    text: null, clickable: false, bounds: "[120,700][960,1120]",
+                    package: "com.android.permissioncontroller"));
+                builder.Append(Node("android:id/alertTitle", "android.widget.TextView",
+                    text: "Allow Settings to modify system settings?", clickable: false,
+                    bounds: "[160,740][920,820]", package: "com.android.permissioncontroller"));
+                builder.Append(Node("android:id/button2", "android.widget.Button",
+                    text: "CANCEL", clickable: true, bounds: "[540,900][900,1000]",
+                    package: "com.android.permissioncontroller"));
+                builder.Append(Node("android:id/button1", "android.widget.Button",
+                    text: "DISMISS", clickable: true, bounds: "[180,900][540,1000]",
+                    package: "com.android.permissioncontroller"));
+            }
             if (Route == RootRoute)
             {
                 builder.Append(Node(ScrollContainer, "android.widget.ScrollView", text: null,
@@ -156,6 +203,14 @@ public sealed class SettingsCoverageScenarioTests
                     Space: CoordinateSpace.DeviceViewport(Width, Height)));
             if (parsed.Observation is { } observation)
                 proposals.AddRange(TypedHierarchyProposalProjector.Project(observation, directive.Context));
+            // AGT-009：同分类器 typed 弹窗声明入证据流（ui.overlay.popup；
+            // 无 XML/不可解析 → 无声明）。与真实 feed 同形。
+            if (SettingsTraversalLiveFeed.PopupProposal(
+                    SettingsTraversalLiveFeed.DerivePopupState(xml, "com.android.settings"),
+                    captureId, $"sim-cycle-{_captureCounter:D4}", DateTimeOffset.UtcNow,
+                    directive.Context)
+                is { } popupProposal)
+                proposals.Add(popupProposal);
             return new RunDriverInput.Observation(proposals);
         }
 
@@ -163,9 +218,10 @@ public sealed class SettingsCoverageScenarioTests
 
         private static string Node(
             string resourceId, string @class, string? text, bool clickable, string bounds,
-            string? contentDesc = null, bool scrollable = false) =>
+            string? contentDesc = null, bool scrollable = false,
+            string? package = null) =>
             $"""<node index="0" text="{Escape(text)}" resource-id="{Escape(resourceId)}" class="{Escape(@class)}" """
-            + $"""package="com.android.settings" content-desc="{Escape(contentDesc)}" checkable="false" """
+            + $"""package="{Escape(package ?? "com.android.settings")}" content-desc="{Escape(contentDesc)}" checkable="false" """
             + $"""checked="false" clickable="{(clickable ? "true" : "false")}" enabled="true" """
             + $"""focusable="true" focused="false" scrollable="{(scrollable ? "true" : "false")}" """
             + $"""long-clickable="false" password="false" selected="false" bounds="{Escape(bounds)}"/>""";
@@ -214,6 +270,35 @@ public sealed class SettingsCoverageScenarioTests
         if (directive.StartsWith("Scroll", StringComparison.Ordinal))
             return Act(context, "scrollable", ScrollContainer, "swipe-up");
         return Act(context, "ui.element", target!, "tap");
+    }
+
+    /// <summary>
+    /// AGT-009 §11 模型：obstacle directive 以受约束 advisory Plan 回答
+    ///（恰一个 ActItem=词汇命中的清障 tap + ObserveItem(popup 补证)）；
+    /// 其余 directive 照旧单步 Act。
+    /// </summary>
+    private static AgentDecision? ObstaclePlanModelConsult(AgentDecisionContext context)
+    {
+        var marker = "COVERAGE DIRECTIVE (authoritative for this turn): ";
+        var start = context.Objective.IndexOf(marker, StringComparison.Ordinal);
+        if (start < 0)
+            throw new InvalidOperationException("model double: directive missing");
+        var directive = context.Objective[(start + marker.Length)..]
+            .Split('\n', 2)[0].Trim();
+        if (directive.StartsWith("Clear the popup", StringComparison.Ordinal))
+        {
+            var target = ExtractTarget(directive);
+            return new AgentDecision.Plan(context.DecisionId, new AgentPlanProposal(
+                new PlanItem[]
+                {
+                    new PlanItem.ActItem("ui.element", target, "tap", null),
+                    new PlanItem.ObserveItem(UniClaw.Kernel.World.UiRealization.ProductAssociationStrategy.PopupSubject),
+                },
+                Justification: "obstacle-clearance-plan"));
+        }
+        if (directive.StartsWith("Scroll", StringComparison.Ordinal))
+            return Act(context, "scrollable", ScrollContainer, "swipe-up");
+        return Act(context, "ui.element", ExtractTarget(directive)!, "tap");
     }
 
     private static readonly HashSet<string> DeviatedDecisionIds = new();
@@ -354,6 +439,61 @@ public sealed class SettingsCoverageScenarioTests
             $"{result.Status}({result.Reason}) divergence={result.Report.FirstDivergence}");
         Assert.Equal("CoverageComplete", result.Report.Status);
         Assert.Contains(result.Consults, c => c.DirectiveKind == "defer-unknown-page");
+    }
+
+    /// <summary>
+    /// AGT-009 验收 7（Drive 级闭环）：遍历中途弹窗（permissioncontroller）→
+    /// director obstacle 分支发出清障 directive → 模型以受约束 advisory Plan
+    /// 回答（ActItem=词汇命中的 CANCEL tap + ObserveItem(popup 补证)）→
+    /// Kernel 逐项执行：ActItem 经真实 grounding/Gate/dispatch（清障 tap 落地、
+    /// 弹窗消失）→ ObserveItem/剩余计划由失效规则处置 → popup 声明转 absent
+    /// → 普通遍历恢复并完成覆盖。
+    /// </summary>
+    [Fact]
+    public void PopupEpisode_ObstaclePlanClearsPopup_AndResumesTraversalToCompletion()
+    {
+        var world = new SimulatedSettingsWorld();
+        world.ArmPopupOnNextSecondLevelEntry();
+        var assets = new LivePerception.LiveAssets(
+            "emulator-sim", "wifi-settings", "/nonexistent", "/nonexistent/python", "/nonexistent/cache");
+        var runRoot = Path.Combine(Path.GetTempPath(), $"settings-coverage-run-{Guid.NewGuid():N}");
+        var result = SettingsCoverageRunner.Run(runRoot, new SettingsCoverageRunner.Options(
+            DeviceId: "emulator-sim",
+            Live: assets,
+            Config: ConfigWith(),
+            UnderlyingConsult: ObstaclePlanModelConsult,
+            DshSessionIdAccessor: () => "session-sim-0001",
+            FeedNext: world.Next,
+            CurrentCaptureId: () => world.CurrentCaptureId,
+            EffectDriver: new SimulatedEffectDriver(world)));
+
+        // 闭环终点：弹窗已清（同分类器前后测：present → absent）且任务完成
+        Assert.True(result.Status == RunDriveStatus.Completed,
+            $"{result.Status}({result.Reason}) divergence={result.Report.FirstDivergence}");
+        Assert.Equal("CoverageComplete", result.Report.Status);
+        Assert.False(world.PopupActive);
+
+        // obstacle 分支确实发生，且回答形态是受约束 advisory Plan
+        var obstacle = result.Consults.Single(c => c.DirectiveKind == "obstacle");
+        Assert.Equal("plan", obstacle.DecisionKind);
+        Assert.Null(obstacle.DeviationReason);
+        Assert.Contains("CANCEL", obstacle.Directive);
+
+        // ActItem 经真实执行链落地：清障步骤有回执（click 型目标消失且路由
+        // 未变——通用 target-unique check 如实失败，弹窗清障本身由
+        // ui.overlay.popup present→absent 的 typed 声明证明；剩余计划按
+        // 冻结决策 11 由验证失败废弃）
+        var clearance = result.Steps.Single(s => s.TargetDescriptor == "CANCEL");
+        Assert.Equal("DeliveryCompleted", clearance.ReceiptOutcome);
+        Assert.Equal("obstacle-clearance-plan", obstacle.Justification);
+
+        // 清障后普通遍历恢复：obstacle 咨询之后仍有正常 enter/scroll 指令
+        var consultList = result.Consults.ToList();
+        var obstacleIndex = consultList.IndexOf(obstacle);
+        Assert.Contains(consultList.Skip(obstacleIndex + 1),
+            c => c.DirectiveKind is "enter" or "re-enter" or "scroll" or "back");
+        // 全部覆盖项最终完成（清障插曲不丢失任务）
+        Assert.Empty(result.Report.UncoveredItems);
     }
 
     [Fact]
