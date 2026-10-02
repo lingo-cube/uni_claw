@@ -34,6 +34,6 @@ termination:
 evidence:
   persistScreenshots: true
   persistHierarchies: true
-rootRoute: android.settings|route:Settings
+rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
 scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
 backDescriptor: Navigate up

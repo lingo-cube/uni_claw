@@ -58,7 +58,7 @@ public sealed class SettingsCoverageDirector
 
     public string? TerminalJustification => _terminalJustification;
 
-    /// <summary>路由回退身份（DeriveScreenIdentity 无标题时的值）——
+    /// <summary>路由回退身份（DeriveRouteKey 无标题时的值）——
     /// 语义 = 当前页面身份未知（AGT-006）。</summary>
     internal const string UnknownRouteIdentity = "android.settings";
 

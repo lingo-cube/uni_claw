@@ -33,6 +33,8 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         string ScreenIdentity,
         string? Popup = null,
         string? Slow = null,
+        // AGT-010 §2：视口摘要（与 RouteKey 独立；null = 无 XML 无声明）
+        string? ViewportDigest = null,
         string? Grounding = null,
         string? Assurance = null,
         string? Effect = null,
@@ -113,9 +115,12 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         var xmlResult = TryDump(directive.Context, observationCycleId, captureId,
             capture.Width, capture.Height);
         var hierarchyLatency = Stopwatch.GetElapsedTime(hierarchyStart);
-        var screenIdentity = xmlResult.Xml is null
+        // AGT-010 §2：多信号 RouteKey（标题×来源×up×滚动容器）；无 XML →
+        // 回退身份（AGT-006 语义）。视口摘要独立计算（与 key 字段集不相交）。
+        var routeKey = xmlResult.Xml is null
             ? "android.settings"
-            : DeriveScreenIdentity(xmlResult.Xml);
+            : DeriveRouteKey(xmlResult.Xml);
+        var viewportDigest = DeriveViewportDigest(xmlResult.Xml);
         // AGT-009：弹窗结构分类——XML 可解析才有声明；与同一周期的其他 proposal
         // 同批进入证据流。
         var popup = _coverageConfig?.PopupSettings;
@@ -137,12 +142,12 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
                     new[] { "real-device", "capture:" + captureId }))
         };
         proposals.Add(new ObservationProposal(
-            new ObservationClaim(ProductAssociationStrategy.ScreenRouteSubject, screenIdentity),
+            new ObservationClaim(ProductAssociationStrategy.ScreenRouteSubject, routeKey),
             IngressKind.Observation,
             directive.Context,
             new Provenance("host.live.settings", _clock.Now,
                 $"scope:ui.screen.route:{observationCycleId}",
-                new[] { "real-device", "capture:" + captureId, "route-fingerprint" })));
+                new[] { "real-device", "capture:" + captureId, "route-fingerprint", "route-key:rk1" })));
         var popupProposal = PopupProposal(popupState, captureId, observationCycleId, _clock.Now, directive.Context);
         if (popupProposal is not null)
             proposals.Add(popupProposal);
@@ -150,7 +155,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         // AGT-009 §8：有界 Slow 触发（默认关闭；预算/超时/config 三重收口）。
         var slowTrace = ConsultSlowIfTriggered(
             trigger: DeriveSlowTrigger(
-                xmlResult.Xml is not null, fastAvailable, CountClickableNodes(xmlResult.Xml), screenIdentity,
+                xmlResult.Xml is not null, fastAvailable, CountClickableNodes(xmlResult.Xml), routeKey,
                 UpdatePopupStreak(popupState), _coverageConfig?.SlowSettings),
             captureId, observationCycleId, capture.Artifact.Payload, fastAvailable);
         if (xmlResult.Xml is not null)
@@ -171,41 +176,117 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
 
         _trace.Add(new TraceEntry(cycle, directive.Context.ToString(), captureId,
             observationCycleId, fastAvailable, xmlResult.Xml is not null,
-            proposals.Count, fastLatency, hierarchyLatency, screenIdentity, popupState, slowTrace));
+            proposals.Count, fastLatency, hierarchyLatency, routeKey,
+            popupState, slowTrace, viewportDigest));
         return new RunDriverInput.Observation(proposals);
     }
 
     /// <summary>
-    /// Settings 的页面标题是当前产品实现中唯一稳定、可观测的 route
-    /// 身份。它只用于 WorldModel container association；不参与 target
-    /// grounding，也不制造坐标或 resource-id。若标题缺失，保留原有
-    /// android.settings 身份，导航验证会继续 fail-closed。
+    /// AGT-010 §2 — 多信号 RouteKey（页面身份）：标题 × 标题来源（homepage_title
+    /// = 根页 / title = 二级页）× up 按键在场。字段以 e1 实录语料（23 份 XML）
+    /// 离线区分度分析冻结（changes/AGT-010 Decisions 1）：撞名页（Security &amp;
+    /// privacy，标题 "Settings"）与根页在 src/up 两信号全不同；根页 12 份采样
+    /// （含滚动前后三种视口态）key 全稳定。滚动容器信号经语料证伪被剔除：
+    /// 首页建议条容器随视口出现/消失（初始视口 2 容器、滚动后 1 容器），
+    /// first/last 选取亦不稳定——页面身份必须滚动不变。条目集同理不进 key。
+    /// 无标题或不可解析 → 回退身份 android.settings（AGT-006 未知页语义不变）。
+    /// 只用于 WorldModel container association / 路由指纹；不参与 target
+    /// grounding，也不制造坐标或 resource-id。
     /// </summary>
-    internal static string DeriveScreenIdentity(string xml)
+    internal static string DeriveRouteKey(string xml)
     {
         try
         {
             var root = XDocument.Parse(xml).Root;
             if (root is null)
                 return "android.settings";
-            var nodes = root.Descendants("node");
-            var title = nodes
-                .Where(n => (string?)n.Attribute("resource-id") is { } id
-                    && id.EndsWith("homepage_title", StringComparison.Ordinal))
-                .Select(n => (string?)n.Attribute("text"))
-                .Concat(nodes
-                    .Where(n => (string?)n.Attribute("resource-id") == "android:id/title")
-                    .Select(n => (string?)n.Attribute("text")))
-                .Select(value => value?.Trim())
-                .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
-            return string.IsNullOrWhiteSpace(title)
-                ? "android.settings"
-                : $"android.settings|route:{title}";
+            var nodes = root.Descendants("node").ToList();
+            string? title = null;
+            var source = "none";
+            // 根页标题（homepage_title）优先于二级页标题（android:id/title）
+            foreach (var n in nodes)
+            {
+                if ((string?)n.Attribute("resource-id") is { } id
+                    && id.EndsWith("homepage_title", StringComparison.Ordinal)
+                    && ((string?)n.Attribute("text"))?.Trim() is { Length: > 0 } homeTitle)
+                {
+                    title = homeTitle;
+                    source = "homepage_title";
+                    break;
+                }
+            }
+            if (title is null)
+            {
+                foreach (var n in nodes)
+                {
+                    if ((string?)n.Attribute("resource-id") == "android:id/title"
+                        && ((string?)n.Attribute("text"))?.Trim() is { Length: > 0 } pageTitle)
+                    {
+                        title = pageTitle;
+                        source = "title";
+                        break;
+                    }
+                }
+            }
+            if (title is null)
+                return "android.settings";
+            var hasUp = nodes.Any(n =>
+                (string?)n.Attribute("resource-id") == "android:id/up"
+                || (string?)n.Attribute("content-desc") == "Navigate up");
+            return $"android.settings|rk1:{title}|src={source}|up={(hasUp ? 1 : 0)}";
         }
         catch (Exception) when (xml.Length > 0)
         {
             return "android.settings";
         }
+    }
+
+    /// <summary>
+    /// AGT-010 §2 — ViewportDigest（视口摘要，vd1 = XML 来源/算法版本）：
+    /// 当前视口 clickable 元素（text ∥ resource-id 短 id）排序多重集的
+    /// sha256 前 8 hex。与 RouteKey 字段集不相交、不得互相替代（§2 实施约束）：
+    /// 同页滚动 → key 不变 digest 变；同视口重复观察 → digest 稳定（e1 语料
+    /// 三视口成组实证）。本摘要只作可观测性（trace/测试/后续 OCR/Slow 来源
+    /// 对齐）——滚动内容变化的判定权威仍是 Kernel post-action occurrence
+    /// 集合比较，不建第二判断面。无 XML/不可解析 → null（无声明）。
+    /// </summary>
+    internal static string? DeriveViewportDigest(string? xml)
+    {
+        if (xml is null)
+            return null;
+        try
+        {
+            var root = XDocument.Parse(xml).Root;
+            if (root is null)
+                return null;
+            var descriptors = root.Descendants("node")
+                .Where(n => (string?)n.Attribute("clickable") == "true")
+                .Select(n =>
+                {
+                    var text = ((string?)n.Attribute("text"))?.Trim();
+                    if (!string.IsNullOrEmpty(text))
+                        return text;
+                    var rid = (string?)n.Attribute("resource-id");
+                    return string.IsNullOrEmpty(rid) ? "??" : ShortId(rid!);
+                })
+                .OrderBy(d => d, StringComparer.Ordinal)
+                .ToList();
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            var hash = Convert.ToHexString(sha.ComputeHash(
+                System.Text.Encoding.UTF8.GetBytes(string.Join("|", descriptors))))[..8];
+            return $"vd1:{hash}";
+        }
+        catch (Exception) when (xml.Length > 0)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>resource-id 短 id（最后一段 ':' 之后；无冒号 = 原值）。</summary>
+    private static string ShortId(string resourceId)
+    {
+        var index = resourceId.LastIndexOf(':');
+        return index < 0 ? resourceId : resourceId[(index + 1)..];
     }
 
     /// <summary>
@@ -267,7 +348,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     ///（无 XML 由 NoXml 覆盖）。documented deterministic predicate。</summary>
     internal static string? DeriveSlowTrigger(
         bool hierarchyAvailable, bool fastAvailable, int clickableNodeCount,
-        string screenIdentity, int popupPresentStreak, SlowTriggerConfig? slow)
+        string routeKey, int popupPresentStreak, SlowTriggerConfig? slow)
     {
         if (!hierarchyAvailable)
             return "NoXml";
@@ -276,7 +357,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
             return "StructuralVisualConflict";
         if (popupPresentStreak >= (slow?.PopupConsecutiveCycles ?? 2))
             return "PopupConsecutiveFailures";
-        if (screenIdentity == "android.settings")
+        if (routeKey == "android.settings")
             return "SemanticUnclear";
         return null;
     }

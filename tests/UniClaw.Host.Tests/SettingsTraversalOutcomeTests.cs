@@ -11,7 +11,7 @@ namespace UniClaw.Host.Tests;
 public sealed class SettingsTraversalOutcomeTests
 {
     [Fact]
-    public void ScreenIdentity_UsesStableSettingsRouteFingerprint()
+    public void RouteKey_UsesMultiSignalFingerprint()
     {
         var repo = FindRepoRoot();
         var rootXml = File.ReadAllText(Path.Combine(repo, "platforms", "perception",
@@ -19,10 +19,14 @@ public sealed class SettingsTraversalOutcomeTests
         var childXml = File.ReadAllText(Path.Combine(repo, "platforms", "perception",
             "evaluation", "validation", "fastscreen-v1", "uia", "a5d983aa849b.xml"));
 
-        Assert.Equal("android.settings|route:Settings",
-            SettingsTraversalLiveFeed.DeriveScreenIdentity(rootXml));
-        Assert.Equal("android.settings|route:Internet",
-            SettingsTraversalLiveFeed.DeriveScreenIdentity(childXml));
+        // AGT-010：多信号 RouteKey——根页（homepage_title、无 up）与二级页
+        //（android:id/title、有 up）标题不同即不同；撞名场景靠 src/up/sc 区分
+        //（e1 语料验证见 SettingsRouteKeyTests）。
+        var rootKey = SettingsTraversalLiveFeed.DeriveRouteKey(rootXml);
+        var childKey = SettingsTraversalLiveFeed.DeriveRouteKey(childXml);
+        Assert.StartsWith("android.settings|rk1:Settings|src=homepage_title|up=0", rootKey);
+        Assert.StartsWith("android.settings|rk1:Internet|src=title|up=1", childKey);
+        Assert.NotEqual(rootKey, childKey);
     }
 
     [Fact]

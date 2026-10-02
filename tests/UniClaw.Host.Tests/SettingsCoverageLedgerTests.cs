@@ -6,7 +6,7 @@ namespace UniClaw.Host.Tests;
 [Collection("SettingsCoverageConfigSerial")]
 public sealed class SettingsCoverageLedgerTests
 {
-    private const string RootRoute = "android.settings|route:Settings";
+    private const string RootRoute = "android.settings|rk1:Settings|src=homepage_title|up=0";
     private const string ScrollDescriptor = "com.android.settings:id/main_content_scrollable_container";
     private const string BackDescriptor = "Navigate up";
 
@@ -337,7 +337,7 @@ public sealed class SettingsCoverageLedgerTests
               onMaxSteps: true
               onMaxScrolls: true
               onConsecutiveFailures: true
-            rootRoute: android.settings|route:Settings
+            rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
             scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
             backDescriptor: Navigate up
             """));
@@ -403,7 +403,7 @@ public sealed class SettingsCoverageLedgerTests
               onMaxSteps: true
               onMaxScrolls: true
               onConsecutiveFailures: true
-            rootRoute: android.settings|route:Settings
+            rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
             scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
             backDescriptor: Navigate up
             """));
@@ -444,7 +444,7 @@ public sealed class SettingsCoverageLedgerTests
               onMaxSteps: true
               onMaxScrolls: true
               onConsecutiveFailures: true
-            rootRoute: android.settings|route:Settings
+            rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
             scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
             backDescriptor: Navigate up
             """);

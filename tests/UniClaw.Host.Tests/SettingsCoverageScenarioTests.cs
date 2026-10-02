@@ -21,17 +21,24 @@ public sealed class SettingsCoverageScenarioTests
 {
     private const int Width = 1080;
     private const int Height = 1920;
-    private const string RootRoute = "android.settings|route:Settings";
+    // AGT-010 §2：RootRoute 迁移为多信号 RouteKey（标题×来源×up×滚动容器）
+    private const string RootRoute =
+        "android.settings|rk1:Settings|src=homepage_title|up=0";
     private static readonly string[] VisiblePages =
     {
         "Network & internet", "Connected devices", "Apps", "Notifications",
         "Battery", "Storage", "Sound & vibration",
+        // AGT-010 §2 撞名实证复刻：二级页标题同为 "Settings"（Security & privacy）
+        "Security & privacy",
     };
     private static readonly string[] ScrolledPages =
     {
-        "Battery", "Storage", "Sound & vibration", "Accessibility", "System",
+        "Battery", "Storage", "Sound & vibration", "Security & privacy", "Accessibility", "System",
     };
     private const string ScrollContainer = "com.android.settings:id/main_content_scrollable_container";
+    /// <summary>AGT-010：撞名二级页——标题渲染为 "Settings"（与根页同标题），
+    /// 身份只能靠 src/up/sc 多信号区分。</summary>
+    private const string CollidingPage = "Security & privacy";
 
     /// <summary>
     /// 反应式模拟世界：维护 route/scroll 状态；feed 按状态出 XML 观察；
@@ -44,6 +51,7 @@ public sealed class SettingsCoverageScenarioTests
         private int _transitionalCycles;
         private bool _popupArmed;
         private bool _popupActive;
+        private bool _atBottom;
 
         public string Route { get; private set; } = RootRoute;
 
@@ -105,7 +113,10 @@ public sealed class SettingsCoverageScenarioTests
             return region.Descriptor;
         }
 
-        public bool ScrollUp() => Route == RootRoute && _scrollOffset++ == 0;
+        /// <summary>AGT-010 §3：列表已在底部（swipe 永不改变内容）。</summary>
+        public void MakeAlreadyAtBottom() => _atBottom = true;
+
+        public bool ScrollUp() => Route == RootRoute && !_atBottom && _scrollOffset++ == 0;
 
         public string BuildXml()
         {
@@ -147,7 +158,11 @@ public sealed class SettingsCoverageScenarioTests
             }
             else
             {
-                var title = Route["android.settings|route:".Length..];
+                // AGT-010：撞名页标题渲染为 "Settings"（实录 Security & privacy
+                // 行为复刻）；页面身份由 src/up/sc 多信号与根页区分。
+                var title = Route == $"android.settings|route:{CollidingPage}"
+                    ? "Settings"
+                    : Route["android.settings|route:".Length..];
                 builder.Append(Node("android:id/up", "android.widget.ImageButton", text: null,
                     contentDesc: "Navigate up", clickable: true, bounds: "[0,40][150,190]"));
                 builder.Append(Node("android:id/title", "android.widget.TextView", text: title,
@@ -165,7 +180,7 @@ public sealed class SettingsCoverageScenarioTests
         {
             var captureId = $"sim-capture-{++_captureCounter:D4}";
             var xml = BuildXml();
-            var route = SettingsTraversalLiveFeed.DeriveScreenIdentity(xml);
+            var route = SettingsTraversalLiveFeed.DeriveRouteKey(xml);
             // 过渡推进在本周期 XML 之后：当前周期如实呈现过渡屏，下一周期定形。
             if (_transitionalCycles > 0)
             {
@@ -365,12 +380,13 @@ public sealed class SettingsCoverageScenarioTests
               - Battery
               - Storage
               - Sound & vibration
+              - Security & privacy
             termination:
               onCoverageComplete: true
               onMaxSteps: true
               onMaxScrolls: true
               onConsecutiveFailures: true
-            rootRoute: android.settings|route:Settings
+            rootRoute: {RootRoute}
             scrollContainerDescriptor: {ScrollContainer}
             backDescriptor: Navigate up
             """);
@@ -534,9 +550,10 @@ public sealed class SettingsCoverageScenarioTests
         Assert.Null(result.Report.FirstDivergence);
         Assert.All(result.Report.Items, item => Assert.True(item.Covered, item.Requirement));
 
-        // 步骤序列：7×(enter+back) + scroll + (scroll-entry+back) + (re-enter+back) = 19。
-        Assert.Equal(19, result.Steps.Count);
-        Assert.Equal(19, result.Steps.Count(s => s.Verified));
+        // 步骤序列：8×(enter+back) + scroll + (scroll-entry+back) + (re-enter+back) = 21
+        //（含 AGT-010 撞名页 Security & privacy——标题与根页同为 "Settings"）。
+        Assert.Equal(21, result.Steps.Count);
+        Assert.Equal(21, result.Steps.Count(s => s.Verified));
         Assert.All(result.Steps, s =>
         {
             Assert.NotNull(s.ReceiptId);
@@ -558,11 +575,18 @@ public sealed class SettingsCoverageScenarioTests
 
         // 返回步骤：路由回到根页；重复进入：同 descriptor 两次、不同回执。
         var backs = result.Steps.Where(s => s.TargetDescriptor == "Navigate up").ToList();
-        Assert.Equal(9, backs.Count);
+        Assert.Equal(10, backs.Count);
         Assert.All(backs, b => Assert.Equal(RootRoute, b.RouteAfter));
         var batteryEntries = result.Steps.Where(s => s.TargetDescriptor == "Battery").ToList();
         Assert.Equal(2, batteryEntries.Count);
         Assert.NotEqual(batteryEntries[0].ReceiptId, batteryEntries[1].ReceiptId);
+
+        // AGT-010 §2 验收 3：撞名页进入可验证——标题同为 "Settings" 的二级页
+        // RouteAfter ≠ RootRoute（src/up/sc 多信号区分），验证通过。
+        var colliding = result.Steps.Single(s => s.TargetDescriptor == CollidingPage);
+        Assert.Equal("android.settings|rk1:Settings|src=title|up=1", colliding.RouteAfter);
+        Assert.NotEqual(RootRoute, colliding.RouteAfter);
+        Assert.True(colliding.Verified);
 
         // 工件落盘。
         Assert.True(File.Exists(Path.Combine(result.RunDir, "coverage-steps.json")));
@@ -581,6 +605,46 @@ public sealed class SettingsCoverageScenarioTests
         Assert.True(result.Report.CoverageRate < 1.0);
         Assert.NotEmpty(result.Report.UncoveredItems);
         Assert.Equal(6, result.Steps.Count);
+    }
+
+    /// <summary>
+    /// AGT-010 §3 验收 4：滚动到底（内容不变）确定性背书——列表已在底部时
+    /// swipe 不改变视口内容 → 滚动验证失败（post-action-content-transition
+    /// 如实 false）→ 连续失败有界停止（bounded-stop:max-consecutive-failures，
+    /// 不盲重试、不伪装完成）。真机 d1/d3/d4 实录分支的确定性复刻。
+    /// </summary>
+    [Fact]
+    public void ScrollAtBottom_ContentUnchanged_FailsVerification_BoundedStop()
+    {
+        var world = new SimulatedSettingsWorld();
+        world.MakeAlreadyAtBottom();
+        var assets = new LivePerception.LiveAssets(
+            "emulator-sim", "wifi-settings", "/nonexistent", "/nonexistent/python", "/nonexistent/cache");
+        var runRoot = Path.Combine(Path.GetTempPath(), $"settings-coverage-run-{Guid.NewGuid():N}");
+        var result = SettingsCoverageRunner.Run(runRoot, new SettingsCoverageRunner.Options(
+            DeviceId: "emulator-sim",
+            Live: assets,
+            Config: ConfigWith(),
+            UnderlyingConsult: ModelConsult,
+            DshSessionIdAccessor: () => "session-sim-0001",
+            FeedNext: world.Next,
+            CurrentCaptureId: () => world.CurrentCaptureId,
+            EffectDriver: new SimulatedEffectDriver(world)));
+
+        // 撞名已修（RouteKey）不再挡路；挡路的是诚实的滚动验证：内容不变 = 未生效
+        Assert.Equal("BoundedStop", result.Report.Status);
+        Assert.Equal("bounded-stop:max-consecutive-failures", result.Consults[^1].Justification);
+        var swipes = result.Steps.Where(s => s.EffectClass == "swipe-up").ToList();
+        Assert.True(swipes.Count >= 1, "至少一次滚动尝试");
+        Assert.All(swipes, s =>
+        {
+            Assert.Equal("DeliveryCompleted", s.ReceiptOutcome); // 已投递
+            Assert.False(s.Verified, "内容不变的 swipe 不得验证通过");
+            Assert.Contains(new KeyValuePair<string, bool>("post-action-content-transition", false),
+                s.Checks);
+        });
+        // 滚动发现的入口保持未覆盖（诚实报告，不折叠）
+        Assert.NotEmpty(result.Report.UncoveredItems);
     }
 
     [Fact]

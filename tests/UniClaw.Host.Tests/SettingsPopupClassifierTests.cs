@@ -138,7 +138,7 @@ public sealed class SettingsPopupClassifierTests
     {
         Assert.Equal("NoXml", SettingsTraversalLiveFeed.DeriveSlowTrigger(
             hierarchyAvailable: false, fastAvailable: true, clickableNodeCount: 0,
-            screenIdentity: "android.settings|route:Settings", popupPresentStreak: 0, slow: null));
+            routeKey: "android.settings|route:Settings", popupPresentStreak: 0, slow: null));
     }
 
     [Fact]
@@ -147,11 +147,11 @@ public sealed class SettingsPopupClassifierTests
         // fast 有检出而 hierarchy 零可点击节点（documented deterministic predicate）。
         Assert.Equal("StructuralVisualConflict", SettingsTraversalLiveFeed.DeriveSlowTrigger(
             hierarchyAvailable: true, fastAvailable: true, clickableNodeCount: 0,
-            screenIdentity: "android.settings|route:Settings", popupPresentStreak: 0, slow: null));
+            routeKey: "android.settings|route:Settings", popupPresentStreak: 0, slow: null));
         // 反向：fast 无检出而 hierarchy 有可点击节点。
         Assert.Equal("StructuralVisualConflict", SettingsTraversalLiveFeed.DeriveSlowTrigger(
             hierarchyAvailable: true, fastAvailable: false, clickableNodeCount: 5,
-            screenIdentity: "android.settings|route:Settings", popupPresentStreak: 0, slow: null));
+            routeKey: "android.settings|route:Settings", popupPresentStreak: 0, slow: null));
     }
 
     [Fact]
@@ -159,14 +159,14 @@ public sealed class SettingsPopupClassifierTests
     {
         Assert.Equal("PopupConsecutiveFailures", SettingsTraversalLiveFeed.DeriveSlowTrigger(
             hierarchyAvailable: true, fastAvailable: true, clickableNodeCount: 3,
-            screenIdentity: "android.settings|route:Settings", popupPresentStreak: 2,
+            routeKey: "android.settings|route:Settings", popupPresentStreak: 2,
             slow: new UniClaw.Host.SettingsCoverage.SlowTriggerConfig()));
         Assert.Equal("SemanticUnclear", SettingsTraversalLiveFeed.DeriveSlowTrigger(
             hierarchyAvailable: true, fastAvailable: true, clickableNodeCount: 3,
-            screenIdentity: "android.settings", popupPresentStreak: 0, slow: null));
+            routeKey: "android.settings", popupPresentStreak: 0, slow: null));
         Assert.Null(SettingsTraversalLiveFeed.DeriveSlowTrigger(
             hierarchyAvailable: true, fastAvailable: true, clickableNodeCount: 3,
-            screenIdentity: "android.settings|route:Settings", popupPresentStreak: 0, slow: null));
+            routeKey: "android.settings|route:Settings", popupPresentStreak: 0, slow: null));
     }
 
     [Fact]

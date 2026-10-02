@@ -41,7 +41,7 @@ public sealed class SettingsCoverageConfigTests
           onMaxSteps: true
           onMaxScrolls: true
           onConsecutiveFailures: true
-        rootRoute: android.settings|route:Settings
+        rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
         scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
         backDescriptor: Navigate up
         """;
@@ -102,7 +102,7 @@ public sealed class SettingsCoverageConfigTests
               onConsecutiveFailures: true
             evidence:
               persistScreenshots: false
-            rootRoute: android.settings|route:Settings
+            rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
             scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
             backDescriptor: Navigate up
             """);
@@ -143,7 +143,7 @@ public sealed class SettingsCoverageConfigTests
               onConsecutiveFailures: true
             evidence:
               persistScreenshots: maybe
-            rootRoute: android.settings|route:Settings
+            rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
             scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
             backDescriptor: Navigate up
             """);
@@ -182,7 +182,7 @@ public sealed class SettingsCoverageConfigTests
               onMaxSteps: true
               onMaxScrolls: true
               onConsecutiveFailures: true
-            rootRoute: android.settings|route:Settings
+            rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
             scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
             backDescriptor: Navigate up
             """);
@@ -217,7 +217,7 @@ public sealed class SettingsCoverageConfigTests
         Assert.Contains("Network & internet", config.TargetPages);
         Assert.Equal("Sound & vibration", config.TargetPages[^1]);
         Assert.Equal(new CoverageTermination(true, true, true, true), config.Termination);
-        Assert.Equal("android.settings|route:Settings", config.RootRoute);
+        Assert.Equal("android.settings|rk1:Settings|src=homepage_title|up=0", config.RootRoute);
         Assert.Equal("com.android.settings:id/main_content_scrollable_container",
             config.ScrollContainerDescriptor);
         Assert.Equal("Navigate up", config.BackDescriptor);
@@ -239,7 +239,7 @@ public sealed class SettingsCoverageConfigTests
             Assert.Equal(new CoverageRequirements(true, "all-visible", 1, 2, true, 1), config.Coverage);
             Assert.Equal(["Network & internet", "Connected devices"], config.TargetPages);
             Assert.Equal(new CoverageTermination(true, true, true, true), config.Termination);
-            Assert.Equal("android.settings|route:Settings", config.RootRoute);
+            Assert.Equal("android.settings|rk1:Settings|src=homepage_title|up=0", config.RootRoute);
         }
         finally
         {
@@ -365,7 +365,7 @@ public sealed class SettingsCoverageConfigTests
     [Fact]
     public void Load_MissingRootRoute_FailsClosed()
     {
-        var yaml = MinimalConfig().Replace("rootRoute: android.settings|route:Settings\n", "");
+        var yaml = MinimalConfig().Replace("rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0\n", "");
         AssertInvalid(yaml, "config-missing:rootRoute");
     }
 
