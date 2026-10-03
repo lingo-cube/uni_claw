@@ -86,7 +86,9 @@ public sealed class HostRunner
         IUiObservationStrategy observationStrategy;
         if (options.SettingsTraversal)
         {
-            settingsFeed = new SettingsTraversalLiveFeed(clock, options.Live);
+            // AGT-011 §4：SettingsTraversal 模式证据持久化（AGT-008 缺省全开）。
+            settingsFeed = new SettingsTraversalLiveFeed(
+                clock, options.Live, Path.Combine(runDir, "evidence"));
             nextInput = settingsFeed.Next;
             observationStrategy = new UiHierarchyOccurrenceStrategy();
         }

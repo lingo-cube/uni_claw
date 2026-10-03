@@ -679,6 +679,29 @@ public sealed class SettingsCoverageScenarioTests
     }
 
     [Fact]
+    public void MultiStepActProposal_IsRejectedAsDirectiveDeviation()
+    {
+        // AGT-011 §6：directive 要求单步；两步提案 = 偏离，有界纠正后仍
+        // 偏离 → fail closed，零 dispatch。
+        AgentDecision? TwoStepModel(AgentDecisionContext context) =>
+            new AgentDecision.Act(new AgentActionProposal(
+                context.DecisionId,
+                new[]
+                {
+                    new AgentActionStep("ui.element", "Network & internet", "tap", null),
+                    new AgentActionStep("ui.element", "Navigate up", "tap", null),
+                },
+                Justification: "two-step"));
+
+        var result = RunScenario(TwoStepModel, ConfigWith(maxDirectiveRetries: 0));
+
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, result.Status);
+        Assert.Contains(result.Consults,
+            c => c.DeviationReason == "directive-requires-single-step:2");
+        Assert.Empty(result.Steps);
+    }
+
+    [Fact]
     public void IllegalDesiredStateOnDirectiveStep_IsRejectedByDirector()
     {
         AgentDecision? IllegalState(AgentDecisionContext context) =>

@@ -326,8 +326,8 @@ public sealed class SettingsCoverageRunner
             _ledger.RecordObservation(
                 _lastCycleRoute,
                 _kernel.CurrentBelief?.Occurrences?
-                    .Select(o => (o.Role, o.SemanticDescriptor)).ToArray()
-                ?? Array.Empty<(string, string?)>());
+                    .Select(o => (o.Role, o.SemanticDescriptor, o.Native?.Value)).ToArray()
+                ?? Array.Empty<(string, string?, string?)>());
             _cycleRecorded = true;
         }
 

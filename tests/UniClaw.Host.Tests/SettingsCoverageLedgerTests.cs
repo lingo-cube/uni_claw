@@ -296,6 +296,33 @@ public sealed class SettingsCoverageLedgerTests
     }
 
     [Fact]
+    public void FrameworkButtonRid_IsNeverAScrollCandidate()
+    {
+        // AGT-011 §5：对话框按钮（android:id/button1|2 框架 rid）不是遍历
+        // 入口；非按钮 rid（如 search_action）仍可成为候选（语料实证）。
+        var ledger = new SettingsCoverageLedger();
+        EnterAllTargetPages(ledger);
+        ScrollStep(ledger, verified: true);
+        ledger.RecordObservation(RootRoute, new[]
+        {
+            ("ui.element", "DISMISS", "android:id/button1"),
+            ("ui.element", "CANCEL", "android:id/button2"),
+            ("ui.element", "Search settings", "com.android.settings:id/search_action_bar"),
+        });
+        var snapshot = ledger.Snapshot(Config());
+        if (snapshot.NextDirectiveKind == "enter")
+        {
+            Assert.Contains("<Search settings>", snapshot.NextDirective);
+            Assert.DoesNotContain("<DISMISS>", snapshot.NextDirective);
+            Assert.DoesNotContain("<CANCEL>", snapshot.NextDirective);
+        }
+        else
+        {
+            Assert.Equal("scroll", snapshot.NextDirectiveKind); // 无候选则滚动
+        }
+    }
+
+    [Fact]
     public void FailedEntryCandidate_IsSkipped_NotRetried()
     {
         // AGT-007：候选进入验证失败（如路由指纹碰撞页）后不得重试。

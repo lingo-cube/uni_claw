@@ -51,7 +51,7 @@ public sealed class SettingsCoverageLedger
 {
     private sealed record EnteredEntry(string RouteAfter, string? ReceiptId, long Sequence);
 
-    private readonly List<(long Sequence, string Route, IReadOnlyList<(string Role, string? Descriptor)> Occurrences)> _observations = new();
+    private readonly List<(long Sequence, string Route, IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> Occurrences)> _observations = new();
     private readonly List<(long Sequence, string State)> _popupStates = new();
     private readonly List<(long Sequence, CoverageStepRecord Step)> _steps = new();
     private readonly HashSet<int> _duplicateEffectStepIndexes = new();
@@ -66,6 +66,10 @@ public sealed class SettingsCoverageLedger
     private bool _duplicateEffectRecorded;
 
     public void RecordObservation(string route, IReadOnlyList<(string Role, string? Descriptor)> visibleOccurrences)
+        => RecordObservation(route, visibleOccurrences.Select(o => (o.Role, o.Descriptor, (string?)null)).ToList());
+
+    /// <summary>AGT-011 §5：带 NativeLocator rid 的观察（框架按钮判据）。</summary>
+    public void RecordObservation(string route, IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> visibleOccurrences)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(route);
         _observations.Add((++_sequence, route, visibleOccurrences));
@@ -354,6 +358,14 @@ public sealed class SettingsCoverageLedger
         return (null, null);
     }
 
+    /// <summary>AGT-011 §5：框架按钮 rid（android:id/button1|2|…，AlertDialog
+    /// 标准 ID）——语料实证对话框按钮以此可分（Button 类不出现在 occurrence
+    /// 投影中，rid 是可用载体）；平台级事实，非 UI 风格。</summary>
+    private static bool IsFrameworkButtonRid(string? nativeRid) =>
+        nativeRid is not null
+        && System.Text.RegularExpressions.Regex.IsMatch(
+            nativeRid, @"^android:id/button\d+$");
+
     /// <summary>滚动候选发现：仅统计已验证 scroll 之后的根页观察里出现、
     /// 且不在 TargetPages 内的 descriptor（滚动前观察不产生候选）。</summary>
     private List<string> ScrollCandidates(SettingsCoverageConfig config)
@@ -365,11 +377,12 @@ public sealed class SettingsCoverageLedger
                 || _lastVerifiedScrollSequence < 0
                 || sequence < _lastVerifiedScrollSequence)
                 continue;
-            foreach (var (role, descriptor) in occurrences)
+            foreach (var (role, descriptor, nativeRid) in occurrences)
             {
                 if (role != "ui.element"
                     || descriptor is null
                     || descriptor == config.BackDescriptor // AGT-006 补：返回键不是遍历入口
+                    || IsFrameworkButtonRid(nativeRid) // AGT-011 §5：对话框按钮不是遍历入口
                     || config.TargetPages.Contains(descriptor, StringComparer.Ordinal)
                     || scrollCandidates.Contains(descriptor))
                     continue;
