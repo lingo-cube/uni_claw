@@ -43,7 +43,7 @@
   "dependencies": [
     "WI-PNL004-001"
   ],
-  "status": "pending",
+  "status": "done",
   "required_skills": [
     "domain-modeling"
   ]

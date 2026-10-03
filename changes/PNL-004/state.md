@@ -49,7 +49,7 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 
 - Plan：`plans/2026-10-03-pnl-004-plan.md`
 - Completed WorkItem：`workitems/WI-PNL004-001.json`（Contract）
-- Pending WorkItem：`workitems/WI-PNL004-002.json`（Repository Test Catalog）
+- Completed WorkItem：`workitems/WI-PNL004-002.json`（Repository Test Catalog）
 - Pending WorkItem：`workitems/WI-PNL004-003.json`（Task Launch + Local Storage）
 - Pending WorkItem：`workitems/WI-PNL004-004.json`（Query Projection + UI metadata）
 - Pending WorkItem：`workitems/WI-PNL004-005.json`（Integration / real verification）
@@ -58,6 +58,7 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 
 - 2026-10-03 · RESOLVE → PLAN · 完成 Task Launch、分阶段元信息、测试集资产和本地 Storage Adapter 的垂直切片计划；建立 WI-PNL004-001..005 DAG。
 - 2026-10-03 · PLAN → IMPLEMENT → REVIEW → VERIFY（S1）· 完成 Launch request/ack、LaunchStageRecord、LocalStorageNamespace schema、正反例和 validator；S2–S5 仍待执行。
+- 2026-10-03 · PLAN → IMPLEMENT → REVIEW → VERIFY（S2）· 完成两个本地测试集 manifest 与 fail-closed validator；S3–S5 仍待执行。
 
 ## Evidence targets
 
