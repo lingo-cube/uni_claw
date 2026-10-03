@@ -694,9 +694,17 @@ _Avoid_: Workspace archive、UI-owned retention、second source of truth
 主时间线节点。
 _Avoid_: second task、second Product Session、DSH-only session、canonical run
 
-**Task Project**: 任务的归类维度——"一堆任务的分组"；在 DSH realization
-上落为一个 workspace。产品语义层称 Project，不称 workspace。
+**Task Project**: 任务的归类维度——"一堆任务的分组"；其 canonical identity 和生命周期由 Host/Task Catalog 管理，在 DSH realization 上可落为一个 workspace。产品语义层称 Project，不称 workspace；Workspace 只读取并投影 Project，不拥有其长期存储。
 _Avoid_: workspace（产品语义层）、repo、directory
+
+**Test Set**: 具有 identity 和 revision 的任务定义与 fixture 集合；Task Instance 必须能够指向实际采用的 Test Set revision。Host/Task Catalog 是长期 owner；Host 尚未提供持久化能力时，仓库专用目录可以作为临时声明式来源，但不等于 Worktree、Workspace 存储或 Product Runtime truth。
+_Avoid_: taskSet 字符串、项目别名、worktree、运行时缓存
+
+**Repository Test Catalog**: 在 Host Project/Test Set 持久化能力落地前，代码库内用于维护 Project、Test Set、Task definition 与 fixture 版本的临时声明式目录；它可以被 Workspace adapter 读取，但不取得 Product Session、Primary Run 或执行结果的 authority。
+_Avoid_: Workspace database、Host session store、second source of truth
+
+**Run-Session Binding**: UniClaw Runtime 产生 canonical `runId`，并将一次 Primary Run 与对应 Product Session 及其 primary Host Session 建立显式关联；Host Session 不是 Run identity，目录名和 artifact 文件名也不能推导或替代 `runId`。
+_Avoid_: session-as-run、directory-as-run、traceId-as-run
 
 ### Simulation Substrate（RFS-001 落定）
 

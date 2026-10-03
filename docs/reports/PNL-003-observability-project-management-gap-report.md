@@ -6,6 +6,10 @@
 
 当前工作区已经具备可验收的只读体验，但它仍是“运行后发现 + 展示”的 read model，不是完整的观测目录。最需要补齐的不是把字段继续堆进页面，而是建立一份稳定的观测契约：每条记录要能回答“它属于哪个 project / test set / task instance / session / run，谁产生，谁权威，何时发生，如何追到原始产物”。
 
+## Grill resolution（2026-10-03）
+
+本轮 Human Decision 已明确：Project/Test Set 的长期 owner 是 Host/Task Catalog；当前 Host 尚未提供持久化能力时，先在代码库专用目录维护声明式测试目录与 fixture revision。该目录不是 Worktree，也不是 Workspace 运行时存储。Workspace 只通过 adapter 读取并投影，不能自行创建 canonical Project/Test Set、归档来源或推导 Product Session / Primary Run。`runId` 由 UniClaw Runtime 产生，并与对应 Session 显式绑定；Metadata 分开表达实际观测与配置声明。
+
 当前最明显的断点有四个：
 
 1. UniClaw Trace 已按 OTel 形状投影 Span 的核心字段，但 trace context、span 数量和 detail 仍以 `trc/0.1` 运行产物为前提；没有统一的 `runId` / `environment` / `scope` / `schemaVersion` 外层 envelope，也没有 pagination 或完整 trace read model。
@@ -82,7 +86,7 @@ ProjectRef(path/workspaceId)
 - 没有 project/test-set 的创建、编辑、归档、恢复、版本、权限或迁移管理。PNL-002 明确将任务编辑器、筛选、搜索和新的持久化层排除在外。
 - DSH owns session storage and host lifecycle/events. UniClaw owns ProductSession/task/instance semantics and product trace/evidence authority. Workspace should remain a read-only projection; project/test-set catalog ownership still needs a decision. Artifact scan is an observation adapter, not a source of Product completion truth.
 
-建议冻结的边界：Project/TestSet catalog 由 UniClaw workspace domain 持有最小 identity/membership/lifecycle；DSH 只提供 host workspace/session references 与 events；UniClaw Runtime 仍是 run/outcome/evidence 语义的 authority；workspace 合并显示时保留每个字段的 `source` 和 `authority`。这避免把 DSH workspace path 误当成 Product Project，也避免从 artifact metadata 反推测试集真相。
+建议冻结的边界：Project/TestSet catalog 的 canonical identity、revision 和 lifecycle 由 Host/Task Catalog 持有；当前持久化能力缺失时，由代码库专用目录提供临时声明式测试目录。Workspace 只读取并投影，DSH 提供 host workspace/session references 与 events，UniClaw Runtime 仍是 run/outcome/evidence 语义的 authority；workspace 合并显示时保留每个字段的 `source` 和 `authority`。这避免把 DSH workspace path 误当成 Product Project，也避免从 artifact metadata 反推测试集真相。
 
 ## 4. 下一轮最小可执行 Change
 
@@ -115,7 +119,7 @@ ProjectRef(path/workspaceId)
 
 ## 未决 Human Gate
 
-1. **Project/TestSet owner**：是否由 UniClaw workspace 持有 Project/TestSet catalog，还是由外部测试管理系统持有、workspace 只读取引用？这决定下一轮是否可以增加本地持久化。
+1. **Project/TestSet owner（已裁决）**：长期由 Host/Task Catalog 持有；Host 持久化缺失期间由代码库专用目录提供临时声明式来源，Workspace 只读取投影，不增加自己的持久化真相。
 2. **Run identity**：`runId` 是否由 UniClaw Runtime canonical 产生并要求所有 DSH/artifact 通过显式映射接入，还是允许 DSH session 作为缺省 run boundary？
 3. **Trace completeness**：前端默认展示是否只承诺 canonical UniClaw Trace + DSH event projection，还是要为 DSH events 建立完整 span/event/link 归一化模型？后者会扩大 DSH adapter 范围。
 4. **Device authority**：设备信息由真实 Host/device adapter 提供，还是允许测试集 metadata 提供静态声明？两者必须区分 `observed` 与 `declared`。
