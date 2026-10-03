@@ -15,6 +15,7 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
   const vm = viewModel || {};
   const nav = vm.navigation || {};
   const header = vm.taskHeader || {};
+  const activePane = vm.activePane === 'detail' ? 'trace' : (vm.activePane || 'trace');
   const renderedTaskKeys = new Set();
   const projectsHtml = (nav.projects || []).map((project) => renderProject(project, renderedTaskKeys, nav.selectedProductSessionId)).join('');
   const taskHtml = (nav.taskInstances || [])
@@ -44,9 +45,8 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
     <div class="workspace-content"><div class="workspace-content__primary">
     <section class="workspace-observation-bar" aria-label="任务观察面板">
       <div class="workspace-pane-tabs" role="tablist" aria-label="任务信息标签页">
-        ${renderTabButton('trace', 'Trace', vm.activePane)}
-        ${renderTabButton('evidence', 'Evidence', vm.activePane)}
-        ${renderTabButton('detail', '详情', vm.activePane)}
+        ${renderTabButton('trace', 'Trace', activePane)}
+        ${renderTabButton('evidence', 'Evidence', activePane)}
       </div>
       <div class="workspace-diagnostics-slot"><span><strong>诊断入口</strong><small>Skill 接入后可分析当前任务</small></span><button type="button" class="workspace-diagnostics-action" data-workspace-action="diagnose-task" disabled aria-disabled="true">诊断当前任务</button></div>
     </section>
@@ -54,9 +54,8 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
     <section class="workspace-inspector" aria-label="${text(options.panesLabel, '任务信息')}">
       <div class="workspace-inspector__main">
         <div class="workspace-tab-panels">
-          ${renderTabPanel('trace', vm.activePane, renderTracePane(vm.tracePane))}
-          ${renderTabPanel('evidence', vm.activePane, renderEvidencePane(vm.evidencePane))}
-          ${renderTabPanel('detail', vm.activePane, renderDetail(vm.detailActions))}
+          ${renderTabPanel('trace', activePane, renderTracePane(vm.tracePane))}
+          ${renderTabPanel('evidence', activePane, renderEvidencePane(vm.evidencePane))}
         </div>
       </div>
     </section>
@@ -65,7 +64,7 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
       ${renderMetadataPane(vm.metadataPane)}
     </aside></div>
   </main>
-</div>`;
+</div>${renderDetailModal(vm.detailActions)}</div>`;
 }
 
 function renderProject(project, renderedTaskKeys, selectedProductSessionId) {
@@ -103,17 +102,26 @@ function renderTabPanel(id, active, content) { return `<div class="workspace-tab
 function renderTracePane(pane = {}) {
   const items = Array.isArray(pane.items) ? pane.items : Object.values(pane.groups || {}).flat();
   const mode = pane.mode === 'split' ? 'split' : 'combined';
+  const selectedSource = pane.selectedSource || 'all';
   const grouped = Object.entries(pane.groups || {}).filter(([, group]) => Array.isArray(group) && group.length);
   const counts = items.reduce((result, item) => { const source = item.source || 'unknown'; result[source] = (result[source] || 0) + 1; return result; }, {});
   const legend = Object.entries(counts).map(([source, count]) => `<span class="workspace-trace-source workspace-trace-source--${escapeHtml(source)}">${text(traceSourceLabel(source))}<b>${count}</b></span>`).join('');
-  const body = mode === 'split'
-    ? grouped.map(([source, sourceItems]) => renderTraceGroup(source, sourceItems, false)).join('')
-    : renderTraceGroup('all', items, true);
-  return `<section class="workspace-pane workspace-pane--trace" data-pane="trace"><div class="workspace-trace-toolbar"><div class="workspace-pane__heading"><div><h3>Trace</h3><p class="workspace-pane__subheading">按父子关系查看执行链；可合并或按来源拆分</p></div><span class="workspace-pane__count">${items.length}</span></div><div class="workspace-trace-mode" role="group" aria-label="Trace 显示方式">${renderTraceModeButton('combined', '合并', mode)}${renderTraceModeButton('split', '按来源', mode)}</div></div>${items.length ? `<div class="workspace-trace-legend workspace-trace-legend--standalone">${legend}</div>${body}` : '<p class="workspace-empty">暂无可展示的 Trace 事件</p>'}</section>`;
+  const sourceButtons = [`<button type="button" class="workspace-trace-source-switch__button${selectedSource === 'all' ? ' is-active' : ''}" data-workspace-action="select-trace-source" data-trace-source="all" aria-pressed="${selectedSource === 'all' ? 'true' : 'false'}">全部 <b>${items.length}</b></button>`]
+    .concat(grouped.map(([source, sourceItems]) => `<button type="button" class="workspace-trace-source-switch__button${selectedSource === source ? ' is-active' : ''}" data-workspace-action="select-trace-source" data-trace-source="${escapeHtml(source)}" aria-pressed="${selectedSource === source ? 'true' : 'false'}">${text(traceSourceLabel(source))} <b>${sourceItems.length}</b></button>`)).join('');
+  let body = '';
+  if (selectedSource !== 'all') {
+    const sourceItems = (pane.groups && pane.groups[selectedSource]) || [];
+    body = sourceItems.length ? renderTraceGroup(selectedSource, sourceItems, false, true) : '<p class="workspace-empty">该来源暂无 Trace 事件</p>';
+  } else if (mode === 'split') {
+    body = grouped.map(([source, sourceItems]) => renderTraceGroup(source, sourceItems, false, false)).join('');
+  } else {
+    body = renderTraceGroup('all', items, true, false);
+  }
+  return `<section class="workspace-pane workspace-pane--trace" data-pane="trace"><div class="workspace-trace-toolbar"><div class="workspace-pane__heading"><div><h3>Trace</h3><p class="workspace-pane__subheading">先选来源，再在固定高度的轨迹区内查看明细</p></div><span class="workspace-pane__count">${items.length}</span></div><div class="workspace-trace-mode" role="group" aria-label="Trace 显示方式">${renderTraceModeButton('combined', '合并', mode)}${renderTraceModeButton('split', '按来源', mode)}</div></div>${items.length ? `<div class="workspace-trace-source-switch" role="tablist" aria-label="Trace 来源">${sourceButtons}</div><div class="workspace-trace-legend workspace-trace-legend--standalone">${legend}</div><div class="workspace-trace-viewer">${body}</div>` : '<p class="workspace-empty">暂无可展示的 Trace 事件</p>'}</section>`;
 }
 function traceSourceLabel(source) { return source === 'uniclaw' ? 'UniClaw' : source === 'uniflow' ? 'UniFlow' : String(source).toUpperCase(); }
 function renderTraceModeButton(mode, label, active) { return `<button type="button" class="workspace-trace-mode__button${active === mode ? ' is-active' : ''}" data-workspace-action="select-trace-mode" data-trace-mode="${mode}" aria-pressed="${active === mode ? 'true' : 'false'}">${text(label)}</button>`; }
-function renderTraceGroup(source, items, combined) {
+function renderTraceGroup(source, items, combined, selected) {
   const ordered = items.map((item, index) => ({ item, index }));
   const children = new Map();
   const key = (item, id) => `${item.source || 'unknown'}:${id}`;
@@ -130,7 +138,8 @@ function renderTraceGroup(source, items, combined) {
   }
   const className = combined ? 'workspace-trace-root' : 'workspace-trace-source-group';
   const title = combined ? '运行轨迹 · 全部来源' : traceSourceLabel(source);
-  return `<details class="${className}" open><summary><span>${text(title)}</span>${combined ? `<span class="workspace-trace-legend">${text(items.length)} 条</span>` : `<span class="workspace-trace-source-count">${text(items.length)} 条</span>`}</summary><ol class="workspace-trace-tree" role="tree">${roots.map((item) => renderTraceCard(item, children, 0)).join('')}</ol></details>`;
+  const open = selected || (combined && items.length < 20) ? ' open' : '';
+  return `<details class="${className}"${open}><summary><span>${text(title)}</span>${combined ? `<span class="workspace-trace-legend">${text(items.length)} 条</span>` : `<span class="workspace-trace-source-count">${text(items.length)} 条</span>`}</summary><ol class="workspace-trace-tree" role="tree">${roots.map((item) => renderTraceCard(item, children, 0)).join('')}</ol></details>`;
 }
 function renderTraceCard(item, children, depth) {
   const source = item.source || 'unknown';
@@ -147,7 +156,12 @@ function renderEvidencePane(pane = {}) {
 }
 function renderMetadataPane(pane = {}) { return `<section class="workspace-pane workspace-pane--metadata" data-pane="metadata"><div class="workspace-pane__heading"><h3>Metadata</h3><span class="workspace-status workspace-status--${escapeHtml(pane.status || 'unknown')}">${text(pane.status, 'unknown')}</span></div><dl>${Object.keys(pane.items || {}).map((key) => `<div><dt>${text(key)}</dt><dd>${typeof pane.items[key] === 'object' && pane.items[key] !== null ? `<details class="workspace-metadata-value"><summary>查看结构化数据</summary><pre>${text(JSON.stringify(pane.items[key], null, 2))}</pre></details>` : text(pane.items[key])}</dd></div>`).join('')}</dl></section>`; }
 function renderExecutionPane(pane = {}) { return `<section class="workspace-pane workspace-pane--execution" data-pane="execution"><div class="workspace-pane__heading"><div><h3>执行结果</h3><p class="workspace-pane__subheading">当前运行的结论与证据</p></div><span class="workspace-status workspace-status--${escapeHtml(pane.status || 'empty')}">${text(pane.status === 'ready' ? '已产生' : '待运行', pane.status || 'empty')}</span></div>${(pane.items || []).length ? (pane.items || []).map((item) => `<article class="workspace-execution-card"><div><strong>${text(item.label, '执行结果')}</strong><span class="workspace-chip">${text(item.status, 'unknown')}</span></div><p>${text(item.text, '暂无结果摘要')}</p>${item.evidenceRefs?.length ? `<div class="workspace-reference-list">${item.evidenceRefs.map((ref) => `<button type="button" class="workspace-reference-link" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(String(ref).split('/').pop())}">${text(String(ref).split('/').pop())}</button>`).join('')}</div>` : ''}</article>`).join('') : '<p class="workspace-empty workspace-empty--compact">当前 session 尚无 UniClaw runtime 执行产物</p>'}</section>`; }
-function renderDetail(detail = {}) { const returnPane = detail.returnPane === 'evidence' ? 'evidence' : 'trace'; const returnLabel = returnPane === 'evidence' ? 'Evidence' : 'Trace'; return `<aside class="workspace-detail-drawer" data-detail-status="${escapeHtml(detail.status || 'idle')}" aria-label="详情"><div class="workspace-detail-drawer__header"><h3>详情</h3><button type="button" class="workspace-detail-back" data-workspace-action="select-pane" data-pane-tab="${returnPane}">返回 ${returnLabel}</button></div>${detail.current ? `<pre>${text(JSON.stringify(detail.current, null, 2))}</pre>` : `<p>${text(detail.status === 'loading' ? '正在加载详情' : '选择记录查看详情')}</p>`}</aside>`; }
+function renderDetailModal(detail = {}) {
+  if (!detail.modalOpen) return '';
+  const returnLabel = detail.returnPane === 'evidence' ? 'Evidence' : 'Trace';
+  const content = detail.current ? `<pre>${text(JSON.stringify(detail.current, null, 2))}</pre>` : `<p class="workspace-detail-modal__empty">${text(detail.status === 'loading' ? '正在加载详情' : '暂无可展示的详情')}</p>`;
+  return `<div class="workspace-detail-modal" role="presentation"><div class="workspace-detail-modal__backdrop" data-workspace-action="close-detail"></div><section class="workspace-detail-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="workspace-detail-title" data-detail-status="${escapeHtml(detail.status || 'idle')}"><header class="workspace-detail-modal__header"><div><p class="workspace-eyebrow">${text(returnLabel)}</p><h3 id="workspace-detail-title">记录详情</h3></div><button type="button" class="workspace-detail-modal__close" data-workspace-action="close-detail" aria-label="关闭详情">×</button></header><div class="workspace-detail-modal__body">${content}</div><footer class="workspace-detail-modal__footer"><span>${text(detail.status === 'loading' ? '读取中' : '可复制或展开查看原始记录')}</span><button type="button" class="workspace-detail-back" data-workspace-action="close-detail">返回 ${returnLabel}</button></footer></section></div>`;
+}
 function renderNotices(notices = []) {
   if (!notices.length) return '';
   const hasRetry = notices.some((notice) => ['timeout', 'unavailable', 'stale'].includes(notice.code));

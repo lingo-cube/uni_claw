@@ -179,6 +179,8 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
         controller.selectPane(target.getAttribute('data-pane-tab'));
       } else if (action === 'select-trace-mode') {
         controller.selectTraceMode(target.getAttribute('data-trace-mode'));
+      } else if (action === 'select-trace-source') {
+        controller.selectTraceSource(target.getAttribute('data-trace-source'));
       } else if (action === 'select-project') {
         void controller.selectProject(target.getAttribute('data-project-id'));
       } else if (action === 'select-task') {
@@ -191,6 +193,8 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
         ]));
       } else if (action === 'resolve-detail') {
         void controller.resolveDetail({ refId: target.getAttribute('data-detail-ref'), source: 'dsh', detailType: 'text' });
+      } else if (action === 'close-detail') {
+        controller.closeDetail();
       }
     });
   } });

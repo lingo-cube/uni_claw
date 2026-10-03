@@ -127,8 +127,11 @@ test('trace mode and detail return pane are durable in controller state', async 
   await c.selectTaskInstance('ps1');
   c.selectPane('evidence');
   await c.resolveDetail({ source: 'fixture', refId: 'ev.md' });
-  assert.equal(c.getState().ui.activePane, 'detail');
+  assert.equal(c.getState().ui.activePane, 'evidence');
   assert.equal(c.getState().ui.detailReturnPane, 'evidence');
+  assert.equal(c.getState().ui.detailModalOpen, true);
+  c.closeDetail();
+  assert.equal(c.getState().ui.detailModalOpen, false);
   c.selectPane(c.getState().ui.detailReturnPane);
   assert.equal(c.getState().ui.activePane, 'evidence');
 });

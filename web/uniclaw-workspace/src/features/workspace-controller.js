@@ -5,7 +5,7 @@ function createWorkspaceController({ queryCore } = {}) {
   const state = {
     projects: idlePage('projects'),
     selection: { projectId: null, productSessionId: null },
-    ui: { activePane: 'trace', traceMode: 'combined', detailReturnPane: 'trace' },
+    ui: { activePane: 'trace', traceMode: 'combined', traceSource: 'all', detailReturnPane: 'trace', detailModalOpen: false },
     session: idleData('session'),
     timeline: idlePage('timeline'),
     traces: idlePage('traces'),
@@ -107,7 +107,7 @@ function createWorkspaceController({ queryCore } = {}) {
     state.ui.detailReturnPane = state.ui.activePane === 'detail'
       ? (state.ui.detailReturnPane || 'trace')
       : state.ui.activePane;
-    state.ui.activePane = 'detail';
+    state.ui.detailModalOpen = true;
     state.detail = { status: 'loading', detail: null, errors: [] };
     publish();
     const result = await queryCore.resolveDetail(detailRef, { productSessionId });
@@ -117,10 +117,20 @@ function createWorkspaceController({ queryCore } = {}) {
   function selectPane(pane) {
     const allowed = ['trace', 'evidence', 'detail'];
     state.ui.activePane = allowed.includes(pane) ? pane : 'trace';
+    if (pane === 'detail') state.ui.detailModalOpen = true;
     return publish();
   }
   function selectTraceMode(mode) {
     state.ui.traceMode = mode === 'split' ? 'split' : 'combined';
+    return publish();
+  }
+  function selectTraceSource(source) {
+    state.ui.traceSource = typeof source === 'string' && source ? source : 'all';
+    return publish();
+  }
+  function closeDetail() {
+    state.ui.detailModalOpen = false;
+    if (state.ui.activePane === 'detail') state.ui.activePane = state.ui.detailReturnPane || 'trace';
     return publish();
   }
   async function refresh() {
@@ -137,7 +147,7 @@ function createWorkspaceController({ queryCore } = {}) {
   }
   return Object.freeze({
     loadProjects, selectProject, selectTaskInstance, loadSession, loadTimeline,
-    loadTraces, loadEvidence, resolveDetail, selectPane, selectTraceMode, refresh, subscribe,
+    loadTraces, loadEvidence, resolveDetail, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
     getState: () => clone(state)
   });
 

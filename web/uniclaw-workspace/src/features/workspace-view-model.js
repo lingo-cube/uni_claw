@@ -42,7 +42,7 @@ function createWorkspaceViewModel(input, options = {}) {
       errors: errorsOf(state.session)
     },
     conversationTimeline: timelinePane(state.timeline, session),
-    tracePane: { ...groupedPane(state.traces, 'traces', (item) => item.source || 'unknown'), mode: state.ui && state.ui.traceMode === 'split' ? 'split' : 'combined' },
+    tracePane: { ...groupedPane(state.traces, 'traces', (item) => item.source || 'unknown'), mode: state.ui && state.ui.traceMode === 'split' ? 'split' : 'combined', selectedSource: state.ui && state.ui.traceSource || 'all' },
     evidencePane: evidencePane(state.evidence),
     executionPane: executionPane((state.session && state.session.session) || null),
     metadataPane: { status: state.session && state.session.status || 'idle', items: metadata, errors: errorsOf(state.session) },
@@ -198,7 +198,8 @@ function groupedPane(value, key, groupBy) {
     if (!groups[item.source]) groups[item.source] = [];
     groups[item.source].push(item);
   });
-  return { status: pane.status, items, groups, errors: pane.errors, snapshotId: pane.snapshotId, revision: pane.revision, observedAt: pane.observedAt, itemKey: key };
+  const sourceCounts = Object.fromEntries(Object.entries(groups).map(([source, group]) => [source, group.length]));
+  return { status: pane.status, items, groups, sourceCounts, errors: pane.errors, snapshotId: pane.snapshotId, revision: pane.revision, observedAt: pane.observedAt, itemKey: key };
 }
 
 function executionPane(session) {
@@ -242,7 +243,7 @@ function evidencePane(value) {
 
 function detailActions(state, productSessionId) {
   const detail = state.detail || {};
-  return { status: detail.status || 'idle', enabled: Boolean(productSessionId), current: clone(detail.detail || null), errors: errorsOf(detail), resolve: detail.status === 'loading' ? 'loading' : 'available', returnPane: ['trace', 'evidence'].includes(state.ui && state.ui.detailReturnPane) ? state.ui.detailReturnPane : 'trace' };
+  return { status: detail.status || 'idle', enabled: Boolean(productSessionId), current: clone(detail.detail || null), errors: errorsOf(detail), resolve: detail.status === 'loading' ? 'loading' : 'available', modalOpen: Boolean(state.ui && state.ui.detailModalOpen), returnPane: ['trace', 'evidence'].includes(state.ui && state.ui.detailReturnPane) ? state.ui.detailReturnPane : 'trace' };
 }
 
 function mergeMetadata(task, session) {
