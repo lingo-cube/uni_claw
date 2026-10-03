@@ -1,6 +1,6 @@
 # PNL-002 — UniClaw Product Workspace（DSH client vertical slice）
 
-lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: 7b49038d (dirty worktree)
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 7b49038d
 
 ## Intent（WHAT/WHY）
 
@@ -92,3 +92,21 @@ evidence: dsh/uniclaw-task-workbench/tests/workbench.test.mjs; dsh/uniclaw-task-
   Trace / 元数据 / 证据均通过；修复首次自动选中实例触发的重复 remote mount。
 - 2026-10-01 · verified · 3083 实际页面复核 Uni-Agent 主线：隐藏 runtime prompt/context，中心
   只保留 Uni-Agent、能力调用、能力结果和回合结束事件；右侧 DSH Trace 仍可查看底层事件。
+
+## Closure verification（2026-10-03）
+
+PNL-002 的只读 Product Workspace vertical slice 已完成并由 PNL-003 的共享前端
+与 DSH browser bridge 继续验证。项目分组、任务实例到 session 的映射、请求→决策→
+提交对话、DSH/UniClaw Trace、Evidence 明细、Metadata 和执行结果均在同一真实
+Android Settings session 上可达；未关联、无产物和局部失败仍按结构化状态显示。
+
+| method | expected | actual | evidence |
+|---|---|---|---|
+| DSH contract regression | task/workspace/session/artifact capability 与旧 API 兼容 | DSH package **50/50**；`node --check` 与 `git diff --check` 通过 | `dsh/uniclaw-task-workbench/tests/*.test.mjs`；`evidence/PNL-003-WI-PNL003-016.md` |
+| shared UI regression | Workspace renderer、view-model、controller 不回归 | Web package **66/66**；browser bundle 生成 7 个 shared modules | `web/uniclaw-workspace/tests/`；bundle build output |
+| live scenario | 真实任务可按项目进入并读取完整只读投影 | 专用 DSH `3083` 上真实 Android API 35 emulator 任务完成 3 轮对话；DSH Trace 50、UniClaw Trace 200、Evidence 5 个明细入口、设备 Metadata 与 Completion 可读 | `evidence/PNL-003-WI-PNL003-016.md`；真实浏览器 DOM/截图 |
+| boundary | Workspace 不接管 DSH session/artifact 权威 | DSH 负责 session/Host trace，UniClaw 负责 ProductSession/Runtime 语义，Workspace 只读组合；未关联事实不升级为 Product truth | 本文件 Decisions；`docs/reports/PNL-003-observability-project-management-gap-report.md` |
+
+- 2026-10-03 · VERIFY → CLOSED · PNL-002 vertical slice 的契约、双入口共享
+  前端和真实 3083 场景均有证据；后续 Trace 完整性、Metadata 合约、Project/TestSet
+  catalog 作为独立下一轮 Change 输入，不阻塞本切片关闭。

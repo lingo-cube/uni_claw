@@ -1,6 +1,6 @@
 # PNL-001 — UniClaw Task Workbench（DSH client 插件，第一片）
 
-lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: 7b49038d (dirty worktree)
+lifecycle_state: closed · disposition: superseded · depth: decision-heavy · base: 7b49038d
 
 ## Intent（WHAT/WHY）
 
@@ -132,8 +132,34 @@ token + Evidence 引用），数据经 sessionQuery 从事件真实提取。
   readSession 事件源）。live：sessions/trace/createTask 全链路实证（见
   evidence）。GUI 视觉验证留 Owner（ego 浏览器渲染层卡死，不代重启）。
 
-## Residual risks / Gate
+## Historical residual risks / Gate (superseded)
 
 - uniagent-task preset 行需写入 Owner 的 profile cordis.patch.yml（部署
   动作，S5）；部署前 instantiate 真实调用会失败（测试用 mock 覆盖）。
 - 60s 测试悬挂为 AGT-003 dirty 基线既有现象，另行立项，不在本 change。
+
+以上条目属于原独立任务面板方向的历史记录；当前 PNL-001 关闭处置见下文，
+不再构成当前 Workspace 的阻塞 Gate。
+
+## Closure disposition（2026-10-03）
+
+PNL-001 的基础协议、TaskRepository、实例化、Host capability 和 client bundle
+已被当前 `@uniclaw/dsh-task-workbench` 保留并由 PNL-002/PNL-003 的 Workspace
+垂直切片继续使用。原 Acceptance 3 项合同验收已有本文件记录，当前完整 DSH
+package 回归为 50/50；真实 3083 Workspace 已覆盖原 Acceptance 4 所需的
+任务实例、会话、对话、Trace、Evidence 和 Metadata 入口。
+
+原先独立的 `uniagent-task` preset 收窄机制与单独任务面板 GUI Gate 已被 Owner
+后续方向取代：任务实例工作区成为唯一产品入口，DSH preset/Host lifecycle 仍由
+DSH 自己管理。该 Gate 不再作为 PNL-001 的独立交付义务，后续若需要新的权限
+收窄或 session lifecycle，另立 Change，不回写本 Change。
+
+| method | expected | actual | evidence |
+|---|---|---|---|
+| 协议与实例化回归 | schema fail-closed、Task CRUD、instantiate、持久化与兼容入口通过 | 当前 DSH package **50/50**；既有 PNL-001 合同套件 **21/21** 记录保持通过 | `dsh/uniclaw-task-workbench/tests/*.test.mjs`；本文件 Verification |
+| 真实工作区覆盖 | 原面板验收能力在产品 Workspace 中可达 | 专用 DSH `3083` 真实 Android Settings session 可读任务、对话、Trace、Evidence、Metadata | `evidence/PNL-003-WI-PNL003-016.md`；`evidence/PNL-001-deploy.md` |
+| 处置 | 未完成 Gate 不得伪装为本 Change 的独立实现 | 独立 preset/面板 Gate 标记为 superseded，由 PNL-002/003 承接；无 PNL-001 残留实现义务 | 本 Closure disposition；`changes/INDEX.md` |
+
+- 2026-10-03 · VERIFY → CLOSED · Owner 后续 Workspace 方向已覆盖原 GUI
+  入口；基础协议/实例化/兼容回归仍由当前 package 证明。独立 preset 收窄与旧
+  面板 Gate 作为 superseded 处置，不再阻塞 PNL-001 关闭。

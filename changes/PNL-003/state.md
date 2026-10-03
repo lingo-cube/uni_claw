@@ -1,5 +1,5 @@
 # PNL-003 — UniClaw Workspace 工程化与前端解耦架构
-lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: 7b49038d
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 7b49038d
 
 ## Intent（WHAT/WHY）
 
@@ -125,7 +125,7 @@ verification:
   level: CONTRACT
   method: "阅读 docs/design/uniclaw-workspace-architecture-v0.1.md，并检查 git diff --check 与工作区变更清单"
   expected: "需求、边界、分层、数据契约、目录规则、验收标准和 Human Gates 齐全；无实现代码变更"
-  actual: "五轮 Grill 决策已写入架构方案、Change State、glossary 和 ADR；schema foundation、Query Core、DSH Adapter 三个只读切片已分别通过 Leader Review/Verify，最终 UI 与运行时挂载仍未宣称完成"
+  actual: "五轮 Grill 决策已写入架构方案、Change State 和 glossary；schema foundation、Query Core、DSH Adapter、shared frontend、browser bridge 与 DSH static bundle 均已通过 Leader Review/Verify，最终 UI 与真实 3083 场景的完成证据见 Final closure verification"
   evidence: "docs/design/uniclaw-workspace-architecture-v0.1.md；plans/PNL-003-plan.md；evidence/PNL-003-WI-PNL003-001.md；evidence/PNL-003-WI-PNL003-002.md；evidence/PNL-003-WI-PNL003-003.md"
 ```
 
@@ -194,3 +194,42 @@ verification:
 - 2026-10-03 · IMPLEMENT → REVIEW → VERIFY · 根据真实任务复验修复明细展示与设备元数据：弹窗 dialog 使用不透明白底；合法 JSON 的 `text` 解析为嵌套对象，截断/非 JSON 内容拆成元数据与原始文本两个可读区，避免反斜杠字符串包裹；Metadata 提升 `device/androidApi/wmSize/real` 为设备与运行环境卡片。真实 Android Settings 页面验证 `emulator-5556 / Android API 35 / 1080x1920 / real device`、Trace `trace.json` 长详情可读且可关闭返回。Web 64/64、DSH 50/50、bundle 7 modules、profile drift clean、node check 与 diff check 通过；证据见 `evidence/PNL-003-WI-PNL003-016.md`。
 - 2026-10-03 · IMPLEMENT → REVIEW → VERIFY · 根据状态截图修复头部徽章错位，`ready/correlated` 均为 32px 高且 top 同值；参考 OTel Span 模型，Trace 增加 traceId/rootSpanId/runId 上下文、已展示/总 spans 计数与节点 status/kind/duration/events/links/attributes 事实。无真实 timing 不伪造 waterfall 数据；共享 renderer 未引入 OTel SDK 或宿主 UI 依赖。真实页面验证 `250/3821` context、UniClaw Completed 节点及双来源切换；Web 65/65、DSH 50/50、bundle 7 modules、profile drift clean、node check 与 diff check 通过，证据见 `evidence/PNL-003-WI-PNL003-016.md`。
 - 2026-10-03 · IMPLEMENT → REVIEW → VERIFY · 增加 span 节点级“查看节点”入口与结构化详情弹窗，区分节点检查和 `trace.json` 原始文件读取；UniClaw context 计数修正为来源内 `200/3821`，不混入 DSH 事件；节点详情展示 Trace/Span/Parent、结构结果、events、references、links、attributes/resource（存在才显示）。真实页面点击 `evidence.admit` 已验证弹窗内容和返回 Trace；Web 66/66、DSH 50/50、bundle 7 modules、profile drift clean、node check 与 diff check 通过，证据见 `evidence/PNL-003-WI-PNL003-016.md`。
+
+## Final closure verification（2026-10-03）
+
+PNL-003 的工程化目标已经达到本 Change 的边界：共享前端是 Host-neutral
+canonical source，DSH 只通过 browser bridge/Host adapter 接入；真实 Workspace
+可从项目进入任务实例，聚焦 Uni-Agent 请求→决策→提交，并按需查看 DSH/UniClaw
+Trace、Evidence 明细、Metadata 和执行结果。没有把后续 Trace 完整性、Metadata
+扩展或 Project/TestSet 管理提前写成已完成能力。
+
+| method | expected | actual | evidence |
+|---|---|---|---|
+| automated regression | shared Web 与 DSH adapter/static client 全绿 | Web **66/66**；DSH **50/50**；`node --check`、`git diff --check` 通过 | `web/uniclaw-workspace/tests/`；`dsh/uniclaw-task-workbench/tests/` |
+| bundle/deploy | shared renderer 进入 DSH static client，profile 无漂移 | `npm run build:browser` 输出 `generated 7 shared modules`；`DRIFT CHECK: clean (29 files compared)` | `dsh/deploy.sh` output；`evidence/PNL-003-WI-PNL003-016.md` |
+| real scenario | 真实项目/任务可读且主链路可诊断 | DSH `3083` 上 Android API 35 `emulator-5556` 完成 Settings → Network & internet → Internet；3 轮真实请求→决策→提交（2 act + 1 noAction），2 次 DeliveryCompleted；DSH 50、UniClaw 200、合并 250；Trace 节点明细与 Evidence/`facts.json` 弹窗可关闭返回 | `evidence/PNL-003-WI-PNL003-016.md`；`evidence/pnl003-real-task-android-settings-20261003/`；真实浏览器 DOM/截图 |
+| responsive UX | 长对话/Trace/JSON 不挤占其他区域，切换可返回 | 对话容器内部滚动；Trace 固定高度内部滚动，全部/DSH/UniClaw 可切换；明细为不透明滚动弹窗；左侧任务栏可隐藏/拖拽/持久化；无横向溢出 | `evidence/PNL-003-WI-PNL003-016.md`；`workspace.css`；browser acceptance |
+| boundary and honesty | 缺失、未关联、权限/超时不被伪造成成功事实 | 结构化错误/空态保留 source/capability；没有 UniClaw runtime 产物时不把 DSH submission 冒充执行结果；Workspace 只读 | `changes/PNL-002/state.md`；`docs/reports/PNL-003-observability-project-management-gap-report.md` |
+
+## Non-blocking follow-ups
+
+本 Change 关闭时已知但不阻塞的下一轮问题已单独记录在
+[`docs/reports/PNL-003-observability-project-management-gap-report.md`](../../docs/reports/PNL-003-observability-project-management-gap-report.md)：
+
+1. Trace 需要统一 envelope（snapshot、schemaVersion、source、authority、runId、
+   truncation/cursor），并做 DSH 与 UniClaw 字段级对比；当前 UI 只承诺已有
+   UniClaw canonical Trace + DSH event projection。
+2. Metadata 需要区分 `present / absent / not-applicable / unavailable`，补齐
+   runtime/provider/device provenance；本轮只展示真实 fixture 已证明的字段。
+3. Project/TestSet 目前是只读聚合，不是独立 catalog；下一轮应先裁决 owner、
+   identity、版本和生命周期，再决定是否增加管理 API。
+
+建议下一轮 Change 名称：`PNL-004 Observability Contract and Catalog Read Model`。
+它应保持当前 Workspace 只读边界，先冻结契约和 comparison fixture，再考虑
+项目管理写入能力。以上 follow-ups 是后续工作入口，不回写本 Change 的 CLOSED
+判定。诊断能力未来接入的候选生命周期接缝另有
+[`docs/design/runtime-capability-integration-seams-v0.1.md`](../../docs/design/runtime-capability-integration-seams-v0.1.md)
+草案记录；该文档保持 `Authority: NONE`，不属于本 Change 的已冻结公共接口。
+
+- 2026-10-03 · VERIFY → CLOSED · 自动化、部署、真实任务和浏览器交互四类证据
+  均已具名；当前剩余项已被记录为 PNL-004 输入，不构成本 Change 的阻塞 Gate。
