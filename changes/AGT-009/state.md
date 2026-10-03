@@ -1,5 +1,5 @@
 # AGT-009 — Settings 遍历抽象计划、Slow 接入与弹窗清障
-lifecycle_state: verified · disposition: none · depth: decision-heavy · base: 7b49038d
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 7b49038d
 
 ## Intent（WHAT/WHY）
 
@@ -139,3 +139,8 @@ evidence: >
 - 2026-10-02 · implemented · Leader 在独立 worktree（../uni_claw-agt009，快照 a4d3b391 = PER-017/018 + Settings Traversal + 确认改动）冻结 Plan 契约并落地 Kernel 侧（AgentDecision.cs / KernelRunDriver.cs PlanExpand / 16 项确定性测试 / 白名单 + tripwire / 场景重认证 AGT-009）；Worker（glm-5.3-flash，独立分支 agt009-worker）承接 Host/Slow/Director 接入（WI-AGT009-002）。实施期冻结决策见 §Decisions 7-14。
 - 2026-10-02 · verified · 合并 agt009-worker（bf7ee166）；白名单补 SlowConsultation 四型；合并树重认证 29 场景；补 Drive 级弹窗清障闭环测试（d4e71e7b）。全量 1219/1220（唯一失败为基线预存 DocsMetadataTests，见 Verification.actual）。验收四元组与证据落 evidence/agt-009/。
 - 2026-10-02 · verified·post-verify-hygiene · Owner 授权自主修复无需裁决项：①基线预存 DocsMetadataTests 失败——PNL-003 草案按 ARCH-DOC-015 分类学迁回 design/（含引用与索引更新）；②Worker 测试两条 CS8620 nullable 警告清零；③已合并 worker worktree 清理（分支保留）。全量 1220/1220。
+- 2026-10-02 · verified→closed · 验收 1-8 全满足（1220/1220、场景 29/29 seal、V7 fail-closed 零 Effect、Drive 级弹窗清障闭环）；真机复跑项已按计划移交并由 AGT-010 真机链路关闭。post-verify hygiene 完成（DocsMetadataTests 基线修复、nullable 清零、worktree 清理）。无未授权改动，关门。
+
+## Gate disposition
+
+验收 1-8 全满足（1220/1220、场景 29/29 seal、V7 fail-closed 零 Effect、Drive 级弹窗清障闭环）；真机复跑项已按计划移交并由 AGT-010 真机链路关闭。post-verify hygiene 完成（DocsMetadataTests 基线修复、nullable 清零、worktree 清理）。无未授权改动，关门。

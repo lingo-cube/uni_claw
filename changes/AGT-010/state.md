@@ -1,5 +1,5 @@
 # AGT-010 — Settings 路由指纹去撞名（RouteKey/ViewportDigest）与滚动到底解锁
-lifecycle_state: verified · disposition: none · depth: decision-heavy · base: a4d3b391（AGT-009 线续作，基线 dfd141c4）
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: a4d3b391（AGT-009 线续作，基线 dfd141c4）
 
 ## Intent（WHAT/WHY）
 
@@ -110,3 +110,8 @@ evidence: evidence/agt-010/routekey-offline-analysis.md; evidence/agt-010/live-r
 - 2026-10-02 · verified · DeriveRouteKey（标题×来源×up；sc 字段被语料证伪剔除，Decision 6）+ DeriveViewportDigest（独立摘要，TraceEntry 接线）落地；RootRoute 迁移（测试 yaml/LedgerTests/LoadDefault profile）；撞名 e2e 与滚动到底确定性背书全绿（1227/1227）；真机复跑如实 blocked。
 - 2026-10-02 · verified·live-rerun-prepared · 更正：本机有 adb + API35 AVD（此前「环境无设备」判断错误，已收回）；ENV 门控真机终考 harness 已写入 tests/UniClaw.Host.Tests/SettingsCoverageLiveTests.cs（neg-c 同源 + rk1 RootRoute，consult=本地指令跟随 double；编译验证被中止，由执行方预检）。执行与收尾指令固化于 evidence/agt-010/live-rerun-INSTRUCTIONS.md，移交下一 agent。
 - 2026-10-02 · verified·live-rerun · emulator 真机链路通过：撞名 Security & privacy 可验证进入，列表底部 verified swipe 可达；终局为带未覆盖项的诚实 BoundedStop。证据与 e1 step 20/digest 55291AC… 对照已落盘，AGT-010 唯一悬空项关闭。
+- 2026-10-02 · verified→closed · 验收全满足：撞名可判（RouteKey rk1 真机验证 Security & privacy 进入）、同页稳定、滚动到底分支有界（确定性+真机 verified swipe 可达、终局诚实 BoundedStop）；全量 1237 通过、场景 seal 一致、配置迁移完成。与 e1 step 20/digest 55291AC… 的对照证据已落盘。无未授权改动，关门。
+
+## Gate disposition
+
+验收全满足：撞名可判（RouteKey rk1 真机验证 Security & privacy 进入）、同页稳定、滚动到底分支有界（确定性+真机 verified swipe 可达、终局诚实 BoundedStop）；全量 1237 通过、场景 seal 一致、配置迁移完成。与 e1 step 20/digest 55291AC… 的对照证据已落盘。无未授权改动，关门。

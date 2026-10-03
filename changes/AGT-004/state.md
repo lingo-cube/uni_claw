@@ -1,5 +1,5 @@
 # AGT-004 — Real Android Settings traversal verification closure
-lifecycle_state: verified · disposition: none · depth: decision-heavy · base: 7b49038d
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 7b49038d
 
 ## Intent（WHAT/WHY）
 
@@ -58,3 +58,4 @@ evidence: evidence/real-settings-traversal-20260930/; tests/UniClaw.Kernel.Tests
 本 change 的导航验证和真实短路径验收已通过。证据证明的是 Settings 根页到 Wi-Fi
 状态的两步闭环；没有执行 Settings 全部菜单的全树覆盖，因此“全树遍历”若仍是
 额外目标，应另立覆盖范围明确的 change，不把本次短路径结果扩大解释。
+- 2026-10-02 · verified→closed · 验收四元组齐备（确定性+ENVIRONMENT 两级）；其声明的全树覆盖缺口已由 AGT-005（closed）按覆盖边界显式承接并完成，负路径由 AGT-006/007 承接，无未授权改动、文档已同步，关门。
