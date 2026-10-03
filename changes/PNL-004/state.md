@@ -1,6 +1,6 @@
 # PNL-004 — Observability Contract and Task Launch/Query Storage Seam
 
-lifecycle_state: closed · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: working-tree
 
 ## Intent（WHAT/WHY）
 
@@ -52,8 +52,8 @@ lifecycle_state: closed · disposition: none · depth: decision-heavy · base: w
 - Completed WorkItem：`workitems/WI-PNL004-002.json`（Repository Test Catalog）
 - Completed WorkItem：`workitems/WI-PNL004-003.json`（Task Launch + Local Storage）
 - Completed WorkItem：`workitems/WI-PNL004-004.json`（Query Projection + UI metadata）
-- Completed WorkItem：`workitems/WI-PNL004-005.json`（Integration / real verification）
-- Completed WorkItem：`workitems/WI-PNL004-006.json`（Launch contract/recovery remediation）
+- Pending WorkItem：`workitems/WI-PNL004-005.json`（Integration / real verification）
+- Pending WorkItem：`workitems/WI-PNL004-006.json`（Launch contract/recovery remediation）
 
 ## Status log
 
@@ -78,3 +78,5 @@ lifecycle_state: closed · disposition: none · depth: decision-heavy · base: w
 - `docs/adr/0032-host-owned-project-test-catalog.md`
 - `docs/adr/0033-task-launch-and-local-storage-seam.md`
 - `docs/adr/0034-staged-task-launch-metadata.md`
+
+- 2026-10-04 · VERIFY → IMPLEMENT · Leader 终检发现之前 CLOSED 判定过早：Runtime createRun 仅有测试替身，真实 Host 未注册；storage/Runtime 失败和并发恢复尚未证明，Product Session 缺失会误标完成；重开 WI-006，WI-005 保持 pending，原通过测试与失败记录保留。
