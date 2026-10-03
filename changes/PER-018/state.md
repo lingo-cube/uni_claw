@@ -1,5 +1,5 @@
 # PER-018 — Real Slow Perception Providers
-lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: 7b49038d
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 7b49038d
 
 ## Intent（WHAT/WHY）
 
@@ -80,3 +80,16 @@ evidence: tests/UniClaw.Kernel.Tests/Perception/OpenCodeSlowRealizationTests.cs;
 - The standalone OpenCode CLI catalogue is not the 3080 DSH catalogue; both exact profiles are now live-verified through DSH Slow routes.
 - Profiles remain experimental and still require normal P2 admission; no production eligibility claim is made.
 - No Settings Traversal is started by this change.
+- 2026-10-02 · implemented→closed · 复验关门 + owner 指令换绑：
+  ①slow.semantic.text 由 opencode-go/deepseek-v4.1-flash 换绑
+  zai-coding-cn/glm-5.3-flash（起因：deepseek-v4.1-flash 在专用实例
+  当轮不调 submit_decision/no-slow-result；根因确证为 opencode-go 上游
+  403 订阅失效）；换绑落点 model-bindings.yaml + adapter 测试镜像断言 +
+  e2e 映射 glm53Flash。②新鲜四元组：确定性面全量 1228/1228、Slow 聚焦
+  42/42、插件 21/21、认证 29/29；ENVIRONMENT 面在专用 3081 重验——
+  text profile（新绑定 glm-5.3-flash）e2e 7/7 含 slow 结构化 JSON PASS；
+  visual profile（opencode-go/deepseek-v4-flash-vision-exp）当前被上游
+  订阅 403 阻断（如实记录，非代码回归；2026-09-28 经 3080 的原始通过
+  证据仍在本 Verification）。两 profile 维持 experimental。visual profile
+  的上游恢复或换绑（如 zai 视觉模型）由 owner 另行裁决。
+

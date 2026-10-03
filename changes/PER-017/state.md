@@ -1,5 +1,5 @@
 # PER-017 — Slow Perception orchestration 与模型管理基础
-lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: 7b49038d
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 7b49038d
 
 ## Intent（WHAT/WHY）
 
@@ -200,3 +200,11 @@ evidence: this state.md; docs/adr/0030; CONTEXT.md; PER-009/011; provider baseli
   builder, keyed ephemeral attempt ledger, deterministic text/visual replay,
   model-binding resolution, bounded orchestration and P2-only projection. Kernel
   tests 688/688, Simulation tests 184/184, scenario certification 29/29.
+- 2026-10-02 · implemented→closed · 复验关门（A1 复核：声明物齐全——
+  SlowContracts/Orchestration/ModelManagement/Replay/EscalationRoute/Consultation
+  六文件在档；ADR-0030 在）。新鲜四元组：build 0 errors；全量 1228/1228；
+  Slow 聚焦 42/42（含 AGT-009 增补的 SlowConsultation seam 6 项）；
+  场景认证 29/29；git diff --check 干净。验收 10 项中 1-8/10 由既有测试
+  面证明，9（experimental 声明）由 PER-018 维持。后续 Slow 消费面已由
+  AGT-009（closed）落地。
+

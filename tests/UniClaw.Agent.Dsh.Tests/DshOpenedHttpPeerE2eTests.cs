@@ -12,7 +12,7 @@ namespace UniClaw.Agent.Dsh.Tests;
 /// harness home credential store via <see cref="DshWebCredential"/> — nothing
 /// is committed. The default profile deployment model is used unless
 /// <c>UNICLAW_DSH_E2E_MODEL</c> selects provider/model
-/// (free|deepseekFlash|deepseekV41|deepseekV4Vision).
+/// (free|deepseekFlash|deepseekV41|deepseekV4Vision|glm53Flash).
 /// </summary>
 public sealed class DshOpenedHttpPeerE2eTests
 {
@@ -49,6 +49,7 @@ public sealed class DshOpenedHttpPeerE2eTests
             "free" => new ModelConfiguration("opencode-go", "space-bunny-free"),
             "deepseekFlash" => new ModelConfiguration("opencode-go", "deepseek-flash"),
             "deepseekV41" => new ModelConfiguration("opencode-go", "deepseek-v4.1-flash"),
+            "glm53Flash" => new ModelConfiguration("zai-coding-cn", "glm-5.3-flash"),
             "deepseekV4Vision" => new ModelConfiguration("opencode-go", "deepseek-v4-flash-vision-exp"),
             _ => null, // deployment default (uniagent-prod.yaml default binding)
         };

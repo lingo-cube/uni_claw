@@ -29,10 +29,10 @@ public sealed class OpenCodeSlowRealizationTests
         Assert.Equal(SlowExecutionStatus.Succeeded, result.Status);
         var proposal = Assert.Single(result.Proposals);
         Assert.Equal("wifi", proposal.Claim.Subject);
-        Assert.Contains("provider:opencode", proposal.Provenance!.TransformationLineage);
-        Assert.Contains("model:deepseek-v4.1-flash", proposal.Provenance.TransformationLineage);
-        Assert.Contains("deepseek-v4.1-flash", handler.LastBody);
-        Assert.Equal("opencode", result.Binding!.ProviderId);
+        Assert.Contains("provider:zai-coding-cn", proposal.Provenance!.TransformationLineage);
+        Assert.Contains("model:glm-5.3-flash", proposal.Provenance.TransformationLineage);
+        Assert.Contains("glm-5.3-flash", handler.LastBody);
+        Assert.Equal("zai-coding-cn", result.Binding!.ProviderId);
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public sealed class OpenCodeSlowRealizationTests
     {
         var profile = LogicalProfileId.Text;
         var models = new SlowModelManagement(new[] {
-            new ModelBindingSnapshot(profile, "opencode", "deepseek-v4.1-flash", Available: false)
+            new ModelBindingSnapshot(profile, "zai-coding-cn", "glm-5.3-flash", Available: false)
         });
         var handler = new SequenceHandler(_ => JsonResponse(200, "{}"));
         using var client = new HttpClient(handler);
@@ -171,12 +171,12 @@ public sealed class OpenCodeSlowRealizationTests
     public async Task ModelAudit_RequiresProviderCatalogueEvidence()
     {
         var handler = new SequenceHandler(_ => JsonResponse(200,
-            "{\"data\":[{\"id\":\"deepseek-v4.1-flash\"},{\"id\":\"deepseek-v4-flash-vision-exp\"}]}"));
+            "{\"data\":[{\"id\":\"glm-5.3-flash\"},{\"id\":\"deepseek-v4-flash-vision-exp\"}]}"));
         using var client = new HttpClient(handler);
         using var realization = NewRealization(client);
 
         var audit = await realization.AuditBindingsAsync(new[] {
-            (LogicalProfileId.Text, "opencode", "deepseek-v4.1-flash"),
+            (LogicalProfileId.Text, "zai-coding-cn", "glm-5.3-flash"),
             (LogicalProfileId.Visual, "opencode", "deepseek-v4-flash-vision-exp"),
             (new LogicalProfileId("slow.unknown"), "opencode", "missing"),
         });
@@ -190,7 +190,7 @@ public sealed class OpenCodeSlowRealizationTests
         new(Models(), OpenCodeSlowRealizationOptions.Local(new Uri("http://127.0.0.1/")), client);
 
     private static SlowModelManagement Models() => new(new[] {
-        new ModelBindingSnapshot(LogicalProfileId.Text, "opencode", "deepseek-v4.1-flash", Available: true),
+        new ModelBindingSnapshot(LogicalProfileId.Text, "zai-coding-cn", "glm-5.3-flash", Available: true),
         new ModelBindingSnapshot(LogicalProfileId.Visual, "opencode", "deepseek-v4-flash-vision-exp", Available: true),
     });
 

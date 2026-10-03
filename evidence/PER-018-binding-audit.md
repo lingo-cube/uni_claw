@@ -52,3 +52,14 @@ FINAL_STATUS=PASS
 `slow.semantic.text`: live DSH route verified.
 
 `slow.semantic.visual`: exact DSH route, no-tool preset, same-capture PNG, and structured JSON response verified. The peer returns raw structured text; deterministic Kernel parser/P2 tests remain the only Product authority ingress, and no DSH route writes Product state.
+
+## 2026-10-02 追记：text profile 换绑
+
+- `slow.semantic.text`: opencode-go/deepseek-v4.1-flash → **zai-coding-cn/glm-5.3-flash**
+  （owner 指令；动因=opencode-go 上游 403 "active OpenCode Go subscription required"，
+  专用 3081 e2e 实证 glm-5.3-flash 7/7 含 slow 结构化 JSON）。
+- `slow.semantic.visual`: 维持 opencode-go/deepseek-v4-flash-vision-exp，
+  当前被同一订阅 403 阻断，待 owner 裁决（恢复订阅或换 zai 视觉模型）。
+- 同步落点：`.dsh/model-bindings.yaml` slowProfiles、
+  `tests/UniClaw.Kernel.Tests/Perception/OpenCodeSlowRealizationTests.cs` 镜像断言、
+  `DshOpenedHttpPeerE2eTests` 模型映射（glm53Flash）。

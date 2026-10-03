@@ -25,7 +25,9 @@ bindings:
 # proof that a model is installed or healthy.
 slowProfiles:
   slow.semantic.text:
-    primary: { provider: opencode-go, model: deepseek-v4.1-flash }
+    # 2026-10-02 owner 指令：text profile 换绑 glm-5.3-flash（deepseek-v4.1-flash
+    # 在专用实例上当轮行为不稳：不调 submit_decision / no-slow-result）。
+    primary: { provider: zai-coding-cn, model: glm-5.3-flash }
   slow.semantic.visual:
     primary: { provider: opencode-go, model: deepseek-v4-flash-vision-exp }
 
