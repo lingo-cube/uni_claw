@@ -120,6 +120,14 @@ function createWorkspaceController({ queryCore } = {}) {
     if (pane === 'detail') state.ui.detailModalOpen = true;
     return publish();
   }
+  function inspectTrace(index) {
+    if (!selected() || !Number.isInteger(index) || !state.traces.items?.[index]) return publish();
+    tokens.set('detail', (tokens.get('detail') || 0) + 1);
+    state.ui.detailReturnPane = 'trace';
+    state.ui.detailModalOpen = true;
+    state.detail = { status: 'ready', detail: { format: 'trace-record', record: clone(state.traces.items[index]) }, errors: [] };
+    return publish();
+  }
   function selectTraceMode(mode) {
     state.ui.traceMode = mode === 'split' ? 'split' : 'combined';
     return publish();
@@ -147,7 +155,7 @@ function createWorkspaceController({ queryCore } = {}) {
   }
   return Object.freeze({
     loadProjects, selectProject, selectTaskInstance, loadSession, loadTimeline,
-    loadTraces, loadEvidence, resolveDetail, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
+    loadTraces, loadEvidence, resolveDetail, inspectTrace, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
     getState: () => clone(state)
   });
 

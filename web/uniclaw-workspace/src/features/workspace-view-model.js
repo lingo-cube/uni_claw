@@ -176,6 +176,7 @@ function groupedPane(value, key, groupBy) {
     const summary = item.summary || item.label || item.text || item.definition || item.type || item.kind || item.spanId || `${key} ${index + 1}`;
     if (!summary) return null;
     return {
+      recordIndex: index,
       id: item.spanId || item.id || null,
       source,
       type: item.type || item.kind || null,
@@ -184,6 +185,17 @@ function groupedPane(value, key, groupBy) {
       text: item.text || null,
       ts: item.ts || null,
       seq: item.seq == null ? null : item.seq,
+      traceId: item.traceId || null,
+      spanKind: item.spanKind || null,
+      status: item.status || null,
+      structuralOutcome: item.structuralOutcome || null,
+      startTime: item.startTime || null,
+      endTime: item.endTime || null,
+      durationMs: Number.isFinite(item.durationMs) ? item.durationMs : null,
+      attributes: item.attributes || null,
+      resource: item.resource || null,
+      links: Array.isArray(item.links) ? item.links : [],
+      events: Array.isArray(item.events) ? item.events : [],
       authority: item.authority || null,
       correlationId: item.correlationId || null,
       parentSpanId: item.parentSpanId || null,
@@ -199,7 +211,7 @@ function groupedPane(value, key, groupBy) {
     groups[item.source].push(item);
   });
   const sourceCounts = Object.fromEntries(Object.entries(groups).map(([source, group]) => [source, group.length]));
-  return { status: pane.status, items, groups, sourceCounts, errors: pane.errors, snapshotId: pane.snapshotId, revision: pane.revision, observedAt: pane.observedAt, itemKey: key };
+  return { status: pane.status, items, groups, sourceCounts, context: pane.context || null, errors: pane.errors, snapshotId: pane.snapshotId, revision: pane.revision, observedAt: pane.observedAt, itemKey: key };
 }
 
 function executionPane(session) {
@@ -300,7 +312,7 @@ function overallStatus(state, notices) {
   return statuses.includes('error') ? 'error' : 'ready';
 }
 
-function page(value) { return { status: value && value.status || 'idle', items: Array.isArray(value && value.items) ? value.items : [], errors: errorsOf(value), snapshotId: value && value.snapshotId, revision: value && value.revision, observedAt: value && value.observedAt }; }
+function page(value) { return { status: value && value.status || 'idle', items: Array.isArray(value && value.items) ? value.items : [], context: value && value.context || null, errors: errorsOf(value), snapshotId: value && value.snapshotId, revision: value && value.revision, observedAt: value && value.observedAt }; }
 function errorsOf(value) { return Array.isArray(value && value.errors) ? value.errors : []; }
 function combineStatus(a, b) { const statuses = [a && a.status, b && b.status]; return statuses.includes('error') ? 'error' : statuses.includes('loading') ? 'loading' : statuses.includes('partial') ? 'partial' : statuses[0] || 'idle'; }
 function normalizeKind(kind) { const value = String(kind || '').toLowerCase(); return value.includes('request') ? 'request' : value.includes('decision') || value.includes('think') || value.includes('plan') ? 'decision' : 'result'; }

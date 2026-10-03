@@ -77,6 +77,7 @@ function normalizePage(result, itemKey) {
   return {
     items,
     errors,
+    ...(data.context ? { context: data.context } : {}),
     ...(data.nextCursor ? { nextCursor: data.nextCursor } : {})
   };
 }

@@ -395,7 +395,13 @@ const traceProjection = (trace) => (Array.isArray(trace?.spans) ? trace.spans.sl
     kind: traceReferenceKinds[ref.kind] ?? String(ref.kind ?? 'Unknown'),
     value: ref.value,
   }))
-  const events = (span.events ?? []).map(event => ({ eventId: event.eventId, reasonCode: event.reasonCode ?? null }))
+  const events = (span.events ?? []).map(event => ({
+    eventId: event.eventId,
+    timestamp: event.timestamp ?? event.ts ?? null,
+    reasonCode: event.reasonCode ?? null,
+    attributes: event.attributes ?? null,
+    references: (event.references ?? []).map(ref => ({ kind: traceReferenceKinds[ref.kind] ?? String(ref.kind ?? 'Unknown'), value: ref.value })),
+  }))
   const definition = span.spanDefinitionId || span.spanId || 'span'
   const facts = [
     `outcome=${structuralOutcome}`,
@@ -411,6 +417,15 @@ const traceProjection = (trace) => (Array.isArray(trace?.spans) ? trace.spans.sl
     summary: `${definition} · ${structuralOutcome}`,
     text: facts.join(' · '),
     structuralOutcome,
+    traceId: trace?.traceId ?? null,
+    spanKind: span.spanKind ?? span.kind ?? null,
+    status: span.status?.code ?? span.status ?? null,
+    startTime: span.startTime ?? span.startTs ?? null,
+    endTime: span.endTime ?? span.endTs ?? null,
+    durationMs: Number.isFinite(span.durationMs) ? span.durationMs : null,
+    attributes: span.attributes ?? null,
+    resource: span.resource ?? null,
+    links: Array.isArray(span.links) ? span.links : [],
     captureSequence: span.captureSequence,
     references,
     events,
@@ -802,6 +817,13 @@ const sessionDetailCore = async (ctx, repository, artifactSource, sessionId) => 
   const conversationGroups = uniAgentGroupProjection(conversation)
   const uniflowTrace = events.events.flatMap(extractEntries)
   const uniclawTrace = traceProjection(observed?.trace)
+  const uniclawTraceContext = observed?.trace ? {
+    traceId: observed.trace.traceId ?? null,
+    rootSpanId: observed.trace.rootSpanId ?? null,
+    runId: observed.trace.runId ?? null,
+    spanCount: Array.isArray(observed.trace.spans) ? observed.trace.spans.length : 0,
+    recorderTerminal: observed.trace.recorderTerminal ?? null,
+  } : null
   const runStages = runStagesProjection(observed, uniflowTrace)
   const artifactFiles = (observed?.files ?? []).map(file => file.ref)
   const evidence = [...new Set([
@@ -819,6 +841,7 @@ const sessionDetailCore = async (ctx, repository, artifactSource, sessionId) => 
     dshTrace,
     uniclawTrace,
     uniflowTrace,
+    uniclawTraceContext,
     uniclawTraceTruncated: (observed?.trace?.spans?.length ?? 0) > TRACE_SPAN_LIMIT,
     evidence,
     artifactWarnings: artifactIndex.warnings,

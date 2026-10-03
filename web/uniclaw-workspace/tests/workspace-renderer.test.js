@@ -37,6 +37,18 @@ test('keeps truncated JSON detail readable without escaped string wrapping', () 
   assert.match(html, /&quot;spanId&quot;:&quot;sp-0001&quot;/);
   assert.doesNotMatch(html, /\\n/);
 });
+test('renders an OTel-shaped trace context and span summary without widening the row', () => {
+  const html = renderWorkspaceHtml(view({
+    traces: { status: 'ready', items: [{ id: 'sp-1', source: 'uniclaw', label: 'world.reconcile', status: 'Completed', spanKind: 'internal', durationMs: 125, events: [{}], links: [], detailRef: { refId: 'trace.json' } }], context: { traceId: 'trc-1', rootSpanId: 'sp-1', runId: 'run-1', spanCount: 1 }, errors: [] },
+    taskHeader: { source: 'Uni-Agent', title: '任务', status: 'ready', correlationStatus: 'correlated' }
+  }));
+  assert.match(html, /Trace context/);
+  assert.match(html, /trc-1/);
+  assert.match(html, /world\.reconcile/);
+  assert.match(html, /Completed/);
+  assert.match(html, /125ms/);
+  assert.match(html, /events/);
+});
 test('renders Uni-Agent dialogue rounds with readable roles and runtime stages', () => {
   const html = renderWorkspaceHtml(view({ session: { status: 'ready', session: { productSessionId: 'ps1', conversationGroups: [{ round: 1, status: 'submitted', stages: [{ kind: 'request', role: 'requester', label: '调用方请求', text: '完成调研' }, { kind: 'decision', role: 'agent', label: 'Uni-Agent 决策', text: '选择搜索策略', decisionKind: 'act' }, { kind: 'result', role: 'tool', label: '提交结果', text: 'accepted' }] }], runStages: [{ kind: 'verification', label: '验证结果', status: '已验证', text: '证据齐全' }] }, errors: [] } }));
   assert.match(html, /workspace-conversation-round/);

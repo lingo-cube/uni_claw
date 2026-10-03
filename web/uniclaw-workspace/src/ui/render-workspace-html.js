@@ -117,7 +117,15 @@ function renderTracePane(pane = {}) {
   } else {
     body = renderTraceGroup('all', items, true, false);
   }
-  return `<section class="workspace-pane workspace-pane--trace" data-pane="trace"><div class="workspace-trace-toolbar"><div class="workspace-pane__heading"><div><h3>Trace</h3><p class="workspace-pane__subheading">先选来源，再在固定高度的轨迹区内查看明细</p></div><span class="workspace-pane__count">${items.length}</span></div><div class="workspace-trace-mode" role="group" aria-label="Trace 显示方式">${renderTraceModeButton('combined', '合并', mode)}${renderTraceModeButton('split', '按来源', mode)}</div></div>${items.length ? `<div class="workspace-trace-source-switch" role="tablist" aria-label="Trace 来源">${sourceButtons}</div><div class="workspace-trace-legend workspace-trace-legend--standalone">${legend}</div><div class="workspace-trace-viewer">${body}</div>` : '<p class="workspace-empty">暂无可展示的 Trace 事件</p>'}</section>`;
+  return `<section class="workspace-pane workspace-pane--trace" data-pane="trace"><div class="workspace-trace-toolbar"><div class="workspace-pane__heading"><div><h3>Trace</h3><p class="workspace-pane__subheading">查看运行层级，选择节点查看属性、事件与关联信息</p></div><span class="workspace-pane__count">${items.length}</span></div><div class="workspace-trace-mode" role="group" aria-label="Trace 显示方式">${renderTraceModeButton('combined', '合并', mode)}${renderTraceModeButton('split', '按来源', mode)}</div></div>${renderTraceContext(pane.context, pane.context?.source ? (pane.groups?.[pane.context.source] || []).length : items.length)}${items.length ? `<div class="workspace-trace-source-switch" role="tablist" aria-label="Trace 来源">${sourceButtons}</div><div class="workspace-trace-legend workspace-trace-legend--standalone">${legend}</div><div class="workspace-trace-viewer">${body}</div>` : '<p class="workspace-empty">暂无可展示的 Trace 事件</p>'}</section>`;
+}
+function renderTraceContext(context = {}, visibleCount = null) {
+  context = context || {};
+  const spanCount = context.spanCount != null && visibleCount != null ? `${visibleCount}/${context.spanCount}` : context.spanCount;
+  const fields = [['来源', context.source && traceSourceLabel(context.source)], ['traceId', context.traceId], ['rootSpanId', context.rootSpanId], ['runId', context.runId], ['已展示/总 spans', spanCount]]
+    .filter(([, value]) => value !== undefined && value !== null && value !== '')
+    .map(([key, value]) => `<span class="workspace-trace-context__field"><b>${text(key)}</b>${text(value)}</span>`).join('');
+  return fields ? `<div class="workspace-trace-context" aria-label="Trace context"><span class="workspace-trace-context__title">Trace context</span>${fields}</div>` : '';
 }
 function traceSourceLabel(source) { return source === 'uniclaw' ? 'UniClaw' : source === 'uniflow' ? 'UniFlow' : String(source).toUpperCase(); }
 function renderTraceModeButton(mode, label, active) { return `<button type="button" class="workspace-trace-mode__button${active === mode ? ' is-active' : ''}" data-workspace-action="select-trace-mode" data-trace-mode="${mode}" aria-pressed="${active === mode ? 'true' : 'false'}">${text(label)}</button>`; }
@@ -145,10 +153,18 @@ function renderTraceCard(item, children, depth) {
   const source = item.source || 'unknown';
   const nested = children.get(item) || [];
   const label = item.label || String(item.summary || '未命名事件').split(' · ')[0];
-  const detail = item.detailAvailable && item.detailRef ? `<button type="button" class="workspace-detail-action" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(item.detailRef.refId || item.detailRef)}">查看明细</button>` : '';
-  const facts = [['span', item.id], ['parent', item.parentSpanId], ['authority', item.authority], ['correlation', item.correlationId], ['capture', item.captureSequence != null ? `#${item.captureSequence}` : item.seq != null ? `#${item.seq}` : null]].filter(([, value]) => value != null && value !== '').map(([key, value]) => `<span><b>${text(key)}</b>${text(value)}</span>`).join('');
-  const content = `<div class="workspace-trace-row__content"><div class="workspace-trace-row__head"><span class="workspace-trace-source workspace-trace-source--${escapeHtml(source)}">${text(traceSourceLabel(source))}</span><strong>${text(label)}</strong><small>${text([item.type, item.ts].filter(Boolean).join(' · '))}</small></div>${item.text && item.text !== label ? `<p>${text(String(item.text).slice(0, 280))}</p>` : ''}${facts ? `<div class="workspace-trace-row__facts">${facts}</div>` : ''}</div>`;
-  return `<li class="workspace-trace-node" role="treeitem" aria-level="${depth + 1}">${nested.length ? `<details class="workspace-trace-branch"><summary class="workspace-trace-row">${content}<span class="workspace-trace-child-count">${nested.length}</span>${detail}</summary><ol role="group">${nested.map((child) => renderTraceCard(child, children, depth + 1)).join('')}</ol></details>` : `<div class="workspace-trace-row"><span class="workspace-trace-row__rail" aria-hidden="true"></span>${content}${detail}</div>`}</li>`;
+  const fileDetail = item.detailAvailable && item.detailRef ? `<button type="button" class="workspace-trace-file" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(item.detailRef.refId || item.detailRef)}">原始文件</button>` : '';
+  const detail = `<div class="workspace-trace-actions"><button type="button" class="workspace-detail-action" data-workspace-action="inspect-trace" data-trace-index="${item.recordIndex}">查看节点</button>${fileDetail}</div>`;
+  const status = item.structuralOutcome || item.status || null;
+  const statusClass = status && /fault|error|cancel|fail/i.test(String(status)) ? ' workspace-trace-status--error' : '';
+  const timing = [item.type, item.ts, formatSpanDuration(item)].filter(Boolean).join(' · ');
+  const facts = [['span', item.id], ['parent', item.parentSpanId], ['kind', item.spanKind], ['authority', item.authority], ['correlation', item.correlationId], ['events', Array.isArray(item.events) && item.events.length ? item.events.length : null], ['links', Array.isArray(item.links) && item.links.length ? item.links.length : null], ['attrs', item.attributes && typeof item.attributes === 'object' ? Object.keys(item.attributes).length : null], ['capture', item.captureSequence != null ? `#${item.captureSequence}` : item.seq != null ? `#${item.seq}` : null]].filter(([, value]) => value != null && value !== '').map(([key, value]) => `<span><b>${text(key)}</b>${text(value)}</span>`).join('');
+  const content = `<div class="workspace-trace-row__content"><div class="workspace-trace-row__head"><span class="workspace-trace-source workspace-trace-source--${escapeHtml(source)}">${text(traceSourceLabel(source))}</span><strong>${text(label)}</strong>${status ? `<span class="workspace-trace-status${statusClass}">${text(status)}</span>` : ''}<small>${text(timing)}</small></div>${item.text && item.text !== label ? `<p>${text(String(item.text).slice(0, 280))}</p>` : ''}${facts ? `<div class="workspace-trace-row__facts">${facts}</div>` : ''}</div>`;
+  return `<li class="workspace-trace-node" role="treeitem" aria-level="${depth + 1}">${nested.length ? `<details class="workspace-trace-branch"><summary class="workspace-trace-row">${content}<span class="workspace-trace-child-count">${nested.length}</span></summary>${detail}<ol role="group">${nested.map((child) => renderTraceCard(child, children, depth + 1)).join('')}</ol></details>` : `<div class="workspace-trace-row"><span class="workspace-trace-row__rail" aria-hidden="true"></span>${content}${detail}</div>`}</li>`;
+}
+function formatSpanDuration(item = {}) {
+  if (!Number.isFinite(item.durationMs)) return '';
+  return item.durationMs < 1000 ? `${item.durationMs}ms` : `${(item.durationMs / 1000).toFixed(2)}s`;
 }
 
 function renderEvidencePane(pane = {}) {
@@ -175,12 +191,19 @@ function formatDetail(value) {
   try { return { ...value, text: JSON.parse(value.text) }; } catch { return { ...value, __rawText: true }; }
 }
 function renderDetailContent(value) {
+  if (value?.format === 'trace-record') return renderTraceRecord(value.record || {});
   const formatted = formatDetail(value);
   if (formatted && typeof formatted === 'object' && formatted.__rawText === true && typeof formatted.text === 'string') {
     const { text: rawText, __rawText, ...metadata } = formatted;
     return `<div class="workspace-detail-modal__raw"><pre>${text(JSON.stringify(metadata, null, 2))}</pre><pre>${text(rawText)}</pre></div>`;
   }
   return `<pre>${text(JSON.stringify(formatted, null, 2))}</pre>`;
+}
+function renderTraceRecord(record) {
+  const fields = [['名称', record.label || record.definition || record.type], ['来源', record.source], ['Trace ID', record.traceId], ['Span ID', record.spanId || record.id], ['Parent Span', record.parentSpanId], ['Kind', record.spanKind], ['Status', record.status], ['结构结果', record.structuralOutcome], ['开始', record.startTime || record.ts], ['结束', record.endTime], ['耗时', formatSpanDuration(record)], ['采集序号', record.captureSequence ?? record.seq]];
+  const overview = fields.filter(([, v]) => v != null && v !== '').map(([k, v]) => `<div><dt>${text(k)}</dt><dd>${text(typeof v === 'object' ? JSON.stringify(v) : v)}</dd></div>`).join('');
+  const sections = [['属性', record.attributes], ['事件', record.events], ['关联引用', record.references], ['关联 Span', record.links], ['资源', record.resource]].filter(([, v]) => v && Object.keys(v).length).map(([label, value]) => `<section class="workspace-trace-record__section"><h4>${text(label)}</h4><pre>${text(JSON.stringify(value, null, 2))}</pre></section>`).join('');
+  return `<div class="workspace-trace-record"><dl>${overview}</dl>${record.text ? `<section class="workspace-trace-record__section"><h4>内容</h4><pre>${text(record.text)}</pre></section>` : ''}${sections}<details class="workspace-trace-record__section"><summary>完整节点记录</summary><pre>${text(JSON.stringify(record, null, 2))}</pre></details></div>`;
 }
 function renderNotices(notices = []) {
   if (!notices.length) return '';

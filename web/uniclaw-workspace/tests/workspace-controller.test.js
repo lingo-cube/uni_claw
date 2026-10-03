@@ -137,3 +137,15 @@ test('trace mode and detail return pane are durable in controller state', async 
   c.selectPane(c.getState().ui.detailReturnPane);
   assert.equal(c.getState().ui.activePane, 'evidence');
 });
+
+test('trace node inspection opens a local detail modal without fetching the whole artifact', async () => {
+  const c = controller();
+  await c.selectTaskInstance('ps1');
+  await c.loadTraces('ps1');
+  c.inspectTrace(0);
+  const state = c.getState();
+  assert.equal(state.ui.detailModalOpen, true);
+  assert.equal(state.detail.status, 'ready');
+  assert.equal(state.detail.detail.format, 'trace-record');
+  assert.equal(state.detail.detail.record.source, 'uniflow');
+});

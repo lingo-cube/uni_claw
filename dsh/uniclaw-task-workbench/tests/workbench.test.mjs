@@ -486,7 +486,7 @@ test('panel workspace/session: explicit run metadata links an observed session a
     outcome: 'Satisfied', reason: '目标状态已满足', completionAnchors: [{ anchor: 'switch-state-checked', verified: true }],
   }))
   writeFileSync(join(runDir, 'trace.json'), JSON.stringify({
-    schemaVersion: 'trc/0.1', spans: [{ spanId: 'sp-1', parentSpanId: null, spanDefinitionId: 'world.reconcile', structuralOutcome: 0, captureSequence: 1, references: [{ kind: 1, value: 'ev-1' }], events: [] }],
+    schemaVersion: 'trc/0.1', traceId: 'trc-1', rootSpanId: 'sp-1', runId: 'run-1', spans: [{ spanId: 'sp-1', parentSpanId: null, spanDefinitionId: 'world.reconcile', structuralOutcome: 0, spanKind: 'internal', status: 'OK', durationMs: 125, captureSequence: 1, references: [{ kind: 1, value: 'ev-1' }], events: [] }],
   }))
   const repository = createTaskRepository(join(TEST_ROOT, 'artifact-store.json'))
   const source = createArtifactSource([TEST_ROOT])
@@ -505,7 +505,11 @@ test('panel workspace/session: explicit run metadata links an observed session a
   assert.equal(detail.metadata.androidApi, 35)
   assert.equal(detail.metadata.wmSize, '1080x1920')
   assert.equal(detail.metadata.real, true)
+  assert.deepEqual(detail.uniclawTraceContext, { traceId: 'trc-1', rootSpanId: 'sp-1', runId: 'run-1', spanCount: 1, recorderTerminal: null })
   assert.equal(detail.uniclawTrace[0].definition, 'world.reconcile')
+  assert.equal(detail.uniclawTrace[0].spanKind, 'internal')
+  assert.equal(detail.uniclawTrace[0].status, 'OK')
+  assert.equal(detail.uniclawTrace[0].durationMs, 125)
   assert.equal(detail.uniclawTrace[0].references[0].kind, 'Evidence')
   assert.ok(detail.evidence.some(ref => ref.endsWith('/trace.json')))
   assert.deepEqual(detail.runStages.map(stage => [stage.kind, stage.label, stage.status]), [

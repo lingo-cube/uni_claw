@@ -67,6 +67,7 @@ test('projects UniClaw trace and artifact references with inspectable detail act
     session: () => ({ ok: true, data: {
       dshTrace: [],
       uniclawTrace: [{ definition: 'world.reconcile' }],
+      uniclawTraceContext: { traceId: 'trc-1', rootSpanId: 'sp-1', spanCount: 1 },
       uniflowTrace: [],
       evidence: ['/evidence/run/facts.json'],
     } }),
@@ -76,6 +77,7 @@ test('projects UniClaw trace and artifact references with inspectable detail act
   const traces = await caps.TraceQuery.getTraces({ productSessionId: 'ps-live' });
   const evidence = await caps.EvidenceQuery.getEvidence({ productSessionId: 'ps-live' });
   assert.equal(traces.data.traces[0].source, 'uniclaw');
+  assert.deepEqual(traces.data.context, { traceId: 'trc-1', rootSpanId: 'sp-1', spanCount: 1, source: 'uniclaw' });
   assert.equal(traces.data.traces[0].detailRef.refId, 'trace.json');
   assert.equal(evidence.data.evidence[0].detailRef.refId, 'facts.json');
 });

@@ -143,7 +143,7 @@ function createCapabilities(remote) {
         }),
         ...(r.data.uniflowTrace || []).map((item) => ({ ...item, source: 'uniflow' })),
       ];
-      return { ...r, data: { traces } };
+      return { ...r, data: { traces, context: r.data.uniclawTraceContext ? { ...r.data.uniclawTraceContext, source: 'uniclaw' } : null } };
     }) },
     EvidenceQuery: { getEvidence: ({ productSessionId }) => call('session', [sessionByProduct.get(productSessionId) || productSessionId], 'EvidenceQuery').then((r) => {
       if (!r.ok) return r;
@@ -193,6 +193,8 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
         ]));
       } else if (action === 'resolve-detail') {
         void controller.resolveDetail({ refId: target.getAttribute('data-detail-ref'), source: 'dsh', detailType: 'text' });
+      } else if (action === 'inspect-trace') {
+        controller.inspectTrace(Number(target.getAttribute('data-trace-index')));
       } else if (action === 'close-detail') {
         controller.closeDetail();
       }
