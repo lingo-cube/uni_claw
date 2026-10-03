@@ -49,7 +49,7 @@
     "WI-PNL004-001",
     "WI-PNL004-002"
   ],
-  "status": "pending",
+  "status": "done",
   "required_skills": [
     "codebase-design",
     "tdd"
