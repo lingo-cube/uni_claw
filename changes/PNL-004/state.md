@@ -68,6 +68,7 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 - 2026-10-04 · VERIFY → IMPLEMENT · Leader 复核确认契约路径已 fail-closed，但真实生产 `uniclawRuntime` 注入、Runtime-owned run 与 HostRunner/ProductSession 绑定仍未接入；WI-PNL004-005/006 保持 pending，新增 WI-PNL004-007。
 - 2026-10-04 · IMPLEMENT → VERIFY（WI-PNL004-007）· HostRunner 已增加 Host-neutral `LaunchContext` 接缝、外部 RunId/Session/Launch 关联和 mismatch fail-closed 校验；生产 DSH `uniclawRuntime` provider、恢复 transport 仍待接入。
 - 2026-10-04 · VERIFY · 真实 Android fixture、双入口只读回归、故障/幂等/未关联场景有证据；3083 shell 访问按认证边界返回 401。该证据不等价于页面发起真实 launch。
+- 2026-10-04 · IMPLEMENT → VERIFY · DSH Workspace 增加 Host-backed “发起任务”入口；Typert contribution、browser bridge 和共享 TaskCommand seam 已接通，逻辑引用不完整时 fail-closed；descriptor/Host provider 缺失时保留结构化 unavailable，不宣称真实生产 launch 已完成。证据：`evidence/PNL-004-workspace-launch-action.md`。
 
 ## Evidence targets
 

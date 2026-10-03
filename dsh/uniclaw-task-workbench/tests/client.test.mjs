@@ -2,7 +2,7 @@
 // Same discipline as decision-channel's client smoke: a fake
 // window.__ModuleLoader__ captures the bundle definition, a react stub drives
 // factory() execution, and apply() is exercised without any real host.
-// PNL-002：UniClaw Product Workspace 只消费 workspace/session/artifact 三个只读投影。
+// PNL-004：UniClaw Product Workspace 消费三个只读投影和一个 Host launch command。
 
 import test from 'node:test'
 import assert from 'node:assert/strict'
@@ -79,8 +79,8 @@ test('client smoke: workspace/session/artifact contribution, parameter-object sh
   await new Promise((resolve) => setTimeout(resolve, 0))
   assert.equal(mounted.length, 1)
   const ids = mounted[0].descriptors.map((d) => d.id)
-  // PNL-002 API: exactly the three read-only workspace methods.
-  assert.deepEqual(ids, ['uniclawTaskPanel.workspace', 'uniclawTaskPanel.session', 'uniclawTaskPanel.artifact'])
+  // PNL-004 API: three read-only workspace methods plus the explicit launch command.
+  assert.deepEqual(ids, ['uniclawTaskPanel.workspace', 'uniclawTaskPanel.session', 'uniclawTaskPanel.artifact', 'uniclawTaskPanel.launch'])
   for (const d of mounted[0].descriptors) {
     assert.equal(d.namespace, 'uniclawTaskPanel')
     assert.equal(d.result.mode, 'strict')
@@ -100,6 +100,8 @@ test('client smoke: workspace/session/artifact contribution, parameter-object sh
   assert.equal(workspace.parameters.length, 0)
   const artifact = mounted[0].descriptors.find((d) => d.method === 'artifact')
   assert.deepEqual(artifact.parameters.map((p) => p.name), ['sessionId', 'ref'])
+  const launch = mounted[0].descriptors.find((d) => d.method === 'launch')
+  assert.deepEqual(launch.parameters.map((p) => p.name), ['schemaVersion', 'contractVersion', 'launchRequestId', 'projectRef', 'testSetRef', 'taskRef', 'idempotencyKey', 'correlationId', 'requestedAt', 'metadata', 'taskId'])
 })
 
 test('client smoke: loading workspace and first session mounts the remote contribution once', async () => {

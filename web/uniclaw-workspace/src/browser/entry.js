@@ -186,15 +186,15 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
         const launch = app.getState().selection;
         const view = app.getState();
         const task = (view.projects.items || []).flatMap((project) => project.instances || project.taskInstances || project.tasks || []).find((item) => item.productSessionId === launch.productSessionId) || (launch.taskInstances?.items || [])[0] || {};
-        const projectId = launch.projectId || task.projectRef?.id || 'project/uni-claw-workspace';
-        const projectRef = typeof (task.projectRef || projectId) === 'string' ? { id: task.projectRef || projectId } : (task.projectRef || { id: projectId });
+        const projectId = launch.projectId || task.projectRef?.id;
+        const projectRef = logicalLaunchRef(task.projectRef || projectId);
         const taskRef = task.taskRef || task.taskId || task.id;
         const testSetValue = task.testSetRef || { id: 'testset/workspace-contract', version: 'default' };
         const testSetRef = typeof testSetValue === 'string' ? { id: testSetValue, version: 'default' } : { version: 'default', ...testSetValue };
-        if (taskRef) void controller.launchTask({
+        if (projectRef && logicalLaunchRef(taskRef) && testSetRef.id && testSetRef.version === 'default') void controller.launchTask({
           schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1',
           launchRequestId: `launch-request-${Date.now()}`, projectRef, testSetRef,
-          taskRef: typeof taskRef === 'string' ? { id: taskRef } : taskRef,
+          taskRef: logicalLaunchRef(taskRef),
           idempotencyKey: `workspace-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           correlationId: `workspace-${Date.now()}`, requestedAt: new Date().toISOString(), metadata: []
         });
@@ -224,5 +224,11 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
     });
   } });
   return Object.freeze({ start: () => { ensureWorkspaceStyles(container, styleText); layout.apply(); return app.start(); }, stop: () => { layout.dispose(); app.stop(); }, getApp: () => app, getLayout: () => layout });
+}
+
+function logicalLaunchRef(value) {
+  const id = typeof value === 'string' ? value : value && value.id;
+  if (typeof id !== 'string' || id.length === 0 || id.startsWith('/') || id.startsWith('./') || id.startsWith('../') || id.includes('\\') || id.split('/').includes('..')) return null;
+  return { id, ...(typeof value === 'object' && typeof value.label === 'string' ? { label: value.label } : {}) };
 }
 module.exports = { createDshWorkspaceBrowserBridge, createCapabilities, ensureWorkspaceStyles, envelope };

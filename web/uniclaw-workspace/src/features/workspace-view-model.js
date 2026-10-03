@@ -76,15 +76,30 @@ function taskCard(task) {
 function launchView(value, task, projectId) {
   const state = value || {};
   const source = task || {};
+  const projectRef = logicalRef(source.projectRef, projectId);
+  const testSetRef = logicalTestSetRef(source.testSetRef);
+  const taskRef = logicalRef(source.taskRef || source.taskId, null);
   return {
     status: state.status || 'idle',
     errors: errorsOf(state),
-    enabled: Boolean(projectId && (source.taskRef || source.id || source.taskId)),
-    projectRef: source.projectRef || { id: projectId },
-    testSetRef: source.testSetRef || null,
-    taskRef: source.taskRef || source.taskId || source.id || null,
+    enabled: Boolean(projectRef && testSetRef && taskRef),
+    projectRef,
+    testSetRef,
+    taskRef,
     result: clone(state.data || null)
   };
+}
+
+function logicalRef(value, fallbackId) {
+  const id = typeof value === 'string' ? value : value && value.id;
+  if (typeof id !== 'string' || id.length === 0 || id.startsWith('/') || id.startsWith('./') || id.startsWith('../') || id.includes('\\') || id.split('/').includes('..')) return fallbackId ? logicalRef(fallbackId, null) : null;
+  return { id, ...(typeof value === 'object' && typeof value.label === 'string' ? { label: value.label } : {}) };
+}
+
+function logicalTestSetRef(value) {
+  const ref = typeof value === 'string' ? { id: value } : value;
+  if (!ref || typeof ref.id !== 'string' || ref.id.length === 0 || ref.version !== 'default') return null;
+  return { id: ref.id, version: 'default', ...(typeof ref.sourceRevision === 'string' && ref.sourceRevision.length > 0 ? { sourceRevision: ref.sourceRevision } : {}) };
 }
 
 function timelinePane(value, session = null) {

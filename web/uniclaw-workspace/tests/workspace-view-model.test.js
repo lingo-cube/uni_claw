@@ -35,6 +35,7 @@ test('projects complete controller state into renderer-neutral sections', () => 
   assert.equal(view.metadataPane.items.priority, 'high');
   assert.equal(view.activePane, 'trace');
   assert.equal(view.executionPane.status, 'empty');
+  assert.equal(view.taskHeader.launch.enabled, false);
   assert.equal(view.status, 'partial');
   assert.equal(JSON.stringify(input), before);
 });
@@ -58,6 +59,20 @@ test('projects launch relations and metadata provenance without flattening avail
   assert.equal(view.metadataPane.claims.find((claim) => claim.key === 'device').valueOrigin, 'observed');
   assert.equal(view.metadataPane.claims.find((claim) => claim.key === 'outcome').availability, 'not-collected');
   assert.equal(view.metadataPane.launchStages[0].stage, 'run-bound');
+});
+
+test('enables launch only for complete logical launch references', () => {
+  const view = createWorkspaceViewModel(state({
+    selection: { projectId: 'p1', productSessionId: 'ps1', taskInstances: { status: 'ready', items: [{ productSessionId: 'ps1', projectRef: { id: 'project/p' }, testSetRef: { id: 'testset/p', version: 'default' }, taskRef: { id: 'task/p/t' } }], errors: [] } }
+  }));
+  assert.equal(view.taskHeader.launch.enabled, true);
+  assert.deepEqual(view.taskHeader.launch.projectRef, { id: 'project/p' });
+  assert.deepEqual(view.taskHeader.launch.testSetRef, { id: 'testset/p', version: 'default' });
+  assert.deepEqual(view.taskHeader.launch.taskRef, { id: 'task/p/t' });
+  const unsafe = createWorkspaceViewModel(state({
+    selection: { projectId: '/physical/path', productSessionId: 'ps1', taskInstances: { status: 'ready', items: [{ productSessionId: 'ps1', projectRef: { path: '/physical/path' }, testSetRef: { id: 'testset/p', version: 'default' }, taskRef: { id: 'task/p/t' } }], errors: [] } }
+  }));
+  assert.equal(unsafe.taskHeader.launch.enabled, false);
 });
 
 test('keeps uncorrelated instances visible without inventing product identity', () => {
