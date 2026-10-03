@@ -127,6 +127,15 @@ class WorkspaceQueryCore {
     return this.#page(`evidence:${productSessionId}`, () => this.capabilities.EvidenceQuery.getEvidence({ ...request, productSessionId }), 'evidence');
   }
 
+  async launchTask(request = {}) {
+    const capability = this.capabilities.TaskCommand;
+    if (!capability || typeof capability.launchTask !== 'function') return { status: 'error', errors: [queryError('unavailable', '当前 Host 未提供任务发起能力', 'TaskCommand')] };
+    let result;
+    try { result = await capability.launchTask(request); } catch (error) { return { status: 'error', errors: [queryError('unavailable', error instanceof Error ? error.message : '任务发起失败', 'TaskCommand')] }; }
+    if (!result || result.ok === false) return { status: 'error', errors: [result?.error || queryError('unavailable', '任务发起返回无效结果', 'TaskCommand')] };
+    return { status: 'ready', data: result.data || {}, errors: [], ...this.#envelope(result) };
+  }
+
   async resolveDetail(detailRef, request = {}) {
     if (!detailRef || typeof detailRef.refId !== 'string') {
       return { status: 'error', errors: [queryError('not-found', 'DetailRef is required', 'workspace')] };

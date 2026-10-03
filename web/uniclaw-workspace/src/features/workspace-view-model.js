@@ -40,6 +40,7 @@ function createWorkspaceViewModel(input, options = {}) {
       authority: selectedTask && selectedTask.authority || (session && session.authority) || null,
       metadata,
       ...launchProjection(selectedTask, session),
+      launch: launchView(state.launch, selectedTask, state.selection && state.selection.projectId),
       errors: errorsOf(state.session)
     },
     conversationTimeline: timelinePane(state.timeline, session),
@@ -64,8 +65,25 @@ function taskCard(task) {
     correlationStatus: task.correlationStatus || (task.productSessionId ? 'correlated' : 'uncorrelated'),
     source: task.source || null,
     authority: task.authority || null,
+    projectRef: clone(task.projectRef || null),
+    testSetRef: clone(task.testSetRef || null),
+    taskRef: clone(task.taskRef || task.taskId || null),
     observed: Boolean(task.observed),
     errors: clone(task.errors || [])
+  };
+}
+
+function launchView(value, task, projectId) {
+  const state = value || {};
+  const source = task || {};
+  return {
+    status: state.status || 'idle',
+    errors: errorsOf(state),
+    enabled: Boolean(projectId && (source.taskRef || source.id || source.taskId)),
+    projectRef: source.projectRef || { id: projectId },
+    testSetRef: source.testSetRef || null,
+    taskRef: source.taskRef || source.taskId || source.id || null,
+    result: clone(state.data || null)
   };
 }
 
@@ -290,7 +308,7 @@ function launchProjection(task, session) {
 
 function collectNotices(state, selectedTask) {
   const notices = [];
-  [state.projects, state.selection && state.selection.taskInstances, state.session, state.timeline, state.traces, state.evidence, state.detail]
+  [state.projects, state.selection && state.selection.taskInstances, state.session, state.timeline, state.traces, state.evidence, state.detail, state.launch]
     .forEach((part) => errorsOf(part).forEach((error) => notices.push({ level: severity(error.code), code: error.code || 'unknown', message: error.message || 'Workspace error', source: error.source || 'workspace', error: clone(error) })));
   if (selectedTask && selectedTask.correlationStatus === 'uncorrelated') notices.push({ level: 'warning', code: 'uncorrelated', message: '任务实例未关联 ProductSessionId', source: 'workspace' });
   [state.projects, state.selection && state.selection.taskInstances, state.traces, state.evidence].forEach((part) => {

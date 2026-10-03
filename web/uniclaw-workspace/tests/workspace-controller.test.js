@@ -112,6 +112,20 @@ test('refresh is repeatable and controller remains renderer independent', async 
   assert.deepEqual(second.projects.items, first.projects.items); assert.equal(typeof c.subscribe, 'function');
 });
 
+test('launch action reports loading then refreshes the selected task', async () => {
+  const calls = [];
+  const c = createWorkspaceController({ queryCore: {
+    listProjects: async () => ({ status: 'ready', items: [{ projectId: 'p1', instances: [{ productSessionId: 'ps1', taskRef: { id: 'task/p/t' } }] }], errors: [], revision: 1 }),
+    listTaskInstances: async () => ({ status: 'ready', items: [{ productSessionId: 'ps1', taskRef: { id: 'task/p/t' } }], errors: [], revision: 1 }),
+    getSession: async () => ({ status: 'ready', session: {}, errors: [], revision: 1 }), getTimeline: async () => ({ status: 'ready', items: [], errors: [], revision: 1 }), getTraces: async () => ({ status: 'ready', items: [], errors: [], revision: 1 }), getEvidence: async () => ({ status: 'ready', items: [], errors: [], revision: 1 }),
+    launchTask: async (request) => { calls.push(request); return { status: 'ready', data: { ack: { status: 'completed' } }, errors: [], revision: 2 }; }
+  } });
+  await c.selectProject('p1'); await c.selectTaskInstance('ps1');
+  await c.launchTask({ taskRef: { id: 'task/p/t' } });
+  assert.equal(calls.length, 1);
+  assert.equal(c.getState().launch.status, 'ready');
+});
+
 test('pane selection is durable in renderer-neutral controller state', async () => {
   const c = controller();
   c.selectPane('evidence');

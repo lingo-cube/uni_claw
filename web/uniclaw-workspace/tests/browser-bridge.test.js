@@ -81,3 +81,24 @@ test('projects UniClaw trace and artifact references with inspectable detail act
   assert.equal(traces.data.traces[0].detailRef.refId, 'trace.json');
   assert.equal(evidence.data.evidence[0].detailRef.refId, 'facts.json');
 });
+
+test('exposes TaskCommand launch through the host-neutral browser bridge', async () => {
+  let received;
+  const caps = createCapabilities({
+    workspace: () => ({ ok: true, data: { projects: [] } }),
+    session: () => ({ ok: true, data: { conversation: [], dshTrace: [], uniclawTrace: [], uniflowTrace: [], evidence: [] } }),
+    artifact: () => ({ ok: true, data: { text: 'detail' } }),
+    launch: (...args) => { received = args; return { success: true, ack: { status: 'completed' } }; }
+  });
+  const request = {
+    schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1',
+    launchRequestId: 'launch-request-1', projectRef: { id: 'project/p' }, testSetRef: { id: 'testset/p', version: 'default' },
+    taskRef: { id: 'task/p/t' }, idempotencyKey: 'idem-1', correlationId: 'corr-1', requestedAt: new Date().toISOString(), metadata: []
+  };
+  const result = await caps.TaskCommand.launchTask(request);
+  assert.equal(result.ok, true);
+  assert.equal(result.data.ack.status, 'completed');
+  assert.equal(received[0], request.schemaVersion);
+  assert.deepEqual(received[3], request.projectRef);
+  assert.deepEqual(received[5], request.taskRef);
+});

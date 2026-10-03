@@ -39,7 +39,7 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
     ${renderNotices(vm.notices)}
     <header class="workspace-task-header" data-selected-product-session-id="${escapeHtml(header.productSessionId || '')}">
       <div><p class="workspace-eyebrow">${text(header.source, 'Uni-Agent')}<span class="workspace-header-origin">${text(header.origin, '')}</span></p><h2>${text(header.title, '未选择任务')}</h2></div>
-      <button type="button" class="workspace-refresh-action" data-workspace-action="refresh">刷新</button>
+      <div class="workspace-header-actions"><button type="button" class="workspace-launch-action" data-workspace-action="launch-task"${header.launch?.enabled && header.launch.status !== 'loading' ? '' : ' disabled aria-disabled="true"'}>${header.launch?.status === 'loading' ? '发起中…' : '发起任务'}</button><button type="button" class="workspace-refresh-action" data-workspace-action="refresh">刷新</button></div>
       <div class="workspace-task-header__meta">${status(header.status)}<span class="workspace-correlation">${text(header.correlationStatus, 'unselected')}</span></div>
     </header>
     <div class="workspace-content"><div class="workspace-content__primary">

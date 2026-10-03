@@ -154,7 +154,14 @@ function createCapabilities(remote) {
       });
       return { ...r, data: { evidence } };
     }) },
-    DetailQuery: { resolveDetail: ({ productSessionId, detailRef }) => call('artifact', [sessionByProduct.get(productSessionId) || productSessionId, detailRef.refId || detailRef], 'DetailQuery') }
+    DetailQuery: { resolveDetail: ({ productSessionId, detailRef }) => call('artifact', [sessionByProduct.get(productSessionId) || productSessionId, detailRef.refId || detailRef], 'DetailQuery') },
+    TaskCommand: {
+      launchTask: (request = {}) => {
+        if (typeof remote.launch !== 'function') return Promise.resolve({ ok: false, error: { code: 'unavailable', message: 'DSH Host 未提供任务发起接口', retryable: false, source: 'TaskCommand' } });
+        const values = ['schemaVersion', 'contractVersion', 'launchRequestId', 'projectRef', 'testSetRef', 'taskRef', 'idempotencyKey', 'correlationId', 'requestedAt', 'metadata', 'taskId'].map((key) => request[key]);
+        return call('launch', values, 'TaskCommand');
+      }
+    }
   };
 }
 function createDshWorkspaceBrowserBridge({ remote, container, render, viewOptions, styleText } = {}) {
@@ -175,6 +182,22 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
       event.preventDefault();
       if (action === 'refresh') {
         void controller.refresh();
+      } else if (action === 'launch-task') {
+        const launch = app.getState().selection;
+        const view = app.getState();
+        const task = (view.projects.items || []).flatMap((project) => project.instances || project.taskInstances || project.tasks || []).find((item) => item.productSessionId === launch.productSessionId) || (launch.taskInstances?.items || [])[0] || {};
+        const projectId = launch.projectId || task.projectRef?.id || 'project/uni-claw-workspace';
+        const projectRef = typeof (task.projectRef || projectId) === 'string' ? { id: task.projectRef || projectId } : (task.projectRef || { id: projectId });
+        const taskRef = task.taskRef || task.taskId || task.id;
+        const testSetValue = task.testSetRef || { id: 'testset/workspace-contract', version: 'default' };
+        const testSetRef = typeof testSetValue === 'string' ? { id: testSetValue, version: 'default' } : { version: 'default', ...testSetValue };
+        if (taskRef) void controller.launchTask({
+          schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1',
+          launchRequestId: `launch-request-${Date.now()}`, projectRef, testSetRef,
+          taskRef: typeof taskRef === 'string' ? { id: taskRef } : taskRef,
+          idempotencyKey: `workspace-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          correlationId: `workspace-${Date.now()}`, requestedAt: new Date().toISOString(), metadata: []
+        });
       } else if (action === 'select-pane') {
         controller.selectPane(target.getAttribute('data-pane-tab'));
       } else if (action === 'select-trace-mode') {

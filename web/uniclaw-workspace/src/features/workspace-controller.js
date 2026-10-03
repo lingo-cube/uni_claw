@@ -10,7 +10,8 @@ function createWorkspaceController({ queryCore } = {}) {
     timeline: idlePage('timeline'),
     traces: idlePage('traces'),
     evidence: idlePage('evidence'),
-    detail: idleData('detail')
+    detail: idleData('detail'),
+    launch: { status: 'idle', data: null, errors: [] }
   };
   const tokens = new Map();
   let listeners = [];
@@ -96,6 +97,18 @@ function createWorkspaceController({ queryCore } = {}) {
   async function loadEvidence(productSessionId = selected()) {
     return readSelected('evidence', productSessionId, () => queryCore.getEvidence(productSessionId), applyPage);
   }
+  async function launchTask(request = {}) {
+    if (typeof queryCore.launchTask !== 'function') {
+      state.launch = { status: 'error', data: null, errors: [{ code: 'unavailable', message: '当前 Host 未提供任务发起能力', retryable: false, source: 'TaskCommand' }] };
+      return publish();
+    }
+    state.launch = { status: 'loading', data: null, errors: [] };
+    publish();
+    state.launch = await queryCore.launchTask(request);
+    publish();
+    if (state.launch.status === 'ready') await refresh();
+    return publish();
+  }
   async function resolveDetail(detailRef) {
     const productSessionId = selected();
     if (typeof productSessionId !== 'string' || !productSessionId) {
@@ -155,7 +168,7 @@ function createWorkspaceController({ queryCore } = {}) {
   }
   return Object.freeze({
     loadProjects, selectProject, selectTaskInstance, loadSession, loadTimeline,
-    loadTraces, loadEvidence, resolveDetail, inspectTrace, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
+    loadTraces, loadEvidence, launchTask, resolveDetail, inspectTrace, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
     getState: () => clone(state)
   });
 
