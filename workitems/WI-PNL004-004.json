@@ -1,0 +1,55 @@
+{
+  "id": "WI-PNL004-004",
+  "objective": "把分阶段 launch metadata 和本地关系投影到既有五类 Query 及共享前端，不泄漏文件存储。",
+  "scope": {
+    "write": [
+      "schemas/workspace/",
+      "web/uniclaw-workspace/src/",
+      "web/uniclaw-workspace/tests/",
+      "dsh/uniclaw-task-workbench/src/workspace-capabilities.js",
+      "dsh/uniclaw-task-workbench/tests/"
+    ],
+    "read_hints": [
+      "dsh/uniclaw-task-workbench/src/client.js",
+      "web/uniclaw-workspace/src/core/",
+      "changes/PNL-003/state.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Query 只读 launch 产生的关系；前端区分四类 valueOrigin 与可用性。",
+    "core_points": [
+      "五类 Query 保持兼容",
+      "Trace source-native",
+      "UI 不直读目录"
+    ]
+  },
+  "contract_refs": [
+    "changes/PNL-004/state.md",
+    "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
+    "plans/2026-10-03-pnl-004-plan.md"
+  ],
+  "acceptance": [
+    "Task/Session/Trace/Evidence/Detail response 携带必要逻辑引用和阶段状态",
+    "前端能区分 configured/generated/observed/derived",
+    "局部失败、未关联、未采集、permission-denied 不折叠为空",
+    "旧 PNL-003 测试与入口不回归"
+  ],
+  "forbidden": [
+    "不添加 Task Launch 到五类 Query",
+    "不让前端读取文件系统",
+    "不伪造 OTel parent/duration",
+    "不改 PNL-003 视觉基线"
+  ],
+  "frozen_decisions": [
+    "ADR-0031",
+    "ADR-0034"
+  ],
+  "dependencies": [
+    "WI-PNL004-003"
+  ],
+  "status": "pending",
+  "required_skills": [
+    "codebase-design",
+    "tdd"
+  ]
+}

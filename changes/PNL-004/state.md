@@ -1,6 +1,6 @@
 # PNL-004 — Observability Contract and Task Launch/Query Storage Seam
 
-lifecycle_state: resolved · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: planned · disposition: none · depth: decision-heavy · base: working-tree
 
 ## Intent（WHAT/WHY）
 
@@ -44,6 +44,19 @@ lifecycle_state: resolved · disposition: none · depth: decision-heavy · base:
 7. 同一 launch request 可安全重试或恢复，不重复创建 Task Instance/Run/Session；阶段失败保留明确的 partial/unavailable 状态和可诊断原因。
 8. 至少一条验收场景证明同一任务同时包含 configured、generated、observed、derived 四类元信息，并能在界面上区分它们。
 9. Launch request/ack、阶段记录和 Query response 的字段形状进入版本化 schema；写入 contract 与只读 contract 的权限、错误和幂等语义可分别验证。
+
+## Plan / WorkItems
+
+- Plan：`plans/2026-10-03-pnl-004-plan.md`
+- Pending WorkItem：`workitems/WI-PNL004-001.json`（Contract）
+- Pending WorkItem：`workitems/WI-PNL004-002.json`（Repository Test Catalog）
+- Pending WorkItem：`workitems/WI-PNL004-003.json`（Task Launch + Local Storage）
+- Pending WorkItem：`workitems/WI-PNL004-004.json`（Query Projection + UI metadata）
+- Pending WorkItem：`workitems/WI-PNL004-005.json`（Integration / real verification）
+
+## Status log
+
+- 2026-10-03 · RESOLVE → PLAN · 完成 Task Launch、分阶段元信息、测试集资产和本地 Storage Adapter 的垂直切片计划；建立 WI-PNL004-001..005 DAG，尚未进入实现。
 
 ## Evidence targets
 

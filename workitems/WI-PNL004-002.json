@@ -1,0 +1,50 @@
+{
+  "id": "WI-PNL004-002",
+  "objective": "把现有 testsets 目录补成可查询的最小声明式资产来源，统一使用 default 版本。",
+  "scope": {
+    "write": [
+      "testsets/android-settings/manifest.json",
+      "testsets/workspace-contract/manifest.json",
+      "tools/validate-testset-manifests.py"
+    ],
+    "read_hints": [
+      "testsets/",
+      "evidence/pnl003-real-task-android-settings-20261003/",
+      "plans/2026-10-03-pnl-004-plan.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "测试集是输入/引用资产，不是执行证据；目录是临时 adapter 来源。",
+    "core_points": [
+      "version 固定 default",
+      "逻辑引用不依赖目录结构",
+      "坏引用 fail closed"
+    ]
+  },
+  "contract_refs": [
+    "changes/PNL-004/state.md",
+    "docs/adr/0032-host-owned-project-test-catalog.md"
+  ],
+  "acceptance": [
+    "两个现有测试集各有最小 manifest.json",
+    "manifest 能引用 task/fixture/sourceRevision 并通过校验",
+    "缺字段、重复 id、坏引用、非法版本均有失败证据"
+  ],
+  "forbidden": [
+    "不新增测试集管理 UI",
+    "不把 fixture 当 Evidence",
+    "不修改已有真实 evidence",
+    "不把 worktree 当测试集存储"
+  ],
+  "frozen_decisions": [
+    "ADR-0032",
+    "ADR-0033"
+  ],
+  "dependencies": [
+    "WI-PNL004-001"
+  ],
+  "status": "pending",
+  "required_skills": [
+    "domain-modeling"
+  ]
+}

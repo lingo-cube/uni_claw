@@ -1,0 +1,57 @@
+{
+  "id": "WI-PNL004-003",
+  "objective": "实现带元信息的 Task Launch 与可恢复的本地 Storage Adapter，建立 Run/Session/Instance 关系。",
+  "scope": {
+    "write": [
+      "dsh/uniclaw-task-workbench/src/",
+      "dsh/uniclaw-task-workbench/tests/"
+    ],
+    "read_hints": [
+      "dsh/uniclaw-task-workbench/src/index.js",
+      "dsh/uniclaw-task-workbench/src/repository.js",
+      "schemas/workspace/",
+      "testsets/"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "发起接口负责写入关系和阶段记录；本地文件只是 adapter，实现可替换。",
+    "core_points": [
+      "Runtime 产生 runId",
+      "重试不重复创建",
+      "阶段失败显式保留"
+    ]
+  },
+  "contract_refs": [
+    "changes/PNL-004/state.md",
+    "plans/2026-10-03-pnl-004-plan.md",
+    "docs/adr/0033-task-launch-and-local-storage-seam.md",
+    "docs/adr/0034-staged-task-launch-metadata.md"
+  ],
+  "acceptance": [
+    "launch request 能建立 testSet/task/instance/productSession/run/hostSession/storage namespace 关系",
+    "阶段元信息可逐步查询",
+    "同一幂等键重试不重复创建",
+    "Host Session 创建后 repository/storage 写失败有可恢复 partial 状态",
+    "Node tests、node --check、diff check 通过"
+  ],
+  "forbidden": [
+    "不让 Query 直接读文件",
+    "不从 DSH Session/目录名/artifact 文件名推导 runId",
+    "不改 Product Runtime authority",
+    "不修改并行 AGT-011 文件"
+  ],
+  "frozen_decisions": [
+    "ADR-0031",
+    "ADR-0033",
+    "ADR-0034"
+  ],
+  "dependencies": [
+    "WI-PNL004-001",
+    "WI-PNL004-002"
+  ],
+  "status": "pending",
+  "required_skills": [
+    "codebase-design",
+    "tdd"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "WI-PNL004-001",
+  "objective": "冻结任务发起、分阶段元信息和本地存储的语言无关契约，避免实现阶段自行猜字段。",
+  "scope": {
+    "write": [
+      "schemas/workspace/",
+      "tools/validate-workspace-schemas.py",
+      "docs/agents/"
+    ],
+    "read_hints": [
+      "changes/PNL-004/state.md",
+      "docs/adr/0031-uniclaw-workspace-host-neutral-query-core.md",
+      "docs/adr/0034-staged-task-launch-metadata.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Launch 是独立写入 contract；Query 仍是五类只读 capability。元信息按 configured/generated/observed/derived 分层。",
+    "core_points": [
+      "不把 launch 加入 Query capability",
+      "availability 与 valueOrigin 分开",
+      "runId 只能由 Runtime authority 产生"
+    ]
+  },
+  "contract_refs": [
+    "changes/PNL-004/state.md",
+    "plans/2026-10-03-pnl-004-plan.md",
+    "docs/adr/0033-task-launch-and-local-storage-seam.md",
+    "docs/adr/0034-staged-task-launch-metadata.md"
+  ],
+  "acceptance": [
+    "TaskLaunchRequest、TaskLaunchAck、LaunchStageRecord、LocalStorageNamespace 有版本化 schema 和正反例",
+    "valueOrigin 只允许 configured/generated/observed/derived，并与 availability 分离",
+    "schema validator、README 和 diff check 通过"
+  ],
+  "forbidden": [
+    "不改 Product Runtime authority",
+    "不增加 Query capability 写操作",
+    "不改 PNL-003 UI 实现和并行 AGT-011 文件",
+    "不把物理目录路径写入公共契约"
+  ],
+  "frozen_decisions": [
+    "ADR-0031",
+    "ADR-0033",
+    "ADR-0034"
+  ],
+  "dependencies": [],
+  "status": "pending",
+  "required_skills": [
+    "domain-modeling",
+    "codebase-design"
+  ]
+}
