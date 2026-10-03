@@ -44,7 +44,7 @@
     "ADR-0034"
   ],
   "dependencies": [],
-  "status": "pending",
+  "status": "done",
   "required_skills": [
     "domain-modeling",
     "codebase-design"
