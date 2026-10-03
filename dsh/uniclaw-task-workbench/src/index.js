@@ -46,6 +46,7 @@ export const name = 'uniclaw-task-workbench'
 export const inject = ['connection', 'sessionController', 'workspaceRegistry']
 
 const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
+const REPOSITORY_ROOT = dirname(dirname(PACKAGE_ROOT))
 const AGENT_PRESET_ID = 'uniagent-task'
 
 /** Load the protocol artifact and fail closed if its bytes drifted from the frozen hash. */
@@ -133,6 +134,28 @@ const validateRequest = (body, rootSchema, defName) => {
 
 const newInstanceId = () => `psi-${randomBytes(8).toString('hex')}`
 const newLaunchId = () => `launch-${randomBytes(8).toString('hex')}`
+const nowIso = () => new Date().toISOString()
+
+const launchStage = ({ stage, status = 'succeeded', source, authority, availability = 'present', valueOrigin, taskInstanceId, runId, diagnostic }) => ({
+  schemaVersion: 'uniclaw.workspace.launch-stage-record.v1',
+  contractVersion: 'uniclaw.workspace.contract.v1',
+  stageId: `stage-${randomBytes(6).toString('hex')}`,
+  stage, status, source, authority, availability, valueOrigin,
+  ...(taskInstanceId ? { taskInstanceId } : {}), ...(runId ? { runId } : {}),
+  ...(diagnostic ? { diagnostic } : {}), recordedAt: nowIso(),
+})
+
+const loadCatalog = (testSetRef) => {
+  const manifestPath = join(REPOSITORY_ROOT, 'testsets', testSetRef.id.replace(/^testset\//, ''), 'manifest.json')
+  try {
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
+    const task = manifest.tasks?.find(item => item.taskRef === testSetRef.taskRef)
+    if (manifest.testSetRef !== testSetRef.id || manifest.projectRef !== testSetRef.projectRef
+      || manifest.version !== testSetRef.version
+      || (testSetRef.sourceRevision && manifest.sourceRevision !== testSetRef.sourceRevision) || !task) return null
+    return { manifest, task }
+  } catch { return null }
+}
 
 const logicalRefValid = (ref) => typeof ref?.id === 'string'
   && ref.id.length > 0
@@ -175,32 +198,35 @@ const launchTask = async (ctx, repository, request) => {
   if (!launchRequestValid(request)) {
     return { ok: false, status: 400, code: 'invalid-launch-request', message: 'canonical TaskLaunchRequest fields and logical refs are required (testSetRef.version must be default)' }
   }
+  const catalog = loadCatalog({ ...request.testSetRef, projectRef: launchRefId(request.projectRef), taskRef: launchRefId(request.taskRef) })
+  if (catalog === null) return { ok: false, status: 400, code: 'unknown-catalog-reference', message: 'test set or task reference is unavailable' }
   const existing = repository.findInstanceByIdempotencyKey(request.idempotencyKey)
-  if (existing !== null) return { ok: true, idempotent: true, instance: existing.instance }
+  if (existing !== null && existing.instance.status !== 'partial') return { ok: true, idempotent: true, instance: existing.instance, ack: toLaunchAck(existing.instance) }
 
   const runtime = ctx.get('uniclawRuntime')
   if (runtime === undefined || runtime === null || typeof runtime.createRun !== 'function') {
     return { ok: false, status: 500, code: 'runtime-unavailable', message: 'UniClaw Runtime run seam is unavailable' }
   }
   let run
+  if (existing?.instance?.runId) run = { runId: existing.instance.runId, productSessionId: existing.instance.productSessionId }
   try {
-    run = await runtime.createRun({ projectRef: request.projectRef, testSetRef: request.testSetRef, taskRef: request.taskRef, correlationId: request.correlationId })
+    if (!run) run = await runtime.createRun({ projectRef: request.projectRef, testSetRef: request.testSetRef, taskRef: request.taskRef, correlationId: request.correlationId })
   } catch (error) {
     return { ok: false, status: 500, code: 'run-create-failed', message: String(error?.message ?? error) }
   }
   const runId = typeof run?.runId === 'string' ? run.runId : ''
   if (runId.length === 0) return { ok: false, status: 500, code: 'run-create-failed', message: 'Runtime did not return runId' }
 
-  const launchId = newLaunchId()
-  const instanceId = newInstanceId()
+  const launchId = existing?.instance?.launchId ?? newLaunchId()
+  const instanceId = existing?.instance?.instanceId ?? newInstanceId()
   const base = {
     instanceId, launchId, idempotencyKey: request.idempotencyKey,
     projectRef: launchRefId(request.projectRef), testSetRef: launchRefId(request.testSetRef), testSetVersion: request.testSetRef.version, taskRef: launchRefId(request.taskRef),
     correlationId: request.correlationId, launchRequestId: request.launchRequestId, runId,
-    runIdMetadata: { value: runId, valueOrigin: 'generated', availability: 'available', source: 'uniclaw-runtime', authority: 'uniclaw-runtime' },
+    runIdMetadata: { value: runId, valueOrigin: 'generated', availability: 'present', source: 'uniclaw-runtime', authority: 'uniclaw-runtime' },
     metadata: request.metadata ?? {},
     metadataClaims: Array.isArray(request.metadata) ? request.metadata : [],
-    launchStages: [{ stage: 'requested', status: 'succeeded', source: 'task-launch', authority: 'uniclaw-runtime', valueOrigin: 'configured', availability: 'available', observedAt: new Date().toISOString() }],
+    launchStages: [launchStage({ stage: 'requested', source: 'task-launch', authority: 'task-launch', valueOrigin: 'configured' })],
     status: 'partial', startedAt: new Date().toISOString(),
   }
   const taskRecord = request.taskId ? repository.get(request.taskId) : repository.list().find(task => task.projectRef?.path === launchRefId(request.projectRef))
@@ -212,9 +238,9 @@ const launchTask = async (ctx, repository, request) => {
       return { ok: false, status: 500, code: 'task-create-failed', message: String(error?.message ?? error) }
     }
   }
-  let stored
+  let stored = existing?.instance ?? null
   try {
-    stored = repository.addInstance(taskId, base)
+    if (!stored) stored = repository.addInstance(taskId, base)
   } catch {
     // A runtime run exists, but no product instance was persisted. Surface the
     // recovery identity without pretending the launch completed.
@@ -231,19 +257,42 @@ const launchTask = async (ctx, repository, request) => {
     const sessionId = typeof created === 'string' ? created : (created?.sessionId ?? created?.id)
     if (typeof sessionId !== 'string' || sessionId.length === 0) throw new Error('Host did not return session identity')
     const productSessionId = typeof run.productSessionId === 'string' ? run.productSessionId : null
+    const namespace = stored.storageNamespace ?? { schemaVersion: 'uniclaw.workspace.local-storage-namespace.v1', contractVersion: 'uniclaw.workspace.contract.v1', namespaceRef: { id: `task-instance-${instanceId}`, storageKind: 'local-filesystem', adapter: 'task-repository' }, taskInstanceId: instanceId, runId, status: 'ready', createdAt: nowIso(), revision: '1' }
     stored = repository.updateInstance(taskId, instanceId, {
       sessionId, productSessionId, hostSessionRef: sessionId,
-      storageNamespaceRef: `local:task-instance/${instanceId}`,
+      storageNamespaceRef: namespace.namespaceRef.id,
+      storageNamespace: namespace,
       status: 'active',
-      launchStages: [...base.launchStages, { stage: 'run-bound', status: 'succeeded', source: 'uniclaw-runtime', authority: 'uniclaw-runtime', valueOrigin: 'generated', availability: 'available', runId, observedAt: new Date().toISOString() }, { stage: 'host-session-bound', status: 'succeeded', source: 'dsh-session-controller', authority: 'dsh-host', valueOrigin: 'generated', availability: 'available', observedAt: new Date().toISOString() }],
+      launchStages: [...(stored?.launchStages ?? base.launchStages), launchStage({ stage: 'instance-created', source: 'task-repository', authority: 'uniclaw-runtime', valueOrigin: 'generated', taskInstanceId: instanceId }), launchStage({ stage: 'run-bound', source: 'uniclaw-runtime', authority: 'uniclaw-runtime', valueOrigin: 'generated', taskInstanceId: instanceId, runId }), launchStage({ stage: 'host-session-bound', source: 'dsh-session-controller', authority: 'dsh-host', valueOrigin: 'generated', taskInstanceId: instanceId }), launchStage({ stage: 'completed', source: 'task-launch', authority: 'uniclaw-runtime', valueOrigin: 'derived', taskInstanceId: instanceId })],
     })
-    return { ok: true, instance: stored }
+    return { ok: true, instance: stored, ack: toLaunchAck(stored) }
   } catch (error) {
     const message = String(error?.message ?? error)
-    try { stored = repository.updateInstance(taskId, instanceId, { status: 'partial', recovery: { code: 'host-session-or-storage-failed', message }, launchStages: [...base.launchStages, { stage: 'failed', status: 'partial', source: 'task-launch', authority: 'uniclaw-runtime', valueOrigin: 'derived', availability: 'unavailable', reason: message, observedAt: new Date().toISOString() }] }) } catch { /* preserve original failure */ }
+    try { stored = repository.updateInstance(taskId, instanceId, { status: 'partial', recovery: { code: 'host-session-or-storage-failed', message }, launchStages: [...(stored?.launchStages ?? base.launchStages), launchStage({ stage: 'failed', status: 'partial', source: 'task-launch', authority: 'uniclaw-runtime', valueOrigin: 'derived', availability: 'unavailable', taskInstanceId: instanceId, diagnostic: { code: 'launch-partial', message } })] }) } catch { /* preserve original failure */ }
     return { ok: false, status: 500, code: 'launch-partial', message, partial: stored ?? base }
   }
 }
+
+/** Project persisted launch state to the versioned write-ack contract. The
+ * instance keeps legacy string refs for old callers; the ack exposes typed
+ * binding refs required by the workspace schemas. */
+const toLaunchAck = (instance) => ({
+  schemaVersion: 'uniclaw.workspace.task-launch-ack.v1',
+  contractVersion: 'uniclaw.workspace.contract.v1',
+  launchRequestId: instance.launchRequestId,
+  launchId: instance.launchId,
+  taskInstanceId: instance.instanceId,
+  status: instance.status === 'partial' ? 'partial' : (instance.status === 'failed' ? 'failed' : 'completed'),
+  stages: Array.isArray(instance.launchStages) ? instance.launchStages : [],
+  correlationId: instance.correlationId,
+  acknowledgedAt: nowIso(),
+  bindings: {
+    ...(typeof instance.productSessionId === 'string' ? { productSessionId: instance.productSessionId } : {}),
+    ...(typeof instance.runId === 'string' ? { runId: instance.runId } : {}),
+    ...(typeof instance.hostSessionRef === 'string' ? { hostSessionRef: { host: 'dsh', sessionId: instance.hostSessionRef } } : {}),
+    ...(instance.storageNamespace?.namespaceRef ? { storageNamespaceRef: instance.storageNamespace.namespaceRef } : {}),
+  },
+})
 
 // ---------------------------------------------------------------------------
 // Product Workspace panel service. Plain functions first,
@@ -1018,7 +1067,7 @@ export function createTaskPanelService(ctx, repository, artifactSource = null) {
 
     async launch(body) {
       const result = await launchTask(ctx, repository, body)
-      if (result.ok) return { success: true, idempotent: result.idempotent === true, instance: result.instance }
+      if (result.ok) return { success: true, idempotent: result.idempotent === true, ack: result.ack, instance: result.instance }
       return { success: false, error: { code: result.code, message: result.message, ...(result.partial ? { partial: result.partial } : {}) } }
     },
 
@@ -1202,7 +1251,7 @@ export function apply(ctx, config) {
       if (body === null) return fail(400, 'gateway/bad-request', 'launch body must be a JSON object')
       const result = await launchTask(ctx, repository, body)
       if (!result.ok) return fail(result.status, result.code, result.message, result.partial ? { partial: result.partial } : undefined)
-      return json(200, { ok: true, idempotent: result.idempotent === true, instance: result.instance })
+      return json(200, { ok: true, idempotent: result.idempotent === true, ack: result.ack, instance: result.instance })
     },
   })
 

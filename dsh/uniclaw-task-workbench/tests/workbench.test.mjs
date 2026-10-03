@@ -257,6 +257,11 @@ test('launch: Runtime-owned run and Host binding are explicit and idempotent', a
   assert.equal(firstPayload.instance.runId, 'run-runtime-1')
   assert.equal(firstPayload.instance.productSessionId, 'product-session-1')
   assert.equal(firstPayload.instance.status, 'active')
+  assert.equal(firstPayload.ack.schemaVersion, 'uniclaw.workspace.task-launch-ack.v1')
+  assert.equal(firstPayload.ack.bindings.runId, 'run-runtime-1')
+  assert.deepEqual(firstPayload.ack.bindings.hostSessionRef, { host: 'dsh', sessionId: firstPayload.instance.sessionId })
+  assert.equal(firstPayload.ack.bindings.storageNamespaceRef.storageKind, 'local-filesystem')
+  assert.ok(firstPayload.ack.stages.every(stage => stage.schemaVersion && stage.contractVersion && stage.stageId && stage.recordedAt && stage.availability === 'present'))
   const second = await post(routes, '/api/uniclaw-task/tasks/launch', request)
   const secondPayload = await second.json()
   assert.equal(second.status, 200)
@@ -270,12 +275,35 @@ test('launch: Host failure leaves a partial recoverable instance after Runtime c
   const runtime = { async createRun() { return { runId: 'run-partial-1' } } }
   const controller = mockController({ createError: new Error('host unavailable') })
   const { routes } = applyHost({ controller, registry: mockRegistry(), runtime })
-  const response = await post(routes, '/api/uniclaw-task/tasks/launch', { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-partial', projectRef: { id: 'project/workspace-contract' }, testSetRef: { id: 'testset/workspace-contract', version: 'default' }, taskRef: { id: 'task/workspace-contract/request-decision-result' }, idempotencyKey: 'idem-partial', correlationId: 'corr-partial', requestedAt: new Date().toISOString(), metadata: [] })
+  const response = await post(routes, '/api/uniclaw-task/tasks/launch', { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-partial', projectRef: { id: 'project/uni-claw-workspace' }, testSetRef: { id: 'testset/workspace-contract', version: 'default' }, taskRef: { id: 'task/workspace-contract/request-decision-result' }, idempotencyKey: 'idem-partial', correlationId: 'corr-partial', requestedAt: new Date().toISOString(), metadata: [] })
   assert.equal(response.status, 500)
   const payload = await response.json()
   assert.equal(payload.error.code, 'launch-partial')
   assert.equal(payload.error.details.partial.status, 'partial')
   assert.equal(payload.error.details.partial.runId, 'run-partial-1')
+})
+
+test('launch: partial retry reuses the Runtime run and binds the recovered Host session', async () => {
+  let failHost = true
+  const controller = { createCalls: [], async create(request) {
+    controller.createCalls.push(request)
+    if (failHost) throw new Error('host unavailable')
+    return { sessionId: 'session-recovered' }
+  } }
+  const runtime = { calls: [], async createRun(request) { runtime.calls.push(request); return { runId: 'run-recover-1' } } }
+  const { routes } = applyHost({ controller, registry: mockRegistry(), runtime })
+  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-retry', projectRef: { id: 'project/uni-claw-workspace' }, testSetRef: { id: 'testset/workspace-contract', version: 'default' }, taskRef: { id: 'task/workspace-contract/request-decision-result' }, idempotencyKey: 'idem-retry', correlationId: 'corr-retry', requestedAt: new Date().toISOString(), metadata: [] }
+  const first = await post(routes, '/api/uniclaw-task/tasks/launch', request)
+  assert.equal(first.status, 500)
+  failHost = false
+  const second = await post(routes, '/api/uniclaw-task/tasks/launch', request)
+  const payload = await second.json()
+  assert.equal(second.status, 200)
+  assert.equal(payload.idempotent, false)
+  assert.equal(payload.instance.runId, 'run-recover-1')
+  assert.equal(payload.instance.status, 'active')
+  assert.equal(runtime.calls.length, 1)
+  assert.equal(controller.createCalls.length, 2)
 })
 
 test('launch: metadata and logical refs fail closed before Runtime creation', async () => {
