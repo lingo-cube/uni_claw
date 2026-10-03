@@ -579,7 +579,7 @@ test('panel workspace/session: explicit run metadata links an observed session a
   assert.equal(detail.metadata.androidApi, 35)
   assert.equal(detail.metadata.wmSize, '1080x1920')
   assert.equal(detail.metadata.real, true)
-  assert.deepEqual(detail.uniclawTraceContext, { traceId: 'trc-1', rootSpanId: 'sp-1', runId: 'run-1', spanCount: 1, recorderTerminal: null })
+  assert.deepEqual(detail.uniclawTraceContext, { schemaVersion: 'trc/0.1', traceId: 'trc-1', rootSpanId: 'sp-1', runId: 'run-1', spanCount: 1, recorderTerminal: null })
   assert.equal(detail.uniclawTrace[0].definition, 'world.reconcile')
   assert.equal(detail.uniclawTrace[0].spanKind, 'internal')
   assert.equal(detail.uniclawTrace[0].status, 'OK')

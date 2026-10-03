@@ -7,7 +7,7 @@ const make = (overrides = {}) => {
   const calls = []
   const panel = {
     workspace: () => ({ success: true, projects: [{ projectId: 'p', instances: [{ instanceId: 'i', sessionId: 'dsh-1', task: { title: 'T' } }] }] }),
-    session: ({ sessionId }) => { calls.push(['session', sessionId]); return { success: true, task: {}, instance: { projectRef: 'project/android-settings', testSetRef: 'testset/android-settings', taskRef: 'task/android-settings/wifi-state', runId: 'run-1', launchStages: [{ stage: 'run-bound', status: 'succeeded' }], storageNamespaceRef: 'local:task-instance/i' }, metadata: { owner: 'team-a' }, metadataClaims: [{ key: 'agentPreset', value: 'uniagent-prod', valueOrigin: 'configured', availability: 'present', source: 'config', authority: 'host' }], conversation: [{ kind: 'assistant' }], conversationGroups: [], dshTrace: [{ seq: 1 }], uniclawTrace: [{ token: 'VERIFIED' }], uniflowTrace: [{ token: 'VERIFIED' }], evidence: ['evidence/a.md'] } },
+    session: ({ sessionId }) => { calls.push(['session', sessionId]); return { success: true, task: {}, instance: { projectRef: 'project/android-settings', testSetRef: 'testset/android-settings', taskRef: 'task/android-settings/wifi-state', runId: 'run-1', launchStages: [{ stage: 'run-bound', status: 'succeeded' }], storageNamespaceRef: 'local:task-instance/i' }, metadata: { owner: 'team-a' }, metadataClaims: [{ key: 'agentPreset', value: 'uniagent-prod', valueOrigin: 'configured', availability: 'present', source: 'config', authority: 'host' }], conversation: [{ kind: 'assistant' }], conversationGroups: [], dshTrace: [{ seq: 1 }], uniclawTrace: [{ token: 'VERIFIED' }], uniflowTrace: [{ token: 'VERIFIED' }], uniclawTraceContext: { schemaVersion: 'trc/0.1', traceId: 'trace-1', rootSpanId: 'span-1' }, uniclawTraceTruncated: true, evidence: ['evidence/a.md'] } },
     artifact: ({ sessionId, ref }) => { calls.push(['artifact', sessionId, ref]); return { success: true, ref, name: ref, text: 'detail' } },
     ...overrides,
   }
@@ -40,7 +40,9 @@ test('explicit product session mapping projects session, traces, and evidence', 
   assert.deepEqual(traces.data.traceContext.hostSessionRef, { host: 'dsh', sessionId: 'dsh-1' })
   assert.equal(traces.data.traceContext.sources[0].authority, 'dsh-host')
   assert.equal(traces.data.traceContext.sources[0].schemaVersion, null)
-  assert.equal(traces.data.traceContext.sources.every(item => item.truncated === false && item.cursor === null), true)
+  assert.equal(traces.data.traceContext.sources[2].schemaVersion, 'trc/0.1')
+  assert.equal(traces.data.traceContext.sources[2].truncated, true)
+  assert.equal(traces.data.traceContext.sources.every(item => item.cursor === null), true)
   const evidence = await capabilities.EvidenceQuery.getEvidence({ productSessionId: 'product-1' })
   assert.deepEqual(evidence.data.evidence, ['evidence/a.md'])
   assert.deepEqual(calls, [['session', 'dsh-1'], ['session', 'dsh-1'], ['session', 'dsh-1']])

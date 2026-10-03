@@ -986,6 +986,7 @@ const sessionDetailCore = async (ctx, repository, artifactSource, sessionId) => 
   const uniflowTrace = events.events.flatMap(extractEntries)
   const uniclawTrace = traceProjection(observed?.trace)
   const uniclawTraceContext = observed?.trace ? {
+    schemaVersion: observed.trace.schemaVersion ?? null,
     traceId: observed.trace.traceId ?? null,
     rootSpanId: observed.trace.rootSpanId ?? null,
     runId: observed.trace.runId ?? null,

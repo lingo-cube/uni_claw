@@ -94,6 +94,8 @@ const sessionProjection = (payload, productSessionId, dshSessionId) => ({
   dshTrace: payload.dshTrace,
   uniflowTrace: payload.uniflowTrace,
   uniclawTrace: payload.uniclawTrace,
+  uniclawTraceContext: payload.uniclawTraceContext ?? null,
+  uniclawTraceTruncated: payload.uniclawTraceTruncated === true,
   evidence: payload.evidence,
   source: 'dsh',
 })
@@ -172,9 +174,9 @@ const SessionQuery = {
       if (!session.ok) return relabel(session, 'TraceQuery')
       const data = session.data
       const sourceTraces = [
-        { source: 'dsh', authority: 'dsh-host', schemaVersion: null, items: data.dshTrace ?? [] },
-        { source: 'uniflow', authority: 'uniclaw-harness', schemaVersion: null, items: data.uniflowTrace ?? [] },
-        { source: 'uniclaw', authority: 'uniclaw-runtime', schemaVersion: null, items: data.uniclawTrace ?? [] },
+        { source: 'dsh', authority: 'dsh-host', schemaVersion: null, items: data.dshTrace ?? [], truncated: false },
+        { source: 'uniflow', authority: 'uniclaw-harness', schemaVersion: null, items: data.uniflowTrace ?? [], truncated: false },
+        { source: 'uniclaw', authority: 'uniclaw-runtime', schemaVersion: data.uniclawTraceContext?.schemaVersion ?? null, items: data.uniclawTrace ?? [], truncated: data.uniclawTraceTruncated === true },
       ]
       const traces = sourceTraces.flatMap(({ source, items }) => items.map(item => ({ ...item, source })))
       const traceContext = {
@@ -183,8 +185,8 @@ const SessionQuery = {
         runId: data.runId ?? null,
         correlationId: request.correlationId ?? request.requestId ?? null,
         observedAt: session.observedAt ?? new Date().toISOString(),
-        sources: sourceTraces.map(({ source, authority, schemaVersion, items }) => ({
-          source, authority, schemaVersion, count: items.length, truncated: false, cursor: null,
+        sources: sourceTraces.map(({ source, authority, schemaVersion, items, truncated }) => ({
+          source, authority, schemaVersion, count: items.length, truncated, cursor: null,
         })),
       }
       return { ...session, capability: 'TraceQuery', data: { traces, traceContext, errors: [] } }
