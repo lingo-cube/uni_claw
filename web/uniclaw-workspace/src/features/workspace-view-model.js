@@ -171,12 +171,12 @@ function labelForKind(kind) {
 function groupedPane(value, key, groupBy) {
   const pane = page(value);
   const groups = {};
-  pane.items.map((item, index) => {
+  const items = pane.items.map((item, index) => {
     const source = groupBy(item);
     const summary = item.summary || item.label || item.text || item.definition || item.type || item.kind || item.spanId || `${key} ${index + 1}`;
     if (!summary) return null;
     return {
-      id: item.id || item.traceId || item.spanId || null,
+      id: item.spanId || item.id || null,
       source,
       type: item.type || item.kind || null,
       label: item.label || null,
@@ -193,11 +193,12 @@ function groupedPane(value, key, groupBy) {
       detailAvailable: Boolean(item.detailRef),
       raw: clone(item)
     };
-  }).filter(Boolean).forEach((item) => {
+  }).filter(Boolean);
+  items.forEach((item) => {
     if (!groups[item.source]) groups[item.source] = [];
     groups[item.source].push(item);
   });
-  return { status: pane.status, groups, errors: pane.errors, snapshotId: pane.snapshotId, revision: pane.revision, observedAt: pane.observedAt, itemKey: key };
+  return { status: pane.status, items, groups, errors: pane.errors, snapshotId: pane.snapshotId, revision: pane.revision, observedAt: pane.observedAt, itemKey: key };
 }
 
 function executionPane(session) {

@@ -1,6 +1,7 @@
 'use strict';
 const { WorkspaceQueryCore } = require('../core');
 const { createWorkspaceApp } = require('../app/create-workspace-app');
+const { bindWorkspaceLayout } = require('../ui/workspace-layout');
 const WORKSPACE_STYLE_ID = 'uniclaw-workspace-styles';
 // A persisted DSH session may require a cold decompression/read on first access.
 // Keep the browser seam bounded, while allowing the real product session to load.
@@ -71,9 +72,11 @@ function envelope(value, capability) {
 function createCapabilities(remote) {
   if (!remote || typeof remote.workspace !== 'function' || typeof remote.session !== 'function' || typeof remote.artifact !== 'function') throw new TypeError('remote workspace/session/artifact methods are required');
   const sessionByProduct = new Map();
-  const call = (method, args, capability) => Promise.race([
+  const call = async (method, args, capability) => {
+    let timer;
+    try { return await Promise.race([
     Promise.resolve().then(() => remote[method](...args)).then((value) => envelope(value, capability)),
-    new Promise((resolve) => setTimeout(() => resolve({
+    new Promise((resolve) => { timer = setTimeout(() => resolve({
       ok: false,
       error: {
         schemaVersion: 'uniclaw.workspace.query-error.v1',
@@ -86,8 +89,9 @@ function createCapabilities(remote) {
       capability,
       source: 'dsh',
       observedAt: new Date().toISOString(),
-    }), DSH_CAPABILITY_TIMEOUT_MS)),
-  ]);
+    }), DSH_CAPABILITY_TIMEOUT_MS); }),
+    ]); } finally { clearTimeout(timer); }
+  };
   const rememberSessionMappings = (projects) => {
     for (const project of (projects || [])) {
       for (const instance of (project.instances || [])) {
@@ -155,9 +159,11 @@ function createCapabilities(remote) {
 }
 function createDshWorkspaceBrowserBridge({ remote, container, render, viewOptions, styleText } = {}) {
   if (!container || typeof container.appendChild !== 'function') throw new TypeError('container is required');
+  const layout = bindWorkspaceLayout(container);
   let eventsBound = false;
   const app = createWorkspaceApp({ queryCore: new WorkspaceQueryCore(createCapabilities(remote)), render, viewOptions, mount: ({ html }) => {
     container.innerHTML = html;
+    layout.apply();
     if (eventsBound || typeof container.addEventListener !== 'function') return;
     eventsBound = true;
     const controller = app.getController();
@@ -186,6 +192,6 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
       }
     });
   } });
-  return Object.freeze({ start: () => { ensureWorkspaceStyles(container, styleText); return app.start(); }, stop: () => app.stop(), getApp: () => app });
+  return Object.freeze({ start: () => { ensureWorkspaceStyles(container, styleText); layout.apply(); return app.start(); }, stop: () => { layout.dispose(); app.stop(); }, getApp: () => app, getLayout: () => layout });
 }
 module.exports = { createDshWorkspaceBrowserBridge, createCapabilities, ensureWorkspaceStyles, envelope };
