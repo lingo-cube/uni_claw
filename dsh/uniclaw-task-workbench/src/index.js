@@ -389,19 +389,33 @@ const traceReferenceKinds = ['Run', 'Evidence', 'WorldRevision', 'AssociationDec
 const structuralOutcomes = ['Completed', 'Faulted', 'Cancelled', 'Incomplete']
 const TRACE_SPAN_LIMIT = 200
 
-const traceProjection = (trace) => (Array.isArray(trace?.spans) ? trace.spans.slice(0, TRACE_SPAN_LIMIT) : []).map(span => ({
-  kind: 'span',
-  spanId: span.spanId,
-  parentSpanId: span.parentSpanId ?? null,
-  definition: span.spanDefinitionId,
-  structuralOutcome: structuralOutcomes[span.structuralOutcome] ?? String(span.structuralOutcome ?? 'Unknown'),
-  captureSequence: span.captureSequence,
-  references: (span.references ?? []).map(ref => ({
+const traceProjection = (trace) => (Array.isArray(trace?.spans) ? trace.spans.slice(0, TRACE_SPAN_LIMIT) : []).map(span => {
+  const structuralOutcome = structuralOutcomes[span.structuralOutcome] ?? String(span.structuralOutcome ?? 'Unknown')
+  const references = (span.references ?? []).map(ref => ({
     kind: traceReferenceKinds[ref.kind] ?? String(ref.kind ?? 'Unknown'),
     value: ref.value,
-  })),
-  events: (span.events ?? []).map(event => ({ eventId: event.eventId, reasonCode: event.reasonCode ?? null })),
-}))
+  }))
+  const events = (span.events ?? []).map(event => ({ eventId: event.eventId, reasonCode: event.reasonCode ?? null }))
+  const definition = span.spanDefinitionId || span.spanId || 'span'
+  const facts = [
+    `outcome=${structuralOutcome}`,
+    references.length > 0 ? `references=${references.map(ref => `${ref.kind}:${ref.value}`).join(', ')}` : '',
+    events.length > 0 ? `events=${events.map(event => event.eventId).join(', ')}` : '',
+  ].filter(Boolean)
+  return {
+    kind: 'span',
+    spanId: span.spanId,
+    parentSpanId: span.parentSpanId ?? null,
+    definition,
+    label: definition,
+    summary: `${definition} · ${structuralOutcome}`,
+    text: facts.join(' · '),
+    structuralOutcome,
+    captureSequence: span.captureSequence,
+    references,
+    events,
+  }
+})
 
 const workspaceCore = (repository, artifactSource) => {
   const projectMap = new Map()

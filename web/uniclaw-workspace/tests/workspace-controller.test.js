@@ -119,3 +119,16 @@ test('pane selection is durable in renderer-neutral controller state', async () 
   c.selectPane('unknown');
   assert.equal(c.getState().ui.activePane, 'trace');
 });
+
+test('trace mode and detail return pane are durable in controller state', async () => {
+  const c = controller();
+  c.selectTraceMode('split');
+  assert.equal(c.getState().ui.traceMode, 'split');
+  await c.selectTaskInstance('ps1');
+  c.selectPane('evidence');
+  await c.resolveDetail({ source: 'fixture', refId: 'ev.md' });
+  assert.equal(c.getState().ui.activePane, 'detail');
+  assert.equal(c.getState().ui.detailReturnPane, 'evidence');
+  c.selectPane(c.getState().ui.detailReturnPane);
+  assert.equal(c.getState().ui.activePane, 'evidence');
+});

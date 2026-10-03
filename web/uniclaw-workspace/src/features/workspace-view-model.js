@@ -42,7 +42,7 @@ function createWorkspaceViewModel(input, options = {}) {
       errors: errorsOf(state.session)
     },
     conversationTimeline: timelinePane(state.timeline, session),
-    tracePane: groupedPane(state.traces, 'traces', (item) => item.source || 'unknown'),
+    tracePane: { ...groupedPane(state.traces, 'traces', (item) => item.source || 'unknown'), mode: state.ui && state.ui.traceMode === 'split' ? 'split' : 'combined' },
     evidencePane: evidencePane(state.evidence),
     executionPane: executionPane((state.session && state.session.session) || null),
     metadataPane: { status: state.session && state.session.status || 'idle', items: metadata, errors: errorsOf(state.session) },
@@ -242,7 +242,7 @@ function evidencePane(value) {
 
 function detailActions(state, productSessionId) {
   const detail = state.detail || {};
-  return { status: detail.status || 'idle', enabled: Boolean(productSessionId), current: clone(detail.detail || null), errors: errorsOf(detail), resolve: detail.status === 'loading' ? 'loading' : 'available' };
+  return { status: detail.status || 'idle', enabled: Boolean(productSessionId), current: clone(detail.detail || null), errors: errorsOf(detail), resolve: detail.status === 'loading' ? 'loading' : 'available', returnPane: ['trace', 'evidence'].includes(state.ui && state.ui.detailReturnPane) ? state.ui.detailReturnPane : 'trace' };
 }
 
 function mergeMetadata(task, session) {

@@ -6,6 +6,15 @@ const { createWorkspaceViewModel } = require('../src/features/workspace-view-mod
 
 function view(overrides = {}) { return createWorkspaceViewModel({ projects:{status:'ready',items:[{projectId:'p1',name:'项目',instances:[{productSessionId:'ps1',title:'任务',status:'running'}]}],errors:[]}, selection:{projectId:'p1',productSessionId:'ps1',taskInstances:{status:'ready',items:[{productSessionId:'ps1',title:'任务',status:'running'}],errors:[]}}, session:{status:'ready',session:{productSessionId:'ps1',metadata:{owner:'a'}}}, timeline:{status:'ready',items:[{kind:'request',summary:'请求'},{kind:'decision',summary:'决策'},{kind:'result',summary:'结果'}],errors:[]}, traces:{status:'ready',items:[{id:'t1',source:'uniclaw',detailRef:{refId:'trace-1'}}],errors:[]}, evidence:{status:'ready',items:[{id:'e1',title:'证据',detailRef:{refId:'evidence-1'}},{id:'e2',title:'受限',detailRef:{refId:'denied'},error:{code:'permission-denied',message:'拒绝'}}],errors:[]}, detail:{status:'idle'},...overrides }); }
 test('renders semantic workspace sections, tabs, side rail and trace timeline', () => { const html = renderWorkspaceHtml(view()); for (const selector of ['workspace-navigation','workspace-navigation__resize','workspace-navigation__toggle','workspace-task-header','workspace-observation-bar','workspace-diagnostics-slot','workspace-conversation-shell','workspace-conversation','workspace-pane-tabs','workspace-pane--trace','workspace-pane--evidence','workspace-pane--metadata','workspace-pane--execution','workspace-side-rail','workspace-detail-drawer']) assert.match(html, new RegExp(selector)); assert.match(html,/请求/); assert.match(html,/决策/); assert.match(html,/结果/); assert.match(html,/<details class="workspace-trace-root"/); assert.match(html,/data-detail-ref="evidence-1"/); });
+test('offers combined and split trace views and a return action from details', () => {
+  const split = renderWorkspaceHtml(view({ ui: { activePane: 'trace', traceMode: 'split' } }));
+  assert.match(split, /data-trace-mode="combined"/);
+  assert.match(split, /data-trace-mode="split"[^>]*aria-pressed="true"/);
+  assert.match(split, /workspace-trace-source-group/);
+  const detail = renderWorkspaceHtml(view({ ui: { activePane: 'detail', detailReturnPane: 'evidence' }, detail: { status: 'ready', detail: { ok: true } } }));
+  assert.match(detail, /返回 Evidence/);
+  assert.match(detail, /data-pane-tab="evidence"/);
+});
 test('renders Uni-Agent dialogue rounds with readable roles and runtime stages', () => {
   const html = renderWorkspaceHtml(view({ session: { status: 'ready', session: { productSessionId: 'ps1', conversationGroups: [{ round: 1, status: 'submitted', stages: [{ kind: 'request', role: 'requester', label: '调用方请求', text: '完成调研' }, { kind: 'decision', role: 'agent', label: 'Uni-Agent 决策', text: '选择搜索策略', decisionKind: 'act' }, { kind: 'result', role: 'tool', label: '提交结果', text: 'accepted' }] }], runStages: [{ kind: 'verification', label: '验证结果', status: '已验证', text: '证据齐全' }] }, errors: [] } }));
   assert.match(html, /workspace-conversation-round/);

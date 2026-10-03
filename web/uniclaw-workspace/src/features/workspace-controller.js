@@ -5,7 +5,7 @@ function createWorkspaceController({ queryCore } = {}) {
   const state = {
     projects: idlePage('projects'),
     selection: { projectId: null, productSessionId: null },
-    ui: { activePane: 'trace' },
+    ui: { activePane: 'trace', traceMode: 'combined', detailReturnPane: 'trace' },
     session: idleData('session'),
     timeline: idlePage('timeline'),
     traces: idlePage('traces'),
@@ -104,6 +104,9 @@ function createWorkspaceController({ queryCore } = {}) {
     }
     const token = (tokens.get('detail') || 0) + 1;
     tokens.set('detail', token);
+    state.ui.detailReturnPane = state.ui.activePane === 'detail'
+      ? (state.ui.detailReturnPane || 'trace')
+      : state.ui.activePane;
     state.ui.activePane = 'detail';
     state.detail = { status: 'loading', detail: null, errors: [] };
     publish();
@@ -114,6 +117,10 @@ function createWorkspaceController({ queryCore } = {}) {
   function selectPane(pane) {
     const allowed = ['trace', 'evidence', 'detail'];
     state.ui.activePane = allowed.includes(pane) ? pane : 'trace';
+    return publish();
+  }
+  function selectTraceMode(mode) {
+    state.ui.traceMode = mode === 'split' ? 'split' : 'combined';
     return publish();
   }
   async function refresh() {
@@ -130,7 +137,7 @@ function createWorkspaceController({ queryCore } = {}) {
   }
   return Object.freeze({
     loadProjects, selectProject, selectTaskInstance, loadSession, loadTimeline,
-    loadTraces, loadEvidence, resolveDetail, selectPane, refresh, subscribe,
+    loadTraces, loadEvidence, resolveDetail, selectPane, selectTraceMode, refresh, subscribe,
     getState: () => clone(state)
   });
 

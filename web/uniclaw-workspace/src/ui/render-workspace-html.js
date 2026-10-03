@@ -102,17 +102,25 @@ function renderTabButton(id, label, active) { return `<button type="button" role
 function renderTabPanel(id, active, content) { return `<div class="workspace-tab-panel${active === id ? ' is-active' : ''}" role="tabpanel" data-pane-panel="${id}"${active === id ? '' : ' hidden'}>${content}</div>`; }
 function renderTracePane(pane = {}) {
   const items = Array.isArray(pane.items) ? pane.items : Object.values(pane.groups || {}).flat();
-  // Sequence numbers are local to each recorder. Never compare them across sources.
-  const ordered = items.map((item, index) => ({ item, index }));
-  const counts = ordered.reduce((result, entry) => { result[entry.item.source || 'unknown'] = (result[entry.item.source || 'unknown'] || 0) + 1; return result; }, {});
+  const mode = pane.mode === 'split' ? 'split' : 'combined';
+  const grouped = Object.entries(pane.groups || {}).filter(([, group]) => Array.isArray(group) && group.length);
+  const counts = items.reduce((result, item) => { const source = item.source || 'unknown'; result[source] = (result[source] || 0) + 1; return result; }, {});
   const legend = Object.entries(counts).map(([source, count]) => `<span class="workspace-trace-source workspace-trace-source--${escapeHtml(source)}">${text(traceSourceLabel(source))}<b>${count}</b></span>`).join('');
+  const body = mode === 'split'
+    ? grouped.map(([source, sourceItems]) => renderTraceGroup(source, sourceItems, false)).join('')
+    : renderTraceGroup('all', items, true);
+  return `<section class="workspace-pane workspace-pane--trace" data-pane="trace"><div class="workspace-trace-toolbar"><div class="workspace-pane__heading"><div><h3>Trace</h3><p class="workspace-pane__subheading">按父子关系查看执行链；可合并或按来源拆分</p></div><span class="workspace-pane__count">${items.length}</span></div><div class="workspace-trace-mode" role="group" aria-label="Trace 显示方式">${renderTraceModeButton('combined', '合并', mode)}${renderTraceModeButton('split', '按来源', mode)}</div></div>${items.length ? `<div class="workspace-trace-legend workspace-trace-legend--standalone">${legend}</div>${body}` : '<p class="workspace-empty">暂无可展示的 Trace 事件</p>'}</section>`;
+}
+function traceSourceLabel(source) { return source === 'uniclaw' ? 'UniClaw' : source === 'uniflow' ? 'UniFlow' : String(source).toUpperCase(); }
+function renderTraceModeButton(mode, label, active) { return `<button type="button" class="workspace-trace-mode__button${active === mode ? ' is-active' : ''}" data-workspace-action="select-trace-mode" data-trace-mode="${mode}" aria-pressed="${active === mode ? 'true' : 'false'}">${text(label)}</button>`; }
+function renderTraceGroup(source, items, combined) {
+  const ordered = items.map((item, index) => ({ item, index }));
   const children = new Map();
   const key = (item, id) => `${item.source || 'unknown'}:${id}`;
   const byId = new Map(ordered.filter(({ item }) => item.id).map(({ item }) => [key(item, item.id), item]));
   const roots = [];
   for (const { item } of ordered) {
     const parent = item.parentSpanId && byId.get(key(item, item.parentSpanId));
-    // Missing or cyclic parent references remain visible as roots.
     const visited = new Set([item]);
     let ancestor = parent;
     while (ancestor && !visited.has(ancestor)) { visited.add(ancestor); ancestor = ancestor.parentSpanId && byId.get(key(ancestor, ancestor.parentSpanId)); }
@@ -120,16 +128,18 @@ function renderTracePane(pane = {}) {
     if (!children.has(parent)) children.set(parent, []);
     children.get(parent).push(item);
   }
-  return `<section class="workspace-pane workspace-pane--trace" data-pane="trace"><div class="workspace-pane__heading"><div><h3>Trace</h3><p class="workspace-pane__subheading">保留各来源记录顺序，仅依据明确的父子关系展开</p></div><span class="workspace-pane__count">${ordered.length}</span></div>${ordered.length ? `<details class="workspace-trace-root" open><summary><span>运行轨迹</span><span class="workspace-trace-legend">${legend}</span></summary><ol class="workspace-trace-tree" role="tree">${roots.map((item) => renderTraceCard(item, children, 0)).join('')}</ol></details>` : '<p class="workspace-empty">暂无可展示的 Trace 事件</p>'}</section>`;
+  const className = combined ? 'workspace-trace-root' : 'workspace-trace-source-group';
+  const title = combined ? '运行轨迹 · 全部来源' : traceSourceLabel(source);
+  return `<details class="${className}" open><summary><span>${text(title)}</span>${combined ? `<span class="workspace-trace-legend">${text(items.length)} 条</span>` : `<span class="workspace-trace-source-count">${text(items.length)} 条</span>`}</summary><ol class="workspace-trace-tree" role="tree">${roots.map((item) => renderTraceCard(item, children, 0)).join('')}</ol></details>`;
 }
-function traceSourceLabel(source) { return source === 'uniclaw' ? 'UniClaw' : source === 'uniflow' ? 'UniFlow' : String(source).toUpperCase(); }
 function renderTraceCard(item, children, depth) {
   const source = item.source || 'unknown';
   const nested = children.get(item) || [];
   const label = item.label || String(item.summary || '未命名事件').split(' · ')[0];
   const detail = item.detailAvailable && item.detailRef ? `<button type="button" class="workspace-detail-action" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(item.detailRef.refId || item.detailRef)}">查看明细</button>` : '';
-  const content = `<div class="workspace-trace-row__content"><div class="workspace-trace-row__head"><span class="workspace-trace-source workspace-trace-source--${escapeHtml(source)}">${text(traceSourceLabel(source))}</span><strong>${text(label)}</strong><small>${text([item.type, item.ts, item.captureSequence != null ? `#${item.captureSequence}` : item.seq != null ? `#${item.seq}` : ''].filter(Boolean).join(' · '))}</small></div>${item.text && item.text !== label ? `<p>${text(String(item.text).slice(0, 280))}</p>` : ''}</div>`;
-  return `<li class="workspace-trace-node" role="treeitem" aria-level="${depth + 1}">${nested.length ? `<details class="workspace-trace-branch"><summary class="workspace-trace-row">${content}<span class="workspace-trace-child-count">${nested.length}</span></summary>${detail ? `<div class="workspace-trace-branch__detail">${detail}</div>` : ''}<ol role="group">${nested.map((child) => renderTraceCard(child, children, depth + 1)).join('')}</ol></details>` : `<div class="workspace-trace-row"><span class="workspace-trace-row__rail" aria-hidden="true"></span>${content}${detail}</div>`}</li>`;
+  const facts = [['span', item.id], ['parent', item.parentSpanId], ['authority', item.authority], ['correlation', item.correlationId], ['capture', item.captureSequence != null ? `#${item.captureSequence}` : item.seq != null ? `#${item.seq}` : null]].filter(([, value]) => value != null && value !== '').map(([key, value]) => `<span><b>${text(key)}</b>${text(value)}</span>`).join('');
+  const content = `<div class="workspace-trace-row__content"><div class="workspace-trace-row__head"><span class="workspace-trace-source workspace-trace-source--${escapeHtml(source)}">${text(traceSourceLabel(source))}</span><strong>${text(label)}</strong><small>${text([item.type, item.ts].filter(Boolean).join(' · '))}</small></div>${item.text && item.text !== label ? `<p>${text(String(item.text).slice(0, 280))}</p>` : ''}${facts ? `<div class="workspace-trace-row__facts">${facts}</div>` : ''}</div>`;
+  return `<li class="workspace-trace-node" role="treeitem" aria-level="${depth + 1}">${nested.length ? `<details class="workspace-trace-branch"><summary class="workspace-trace-row">${content}<span class="workspace-trace-child-count">${nested.length}</span>${detail}</summary><ol role="group">${nested.map((child) => renderTraceCard(child, children, depth + 1)).join('')}</ol></details>` : `<div class="workspace-trace-row"><span class="workspace-trace-row__rail" aria-hidden="true"></span>${content}${detail}</div>`}</li>`;
 }
 
 function renderEvidencePane(pane = {}) {
@@ -137,7 +147,7 @@ function renderEvidencePane(pane = {}) {
 }
 function renderMetadataPane(pane = {}) { return `<section class="workspace-pane workspace-pane--metadata" data-pane="metadata"><div class="workspace-pane__heading"><h3>Metadata</h3><span class="workspace-status workspace-status--${escapeHtml(pane.status || 'unknown')}">${text(pane.status, 'unknown')}</span></div><dl>${Object.keys(pane.items || {}).map((key) => `<div><dt>${text(key)}</dt><dd>${typeof pane.items[key] === 'object' && pane.items[key] !== null ? `<details class="workspace-metadata-value"><summary>查看结构化数据</summary><pre>${text(JSON.stringify(pane.items[key], null, 2))}</pre></details>` : text(pane.items[key])}</dd></div>`).join('')}</dl></section>`; }
 function renderExecutionPane(pane = {}) { return `<section class="workspace-pane workspace-pane--execution" data-pane="execution"><div class="workspace-pane__heading"><div><h3>执行结果</h3><p class="workspace-pane__subheading">当前运行的结论与证据</p></div><span class="workspace-status workspace-status--${escapeHtml(pane.status || 'empty')}">${text(pane.status === 'ready' ? '已产生' : '待运行', pane.status || 'empty')}</span></div>${(pane.items || []).length ? (pane.items || []).map((item) => `<article class="workspace-execution-card"><div><strong>${text(item.label, '执行结果')}</strong><span class="workspace-chip">${text(item.status, 'unknown')}</span></div><p>${text(item.text, '暂无结果摘要')}</p>${item.evidenceRefs?.length ? `<div class="workspace-reference-list">${item.evidenceRefs.map((ref) => `<button type="button" class="workspace-reference-link" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(String(ref).split('/').pop())}">${text(String(ref).split('/').pop())}</button>`).join('')}</div>` : ''}</article>`).join('') : '<p class="workspace-empty workspace-empty--compact">当前 session 尚无 UniClaw runtime 执行产物</p>'}</section>`; }
-function renderDetail(detail = {}) { return `<aside class="workspace-detail-drawer" data-detail-status="${escapeHtml(detail.status || 'idle')}" aria-label="详情"><h3>详情</h3>${detail.current ? `<pre>${text(JSON.stringify(detail.current, null, 2))}</pre>` : `<p>${text(detail.status === 'loading' ? '正在加载详情' : '选择记录查看详情')}</p>`}</aside>`; }
+function renderDetail(detail = {}) { const returnPane = detail.returnPane === 'evidence' ? 'evidence' : 'trace'; const returnLabel = returnPane === 'evidence' ? 'Evidence' : 'Trace'; return `<aside class="workspace-detail-drawer" data-detail-status="${escapeHtml(detail.status || 'idle')}" aria-label="详情"><div class="workspace-detail-drawer__header"><h3>详情</h3><button type="button" class="workspace-detail-back" data-workspace-action="select-pane" data-pane-tab="${returnPane}">返回 ${returnLabel}</button></div>${detail.current ? `<pre>${text(JSON.stringify(detail.current, null, 2))}</pre>` : `<p>${text(detail.status === 'loading' ? '正在加载详情' : '选择记录查看详情')}</p>`}</aside>`; }
 function renderNotices(notices = []) {
   if (!notices.length) return '';
   const hasRetry = notices.some((notice) => ['timeout', 'unavailable', 'stale'].includes(notice.code));
