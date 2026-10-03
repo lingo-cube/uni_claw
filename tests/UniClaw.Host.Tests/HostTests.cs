@@ -55,6 +55,33 @@ public sealed class HostFailClosedTests
             if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
         }
     }
+
+    [Fact]
+    public void IncompleteLaunchContextFailsBeforeRunDirectoryCreation()
+    {
+        var root = TempRoot();
+        try
+        {
+            var ex = Assert.Throws<InvalidOperationException>(() => HostRunner.RunOnce(root,
+                new HostRunner.HostOptions
+                {
+                    Live = new LivePerception.LiveAssets("no-device", "wifi-settings", "provider", "python"),
+                    ConsultAgent = _ => null,
+                    Launch = new HostRunner.LaunchContext(
+                        RunId: "run-1",
+                        ProductSessionId: "product-1",
+                        LaunchId: "",
+                        IdempotencyKey: "idem-1",
+                        CorrelationId: "corr-1"),
+                }));
+            Assert.StartsWith("launch-context-incomplete:", ex.Message);
+            Assert.False(Directory.Exists(root));
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
 }
 
 /// <summary>

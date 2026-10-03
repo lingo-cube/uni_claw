@@ -82,10 +82,6 @@ public sealed class HostRunner
             throw new InvalidOperationException(
                 "Product Host 无内置仿真咨询（SIM-002 G1）：须显式注入 ConsultAgent；"
                 + "确定性单步咨询 double 随 dev 档住在 Simulation Host（测试侧）");
-        Directory.CreateDirectory(runRoot);
-        var runDir = Path.Combine(runRoot, $"run-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}");
-        Directory.CreateDirectory(runDir);
-        var journalPath = Path.Combine(runDir, "exec.journal");
         if (options.Launch is { } launch)
         {
             if (string.IsNullOrWhiteSpace(launch.RunId)
@@ -95,6 +91,10 @@ public sealed class HostRunner
                 || string.IsNullOrWhiteSpace(launch.CorrelationId))
                 throw new InvalidOperationException("launch-context-incomplete: RunId, ProductSessionId, LaunchId, IdempotencyKey and CorrelationId are required");
         }
+        Directory.CreateDirectory(runRoot);
+        var runDir = Path.Combine(runRoot, $"run-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}");
+        Directory.CreateDirectory(runDir);
+        var journalPath = Path.Combine(runDir, "exec.journal");
 
         // ---- 组合根：全部经抽象缝（利用抽象能力构建完整流程）----------
         var clock = new HostUtilities.VirtualClock();
