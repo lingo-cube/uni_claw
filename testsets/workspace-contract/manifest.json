@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "testset-manifest.v1",
+  "projectRef": "project/uni-claw-workspace",
+  "testSetRef": "testset/workspace-contract",
+  "version": "default",
+  "sourceRevision": "repo-default",
+  "displayName": "Workspace contract",
+  "tasks": [
+    {
+      "taskRef": "task/workspace-contract/request-decision-result",
+      "displayName": "Request, decision, and result timeline",
+      "fixtureRefs": [
+        "fixture/workspace-contract/session-with-traces"
+      ],
+      "acceptanceRefs": [
+        "acceptance/workspace-contract/cross-source-detail"
+      ]
+    }
+  ],
+  "fixtures": [
+    {
+      "fixtureRef": "fixture/workspace-contract/session-with-traces",
+      "kind": "workspace-session",
+      "description": "Session projection with DSH trace, UniClaw trace, evidence, metadata, and result references"
+    }
+  ]
+}

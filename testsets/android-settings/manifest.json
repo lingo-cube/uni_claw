@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "testset-manifest.v1",
+  "projectRef": "project/android-settings",
+  "testSetRef": "testset/android-settings",
+  "version": "default",
+  "sourceRevision": "repo-default",
+  "displayName": "Android Settings",
+  "tasks": [
+    {
+      "taskRef": "task/android-settings/wifi-state",
+      "displayName": "Wi-Fi navigation and state confirmation",
+      "fixtureRefs": [
+        "fixture/android-settings/wifi-enabled"
+      ],
+      "acceptanceRefs": [
+        "acceptance/android-settings/wifi-enabled-no-toggle"
+      ]
+    }
+  ],
+  "fixtures": [
+    {
+      "fixtureRef": "fixture/android-settings/wifi-enabled",
+      "kind": "device-state",
+      "description": "Android Settings fixture with Wi-Fi already enabled"
+    }
+  ]
+}
