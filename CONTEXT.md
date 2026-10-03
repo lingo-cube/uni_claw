@@ -710,8 +710,11 @@ _Avoid_: app version、UI version、directory mtime、runId
 **Run-Session Binding**: UniClaw Runtime 产生 canonical `runId`，并将一次 Primary Run 与对应 Product Session 及其 primary Host Session 建立显式关联；Host Session 不是 Run identity，目录名和 artifact 文件名也不能推导或替代 `runId`。
 _Avoid_: session-as-run、directory-as-run、traceId-as-run
 
-**Task Launch Seam**: 发起任务的显式接口；它协调 Task/Test Set 资产引用、Runtime 产生的 Run/Product Session、Host Session 以及本地存储 namespace 的创建和绑定。它是写入运行关系的入口，查询接口只读取这些关系。
-_Avoid_: 页面直接创建目录、查询接口隐式创建运行、文件名驱动关联
+**Task Launch Seam**: 发起任务的显式接口；它先接收带元信息的 launch request，再分阶段协调 Task/Test Set 资产引用、Task Instance、Runtime 产生的 Run/Product Session、Host Session 以及本地存储 namespace 的创建和绑定。每个阶段都留下带来源和权威的可查询记录，查询接口只读取这些关系。
+_Avoid_: 页面直接创建目录、查询接口隐式创建运行、文件名驱动关联、一次性伪造完整元信息
+
+**Launch Metadata**: 任务发起和创建过程中的分阶段元信息集合；每个字段都要标明来源类别：`configured`（测试集、manifest、Host 或 launch config 提供）、`generated`（authority 在创建过程中生成的 ID、时间和绑定）、`observed`（设备、Runtime、Host 实际观察）、`derived`（由已有关联记录计算出的展示值）。这些类别不能互相冒充，且都要带 source、authority、availability；需要时间语义时再带 observedAt。
+_Avoid_: 一次性 metadata blob、配置冒充实测、派生值冒充原始事实、空值即完成、模型输出元信息
 
 ### Simulation Substrate（RFS-001 落定）
 
