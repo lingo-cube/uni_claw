@@ -28,6 +28,16 @@ namespace UniClaw.Host;
 /// </summary>
 public sealed class HostRunner
 {
+    /// <summary>Host-neutral launch identity supplied by the owning Runtime.
+    /// HostRunner carries and verifies this context; it does not mint or infer
+    /// Product identity from a DSH session or a filesystem path.</summary>
+    public sealed record LaunchContext(
+        string RunId,
+        string ProductSessionId,
+        string LaunchId,
+        string IdempotencyKey,
+        string CorrelationId);
+
     public sealed record HostOptions(
         string? DeviceId = null,
         // CSC-001 Slice B：viewport 魔数默认（1080×2400）已删除——
@@ -40,7 +50,8 @@ public sealed class HostRunner
         string TargetSemanticDescriptor = "Wi-Fi",
         LivePerception.LiveAssets? Live = null,
         Func<AgentDecisionContext, AgentDecision?>? ConsultAgent = null,
-        bool SettingsTraversal = false);
+        bool SettingsTraversal = false,
+        LaunchContext? Launch = null);
 
     public sealed record HostRunResult(
         string RunDir,
@@ -50,7 +61,12 @@ public sealed class HostRunner
         int DeliveredEffects,
         IReadOnlyList<string> ReceiptOutcomes,
         string FactsDigest,
-        long JournalBytes);
+        long JournalBytes,
+        string? RunId = null,
+        string? ProductSessionId = null,
+        string? LaunchId = null,
+        string? IdempotencyKey = null,
+        string? CorrelationId = null);
 
     public static HostRunResult RunOnce(string runRoot, HostOptions? options = null)
     {
@@ -70,6 +86,15 @@ public sealed class HostRunner
         var runDir = Path.Combine(runRoot, $"run-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}");
         Directory.CreateDirectory(runDir);
         var journalPath = Path.Combine(runDir, "exec.journal");
+        if (options.Launch is { } launch)
+        {
+            if (string.IsNullOrWhiteSpace(launch.RunId)
+                || string.IsNullOrWhiteSpace(launch.ProductSessionId)
+                || string.IsNullOrWhiteSpace(launch.LaunchId)
+                || string.IsNullOrWhiteSpace(launch.IdempotencyKey)
+                || string.IsNullOrWhiteSpace(launch.CorrelationId))
+                throw new InvalidOperationException("launch-context-incomplete: RunId, ProductSessionId, LaunchId, IdempotencyKey and CorrelationId are required");
+        }
 
         // ---- 组合根：全部经抽象缝（利用抽象能力构建完整流程）----------
         var clock = new HostUtilities.VirtualClock();
@@ -119,7 +144,7 @@ public sealed class HostRunner
             var effectBoundary = new EffectBoundary(delivery, new FileExecutionJournal(journalPath));
             var metrics = new RuntimeStageMetrics();
             var planPolicy = new AgentPlanPolicy();
-            var traceScope = RunTraceFactory.BeginRun(new RunCorrelation("host:v0-flip-switch"));
+            var traceScope = RunTraceFactory.BeginRun(new RunCorrelation(options.Launch?.RunId ?? "host:v0-flip-switch"));
             var ledger = new EvidenceLedger();
             var kernel = new UniKernel(
                 ledger, world, traceScope.Trace,
@@ -158,6 +183,8 @@ public sealed class HostRunner
                 }));
             if (!admission.Accepted)
                 throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");
+            if (options.Launch is { } supplied && !string.Equals(kernel.RunId, supplied.RunId, StringComparison.Ordinal))
+                throw new InvalidOperationException($"launch-run-mismatch: supplied Runtime RunId '{supplied.RunId}' does not match Kernel canonical RunId '{kernel.RunId}'");
 
             driver.Activate();
             RunDriveResult drive = default!;
@@ -200,7 +227,12 @@ public sealed class HostRunner
 
             return new HostRunResult(
                 runDir, drive.Status, drive.Reason, facts.outcome, facts.delivered,
-                receipts, digest, facts.journalBytes);
+                receipts, digest, facts.journalBytes,
+                kernel.RunId,
+                options.Launch?.ProductSessionId,
+                options.Launch?.LaunchId,
+                options.Launch?.IdempotencyKey,
+                options.Launch?.CorrelationId);
         }
         finally
         {
