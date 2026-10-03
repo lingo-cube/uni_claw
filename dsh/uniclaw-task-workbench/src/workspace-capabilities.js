@@ -171,12 +171,23 @@ const SessionQuery = {
       const session = await SessionQuery.getSession(request)
       if (!session.ok) return relabel(session, 'TraceQuery')
       const data = session.data
-      const traces = [
-        ...(data.dshTrace ?? []).map(item => ({ ...item, source: 'dsh' })),
-        ...(data.uniflowTrace ?? []).map(item => ({ ...item, source: 'uniflow' })),
-        ...(data.uniclawTrace ?? []).map(item => ({ ...item, source: 'uniclaw' })),
+      const sourceTraces = [
+        { source: 'dsh', authority: 'dsh-host', schemaVersion: null, items: data.dshTrace ?? [] },
+        { source: 'uniflow', authority: 'uniclaw-harness', schemaVersion: null, items: data.uniflowTrace ?? [] },
+        { source: 'uniclaw', authority: 'uniclaw-runtime', schemaVersion: null, items: data.uniclawTrace ?? [] },
       ]
-      return { ...session, capability: 'TraceQuery', data: { traces, errors: [] } }
+      const traces = sourceTraces.flatMap(({ source, items }) => items.map(item => ({ ...item, source })))
+      const traceContext = {
+        productSessionId: data.productSessionId ?? request.productSessionId ?? null,
+        hostSessionRef: data.hostSessionRef ?? null,
+        runId: data.runId ?? null,
+        correlationId: request.correlationId ?? request.requestId ?? null,
+        observedAt: session.observedAt ?? new Date().toISOString(),
+        sources: sourceTraces.map(({ source, authority, schemaVersion, items }) => ({
+          source, authority, schemaVersion, count: items.length, truncated: false, cursor: null,
+        })),
+      }
+      return { ...session, capability: 'TraceQuery', data: { traces, traceContext, errors: [] } }
     },
   }
 
