@@ -47,7 +47,7 @@
   "dependencies": [
     "WI-PNL004-003"
   ],
-  "status": "pending",
+  "status": "done",
   "required_skills": [
     "codebase-design",
     "tdd"

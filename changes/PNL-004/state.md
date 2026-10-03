@@ -51,7 +51,7 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 - Completed WorkItem：`workitems/WI-PNL004-001.json`（Contract）
 - Completed WorkItem：`workitems/WI-PNL004-002.json`（Repository Test Catalog）
 - Completed WorkItem：`workitems/WI-PNL004-003.json`（Task Launch + Local Storage）
-- Pending WorkItem：`workitems/WI-PNL004-004.json`（Query Projection + UI metadata）
+- Completed WorkItem：`workitems/WI-PNL004-004.json`（Query Projection + UI metadata）
 - Pending WorkItem：`workitems/WI-PNL004-005.json`（Integration / real verification）
 
 ## Status log
@@ -60,6 +60,7 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 - 2026-10-03 · PLAN → IMPLEMENT → REVIEW → VERIFY（S1）· 完成 Launch request/ack、LaunchStageRecord、LocalStorageNamespace schema、正反例和 validator；S2–S5 仍待执行。
 - 2026-10-03 · PLAN → IMPLEMENT → REVIEW → VERIFY（S2）· 完成两个本地测试集 manifest 与 fail-closed validator；S3–S5 仍待执行。
 - 2026-10-04 · PLAN → IMPLEMENT → REVIEW → VERIFY（S3）· 完成 canonical Task Launch、Runtime-owned run、幂等复用和 partial recovery；S4–S5 仍待执行。
+- 2026-10-04 · PLAN → IMPLEMENT → REVIEW → VERIFY（S4）· 完成五类 Query 与共享 metadata provenance 投影；S5 仍待执行。
 
 ## Evidence targets
 
