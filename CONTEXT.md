@@ -673,9 +673,10 @@ Product Session 的对话、Trace、Evidence 和 Metadata 投影，允许按来�
 _Avoid_: control plane、Product Runtime、DSH workspace（Host 承载称呼）
 
 **Workspace Query Core**: Workspace 的 Host-neutral 查询、关联、规范化和读模型
-投影核心；它不拥有来源数据、权限真相或 Product Runtime Authority。独立 Web、DSH
-和其他 Host 通过各自 Adapter 提供来源、权限、传输和挂载能力。
-_Avoid_: DSH service、万能数据服务、Product Runtime query owner
+投影核心；它只消费 `projectRef`、`testSetRef`、`taskRef`、`fixtureRef` 等逻辑引用，
+不直接依赖目录、文件或 Host API。它不拥有来源数据、权限真相或 Product Runtime
+Authority；独立 Web、DSH 和其他 Host 通过各自 Adapter 提供来源、权限、传输和挂载能力。
+_Avoid_: DSH service、万能数据服务、Product Runtime query owner、直接读文件
 
 **Workspace Snapshot**: 一次 Workspace 查询涉及的各来源结果、版本或读取时间的
 可识别组合；来源不支持历史读取时只能表达读取时间和一致性范围，不能宣称跨来源原子
@@ -700,8 +701,11 @@ _Avoid_: workspace（产品语义层）、repo、directory
 **Test Set**: 具有 identity 和 revision 的任务定义与 fixture 集合；Task Instance 必须能够指向实际采用的 Test Set revision。Host/Task Catalog 是长期 owner；Host 尚未提供持久化能力时，仓库专用目录可以作为临时声明式来源，但不等于 Worktree、Workspace 存储或 Product Runtime truth。
 _Avoid_: taskSet 字符串、项目别名、worktree、运行时缓存
 
-**Repository Test Catalog**: 在 Host Project/Test Set 持久化能力落地前，代码库内用于维护 Project、Test Set、Task definition 与 fixture 版本的临时声明式目录；它可以被 Workspace adapter 读取，但不取得 Product Session、Primary Run 或执行结果的 authority。
+**Repository Test Catalog**: 在 Host Project/Test Set 持久化能力落地前，代码库内用于维护 Project、Test Set、Task definition 与 fixture 关系的临时声明式来源；当前统一使用 `default` 版本，并可附带由目录内容产生的 `sourceRevision`。它可以被 Workspace adapter 读取，但不取得 Product Session、Primary Run 或执行结果的 authority；目录结构是实现细节，不是公共契约。
 _Avoid_: Workspace database、Host session store、second source of truth
+
+**Catalog Revision**: 测试集内容、任务定义、fixture 关系或验收条件的一组可定位版本；它跟随测试目录内容变化，不跟随前端样式、查询实现或整个应用版本变化。当前本地来源使用用户可读的 `default`，历史可重现性由 source revision 或 Host 版本补充。
+_Avoid_: app version、UI version、directory mtime、runId
 
 **Run-Session Binding**: UniClaw Runtime 产生 canonical `runId`，并将一次 Primary Run 与对应 Product Session 及其 primary Host Session 建立显式关联；Host Session 不是 Run identity，目录名和 artifact 文件名也不能推导或替代 `runId`。
 _Avoid_: session-as-run、directory-as-run、traceId-as-run

@@ -8,7 +8,7 @@
 
 ## Grill resolution（2026-10-03）
 
-本轮 Human Decision 已明确：Project/Test Set 的长期 owner 是 Host/Task Catalog；当前 Host 尚未提供持久化能力时，先在代码库专用目录维护声明式测试目录与 fixture revision。该目录不是 Worktree，也不是 Workspace 运行时存储。Workspace 只通过 adapter 读取并投影，不能自行创建 canonical Project/Test Set、归档来源或推导 Product Session / Primary Run。`runId` 由 UniClaw Runtime 产生，并与对应 Session 显式绑定；Metadata 分开表达实际观测与配置声明。
+本轮 Human Decision 已明确：Project/Test Set 的长期 owner 是 Host/Task Catalog；当前 Host 尚未提供持久化能力时，先在代码库专用目录维护声明式测试目录与 fixture 关系，当前使用默认版本 `default`，必要时附带由目录内容产生的 `sourceRevision`。该目录不是 Worktree，也不是 Workspace 运行时存储。Workspace 只通过查询 adapter 读取逻辑引用并投影，不能自行创建 canonical Project/Test Set、归档来源或推导 Product Session / Primary Run。`runId` 由 UniClaw Runtime 产生，并与对应 Session 显式绑定；Metadata 分开表达实际观测与配置声明。
 
 当前最明显的断点有四个：
 
