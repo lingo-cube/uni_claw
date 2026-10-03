@@ -701,7 +701,7 @@ _Avoid_: workspace（产品语义层）、repo、directory
 **Test Set**: 具有 identity 和 revision 的任务定义与 fixture 集合；Task Instance 必须能够指向实际采用的 Test Set revision。Host/Task Catalog 是长期 owner；Host 尚未提供持久化能力时，仓库专用目录可以作为临时声明式来源，但不等于 Worktree、Workspace 存储或 Product Runtime truth。
 _Avoid_: taskSet 字符串、项目别名、worktree、运行时缓存
 
-**Repository Test Catalog**: 在 Host Project/Test Set 持久化能力落地前，代码库内用于维护 Project、Test Set、Task definition 与 fixture 关系的临时声明式来源；当前统一使用 `default` 版本，并可附带由目录内容产生的 `sourceRevision`。它可以被 Workspace adapter 读取，但不取得 Product Session、Primary Run 或执行结果的 authority；目录结构是实现细节，不是公共契约。
+**Repository Test Catalog**: 在 Host Project/Test Set 持久化能力落地前，代码库内用于提供 Project、Test Set、Task definition 与 fixture 关系的临时声明式资产来源；当前统一使用 `default` 版本，并可附带由目录内容产生的 `sourceRevision`。它由发起任务接口引用，供查询接口读取，不取得 Product Session、Primary Run 或执行结果的 authority；目录结构是实现细节，不是公共契约。
 _Avoid_: Workspace database、Host session store、second source of truth
 
 **Catalog Revision**: 测试集内容、任务定义、fixture 关系或验收条件的一组可定位版本；它跟随测试目录内容变化，不跟随前端样式、查询实现或整个应用版本变化。当前本地来源使用用户可读的 `default`，历史可重现性由 source revision 或 Host 版本补充。
@@ -709,6 +709,9 @@ _Avoid_: app version、UI version、directory mtime、runId
 
 **Run-Session Binding**: UniClaw Runtime 产生 canonical `runId`，并将一次 Primary Run 与对应 Product Session 及其 primary Host Session 建立显式关联；Host Session 不是 Run identity，目录名和 artifact 文件名也不能推导或替代 `runId`。
 _Avoid_: session-as-run、directory-as-run、traceId-as-run
+
+**Task Launch Seam**: 发起任务的显式接口；它协调 Task/Test Set 资产引用、Runtime 产生的 Run/Product Session、Host Session 以及本地存储 namespace 的创建和绑定。它是写入运行关系的入口，查询接口只读取这些关系。
+_Avoid_: 页面直接创建目录、查询接口隐式创建运行、文件名驱动关联
 
 ### Simulation Substrate（RFS-001 落定）
 

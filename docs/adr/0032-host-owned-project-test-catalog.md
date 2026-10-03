@@ -8,3 +8,9 @@
 - Workspace 不新增 Project/Test Set 写入、归档、缓存或保留 API；Host 能力就绪后通过版本化 adapter 迁移来源。
 - 仅由 Host/Task Catalog 或 Product Runtime 确认的 Task Instance、Product Session、Primary Run 才能成为产品身份；目录或 artifact 只能形成未关联观察。
 - `runId` 由 UniClaw Runtime 产生，并与对应 Session 显式绑定；DSH Session、traceId、目录名和文件名都不能替代它。
+## 当前落地方式
+
+- 测试集和 fixture 作为代码库里的可引用资产，当前使用 `default` 版本；不先做完整的测试集管理 UI。
+- 发起任务接口负责创建或绑定本次运行所需的关系和本地存储 namespace，并记录 Project/Test Set/Task 的逻辑引用。
+- 查询接口只根据这些关系读取 Session、Trace、Evidence 和 Metadata；本地文件系统只是第一种 storage adapter，未来可以替换为 Host/远程实现。
+- 测试集资产是输入和查询引用来源，不是 Runtime Outcome 或完成证据。

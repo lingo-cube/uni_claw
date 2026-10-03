@@ -8,7 +8,7 @@
 
 ## Grill resolution（2026-10-03）
 
-本轮 Human Decision 已明确：Project/Test Set 的长期 owner 是 Host/Task Catalog；当前 Host 尚未提供持久化能力时，先在代码库专用目录维护声明式测试目录与 fixture 关系，当前使用默认版本 `default`，必要时附带由目录内容产生的 `sourceRevision`。该目录不是 Worktree，也不是 Workspace 运行时存储。Workspace 只通过查询 adapter 读取逻辑引用并投影，不能自行创建 canonical Project/Test Set、归档来源或推导 Product Session / Primary Run。`runId` 由 UniClaw Runtime 产生，并与对应 Session 显式绑定；Metadata 分开表达实际观测与配置声明。
+本轮 Human Decision 已明确：Project/Test Set 的长期 owner 是 Host/Task Catalog；当前 Host 尚未提供持久化能力时，先在代码库专用目录维护声明式测试目录与 fixture 关系，当前使用默认版本 `default`，必要时附带由目录内容产生的 `sourceRevision`。测试集是可引用资产，不先建设完整管理 UI。发起任务接口负责创建或绑定本次运行的关系和本地存储 namespace；Workspace 查询 adapter 只读取这些逻辑引用并投影，不能自行从目录或 artifact 推导 Product Session / Primary Run。`runId` 由 UniClaw Runtime 产生，并与对应 Session 显式绑定；Metadata 分开表达实际观测与配置声明。
 
 当前最明显的断点有四个：
 
@@ -96,8 +96,9 @@ ProjectRef(path/workspaceId)
 
 1. 增加版本化的 `ObservationEnvelope` read model，至少包含 `snapshotId/observedAt/schemaVersion/source/authority/productSessionId/taskInstanceId/dshSessionId/runId`、trace truncation/cursor；Trace Span/Event/Link 使用统一 typed fields，仍允许 source-specific attributes。
 2. 对真实 fixture、DSH mock session、无 artifact session 各生成字段级 comparison fixture，明确 `present / absent / not-applicable / unavailable`，不把空值默认为事实。
-3. 增加只读 Project/TestSet catalog projection：project identity、testSet identity/version、task definition membership、instance count、source/provenance；不新增写入 API，先从现有 task repository 和显式 artifact metadata 派生。
-4. Metadata 增加设备与运行时字段的 typed groups，同时保留旧扁平字段兼容投影；所有新增字段必须带 authority/source 或明确 owner。
+3. 定义 Task Launch Seam：任务发起时写入 Project/Test Set/Task 逻辑引用、Runtime Run/Product Session、Host Session 和本地 storage namespace；不在查询接口里隐式创建关系。
+4. 以本地 filesystem storage adapter 实现 Project/Test Set/Task/Session/Trace/Evidence 的查询；测试集目录只提供资产和引用，不成为执行结果 authority。
+5. Metadata 增加设备与运行时字段的 typed groups，同时保留旧扁平字段兼容投影；所有新增字段必须带 authority/source 或明确 owner。
 
 验收标准：
 
