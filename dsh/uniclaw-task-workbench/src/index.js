@@ -203,60 +203,111 @@ const launchTask = async (ctx, repository, request) => {
   const existing = repository.findInstanceByIdempotencyKey(request.idempotencyKey)
   if (existing !== null && existing.instance.status !== 'partial') return { ok: true, idempotent: true, instance: existing.instance, ack: toLaunchAck(existing.instance) }
 
+  const launchId = existing?.instance?.launchId ?? newLaunchId()
+  const instanceId = existing?.instance?.instanceId ?? newInstanceId()
+  // Resolve the exact catalog task before any external side effect. A logical
+  // project reference is metadata; it is never sent to Host path APIs.
+  const taskRef = launchRefId(request.taskRef)
+  const taskRecord = request.taskId
+    ? repository.get(request.taskId)
+    : repository.get(taskRef)
+  if (taskRecord !== null) {
+    const storedProject = taskRecord.projectRef?.id ?? taskRecord.projectRef?.path ?? null
+    if (storedProject !== null && storedProject !== launchRefId(request.projectRef)) {
+      return { ok: false, status: 409, code: 'task-project-mismatch', message: 'task reference belongs to a different logical project' }
+    }
+  }
+  let taskId = taskRecord?.taskId
+  if (!taskId) {
+    try {
+      taskId = repository.create({ taskId: taskRef, title: request.taskRef.label ?? taskRef, requirement: request.taskRef.label ?? taskRef, projectRef: { id: launchRefId(request.projectRef) }, status: 'active' }).taskId
+    } catch (error) {
+      return { ok: false, status: 500, code: 'task-create-failed', message: String(error?.message ?? error) }
+    }
+  }
+  let stored = existing?.instance ?? null
+  if (!stored) {
+    try {
+      stored = repository.addInstance(taskId, {
+        instanceId, launchId, idempotencyKey: request.idempotencyKey,
+        projectRef: launchRefId(request.projectRef), testSetRef: launchRefId(request.testSetRef), testSetVersion: request.testSetRef.version, taskRef,
+        correlationId: request.correlationId, launchRequestId: request.launchRequestId,
+        metadata: request.metadata ?? {}, metadataClaims: Array.isArray(request.metadata) ? request.metadata : [],
+        launchStages: [launchStage({ stage: 'requested', source: 'task-launch', authority: 'task-launch', valueOrigin: 'configured' })],
+        status: 'partial', startedAt: nowIso(), runtimeStatus: 'pending',
+      })
+    } catch (error) {
+      return { ok: false, status: 500, code: 'instance-store-failed', message: 'launch instance could not be persisted before Runtime call' }
+    }
+  }
+
   const runtime = ctx.get('uniclawRuntime')
-  if (runtime === undefined || runtime === null || typeof runtime.createRun !== 'function') {
+  const canRecoverUnknown = existing?.instance?.runtimeStatus === 'unknown'
+    && (typeof runtime?.recoverRun === 'function' || typeof runtime?.getRunByLaunchId === 'function')
+  if (runtime === undefined || runtime === null
+    || (typeof runtime.createRun !== 'function' && !canRecoverUnknown)) {
     return { ok: false, status: 500, code: 'runtime-unavailable', message: 'UniClaw Runtime run seam is unavailable' }
   }
   let run
   if (existing?.instance?.runId) run = { runId: existing.instance.runId, productSessionId: existing.instance.productSessionId }
+  if (!run && existing?.instance?.runtimeStatus === 'unknown') {
+    const recover = typeof runtime.recoverRun === 'function' ? runtime.recoverRun
+      : (typeof runtime.getRunByLaunchId === 'function' ? runtime.getRunByLaunchId : null)
+    if (recover === null) return { ok: false, status: 409, code: 'run-outcome-unknown', message: 'Runtime run outcome is unknown; recovery seam is unavailable', partial: existing.instance }
+    try {
+      run = await recover({ launchId, idempotencyKey: request.idempotencyKey })
+    } catch (error) {
+      return { ok: false, status: 409, code: 'run-outcome-unknown', message: String(error?.message ?? error), partial: existing.instance }
+    }
+  }
   try {
-    if (!run) run = await runtime.createRun({ projectRef: request.projectRef, testSetRef: request.testSetRef, taskRef: request.taskRef, correlationId: request.correlationId })
+    if (!run) run = await runtime.createRun({ projectRef: request.projectRef, testSetRef: request.testSetRef, taskRef: request.taskRef, correlationId: request.correlationId, idempotencyKey: request.idempotencyKey, launchId })
   } catch (error) {
+    try { repository.updateInstance(taskId, instanceId, { runtimeStatus: 'unknown', recovery: { code: 'run-create-unknown', message: String(error?.message ?? error) } }) } catch { /* preserve original error */ }
     return { ok: false, status: 500, code: 'run-create-failed', message: String(error?.message ?? error) }
   }
   const runId = typeof run?.runId === 'string' ? run.runId : ''
-  if (runId.length === 0) return { ok: false, status: 500, code: 'run-create-failed', message: 'Runtime did not return runId' }
+  if (runId.length === 0) {
+    try { repository.updateInstance(taskId, instanceId, { runtimeStatus: 'unknown', recovery: { code: 'run-create-unknown', message: 'Runtime did not return runId' } }) } catch { /* preserve original failure */ }
+    return { ok: false, status: 409, code: 'run-outcome-unknown', message: 'Runtime did not return runId; launch is retained for recovery', partial: repository.get(taskId)?.instances?.find(item => item.instanceId === instanceId) }
+  }
+  const productSessionId = typeof run.productSessionId === 'string' ? run.productSessionId : null
 
-  const launchId = existing?.instance?.launchId ?? newLaunchId()
-  const instanceId = existing?.instance?.instanceId ?? newInstanceId()
   const base = {
     instanceId, launchId, idempotencyKey: request.idempotencyKey,
     projectRef: launchRefId(request.projectRef), testSetRef: launchRefId(request.testSetRef), testSetVersion: request.testSetRef.version, taskRef: launchRefId(request.taskRef),
     correlationId: request.correlationId, launchRequestId: request.launchRequestId, runId,
+    ...(productSessionId === null ? {} : { productSessionId }),
     runIdMetadata: { value: runId, valueOrigin: 'generated', availability: 'present', source: 'uniclaw-runtime', authority: 'uniclaw-runtime' },
     metadata: request.metadata ?? {},
     metadataClaims: Array.isArray(request.metadata) ? request.metadata : [],
     launchStages: [launchStage({ stage: 'requested', source: 'task-launch', authority: 'task-launch', valueOrigin: 'configured' })],
     status: 'partial', startedAt: new Date().toISOString(),
   }
-  const taskRecord = request.taskId ? repository.get(request.taskId) : repository.list().find(task => task.projectRef?.path === launchRefId(request.projectRef))
-  let taskId = taskRecord?.taskId
-  if (!taskId) {
-    try {
-      taskId = repository.create({ taskId: launchRefId(request.taskRef), title: request.taskRef.label ?? launchRefId(request.taskRef), requirement: request.taskRef.label ?? launchRefId(request.taskRef), projectRef: { path: launchRefId(request.projectRef) }, status: 'active' }).taskId
-    } catch (error) {
-      return { ok: false, status: 500, code: 'task-create-failed', message: String(error?.message ?? error) }
-    }
-  }
-  let stored = existing?.instance ?? null
   try {
-    if (!stored) stored = repository.addInstance(taskId, base)
+    stored = repository.updateInstance(taskId, instanceId, { ...base, runtimeStatus: 'succeeded' })
   } catch {
-    // A runtime run exists, but no product instance was persisted. Surface the
-    // recovery identity without pretending the launch completed.
-    return { ok: false, status: 500, code: 'instance-store-failed', message: `run ${runId} created but task instance persistence failed`, partial: { launchId, runId, status: 'partial' } }
+    return { ok: false, status: 500, code: 'instance-store-failed', message: `run ${runId} created but task instance update failed`, partial: { launchId, runId, status: 'partial' } }
   }
 
+  if (productSessionId === null) {
+    stored = repository.updateInstance(taskId, instanceId, {
+      ...base, runtimeStatus: 'succeeded', status: 'partial',
+      launchStages: [...(stored?.launchStages ?? base.launchStages), launchStage({ stage: 'failed', status: 'partial', source: 'uniclaw-runtime', authority: 'uniclaw-runtime', valueOrigin: 'observed', availability: 'not-associated', taskInstanceId: instanceId, runId, diagnostic: { code: 'product-session-unavailable', message: 'Runtime did not return productSessionId' } })],
+    })
+    return { ok: false, status: 409, code: 'product-session-unavailable', message: 'Runtime did not return productSessionId', partial: stored }
+  }
   const controller = ctx.get('sessionController')
   const registry = ctx.get('workspaceRegistry')
   try {
-    if (typeof registry?.resolveByPath !== 'function' || typeof registry?.create !== 'function') throw new Error('workspace registry unavailable')
-    const workspace = await registry.resolveByPath(launchRefId(request.projectRef))
-    const workspaceId = workspace?.id ?? (await registry.create(launchRefId(request.projectRef))).id
-    const created = await controller.create({ agentPreset: AGENT_PRESET_ID, workspaceId })
+    if (!registry) throw new Error('workspace registry unavailable')
+    if (typeof registry.resolveProjectToWorkspace !== 'function') throw new Error('logical project resolver unavailable')
+    const workspace = await registry.resolveProjectToWorkspace(launchRefId(request.projectRef))
+    const workspaceId = workspace?.id
+    if (typeof workspaceId !== 'string' || workspaceId.length === 0) throw new Error('logical project resolver returned no workspace')
+    const created = await controller.create({ agentPreset: AGENT_PRESET_ID, workspaceId, launchId, idempotencyKey: request.idempotencyKey })
     const sessionId = typeof created === 'string' ? created : (created?.sessionId ?? created?.id)
     if (typeof sessionId !== 'string' || sessionId.length === 0) throw new Error('Host did not return session identity')
-    const productSessionId = typeof run.productSessionId === 'string' ? run.productSessionId : null
     const namespace = stored.storageNamespace ?? { schemaVersion: 'uniclaw.workspace.local-storage-namespace.v1', contractVersion: 'uniclaw.workspace.contract.v1', namespaceRef: { id: `task-instance-${instanceId}`, storageKind: 'local-filesystem', adapter: 'task-repository' }, taskInstanceId: instanceId, runId, status: 'ready', createdAt: nowIso(), revision: '1' }
     stored = repository.updateInstance(taskId, instanceId, {
       sessionId, productSessionId, hostSessionRef: sessionId,

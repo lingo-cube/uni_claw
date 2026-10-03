@@ -88,15 +88,16 @@ export function createTaskRepository(filePath, now = () => new Date().toISOStrin
       if (task === null) throw new Error(`unknown taskId: ${taskId}`)
       if (!Array.isArray(task.instances)) task.instances = []
       task.instances.push(instance)
-      persist()
+      try { persist() } catch (error) { task.instances.pop(); throw error }
       return JSON.parse(JSON.stringify(instance))
     },
     updateInstance(taskId, instanceId, patch) {
       const task = findTask(taskId)
       const instance = task?.instances?.find(i => i.instanceId === instanceId)
       if (instance === undefined) throw new Error(`unknown instance: ${instanceId}`)
+      const before = JSON.parse(JSON.stringify(instance))
       Object.assign(instance, patch)
-      persist()
+      try { persist() } catch (error) { Object.keys(instance).forEach(key => delete instance[key]); Object.assign(instance, before); throw error }
       return JSON.parse(JSON.stringify(instance))
     },
     findInstanceByIdempotencyKey(idempotencyKey) {
