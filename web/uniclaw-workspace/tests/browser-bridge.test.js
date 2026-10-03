@@ -102,3 +102,15 @@ test('exposes TaskCommand launch through the host-neutral browser bridge', async
   assert.deepEqual(received[3], request.projectRef);
   assert.deepEqual(received[5], request.taskRef);
 });
+
+test('preserves partial Host launch state at the shared browser seam', async () => {
+  const caps = createCapabilities({
+    workspace: () => ({ ok: true, data: { projects: [] } }),
+    session: () => ({ ok: true, data: { conversation: [], dshTrace: [], uniclawTrace: [], uniflowTrace: [], evidence: [] } }),
+    artifact: () => ({ ok: true, data: { text: 'detail' } }),
+    launch: () => ({ success: false, error: { code: 'launch-partial', message: 'Host session pending', partial: { status: 'partial', launchId: 'launch-1' } } })
+  });
+  const result = await caps.TaskCommand.launchTask({});
+  assert.equal(result.ok, false);
+  assert.deepEqual(result.error.partial, { status: 'partial', launchId: 'launch-1' });
+});

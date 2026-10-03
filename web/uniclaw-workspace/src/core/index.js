@@ -132,7 +132,10 @@ class WorkspaceQueryCore {
     if (!capability || typeof capability.launchTask !== 'function') return { status: 'error', errors: [queryError('unavailable', '当前 Host 未提供任务发起能力', 'TaskCommand')] };
     let result;
     try { result = await capability.launchTask(request); } catch (error) { return { status: 'error', errors: [queryError('unavailable', error instanceof Error ? error.message : '任务发起失败', 'TaskCommand')] }; }
-    if (!result || result.ok === false) return { status: 'error', errors: [result?.error || queryError('unavailable', '任务发起返回无效结果', 'TaskCommand')] };
+    if (!result || result.ok === false) {
+      const error = result?.error || queryError('unavailable', '任务发起返回无效结果', 'TaskCommand');
+      return { status: error.partial !== undefined ? 'partial' : 'error', data: error.partial || null, errors: [error], ...this.#envelope(result || {}) };
+    }
     return { status: 'ready', data: result.data || {}, errors: [], ...this.#envelope(result) };
   }
 

@@ -126,6 +126,19 @@ test('launch action reports loading then refreshes the selected task', async () 
   assert.equal(c.getState().launch.status, 'ready');
 });
 
+test('launch action keeps partial Host recovery visible without refreshing as success', async () => {
+  let refreshed = 0;
+  const c = createWorkspaceController({ queryCore: {
+    listProjects: async () => ({ status: 'ready', items: [], errors: [], revision: 1 }),
+    listTaskInstances: async () => ({ status: 'ready', items: [], errors: [], revision: 1 }),
+    launchTask: async () => ({ status: 'partial', data: { status: 'partial' }, errors: [{ code: 'launch-partial', message: 'Host session pending' }], revision: 2 }),
+    refresh: async () => { refreshed += 1; return { status: 'ready', items: [], errors: [], revision: 3 }; }
+  } });
+  await c.launchTask({});
+  assert.equal(c.getState().launch.status, 'partial');
+  assert.equal(refreshed, 0);
+});
+
 test('pane selection is durable in renderer-neutral controller state', async () => {
   const c = controller();
   c.selectPane('evidence');

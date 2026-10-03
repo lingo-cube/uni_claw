@@ -61,6 +61,7 @@ function envelope(value, capability) {
         message: value.error?.message || 'DSH panel request failed',
         retryable: false,
         source: capability,
+        ...(value.error?.partial !== undefined ? { partial: value.error.partial } : {}),
       },
       capability,
       source: 'dsh',
