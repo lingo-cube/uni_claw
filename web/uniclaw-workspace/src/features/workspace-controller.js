@@ -5,6 +5,7 @@ function createWorkspaceController({ queryCore } = {}) {
   const state = {
     projects: idlePage('projects'),
     selection: { projectId: null, productSessionId: null },
+    ui: { activePane: 'trace' },
     session: idleData('session'),
     timeline: idlePage('timeline'),
     traces: idlePage('traces'),
@@ -103,11 +104,17 @@ function createWorkspaceController({ queryCore } = {}) {
     }
     const token = (tokens.get('detail') || 0) + 1;
     tokens.set('detail', token);
+    state.ui.activePane = 'detail';
     state.detail = { status: 'loading', detail: null, errors: [] };
     publish();
     const result = await queryCore.resolveDetail(detailRef, { productSessionId });
     if (selected() !== productSessionId) return publish();
     return applyData('detail', result, token);
+  }
+  function selectPane(pane) {
+    const allowed = ['trace', 'evidence', 'detail'];
+    state.ui.activePane = allowed.includes(pane) ? pane : 'trace';
+    return publish();
   }
   async function refresh() {
     const productSessionId = selected();
@@ -123,7 +130,7 @@ function createWorkspaceController({ queryCore } = {}) {
   }
   return Object.freeze({
     loadProjects, selectProject, selectTaskInstance, loadSession, loadTimeline,
-    loadTraces, loadEvidence, resolveDetail, refresh, subscribe,
+    loadTraces, loadEvidence, resolveDetail, selectPane, refresh, subscribe,
     getState: () => clone(state)
   });
 

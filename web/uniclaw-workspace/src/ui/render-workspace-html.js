@@ -42,10 +42,24 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
       <div class="workspace-task-header__meta">${status(header.status)}<span class="workspace-correlation">${text(header.correlationStatus, 'unselected')}</span></div>
     </header>
     <section class="workspace-conversation" aria-labelledby="conversation-title"><h3 id="conversation-title">Uni-Agent 解决过程</h3>${renderTimeline(vm.conversationTimeline)}</section>
-    <section class="workspace-panes" aria-label="${text(options.panesLabel, '任务信息')}">
-      ${renderTracePane(vm.tracePane)}${renderEvidencePane(vm.evidencePane)}${renderMetadataPane(vm.metadataPane)}
+    <section class="workspace-inspector" aria-label="${text(options.panesLabel, '任务信息')}">
+      <div class="workspace-inspector__main">
+        <div class="workspace-pane-tabs" role="tablist" aria-label="任务信息标签页">
+          ${renderTabButton('trace', 'Trace', vm.activePane)}
+          ${renderTabButton('evidence', 'Evidence', vm.activePane)}
+          ${renderTabButton('detail', '详情', vm.activePane)}
+        </div>
+        <div class="workspace-tab-panels">
+          ${renderTabPanel('trace', vm.activePane, renderTracePane(vm.tracePane))}
+          ${renderTabPanel('evidence', vm.activePane, renderEvidencePane(vm.evidencePane))}
+          ${renderTabPanel('detail', vm.activePane, renderDetail(vm.detailActions))}
+        </div>
+      </div>
+      <aside class="workspace-side-rail" aria-label="任务概览">
+        ${renderMetadataPane(vm.metadataPane)}
+        ${renderExecutionPane(vm.executionPane)}
+      </aside>
     </section>
-    ${renderDetail(vm.detailActions)}
   </main>
 </div>`;
 }
@@ -80,13 +94,17 @@ function renderConversationStage(stage = {}) {
   const avatar = stage.role === 'agent' ? 'U' : stage.role === 'requester' ? 'R' : stage.role === 'tool' ? 'T' : '•';
   return `<article class="workspace-message workspace-message--${escapeHtml(stage.role || 'system')}${stage.isError ? ' is-error' : ''}" data-kind="${escapeHtml(stage.kind || '')}"><div class="workspace-message__avatar">${avatar}</div><div class="workspace-message__body"><div class="workspace-message__head"><strong>${text(stage.label, 'Uni-Agent')}</strong>${stage.decisionKind ? `<span class="workspace-chip">${text(stage.decisionKind)}</span>` : ''}${meta ? `<small>${text(meta)}</small>` : ''}</div>${body ? `<p>${text(body)}</p>` : ''}${steps}${stage.detailRef ? `<button type="button" class="workspace-detail-action workspace-detail-action--small" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(stage.detailRef.refId || stage.detailRef)}">查看明细</button>` : ''}</div></article>`;
 }
+function renderTabButton(id, label, active) { return `<button type="button" role="tab" class="workspace-pane-tab${active === id ? ' is-active' : ''}" aria-selected="${active === id ? 'true' : 'false'}" data-workspace-action="select-pane" data-pane-tab="${id}">${text(label)}</button>`; }
+function renderTabPanel(id, active, content) { return `<div class="workspace-tab-panel${active === id ? ' is-active' : ''}" role="tabpanel" data-pane-panel="${id}"${active === id ? '' : ' hidden'}>${content}</div>`; }
 function renderTracePane(pane = {}) {
-  return `<section class="workspace-pane workspace-pane--trace" data-pane="trace"><h3>Trace</h3>${Object.keys(pane.groups || {}).map((source) => `<div class="workspace-trace-group" data-source="${escapeHtml(source)}"><h4>${text(source)}</h4>${(pane.groups[source] || []).map((item) => `<article class="workspace-trace-card"><span>${text(item.id, 'trace')}</span>${item.detailAvailable && item.detailRef ? `<button type="button" class="workspace-detail-action" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(item.detailRef.refId || item.detailRef)}">查看明细</button>` : ''}</article>`).join('')}</div>`).join('')}</section>`;
+  const groups = Object.keys(pane.groups || {});
+  return `<section class="workspace-pane workspace-pane--trace" data-pane="trace"><div class="workspace-pane__heading"><h3>Trace</h3><span class="workspace-pane__count">${pane.groups ? groups.reduce((n, key) => n + pane.groups[key].length, 0) : 0}</span></div>${groups.length ? groups.map((source) => `<div class="workspace-trace-group" data-source="${escapeHtml(source)}"><h4>${text(source)}</h4>${(pane.groups[source] || []).map((item) => `<article class="workspace-trace-card"><div><strong>${text(item.summary, '未命名事件')}</strong><small>${text([item.type, item.ts, item.seq != null ? `#${item.seq}` : ''].filter(Boolean).join(' · '))}</small></div>${item.detailAvailable && item.detailRef ? `<button type="button" class="workspace-detail-action" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(item.detailRef.refId || item.detailRef)}">查看明细</button>` : ''}</article>`).join('')}</div>`).join('') : '<p class="workspace-empty">暂无可展示的 Trace 事件</p>'}</section>`;
 }
 function renderEvidencePane(pane = {}) {
   return `<section class="workspace-pane workspace-pane--evidence" data-pane="evidence"><h3>Evidence</h3>${(pane.items || []).map((item) => { const action = item.detailAction || {}; return `<article class="workspace-evidence-card" data-correlation-status="${escapeHtml(item.correlationStatus || '')}"><h4>${text(item.title, '未命名证据')}</h4><p>${text(item.source, '未知来源')}</p>${action.enabled && action.detailRef ? `<button type="button" class="workspace-detail-action" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(action.detailRef.refId || action.detailRef)}">查看明细</button>` : `<button type="button" class="workspace-detail-action" disabled aria-disabled="true">${text(action.reason, '详情不可用')}</button>`}${item.error ? `<p class="workspace-error">${text(item.error.message || item.error.code)}</p>` : ''}</article>`; }).join('')}</section>`;
 }
-function renderMetadataPane(pane = {}) { return `<section class="workspace-pane workspace-pane--metadata" data-pane="metadata"><h3>Metadata</h3><dl>${Object.keys(pane.items || {}).map((key) => `<div><dt>${text(key)}</dt><dd>${text(pane.items[key])}</dd></div>`).join('')}</dl></section>`; }
+function renderMetadataPane(pane = {}) { return `<section class="workspace-pane workspace-pane--metadata" data-pane="metadata"><div class="workspace-pane__heading"><h3>Metadata</h3><span class="workspace-status workspace-status--${escapeHtml(pane.status || 'unknown')}">${text(pane.status, 'unknown')}</span></div><dl>${Object.keys(pane.items || {}).map((key) => `<div><dt>${text(key)}</dt><dd>${text(pane.items[key])}</dd></div>`).join('')}</dl></section>`; }
+function renderExecutionPane(pane = {}) { return `<section class="workspace-pane workspace-pane--execution" data-pane="execution"><div class="workspace-pane__heading"><h3>执行结果</h3><span class="workspace-status workspace-status--${escapeHtml(pane.status || 'empty')}">${text(pane.status === 'ready' ? '已产生' : '待运行', pane.status || 'empty')}</span></div>${(pane.items || []).length ? (pane.items || []).map((item) => `<article class="workspace-execution-card"><div><strong>${text(item.label, '执行结果')}</strong><span class="workspace-chip">${text(item.status, 'unknown')}</span></div><p>${text(item.text, '暂无结果摘要')}</p>${item.evidenceRefs?.length ? `<small>${text(item.evidenceRefs.join(' · '))}</small>` : ''}</article>`).join('') : '<p class="workspace-empty workspace-empty--compact">当前 session 尚无 UniClaw runtime 执行产物</p>'}</section>`; }
 function renderDetail(detail = {}) { return `<aside class="workspace-detail-drawer" data-detail-status="${escapeHtml(detail.status || 'idle')}" aria-label="详情"><h3>详情</h3>${detail.current ? `<pre>${text(JSON.stringify(detail.current, null, 2))}</pre>` : `<p>${text(detail.status === 'loading' ? '正在加载详情' : '选择记录查看详情')}</p>`}</aside>`; }
 function renderNotices(notices = []) {
   if (!notices.length) return '';

@@ -44,7 +44,9 @@ function createWorkspaceViewModel(input, options = {}) {
     conversationTimeline: timelinePane(state.timeline, session),
     tracePane: groupedPane(state.traces, 'traces', (item) => item.source || 'unknown'),
     evidencePane: evidencePane(state.evidence),
+    executionPane: executionPane((state.session && state.session.session) || null),
     metadataPane: { status: state.session && state.session.status || 'idle', items: metadata, errors: errorsOf(state.session) },
+    activePane: state.ui && state.ui.activePane || 'trace',
     detailActions: detailActions(state, selectedId),
     notices,
     status: overallStatus(state, notices)
@@ -169,21 +171,43 @@ function labelForKind(kind) {
 function groupedPane(value, key, groupBy) {
   const pane = page(value);
   const groups = {};
-  pane.items.forEach((item) => {
+  pane.items.map((item, index) => {
     const source = groupBy(item);
-    if (!groups[source]) groups[source] = [];
-    groups[source].push({
+    const summary = item.summary || item.label || item.text || item.type || item.kind || item.definition || item.spanId || `${key} ${index + 1}`;
+    if (!summary) return null;
+    return {
       id: item.id || item.traceId || null,
       source,
+      type: item.type || item.kind || null,
+      label: item.label || null,
+      summary: String(summary).split('\n')[0].slice(0, 240),
+      text: item.text || null,
+      ts: item.ts || null,
+      seq: item.seq == null ? null : item.seq,
       authority: item.authority || null,
       correlationId: item.correlationId || null,
       productSessionId: item.productSessionId || null,
       detailRef: item.detailRef || null,
       detailAvailable: Boolean(item.detailRef),
       raw: clone(item)
-    });
+    };
+  }).filter(Boolean).forEach((item) => {
+    if (!groups[item.source]) groups[item.source] = [];
+    groups[item.source].push(item);
   });
   return { status: pane.status, groups, errors: pane.errors, snapshotId: pane.snapshotId, revision: pane.revision, observedAt: pane.observedAt, itemKey: key };
+}
+
+function executionPane(session) {
+  const items = Array.isArray(session && session.runStages) ? session.runStages.map((item) => ({
+    kind: item.kind || 'execution',
+    label: item.label || (item.kind === 'verification' ? '验证结果' : '执行结果'),
+    status: item.status || 'unknown',
+    text: item.text || '',
+    source: item.source || null,
+    evidenceRefs: Array.isArray(item.evidenceRefs) ? item.evidenceRefs : []
+  })) : [];
+  return { status: items.length > 0 ? 'ready' : 'empty', items };
 }
 
 function evidencePane(value) {

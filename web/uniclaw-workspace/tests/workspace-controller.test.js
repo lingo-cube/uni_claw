@@ -111,3 +111,11 @@ test('refresh is repeatable and controller remains renderer independent', async 
   const c = controller(); await c.selectTaskInstance('ps1'); const first = await c.refresh(); const second = await c.refresh();
   assert.deepEqual(second.projects.items, first.projects.items); assert.equal(typeof c.subscribe, 'function');
 });
+
+test('pane selection is durable in renderer-neutral controller state', async () => {
+  const c = controller();
+  c.selectPane('evidence');
+  assert.equal(c.getState().ui.activePane, 'evidence');
+  c.selectPane('unknown');
+  assert.equal(c.getState().ui.activePane, 'trace');
+});

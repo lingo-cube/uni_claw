@@ -33,6 +33,8 @@ test('projects complete controller state into renderer-neutral sections', () => 
   assert.equal(view.evidencePane.items[2].detailAction.reason, 'uncorrelated');
   assert.equal(view.metadataPane.items.owner, 'team-a');
   assert.equal(view.metadataPane.items.priority, 'high');
+  assert.equal(view.activePane, 'trace');
+  assert.equal(view.executionPane.status, 'empty');
   assert.equal(view.status, 'partial');
   assert.equal(JSON.stringify(input), before);
 });

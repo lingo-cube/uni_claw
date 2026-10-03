@@ -121,6 +121,8 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
       event.preventDefault();
       if (action === 'refresh') {
         void controller.refresh();
+      } else if (action === 'select-pane') {
+        controller.selectPane(target.getAttribute('data-pane-tab'));
       } else if (action === 'select-project') {
         void controller.selectProject(target.getAttribute('data-project-id'));
       } else if (action === 'select-task') {

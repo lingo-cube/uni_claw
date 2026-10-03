@@ -18,7 +18,7 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 
 ### Out of Scope
 
-- 本 Change 不实现最终 UI、DSH bundle、Runtime、Trace 采集或证据存储；当前仅落地 schema、Host-neutral Query Core 和 DSH Host Adapter 的只读工程缝。
+- 本 Change 不包含 Product Runtime 写操作、Runtime/Trace 采集或证据存储；只读工程实现已覆盖 schema、Host-neutral Query Core、共享 Workspace 前端与 DSH Host Adapter/static bundle。
 - 不改变 Product Runtime 的执行权威、调度、写操作和生命周期。
 - 不在本轮决定完整 OTel 平台、实时推送或开放式插件市场。
 
@@ -116,7 +116,7 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 1. 方案文档完整描述需求、边界、架构、前端组织、统一记录和验收标准。
 2. 文档明确通用前端不依赖 DSH，并给出独立 Web 与 DSH 的适配路径。
 3. 文档列出所有需要 Human Decision 的架构前沿，能直接用于一轮 Grill。
-4. 本 Change 不包含 Product Runtime 写操作或最终 UI；当前工程实现仅限 schema、Query Core 和 DSH Host Adapter 的只读接缝，并受 WorkItem 验收约束。
+4. 本 Change 不包含 Product Runtime 写操作、Runtime/Trace 采集或证据存储；当前工程实现覆盖 schema、Query Core、共享 Workspace UI 和 DSH Host Adapter 的只读接缝，并受 WorkItem 验收约束。
 
 ## Verification
 
@@ -184,3 +184,4 @@ verification:
 - 2026-10-03 · IMPLEMENT → REVIEW → VERIFY · 根据真实浏览器验收优化错误通知交互：相同 code/message 聚合为单一状态栏，显示影响数量和来源，详情使用原生折叠展开，并提供“重试当前任务”；Web 57/57、browser bundle build、profile deploy/drift check 通过。真实 DSH 在 session capability 超时时展示 `4 处` 聚合行，展开后保留四条来源明细，点击重试进入 loading 并回到结构化错误状态。详细证据补充在 `evidence/PNL-003-WI-PNL003-016.md`。
 - 2026-10-03 · VERIFY · 将本轮真实数据验收任务、DSH cold-read 修复和工作区边界收敛到当前 `uni-harness` 分支：详情读取改为目标 session header 直读，browser capability timeout 调整为 30 秒；专用 DSH `3083` 重启后真实页面可读 session、trace、evidence、metadata，并按 `AgentDecisionContext` 边界决定是否显示 Uni-Agent 对话。跨 workspace/普通 DSH session 的“暂无对话”与 not-found 结果均保持如实可见，不伪造产品数据。证据见 `evidence/PNL-003-WI-PNL003-016.md`。
 - 2026-10-03 · VERIFY → CLOSED candidate · 在专用 DSH `3083` 上完成真实 `uniagent-prod` handshake + consult，实际返回 `act` AgentDecision 并写入 session；Workspace 页面已显示真实“调用方请求 → Uni-Agent 决策 → 提交结果”Round 1，同时保留 DSH Trace/Metadata。真实 session 映射、产品投影和截图证据已补入 `evidence/PNL-003-WI-PNL003-016.md`；运行时 task store 仍由 DSH Host 管理，不写入产品仓库。
+- 2026-10-03 · VERIFY → CLOSED candidate · 真实页面复验后收敛信息层级：页签仅保留 Trace/Evidence/详情，Metadata 与单轮执行结果留在右侧摘要栏；DSH adapter 补齐可读 Trace 投影，修复重复裸 `trace` 文本。UniClaw runtime 产物缺失时显示结构化空状态，不把 DSH submission 冒充产品执行结果。Web 58/58、DSH 49/49、bundle build、profile drift check、node --check 与 diff check 通过；证据见 `evidence/PNL-003-WI-PNL003-016.md`。

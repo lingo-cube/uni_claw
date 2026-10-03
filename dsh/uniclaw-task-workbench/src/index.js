@@ -473,13 +473,26 @@ const workspaceCore = (repository, artifactSource) => {
   return { success: true, projects: [...projectMap.values()].filter(p => p.instances.length > 0), artifactWarnings: artifactIndex.warnings }
 }
 
-const dshEventProjection = (event) => ({
+const DSH_TRACE_LABELS = {
+  'user/message': '用户消息', 'assistant/message': '模型消息', 'tool/call': '能力调用',
+  'tool/result': '能力结果', 'turn/start': '回合开始', 'turn/end': '回合结束',
+  'step/start': '步骤开始', 'step/end': '步骤结束', 'system/message': '系统消息',
+}
+const dshEventProjection = (event) => {
+  const type = typeof event?.type === 'string' ? event.type : 'event'
+  const raw = eventText(event).trim()
+  const detail = raw.replace(/\s+/g, ' ').slice(0, 220)
+  return {
   seq: Number.isSafeInteger(event?.seq) ? event.seq : null,
   ts: eventTs(event),
-  type: typeof event?.type === 'string' ? event.type : 'event',
+  type,
+  source: 'dsh',
+  label: DSH_TRACE_LABELS[type] || type,
+  summary: detail ? `${DSH_TRACE_LABELS[type] || type} · ${detail}` : (DSH_TRACE_LABELS[type] || type),
+  text: raw.slice(0, 1600),
   role: typeof event?.role === 'string' ? event.role : null,
-  text: eventText(event).slice(0, 8000),
-})
+  }
+}
 
 const UNI_AGENT_EVENT_KINDS = {
   'user/message': { kind: 'user', role: 'user', label: '任务输入' },
