@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "uniclaw.workspace.task-launch-ack.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "launchRequestId": "launch-002",
+  "launchId": "launch-instance-002",
+  "status": "partial",
+  "stages": [
+    {
+      "schemaVersion": "uniclaw.workspace.launch-stage-record.v1",
+      "contractVersion": "uniclaw.workspace.contract.v1",
+      "stageId": "stage-host-session-002",
+      "stage": "host-session-bound",
+      "status": "failed",
+      "source": "dsh-adapter",
+      "authority": "dsh-host",
+      "availability": "unavailable",
+      "valueOrigin": "generated",
+      "diagnostic": {
+        "code": "host-session-timeout",
+        "message": "DSH did not acknowledge the host session before the bounded timeout"
+      },
+      "recordedAt": "2026-10-03T12:01:02Z"
+    }
+  ],
+  "correlationId": "corr-002",
+  "acknowledgedAt": "2026-10-03T12:01:03Z"
+}

@@ -17,6 +17,24 @@ def load(path: Path):
         return json.load(handle)
 
 
+def target_validator(path: Path, instance, validators, schemas):
+    """Select one intended schema; examples are never checked against every schema."""
+    version = instance.get("schemaVersion") if isinstance(instance, dict) else None
+    if version:
+        for filename, schema in schemas.items():
+            const = schema.get("properties", {}).get("schemaVersion", {}).get("const")
+            if const == version:
+                name = Path(filename).stem
+                return name, validators[name]
+    filename_targets = {
+        "bad-version.json": "record-envelope.schema",
+    }
+    target = filename_targets.get(path.name)
+    if target in validators:
+        return target, validators[target]
+    return None, None
+
+
 def main() -> int:
     schema_paths = sorted(SCHEMA_ROOT.glob("*.schema.json"))
     if not schema_paths:
@@ -51,27 +69,26 @@ def main() -> int:
                 print(f"ERROR {path.relative_to(ROOT)} $: invalid JSON: {exc}")
                 errors += 1
                 continue
-            matched = []
-            for name, validator in validators.items():
-                found = sorted(validator.iter_errors(instance), key=lambda error: list(error.absolute_path))
-                if not found:
-                    matched.append(name)
-            if should_pass and not matched:
-                print(f"ERROR {path.relative_to(ROOT)} $: positive example matched no schema")
+            name, validator = target_validator(path, instance, validators, schemas)
+            if validator is None:
+                print(f"ERROR {path.relative_to(ROOT)} $: no target schema for schemaVersion or filename")
                 errors += 1
-            elif not should_pass and matched:
-                print(f"ERROR {path.relative_to(ROOT)} $: negative example unexpectedly matched {matched}")
+                continue
+            found = sorted(validator.iter_errors(instance), key=lambda error: list(error.absolute_path))
+            if should_pass and found:
+                location = ".".join(str(item) for item in found[0].absolute_path) or "$"
+                print(f"ERROR {path.relative_to(ROOT)} {location}: {found[0].message}")
+                errors += 1
+            elif not should_pass and not found:
+                print(f"ERROR {path.relative_to(ROOT)} $: negative example unexpectedly matched {name}")
                 errors += 1
             elif not should_pass:
                 # Emit a stable first diagnostic so failures cannot silently pass.
-                diagnostics = []
-                for name, validator in validators.items():
-                    for error in validator.iter_errors(instance):
-                        location = ".".join(str(item) for item in error.absolute_path) or "$"
-                        diagnostics.append(f"{name} {location}: {error.message}")
-                print(f"OK {path.relative_to(ROOT)} rejected ({sorted(diagnostics)[0]})")
+                error = found[0]
+                location = ".".join(str(item) for item in error.absolute_path) or "$"
+                print(f"OK {path.relative_to(ROOT)} rejected ({name} {location}: {error.message})")
             else:
-                print(f"OK {path.relative_to(ROOT)} -> {matched[0]}")
+                print(f"OK {path.relative_to(ROOT)} -> {name}")
 
     if errors:
         print(f"FAILED {errors} validation error(s)")

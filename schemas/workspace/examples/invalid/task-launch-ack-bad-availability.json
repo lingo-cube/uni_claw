@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "uniclaw.workspace.task-launch-ack.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "launchRequestId": "launch-invalid-availability",
+  "launchId": "launch-instance-invalid-availability",
+  "status": "partial",
+  "stages": [
+    {
+      "schemaVersion": "uniclaw.workspace.launch-stage-record.v1",
+      "contractVersion": "uniclaw.workspace.contract.v1",
+      "stageId": "stage-invalid-availability",
+      "stage": "host-session-bound",
+      "status": "failed",
+      "source": "dsh-adapter",
+      "authority": "dsh-host",
+      "availability": "missing",
+      "valueOrigin": "generated",
+      "diagnostic": {
+        "code": "host-session-timeout",
+        "message": "host session unavailable"
+      },
+      "recordedAt": "2026-10-03T12:02:02Z"
+    }
+  ],
+  "correlationId": "corr-invalid-availability",
+  "acknowledgedAt": "2026-10-03T12:02:03Z"
+}
