@@ -88,20 +88,68 @@ function createCapabilities(remote) {
       observedAt: new Date().toISOString(),
     }), DSH_CAPABILITY_TIMEOUT_MS)),
   ]);
-  return {
-    TaskQuery: { listProjects: () => call('workspace', [], 'TaskQuery').then((r) => {
-      if (r.ok) {
-        for (const project of (r.data.projects || [])) {
-          for (const instance of (project.instances || [])) {
-            if (instance.productSessionId && instance.sessionId) sessionByProduct.set(instance.productSessionId, instance.sessionId);
-          }
-        }
+  const rememberSessionMappings = (projects) => {
+    for (const project of (projects || [])) {
+      for (const instance of (project.instances || [])) {
+        if (instance.productSessionId && instance.sessionId) sessionByProduct.set(instance.productSessionId, instance.sessionId);
       }
-      return r;
-    }) },
+    }
+  };
+  const listProjects = () => call('workspace', [], 'TaskQuery').then((r) => {
+    if (r.ok) rememberSessionMappings(r.data.projects);
+    return r;
+  });
+  return {
+    TaskQuery: {
+      listProjects,
+      listTaskInstances: ({ projectId } = {}) => listProjects().then((r) => {
+        if (!r.ok) return r;
+        const project = (r.data.projects || []).find((item) => item.projectId === projectId);
+        if (!project) {
+          return {
+            ...r,
+            ok: false,
+            error: {
+              schemaVersion: 'uniclaw.workspace.query-error.v1',
+              contractVersion: 'uniclaw.workspace.contract.v1',
+              code: 'not-found',
+              message: `Project ${projectId} was not found`,
+              retryable: false,
+              source: 'TaskQuery',
+            },
+          };
+        }
+        return { ...r, data: { taskInstances: project.instances || [], errors: r.data.errors || [] } };
+      }),
+    },
     SessionQuery: { getSession: ({ productSessionId }) => call('session', [sessionByProduct.get(productSessionId) || productSessionId], 'SessionQuery').then((r) => r.ok ? { ...r, data: r.data.session || r.data } : r), getTimeline: ({ productSessionId }) => call('session', [sessionByProduct.get(productSessionId) || productSessionId], 'SessionQuery').then((r) => r.ok ? { ...r, data: r.data.conversation || [] } : r) },
-    TraceQuery: { getTraces: ({ productSessionId }) => call('session', [sessionByProduct.get(productSessionId) || productSessionId], 'TraceQuery').then((r) => r.ok ? { ...r, data: { traces: [...(r.data.dshTrace || []), ...(r.data.uniclawTrace || []), ...(r.data.uniflowTrace || [])] } } : r) },
-    EvidenceQuery: { getEvidence: ({ productSessionId }) => call('session', [sessionByProduct.get(productSessionId) || productSessionId], 'EvidenceQuery').then((r) => r.ok ? { ...r, data: { evidence: r.data.evidence || [] } } : r) },
+    TraceQuery: { getTraces: ({ productSessionId }) => call('session', [sessionByProduct.get(productSessionId) || productSessionId], 'TraceQuery').then((r) => {
+      if (!r.ok) return r;
+      const detailRef = { refId: 'trace.json', source: 'dsh', productSessionId };
+      let detailAttached = false;
+      const traces = [
+        ...(r.data.dshTrace || []).map((item) => ({ ...item, source: 'dsh' })),
+        ...(r.data.uniclawTrace || []).map((item) => {
+          const projected = { ...item, source: 'uniclaw' };
+          if (!detailAttached) {
+            detailAttached = true;
+            projected.detailRef = detailRef;
+          }
+          return projected;
+        }),
+        ...(r.data.uniflowTrace || []).map((item) => ({ ...item, source: 'uniflow' })),
+      ];
+      return { ...r, data: { traces } };
+    }) },
+    EvidenceQuery: { getEvidence: ({ productSessionId }) => call('session', [sessionByProduct.get(productSessionId) || productSessionId], 'EvidenceQuery').then((r) => {
+      if (!r.ok) return r;
+      const evidence = (r.data.evidence || []).map((item) => {
+        if (item && typeof item === 'object') return item;
+        const refId = String(item || '').split('/').pop() || 'artifact';
+        return { title: refId, source: 'UniClaw runtime artifact', detailRef: { refId, source: 'dsh', productSessionId } };
+      });
+      return { ...r, data: { evidence } };
+    }) },
     DetailQuery: { resolveDetail: ({ productSessionId, detailRef }) => call('artifact', [sessionByProduct.get(productSessionId) || productSessionId, detailRef.refId || detailRef], 'DetailQuery') }
   };
 }

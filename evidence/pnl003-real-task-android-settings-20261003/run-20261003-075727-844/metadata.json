@@ -1,0 +1,20 @@
+{
+  "runDir": "evidence/pnl003-real-task-android-settings-20261003/run-20261003-075727-844",
+  "device": "emulator-5556",
+  "androidApi": 35,
+  "wmSize": "1080x1920",
+  "dshEndpoint": "http://127.0.0.1:3083/",
+  "productModel": "zai-coding-cn/glm-5.3-flash",
+  "productSessionTitle": "Android Settings · Wi‑Fi 导航与状态确认",
+  "workspace": "Android Settings 测试集",
+  "dshSessionId": "session-06d69e93-56f4-4b58-b991-69eabe3301e2",
+  "productSessionId": "settings-traversal-session-6098c7dddc9d40bda955f82d9e72a27e",
+  "status": "completed",
+  "outcome": "Completion",
+  "deliveredEffects": 2,
+  "receipts": ["DeliveryCompleted", "DeliveryCompleted"],
+  "completedSteps": 2,
+  "consultations": 3,
+  "taskSet": "Android Settings 测试集",
+  "real": true
+}

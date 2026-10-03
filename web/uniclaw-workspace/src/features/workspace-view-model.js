@@ -173,7 +173,7 @@ function groupedPane(value, key, groupBy) {
   const groups = {};
   pane.items.map((item, index) => {
     const source = groupBy(item);
-    const summary = item.summary || item.label || item.text || item.type || item.kind || item.definition || item.spanId || `${key} ${index + 1}`;
+    const summary = item.summary || item.label || item.text || item.definition || item.type || item.kind || item.spanId || `${key} ${index + 1}`;
     if (!summary) return null;
     return {
       id: item.id || item.traceId || null,

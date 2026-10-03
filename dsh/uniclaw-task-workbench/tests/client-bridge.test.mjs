@@ -21,3 +21,14 @@ test('malformed remote response becomes structured failure', async () => {
   assert.equal(result.ok, false)
   assert.equal(result.error.code, 'unavailable')
 })
+
+test('browser bridge lists task instances for a selected project', async () => {
+  const caps = createCapabilities({
+    workspace: async () => ({ success: true, projects: [{ projectId: 'android-settings', instances: [{ productSessionId: 'ps-live', sessionId: 'dsh-live' }] }] }),
+    session: async () => ({ success: true, conversation: [], dshTrace: [], uniclawTrace: [], uniflowTrace: [], evidence: [] }),
+    artifact: async () => ({ success: true, text: 'detail' }),
+  })
+  const result = await caps.TaskQuery.listTaskInstances({ projectId: 'android-settings' })
+  assert.equal(result.ok, true)
+  assert.equal(result.data.taskInstances[0].productSessionId, 'ps-live')
+})
