@@ -54,6 +54,7 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 - Completed WorkItem：`workitems/WI-PNL004-004.json`（Query Projection + UI metadata）
 - Pending WorkItem：`workitems/WI-PNL004-005.json`（Integration / real verification）
 - Pending WorkItem：`workitems/WI-PNL004-006.json`（Launch contract/recovery remediation）
+- Pending WorkItem：`workitems/WI-PNL004-007.json`（Production Runtime/Host adapter registration）
 
 ## Status log
 
@@ -63,8 +64,9 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 - 2026-10-04 · PLAN → IMPLEMENT → REVIEW → VERIFY（S3）· 完成 canonical Task Launch、Runtime-owned run、幂等复用和 partial recovery；S4–S5 仍待执行。
 - 2026-10-04 · PLAN → IMPLEMENT → REVIEW → VERIFY（S4）· 完成五类 Query 与共享 metadata provenance 投影；S5 仍待执行。
 - 2026-10-04 · REVIEW · Standards/Spec review 发现 stage availability/ack shape 漂移、manifest 未解析、namespace 仅字符串、partial retry 不恢复；转入 WI-PNL004-006。
-- 2026-10-04 · IMPLEMENT → VERIFY · WI-PNL004-006 修复契约、catalog fail-closed、逻辑 namespace 和 partial retry；DSH 54/54、schema/manifest validators 通过。
-- 2026-10-04 · VERIFY · WI-PNL004-005 完成真实 Android fixture、双入口回归、故障/幂等/未关联场景验收；3083 shell 访问按认证边界返回 401。
+- 2026-10-04 · IMPLEMENT → VERIFY · WI-PNL004-006 修复契约、catalog fail-closed、逻辑 namespace 和 partial retry；DSH 56/56、Web 67/67、schema/manifest validators 通过。
+- 2026-10-04 · VERIFY → IMPLEMENT · Leader 复核确认契约路径已 fail-closed，但真实生产 `uniclawRuntime` 注入、Runtime-owned run 与 HostRunner/ProductSession 绑定仍未接入；WI-PNL004-005/006 保持 pending，新增 WI-PNL004-007。
+- 2026-10-04 · VERIFY · 真实 Android fixture、双入口只读回归、故障/幂等/未关联场景有证据；3083 shell 访问按认证边界返回 401。该证据不等价于页面发起真实 launch。
 
 ## Evidence targets
 

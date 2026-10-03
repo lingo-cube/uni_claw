@@ -1,0 +1,59 @@
+{
+  "id": "WI-PNL004-007",
+  "objective": "补齐生产 Runtime/Host launch adapter，把 Task Launch contract 接入真实 HostRunner、Product Session 与 DSH capability registration。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Host/",
+      "src/UniClaw.Host.Dsh/",
+      "src/UniClaw.Agent.Dsh/",
+      "dsh/uniclaw-task-workbench/src/",
+      "dsh/uniclaw-task-workbench/tests/",
+      "evidence/",
+      "plans/2026-10-03-pnl-004-plan.md",
+      "changes/PNL-004/state.md"
+    ],
+    "read_hints": [
+      "src/UniClaw.Host/HostRunner.cs",
+      "src/UniClaw.Host.Dsh/Program.cs",
+      "src/UniClaw.Agent.Dsh/DshOpenedHttpPeer.cs",
+      "dsh/uniclaw-decision-channel/src/index.js",
+      "schemas/workspace/task-launch-request.schema.json",
+      "schemas/workspace/task-launch-ack.schema.json"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "让生产 launch 具备真实、可恢复、可查询的 Runtime-owned run 与 Product Session 绑定；逻辑引用和 Host 物理路径保持分离。",
+    "core_points": [
+      "Runtime 生成 runId 并以 launchId/idempotencyKey 支持恢复",
+      "Product Session 在 Host 创建前可验证并与 runId 绑定",
+      "HostRunner/DSH consultation 接收同一 runId、Product Session 和 correlation",
+      "DSH plugin 显式注册 uniclawRuntime capability，缺失时 fail closed",
+      "adapter 不修改 AGT-001/RUN-005，不把 DSH Session 当 Product truth，不把 projectRef 当 filesystem path"
+    ]
+  },
+  "acceptance": [
+    "在真实 Host 组合根中，合法 TaskLaunchRequest 能创建或恢复 Runtime run、Product Session、Host Session 和本地 logical namespace，并返回可查询 TaskLaunchAck",
+    "Runtime/Host 任一调用超时、失败或返回不完整身份时保留 pending/partial/unknown 状态，重试只经过 recover/getRunByLaunchId，不盲目二次 createRun",
+    "同一 launchId/idempotencyKey 的重复请求不产生第二个 Runtime run、Product Session 或 Host Session",
+    "DSH 入口和独立 Web 入口均能查询真实 run/session/trace/evidence；生产注册缺失时错误可诊断且不伪造成功",
+    "测试覆盖 adapter happy path、恢复路径、Product Session 缺失、Host 失败、storage 持久化失败和逻辑 project resolver；证据包含 method/expected/actual/evidence"
+  ],
+  "forbidden": [
+    "不修改 AGT-001、RUN-005 或 Product architecture baseline",
+    "不把 DSH session、artifact 文件名或 testsets 目录名推导为 Product Session/runId",
+    "不新增第二套 Task/Session lifecycle 或把 adapter 逻辑放进共享前端",
+    "不在公共 response 中泄漏 physical path、credential 或 host-only transport details"
+  ],
+  "dependencies": [
+    "WI-PNL004-006",
+    "ADR-0031",
+    "ADR-0033",
+    "ADR-0034"
+  ],
+  "status": "pending",
+  "required_skills": [
+    "codebase-design",
+    "tdd",
+    "code-review"
+  ]
+}
