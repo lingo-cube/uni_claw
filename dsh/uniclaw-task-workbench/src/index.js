@@ -778,14 +778,23 @@ const sessionDetailCore = async (ctx, repository, artifactSource, sessionId) => 
     agentPreset: typeof sessionHeader?.agentPreset === 'string' ? sessionHeader.agentPreset : null,
   }
   if (observed?.metadata) {
+    const artifactMetadata = observed.metadata
+    metadata.device = artifactMetadata.device ?? null
+    metadata.androidApi = artifactMetadata.androidApi ?? null
+    metadata.wmSize = artifactMetadata.wmSize ?? null
+    metadata.dshEndpoint = artifactMetadata.dshEndpoint ?? null
+    metadata.taskSet = artifactMetadata.taskSet ?? null
+    metadata.real = artifactMetadata.real === true
+    metadata.deliveredEffects = artifactMetadata.deliveredEffects ?? null
+    metadata.consultations = artifactMetadata.consultations ?? null
     metadata.artifact = {
-      productSessionId: observed.metadata.productSessionId ?? null,
-      productSessionTitle: observed.metadata.productSessionTitle ?? null,
-      workspace: observed.metadata.workspace ?? null,
-      productModel: observed.metadata.productModel ?? null,
-      outcome: observed.metadata.outcome ?? null,
-      status: observed.metadata.status ?? null,
-      runDir: observed.metadata.runDir ?? null,
+      productSessionId: artifactMetadata.productSessionId ?? null,
+      productSessionTitle: artifactMetadata.productSessionTitle ?? null,
+      workspace: artifactMetadata.workspace ?? null,
+      productModel: artifactMetadata.productModel ?? null,
+      outcome: artifactMetadata.outcome ?? null,
+      status: artifactMetadata.status ?? null,
+      runDir: artifactMetadata.runDir ?? null,
     }
   }
   const dshTrace = events.events.map(dshEventProjection)

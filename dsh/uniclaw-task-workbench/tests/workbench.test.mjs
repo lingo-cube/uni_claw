@@ -480,7 +480,7 @@ test('panel workspace/session: explicit run metadata links an observed session a
   mkdirSync(runDir, { recursive: true })
   writeFileSync(join(runDir, 'metadata.json'), JSON.stringify({
     dshSessionId: 'session-observed-1', productSessionId: 'product-1',
-    productSessionTitle: '真实 Settings 任务', workspace: 'UniClaw Product Tasks', status: 'Completed', outcome: 'Satisfied',
+    productSessionTitle: '真实 Settings 任务', workspace: 'UniClaw Product Tasks', status: 'Completed', outcome: 'Satisfied', device: 'emulator-5556', androidApi: 35, wmSize: '1080x1920', real: true,
   }))
   writeFileSync(join(runDir, 'facts.json'), JSON.stringify({
     outcome: 'Satisfied', reason: '目标状态已满足', completionAnchors: [{ anchor: 'switch-state-checked', verified: true }],
@@ -501,6 +501,10 @@ test('panel workspace/session: explicit run metadata links an observed session a
   assert.equal(workspace.projects[0].instances[0].sessionId, 'session-observed-1')
   const detail = await service.session({ sessionId: 'session-observed-1' })
   assert.equal(detail.success, true)
+  assert.equal(detail.metadata.device, 'emulator-5556')
+  assert.equal(detail.metadata.androidApi, 35)
+  assert.equal(detail.metadata.wmSize, '1080x1920')
+  assert.equal(detail.metadata.real, true)
   assert.equal(detail.uniclawTrace[0].definition, 'world.reconcile')
   assert.equal(detail.uniclawTrace[0].references[0].kind, 'Evidence')
   assert.ok(detail.evidence.some(ref => ref.endsWith('/trace.json')))

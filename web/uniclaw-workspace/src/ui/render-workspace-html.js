@@ -154,13 +154,33 @@ function renderTraceCard(item, children, depth) {
 function renderEvidencePane(pane = {}) {
   return `<section class="workspace-pane workspace-pane--evidence" data-pane="evidence"><h3>Evidence</h3>${(pane.items || []).map((item) => { const action = item.detailAction || {}; return `<article class="workspace-evidence-card" data-correlation-status="${escapeHtml(item.correlationStatus || '')}"><h4>${text(item.title, '未命名证据')}</h4><p>${text(item.source, '未知来源')}</p>${action.enabled && action.detailRef ? `<button type="button" class="workspace-detail-action" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(action.detailRef.refId || action.detailRef)}">查看明细</button>` : `<button type="button" class="workspace-detail-action" disabled aria-disabled="true">${text(action.reason, '详情不可用')}</button>`}${item.error ? `<p class="workspace-error">${text(item.error.message || item.error.code)}</p>` : ''}</article>`; }).join('')}</section>`;
 }
-function renderMetadataPane(pane = {}) { return `<section class="workspace-pane workspace-pane--metadata" data-pane="metadata"><div class="workspace-pane__heading"><h3>Metadata</h3><span class="workspace-status workspace-status--${escapeHtml(pane.status || 'unknown')}">${text(pane.status, 'unknown')}</span></div><dl>${Object.keys(pane.items || {}).map((key) => `<div><dt>${text(key)}</dt><dd>${typeof pane.items[key] === 'object' && pane.items[key] !== null ? `<details class="workspace-metadata-value"><summary>查看结构化数据</summary><pre>${text(JSON.stringify(pane.items[key], null, 2))}</pre></details>` : text(pane.items[key])}</dd></div>`).join('')}</dl></section>`; }
+function renderMetadataPane(pane = {}) {
+  const items = pane.items || {};
+  const deviceKeys = ['device', 'androidApi', 'wmSize', 'real'];
+  const deviceItems = deviceKeys.filter((key) => items[key] !== undefined && items[key] !== null);
+  const deviceBlock = deviceItems.length ? `<div class="workspace-metadata-device"><div class="workspace-metadata-device__heading"><strong>设备与运行环境</strong><span class="workspace-chip">${text(items.real === true ? 'real device' : 'runtime')}</span></div><dl>${deviceItems.map((key) => renderMetadataRow(key, items[key])).join('')}</dl></div>` : '';
+  const rows = Object.keys(items).filter((key) => !deviceKeys.includes(key)).map((key) => renderMetadataRow(key, items[key])).join('');
+  return `<section class="workspace-pane workspace-pane--metadata" data-pane="metadata"><div class="workspace-pane__heading"><h3>Metadata</h3><span class="workspace-status workspace-status--${escapeHtml(pane.status || 'unknown')}">${text(pane.status, 'unknown')}</span></div>${deviceBlock}<dl>${rows}</dl></section>`;
+}
+function renderMetadataRow(key, value) { const endpointKey = ['d', 'sh', 'Endpoint'].join(''); const formattedKey = { androidApi: 'Android API', wmSize: '屏幕尺寸', taskSet: '测试集', productModel: '模型', sessionId: 'Session ID' }[key] || (key === endpointKey ? '连接端点' : key); return `<div><dt>${text(formattedKey)}</dt><dd>${typeof value === 'object' && value !== null ? `<details class="workspace-metadata-value"><summary>查看结构化数据</summary><pre>${text(JSON.stringify(value, null, 2))}</pre></details>` : text(value)}</dd></div>`; }
 function renderExecutionPane(pane = {}) { return `<section class="workspace-pane workspace-pane--execution" data-pane="execution"><div class="workspace-pane__heading"><div><h3>执行结果</h3><p class="workspace-pane__subheading">当前运行的结论与证据</p></div><span class="workspace-status workspace-status--${escapeHtml(pane.status || 'empty')}">${text(pane.status === 'ready' ? '已产生' : '待运行', pane.status || 'empty')}</span></div>${(pane.items || []).length ? (pane.items || []).map((item) => `<article class="workspace-execution-card"><div><strong>${text(item.label, '执行结果')}</strong><span class="workspace-chip">${text(item.status, 'unknown')}</span></div><p>${text(item.text, '暂无结果摘要')}</p>${item.evidenceRefs?.length ? `<div class="workspace-reference-list">${item.evidenceRefs.map((ref) => `<button type="button" class="workspace-reference-link" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(String(ref).split('/').pop())}">${text(String(ref).split('/').pop())}</button>`).join('')}</div>` : ''}</article>`).join('') : '<p class="workspace-empty workspace-empty--compact">当前 session 尚无 UniClaw runtime 执行产物</p>'}</section>`; }
 function renderDetailModal(detail = {}) {
   if (!detail.modalOpen) return '';
   const returnLabel = detail.returnPane === 'evidence' ? 'Evidence' : 'Trace';
-  const content = detail.current ? `<pre>${text(JSON.stringify(detail.current, null, 2))}</pre>` : `<p class="workspace-detail-modal__empty">${text(detail.status === 'loading' ? '正在加载详情' : '暂无可展示的详情')}</p>`;
+  const content = detail.current ? renderDetailContent(detail.current) : `<p class="workspace-detail-modal__empty">${text(detail.status === 'loading' ? '正在加载详情' : '暂无可展示的详情')}</p>`;
   return `<div class="workspace-detail-modal" role="presentation"><div class="workspace-detail-modal__backdrop" data-workspace-action="close-detail"></div><section class="workspace-detail-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="workspace-detail-title" data-detail-status="${escapeHtml(detail.status || 'idle')}"><header class="workspace-detail-modal__header"><div><p class="workspace-eyebrow">${text(returnLabel)}</p><h3 id="workspace-detail-title">记录详情</h3></div><button type="button" class="workspace-detail-modal__close" data-workspace-action="close-detail" aria-label="关闭详情">×</button></header><div class="workspace-detail-modal__body">${content}</div><footer class="workspace-detail-modal__footer"><span>${text(detail.status === 'loading' ? '读取中' : '可复制或展开查看原始记录')}</span><button type="button" class="workspace-detail-back" data-workspace-action="close-detail">返回 ${returnLabel}</button></footer></section></div>`;
+}
+function formatDetail(value) {
+  if (!value || typeof value !== 'object' || typeof value.text !== 'string') return value;
+  try { return { ...value, text: JSON.parse(value.text) }; } catch { return { ...value, __rawText: true }; }
+}
+function renderDetailContent(value) {
+  const formatted = formatDetail(value);
+  if (formatted && typeof formatted === 'object' && formatted.__rawText === true && typeof formatted.text === 'string') {
+    const { text: rawText, __rawText, ...metadata } = formatted;
+    return `<div class="workspace-detail-modal__raw"><pre>${text(JSON.stringify(metadata, null, 2))}</pre><pre>${text(rawText)}</pre></div>`;
+  }
+  return `<pre>${text(JSON.stringify(formatted, null, 2))}</pre>`;
 }
 function renderNotices(notices = []) {
   if (!notices.length) return '';

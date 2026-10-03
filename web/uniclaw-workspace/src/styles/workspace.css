@@ -177,6 +177,10 @@
 .workspace-pane dl div { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--workspace-border); }
 .workspace-pane dt { color: var(--workspace-muted); }
 .workspace-pane dd { margin: 0; overflow-wrap: anywhere; text-align: right; }
+.workspace-metadata-device { margin: 10px 0 12px; padding: 10px 12px; border: 1px solid #d7dcff; border-radius: 11px; background: #f5f6ff; }
+.workspace-metadata-device__heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
+.workspace-metadata-device__heading strong { font-size: 12px; }
+.workspace-metadata-device dl div:last-child { border-bottom: 0; }
 .workspace-detail-drawer { margin-top: var(--workspace-gap); }
 .workspace-detail-drawer__header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
 .workspace-detail-drawer__header h3 { margin: 0; }
@@ -213,7 +217,7 @@
 .workspace-trace-branch__detail { margin: -5px 0 4px 42px; }
 .workspace-detail-modal { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 24px; }
 .workspace-detail-modal__backdrop { position: absolute; inset: 0; background: rgba(15,23,42,.42); backdrop-filter: blur(3px); cursor: pointer; }
-.workspace-detail-modal__dialog { position: relative; display: grid; grid-template-rows: auto minmax(0,1fr) auto; width: min(900px, 100%); max-height: min(760px, calc(100vh - 48px)); border: 1px solid var(--workspace-border); border-radius: 18px; background: var(--workspace-surface); box-shadow: 0 24px 80px rgba(15,23,42,.28); overflow: hidden; }
+.workspace-detail-modal__dialog { position: relative; display: grid; grid-template-rows: auto minmax(0,1fr) auto; width: min(900px, 100%); max-height: min(760px, calc(100vh - 48px)); border: 1px solid var(--workspace-border); border-radius: 18px; background: #fff; opacity: 1; isolation: isolate; box-shadow: 0 24px 80px rgba(15,23,42,.28); overflow: hidden; }
 .workspace-detail-modal__header,.workspace-detail-modal__footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--workspace-border); }
 .workspace-detail-modal__header h3 { margin: 2px 0 0; font-size: 18px; }
 .workspace-detail-modal__footer { border-top: 1px solid var(--workspace-border); border-bottom: 0; color: var(--workspace-muted); font-size: 11px; }

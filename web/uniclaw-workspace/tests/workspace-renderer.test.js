@@ -16,6 +16,27 @@ test('offers combined and split trace views and a return action from details', (
   assert.match(detail, /返回 Evidence/);
   assert.match(detail, /data-workspace-action="close-detail"/);
 });
+test('formats structured detail text and highlights device metadata', () => {
+  const html = renderWorkspaceHtml(view({
+    session: { status: 'ready', session: { productSessionId: 'ps1', metadata: { device: 'emulator-5556', androidApi: 35, wmSize: '1080x1920', real: true } } },
+    ui: { activePane: 'trace', detailModalOpen: true },
+    detail: { status: 'ready', detail: { name: 'facts.json', text: '{"outcome":"Completion","delivered":2}' } }
+  }));
+  assert.match(html, /设备与运行环境/);
+  assert.match(html, /emulator-5556/);
+  assert.match(html, /Android API/);
+  assert.match(html, /&quot;outcome&quot;: &quot;Completion&quot;/);
+  assert.doesNotMatch(html, /\\&quot;outcome\\&quot;:/);
+});
+test('keeps truncated JSON detail readable without escaped string wrapping', () => {
+  const html = renderWorkspaceHtml(view({
+    ui: { activePane: 'trace', detailModalOpen: true },
+    detail: { status: 'ready', detail: { name: 'trace.json', text: '{\n  "spans": [\n    {"spanId":"sp-0001"}' } }
+  }));
+  assert.match(html, /workspace-detail-modal__raw/);
+  assert.match(html, /&quot;spanId&quot;:&quot;sp-0001&quot;/);
+  assert.doesNotMatch(html, /\\n/);
+});
 test('renders Uni-Agent dialogue rounds with readable roles and runtime stages', () => {
   const html = renderWorkspaceHtml(view({ session: { status: 'ready', session: { productSessionId: 'ps1', conversationGroups: [{ round: 1, status: 'submitted', stages: [{ kind: 'request', role: 'requester', label: '调用方请求', text: '完成调研' }, { kind: 'decision', role: 'agent', label: 'Uni-Agent 决策', text: '选择搜索策略', decisionKind: 'act' }, { kind: 'result', role: 'tool', label: '提交结果', text: 'accepted' }] }], runStages: [{ kind: 'verification', label: '验证结果', status: '已验证', text: '证据齐全' }] }, errors: [] } }));
   assert.match(html, /workspace-conversation-round/);

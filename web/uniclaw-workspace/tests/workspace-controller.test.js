@@ -124,6 +124,8 @@ test('trace mode and detail return pane are durable in controller state', async 
   const c = controller();
   c.selectTraceMode('split');
   assert.equal(c.getState().ui.traceMode, 'split');
+  c.selectTraceSource('uniclaw');
+  assert.equal(c.getState().ui.traceSource, 'uniclaw');
   await c.selectTaskInstance('ps1');
   c.selectPane('evidence');
   await c.resolveDetail({ source: 'fixture', refId: 'ev.md' });
