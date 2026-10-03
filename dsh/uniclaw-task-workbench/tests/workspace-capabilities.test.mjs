@@ -7,7 +7,7 @@ const make = (overrides = {}) => {
   const calls = []
   const panel = {
     workspace: () => ({ success: true, projects: [{ projectId: 'p', instances: [{ instanceId: 'i', sessionId: 'dsh-1', task: { title: 'T' } }] }] }),
-    session: ({ sessionId }) => { calls.push(['session', sessionId]); return { success: true, task: {}, instance: {}, metadata: {}, conversation: [{ kind: 'assistant' }], conversationGroups: [], dshTrace: [{ seq: 1 }], uniclawTrace: [{ token: 'VERIFIED' }], uniflowTrace: [{ token: 'VERIFIED' }], evidence: ['evidence/a.md'] } },
+    session: ({ sessionId }) => { calls.push(['session', sessionId]); return { success: true, task: {}, instance: { projectRef: 'project/android-settings', testSetRef: 'testset/android-settings', taskRef: 'task/android-settings/wifi-state', runId: 'run-1', launchStages: [{ stage: 'run-bound', status: 'succeeded' }], storageNamespaceRef: 'local:task-instance/i' }, metadata: { owner: 'team-a' }, metadataClaims: [{ key: 'agentPreset', value: 'uniagent-prod', valueOrigin: 'configured', availability: 'present', source: 'config', authority: 'host' }], conversation: [{ kind: 'assistant' }], conversationGroups: [], dshTrace: [{ seq: 1 }], uniclawTrace: [{ token: 'VERIFIED' }], uniflowTrace: [{ token: 'VERIFIED' }], evidence: ['evidence/a.md'] } },
     artifact: ({ sessionId, ref }) => { calls.push(['artifact', sessionId, ref]); return { success: true, ref, name: ref, text: 'detail' } },
     ...overrides,
   }
@@ -29,6 +29,11 @@ test('explicit product session mapping projects session, traces, and evidence', 
   const { capabilities, calls } = make()
   const session = await capabilities.SessionQuery.getSession({ productSessionId: 'product-1' })
   assert.deepEqual(session.data.hostSessionRef, { host: 'dsh', sessionId: 'dsh-1' })
+  assert.equal(session.data.runId, 'run-1')
+  assert.equal(session.data.projectRef, 'project/android-settings')
+  assert.equal(session.data.launchStages[0].stage, 'run-bound')
+  assert.equal(session.data.storageNamespaceRef, 'local:task-instance/i')
+  assert.equal(session.data.metadataClaims[0].valueOrigin, 'configured')
   const traces = await capabilities.TraceQuery.getTraces({ productSessionId: 'product-1' })
   assert.deepEqual(traces.data.traces.map(item => item.source), ['dsh', 'uniflow', 'uniclaw'])
   const evidence = await capabilities.EvidenceQuery.getEvidence({ productSessionId: 'product-1' })

@@ -39,6 +39,27 @@ test('projects complete controller state into renderer-neutral sections', () => 
   assert.equal(JSON.stringify(input), before);
 });
 
+test('projects launch relations and metadata provenance without flattening availability', () => {
+  const view = createWorkspaceViewModel(state({
+    session: { status: 'ready', session: {
+      productSessionId: 'ps1', runId: 'run-1', projectRef: 'project/p', testSetRef: 'testset/p', taskRef: 'task/p/t',
+      storageNamespaceRef: 'local:task-instance/i', launchStages: [{ stage: 'run-bound', status: 'succeeded' }],
+      metadata: { priority: 'high' },
+      metadataClaims: [
+        { key: 'agentPreset', value: 'uniagent-prod', valueOrigin: 'configured', availability: 'present', source: 'config', authority: 'host' },
+        { key: 'device', value: 'emulator-5556', valueOrigin: 'observed', availability: 'present', source: 'artifact', authority: 'dsh-host' },
+        { key: 'runId', value: 'run-1', valueOrigin: 'generated', availability: 'present', source: 'runtime', authority: 'uniclaw-runtime' },
+        { key: 'outcome', value: 'Completion', valueOrigin: 'derived', availability: 'not-collected', source: 'runtime', authority: 'uniclaw-runtime' }
+      ]
+    }, errors: [] }
+  }));
+  assert.equal(view.taskHeader.runId, 'run-1');
+  assert.deepEqual(view.taskHeader.logicalRefs, { projectRef: 'project/p', testSetRef: 'testset/p', taskRef: 'task/p/t', storageNamespaceRef: 'local:task-instance/i' });
+  assert.equal(view.metadataPane.claims.find((claim) => claim.key === 'device').valueOrigin, 'observed');
+  assert.equal(view.metadataPane.claims.find((claim) => claim.key === 'outcome').availability, 'not-collected');
+  assert.equal(view.metadataPane.launchStages[0].stage, 'run-bound');
+});
+
 test('keeps uncorrelated instances visible without inventing product identity', () => {
   const view = createWorkspaceViewModel(state());
   const orphan = view.navigation.taskInstances.find((item) => item.observed);

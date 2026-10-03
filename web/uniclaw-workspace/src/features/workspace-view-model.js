@@ -39,13 +39,14 @@ function createWorkspaceViewModel(input, options = {}) {
       origin: selectedTask && selectedTask.source || (session && session.source) || null,
       authority: selectedTask && selectedTask.authority || (session && session.authority) || null,
       metadata,
+      ...launchProjection(selectedTask, session),
       errors: errorsOf(state.session)
     },
     conversationTimeline: timelinePane(state.timeline, session),
     tracePane: { ...groupedPane(state.traces, 'traces', (item) => item.source || 'unknown'), mode: state.ui && state.ui.traceMode === 'split' ? 'split' : 'combined', selectedSource: state.ui && state.ui.traceSource || 'all' },
     evidencePane: evidencePane(state.evidence),
     executionPane: executionPane((state.session && state.session.session) || null),
-    metadataPane: { status: state.session && state.session.status || 'idle', items: metadata, errors: errorsOf(state.session) },
+    metadataPane: { status: state.session && state.session.status || 'idle', items: metadata, claims: metadataClaims(selectedTask, session), ...launchProjection(selectedTask, session), errors: errorsOf(state.session) },
     activePane: state.ui && state.ui.activePane || 'trace',
     detailActions: detailActions(state, selectedId),
     notices,
@@ -264,6 +265,27 @@ function mergeMetadata(task, session) {
     if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) Object.assign(out, clone(metadata));
   });
   return out;
+}
+
+function metadataClaims(task, session) {
+  const claims = [];
+  [task && task.metadataClaims, session && session.metadataClaims].forEach((value) => {
+    if (Array.isArray(value)) value.forEach((claim) => { if (claim && typeof claim === 'object' && claim.key) claims.push(clone(claim)); });
+  });
+  return claims;
+}
+
+function launchProjection(task, session) {
+  const value = session || task || {};
+  const logicalRefs = {};
+  ['projectRef', 'testSetRef', 'taskRef', 'storageNamespaceRef'].forEach((key) => {
+    if (value[key] !== undefined && value[key] !== null) logicalRefs[key] = clone(value[key]);
+  });
+  return {
+    runId: value.runId || null,
+    launchStages: Array.isArray(value.launchStages) ? clone(value.launchStages) : [],
+    logicalRefs
+  };
 }
 
 function collectNotices(state, selectedTask) {

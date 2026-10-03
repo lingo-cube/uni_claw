@@ -199,6 +199,7 @@ const launchTask = async (ctx, repository, request) => {
     correlationId: request.correlationId, launchRequestId: request.launchRequestId, runId,
     runIdMetadata: { value: runId, valueOrigin: 'generated', availability: 'available', source: 'uniclaw-runtime', authority: 'uniclaw-runtime' },
     metadata: request.metadata ?? {},
+    metadataClaims: Array.isArray(request.metadata) ? request.metadata : [],
     launchStages: [{ stage: 'requested', status: 'succeeded', source: 'task-launch', authority: 'uniclaw-runtime', valueOrigin: 'configured', availability: 'available', observedAt: new Date().toISOString() }],
     status: 'partial', startedAt: new Date().toISOString(),
   }
@@ -571,6 +572,13 @@ const workspaceCore = (repository, artifactSource) => {
         status: instance.status,
         startedAt: instance.startedAt,
         endedAt: instance.endedAt ?? null,
+        projectRef: instance.projectRef ?? task.projectRef ?? null,
+        testSetRef: instance.testSetRef ?? task.testSetRef ?? null,
+        taskRef: instance.taskRef ?? task.taskRef ?? null,
+        runId: instance.runId ?? null,
+        launchStages: Array.isArray(instance.launchStages) ? instance.launchStages : [],
+        storageNamespaceRef: instance.storageNamespaceRef ?? null,
+        metadataClaims: Array.isArray(instance.metadataClaims) ? instance.metadataClaims : [],
         task: {
           taskId: task.taskId,
           title: task.title,
