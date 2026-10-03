@@ -83,6 +83,7 @@ const sessionProjection = (payload, productSessionId, dshSessionId) => ({
   metadata: payload.metadata ?? null,
   conversation: payload.conversation,
   conversationGroups: payload.conversationGroups,
+  runStages: payload.runStages,
   dshTrace: payload.dshTrace,
   uniflowTrace: payload.uniflowTrace,
   uniclawTrace: payload.uniclawTrace,

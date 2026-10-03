@@ -1,7 +1,7 @@
 'use strict';
 
-// Renderer-neutral projection for the Workspace read model.  This module is
-// deliberately boring: it only shapes data and never performs I/O.
+// Renderer-neutral projection for the Workspace read model. This module only
+// shapes data; it never performs I/O and never depends on a transport.
 function createWorkspaceViewModel(input, options = {}) {
   const state = clone(input || {});
   const selectedId = state.selection && state.selection.productSessionId;
@@ -35,13 +35,14 @@ function createWorkspaceViewModel(input, options = {}) {
       title: (selectedTask && (selectedTask.title || selectedTask.name || selectedTask.task && selectedTask.task.title)) || (session && (session.title || session.name)) || options.emptyTitle || '未选择任务',
       projectId: state.selection && state.selection.projectId || (selectedTask && selectedTask.projectId) || null,
       correlationStatus: selectedTask && selectedTask.correlationStatus || (selectedId ? 'correlated' : 'unselected'),
-      source: selectedTask && selectedTask.source || (session && session.source) || null,
+      source: options.agentLabel || 'Uni-Agent',
+      origin: selectedTask && selectedTask.source || (session && session.source) || null,
       authority: selectedTask && selectedTask.authority || (session && session.authority) || null,
       metadata,
       errors: errorsOf(state.session)
     },
-    conversationTimeline: timelinePane(state.timeline),
-    tracePane: groupedPane(state.traces, 'traces', (item) => item.source || 'unknown', ['authority', 'correlationId', 'detailRef']),
+    conversationTimeline: timelinePane(state.timeline, session),
+    tracePane: groupedPane(state.traces, 'traces', (item) => item.source || 'unknown'),
     evidencePane: evidencePane(state.evidence),
     metadataPane: { status: state.session && state.session.status || 'idle', items: metadata, errors: errorsOf(state.session) },
     detailActions: detailActions(state, selectedId),
@@ -65,7 +66,7 @@ function taskCard(task) {
   };
 }
 
-function timelinePane(value) {
+function timelinePane(value, session = null) {
   const pane = page(value);
   const groups = { request: [], decision: [], result: [] };
   pane.items.forEach((item) => {
@@ -82,10 +83,90 @@ function timelinePane(value) {
       raw: clone(item)
     });
   });
-  return { status: pane.status, groups, errors: pane.errors, snapshotId: pane.snapshotId, revision: pane.revision, observedAt: pane.observedAt };
+  const rounds = conversationRounds(session && session.conversationGroups, groups);
+  const runStages = Array.isArray(session && session.runStages)
+    ? session.runStages.map(normalizeConversationStage).filter(Boolean)
+    : [];
+  return {
+    status: pane.status,
+    groups,
+    rounds,
+    runStages,
+    mode: rounds.length > 0 ? 'agent-conversation' : 'timeline',
+    errors: pane.errors,
+    snapshotId: pane.snapshotId,
+    revision: pane.revision,
+    observedAt: pane.observedAt
+  };
 }
 
-function groupedPane(value, key, groupBy, fields) {
+function conversationRounds(value, fallbackGroups) {
+  if (Array.isArray(value) && value.length > 0) {
+    return value.map((round, index) => ({
+      groupId: round.groupId || `round-${index + 1}`,
+      round: round.round || index + 1,
+      status: round.status || 'pending',
+      stages: (Array.isArray(round.stages)
+        ? round.stages
+        : [round.request, round.decision, round.submission || round.result, ...(round.extras || [])])
+        .map(normalizeConversationStage)
+        .filter(Boolean)
+    })).filter((round) => round.stages.length > 0);
+  }
+  const stages = ['request', 'decision', 'result']
+    .flatMap((kind) => (fallbackGroups[kind] || []).map(normalizeConversationStage));
+  return stages.length > 0 ? [{ groupId: 'round-1', round: 1, status: 'legacy', stages }] : [];
+}
+
+function normalizeConversationStage(stage) {
+  if (!stage || typeof stage !== 'object') return null;
+  const kind = stage.kind || stage.role || 'result';
+  const result = stage.result && typeof stage.result === 'object' ? stage.result : null;
+  return {
+    kind,
+    role: normalizeRole(stage.role, kind),
+    label: stage.label || labelForKind(kind),
+    text: stage.objective || stage.summary || stage.text || (result && result.text) || stage.justification || '',
+    objective: stage.objective || null,
+    phase: stage.phase || null,
+    decisionKind: stage.decisionKind || null,
+    justification: stage.justification || null,
+    steps: Array.isArray(stage.steps) ? stage.steps : [],
+    status: stage.status || (stage.isError ? 'error' : null),
+    isError: stage.isError === true || (result && result.isError === true),
+    seq: stage.seq == null ? null : stage.seq,
+    ts: stage.ts || '',
+    detailRef: stage.detailRef || null
+  };
+}
+
+function roleForKind(kind) {
+  if (kind === 'request' || kind === 'user') return 'requester';
+  if (kind === 'decision' || kind === 'assistant' || kind === 'plan') return 'agent';
+  if (kind === 'tool-call') return 'tool';
+  return 'system';
+}
+
+function normalizeRole(role, kind) {
+  const value = String(role || '').toLowerCase();
+  if (value === 'request' || value === 'requester' || value === 'user' || value === 'caller') return 'requester';
+  if (value === 'assistant' || value === 'agent') return 'agent';
+  if (value === 'tool') return 'tool';
+  if (value === 'system') return 'system';
+  return roleForKind(kind);
+}
+
+function labelForKind(kind) {
+  if (kind === 'request' || kind === 'user') return '调用方请求';
+  if (kind === 'decision' || kind === 'assistant') return 'Uni-Agent 决策';
+  if (kind === 'tool-call') return '能力调用';
+  if (kind === 'tool-result' || kind === 'result') return '提交结果';
+  if (kind === 'execution') return '执行结果';
+  if (kind === 'verification') return '验证结果';
+  return 'Uni-Agent';
+}
+
+function groupedPane(value, key, groupBy) {
   const pane = page(value);
   const groups = {};
   pane.items.forEach((item) => {
@@ -121,7 +202,9 @@ function evidencePane(value) {
         correlationId: item.correlationId || null,
         correlationStatus,
         detailRef: item.detailRef || null,
-        detailAction: item.detailRef && correlationStatus !== 'uncorrelated' && !['permission-denied', 'not-found', 'uncorrelated'].includes(code) ? { enabled: true, detailRef: clone(item.detailRef) } : { enabled: false, reason: correlationStatus === 'uncorrelated' ? 'uncorrelated' : (code || (item.detailRef ? 'unavailable' : 'not-found')) },
+        detailAction: item.detailRef && correlationStatus !== 'uncorrelated' && !['permission-denied', 'not-found', 'uncorrelated'].includes(code)
+          ? { enabled: true, detailRef: clone(item.detailRef) }
+          : { enabled: false, reason: correlationStatus === 'uncorrelated' ? 'uncorrelated' : (code || (item.detailRef ? 'unavailable' : 'not-found')) },
         error: error ? clone(error) : null,
         raw: clone(item)
       };
@@ -145,14 +228,40 @@ function mergeMetadata(task, session) {
 
 function collectNotices(state, selectedTask) {
   const notices = [];
-  [state.projects, state.selection && state.selection.taskInstances, state.session, state.timeline, state.traces, state.evidence, state.detail].forEach((part) => errorsOf(part).forEach((error) => notices.push({ level: severity(error.code), code: error.code || 'unknown', message: error.message || 'Workspace error', source: error.source || 'workspace', error: clone(error) })));
+  [state.projects, state.selection && state.selection.taskInstances, state.session, state.timeline, state.traces, state.evidence, state.detail]
+    .forEach((part) => errorsOf(part).forEach((error) => notices.push({ level: severity(error.code), code: error.code || 'unknown', message: error.message || 'Workspace error', source: error.source || 'workspace', error: clone(error) })));
   if (selectedTask && selectedTask.correlationStatus === 'uncorrelated') notices.push({ level: 'warning', code: 'uncorrelated', message: '任务实例未关联 ProductSessionId', source: 'workspace' });
   [state.projects, state.selection && state.selection.taskInstances, state.traces, state.evidence].forEach((part) => {
     (part && Array.isArray(part.items) ? part.items : []).forEach((item) => {
       if (item && item.correlationStatus === 'uncorrelated') notices.push({ level: 'warning', code: 'uncorrelated', message: '记录未关联 ProductSessionId', source: item.source || 'workspace', error: { code: 'uncorrelated' } });
     });
   });
-  return notices;
+  return aggregateNotices(notices);
+}
+
+function aggregateNotices(notices) {
+  const grouped = new Map();
+  notices.forEach((notice) => {
+    const code = notice.code || 'unknown';
+    const message = notice.message || 'Workspace error';
+    const key = `${code}\u0000${message}`;
+    const current = grouped.get(key);
+    if (current) {
+      current.count += 1;
+      if (notice.source && !current.sources.includes(notice.source)) current.sources.push(notice.source);
+      current.occurrences.push({ source: notice.source || 'workspace', message });
+      return;
+    }
+    grouped.set(key, {
+      ...notice,
+      code,
+      message,
+      count: 1,
+      sources: notice.source ? [notice.source] : ['workspace'],
+      occurrences: [{ source: notice.source || 'workspace', message }]
+    });
+  });
+  return [...grouped.values()];
 }
 
 function overallStatus(state, notices) {

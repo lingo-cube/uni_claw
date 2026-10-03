@@ -304,7 +304,10 @@ const listSessionEvents = async (ctx, sessionId) => {
     const events = snapshot !== null && typeof snapshot === 'object' && Array.isArray(snapshot.events)
       ? snapshot.events
       : []
-    return { ok: true, events }
+    const session = snapshot !== null && typeof snapshot === 'object' && snapshot.session && typeof snapshot.session === 'object'
+      ? snapshot.session
+      : null
+    return { ok: true, events, session }
   } catch (error) {
     return panelError('session-query-failed', String(error && error.message ? error.message : error))
   }
@@ -422,6 +425,9 @@ const workspaceCore = (repository, artifactSource) => {
       project.instances.push({
         instanceId: instance.instanceId,
         sessionId: instance.sessionId,
+        ...(typeof instance.productSessionId === 'string' && instance.productSessionId.length > 0
+          ? { productSessionId: instance.productSessionId, correlationStatus: 'correlated' }
+          : { correlationStatus: 'uncorrelated' }),
         status: instance.status,
         startedAt: instance.startedAt,
         endedAt: instance.endedAt ?? null,
@@ -447,6 +453,9 @@ const workspaceCore = (repository, artifactSource) => {
     projectMap.get(projectId).instances.push({
       instanceId: `observed:${sessionId}`,
       sessionId,
+      ...(typeof metadata.productSessionId === 'string' && metadata.productSessionId.length > 0
+        ? { productSessionId: metadata.productSessionId, correlationStatus: 'correlated' }
+        : { correlationStatus: 'uncorrelated' }),
       status: typeof metadata.status === 'string' ? metadata.status : 'observed',
       startedAt: null,
       endedAt: null,
@@ -726,10 +735,20 @@ const sessionDetailCore = async (ctx, repository, artifactSource, sessionId) => 
   }
   const events = await listSessionEvents(ctx, sessionId)
   if (!events.ok) return events
-  const sessions = await listSessionsCore(ctx, repository)
-  if (!sessions.ok) return sessions
-  const metadata = sessions.sessions.find(s => s.sessionId === sessionId) ?? {
-    sessionId, title: '', lastActiveAt: null, createdAt: null, live: false, persisted: false, cwd: null,
+  // The event read already returned the exact session header. Avoid calling
+  // listSessions()/readTitleSnapshots() here: those methods scan and title-fold
+  // the entire persisted corpus, which makes one task card depend on unrelated
+  // sessions and turns a cold real read into a timeout.
+  const sessionHeader = events.session
+  const metadata = {
+    sessionId,
+    title: '',
+    lastActiveAt: null,
+    createdAt: Number.isSafeInteger(sessionHeader?.createdAt) ? sessionHeader.createdAt : null,
+    live: false,
+    persisted: true,
+    cwd: typeof sessionHeader?.cwd === 'string' ? sessionHeader.cwd : null,
+    agentPreset: typeof sessionHeader?.agentPreset === 'string' ? sessionHeader.agentPreset : null,
   }
   if (observed?.metadata) {
     metadata.artifact = {

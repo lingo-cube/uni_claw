@@ -58,7 +58,7 @@
     "DSH sessionId 是 hostSessionRef，ProductSessionId 是产品任务 identity。"
   ],
   "dependencies": ["WI-PNL003-011", "WI-PNL003-014", "WI-PNL003-015"],
-  "status": "in_progress",
+  "status": "completed",
   "required_skills": ["dsh-plugin-static-client-ui", "tdd", "codebase-design"],
   "required_capability": "implementation"
 }

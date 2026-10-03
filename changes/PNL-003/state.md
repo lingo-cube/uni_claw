@@ -82,13 +82,14 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 - Completed WorkItem：`workitems/WI-PNL003-013.json`（Luna Worker；Query Core 失败 envelope 元数据）
 - Completed WorkItem：`workitems/WI-PNL003-014.json`（Luna Worker；导航任务卡去重）
 - Blocked WorkItem：`workitems/WI-PNL003-015.json`（Luna Worker；真实 DSH Static Client 挂载缝审计，已拆出 WI-PNL003-016）
-- Active WorkItem：`workitems/WI-PNL003-016.json`（Luna Worker；Browser Bridge / Generated Bundle）
+- Completed WorkItem：`workitems/WI-PNL003-016.json`（Luna Worker；Browser Bridge / Generated Bundle）
 - Completed evidence：`evidence/PNL-003-WI-PNL003-001.md`
 - Completed evidence：`evidence/PNL-003-WI-PNL003-002.md`
 - Completed evidence：`evidence/PNL-003-WI-PNL003-011.md`
 - Completed evidence：`evidence/PNL-003-WI-PNL003-012.md`
 - Completed evidence：`evidence/PNL-003-WI-PNL003-013.md`
 - Completed evidence：`evidence/PNL-003-WI-PNL003-014.md`
+- Completed evidence：`evidence/PNL-003-WI-PNL003-016.md`
 
 ## Assumptions
 
@@ -179,3 +180,6 @@ verification:
 - 2026-10-02 · PLAN → IMPLEMENT · 建立 `WI-PNL003-015`；冻结真实 DSH static Client 的 bundle/bridge seam 审计，要求不复制 shared renderer，派发 Luna 做实现就绪分析，Leader 负责裁决后再进入实际挂载。
 - 2026-10-02 · IMPLEMENT → REVIEW · Luna 审计确认 `UPSTREAM_DESIGN_CONFLICT`：现有 DSH classic client 不调用 Node Host wrapper，shared Workspace 是 CommonJS 且没有 browser export；当前 client 还内嵌第二套 React renderer/state/RPC 投影，不能宣称已复用通用前端。下一步需建立显式 browser bridge/generated bundle，保留 shared source 单一真相。
 - 2026-10-02 · PLAN → IMPLEMENT · 用户确认上一轮验收无问题并继续；建立 `WI-PNL003-016`，冻结 browser bridge/generated bundle、strict codec、profile restart 和真实浏览器验收，派发 Luna 实现，Leader 负责独立 Review/Verify。
+- 2026-10-03 · IMPLEMENT → REVIEW → VERIFY · 完成 `WI-PNL003-016`：修正 DSH Typert `{ok,value:{success,...}}` 解包、观察产物 ProductSession 映射和 browser bridge 事件委托；加入 DSH capability 超时，避免连接断开时永久 loading。Web 55/55、DSH 49/49、bundle build、profile deploy/drift check、node --check 与 diff check 通过。专用 DSH 浏览器已显示真实项目/任务卡并验证 `correlated` 选择；旧实录没有活动 Host session 时按约显示结构化 `DSH session capability timed out`，未伪造对话或 Trace。详细证据见 `evidence/PNL-003-WI-PNL003-016.md`。
+- 2026-10-03 · IMPLEMENT → REVIEW → VERIFY · 根据真实浏览器验收优化错误通知交互：相同 code/message 聚合为单一状态栏，显示影响数量和来源，详情使用原生折叠展开，并提供“重试当前任务”；Web 57/57、browser bundle build、profile deploy/drift check 通过。真实 DSH 在 session capability 超时时展示 `4 处` 聚合行，展开后保留四条来源明细，点击重试进入 loading 并回到结构化错误状态。详细证据补充在 `evidence/PNL-003-WI-PNL003-016.md`。
+- 2026-10-03 · VERIFY · 将本轮真实数据验收任务、DSH cold-read 修复和工作区边界收敛到当前 `uni-harness` 分支：详情读取改为目标 session header 直读，browser capability timeout 调整为 30 秒；专用 DSH `3083` 重启后真实页面可读 session、trace、evidence、metadata，并按 `AgentDecisionContext` 边界决定是否显示 Uni-Agent 对话。跨 workspace/普通 DSH session 的“暂无对话”与 not-found 结果均保持如实可见，不伪造产品数据。证据见 `evidence/PNL-003-WI-PNL003-016.md`。

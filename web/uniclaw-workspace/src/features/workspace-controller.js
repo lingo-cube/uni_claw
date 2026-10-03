@@ -69,7 +69,16 @@ function createWorkspaceController({ queryCore } = {}) {
   }
   async function selectTaskInstance(productSessionId) {
     if (typeof productSessionId !== 'string' || !productSessionId) throw new TypeError('productSessionId is required');
-    state.selection = { ...state.selection, productSessionId };
+    const task = state.projects.items
+      ?.flatMap((project) => project.instances || project.taskInstances || project.tasks || [])
+      .find((item) => item.productSessionId === productSessionId) || null;
+    state.selection = {
+      ...state.selection,
+      productSessionId,
+      taskInstances: task
+        ? { status: 'ready', items: [task], errors: [] }
+        : (state.selection.taskInstances || { status: 'idle', items: [], errors: [] })
+    };
     resetSelectionData();
     publish();
     return publish();

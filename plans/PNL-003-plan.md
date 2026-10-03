@@ -283,7 +283,7 @@ WorkItem：`workitems/WI-PNL003-015.json`。
 
 WorkItem：`workitems/WI-PNL003-016.json`。
 
-按第十五项审计结论实现 browser-compatible shared bundle，让 DSH static Client 只承担 loader、RPC descriptor 和挂载适配；完成离线 bundle、profile restart 与浏览器主流程验收后，才能宣称真实 DSH 入口接入完成。
+按第十五项审计结论实现 browser-compatible shared bundle，让 DSH static Client 只承担 loader、RPC descriptor 和挂载适配。已完成离线 bundle、profile deploy/restart、真实 DSH 入口、ProductSession 映射和局部超时错误验收；证据：`evidence/PNL-003-WI-PNL003-016.md`。真实 DSH 专用进程没有旧实录对应的活动 session snapshot，故时间线读取按结构化超时显示，未伪造数据。
 
 ## 第一项验收标准
 

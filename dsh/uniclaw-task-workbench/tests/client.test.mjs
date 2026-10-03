@@ -168,13 +168,13 @@ test('client smoke: RPC failure surfaces as structured error, panel does not thr
   assert.deepEqual(registered.sort(), ['uniclaw-task-panel-entry', 'uniclaw-task-panel-overlay'])
 })
 
-test('client smoke: source contains only the three workspace RPC calls', async () => {
+test('client smoke: source contains the descriptor bridge and workspace UI contract', async () => {
   const source = readFileSync(join(PACKAGE_ROOT, 'src', 'client.js'), 'utf8')
-  assert.ok(source.includes('callRpc(ctx, "workspace")'), 'missing workspace RPC call')
-  assert.ok(source.includes('callRpc(ctx, "session", [sessionId])'), 'missing session RPC call')
-  assert.ok(source.includes('callRpc(ctx, "artifact", [selectedSessionId, ref])'), 'missing artifact RPC call')
-  assert.equal(source.match(/callRpc\(ctx, /g).length, 3, 'client must call exactly three RPC methods')
-  for (const required of ['UniClaw 工作空间', 'Uni-Agent', '请求 → 决策 → 提交', '执行结果', '验证结果', 'runStages', 'conversationGroups', 'DSH Trace', 'UniClaw Trace', '元数据', '证据', '查看明细', '读取中…', '返回 DSH']) {
+  assert.ok(source.includes('const contribution={package:"@uniclaw/dsh-task-workbench"'))
+  assert.ok(source.includes('remote.uniclawTaskPanel'))
+  assert.ok(source.includes('workspaceStyleText'))
+  assert.ok(source.includes('uniclaw-workspace-styles'))
+  for (const required of ['Uni-Agent 解决过程', '执行与验证', 'Trace', 'Evidence', 'Metadata', '查看明细', 'conversationGroups', 'runStages']) {
     assert.ok(source.includes(required), `workspace UI missing: ${required}`)
   }
 })
