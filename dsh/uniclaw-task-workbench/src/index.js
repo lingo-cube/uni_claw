@@ -132,6 +132,117 @@ const validateRequest = (body, rootSchema, defName) => {
 }
 
 const newInstanceId = () => `psi-${randomBytes(8).toString('hex')}`
+const newLaunchId = () => `launch-${randomBytes(8).toString('hex')}`
+
+const logicalRefValid = (ref) => typeof ref?.id === 'string'
+  && ref.id.length > 0
+  && !ref.id.startsWith(('/', './', '../'))
+  && !ref.id.includes('\\')
+  && !ref.id.split('/').some(segment => segment === '..')
+
+const configuredClaimsValid = claims => Array.isArray(claims)
+  && claims.every(claim => claim !== null && typeof claim === 'object'
+    && typeof claim.key === 'string' && claim.key.length > 0
+    && Object.hasOwn(claim, 'value')
+    && claim.valueOrigin === 'configured'
+    && ['present', 'partial', 'unavailable', 'not-collected', 'not-applicable', 'not-associated', 'permission-denied'].includes(claim.availability)
+    && typeof claim.source === 'string' && claim.source.length > 0
+    && typeof claim.authority === 'string' && claim.authority.length > 0)
+
+const launchRequestValid = (body) => body !== null && typeof body === 'object'
+  && body.schemaVersion === 'uniclaw.workspace.task-launch-request.v1'
+  && body.contractVersion === 'uniclaw.workspace.contract.v1'
+  && typeof body.launchRequestId === 'string' && body.launchRequestId.length > 0
+  && typeof body.correlationId === 'string' && body.correlationId.length > 0
+  && typeof body.requestedAt === 'string' && !Number.isNaN(Date.parse(body.requestedAt))
+  && typeof body.idempotencyKey === 'string' && body.idempotencyKey.length > 0
+  && logicalRefValid(body.projectRef)
+  && logicalRefValid(body.taskRef)
+  && logicalRefValid(body.testSetRef)
+  && body.testSetRef.version === 'default'
+  && (!Object.hasOwn(body.testSetRef, 'sourceRevision')
+    || (typeof body.testSetRef.sourceRevision === 'string'
+      && body.testSetRef.sourceRevision.length > 0
+      && !body.testSetRef.sourceRevision.includes('/')
+      && !body.testSetRef.sourceRevision.includes('\\')))
+  && configuredClaimsValid(body.metadata ?? [])
+
+const launchRefId = ref => typeof ref === 'string' ? ref : ref?.id
+
+/** Task Launch write seam. Runtime is the only authority allowed to mint runId.
+ * The existing instantiateTask path remains frozen for compatibility. */
+const launchTask = async (ctx, repository, request) => {
+  if (!launchRequestValid(request)) {
+    return { ok: false, status: 400, code: 'invalid-launch-request', message: 'canonical TaskLaunchRequest fields and logical refs are required (testSetRef.version must be default)' }
+  }
+  const existing = repository.findInstanceByIdempotencyKey(request.idempotencyKey)
+  if (existing !== null) return { ok: true, idempotent: true, instance: existing.instance }
+
+  const runtime = ctx.get('uniclawRuntime')
+  if (runtime === undefined || runtime === null || typeof runtime.createRun !== 'function') {
+    return { ok: false, status: 500, code: 'runtime-unavailable', message: 'UniClaw Runtime run seam is unavailable' }
+  }
+  let run
+  try {
+    run = await runtime.createRun({ projectRef: request.projectRef, testSetRef: request.testSetRef, taskRef: request.taskRef, correlationId: request.correlationId })
+  } catch (error) {
+    return { ok: false, status: 500, code: 'run-create-failed', message: String(error?.message ?? error) }
+  }
+  const runId = typeof run?.runId === 'string' ? run.runId : ''
+  if (runId.length === 0) return { ok: false, status: 500, code: 'run-create-failed', message: 'Runtime did not return runId' }
+
+  const launchId = newLaunchId()
+  const instanceId = newInstanceId()
+  const base = {
+    instanceId, launchId, idempotencyKey: request.idempotencyKey,
+    projectRef: launchRefId(request.projectRef), testSetRef: launchRefId(request.testSetRef), testSetVersion: request.testSetRef.version, taskRef: launchRefId(request.taskRef),
+    correlationId: request.correlationId, launchRequestId: request.launchRequestId, runId,
+    runIdMetadata: { value: runId, valueOrigin: 'generated', availability: 'available', source: 'uniclaw-runtime', authority: 'uniclaw-runtime' },
+    metadata: request.metadata ?? {},
+    launchStages: [{ stage: 'requested', status: 'succeeded', source: 'task-launch', authority: 'uniclaw-runtime', valueOrigin: 'configured', availability: 'available', observedAt: new Date().toISOString() }],
+    status: 'partial', startedAt: new Date().toISOString(),
+  }
+  const taskRecord = request.taskId ? repository.get(request.taskId) : repository.list().find(task => task.projectRef?.path === launchRefId(request.projectRef))
+  let taskId = taskRecord?.taskId
+  if (!taskId) {
+    try {
+      taskId = repository.create({ taskId: launchRefId(request.taskRef), title: request.taskRef.label ?? launchRefId(request.taskRef), requirement: request.taskRef.label ?? launchRefId(request.taskRef), projectRef: { path: launchRefId(request.projectRef) }, status: 'active' }).taskId
+    } catch (error) {
+      return { ok: false, status: 500, code: 'task-create-failed', message: String(error?.message ?? error) }
+    }
+  }
+  let stored
+  try {
+    stored = repository.addInstance(taskId, base)
+  } catch {
+    // A runtime run exists, but no product instance was persisted. Surface the
+    // recovery identity without pretending the launch completed.
+    return { ok: false, status: 500, code: 'instance-store-failed', message: `run ${runId} created but task instance persistence failed`, partial: { launchId, runId, status: 'partial' } }
+  }
+
+  const controller = ctx.get('sessionController')
+  const registry = ctx.get('workspaceRegistry')
+  try {
+    if (typeof registry?.resolveByPath !== 'function' || typeof registry?.create !== 'function') throw new Error('workspace registry unavailable')
+    const workspace = await registry.resolveByPath(launchRefId(request.projectRef))
+    const workspaceId = workspace?.id ?? (await registry.create(launchRefId(request.projectRef))).id
+    const created = await controller.create({ agentPreset: AGENT_PRESET_ID, workspaceId })
+    const sessionId = typeof created === 'string' ? created : (created?.sessionId ?? created?.id)
+    if (typeof sessionId !== 'string' || sessionId.length === 0) throw new Error('Host did not return session identity')
+    const productSessionId = typeof run.productSessionId === 'string' ? run.productSessionId : null
+    stored = repository.updateInstance(taskId, instanceId, {
+      sessionId, productSessionId, hostSessionRef: sessionId,
+      storageNamespaceRef: `local:task-instance/${instanceId}`,
+      status: 'active',
+      launchStages: [...base.launchStages, { stage: 'run-bound', status: 'succeeded', source: 'uniclaw-runtime', authority: 'uniclaw-runtime', valueOrigin: 'generated', availability: 'available', runId, observedAt: new Date().toISOString() }, { stage: 'host-session-bound', status: 'succeeded', source: 'dsh-session-controller', authority: 'dsh-host', valueOrigin: 'generated', availability: 'available', observedAt: new Date().toISOString() }],
+    })
+    return { ok: true, instance: stored }
+  } catch (error) {
+    const message = String(error?.message ?? error)
+    try { stored = repository.updateInstance(taskId, instanceId, { status: 'partial', recovery: { code: 'host-session-or-storage-failed', message }, launchStages: [...base.launchStages, { stage: 'failed', status: 'partial', source: 'task-launch', authority: 'uniclaw-runtime', valueOrigin: 'derived', availability: 'unavailable', reason: message, observedAt: new Date().toISOString() }] }) } catch { /* preserve original failure */ }
+    return { ok: false, status: 500, code: 'launch-partial', message, partial: stored ?? base }
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Product Workspace panel service. Plain functions first,
@@ -897,6 +1008,12 @@ export function createTaskPanelService(ctx, repository, artifactSource = null) {
       return panelFail(panelError(result.code, result.message))
     },
 
+    async launch(body) {
+      const result = await launchTask(ctx, repository, body)
+      if (result.ok) return { success: true, idempotent: result.idempotent === true, instance: result.instance }
+      return { success: false, error: { code: result.code, message: result.message, ...(result.partial ? { partial: result.partial } : {}) } }
+    },
+
     async sessions() {
       const result = await listSessionsCore(ctx, repository)
       if (!result.ok) return panelFail(result)
@@ -1069,6 +1186,19 @@ export function apply(ctx, config) {
   // two protocols cannot drift). Wire shape unchanged: routes/status codes/
   // response fields are frozen.
   ctx.connection.fetch.register({
+    path: '/api/uniclaw-task/tasks/launch',
+    methods: ['POST'],
+    requestBody: 'buffered',
+    fetch: async (request) => {
+      const body = await readJson(request)
+      if (body === null) return fail(400, 'gateway/bad-request', 'launch body must be a JSON object')
+      const result = await launchTask(ctx, repository, body)
+      if (!result.ok) return fail(result.status, result.code, result.message, result.partial ? { partial: result.partial } : undefined)
+      return json(200, { ok: true, idempotent: result.idempotent === true, instance: result.instance })
+    },
+  })
+
+  ctx.connection.fetch.register({
     path: '/api/uniclaw-task/tasks/instantiate',
     methods: ['POST'],
     requestBody: 'buffered',
@@ -1093,7 +1223,7 @@ export function apply(ctx, config) {
   // import inside the node --test child stalls the runner ~60s).
   if (panelProtocolAvailable()) {
     const panel = createTaskPanelService(ctx, repository, artifactSource)
-    const PANEL_METHODS = ['overview', 'createTask', 'instantiate', 'sessions', 'trace', 'workspace', 'session', 'artifact', 'diagnostic']
+    const PANEL_METHODS = ['overview', 'createTask', 'instantiate', 'launch', 'sessions', 'trace', 'workspace', 'session', 'artifact', 'diagnostic']
     import('@deepseek-ai/dsh-typert-protocol').then(({ TypertRemoteService, Remote }) => {
       class TaskPanelHost extends TypertRemoteService {
         static inject = []
@@ -1109,6 +1239,7 @@ export function apply(ctx, config) {
         overview: [],
         createTask: ['title', 'requirement', 'projectRef'],
         instantiate: ['taskId'],
+        launch: ['projectRef', 'testSetRef', 'taskRef', 'idempotencyKey', 'correlationId', 'metadata', 'taskId'],
         sessions: [],
         trace: ['sessionId'],
         workspace: [],
@@ -1153,6 +1284,7 @@ export function apply(ctx, config) {
         overview: [],
         createTask: [param('title'), param('requirement'), param('projectRef', true)],
         instantiate: [param('taskId')],
+        launch: [param('projectRef'), param('testSetRef'), param('taskRef'), param('idempotencyKey'), param('correlationId', true), param('metadata', true), param('taskId', true)],
         sessions: [],
         trace: [param('sessionId')],
         workspace: [],

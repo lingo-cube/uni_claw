@@ -99,6 +99,16 @@ export function createTaskRepository(filePath, now = () => new Date().toISOStrin
       persist()
       return JSON.parse(JSON.stringify(instance))
     },
+    findInstanceByIdempotencyKey(idempotencyKey) {
+      if (typeof idempotencyKey !== 'string' || idempotencyKey.length === 0) return null
+      for (const task of load().tasks) {
+        const instance = Array.isArray(task.instances)
+          ? task.instances.find(item => item.idempotencyKey === idempotencyKey)
+          : null
+        if (instance) return JSON.parse(JSON.stringify({ task, instance }))
+      }
+      return null
+    },
     /** Test seam: mint IDs without touching the store. */
     _idShapes: { newTaskId, newInstanceId },
   }

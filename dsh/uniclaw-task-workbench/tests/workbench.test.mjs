@@ -21,7 +21,7 @@ const FROZEN_SCHEMA_DIR = join(PACKAGE_ROOT, 'schema')
 const TEST_ROOT = mkdtempSync(join(tmpdir(), 'uniclaw-task-wb-'))
 
 /** Apply the plugin in host mode against a fresh mock ctx. */
-function applyHost({ schemaDir = FROZEN_SCHEMA_DIR, controller, registry } = {}) {
+function applyHost({ schemaDir = FROZEN_SCHEMA_DIR, controller, registry, runtime } = {}) {
   const routes = new Map()
   const ctx = {
     connection: {
@@ -33,6 +33,7 @@ function applyHost({ schemaDir = FROZEN_SCHEMA_DIR, controller, registry } = {})
     get(key) {
       if (key === 'sessionController') return controller
       if (key === 'workspaceRegistry') return registry
+      if (key === 'uniclawRuntime') return runtime
       return undefined
     },
   }
@@ -242,6 +243,51 @@ test('instantiate: malformed body → gateway/bad-request before any store acces
   assert.equal(response.status, 400)
   assert.equal((await response.json()).error.code, 'gateway/bad-request')
   assert.deepEqual(controller.createCalls, [])
+})
+
+test('launch: Runtime-owned run and Host binding are explicit and idempotent', async () => {
+  const controller = mockController()
+  const runtime = { calls: [], async createRun(request) { runtime.calls.push(request); return { runId: 'run-runtime-1', productSessionId: 'product-session-1' } } }
+  const { routes } = applyHost({ controller, registry: mockRegistry(), runtime })
+  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-1', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/wifi-state' }, idempotencyKey: 'idem-1', correlationId: 'corr-1', requestedAt: new Date().toISOString(), metadata: [] }
+  const first = await post(routes, '/api/uniclaw-task/tasks/launch', request)
+  assert.equal(first.status, 200)
+  const firstPayload = await first.json()
+  assert.equal(firstPayload.ok, true)
+  assert.equal(firstPayload.instance.runId, 'run-runtime-1')
+  assert.equal(firstPayload.instance.productSessionId, 'product-session-1')
+  assert.equal(firstPayload.instance.status, 'active')
+  const second = await post(routes, '/api/uniclaw-task/tasks/launch', request)
+  const secondPayload = await second.json()
+  assert.equal(second.status, 200)
+  assert.equal(secondPayload.idempotent, true)
+  assert.equal(secondPayload.instance.instanceId, firstPayload.instance.instanceId)
+  assert.equal(runtime.calls.length, 1)
+  assert.equal(controller.createCalls.length, 1)
+})
+
+test('launch: Host failure leaves a partial recoverable instance after Runtime created run', async () => {
+  const runtime = { async createRun() { return { runId: 'run-partial-1' } } }
+  const controller = mockController({ createError: new Error('host unavailable') })
+  const { routes } = applyHost({ controller, registry: mockRegistry(), runtime })
+  const response = await post(routes, '/api/uniclaw-task/tasks/launch', { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-partial', projectRef: { id: 'project/workspace-contract' }, testSetRef: { id: 'testset/workspace-contract', version: 'default' }, taskRef: { id: 'task/workspace-contract/request-decision-result' }, idempotencyKey: 'idem-partial', correlationId: 'corr-partial', requestedAt: new Date().toISOString(), metadata: [] })
+  assert.equal(response.status, 500)
+  const payload = await response.json()
+  assert.equal(payload.error.code, 'launch-partial')
+  assert.equal(payload.error.details.partial.status, 'partial')
+  assert.equal(payload.error.details.partial.runId, 'run-partial-1')
+})
+
+test('launch: metadata and logical refs fail closed before Runtime creation', async () => {
+  const runtime = { calls: 0, async createRun() { runtime.calls += 1; return { runId: 'run-never-created' } } }
+  const { routes } = applyHost({ controller: mockController(), registry: mockRegistry(), runtime })
+  const base = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-invalid', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/wifi-state' }, idempotencyKey: 'idem-invalid', correlationId: 'corr-invalid', requestedAt: new Date().toISOString(), metadata: [] }
+  let response = await post(routes, '/api/uniclaw-task/tasks/launch', { ...base, metadata: [{ key: 'agentPreset', value: 'uniagent-prod', valueOrigin: 'observed', availability: 'present', source: 'test', authority: 'test' }] })
+  assert.equal(response.status, 400)
+  assert.equal((await response.json()).error.code, 'invalid-launch-request')
+  response = await post(routes, '/api/uniclaw-task/tasks/launch', { ...base, projectRef: { id: '../physical/path' } })
+  assert.equal(response.status, 400)
+  assert.equal(runtime.calls, 0)
 })
 
 // ---------------------------------------------------------------------------
