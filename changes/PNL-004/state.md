@@ -1,6 +1,6 @@
 # PNL-004 — Observability Contract and Task Launch/Query Storage Seam
 
-lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: working-tree
 
 ## Intent（WHAT/WHY）
 
@@ -52,7 +52,8 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 - Completed WorkItem：`workitems/WI-PNL004-002.json`（Repository Test Catalog）
 - Completed WorkItem：`workitems/WI-PNL004-003.json`（Task Launch + Local Storage）
 - Completed WorkItem：`workitems/WI-PNL004-004.json`（Query Projection + UI metadata）
-- Pending WorkItem：`workitems/WI-PNL004-005.json`（Integration / real verification）
+- Completed WorkItem：`workitems/WI-PNL004-005.json`（Integration / real verification）
+- Completed WorkItem：`workitems/WI-PNL004-006.json`（Launch contract/recovery remediation）
 
 ## Status log
 
@@ -61,6 +62,9 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 - 2026-10-03 · PLAN → IMPLEMENT → REVIEW → VERIFY（S2）· 完成两个本地测试集 manifest 与 fail-closed validator；S3–S5 仍待执行。
 - 2026-10-04 · PLAN → IMPLEMENT → REVIEW → VERIFY（S3）· 完成 canonical Task Launch、Runtime-owned run、幂等复用和 partial recovery；S4–S5 仍待执行。
 - 2026-10-04 · PLAN → IMPLEMENT → REVIEW → VERIFY（S4）· 完成五类 Query 与共享 metadata provenance 投影；S5 仍待执行。
+- 2026-10-04 · REVIEW · Standards/Spec review 发现 stage availability/ack shape 漂移、manifest 未解析、namespace 仅字符串、partial retry 不恢复；转入 WI-PNL004-006。
+- 2026-10-04 · IMPLEMENT → VERIFY · WI-PNL004-006 修复契约、catalog fail-closed、逻辑 namespace 和 partial retry；DSH 54/54、schema/manifest validators 通过。
+- 2026-10-04 · VERIFY · WI-PNL004-005 完成真实 Android fixture、双入口回归、故障/幂等/未关联场景验收；3083 shell 访问按认证边界返回 401。
 
 ## Evidence targets
 

@@ -45,7 +45,7 @@
   "dependencies": [
     "WI-PNL004-004"
   ],
-  "status": "pending",
+  "status": "done",
   "required_skills": [
     "code-review"
   ]

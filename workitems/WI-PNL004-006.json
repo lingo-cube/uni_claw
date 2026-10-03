@@ -1,0 +1,54 @@
+{
+  "id": "WI-PNL004-006",
+  "objective": "修复 PNL-004 S3/S4 review 暴露的契约漂移、catalog 校验、namespace 持久化和 partial 幂等恢复缺口。",
+  "scope": {
+    "write": [
+      "dsh/uniclaw-task-workbench/src/",
+      "dsh/uniclaw-task-workbench/tests/",
+      "plans/2026-10-03-pnl-004-plan.md",
+      "changes/PNL-004/state.md"
+    ],
+    "read_hints": [
+      "schemas/workspace/launch-stage-record.schema.json",
+      "schemas/workspace/task-launch-ack.schema.json",
+      "schemas/workspace/local-storage-namespace.schema.json",
+      "testsets/",
+      "dsh/uniclaw-task-workbench/src/index.js",
+      "dsh/uniclaw-task-workbench/src/repository.js"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Launch response/stages must validate against S1; local namespace and partial retry need durable logical records; testset/task refs must resolve against local manifest without exposing paths.",
+    "core_points": [
+      "availability 使用 schema canonical 枚举",
+      "stage/binding/namespace 形状与 S1 对齐",
+      "partial retry 复用原 run/instance，不重复 createRun",
+      "manifest 只作为逻辑引用校验源"
+    ]
+  },
+  "acceptance": [
+    "每个 launch stage 通过 launch-stage-record.schema.json；TaskLaunchAck bindings 和 LocalStorageNamespace 通过对应 schema",
+    "同一幂等键在 partial 状态重试复用原 runId/instanceId，并尝试完成缺失 Host/session/namespace 阶段",
+    "未知 testSet/task 或 sourceRevision 不匹配在 Runtime createRun 前 fail closed；响应不泄漏物理路径",
+    "namespace 有可查询的逻辑持久记录和状态，不只是一段字符串",
+    "现有 DSH/Web tests 加新增负向/恢复/schema round-trip tests 全部通过"
+  ],
+  "forbidden": [
+    "不修改共享前端视觉基线",
+    "不新增 Query capability",
+    "不从 artifact 或 DSH session 推导 Product truth",
+    "不把物理 testsets 路径写入公共响应",
+    "不触碰并行 docs/design、docs/research 或 AGT-011 文件"
+  ],
+  "dependencies": [
+    "WI-PNL004-001",
+    "WI-PNL004-002",
+    "WI-PNL004-003",
+    "WI-PNL004-004"
+  ],
+  "status": "done",
+  "required_skills": [
+    "codebase-design",
+    "tdd"
+  ]
+}
