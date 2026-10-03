@@ -176,7 +176,7 @@ function groupedPane(value, key, groupBy) {
     const summary = item.summary || item.label || item.text || item.definition || item.type || item.kind || item.spanId || `${key} ${index + 1}`;
     if (!summary) return null;
     return {
-      id: item.id || item.traceId || null,
+      id: item.id || item.traceId || item.spanId || null,
       source,
       type: item.type || item.kind || null,
       label: item.label || null,
@@ -186,6 +186,8 @@ function groupedPane(value, key, groupBy) {
       seq: item.seq == null ? null : item.seq,
       authority: item.authority || null,
       correlationId: item.correlationId || null,
+      parentSpanId: item.parentSpanId || null,
+      captureSequence: item.captureSequence == null ? null : item.captureSequence,
       productSessionId: item.productSessionId || null,
       detailRef: item.detailRef || null,
       detailAvailable: Boolean(item.detailRef),
