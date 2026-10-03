@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.dev/schemas/workspace/task-launch-ack/v1",
+  "title": "UniClaw Workspace TaskLaunchAck",
+  "type": "object", "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": "uniclaw.workspace.task-launch-ack.v1"},
+    "contractVersion": {"const": "uniclaw.workspace.contract.v1"},
+    "launchRequestId": {"type": "string", "minLength": 1},
+    "launchId": {"type": "string", "minLength": 1},
+    "taskInstanceId": {"type": "string", "minLength": 1},
+    "status": {"enum": ["accepted", "partial", "completed", "failed"]},
+    "stages": {"type": "array", "items": {"$ref": "#/$defs/stageRecord"}},
+    "bindings": {"$ref": "#/$defs/bindings"},
+    "correlationId": {"type": "string", "minLength": 1},
+    "acknowledgedAt": {"type": "string", "format": "date-time"}
+  },
+  "required": ["schemaVersion", "contractVersion", "launchRequestId", "launchId", "status", "stages", "correlationId", "acknowledgedAt"],
+  "allOf": [{"if": {"properties": {"bindings": {"required": ["runId"]}}}, "then": {"required": ["stages"]}}],
+  "$defs": {
+    "stageRecord": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "schemaVersion": {"const": "uniclaw.workspace.launch-stage-record.v1"},
+        "contractVersion": {"const": "uniclaw.workspace.contract.v1"},
+        "stageId": {"type": "string", "minLength": 1},
+        "stage": {"enum": ["requested", "instance-created", "run-bound", "host-session-bound", "observations-added", "completed", "failed"]},
+        "status": {"enum": ["pending", "succeeded", "partial", "failed"]},
+        "source": {"type": "string", "minLength": 1},
+        "authority": {"type": "string", "minLength": 1},
+        "availability": {"enum": ["present", "partial", "unavailable", "not-collected", "not-applicable", "not-associated", "permission-denied"]},
+        "valueOrigin": {"enum": ["configured", "generated", "observed", "derived"]},
+        "taskInstanceId": {"type": "string", "minLength": 1},
+        "runId": {"type": "string", "minLength": 1},
+        "fields": {"type": "array", "items": {"type": "object", "additionalProperties": false, "properties": {"key": {"type": "string", "minLength": 1}, "value": {}, "valueOrigin": {"enum": ["configured", "generated", "observed", "derived"]}, "availability": {"enum": ["present", "partial", "unavailable", "not-collected", "not-applicable", "not-associated", "permission-denied"]}, "source": {"type": "string", "minLength": 1}, "authority": {"type": "string", "minLength": 1}, "observedAt": {"type": "string", "format": "date-time"}}, "required": ["key", "value", "valueOrigin", "availability", "source", "authority"]}},
+        "recordedAt": {"type": "string", "format": "date-time"}
+      },
+      "required": ["schemaVersion", "contractVersion", "stageId", "stage", "status", "source", "authority", "availability", "valueOrigin", "recordedAt"],
+      "allOf": [{"if": {"properties": {"stage": {"const": "run-bound"}}}, "then": {"properties": {"authority": {"const": "uniclaw-runtime"}, "valueOrigin": {"const": "generated"}}, "required": ["runId"]}}]
+    },
+    "bindings": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "productSessionId": {"type": "string", "minLength": 1},
+        "runId": {"type": "string", "minLength": 1},
+        "hostSessionRef": {"type": "object", "additionalProperties": false, "properties": {"host": {"type": "string", "minLength": 1}, "sessionId": {"type": "string", "minLength": 1}}, "required": ["host", "sessionId"]},
+        "storageNamespaceRef": {"type": "object", "additionalProperties": false, "properties": {"id": {"type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"}, "storageKind": {"const": "local-filesystem"}, "adapter": {"type": "string", "minLength": 1}}, "required": ["id", "storageKind", "adapter"]}
+      }
+    }
+  }
+}

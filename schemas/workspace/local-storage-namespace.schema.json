@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.dev/schemas/workspace/local-storage-namespace/v1",
+  "title": "UniClaw Workspace LocalStorageNamespace",
+  "type": "object", "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": "uniclaw.workspace.local-storage-namespace.v1"},
+    "contractVersion": {"const": "uniclaw.workspace.contract.v1"},
+    "namespaceRef": {"$ref": "#/$defs/namespaceRef"},
+    "taskInstanceId": {"type": "string", "minLength": 1},
+    "runId": {"type": "string", "minLength": 1},
+    "status": {"enum": ["creating", "ready", "partial", "unavailable"]},
+    "createdAt": {"type": "string", "format": "date-time"},
+    "revision": {"type": "string", "minLength": 1}
+  },
+  "required": ["schemaVersion", "contractVersion", "namespaceRef", "taskInstanceId", "status", "createdAt", "revision"],
+  "$defs": {
+    "namespaceRef": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"id": {"type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"}, "storageKind": {"enum": ["local-filesystem"]}, "adapter": {"type": "string", "minLength": 1}},
+      "required": ["id", "storageKind", "adapter"]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "uniclaw.workspace.task-launch-request.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "launchRequestId": "launch-invalid-path",
+  "idempotencyKey": "key-invalid-path",
+  "projectRef": {"id": "android-settings"},
+  "testSetRef": {"id": "android-settings", "version": "default", "path": "/tmp/testsets/android-settings"},
+  "taskRef": {"id": "wifi-state"},
+  "correlationId": "corr-invalid-path",
+  "requestedAt": "2026-10-03T12:00:00Z"
+}

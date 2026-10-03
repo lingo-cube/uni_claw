@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "uniclaw.workspace.launch-stage-record.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "stageId": "stage-invalid-origin",
+  "stage": "run-bound",
+  "status": "succeeded",
+  "source": "dsh",
+  "authority": "dsh-host",
+  "availability": "present",
+  "valueOrigin": "inferred",
+  "recordedAt": "2026-10-03T12:00:00Z"
+}

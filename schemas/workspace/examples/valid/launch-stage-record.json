@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "uniclaw.workspace.launch-stage-record.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "stageId": "stage-obs-001",
+  "stage": "observations-added",
+  "status": "partial",
+  "source": "android-device",
+  "authority": "device-runtime",
+  "availability": "partial",
+  "valueOrigin": "observed",
+  "taskInstanceId": "task-instance-001",
+  "fields": [{"key": "androidApi", "value": 35, "valueOrigin": "observed", "availability": "present", "source": "android-device", "authority": "device-runtime", "observedAt": "2026-10-03T12:01:00Z"}],
+  "diagnostic": {"code": "EVIDENCE_PENDING", "message": "Artifact query is still pending"},
+  "recordedAt": "2026-10-03T12:01:00Z"
+}

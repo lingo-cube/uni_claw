@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "uniclaw.workspace.task-launch-ack.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "launchRequestId": "launch-001",
+  "launchId": "launch-instance-001",
+  "taskInstanceId": "task-instance-001",
+  "status": "partial",
+  "stages": [{
+    "schemaVersion": "uniclaw.workspace.launch-stage-record.v1",
+    "contractVersion": "uniclaw.workspace.contract.v1",
+    "stageId": "stage-001",
+    "stage": "run-bound",
+    "status": "succeeded",
+    "source": "uniclaw-runtime",
+    "authority": "uniclaw-runtime",
+    "availability": "present",
+    "valueOrigin": "generated",
+    "taskInstanceId": "task-instance-001",
+    "runId": "run-001",
+    "fields": [{"key": "runId", "value": "run-001", "valueOrigin": "generated", "availability": "present", "source": "uniclaw-runtime", "authority": "uniclaw-runtime"}],
+    "recordedAt": "2026-10-03T12:00:02Z"
+  }],
+  "bindings": {"runId": "run-001", "storageNamespaceRef": {"id": "ns-001", "storageKind": "local-filesystem", "adapter": "workspace-local-v1"}},
+  "correlationId": "corr-001",
+  "acknowledgedAt": "2026-10-03T12:00:03Z"
+}

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "uniclaw.workspace.task-launch-request.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "launchRequestId": "launch-001",
+  "idempotencyKey": "client-request-001",
+  "projectRef": {"id": "android-settings", "label": "Android Settings"},
+  "testSetRef": {"id": "android-settings", "version": "default"},
+  "taskRef": {"id": "wifi-state"},
+  "requester": {"kind": "workspace", "id": "local"},
+  "correlationId": "corr-001",
+  "requestedAt": "2026-10-03T12:00:00Z",
+  "environmentIntent": {"deviceModel": "emulator", "androidApi": 35},
+  "metadata": [{"key": "agentPreset", "value": "uniagent-prod", "valueOrigin": "configured", "availability": "present", "source": "testset-manifest", "authority": "host-task-catalog"}]
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "uniclaw.workspace.local-storage-namespace.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "namespaceRef": {"id": "ns-task-instance-001", "storageKind": "local-filesystem", "adapter": "workspace-local-v1"},
+  "taskInstanceId": "task-instance-001",
+  "runId": "run-001",
+  "status": "ready",
+  "createdAt": "2026-10-03T12:00:01Z",
+  "revision": "1"
+}

@@ -22,6 +22,12 @@ v0.1 只提供五个窄的只读 capability：`TaskQuery`、`SessionQuery`、`Tr
 
 契约对象默认拒绝未知字段；关键字段缺失、错误响应缺少 `error`、成功响应缺少 `data` 都必须失败。新增非关键扩展需要显式加入 schema 并提升兼容版本，不能用“忽略未知字段”掩盖协议漂移。
 
+## Task Launch 写入契约
+
+Task Launch 是独立的写入 seam，不属于上面的五类只读 capability。`task-launch-request.v1` 接受逻辑引用、幂等键和声明式配置；`task-launch-ack.v1` 返回 launch/task instance 引用及可部分完成的阶段记录。`launch-stage-record.v1` 用 `valueOrigin`（仅 `configured`、`generated`、`observed`、`derived`）表达值来源，并单独用 `availability` 表达数据是否存在。`runId` 只能由 Runtime authority 产生。`local-storage-namespace.v1` 只暴露不透明的逻辑 namespace 引用和 adapter，不暴露物理目录、绝对路径或文件名。
+
+初始 Ack 可以在 Task Instance 尚未生成时只返回 `launchId`；阶段记录中的字段可各自携带 `source`、`authority` 和可选 `observedAt`，以支持同一阶段包含不同来源的元信息。
+
 ## 校验
 
 从仓库根目录运行：

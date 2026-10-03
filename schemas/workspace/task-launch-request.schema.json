@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.dev/schemas/workspace/task-launch-request/v1",
+  "title": "UniClaw Workspace TaskLaunchRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": "uniclaw.workspace.task-launch-request.v1"},
+    "contractVersion": {"const": "uniclaw.workspace.contract.v1"},
+    "launchRequestId": {"type": "string", "minLength": 1},
+    "idempotencyKey": {"type": "string", "minLength": 1},
+    "projectRef": {"$ref": "#/$defs/logicalRef"},
+    "testSetRef": {"$ref": "#/$defs/testSetRef"},
+    "taskRef": {"$ref": "#/$defs/logicalRef"},
+    "requester": {"$ref": "#/$defs/requester"},
+    "correlationId": {"type": "string", "minLength": 1},
+    "requestedAt": {"type": "string", "format": "date-time"},
+    "environmentIntent": {"type": "object", "additionalProperties": true},
+    "metadata": {"type": "array", "items": {"$ref": "#/$defs/configuredClaim"}}
+  },
+  "required": ["schemaVersion", "contractVersion", "launchRequestId", "idempotencyKey", "projectRef", "testSetRef", "taskRef", "correlationId", "requestedAt"],
+  "$defs": {
+    "logicalRef": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"id": {"type": "string", "minLength": 1}, "label": {"type": "string", "minLength": 1}},
+      "required": ["id"]
+    },
+    "testSetRef": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"id": {"type": "string", "minLength": 1}, "version": {"const": "default"}, "sourceRevision": {"type": "string", "minLength": 1}},
+      "required": ["id", "version"]
+    },
+    "requester": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"kind": {"type": "string", "minLength": 1}, "id": {"type": "string", "minLength": 1}},
+      "required": ["kind"]
+    },
+    "configuredClaim": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "key": {"type": "string", "minLength": 1},
+        "value": {},
+        "valueOrigin": {"const": "configured"},
+        "availability": {"$ref": "#/$defs/availability"},
+        "source": {"type": "string", "minLength": 1},
+        "authority": {"type": "string", "minLength": 1}
+      },
+      "required": ["key", "value", "valueOrigin", "availability", "source", "authority"]
+    },
+    "availability": {"enum": ["present", "partial", "unavailable", "not-collected", "not-applicable", "not-associated", "permission-denied"]}
+  }
+}
