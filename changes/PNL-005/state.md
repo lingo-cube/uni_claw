@@ -1,6 +1,6 @@
 # PNL-005 — Runtime Run 状态、事件与查询投影
 
-lifecycle_state: closed · disposition: implemented · depth: decision-heavy · base: working-tree
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: working-tree
 
 ## Intent（WHAT/WHY）
 
