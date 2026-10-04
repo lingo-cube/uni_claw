@@ -10,7 +10,7 @@
 | 项 | 值 |
 |---|---|
 | AVD | `p26_pixel`（本机 `~/.android/avd/`，1080×2400 @ 420dpi） |
-| serial | `emulator-5554` |
+| serial | legacy 默认 `emulator-5554`；`tools/android/start-test-device.sh` 从 `emulator-5556` 起选择空闲端口，并通过 `UNICLAW_ANDROID_DEVICE` 注入 |
 | emulator 二进制 | `/opt/homebrew/share/android-commandlinetools/emulator/emulator` |
 | adb | Homebrew `adb`（37.0.1 实测） |
 | boot 命令 | `/opt/homebrew/share/android-commandlinetools/emulator/emulator -avd p26_pixel`（legacy HANDOFF 同款；boot 实测 ~10s） |
@@ -24,20 +24,23 @@
   默认显式跳过（零影响全量套件——V2 断言面）。
 - **fail-closed**：启用后前置缺失（模拟器离线 / adb 缺席 / 页面未打开）
   直接 FAIL，不静默跳过（legacy Tier-2 约定）。
-- **生命周期外部管理**：测试不负责 boot/关机；模拟器由调用方预先启动
-  （`adb devices` 应见 `emulator-5554  device`）。
+- **生命周期外部管理**：测试不负责 boot/关机；模拟器由调用方预先启动。
+  推荐使用 `tools/android/start-test-device.sh`，它会克隆 `p26_pixel`、选择
+  空闲 serial，并输出 `UNICLAW_ANDROID_DEVICE` 与 `UNICLAW_ANDROID_RUN_DIR`。
+  测试和 Host live selector 都读取这个 serial，不再假定固定端口。
 - **确定性纪律**：ENVIRONMENT 测试只验证「真实物理映射 + 世界变化经
   再观察证实」，不做性能断言、不依赖时序精度（轮询间隔为宽松常量）。
 
 ## 运行速查
 
 ```bash
-# 0) boot（若未在线）
-/opt/homebrew/share/android-commandlinetools/emulator/emulator -avd p26_pixel &
-# 1) 确认在线
-adb devices | grep emulator-5554
+# 0) boot（若未在线；保持启动终端存活）
+tools/android/start-test-device.sh
+# 1) 把脚本输出的 serial 注入当前 shell 后确认在线（动态端口）
+export UNICLAW_ANDROID_DEVICE="${UNICLAW_ANDROID_DEVICE:-$(adb devices | awk 'NR > 1 && $2 == "device" { print $1; exit }')}"
+adb devices | grep "$UNICLAW_ANDROID_DEVICE"
 # 2) 运行 ENVIRONMENT 验收
-DSH_TEST_ADB_ENV=1 dotnet test --filter AdbEnvironmentTests
+DSH_TEST_ADB_ENV=1 UNICLAW_ANDROID_DEVICE="$UNICLAW_ANDROID_DEVICE" dotnet test --filter AdbEnvironmentTests
 # 3) 全量回归（默认跳过环境测试）
 dotnet test
 ```

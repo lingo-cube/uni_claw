@@ -543,6 +543,8 @@ test('panel workspace: task instances are grouped by project and definitions wit
   assert.equal(result.success, true)
   assert.equal(result.localConfig.device, 'emulator-5556')
   assert.deepEqual(result.localConfig.deviceOptions, ['emulator-5556'])
+  assert.equal(result.localConfig.authMode, 'browser-token')
+  assert.equal(result.localConfig.authStatus, 'host-managed')
   assert.deepEqual(result.projects.map(p => p.path), ['/repo/uni-claw', '/repo/other'])
   assert.deepEqual(result.projects[0].instances.map(i => i.sessionId), ['session-panel-1'])
   assert.equal(result.projects[0].instances[0].productSessionId, 'product-session-1')

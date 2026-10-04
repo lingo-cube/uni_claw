@@ -71,7 +71,7 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 - 2026-10-04 · IMPLEMENT → VERIFY · DSH Workspace 增加 Host-backed “发起任务”入口；Typert contribution、browser bridge 和共享 TaskCommand seam 已接通，逻辑引用不完整时 fail-closed；descriptor/Host provider 缺失时保留结构化 unavailable，不宣称真实生产 launch 已完成。证据：`evidence/PNL-004-workspace-launch-action.md`。
 - 2026-10-04 · IMPLEMENT → VERIFY · 注册 `uniclawRuntime` Host transport adapter：通过 DSH `ctx.reflect.provide` 暴露 `createRun/recoverRun`，调用配置的 Runtime HTTP endpoint，严格校验 Runtime-owned `runId/productSessionId`；endpoint 缺失或响应非法时 fail-closed。真实 Host transport 部署仍是 WI-PNL004-005 前置条件。证据：`evidence/PNL-004-runtime-adapter-audit.md`。
 - 2026-10-04 · VERIFY · Runtime adapter 通过真实本地 HTTP transport、缺失 endpoint、非法响应和恢复路径测试；DSH workbench 在独立 3081 实例启动日志中完成 capability registration，profile drift check clean。适配器注册已完成；真实 Runtime endpoint 仍由 Host/Runtime 部署提供，未伪造 run/session 身份。
-- 2026-10-04 · VERIFY · WI-PNL004-006 acceptance 已闭合：DSH 63/63、Web 76/76、workspace schema 7/7、testset manifest 2/2、Host 142/142；本机 `adb devices` 无设备，3081 未认证 shell 返回 401，真实设备/Host Runtime transport 仍由 WI-PNL004-005/007 gate 约束。
+- 2026-10-04 · VERIFY · WI-PNL004-006 acceptance 已闭合：DSH 63/63、Web 76/76、workspace schema 7/7、testset manifest 2/2、Host 142/142；按 `docs/agents/test-emulator.md` 启动 `p26_pixel` 克隆并注入 `UNICLAW_ANDROID_DEVICE=emulator-5556` 后，ADB-002 真实闭环 1/1、HostLiveFull 1/1、TypedLiveChain 1/1、LiveCoordinateGate 2/2 全部通过。此前“无设备”是短命终端导致模拟器退出后的错误记录，已更正；3081 未认证 shell 仍返回 401，真实 Host-facing Runtime transport 仍由 WI-PNL004-005/007 gate 约束。
 
 ## Evidence targets
 

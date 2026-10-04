@@ -13,14 +13,18 @@ namespace UniClaw.Kernel.Tests;
 /// （uiautomator dump）证实。默认显式跳过（DSH_TEST_ADB_ENV 未启用 =
 /// 本测试体不执行，零 adb 调用）；<c>DSH_TEST_ADB_ENV=1</c> 启用，启用后
 /// 按 legacy Tier-2 约定 fail-closed（前置缺失 = FAIL，不静默）。
-/// 环境事实见 docs/agents/test-emulator.md（注册测试常用模拟器）：
-/// AVD p26_pixel、serial emulator-5554、Wi-Fi Settings 入口。
+/// 环境事实见 docs/agents/test-emulator.md（注册测试常用模拟器）。设备 serial
+/// 由 UNICLAW_ANDROID_DEVICE（兼容 DSH_TEST_PERCEPTION_DEVICE）注入；未注入时
+/// 才回退到注册 legacy serial。这样克隆 AVD 的动态端口也能进入同一验收。
 /// I-3 活教材：Wi-Fi toggle 非幂等——checked=true 时盲 tap 即破坏为 false
 /// （CDS-001 satisfaction 闸的物理必然性，本测试第一段翻转就是它的展示）。
 /// </summary>
 public sealed class AdbEnvironmentTests
 {
-    private const string Serial = "emulator-5554";
+    private static string Serial =>
+        Environment.GetEnvironmentVariable("UNICLAW_ANDROID_DEVICE")
+        ?? Environment.GetEnvironmentVariable("DSH_TEST_PERCEPTION_DEVICE")
+        ?? "emulator-5554";
 
     private static bool Enabled =>
         Environment.GetEnvironmentVariable("DSH_TEST_ADB_ENV") == "1";
@@ -59,8 +63,13 @@ public sealed class AdbEnvironmentTests
 
     private static (int W, int H) Viewport()
     {
-        var size = Adb("-s", Serial, "shell", "wm", "size"); // "Physical size: 1080x2400"
-        var m = System.Text.RegularExpressions.Regex.Match(size, @"(\d+)x(\d+)");
+        var size = Adb("-s", Serial, "shell", "wm", "size");
+        // The test-device manager applies a 1080x1920 override to the cloned
+        // AVD. Use the effective override when present; physical size is only
+        // the fallback for a legacy, un-overridden device.
+        var m = System.Text.RegularExpressions.Regex.Match(size, @"Override size:\s*(\d+)x(\d+)");
+        if (!m.Success)
+            m = System.Text.RegularExpressions.Regex.Match(size, @"Physical size:\s*(\d+)x(\d+)");
         return (int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value));
     }
 
@@ -88,13 +97,17 @@ public sealed class AdbEnvironmentTests
             bounds.Item3 / (double)w, bounds.Item4 / (double)h,
             AdbEffectDriver.SupportedFrame);
         var request = new DispatchRequest(
-            new DeliveryTarget("occ-wifi-switch", locator), "set-switch", "true", "rev-env");
+            new DeliveryTarget(
+                "occ-wifi-switch",
+                locator,
+                Space: UniClaw.Kernel.Perception.CoordinateSpace.DeviceViewport(w, h)),
+            "set-switch", "true", "rev-env");
 
         var driver = new AdbLiveEffectDriver(Serial, w, h, clock: () => DateTimeOffset.UnixEpoch);
 
         // 第一段：tap → DeliveryCompleted（命令像素精确）→ 世界翻转经 dump 证实
         var r1 = driver.Deliver(request);
-        Assert.Equal(DispatchOutcome.DeliveryCompleted, r1.Outcome);
+        Assert.True(r1.Outcome == DispatchOutcome.DeliveryCompleted, r1.Reason);
         Assert.Equal($"adb -s {Serial} shell input tap {cx} {cy}", r1.Report);
         Thread.Sleep(1200);
         var (checked1, _) = DumpWifiSwitch();

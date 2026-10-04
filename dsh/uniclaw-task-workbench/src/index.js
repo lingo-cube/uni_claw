@@ -49,6 +49,16 @@ export const inject = ['connection', 'sessionController', 'workspaceRegistry']
 const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 const REPOSITORY_ROOT = dirname(dirname(PACKAGE_ROOT))
 const AGENT_PRESET_ID = 'uniagent-task'
+const envText = (name, fallback) => {
+  const value = process.env[name]
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : fallback
+}
+const configuredDevice = envText('UNICLAW_ANDROID_DEVICE', 'emulator-5556')
+const configuredDeviceOptions = [...new Set([
+  configuredDevice,
+  ...envText('UNICLAW_ANDROID_DEVICE_OPTIONS', configuredDevice)
+    .split(',').map(item => item.trim()).filter(Boolean),
+])]
 const DEFAULT_LOCAL_LAUNCH_DEFAULTS = Object.freeze({
   projectRef: { id: 'project/uni-claw-test-lab', label: 'UniClaw Test Lab' },
   testSetRef: { id: 'testset/workspace-contract', version: 'default' },
@@ -58,11 +68,14 @@ const DEFAULT_LOCAL_CONFIG = Object.freeze({
   schemaVersion: 'uniclaw.workspace.local-config.v1',
   machine: `${process.platform} · ${process.arch}`,
   hostVersion: 'dsh-local',
+  hostEndpoint: envText('UNICLAW_DSH_WEB_URL', 'http://127.0.0.1:3081'),
+  authMode: envText('UNICLAW_DSH_AUTH_MODE', 'browser-token'),
+  authStatus: envText('UNICLAW_DSH_AUTH_STATUS', 'host-managed'),
   nodeVersion: process.version,
   workspaceVersion: '0.1.0',
   agentPreset: AGENT_PRESET_ID,
-  device: 'emulator-5556',
-  deviceOptions: ['emulator-5556'],
+  device: configuredDevice,
+  deviceOptions: configuredDeviceOptions,
 })
 
 /** Load the protocol artifact and fail closed if its bytes drifted from the frozen hash. */

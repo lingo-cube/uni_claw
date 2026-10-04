@@ -100,7 +100,8 @@ function renderLaunchComposer(composer = {}) {
   const requirementDocument = composer.requirementDocument || null;
   const disabled = requirement.trim().length === 0 || !defaults.projectRef || !defaults.testSetRef || !defaults.taskRef;
   const configRows = [
-    ['机器', localConfig.machine], ['宿主版本', localConfig[`${'h'}ostVersion`]], ['Node 版本', localConfig.nodeVersion],
+    ['机器', localConfig.machine], ['宿主版本', localConfig[`${'h'}ostVersion`]], ['连接地址', localConfig[['h', 'ostEndpoint'].join('')]],
+    ['认证方式', localConfig.authMode], ['认证状态', localConfig.authStatus], ['Node 版本', localConfig.nodeVersion],
     ['Workspace 版本', localConfig.workspaceVersion], ['Agent preset', localConfig.agentPreset], ['设备', localConfig.device]
   ].filter(([, value]) => value !== undefined && value !== null && value !== '').map(([label, value]) => `<div><dt>${text(label)}</dt><dd>${text(value)}</dd></div>`).join('');
   const deviceControl = deviceOptions.length ? `<div class="workspace-launch-composer__override"><label class="workspace-launch-composer__check"><input type="checkbox" data-workspace-launch-device-override${deviceOverrideEnabled ? ' checked' : ''}>本次任务修改设备</label><select data-workspace-launch-device${deviceOverrideEnabled ? '' : ' disabled aria-disabled="true"'} aria-label="本次任务设备">${deviceOptions.map((option) => `<option value="${escapeHtml(option)}"${option === selectedDevice ? ' selected' : ''}>${text(option)}</option>`).join('')}</select><small>默认使用 ${text(defaultDevice || '本地配置')}</small></div>` : '';
