@@ -28,9 +28,9 @@
 
 ## HTTP SMOKE
 
-- method: 启动 `UniClaw.Host.Dsh --runtime-http --runtime-port 3092 --device smoke-device`，调用 health、Run list、非法 cursor、未知 Run、空请求。
+- method: 启动 `UniClaw.Host.Dsh --runtime-http --runtime-port 3094 --device smoke-device`，调用 health、Run list、非法 cursor、未知 Run、空请求。
 - expected: health/list 200；非法 cursor 400；未知 Run 使用 404 + 业务 error；格式错误使用 400 + 业务 error；服务可启动和关闭。
-- actual: health 200；Run list 200（空列表不输出伪造 cursor）；非法 cursor 400 `invalid-cursor`；未知 Run 404 `runtime-run-not-found`；空请求 400 `invalid-request`。服务已关闭。
+- actual: health/list 200（空列表不输出伪造 cursor，列表成功/失败均使用 list-response schema）；非法 cursor 400 `invalid-cursor`；未知 Run 404 `runtime-run-not-found`；空请求 400 `invalid-request`。服务已关闭。
 
 ## ENVIRONMENT
 
