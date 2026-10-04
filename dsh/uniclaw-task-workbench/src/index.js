@@ -363,17 +363,21 @@ const launchTask = async (ctx, repository, request) => {
     })
     return { ok: false, status: 409, code: 'product-session-unavailable', message: 'Runtime did not return productSessionId', partial: stored }
   }
-  const controller = ctx.get('sessionController')
-  const registry = ctx.get('workspaceRegistry')
+  const runtimeSessionId = typeof run?.dshSessionId === 'string' && run.dshSessionId.length > 0 ? run.dshSessionId : null
+  const controller = runtimeSessionId === null ? ctx.get('sessionController') : null
+  const registry = runtimeSessionId === null ? ctx.get('workspaceRegistry') : null
   try {
-    if (!registry) throw new Error('workspace registry unavailable')
-    if (typeof registry.resolveProjectToWorkspace !== 'function') throw new Error('logical project resolver unavailable')
-    const workspace = await registry.resolveProjectToWorkspace(launchRefId(request.projectRef))
-    const workspaceId = workspace?.id
-    if (typeof workspaceId !== 'string' || workspaceId.length === 0) throw new Error('logical project resolver returned no workspace')
-    const created = await controller.create({ agentPreset: AGENT_PRESET_ID, workspaceId, launchId, idempotencyKey: request.idempotencyKey })
-    const sessionId = typeof created === 'string' ? created : (created?.sessionId ?? created?.id)
-    if (typeof sessionId !== 'string' || sessionId.length === 0) throw new Error('Host did not return session identity')
+    let sessionId = runtimeSessionId
+    if (sessionId === null) {
+      if (!registry) throw new Error('workspace registry unavailable')
+      if (typeof registry.resolveProjectToWorkspace !== 'function') throw new Error('logical project resolver unavailable')
+      const workspace = await registry.resolveProjectToWorkspace(launchRefId(request.projectRef))
+      const workspaceId = workspace?.id
+      if (typeof workspaceId !== 'string' || workspaceId.length === 0) throw new Error('logical project resolver returned no workspace')
+      const created = await controller.create({ agentPreset: AGENT_PRESET_ID, workspaceId, launchId, idempotencyKey: request.idempotencyKey })
+      sessionId = typeof created === 'string' ? created : (created?.sessionId ?? created?.id)
+      if (typeof sessionId !== 'string' || sessionId.length === 0) throw new Error('Host did not return session identity')
+    }
     const namespace = stored.storageNamespace ?? { schemaVersion: 'uniclaw.workspace.local-storage-namespace.v1', contractVersion: 'uniclaw.workspace.contract.v1', namespaceRef: { id: `task-instance-${instanceId}`, storageKind: 'local-filesystem', adapter: 'task-repository' }, taskInstanceId: instanceId, runId, status: 'ready', createdAt: nowIso(), revision: '1' }
     stored = repository.updateInstance(taskId, instanceId, {
       sessionId, productSessionId, hostSessionRef: sessionId,

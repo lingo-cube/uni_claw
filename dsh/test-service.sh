@@ -35,4 +35,7 @@ fi
 
 echo "Starting dedicated DSH test service on http://127.0.0.1:$PORT/"
 echo "Run E2E with: UNICLAW_DSH_E2E_BASE=http://127.0.0.1:$PORT/"
+if [ -n "${UNICLAW_RUNTIME_BASE_URL:-}" ]; then
+  echo "Runtime launch transport: $UNICLAW_RUNTIME_BASE_URL"
+fi
 exec "$NODE_BIN" "$CLI" web --no-open --port "$PORT"

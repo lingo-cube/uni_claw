@@ -180,7 +180,7 @@ public sealed class HostRunner
                         RequiredValue: options.TargetState, Mandatory: true,
                         EntityScope: new TargetDescriptor(
                             "switch", options.SettingsTraversal ? options.TargetSemanticDescriptor : null)),
-                }));
+                }), options.Launch?.RunId);
             if (!admission.Accepted)
                 throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");
             if (options.Launch is { } supplied && !string.Equals(kernel.RunId, supplied.RunId, StringComparison.Ordinal))

@@ -50,7 +50,7 @@
     "ADR-0033",
     "ADR-0034"
   ],
-  "status": "pending",
+  "status": "completed",
   "required_skills": [
     "codebase-design",
     "tdd",

@@ -2,6 +2,7 @@ using UniClaw.Agent.Dsh;
 using UniClaw.Host;
 using UniClaw.Host.SettingsCoverage;
 using UniClaw.Kernel.Runtime;
+using UniClaw.Host.Dsh;
 
 // DSH-backed Product Host composition root. The core Product Host remains
 // closed over UniClaw.Kernel; this executable is the explicit realization
@@ -13,6 +14,8 @@ using UniClaw.Kernel.Runtime;
 //   --runs <dir>          产物根目录（默认 runs）
 //   --target <state>      目标态（Settings traversal 默认 checked）
 //   --target-descriptor   目标控件语义名（默认 Wi-Fi）
+//   --runtime-http        启动 DSH Host 的 Runtime HTTP launch surface
+//   --runtime-port <p>    Runtime HTTP 监听端口（默认 5080）
 
 var runsRoot = "runs";
 string? deviceId = null;
@@ -20,6 +23,8 @@ string? targetState = null;
 var targetDescriptor = "Wi-Fi";
 var settingsTraversal = false;
 var settingsCoverage = false;
+var runtimeHttp = false;
+var runtimePort = 5080;
 
 for (var i = 0; i < args.Length; i++)
 {
@@ -27,6 +32,12 @@ for (var i = 0; i < args.Length; i++)
     {
         case "--runs":
             runsRoot = args[++i];
+            break;
+        case "--runtime-http":
+            runtimeHttp = true;
+            break;
+        case "--runtime-port":
+            runtimePort = int.Parse(args[++i]);
             break;
         case var p when !p.StartsWith("--"):
             runsRoot = p;
@@ -50,6 +61,20 @@ for (var i = 0; i < args.Length; i++)
             Console.Error.WriteLine($"未知参数：{args[i]}");
             return 2;
     }
+}
+
+if (runtimeHttp)
+{
+    var runtimeDevice = deviceId ?? Environment.GetEnvironmentVariable("UNICLAW_ANDROID_DEVICE");
+    if (string.IsNullOrWhiteSpace(runtimeDevice))
+    {
+        Console.Error.WriteLine("ENVIRONMENT_UNAVAILABLE: --device 或 UNICLAW_ANDROID_DEVICE 是必需的。");
+        return 2;
+    }
+    var runtimeServer = RuntimeHttpServer.Create(Array.Empty<string>(), runsRoot, runtimeDevice);
+    Console.WriteLine($"runtime-http listening on http://127.0.0.1:{runtimePort}");
+    await runtimeServer.RunAsync(runtimePort);
+    return 0;
 }
 
 if (settingsTraversal == settingsCoverage)

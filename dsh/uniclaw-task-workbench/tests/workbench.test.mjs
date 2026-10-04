@@ -289,6 +289,21 @@ test('launch: Runtime-owned run and Host binding are explicit and idempotent', a
   assert.equal(controller.createCalls.length, 1)
 })
 
+test('launch: Runtime-owned dshSessionId is reused without creating a second DSH session', async () => {
+  const controller = mockController()
+  const runtime = { async createRun() { return { runId: 'run-runtime-session', productSessionId: 'product-runtime-session', dshSessionId: 'dsh-runtime-session' } } }
+  const { routes } = applyHost({ controller, registry: mockRegistry(), runtime })
+  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-runtime-session', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/wifi-state' }, idempotencyKey: 'idem-runtime-session', correlationId: 'corr-runtime-session', requestedAt: new Date().toISOString(), metadata: [] }
+  const response = await post(routes, '/api/uniclaw-task/tasks/launch', request)
+  assert.equal(response.status, 200)
+  const payload = await response.json()
+  assert.equal(payload.ok, true)
+  assert.equal(payload.instance.sessionId, 'dsh-runtime-session')
+  assert.equal(payload.instance.hostSessionRef, 'dsh-runtime-session')
+  assert.deepEqual(payload.ack.bindings.hostSessionRef, { host: 'dsh', sessionId: 'dsh-runtime-session' })
+  assert.equal(controller.createCalls.length, 0)
+})
+
 test('launch: Host-configured catalog root resolves repository-owned testsets', async () => {
   const catalogRoot = join(TEST_ROOT, 'configured-testsets')
   const manifestDir = join(catalogRoot, 'external-catalog')

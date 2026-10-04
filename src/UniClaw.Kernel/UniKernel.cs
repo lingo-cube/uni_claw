@@ -620,9 +620,9 @@ public sealed class UniKernel
     /// RegisterContinuityDemand 同 DemandId 复用保证）；rejected → 零登记。
     /// Run Model 不取得对 WorldModel 的直连边（L0 边界不破）。
     /// </summary>
-    public ContractAdmission AdmitContract(ExecutionContract contract)
+    public ContractAdmission AdmitContract(ExecutionContract contract, string? runIdOverride = null)
     {
-        var admission = Run.AdmitContract(contract);
+        var admission = Run.AdmitContract(contract, runIdOverride);
         if (admission.Accepted)
         {
             foreach (var scope in Run.State!.ProofObligations.Obligations

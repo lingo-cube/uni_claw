@@ -52,7 +52,10 @@ public sealed class RunModel
     /// 不同 version → fail-closed 拒绝（显式取代语义不在本片）。outcome 语义
     /// 不变；Obligations 可选中携带 run-level 证明义务（D2）。
     /// </summary>
-    public ContractAdmission AdmitContract(ExecutionContract contract)
+    /// <param name="runIdOverride">Optional identity supplied by the Runtime
+    /// authority at a Host launch boundary. When absent, the Kernel retains its
+    /// content-derived RUN-001 identity.</param>
+    public ContractAdmission AdmitContract(ExecutionContract contract, string? runIdOverride = null)
     {
         ArgumentNullException.ThrowIfNull(contract);
 
@@ -83,7 +86,9 @@ public sealed class RunModel
                 contract.Version, contract.Objective,
                 contract.Scope!, contract.AllowedEffects!, contract.ForbiddenEffects!,
                 contract.ProofCriteria!, consultations, totalSteps);
-            RunId = MintRunId(contract, consultations, totalSteps);
+            RunId = string.IsNullOrWhiteSpace(runIdOverride)
+                ? MintRunId(contract, consultations, totalSteps)
+                : runIdOverride.Trim();
             _history.Add(new RunState(
                 View,
                 new ObjectiveState(contract.Objective, "pursuing"),

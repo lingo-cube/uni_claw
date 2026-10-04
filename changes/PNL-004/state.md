@@ -1,6 +1,6 @@
 # PNL-004 — Observability Contract and Task Launch/Query Storage Seam
 
-lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: closed · disposition: implemented · depth: decision-heavy · base: working-tree
 
 ## Intent（WHAT/WHY）
 
@@ -52,9 +52,9 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 - Completed WorkItem：`workitems/WI-PNL004-002.json`（Repository Test Catalog）
 - Completed WorkItem：`workitems/WI-PNL004-003.json`（Task Launch + Local Storage）
 - Completed WorkItem：`workitems/WI-PNL004-004.json`（Query Projection + UI metadata）
-- Pending WorkItem：`workitems/WI-PNL004-005.json`（Integration / real verification）
+- Completed WorkItem：`workitems/WI-PNL004-005.json`（Integration / real verification）
 - Completed WorkItem：`workitems/WI-PNL004-006.json`（Launch contract/recovery remediation）
-- Pending WorkItem：`workitems/WI-PNL004-007.json`（Production Runtime/Host adapter registration）
+- Completed WorkItem：`workitems/WI-PNL004-007.json`（Production Runtime/Host adapter registration）
 
 ## Status log
 
@@ -89,3 +89,4 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 - 2026-10-04 · VERIFY → IMPLEMENT · Leader 终检发现之前 CLOSED 判定过早：Runtime createRun 仅有测试替身，真实 Host 未注册；storage/Runtime 失败和并发恢复尚未证明，Product Session 缺失会误标完成；重开 WI-006，WI-005 保持 pending，原通过测试与失败记录保留。
 - 2026-10-04 · VERIFY → IMPLEMENT · 真实认证浏览器双入口验证发现安装快照无法解析仓库外置 `testsets/`；新增 `UNICLAW_TESTSET_ROOT` Host 配置缝并由 `dsh/test-service.sh` 默认注入，接口和页面均已越过 catalog 校验，随后在缺少 `UNICLAW_RUNTIME_BASE_URL` 时按预期返回结构化 `runtime-unavailable`。证据：`evidence/PNL-004-live-launch-verification-20261004.md`。
 - 2026-10-04 · VERIFY · 复核现有 Host：认证 3081 DSH Web 的 `GET/POST /api/uniclaw-runtime/runs` 均返回 404；`UniClaw.Host.Dsh` 是一次性 console composition root。不能仅把 Runtime URL 指向 DSH Web，需在现有 Host 组合根暴露独立 Runtime launch transport 后再配置 `UNICLAW_RUNTIME_BASE_URL`。
+- 2026-10-04 · IMPLEMENT → VERIFY → CLOSED · `UniClaw.Host.Dsh` 增加 Runtime HTTP 组合模式（health/create/recover），真实 DSH handshake 与 HostRunner 共用同一 attachment；Runtime-owned RunId 贯穿 Kernel、HostRunner 和 trace。专用 3083 DSH 配置 `UNICLAW_RUNTIME_BASE_URL=http://127.0.0.1:3090` 后，真实 `emulator-5556` 发起完成，接口与 Workbench 两条入口均返回 completed；重复 launch 返回 `idempotent=true` 且身份不重复。证据：`evidence/PNL-004-live-launch-verification-20261004.md`。
