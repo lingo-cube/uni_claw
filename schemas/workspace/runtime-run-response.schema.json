@@ -8,6 +8,7 @@
     "schemaVersion": {"const": "uniclaw.workspace.runtime-run-response.v1"},
     "contractVersion": {"const": "uniclaw.workspace.contract.v1"},
     "ok": {"type": "boolean"},
+    "idempotent": {"type": "boolean"},
     "run": {"$ref": "https://uniclaw.dev/schemas/workspace/runtime-run-projection/v1"},
     "error": {"$ref": "#/$defs/businessError"},
     "revision": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "string", "minLength": 1}]},
