@@ -31,7 +31,7 @@ test('DSH entry exposes the same App regions and complete product flow', async (
   const { host, mounts } = make()
   await run(host)
   const vm = mounts.at(-1).viewModel
-  assert.deepEqual(Object.keys(vm).sort(), ['activePane', 'conversationTimeline', 'detailActions', 'evidencePane', 'executionPane', 'metadataPane', 'navigation', 'notices', 'status', 'taskHeader', 'tracePane'])
+  assert.deepEqual(Object.keys(vm).sort(), ['activePane', 'conversationTimeline', 'detailActions', 'evidencePane', 'executionPane', 'launchComposer', 'metadataPane', 'navigation', 'notices', 'status', 'taskHeader', 'tracePane'])
   assert.deepEqual(Object.keys(vm.conversationTimeline.groups).sort(), ['decision', 'request', 'result'])
   assert.equal(vm.taskHeader.productSessionId, 'product-1')
   assert.equal(host.getState().detail.status, 'ready')

@@ -6,6 +6,30 @@ const { createWorkspaceViewModel } = require('../src/features/workspace-view-mod
 
 function view(overrides = {}) { return createWorkspaceViewModel({ projects:{status:'ready',items:[{projectId:'p1',name:'项目',instances:[{productSessionId:'ps1',title:'任务',status:'running'}]}],errors:[]}, selection:{projectId:'p1',productSessionId:'ps1',taskInstances:{status:'ready',items:[{productSessionId:'ps1',title:'任务',status:'running'}],errors:[]}}, session:{status:'ready',session:{productSessionId:'ps1',metadata:{owner:'a'}}}, timeline:{status:'ready',items:[{kind:'request',summary:'请求'},{kind:'decision',summary:'决策'},{kind:'result',summary:'结果'}],errors:[]}, traces:{status:'ready',items:[{id:'t1',source:'uniclaw',detailRef:{refId:'trace-1'}}],errors:[]}, evidence:{status:'ready',items:[{id:'e1',title:'证据',detailRef:{refId:'evidence-1'}},{id:'e2',title:'受限',detailRef:{refId:'denied'},error:{code:'permission-denied',message:'拒绝'}}],errors:[]}, detail:{status:'idle'},...overrides }); }
 test('renders semantic workspace sections, tabs, side rail and trace timeline', () => { const html = renderWorkspaceHtml(view()); for (const selector of ['workspace-navigation','workspace-navigation__resize','workspace-navigation__toggle','workspace-task-header','workspace-observation-bar','workspace-diagnostics-slot','workspace-conversation-shell','workspace-conversation','workspace-pane-tabs','workspace-pane--trace','workspace-pane--evidence','workspace-pane--metadata','workspace-pane--execution','workspace-side-rail','workspace-trace-source-switch']) assert.match(html, new RegExp(selector)); assert.match(html,/请求/); assert.match(html,/决策/); assert.match(html,/结果/); assert.match(html,/<details class="workspace-trace-root"/); assert.match(html,/data-detail-ref="evidence-1"/); });
+test('renders a project-local plus action and requirement-only launch composer', () => {
+  const html = renderWorkspaceHtml(view({
+    projects: { status: 'ready', items: [{ projectId: 'p1', name: '项目', instances: [] }], launchDefaults: { projectRef: { id: 'project/local' }, testSetRef: { id: 'testset/local', version: 'default' }, taskRef: { id: 'task/local/request', label: '默认任务' } }, errors: [] },
+    selection: { projectId: 'p1', productSessionId: null, taskInstances: { status: 'ready', items: [], errors: [] } },
+    ui: { launchComposer: { open: true, projectId: 'p1', requirement: '' } }
+  }));
+  assert.match(html, /data-workspace-action="launch-project"/);
+  assert.match(html, /aria-label="在项目 项目中发起任务"/);
+  assert.match(html, /workspace-launch-composer/);
+  assert.match(html, /data-workspace-launch-requirement/);
+  assert.match(html, /data-workspace-action="submit-launch"[^>]*disabled/);
+});
+test('renders local machine and version configuration in the launch composer', () => {
+  const html = renderWorkspaceHtml(view({
+    projects: { status: 'ready', items: [{ projectId: 'p1', name: '项目', instances: [] }], launchDefaults: { projectRef: { id: 'project/local' }, testSetRef: { id: 'testset/local', version: 'default' }, taskRef: { id: 'task/local/request', label: '默认任务' } }, localConfig: { machine: 'darwin · arm64', nodeVersion: 'v24.0.0', hostVersion: 'dsh-local', workspaceVersion: '0.1.0', agentPreset: 'uniagent-prod', device: 'emulator-5556' }, errors: [] },
+    selection: { projectId: 'p1', productSessionId: null, taskInstances: { status: 'ready', items: [], errors: [] } },
+    ui: { launchComposer: { open: true, projectId: 'p1', requirement: '' } }
+  }));
+  assert.match(html, /本地运行配置/);
+  assert.match(html, /darwin · arm64/);
+  assert.match(html, /v24\.0\.0/);
+  assert.match(html, /uniagent-prod/);
+  assert.match(html, /emulator-5556/);
+});
 test('offers combined and split trace views and a return action from details', () => {
   const split = renderWorkspaceHtml(view({ ui: { activePane: 'trace', traceMode: 'split' } }));
   assert.match(split, /data-trace-mode="combined"/);

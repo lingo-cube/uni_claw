@@ -49,6 +49,20 @@ export const inject = ['connection', 'sessionController', 'workspaceRegistry']
 const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 const REPOSITORY_ROOT = dirname(dirname(PACKAGE_ROOT))
 const AGENT_PRESET_ID = 'uniagent-task'
+const DEFAULT_LOCAL_LAUNCH_DEFAULTS = Object.freeze({
+  projectRef: { id: 'project/uni-claw-workspace', label: 'UniClaw Workspace' },
+  testSetRef: { id: 'testset/workspace-contract', version: 'default' },
+  taskRef: { id: 'task/workspace-contract/request-decision-result', label: 'Request, decision, and result timeline' },
+})
+const DEFAULT_LOCAL_CONFIG = Object.freeze({
+  schemaVersion: 'uniclaw.workspace.local-config.v1',
+  machine: `${process.platform} · ${process.arch}`,
+  hostVersion: 'dsh-local',
+  nodeVersion: process.version,
+  workspaceVersion: '0.1.0',
+  agentPreset: AGENT_PRESET_ID,
+  device: '未配置',
+})
 
 /** Load the protocol artifact and fail closed if its bytes drifted from the frozen hash. */
 function loadSchemaArtifact(schemaDir) {
@@ -163,6 +177,26 @@ const logicalRefValid = (ref) => typeof ref?.id === 'string'
   && !ref.id.startsWith(('/', './', '../'))
   && !ref.id.includes('\\')
   && !ref.id.split('/').some(segment => segment === '..')
+
+const resolveLaunchDefaults = (value) => {
+  const candidate = value && typeof value === 'object' ? value : {}
+  const projectRef = logicalRefValid(candidate.projectRef) ? { ...candidate.projectRef } : DEFAULT_LOCAL_LAUNCH_DEFAULTS.projectRef
+  const testSetRef = logicalRefValid(candidate.testSetRef) && candidate.testSetRef.version === 'default'
+    ? { id: candidate.testSetRef.id, version: 'default', ...(candidate.testSetRef.sourceRevision ? { sourceRevision: candidate.testSetRef.sourceRevision } : {}) }
+    : DEFAULT_LOCAL_LAUNCH_DEFAULTS.testSetRef
+  const taskRef = logicalRefValid(candidate.taskRef) ? { ...candidate.taskRef } : DEFAULT_LOCAL_LAUNCH_DEFAULTS.taskRef
+  return Object.freeze({ projectRef, testSetRef, taskRef })
+}
+
+const resolveLocalConfig = (value) => {
+  const candidate = value && typeof value === 'object' ? value : {}
+  return Object.freeze({
+    ...DEFAULT_LOCAL_CONFIG,
+    ...Object.fromEntries(Object.keys(DEFAULT_LOCAL_CONFIG)
+      .filter(key => typeof candidate[key] === 'string' && candidate[key].length > 0)
+      .map(key => [key, candidate[key]])),
+  })
+}
 
 const configuredClaimsValid = claims => Array.isArray(claims)
   && claims.every(claim => claim !== null && typeof claim === 'object'
@@ -646,7 +680,7 @@ const traceProjection = (trace) => (Array.isArray(trace?.spans) ? trace.spans.sl
   }
 })
 
-const workspaceCore = (repository, artifactSource) => {
+const workspaceCore = (repository, artifactSource, launchDefaults = DEFAULT_LOCAL_LAUNCH_DEFAULTS, localConfig = DEFAULT_LOCAL_CONFIG) => {
   const projectMap = new Map()
   const sessionIds = new Set()
   for (const task of repository.list()) {
@@ -720,7 +754,7 @@ const workspaceCore = (repository, artifactSource) => {
       },
     })
   }
-  return { success: true, projects: [...projectMap.values()].filter(p => p.instances.length > 0), artifactWarnings: artifactIndex.warnings }
+  return { success: true, projects: [...projectMap.values()].filter(p => p.instances.length > 0), launchDefaults, localConfig, artifactWarnings: artifactIndex.warnings }
 }
 
 const DSH_TRACE_LABELS = {
@@ -1076,7 +1110,7 @@ const sessionDetailCore = async (ctx, repository, artifactSource, sessionId) => 
  * the Typert decoration delegates to.
  * @param ctx - host-mode context (sessionQuery / sessionController seams).
  */
-export function createTaskPanelService(ctx, repository, artifactSource = null) {
+export function createTaskPanelService(ctx, repository, artifactSource = null, launchDefaults = DEFAULT_LOCAL_LAUNCH_DEFAULTS, localConfig = DEFAULT_LOCAL_CONFIG) {
   const withStore = (work) => {
     try {
       return work()
@@ -1144,7 +1178,7 @@ export function createTaskPanelService(ctx, repository, artifactSource = null) {
     },
 
     workspace() {
-      return withStore(() => workspaceCore(repository, artifactSource))
+      return withStore(() => workspaceCore(repository, artifactSource, launchDefaults, localConfig))
     },
 
     async session(body) {
@@ -1243,6 +1277,8 @@ export function apply(ctx, config) {
     typeof value === 'string' && value.trim().length > 0 ? value.trim() : fallback
   const schemaDir = configuredDir(config?.schemaDir, join(PACKAGE_ROOT, 'schema'))
   const storePath = configuredDir(config?.storePath, undefined)
+  const launchDefaults = resolveLaunchDefaults(config?.launchDefaults ?? config?.defaultLaunch)
+  const localConfig = resolveLocalConfig(config?.localConfig)
   const artifactRoots = config !== null && typeof config === 'object' && Object.hasOwn(config, 'artifactRoots')
     ? (Array.isArray(config.artifactRoots) ? config.artifactRoots : [])
     : [join(process.cwd(), 'evidence')]
@@ -1351,7 +1387,7 @@ export function apply(ctx, config) {
   // the same SYNC require.resolve probe as decision-channel (a failed dynamic
   // import inside the node --test child stalls the runner ~60s).
   if (panelProtocolAvailable()) {
-    const panel = createTaskPanelService(ctx, repository, artifactSource)
+    const panel = createTaskPanelService(ctx, repository, artifactSource, launchDefaults, localConfig)
     const PANEL_METHODS = ['overview', 'createTask', 'instantiate', 'launch', 'sessions', 'trace', 'workspace', 'session', 'artifact', 'diagnostic']
     import('@deepseek-ai/dsh-typert-protocol').then(({ TypertRemoteService, Remote }) => {
       class TaskPanelHost extends TypertRemoteService {

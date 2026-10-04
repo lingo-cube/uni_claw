@@ -5,7 +5,7 @@ function createWorkspaceController({ queryCore } = {}) {
   const state = {
     projects: idlePage('projects'),
     selection: { projectId: null, productSessionId: null },
-    ui: { activePane: 'trace', traceMode: 'combined', traceSource: 'all', detailReturnPane: 'trace', detailModalOpen: false },
+    ui: { activePane: 'trace', traceMode: 'combined', traceSource: 'all', detailReturnPane: 'trace', detailModalOpen: false, launchComposer: { open: false, projectId: null, requirement: '' } },
     session: idleData('session'),
     timeline: idlePage('timeline'),
     traces: idlePage('traces'),
@@ -109,6 +109,18 @@ function createWorkspaceController({ queryCore } = {}) {
     if (state.launch.status === 'ready') await refresh();
     return publish();
   }
+  function openLaunchComposer(projectId = state.selection.projectId) {
+    state.ui.launchComposer = { open: true, projectId: projectId ?? null, requirement: '' };
+    return publish();
+  }
+  function setLaunchRequirement(requirement = '') {
+    state.ui.launchComposer = { ...state.ui.launchComposer, requirement: String(requirement) };
+    return publish();
+  }
+  function closeLaunchComposer() {
+    state.ui.launchComposer = { ...state.ui.launchComposer, open: false };
+    return publish();
+  }
   async function resolveDetail(detailRef) {
     const productSessionId = selected();
     if (typeof productSessionId !== 'string' || !productSessionId) {
@@ -168,7 +180,7 @@ function createWorkspaceController({ queryCore } = {}) {
   }
   return Object.freeze({
     loadProjects, selectProject, selectTaskInstance, loadSession, loadTimeline,
-    loadTraces, loadEvidence, launchTask, resolveDetail, inspectTrace, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
+    loadTraces, loadEvidence, launchTask, openLaunchComposer, setLaunchRequirement, closeLaunchComposer, resolveDetail, inspectTrace, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
     getState: () => clone(state)
   });
 

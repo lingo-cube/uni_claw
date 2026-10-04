@@ -40,7 +40,7 @@ function createWorkspaceViewModel(input, options = {}) {
       authority: selectedTask && selectedTask.authority || (session && session.authority) || null,
       metadata,
       ...launchProjection(selectedTask, session),
-      launch: launchView(state.launch, selectedTask, state.selection && state.selection.projectId),
+      launch: launchView(state.launch, selectedTask, state.selection && state.selection.projectId, projectsState.launchDefaults),
       errors: errorsOf(state.session)
     },
     conversationTimeline: timelinePane(state.timeline, session),
@@ -48,6 +48,11 @@ function createWorkspaceViewModel(input, options = {}) {
     evidencePane: evidencePane(state.evidence),
     executionPane: executionPane((state.session && state.session.session) || null),
     metadataPane: { status: state.session && state.session.status || 'idle', items: metadata, claims: metadataClaims(selectedTask, session), ...launchProjection(selectedTask, session), errors: errorsOf(state.session) },
+    launchComposer: {
+      ...(state.ui && state.ui.launchComposer ? clone(state.ui.launchComposer) : { open: false, projectId: null, requirement: '' }),
+      defaults: clone(projectsState.launchDefaults || null),
+      localConfig: clone(projectsState.localConfig || null)
+    },
     activePane: state.ui && state.ui.activePane || 'trace',
     detailActions: detailActions(state, selectedId),
     notices,
@@ -73,12 +78,12 @@ function taskCard(task) {
   };
 }
 
-function launchView(value, task, projectId) {
+function launchView(value, task, projectId, defaults = null) {
   const state = value || {};
   const source = task || {};
-  const projectRef = logicalRef(source.projectRef, projectId);
-  const testSetRef = logicalTestSetRef(source.testSetRef);
-  const taskRef = logicalRef(source.taskRef || source.taskId, null);
+  const projectRef = logicalRef(source.projectRef, null) || logicalRef(defaults && defaults.projectRef, null) || logicalRef(projectId, null);
+  const testSetRef = logicalTestSetRef(source.testSetRef) || logicalTestSetRef(defaults && defaults.testSetRef);
+  const taskRef = logicalRef(source.taskRef || source.taskId, null) || logicalRef(defaults && defaults.taskRef, null);
   return {
     status: state.status || 'idle',
     errors: errorsOf(state),
@@ -367,7 +372,7 @@ function overallStatus(state, notices) {
   return statuses.includes('error') ? 'error' : 'ready';
 }
 
-function page(value) { return { status: value && value.status || 'idle', items: Array.isArray(value && value.items) ? value.items : [], context: value && value.context || null, errors: errorsOf(value), snapshotId: value && value.snapshotId, revision: value && value.revision, observedAt: value && value.observedAt }; }
+function page(value) { return { status: value && value.status || 'idle', items: Array.isArray(value && value.items) ? value.items : [], context: value && value.context || null, launchDefaults: value && value.launchDefaults || null, localConfig: value && value.localConfig || null, errors: errorsOf(value), snapshotId: value && value.snapshotId, revision: value && value.revision, observedAt: value && value.observedAt }; }
 function errorsOf(value) { return Array.isArray(value && value.errors) ? value.errors : []; }
 function combineStatus(a, b) { const statuses = [a && a.status, b && b.status]; return statuses.includes('error') ? 'error' : statuses.includes('loading') ? 'loading' : statuses.includes('partial') ? 'partial' : statuses[0] || 'idle'; }
 function normalizeKind(kind) { const value = String(kind || '').toLowerCase(); return value.includes('request') ? 'request' : value.includes('decision') || value.includes('think') || value.includes('plan') ? 'decision' : 'result'; }

@@ -64,7 +64,7 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
       ${renderMetadataPane(vm.metadataPane)}
     </aside></div>
   </main>
-</div>${renderDetailModal(vm.detailActions)}</div>`;
+</div>${renderDetailModal(vm.detailActions)}${renderLaunchComposer(vm.launchComposer)}</div>`;
 }
 
 function renderProject(project, renderedTaskKeys, selectedProductSessionId) {
@@ -75,13 +75,29 @@ function renderProject(project, renderedTaskKeys, selectedProductSessionId) {
     renderedTaskKeys.add(key);
     return true;
   });
-  return `<section class="workspace-project" data-project-id="${escapeHtml(project.projectId || '')}"><button type="button" class="workspace-project__action" data-workspace-action="select-project" data-project-id="${escapeHtml(project.projectId || '')}">${text(project.name, '未命名项目')}</button>${tasks.map((task) => renderTask(task, selectedProductSessionId)).join('')}</section>`;
+  return `<section class="workspace-project" data-project-id="${escapeHtml(project.projectId || '')}"><div class="workspace-project__header"><button type="button" class="workspace-project__action" data-workspace-action="select-project" data-project-id="${escapeHtml(project.projectId || '')}">${text(project.name, '未命名项目')}</button><button type="button" class="workspace-project__launch" data-workspace-action="launch-project" data-project-id="${escapeHtml(project.projectId || '')}" aria-label="在项目 ${escapeHtml(project.name || '未命名项目')}中发起任务" title="发起任务">+</button></div>${tasks.map((task) => renderTask(task, selectedProductSessionId)).join('')}</section>`;
 }
 function taskIdentity(task = {}) { return task.productSessionId || task.id || null; }
 function renderTask(task, selectedProductSessionId = null) {
   const orphan = task.correlationStatus === 'uncorrelated' || !task.productSessionId;
   const selected = !orphan && selectedProductSessionId && selectedProductSessionId === task.productSessionId;
   return `<article class="workspace-task-card${orphan ? ' is-uncorrelated' : ''}${selected ? ' is-selected' : ''}" data-task-id="${escapeHtml(task.id || '')}" data-correlation-status="${escapeHtml(task.correlationStatus || 'unknown')}"><button type="button" class="workspace-task-card__action" data-workspace-action="select-task" data-product-session-id="${escapeHtml(task.productSessionId || '')}"${orphan ? ' disabled aria-disabled="true"' : ''}${selected ? ' aria-current="true"' : ''}><h3>${text(task.title, '未命名任务')}</h3><div class="workspace-task-card__meta"><span>${text(task.productSessionId, orphan ? '未关联 ProductSession' : '未知 ProductSession')}</span>${status(task.status)}</div></button></article>`;
+}
+
+function renderLaunchComposer(composer = {}) {
+  if (composer.open !== true) return '';
+  const defaults = composer.defaults || {};
+  const requirement = composer.requirement || '';
+  const project = defaults.projectRef?.label || defaults.projectRef?.id || '本地默认项目';
+  const testSet = defaults.testSetRef?.id || '本地默认测试集';
+  const task = defaults.taskRef?.label || defaults.taskRef?.id || '本地默认任务';
+  const localConfig = composer.localConfig || {};
+  const disabled = requirement.trim().length === 0 || !defaults.projectRef || !defaults.testSetRef || !defaults.taskRef;
+  const configRows = [
+    ['机器', localConfig.machine], ['宿主版本', localConfig[`${'h'}ostVersion`]], ['Node 版本', localConfig.nodeVersion],
+    ['Workspace 版本', localConfig.workspaceVersion], ['Agent preset', localConfig.agentPreset], ['设备', localConfig.device]
+  ].filter(([, value]) => value !== undefined && value !== null && value !== '').map(([label, value]) => `<div><dt>${text(label)}</dt><dd>${text(value)}</dd></div>`).join('');
+  return `<div class="workspace-launch-composer" role="dialog" aria-modal="true" aria-labelledby="workspace-launch-title"><div class="workspace-launch-composer__backdrop" data-workspace-action="close-launch-composer"></div><form class="workspace-launch-composer__dialog" data-workspace-launch-form><header><div><p class="workspace-eyebrow">UNI-AGENT</p><h3 id="workspace-launch-title">发起任务</h3><p>只填写这次任务需求，其他信息跟随本地默认配置。</p></div><button type="button" class="workspace-detail-modal__close" data-workspace-action="close-launch-composer" aria-label="关闭">×</button></header><div class="workspace-launch-composer__body"><label for="workspace-launch-requirement">任务需求</label><textarea id="workspace-launch-requirement" data-workspace-launch-requirement rows="5" placeholder="例如：确认 Android 设置中的 Wi‑Fi 状态并保留当前状态">${text(requirement)}</textarea><div class="workspace-launch-composer__defaults"><strong>本地默认配置</strong><span>${text(project)}</span><span>${text(testSet)}</span><span>${text(task)}</span></div>${configRows ? `<div class="workspace-launch-composer__machine"><strong>本地运行配置</strong><dl>${configRows}</dl></div>` : ''}</div><footer><button type="button" class="workspace-refresh-action" data-workspace-action="close-launch-composer">取消</button><button type="button" class="workspace-launch-action" data-workspace-action="submit-launch"${disabled ? ' disabled aria-disabled="true"' : ''}>发起</button></footer></form></div>`;
 }
 function renderTimeline(pane = {}) {
   const rounds = Array.isArray(pane.rounds) ? pane.rounds : [];

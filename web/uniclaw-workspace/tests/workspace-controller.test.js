@@ -139,6 +139,16 @@ test('launch action keeps partial Host recovery visible without refreshing as su
   assert.equal(refreshed, 0);
 });
 
+test('launch composer keeps only the user requirement editable', () => {
+  const c = createWorkspaceController({ queryCore: { launchTask: async () => ({ status: 'ready', data: {}, errors: [] }) } });
+  c.openLaunchComposer('p1');
+  assert.deepEqual(c.getState().ui.launchComposer, { open: true, projectId: 'p1', requirement: '' });
+  c.setLaunchRequirement('  调研当前任务  ');
+  assert.equal(c.getState().ui.launchComposer.requirement, '  调研当前任务  ');
+  c.closeLaunchComposer();
+  assert.equal(c.getState().ui.launchComposer.open, false);
+});
+
 test('pane selection is durable in renderer-neutral controller state', async () => {
   const c = controller();
   c.selectPane('evidence');

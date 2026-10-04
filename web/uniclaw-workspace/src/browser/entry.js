@@ -183,22 +183,26 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
       event.preventDefault();
       if (action === 'refresh') {
         void controller.refresh();
-      } else if (action === 'launch-task') {
-        const launch = app.getState().selection;
-        const view = app.getState();
-        const task = (view.projects.items || []).flatMap((project) => project.instances || project.taskInstances || project.tasks || []).find((item) => item.productSessionId === launch.productSessionId) || (launch.taskInstances?.items || [])[0] || {};
-        const projectId = launch.projectId || task.projectRef?.id;
-        const projectRef = logicalLaunchRef(task.projectRef || projectId);
-        const taskRef = task.taskRef || task.taskId || task.id;
-        const testSetValue = task.testSetRef || { id: 'testset/workspace-contract', version: 'default' };
-        const testSetRef = typeof testSetValue === 'string' ? { id: testSetValue, version: 'default' } : { version: 'default', ...testSetValue };
-        if (projectRef && logicalLaunchRef(taskRef) && testSetRef.id && testSetRef.version === 'default') void controller.launchTask({
+      } else if (action === 'launch-task' || action === 'launch-project') {
+        controller.openLaunchComposer(action === 'launch-project' ? target.getAttribute('data-project-id') : app.getState().selection.projectId);
+      } else if (action === 'submit-launch') {
+        const state = app.getState();
+        const composer = state.ui && state.ui.launchComposer;
+        const requirement = typeof composer?.requirement === 'string' ? composer.requirement.trim() : '';
+        if (!requirement) return;
+        const refs = launchRefs(state, composer.projectId);
+        if (!refs.projectRef || !refs.testSetRef || !refs.taskRef) return;
+        const requestId = `launch-request-${Date.now()}`;
+        void controller.launchTask({
           schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1',
-          launchRequestId: `launch-request-${Date.now()}`, projectRef, testSetRef,
-          taskRef: logicalLaunchRef(taskRef),
+          launchRequestId: requestId, projectRef: refs.projectRef, testSetRef: refs.testSetRef,
+          taskRef: { ...refs.taskRef, label: requirement },
           idempotencyKey: `workspace-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          correlationId: `workspace-${Date.now()}`, requestedAt: new Date().toISOString(), metadata: []
-        });
+          correlationId: `workspace-${Date.now()}`, requestedAt: new Date().toISOString(),
+          metadata: [{ key: 'requirement', value: requirement, valueOrigin: 'configured', availability: 'present', source: 'workspace-launch-form', authority: 'user' }]
+        }).then((result) => { if (result.launch?.status === 'ready') controller.closeLaunchComposer(); });
+      } else if (action === 'close-launch-composer') {
+        controller.closeLaunchComposer();
       } else if (action === 'select-pane') {
         controller.selectPane(target.getAttribute('data-pane-tab'));
       } else if (action === 'select-trace-mode') {
@@ -223,8 +227,31 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
         controller.closeDetail();
       }
     });
+    container.addEventListener('input', (event) => {
+      const target = event.target;
+      if (target && target.matches && target.matches('[data-workspace-launch-requirement]')) controller.setLaunchRequirement(target.value);
+    });
   } });
   return Object.freeze({ start: () => { ensureWorkspaceStyles(container, styleText); layout.apply(); return app.start(); }, stop: () => { layout.dispose(); app.stop(); }, getApp: () => app, getLayout: () => layout });
+}
+
+function launchRefs(state, projectId) {
+  const selection = state.selection || {};
+  const task = (state.projects?.items || []).flatMap((project) => project.instances || project.taskInstances || project.tasks || [])
+    .find((item) => item.productSessionId === selection.productSessionId)
+    || (selection.taskInstances?.items || [])[0] || {};
+  const defaults = state.projects?.launchDefaults || {};
+  return {
+    projectRef: logicalLaunchRef(task.projectRef) || logicalLaunchRef(defaults.projectRef) || logicalLaunchRef(projectId),
+    testSetRef: logicalTestSetRef(task.testSetRef) || logicalTestSetRef(defaults.testSetRef),
+    taskRef: logicalLaunchRef(task.taskRef || task.taskId) || logicalLaunchRef(defaults.taskRef),
+  };
+}
+
+function logicalTestSetRef(value) {
+  const ref = typeof value === 'string' ? { id: value } : value;
+  if (!ref || typeof ref.id !== 'string' || ref.id.length === 0 || ref.version !== 'default') return null;
+  return { id: ref.id, version: 'default', ...(typeof ref.sourceRevision === 'string' && ref.sourceRevision.length > 0 ? { sourceRevision: ref.sourceRevision } : {}) };
 }
 
 function logicalLaunchRef(value) {

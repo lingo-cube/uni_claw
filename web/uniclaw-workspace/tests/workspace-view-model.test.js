@@ -75,6 +75,22 @@ test('enables launch only for complete logical launch references', () => {
   assert.equal(unsafe.taskHeader.launch.enabled, false);
 });
 
+test('uses Host-provided local launch defaults when the selected task has no refs', () => {
+  const defaults = {
+    projectRef: { id: 'project/local-default' },
+    testSetRef: { id: 'testset/local-default', version: 'default' },
+    taskRef: { id: 'task/local-default/request', label: '本地默认任务' }
+  };
+  const view = createWorkspaceViewModel(state({
+    projects: { status: 'ready', items: [{ projectId: 'p1', name: '项目', instances: [{ productSessionId: 'ps1', title: '已有任务' }] }], launchDefaults: defaults, errors: [] },
+    selection: { projectId: 'p1', productSessionId: 'ps1', taskInstances: { status: 'ready', items: [{ productSessionId: 'ps1', title: '已有任务' }], errors: [] } }
+  }));
+  assert.equal(view.taskHeader.launch.enabled, true);
+  assert.deepEqual(view.taskHeader.launch.projectRef, defaults.projectRef);
+  assert.deepEqual(view.taskHeader.launch.testSetRef, defaults.testSetRef);
+  assert.deepEqual(view.taskHeader.launch.taskRef, defaults.taskRef);
+});
+
 test('keeps uncorrelated instances visible without inventing product identity', () => {
   const view = createWorkspaceViewModel(state());
   const orphan = view.navigation.taskInstances.find((item) => item.observed);

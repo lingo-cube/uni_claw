@@ -78,6 +78,8 @@ function normalizePage(result, itemKey) {
     items,
     errors,
     ...(data.context ? { context: data.context } : {}),
+    ...(data.launchDefaults && typeof data.launchDefaults === 'object' ? { launchDefaults: data.launchDefaults } : {}),
+    ...(data.localConfig && typeof data.localConfig === 'object' ? { localConfig: data.localConfig } : {}),
     ...(data.nextCursor ? { nextCursor: data.nextCursor } : {})
   };
 }
