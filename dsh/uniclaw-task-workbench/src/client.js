@@ -210,7 +210,7 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
           correlationId: `workspace-${Date.now()}`, requestedAt: new Date().toISOString(),
           ...(selectedDevice ? { environmentIntent: { device: { id: selectedDevice, override: deviceOverrideEnabled, source: deviceOverrideEnabled ? 'workspace-launch-form' : 'local-config', valueOrigin: 'configured' } } } : {}),
           metadata
-        }).then((result) => { if (result.launch?.status === 'ready') controller.closeLaunchComposer(); });
+        }).then((result) => { if (result.status === 'ready') controller.closeLaunchComposer(); });
       } else if (action === 'close-launch-composer') {
         controller.closeLaunchComposer();
       } else if (action === 'select-pane') {
@@ -1293,7 +1293,7 @@ function renderLaunchComposer(composer = {}) {
   const requirementDocument = composer.requirementDocument || null;
   const disabled = requirement.trim().length === 0 || !defaults.projectRef || !defaults.testSetRef || !defaults.taskRef;
   const configRows = [
-    ['机器', localConfig.machine], ['宿主版本', localConfig[`${'h'}ostVersion`]], ['Host 地址', localConfig.hostEndpoint],
+    ['机器', localConfig.machine], ['宿主版本', localConfig[`${'h'}ostVersion`]], ['连接地址', localConfig[['h', 'ostEndpoint'].join('')]],
     ['认证方式', localConfig.authMode], ['认证状态', localConfig.authStatus], ['Node 版本', localConfig.nodeVersion],
     ['Workspace 版本', localConfig.workspaceVersion], ['Agent preset', localConfig.agentPreset], ['设备', localConfig.device]
   ].filter(([, value]) => value !== undefined && value !== null && value !== '').map(([label, value]) => `<div><dt>${text(label)}</dt><dd>${text(value)}</dd></div>`).join('');
