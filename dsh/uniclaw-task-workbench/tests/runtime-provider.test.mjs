@@ -1,3 +1,4 @@
+import { createServer } from 'node:http'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createRuntimeProvider, runtimeProviderContract } from '../src/runtime-provider.js'
@@ -60,4 +61,35 @@ test('runtime recovery uses the same validated response seam', async () => {
   const result = await provider.recoverRun({ launchId: 'launch-1', idempotencyKey: 'idem-1' })
   assert.deepEqual(result, { runId: 'run-recovered', productSessionId: 'product-recovered' })
   assert.equal(calls[0].url, 'http://runtime.local/api/uniclaw-runtime/runs/recover')
+})
+
+test('runtime provider works against a real local HTTP transport', async () => {
+  const server = createServer((request, response) => {
+    let body = ''
+    request.on('data', chunk => { body += chunk })
+    request.on('end', () => {
+      assert.equal(request.method, 'POST')
+      assert.equal(request.url, '/api/uniclaw-runtime/runs')
+      const payload = JSON.parse(body)
+      assert.equal(payload.idempotencyKey, 'idem-http-1')
+      response.setHeader('content-type', 'application/json')
+      response.end(JSON.stringify({ runId: 'run-http-1', productSessionId: 'product-http-1' }))
+    })
+  })
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+  try {
+    const address = server.address()
+    const provider = createRuntimeProvider({ baseUrl: `http://127.0.0.1:${address.port}` })
+    const result = await provider.createRun({
+      projectRef: { id: 'project/http' },
+      testSetRef: { id: 'testset/http', version: 'default' },
+      taskRef: { id: 'task/http' },
+      correlationId: 'corr-http-1',
+      idempotencyKey: 'idem-http-1',
+      launchId: 'launch-http-1',
+    })
+    assert.deepEqual(result, { runId: 'run-http-1', productSessionId: 'product-http-1' })
+  } finally {
+    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()))
+  }
 })
