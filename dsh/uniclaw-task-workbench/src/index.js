@@ -174,8 +174,19 @@ const launchStage = ({ stage, status = 'succeeded', source, authority, availabil
   ...(diagnostic ? { diagnostic } : {}), recordedAt: nowIso(),
 })
 
+/**
+ * Resolve the local catalog through an explicit Host configuration seam.
+ *
+ * The plugin is installed into DSH's profile, while the temporary local
+ * catalog intentionally lives in the UniClaw repository. Keeping the default
+ * package-relative preserves standalone/unit-test behaviour; a Host can point
+ * at the repository-owned testsets directory without copying product assets
+ * into the installed plugin snapshot.
+ */
+const catalogRoot = () => envText('UNICLAW_TESTSET_ROOT', join(REPOSITORY_ROOT, 'testsets'))
+
 const loadCatalog = (testSetRef) => {
-  const manifestPath = join(REPOSITORY_ROOT, 'testsets', testSetRef.id.replace(/^testset\//, ''), 'manifest.json')
+  const manifestPath = join(catalogRoot(), testSetRef.id.replace(/^testset\//, ''), 'manifest.json')
   try {
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
     const task = manifest.tasks?.find(item => item.taskRef === testSetRef.taskRef)

@@ -19,6 +19,10 @@ JSON 存储默认在 `~/.dsh/uniclaw-tasks/tasks.json`（config `storePath` 可�
 二者不一致时插件拒绝启动。运行产物默认从当前 workspace 的 `evidence/` 读取，
 也可以通过 `artifactRoots` 配置覆盖。
 
+本地测试集目录由 Host 通过 `UNICLAW_TESTSET_ROOT` 配置；它指向仓库外置的
+`testsets/` 根目录，避免把测试资产复制进 DSH 安装快照。`dsh/test-service.sh`
+会默认将该变量指向当前仓库的 `testsets/`，生产 Host 应按自己的本地存储布局设置。
+
 ## Panel 方法
 
 | 方法 | 作用 |

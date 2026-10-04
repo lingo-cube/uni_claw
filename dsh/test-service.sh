@@ -13,6 +13,8 @@ PORT="${DSH_TEST_PORT:-3081}"
 DK_HARNESS_DIR="${DSH_HARNESS_DIR:-/Users/fran/Documents/Code/dk-harness}"
 NODE_BIN="${DSH_NODE_BIN:-node}"
 CLI="${DSH_CLI:-$DK_HARNESS_DIR/apps/cli/lib/bin.js}"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export UNICLAW_TESTSET_ROOT="${UNICLAW_TESTSET_ROOT:-$REPO_ROOT/testsets}"
 
 case "$PORT" in
   ''|*[!0-9]*) echo "ERROR: DSH_TEST_PORT must be a numeric port" >&2; exit 2 ;;

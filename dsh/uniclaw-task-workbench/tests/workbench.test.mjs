@@ -289,6 +289,36 @@ test('launch: Runtime-owned run and Host binding are explicit and idempotent', a
   assert.equal(controller.createCalls.length, 1)
 })
 
+test('launch: Host-configured catalog root resolves repository-owned testsets', async () => {
+  const catalogRoot = join(TEST_ROOT, 'configured-testsets')
+  const manifestDir = join(catalogRoot, 'external-catalog')
+  mkdirSync(manifestDir, { recursive: true })
+  writeFileSync(join(manifestDir, 'manifest.json'), JSON.stringify({
+    schemaVersion: 'testset-manifest.v1',
+    projectRef: 'project/external-catalog',
+    testSetRef: 'testset/external-catalog',
+    version: 'default',
+    tasks: [{ taskRef: 'task/external-catalog/smoke', displayName: 'External catalog smoke' }],
+  }))
+  const previous = process.env.UNICLAW_TESTSET_ROOT
+  process.env.UNICLAW_TESTSET_ROOT = catalogRoot
+  try {
+    const runtime = { async createRun() { return { runId: 'run-external-catalog', productSessionId: 'session-external-catalog' } } }
+    const { routes } = applyHost({ controller: mockController(), registry: mockRegistry(), runtime })
+    const response = await post(routes, '/api/uniclaw-task/tasks/launch', {
+      schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1',
+      launchRequestId: 'launch-external-catalog', projectRef: { id: 'project/external-catalog' },
+      testSetRef: { id: 'testset/external-catalog', version: 'default' }, taskRef: { id: 'task/external-catalog/smoke' },
+      idempotencyKey: 'idem-external-catalog', correlationId: 'corr-external-catalog', requestedAt: new Date().toISOString(), metadata: [],
+    })
+    assert.equal(response.status, 200)
+    assert.equal((await response.json()).instance.runId, 'run-external-catalog')
+  } finally {
+    if (previous === undefined) delete process.env.UNICLAW_TESTSET_ROOT
+    else process.env.UNICLAW_TESTSET_ROOT = previous
+  }
+})
+
 test('launch: Host failure leaves a partial recoverable instance after Runtime created run', async () => {
   const runtime = { async createRun() { return { runId: 'run-partial-1', productSessionId: 'product-partial-1' } } }
   const controller = mockController({ createError: new Error('host unavailable') })
