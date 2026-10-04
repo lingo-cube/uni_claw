@@ -27,6 +27,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { createTaskRepository, sha256File } from './repository.js'
 import { createArtifactSource } from './artifacts.js'
+import { createRuntimeProvider } from './runtime-provider.js'
 
 /** Sync availability probe for the profile-only typert-protocol package.
  * A failed dynamic import inside the node --test child leaves
@@ -263,8 +264,9 @@ const launchTask = async (ctx, repository, request) => {
   try {
     if (!run) run = await runtime.createRun({ projectRef: request.projectRef, testSetRef: request.testSetRef, taskRef: request.taskRef, correlationId: request.correlationId, idempotencyKey: request.idempotencyKey, launchId })
   } catch (error) {
+    const code = typeof error?.code === 'string' && error.code.length > 0 ? error.code : 'run-create-failed'
     try { repository.updateInstance(taskId, instanceId, { runtimeStatus: 'unknown', recovery: { code: 'run-create-unknown', message: String(error?.message ?? error) } }) } catch { /* preserve original error */ }
-    return { ok: false, status: 500, code: 'run-create-failed', message: String(error?.message ?? error) }
+    return { ok: false, status: code === 'runtime-unavailable' ? 503 : 500, code, message: String(error?.message ?? error) }
   }
   const runId = typeof run?.runId === 'string' ? run.runId : ''
   if (runId.length === 0) {
@@ -1248,6 +1250,24 @@ export function apply(ctx, config) {
   // Fail-closed gate: a drifted artifact refuses plugin startup entirely.
   const artifact = loadSchemaArtifact(schemaDir)
   log(`task protocol artifact loaded: schemaHash=${artifact.schemaHash.slice(0, 12)}…`)
+
+  // Register the Host-facing Runtime transport at the composition boundary.
+  // An existing Host provider wins; otherwise the adapter delegates to the
+  // configured Runtime endpoint and stays explicitly unavailable when no
+  // endpoint is configured. It never creates IDs locally.
+  const existingRuntime = typeof ctx.get === 'function' ? ctx.get('uniclawRuntime') : undefined
+  if (existingRuntime === undefined && ctx.reflect && typeof ctx.reflect.provide === 'function') {
+    const runtimeProvider = createRuntimeProvider({
+      baseUrl: configuredDir(config?.runtimeBaseUrl, process.env.UNICLAW_RUNTIME_BASE_URL),
+      fetchImpl: config?.runtimeFetch,
+      timeoutMs: config?.runtimeTimeoutMs,
+      createPath: config?.runtimeCreatePath,
+      recoverPath: config?.runtimeRecoverPath,
+    })
+    ctx.reflect.provide('uniclawRuntime', runtimeProvider)
+    log('registered: uniclawRuntime Host transport adapter')
+  }
+
 
   const repository = createTaskRepository(storePath)
   const artifactSource = createArtifactSource(artifactRoots)

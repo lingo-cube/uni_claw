@@ -23,7 +23,9 @@ const TEST_ROOT = mkdtempSync(join(tmpdir(), 'uniclaw-task-wb-'))
 /** Apply the plugin in host mode against a fresh mock ctx. */
 function applyHost({ schemaDir = FROZEN_SCHEMA_DIR, controller, registry, runtime } = {}) {
   const routes = new Map()
+  const provided = {}
   const ctx = {
+    reflect: { provide(key, value) { provided[key] = value } },
     connection: {
       fetch: {
         register(route) { routes.set(route.path, route) },
@@ -39,7 +41,7 @@ function applyHost({ schemaDir = FROZEN_SCHEMA_DIR, controller, registry, runtim
   }
   const storePath = join(TEST_ROOT, `store-${Math.random().toString(36).slice(2)}.json`)
   plugin.apply(ctx, { schemaDir, storePath, artifactRoots: [] })
-  return { routes, storePath }
+  return { routes, storePath, provided }
 }
 
 function mockController({ createError = null } = {}) {
@@ -92,6 +94,12 @@ const createTaskBody = {
   requirement: 'Make tests/auth.test.mjs deterministic on CI.',
   projectRef: { path: '/tmp/uniclaw-demo-repo' },
 }
+
+test('apply registers a Host Runtime provider without minting local identities', () => {
+  const { provided } = applyHost()
+  assert.equal(typeof provided.uniclawRuntime?.createRun, 'function')
+  assert.equal(typeof provided.uniclawRuntime?.recoverRun, 'function')
+})
 
 test('schema artifact self-check: drifted schema refuses apply() startup', () => {
   const tamperedDir = join(TEST_ROOT, 'tampered-schema')

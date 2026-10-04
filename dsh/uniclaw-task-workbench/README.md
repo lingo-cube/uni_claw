@@ -28,6 +28,25 @@ JSON 存储默认在 `~/.dsh/uniclaw-tasks/tasks.json`（config `storePath` 可�
 | `artifact({sessionId, ref})` | 读取当前 session 已关联运行产物的截断文本；未关联的相对路径或文件会失败关闭 |
 | `sessions()` | 兼容的 DSH session 列表与标题投影 |
 | `trace({sessionId})` | 兼容的 UniFlow gate/outcome/evidence 事件投影 |
+| `launch({TaskLaunchRequest})` | 经 `uniclawRuntime` Host adapter 创建/恢复 Runtime Run 和 Product Session；不在 DSH 侧生成 identity |
+
+### Runtime launch transport
+
+插件启动时通过 DSH 的 `ctx.reflect.provide('uniclawRuntime', provider)` 注册
+Host-facing Runtime adapter；如果宿主已经提供同名 provider，则保留宿主实现。
+默认 adapter 只调用外部 Runtime，不在 DSH 侧生成 `runId` 或
+`productSessionId`。配置 `UNICLAW_RUNTIME_BASE_URL`（或插件 `runtimeBaseUrl`）
+后使用以下接口：
+
+- `POST /api/uniclaw-runtime/runs`：接收版本化逻辑引用和幂等字段，必须返回
+  `runId` 与 `productSessionId`。
+- `POST /api/uniclaw-runtime/runs/recover`：按 `launchId` 与
+  `idempotencyKey` 恢复同一运行，也必须返回这两个字段。
+
+未配置 endpoint、transport 超时或响应缺少 Runtime-owned identity 时，provider
+返回结构化 `runtime-unavailable` / `runtime-response-invalid`，不会生成 fallback
+ID。当前仓库的 `UniClaw.Host.Dsh` 仍是 console composition root；接入真实运行前，
+需要由 Host/Runtime 侧提供上述 transport。
 
 `conversationGroups` 从真实 `AgentDecisionContext (JSON)`、`submit_decision` call/result
 和回合事件构造，每个回合按请求 → 决策 → 提交归组；提交结果只表示决策已被接收，
@@ -45,6 +64,7 @@ UniClaw Trace 每条语义记录都提供“查看明细”按钮，在工作区
 cd dsh/uniclaw-task-workbench && npm test
 node --check src/index.js
 node --check src/client.js
+node --check src/runtime-provider.js
 ```
 
 路由（均在 authenticated `/api` lane）：
@@ -54,6 +74,7 @@ node --check src/client.js
 | `GET /api/uniclaw-task/tasks` | 列出任务定义（含实例） |
 | `POST /api/uniclaw-task/tasks` | 创建任务定义（title/requirement 必填） |
 | `POST /api/uniclaw-task/tasks/instantiate` | 实例化：active 任务 → uniagent-task session |
+| `POST /api/uniclaw-task/tasks/launch` | TaskLaunchRequest → Runtime Run/Product Session/Host Session 绑定 |
 
 ## 回滚
 
