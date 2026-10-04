@@ -1,6 +1,6 @@
 # PNL-005 — Runtime Run 状态、事件与查询投影
 
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: closed · disposition: implemented · depth: decision-heavy · base: working-tree
 
 ## Intent（WHAT/WHY）
 
@@ -86,3 +86,4 @@ evidence: evidence/pnl-005/runtime-run-store.md
 - 2026-10-04 · IMPLEMENT → VERIFY（局部） · HTTP smoke 通过 health、404 business error、400 business error；真实 DSH/ADB 环境当前未启动，端到端证据待补。
 - 2026-10-04 · VERIFY · 真实 `emulator-5556`、DSH `3083`、Runtime `3090` 链路通过；直接 POST 和 Workspace 页面发起均得到 Runtime `202 → completed`，事件为 accepted/started/completed，页面可读 Uni-Agent 请求→决策→结果和 22 条 DSH trace。
 - 2026-10-04 · VERIFY · 修复 DSH launch 对 Runtime 中性 `hostSessionRef` 的读取，避免 Runtime 已绑定 session 时重复创建 DSH session；新增回归测试通过 66/66。
+- 2026-10-04 · VERIFY → CLOSED · PNL-005 验收闭合；Runtime Run 是执行生命周期权威，DSH session 的可继续查看状态保留为独立 projection。session lifecycle reconciliation 与 OTel/UniClaw trace 补全作为后续 change，不回写本 Change。
