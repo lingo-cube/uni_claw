@@ -304,6 +304,20 @@ test('launch: Runtime-owned dshSessionId is reused without creating a second DSH
   assert.equal(controller.createCalls.length, 0)
 })
 
+test('launch: Runtime hostSessionRef is reused without requiring project resolution', async () => {
+  const controller = mockController()
+  const runtime = { async createRun() { return { runId: 'run-runtime-host-ref', productSessionId: 'product-runtime-host-ref', hostSessionRef: { host: 'dsh', sessionId: 'dsh-host-ref' } } } }
+  const { routes } = applyHost({ controller, registry: undefined, runtime })
+  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-runtime-host-ref', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/wifi-state' }, idempotencyKey: 'idem-runtime-host-ref', correlationId: 'corr-runtime-host-ref', requestedAt: new Date().toISOString(), metadata: [] }
+  const response = await post(routes, '/api/uniclaw-task/tasks/launch', request)
+  assert.equal(response.status, 200)
+  const payload = await response.json()
+  assert.equal(payload.ok, true)
+  assert.equal(payload.instance.sessionId, 'dsh-host-ref')
+  assert.equal(payload.instance.hostSessionRef, 'dsh-host-ref')
+  assert.equal(controller.createCalls.length, 0)
+})
+
 test('launch: Host-configured catalog root resolves repository-owned testsets', async () => {
   const catalogRoot = join(TEST_ROOT, 'configured-testsets')
   const manifestDir = join(catalogRoot, 'external-catalog')

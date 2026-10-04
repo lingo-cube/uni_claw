@@ -72,7 +72,7 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
 level: CONTRACT
 method: python3 tools/validate-workspace-schemas.py; Runtime Host contract tests; real 3083→3090→emulator scenario
 expected: schema and business responses are valid; state/event/projection behavior matches decisions
-actual: RuntimeRunStore and HTTP query surface implemented; contract/unit/smoke checks pass, real DSH/ADB scenario pending environment startup
+actual: RuntimeRunStore and HTTP query surface implemented; contract/unit/smoke checks pass; direct Runtime and Ego Lite Workspace launches both completed against DSH `3083` and `emulator-5556`, with Runtime `3090` projections and DSH conversation/trace evidence
 evidence: evidence/pnl-005/runtime-run-store.md
 ```
 
@@ -84,3 +84,5 @@ evidence: evidence/pnl-005/runtime-run-store.md
 - 2026-10-04 · IMPLEMENT · RuntimeRunStore 完成文件 adapter、append-only event、snapshot、幂等查找、Run 列表过滤和 opaque cursor；Workbench 增加 host-neutral Runtime HTTP adapter，页面不依赖 DSH 或 runs 目录。
 - 2026-10-04 · IMPLEMENT → VERIFY（局部） · schema、RunStore、Host build、Workspace adapter tests 和 list HTTP smoke 通过；真实 DSH/ADB 环境当前未启动，端到端证据待补。
 - 2026-10-04 · IMPLEMENT → VERIFY（局部） · HTTP smoke 通过 health、404 business error、400 business error；真实 DSH/ADB 环境当前未启动，端到端证据待补。
+- 2026-10-04 · VERIFY · 真实 `emulator-5556`、DSH `3083`、Runtime `3090` 链路通过；直接 POST 和 Workspace 页面发起均得到 Runtime `202 → completed`，事件为 accepted/started/completed，页面可读 Uni-Agent 请求→决策→结果和 22 条 DSH trace。
+- 2026-10-04 · VERIFY · 修复 DSH launch 对 Runtime 中性 `hostSessionRef` 的读取，避免 Runtime 已绑定 session 时重复创建 DSH session；新增回归测试通过 66/66。

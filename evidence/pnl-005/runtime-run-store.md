@@ -34,6 +34,13 @@
 
 ## ENVIRONMENT
 
-- method: `adb devices`、访问本地 3083/3090。
-- expected: 有可用 Android device、DSH Host 和 Runtime Host 后执行真实 `POST → GET run → GET events`。
-- actual: 当前没有 ADB device，3083/3090 均未运行；真实 DSH/Kernel/设备闭环未宣称通过。
+- method: 启动 `tools/android/start-test-device.sh`（持久会话保持 `emulator-5556`）、启动 DSH test service `3083`、启动 `UniClaw.Host.Dsh --runtime-http --runtime-port 3090 --device emulator-5556`；先直接 POST，再通过 Ego Lite Workspace 页面发起一次任务；随后读取 Runtime run/events 和 DSH task/session projection。
+- expected: 真实设备、DSH Host 和 Runtime Host 形成一条可查询链路；页面发起只创建一个 Runtime Run 和一个已绑定的 Host session；Runtime 终态、事件、设备元信息和 DSH 对话/trace 均可读。
+- actual: 通过。直接请求生成 `run-260164a0a0f84653b7b28e05b2cf85d8`，`202 → completed`，绑定 `session-916e963c-36c9-4620-8fc8-2d452bbb8ca6`；页面发起生成 `run-2b8b5a532db844aeb94a7b27b8dcb9c6`，`202 → completed`，绑定 `product-session-ad25301c9339488eb4bc8445ae2ffd34` / `session-0906bd07-c8d7-4633-81c2-8eb697a5dd71`，环境设备为 `emulator-5556`。Runtime events 为 `run.accepted(source=runtime)`、`run.started(source=dsh)`、`run.completed(source=runtime)`，revision `3`；artifacts 暴露 facts/trace/evidence/journal 的逻辑 detail endpoint。DSH 侧页面可见 1 个 Uni-Agent round、请求→决策→结果和 22 条 DSH trace。重复创建请求保持同一 run identity；无第二个 DSH session 被创建。
+
+## REAL ACCEPTANCE
+
+- method: `ego-browser` TaskSpace `PNL-005 real workspace acceptance`，打开 DSH Workspace，点击 `android-settings` 项目旁的 `+`，只填写需求并保持本地设备默认值，然后选择新建任务。
+- expected: 发起窗口允许只填需求；本地配置显示机器、Host/Workspace 版本、认证方式和 `emulator-5556`；任务创建后可进入会话，看到 Uni-Agent 过程、DSH trace 和 Runtime 关联信息。
+- actual: 页面显示默认设备 `emulator-5556`、`darwin · arm64`、`dsh-local`、`browser-token`、`uniagent-task`；发起后实例 `psi-be9a39d680b3c2a1` 写入 `run-2b8b5a532db844aeb94a7b27b8dcb9c6`，`host-session-bound` 阶段成功，页面进入 `Request, decision, and result timeline` 会话。对话显示调用方请求、Uni-Agent `noAction` 决策和提交结果；Trace 面板显示 22 条 DSH 原生事件并支持查看节点。
+- note: 当前 Workbench 的 DSH session projection 仍把 Host session 实例标为 `active`，Runtime Run 已是 `completed`；两者是不同 authority，后续应补一个 session lifecycle reconciliation change，不在 PNL-005 本次修复中偷偷合并。

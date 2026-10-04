@@ -363,7 +363,12 @@ const launchTask = async (ctx, repository, request) => {
     })
     return { ok: false, status: 409, code: 'product-session-unavailable', message: 'Runtime did not return productSessionId', partial: stored }
   }
-  const runtimeSessionId = typeof run?.dshSessionId === 'string' && run.dshSessionId.length > 0 ? run.dshSessionId : null
+  // Runtime HTTP projections use the neutral hostSessionRef envelope; keep
+  // the older dshSessionId alias for existing providers without creating a
+  // second DSH session when the Runtime already bound one.
+  const runtimeSessionId = typeof run?.dshSessionId === 'string' && run.dshSessionId.length > 0
+    ? run.dshSessionId
+    : (typeof run?.hostSessionRef?.sessionId === 'string' && run.hostSessionRef.sessionId.length > 0 ? run.hostSessionRef.sessionId : null)
   const controller = runtimeSessionId === null ? ctx.get('sessionController') : null
   const registry = runtimeSessionId === null ? ctx.get('workspaceRegistry') : null
   try {
