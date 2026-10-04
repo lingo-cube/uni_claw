@@ -72,7 +72,7 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
 level: CONTRACT
 method: python3 tools/validate-workspace-schemas.py; Runtime Host contract tests; real 3083→3090→emulator scenario
 expected: schema and business responses are valid; state/event/projection behavior matches decisions
-actual: pending implementation
+actual: RuntimeRunStore and HTTP query surface implemented; contract/unit/smoke checks pass, real DSH/ADB scenario pending environment startup
 evidence: plans/2026-10-04-pnl-005-plan.md
 ```
 
@@ -80,3 +80,6 @@ evidence: plans/2026-10-04-pnl-005-plan.md
 
 - 2026-10-04 · UNDERSTAND → RESOLVE · 完成 Runtime authority、状态、事件、projection、HTTP 业务对象和边界 grill。
 - 2026-10-04 · RESOLVE → PERSIST · 冻结领域关系、RunStore、查询接口、分页、一致性和残余边界，进入 schema/plan 阶段。
+- 2026-10-04 · PERSIST → IMPLEMENT · 提交 schema、ADR、实施计划和正负样例；校验器通过 11 个 schema。
+- 2026-10-04 · IMPLEMENT · RuntimeRunStore 完成文件 adapter、append-only event、snapshot、幂等查找和 cursor 分页；Host 单测 3/3、DSH Host 编译 0 error。
+- 2026-10-04 · IMPLEMENT → VERIFY（局部） · HTTP smoke 通过 health、404 business error、400 business error；真实 DSH/ADB 环境当前未启动，端到端证据待补。
