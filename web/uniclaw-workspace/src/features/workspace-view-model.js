@@ -49,7 +49,7 @@ function createWorkspaceViewModel(input, options = {}) {
     executionPane: executionPane((state.session && state.session.session) || null),
     metadataPane: { status: state.session && state.session.status || 'idle', items: metadata, claims: metadataClaims(selectedTask, session), ...launchProjection(selectedTask, session), errors: errorsOf(state.session) },
     launchComposer: {
-      ...(state.ui && state.ui.launchComposer ? clone(state.ui.launchComposer) : { open: false, projectId: null, requirement: '' }),
+      ...(state.ui && state.ui.launchComposer ? clone(state.ui.launchComposer) : { open: false, projectId: null, requirement: '', deviceOverrideEnabled: false, deviceOverride: null, requirementDocument: null, documentError: null }),
       defaults: clone(projectsState.launchDefaults || null),
       localConfig: clone(projectsState.localConfig || null)
     },

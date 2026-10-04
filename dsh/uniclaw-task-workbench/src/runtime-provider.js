@@ -61,6 +61,7 @@ const requestBody = (request) => ({
   correlationId: request.correlationId,
   idempotencyKey: request.idempotencyKey,
   launchId: request.launchId,
+  ...(request.environmentIntent && typeof request.environmentIntent === 'object' ? { environmentIntent: request.environmentIntent } : {}),
 })
 
 /**

@@ -19,6 +19,7 @@ test('runtime provider posts the canonical launch payload and validates Runtime-
     correlationId: 'corr-1',
     idempotencyKey: 'idem-1',
     launchId: 'launch-1',
+    environmentIntent: { device: { id: 'emulator-5558', override: true, source: 'workspace-launch-form' } },
   })
   assert.deepEqual(result, { runId: 'run-1', productSessionId: 'product-session-1' })
   assert.equal(calls.length, 1)
@@ -33,6 +34,7 @@ test('runtime provider posts the canonical launch payload and validates Runtime-
     correlationId: 'corr-1',
     idempotencyKey: 'idem-1',
     launchId: 'launch-1',
+    environmentIntent: { device: { id: 'emulator-5558', override: true, source: 'workspace-launch-form' } },
   })
 })
 

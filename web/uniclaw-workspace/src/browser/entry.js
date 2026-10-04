@@ -6,6 +6,7 @@ const WORKSPACE_STYLE_ID = 'uniclaw-workspace-styles';
 // A persisted DSH session may require a cold decompression/read on first access.
 // Keep the browser seam bounded, while allowing the real product session to load.
 const DSH_CAPABILITY_TIMEOUT_MS = 30000;
+const MAX_REQUIREMENT_DOCUMENT_BYTES = 512 * 1024;
 
 function ensureWorkspaceStyles(container, styleText) {
   if (typeof styleText !== 'string' || styleText.length === 0) return;
@@ -159,7 +160,7 @@ function createCapabilities(remote) {
     TaskCommand: {
       launchTask: (request = {}) => {
         if (typeof remote.launch !== 'function') return Promise.resolve({ ok: false, error: { code: 'unavailable', message: 'DSH Host 未提供任务发起接口', retryable: false, source: 'TaskCommand' } });
-        const values = ['schemaVersion', 'contractVersion', 'launchRequestId', 'projectRef', 'testSetRef', 'taskRef', 'idempotencyKey', 'correlationId', 'requestedAt', 'metadata', 'taskId'].map((key) => request[key]);
+        const values = ['schemaVersion', 'contractVersion', 'launchRequestId', 'projectRef', 'testSetRef', 'taskRef', 'idempotencyKey', 'correlationId', 'requestedAt', 'environmentIntent', 'metadata', 'taskId'].map((key) => request[key]);
         return call('launch', values, 'TaskCommand');
       }
     }
@@ -193,13 +194,20 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
         const refs = launchRefs(state, composer.projectId);
         if (!refs.projectRef || !refs.testSetRef || !refs.taskRef) return;
         const requestId = `launch-request-${Date.now()}`;
+        const localConfig = state.projects?.localConfig || {};
+        const deviceOverrideEnabled = composer.deviceOverrideEnabled === true;
+        const selectedDevice = deviceOverrideEnabled ? composer.deviceOverride : localConfig.device;
+        const metadata = [{ key: 'requirement', value: requirement, valueOrigin: 'configured', availability: 'present', source: 'workspace-launch-form', authority: 'user' }];
+        if (selectedDevice) metadata.push({ key: 'device', value: selectedDevice, valueOrigin: 'configured', availability: 'present', source: deviceOverrideEnabled ? 'workspace-launch-form' : 'local-config', authority: deviceOverrideEnabled ? 'user' : 'host-local-config' });
+        if (composer.requirementDocument) metadata.push({ key: 'requirementDocument', value: composer.requirementDocument, valueOrigin: 'configured', availability: 'present', source: 'workspace-launch-form', authority: 'user' });
         void controller.launchTask({
           schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1',
           launchRequestId: requestId, projectRef: refs.projectRef, testSetRef: refs.testSetRef,
           taskRef: { ...refs.taskRef, label: requirement },
           idempotencyKey: `workspace-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           correlationId: `workspace-${Date.now()}`, requestedAt: new Date().toISOString(),
-          metadata: [{ key: 'requirement', value: requirement, valueOrigin: 'configured', availability: 'present', source: 'workspace-launch-form', authority: 'user' }]
+          ...(selectedDevice ? { environmentIntent: { device: { id: selectedDevice, override: deviceOverrideEnabled, source: deviceOverrideEnabled ? 'workspace-launch-form' : 'local-config', valueOrigin: 'configured' } } } : {}),
+          metadata
         }).then((result) => { if (result.launch?.status === 'ready') controller.closeLaunchComposer(); });
       } else if (action === 'close-launch-composer') {
         controller.closeLaunchComposer();
@@ -230,6 +238,21 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
     container.addEventListener('input', (event) => {
       const target = event.target;
       if (target && target.matches && target.matches('[data-workspace-launch-requirement]')) controller.setLaunchRequirement(target.value);
+      if (target && target.matches && target.matches('[data-workspace-launch-device]') && target.value) controller.setLaunchDeviceOverride(true, target.value);
+    });
+    container.addEventListener('change', (event) => {
+      const target = event.target;
+      if (!target || !target.matches) return;
+      if (target.matches('[data-workspace-launch-device-override]')) {
+        const composer = app.getState().ui?.launchComposer || {};
+        controller.setLaunchDeviceOverride(target.checked, composer.deviceOverride || null);
+      } else if (target.matches('[data-workspace-launch-document]')) {
+        const file = target.files && target.files[0];
+        if (!file) return controller.setLaunchDocument(null);
+        if (file.size > MAX_REQUIREMENT_DOCUMENT_BYTES) return controller.setLaunchDocumentError('需求文档不能超过 512 KB');
+        if (typeof file.text !== 'function') return controller.setLaunchDocumentError('当前浏览器无法读取该需求文档');
+        void file.text().then((content) => controller.setLaunchDocument({ name: file.name, mimeType: file.type || 'text/plain', sizeBytes: file.size, text: content })).catch(() => controller.setLaunchDocumentError('需求文档读取失败'));
+      }
     });
   } });
   return Object.freeze({ start: () => { ensureWorkspaceStyles(container, styleText); layout.apply(); return app.start(); }, stop: () => { layout.dispose(); app.stop(); }, getApp: () => app, getLayout: () => layout });

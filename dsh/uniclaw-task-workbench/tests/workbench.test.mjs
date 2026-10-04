@@ -266,7 +266,7 @@ test('launch: Runtime-owned run and Host binding are explicit and idempotent', a
   const controller = mockController()
   const runtime = { calls: [], async createRun(request) { runtime.calls.push(request); return { runId: 'run-runtime-1', productSessionId: 'product-session-1' } } }
   const { routes } = applyHost({ controller, registry: mockRegistry(), runtime })
-  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-1', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/wifi-state' }, idempotencyKey: 'idem-1', correlationId: 'corr-1', requestedAt: new Date().toISOString(), metadata: [] }
+  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-1', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/wifi-state' }, idempotencyKey: 'idem-1', correlationId: 'corr-1', requestedAt: new Date().toISOString(), environmentIntent: { device: { id: 'emulator-5558', override: true, source: 'workspace-launch-form' } }, metadata: [] }
   const first = await post(routes, '/api/uniclaw-task/tasks/launch', request)
   assert.equal(first.status, 200)
   const firstPayload = await first.json()
@@ -274,6 +274,7 @@ test('launch: Runtime-owned run and Host binding are explicit and idempotent', a
   assert.equal(firstPayload.instance.runId, 'run-runtime-1')
   assert.equal(firstPayload.instance.productSessionId, 'product-session-1')
   assert.equal(firstPayload.instance.status, 'active')
+  assert.deepEqual(runtime.calls[0].environmentIntent, request.environmentIntent)
   assert.equal(firstPayload.ack.schemaVersion, 'uniclaw.workspace.task-launch-ack.v1')
   assert.equal(firstPayload.ack.bindings.runId, 'run-runtime-1')
   assert.deepEqual(firstPayload.ack.bindings.hostSessionRef, { host: 'dsh', sessionId: firstPayload.instance.sessionId })
@@ -540,6 +541,8 @@ test('panel workspace: task instances are grouped by project and definitions wit
   repository.addInstance(third.taskId, { instanceId: 'psi-2', sessionId: 'session-panel-2', status: 'completed', startedAt: '2026-01-02T00:00:00Z', endedAt: '2026-01-02T00:10:00Z' })
   const result = service.workspace()
   assert.equal(result.success, true)
+  assert.equal(result.localConfig.device, 'emulator-5556')
+  assert.deepEqual(result.localConfig.deviceOptions, ['emulator-5556'])
   assert.deepEqual(result.projects.map(p => p.path), ['/repo/uni-claw', '/repo/other'])
   assert.deepEqual(result.projects[0].instances.map(i => i.sessionId), ['session-panel-1'])
   assert.equal(result.projects[0].instances[0].productSessionId, 'product-session-1')

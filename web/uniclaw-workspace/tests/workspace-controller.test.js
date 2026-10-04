@@ -142,9 +142,15 @@ test('launch action keeps partial Host recovery visible without refreshing as su
 test('launch composer keeps only the user requirement editable', () => {
   const c = createWorkspaceController({ queryCore: { launchTask: async () => ({ status: 'ready', data: {}, errors: [] }) } });
   c.openLaunchComposer('p1');
-  assert.deepEqual(c.getState().ui.launchComposer, { open: true, projectId: 'p1', requirement: '' });
+  assert.deepEqual(c.getState().ui.launchComposer, { open: true, projectId: 'p1', requirement: '', deviceOverrideEnabled: false, deviceOverride: null, requirementDocument: null, documentError: null });
   c.setLaunchRequirement('  调研当前任务  ');
   assert.equal(c.getState().ui.launchComposer.requirement, '  调研当前任务  ');
+  c.setLaunchDeviceOverride(true, 'emulator-5558');
+  assert.deepEqual(c.getState().ui.launchComposer, { open: true, projectId: 'p1', requirement: '  调研当前任务  ', deviceOverrideEnabled: true, deviceOverride: 'emulator-5558', requirementDocument: null, documentError: null });
+  c.setLaunchDocument({ name: '需求.md', mimeType: 'text/markdown', sizeBytes: 12, text: '# 需求' });
+  assert.equal(c.getState().ui.launchComposer.requirementDocument.name, '需求.md');
+  c.setLaunchDocumentError('文档太大');
+  assert.equal(c.getState().ui.launchComposer.documentError, '文档太大');
   c.closeLaunchComposer();
   assert.equal(c.getState().ui.launchComposer.open, false);
 });

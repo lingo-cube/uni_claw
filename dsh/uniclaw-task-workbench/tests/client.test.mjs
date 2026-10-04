@@ -101,7 +101,7 @@ test('client smoke: workspace/session/artifact contribution, parameter-object sh
   const artifact = mounted[0].descriptors.find((d) => d.method === 'artifact')
   assert.deepEqual(artifact.parameters.map((p) => p.name), ['sessionId', 'ref'])
   const launch = mounted[0].descriptors.find((d) => d.method === 'launch')
-  assert.deepEqual(launch.parameters.map((p) => p.name), ['schemaVersion', 'contractVersion', 'launchRequestId', 'projectRef', 'testSetRef', 'taskRef', 'idempotencyKey', 'correlationId', 'requestedAt', 'metadata', 'taskId'])
+  assert.deepEqual(launch.parameters.map((p) => p.name), ['schemaVersion', 'contractVersion', 'launchRequestId', 'projectRef', 'testSetRef', 'taskRef', 'idempotencyKey', 'correlationId', 'requestedAt', 'environmentIntent', 'metadata', 'taskId'])
 })
 
 test('client smoke: loading workspace and first session mounts the remote contribution once', async () => {

@@ -93,7 +93,7 @@ test('exposes TaskCommand launch through the host-neutral browser bridge', async
   const request = {
     schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1',
     launchRequestId: 'launch-request-1', projectRef: { id: 'project/p' }, testSetRef: { id: 'testset/p', version: 'default' },
-    taskRef: { id: 'task/p/t' }, idempotencyKey: 'idem-1', correlationId: 'corr-1', requestedAt: new Date().toISOString(), metadata: []
+    taskRef: { id: 'task/p/t' }, idempotencyKey: 'idem-1', correlationId: 'corr-1', requestedAt: new Date().toISOString(), environmentIntent: { device: { id: 'emulator-5558', override: true } }, metadata: []
   };
   const result = await caps.TaskCommand.launchTask(request);
   assert.equal(result.ok, true);
@@ -101,6 +101,7 @@ test('exposes TaskCommand launch through the host-neutral browser bridge', async
   assert.equal(received[0], request.schemaVersion);
   assert.deepEqual(received[3], request.projectRef);
   assert.deepEqual(received[5], request.taskRef);
+  assert.deepEqual(received[9], request.environmentIntent);
 });
 
 test('preserves partial Host launch state at the shared browser seam', async () => {

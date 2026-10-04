@@ -61,7 +61,8 @@ const DEFAULT_LOCAL_CONFIG = Object.freeze({
   nodeVersion: process.version,
   workspaceVersion: '0.1.0',
   agentPreset: AGENT_PRESET_ID,
-  device: '未配置',
+  device: 'emulator-5556',
+  deviceOptions: ['emulator-5556'],
 })
 
 /** Load the protocol artifact and fail closed if its bytes drifted from the frozen hash. */
@@ -190,12 +191,15 @@ const resolveLaunchDefaults = (value) => {
 
 const resolveLocalConfig = (value) => {
   const candidate = value && typeof value === 'object' ? value : {}
-  return Object.freeze({
-    ...DEFAULT_LOCAL_CONFIG,
-    ...Object.fromEntries(Object.keys(DEFAULT_LOCAL_CONFIG)
-      .filter(key => typeof candidate[key] === 'string' && candidate[key].length > 0)
-      .map(key => [key, candidate[key]])),
-  })
+  const strings = Object.fromEntries(Object.keys(DEFAULT_LOCAL_CONFIG)
+    .filter(key => key !== 'deviceOptions' && typeof candidate[key] === 'string' && candidate[key].length > 0)
+    .map(key => [key, candidate[key]]))
+  const device = strings.device || DEFAULT_LOCAL_CONFIG.device
+  const configuredDevices = Array.isArray(candidate.deviceOptions)
+    ? candidate.deviceOptions.filter(item => typeof item === 'string' && item.length > 0)
+    : []
+  const deviceOptions = [...new Set([device, ...configuredDevices])]
+  return Object.freeze({ ...DEFAULT_LOCAL_CONFIG, ...strings, device, deviceOptions })
 }
 
 const configuredClaimsValid = claims => Array.isArray(claims)
@@ -268,6 +272,7 @@ const launchTask = async (ctx, repository, request) => {
         projectRef: launchRefId(request.projectRef), testSetRef: launchRefId(request.testSetRef), testSetVersion: request.testSetRef.version, taskRef,
         correlationId: request.correlationId, launchRequestId: request.launchRequestId,
         metadata: request.metadata ?? {}, metadataClaims: Array.isArray(request.metadata) ? request.metadata : [],
+        ...(request.environmentIntent && typeof request.environmentIntent === 'object' ? { environmentIntent: request.environmentIntent } : {}),
         launchStages: [launchStage({ stage: 'requested', source: 'task-launch', authority: 'task-launch', valueOrigin: 'configured' })],
         status: 'partial', startedAt: nowIso(), runtimeStatus: 'pending',
       })
@@ -296,7 +301,7 @@ const launchTask = async (ctx, repository, request) => {
     }
   }
   try {
-    if (!run) run = await runtime.createRun({ projectRef: request.projectRef, testSetRef: request.testSetRef, taskRef: request.taskRef, correlationId: request.correlationId, idempotencyKey: request.idempotencyKey, launchId })
+    if (!run) run = await runtime.createRun({ projectRef: request.projectRef, testSetRef: request.testSetRef, taskRef: request.taskRef, correlationId: request.correlationId, idempotencyKey: request.idempotencyKey, launchId, ...(request.environmentIntent ? { environmentIntent: request.environmentIntent } : {}) })
   } catch (error) {
     const code = typeof error?.code === 'string' && error.code.length > 0 ? error.code : 'run-create-failed'
     try { repository.updateInstance(taskId, instanceId, { runtimeStatus: 'unknown', recovery: { code: 'run-create-unknown', message: String(error?.message ?? error) } }) } catch { /* preserve original error */ }
@@ -317,6 +322,7 @@ const launchTask = async (ctx, repository, request) => {
     runIdMetadata: { value: runId, valueOrigin: 'generated', availability: 'present', source: 'uniclaw-runtime', authority: 'uniclaw-runtime' },
     metadata: request.metadata ?? {},
     metadataClaims: Array.isArray(request.metadata) ? request.metadata : [],
+    ...(request.environmentIntent && typeof request.environmentIntent === 'object' ? { environmentIntent: request.environmentIntent } : {}),
     launchStages: [launchStage({ stage: 'requested', source: 'task-launch', authority: 'task-launch', valueOrigin: 'configured' })],
     status: 'partial', startedAt: new Date().toISOString(),
   }
@@ -1404,7 +1410,7 @@ export function apply(ctx, config) {
         overview: [],
         createTask: ['title', 'requirement', 'projectRef'],
         instantiate: ['taskId'],
-        launch: ['schemaVersion', 'contractVersion', 'launchRequestId', 'projectRef', 'testSetRef', 'taskRef', 'idempotencyKey', 'correlationId', 'requestedAt', 'metadata', 'taskId'],
+        launch: ['schemaVersion', 'contractVersion', 'launchRequestId', 'projectRef', 'testSetRef', 'taskRef', 'idempotencyKey', 'correlationId', 'requestedAt', 'environmentIntent', 'metadata', 'taskId'],
         sessions: [],
         trace: ['sessionId'],
         workspace: [],
@@ -1449,7 +1455,7 @@ export function apply(ctx, config) {
         overview: [],
         createTask: [param('title'), param('requirement'), param('projectRef', true)],
         instantiate: [param('taskId')],
-        launch: [param('schemaVersion'), param('contractVersion'), param('launchRequestId'), param('projectRef'), param('testSetRef'), param('taskRef'), param('idempotencyKey'), param('correlationId'), param('requestedAt'), param('metadata', true), param('taskId', true)],
+        launch: [param('schemaVersion'), param('contractVersion'), param('launchRequestId'), param('projectRef'), param('testSetRef'), param('taskRef'), param('idempotencyKey'), param('correlationId'), param('requestedAt'), param('environmentIntent', true), param('metadata', true), param('taskId', true)],
         sessions: [],
         trace: [param('sessionId')],
         workspace: [],

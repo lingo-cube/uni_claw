@@ -15,6 +15,7 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
   const vm = viewModel || {};
   const nav = vm.navigation || {};
   const header = vm.taskHeader || {};
+  const hasSelectedTask = Boolean(header.productSessionId);
   const activePane = vm.activePane === 'detail' ? 'trace' : (vm.activePane || 'trace');
   const renderedTaskKeys = new Set();
   const projectsHtml = (nav.projects || []).map((project) => renderProject(project, renderedTaskKeys, nav.selectedProductSessionId)).join('');
@@ -39,7 +40,7 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
     ${renderNotices(vm.notices)}
     <header class="workspace-task-header" data-selected-product-session-id="${escapeHtml(header.productSessionId || '')}">
       <div><p class="workspace-eyebrow">${text(header.source, 'Uni-Agent')}<span class="workspace-header-origin">${text(header.origin, '')}</span></p><h2>${text(header.title, '未选择任务')}</h2></div>
-      <div class="workspace-header-actions"><button type="button" class="workspace-launch-action" data-workspace-action="launch-task"${header.launch?.enabled && header.launch.status !== 'loading' ? '' : ' disabled aria-disabled="true"'}>${header.launch?.status === 'loading' ? '发起中…' : '发起任务'}</button><button type="button" class="workspace-refresh-action" data-workspace-action="refresh">刷新</button></div>
+      <div class="workspace-header-actions">${hasSelectedTask ? `<button type="button" class="workspace-launch-action" data-workspace-action="launch-task"${header.launch?.enabled && header.launch.status !== 'loading' ? '' : ' disabled aria-disabled="true"'}>${header.launch?.status === 'loading' ? '发起中…' : '发起任务'}</button>` : ''}<button type="button" class="workspace-refresh-action" data-workspace-action="refresh">刷新</button></div>
       <div class="workspace-task-header__meta">${status(header.status)}<span class="workspace-correlation">${text(header.correlationStatus, 'unselected')}</span></div>
     </header>
     <div class="workspace-content"><div class="workspace-content__primary">
@@ -92,12 +93,19 @@ function renderLaunchComposer(composer = {}) {
   const testSet = defaults.testSetRef?.id || '本地默认测试集';
   const task = defaults.taskRef?.label || defaults.taskRef?.id || '本地默认任务';
   const localConfig = composer.localConfig || {};
+  const defaultDevice = localConfig.device || '';
+  const deviceOptions = [...new Set([defaultDevice, ...(Array.isArray(localConfig.deviceOptions) ? localConfig.deviceOptions : [])].filter(Boolean))];
+  const deviceOverrideEnabled = composer.deviceOverrideEnabled === true;
+  const selectedDevice = composer.deviceOverride || defaultDevice;
+  const requirementDocument = composer.requirementDocument || null;
   const disabled = requirement.trim().length === 0 || !defaults.projectRef || !defaults.testSetRef || !defaults.taskRef;
   const configRows = [
     ['机器', localConfig.machine], ['宿主版本', localConfig[`${'h'}ostVersion`]], ['Node 版本', localConfig.nodeVersion],
     ['Workspace 版本', localConfig.workspaceVersion], ['Agent preset', localConfig.agentPreset], ['设备', localConfig.device]
   ].filter(([, value]) => value !== undefined && value !== null && value !== '').map(([label, value]) => `<div><dt>${text(label)}</dt><dd>${text(value)}</dd></div>`).join('');
-  return `<div class="workspace-launch-composer" role="dialog" aria-modal="true" aria-labelledby="workspace-launch-title"><div class="workspace-launch-composer__backdrop" data-workspace-action="close-launch-composer"></div><form class="workspace-launch-composer__dialog" data-workspace-launch-form><header><div><p class="workspace-eyebrow">UNI-AGENT</p><h3 id="workspace-launch-title">发起任务</h3><p>只填写这次任务需求，其他信息跟随本地默认配置。</p></div><button type="button" class="workspace-detail-modal__close" data-workspace-action="close-launch-composer" aria-label="关闭">×</button></header><div class="workspace-launch-composer__body"><label for="workspace-launch-requirement">任务需求</label><textarea id="workspace-launch-requirement" data-workspace-launch-requirement rows="5" placeholder="例如：确认 Android 设置中的 Wi‑Fi 状态并保留当前状态">${text(requirement)}</textarea><div class="workspace-launch-composer__defaults"><strong>本地默认配置</strong><span>${text(project)}</span><span>${text(testSet)}</span><span>${text(task)}</span></div>${configRows ? `<div class="workspace-launch-composer__machine"><strong>本地运行配置</strong><dl>${configRows}</dl></div>` : ''}</div><footer><button type="button" class="workspace-refresh-action" data-workspace-action="close-launch-composer">取消</button><button type="button" class="workspace-launch-action" data-workspace-action="submit-launch"${disabled ? ' disabled aria-disabled="true"' : ''}>发起</button></footer></form></div>`;
+  const deviceControl = deviceOptions.length ? `<div class="workspace-launch-composer__override"><label class="workspace-launch-composer__check"><input type="checkbox" data-workspace-launch-device-override${deviceOverrideEnabled ? ' checked' : ''}>本次任务修改设备</label><select data-workspace-launch-device${deviceOverrideEnabled ? '' : ' disabled aria-disabled="true"'} aria-label="本次任务设备">${deviceOptions.map((option) => `<option value="${escapeHtml(option)}"${option === selectedDevice ? ' selected' : ''}>${text(option)}</option>`).join('')}</select><small>默认使用 ${text(defaultDevice || '本地配置')}</small></div>` : '';
+  const documentControl = `<div class="workspace-launch-composer__document"><label for="workspace-launch-document">需求文档（可选）</label><input id="workspace-launch-document" type="file" data-workspace-launch-document accept=".md,.txt,.json,.yaml,.yml,text/plain,text/markdown,application/json"><small>支持 Markdown、TXT、JSON、YAML，单个文件不超过 512 KB。</small>${requirementDocument ? `<span class="workspace-launch-composer__file">已选择：${text(requirementDocument['name'])}（${text(requirementDocument['sizeBytes'])} B）</span>` : ''}${composer.documentError ? `<span class="workspace-error">${text(composer.documentError)}</span>` : ''}</div>`;
+  return `<div class="workspace-launch-composer" role="dialog" aria-modal="true" aria-labelledby="workspace-launch-title"><div class="workspace-launch-composer__backdrop" data-workspace-action="close-launch-composer"></div><form class="workspace-launch-composer__dialog" data-workspace-launch-form><header><div><p class="workspace-eyebrow">UNI-AGENT</p><h3 id="workspace-launch-title">发起任务</h3><p>只填写这次任务需求，其他信息跟随本地默认配置。</p></div><button type="button" class="workspace-detail-modal__close" data-workspace-action="close-launch-composer" aria-label="关闭">×</button></header><div class="workspace-launch-composer__body"><label for="workspace-launch-requirement">任务需求</label><textarea id="workspace-launch-requirement" data-workspace-launch-requirement rows="5" placeholder="例如：确认 Android 设置中的 Wi‑Fi 状态并保留当前状态">${text(requirement)}</textarea>${deviceControl}${documentControl}<div class="workspace-launch-composer__defaults"><strong>本地默认配置</strong><span>${text(project)}</span><span>${text(testSet)}</span><span>${text(task)}</span></div>${configRows ? `<div class="workspace-launch-composer__machine"><strong>本地运行配置</strong><dl>${configRows}</dl></div>` : ''}</div><footer><button type="button" class="workspace-refresh-action" data-workspace-action="close-launch-composer">取消</button><button type="button" class="workspace-launch-action" data-workspace-action="submit-launch"${disabled ? ' disabled aria-disabled="true"' : ''}>发起</button></footer></form></div>`;
 }
 function renderTimeline(pane = {}) {
   const rounds = Array.isArray(pane.rounds) ? pane.rounds : [];

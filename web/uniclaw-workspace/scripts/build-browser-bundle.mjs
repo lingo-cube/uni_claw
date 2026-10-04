@@ -20,7 +20,7 @@ const client = `window.__ModuleLoader__.load({id:"@uniclaw/dsh-task-workbench",f
 // Keep the mounted contribution in sync with the host surface. The shared
 // bundle template predates the write command; append its descriptor here so a
 // client mount can actually invoke the canonical Host launch method.
-const launchDescriptor = 'descriptor("launch",["schemaVersion","contractVersion","launchRequestId","projectRef","testSetRef","taskRef","idempotencyKey","correlationId","requestedAt","metadata","taskId"])'
+const launchDescriptor = 'descriptor("launch",["schemaVersion","contractVersion","launchRequestId","projectRef","testSetRef","taskRef","idempotencyKey","correlationId","requestedAt","environmentIntent","metadata","taskId"])'
 const bundledClient = client.replace(
   'descriptor("artifact",["sessionId","ref"])]};',
   `descriptor("artifact",["sessionId","ref"]),${launchDescriptor}]};`,

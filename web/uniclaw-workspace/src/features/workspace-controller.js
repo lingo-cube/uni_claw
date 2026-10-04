@@ -5,7 +5,7 @@ function createWorkspaceController({ queryCore } = {}) {
   const state = {
     projects: idlePage('projects'),
     selection: { projectId: null, productSessionId: null },
-    ui: { activePane: 'trace', traceMode: 'combined', traceSource: 'all', detailReturnPane: 'trace', detailModalOpen: false, launchComposer: { open: false, projectId: null, requirement: '' } },
+    ui: { activePane: 'trace', traceMode: 'combined', traceSource: 'all', detailReturnPane: 'trace', detailModalOpen: false, launchComposer: { open: false, projectId: null, requirement: '', deviceOverrideEnabled: false, deviceOverride: null, requirementDocument: null, documentError: null } },
     session: idleData('session'),
     timeline: idlePage('timeline'),
     traces: idlePage('traces'),
@@ -110,11 +110,23 @@ function createWorkspaceController({ queryCore } = {}) {
     return publish();
   }
   function openLaunchComposer(projectId = state.selection.projectId) {
-    state.ui.launchComposer = { open: true, projectId: projectId ?? null, requirement: '' };
+    state.ui.launchComposer = { open: true, projectId: projectId ?? null, requirement: '', deviceOverrideEnabled: false, deviceOverride: null, requirementDocument: null, documentError: null };
     return publish();
   }
   function setLaunchRequirement(requirement = '') {
     state.ui.launchComposer = { ...state.ui.launchComposer, requirement: String(requirement) };
+    return publish();
+  }
+  function setLaunchDeviceOverride(enabled, device = null) {
+    state.ui.launchComposer = { ...state.ui.launchComposer, deviceOverrideEnabled: enabled === true, deviceOverride: enabled === true && device ? String(device) : null };
+    return publish();
+  }
+  function setLaunchDocument(document = null) {
+    state.ui.launchComposer = { ...state.ui.launchComposer, requirementDocument: document || null, documentError: null };
+    return publish();
+  }
+  function setLaunchDocumentError(message = '') {
+    state.ui.launchComposer = { ...state.ui.launchComposer, requirementDocument: null, documentError: message ? String(message) : null };
     return publish();
   }
   function closeLaunchComposer() {
@@ -180,7 +192,7 @@ function createWorkspaceController({ queryCore } = {}) {
   }
   return Object.freeze({
     loadProjects, selectProject, selectTaskInstance, loadSession, loadTimeline,
-    loadTraces, loadEvidence, launchTask, openLaunchComposer, setLaunchRequirement, closeLaunchComposer, resolveDetail, inspectTrace, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
+    loadTraces, loadEvidence, launchTask, openLaunchComposer, setLaunchRequirement, setLaunchDeviceOverride, setLaunchDocument, setLaunchDocumentError, closeLaunchComposer, resolveDetail, inspectTrace, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
     getState: () => clone(state)
   });
 
