@@ -87,3 +87,4 @@ lifecycle_state: implemented · disposition: none · depth: decision-heavy · ba
 - `docs/adr/0034-staged-task-launch-metadata.md`
 
 - 2026-10-04 · VERIFY → IMPLEMENT · Leader 终检发现之前 CLOSED 判定过早：Runtime createRun 仅有测试替身，真实 Host 未注册；storage/Runtime 失败和并发恢复尚未证明，Product Session 缺失会误标完成；重开 WI-006，WI-005 保持 pending，原通过测试与失败记录保留。
+- 2026-10-04 · VERIFY → IMPLEMENT · 真实认证浏览器双入口验证发现安装快照无法解析仓库外置 `testsets/`；新增 `UNICLAW_TESTSET_ROOT` Host 配置缝并由 `dsh/test-service.sh` 默认注入，接口和页面均已越过 catalog 校验，随后在缺少 `UNICLAW_RUNTIME_BASE_URL` 时按预期返回结构化 `runtime-unavailable`。证据：`evidence/PNL-004-live-launch-verification-20261004.md`。
