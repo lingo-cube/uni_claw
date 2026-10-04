@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "uniclaw.workspace.runtime-run-events-response.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "ok": true,
+  "runId": "run-20261004-0001",
+  "events": [
+    {
+      "schemaVersion": "uniclaw.workspace.runtime-run-event.v1",
+      "contractVersion": "uniclaw.workspace.contract.v1",
+      "eventId": "event-0001",
+      "runId": "run-20261004-0001",
+      "eventType": "run.started",
+      "source": "runtime",
+      "authority": "uniclaw-runtime",
+      "occurredAt": "2026-10-04T06:00:00Z",
+      "sequence": 1,
+      "summary": "Runtime started"
+    }
+  ],
+  "revision": 1,
+  "observedAt": "2026-10-04T06:00:00Z"
+}

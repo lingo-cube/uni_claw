@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "uniclaw.workspace.runtime-run-event.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "eventId": "event-0006",
+  "runId": "run-20261004-0001",
+  "eventType": "run.completed",
+  "source": "runtime",
+  "authority": "uniclaw-runtime",
+  "occurredAt": "2026-10-04T06:00:12Z",
+  "observedAt": "2026-10-04T06:00:12Z",
+  "sequence": 6,
+  "summary": "Runtime completed with completion evidence",
+  "payloadRef": "runs/run-20261004-0001/events/event-0006",
+  "payloadAvailable": true
+}

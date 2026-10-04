@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "uniclaw.workspace.runtime-run-response.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "ok": true,
+  "run": {
+    "schemaVersion": "uniclaw.workspace.runtime-run-projection.v1",
+    "contractVersion": "uniclaw.workspace.contract.v1",
+    "runId": "run-20261004-0001",
+    "productSessionId": "session-0001",
+    "taskInstanceId": "task-instance-0001",
+    "status": "running",
+    "revision": 3,
+    "observedAt": "2026-10-04T06:00:05Z",
+    "lastEventSequence": 2,
+    "consistency": "current"
+  },
+  "revision": 3,
+  "observedAt": "2026-10-04T06:00:05Z",
+  "consistency": "current"
+}

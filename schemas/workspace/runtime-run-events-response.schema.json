@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.dev/schemas/workspace/runtime-run-events-response/v1",
+  "title": "UniClaw RuntimeRunEventsResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": "uniclaw.workspace.runtime-run-events-response.v1"},
+    "contractVersion": {"const": "uniclaw.workspace.contract.v1"},
+    "ok": {"type": "boolean"},
+    "runId": {"type": "string", "minLength": 1},
+    "events": {"type": "array", "items": {"$ref": "https://uniclaw.dev/schemas/workspace/runtime-run-event/v1"}},
+    "nextCursor": {"type": "string", "minLength": 1},
+    "revision": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "string", "minLength": 1}]},
+    "observedAt": {"type": "string", "format": "date-time"},
+    "error": {"$ref": "#/$defs/businessError"}
+  },
+  "required": ["schemaVersion", "contractVersion", "ok"],
+  "allOf": [
+    {"if": {"properties": {"ok": {"const": true}}}, "then": {"required": ["runId", "events"], "not": {"required": ["error"]}}, "else": {"required": ["error"], "not": {"required": ["events"]}}}
+  ],
+  "$defs": {
+    "businessError": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "code": {"type": "string", "minLength": 1},
+        "message": {"type": "string", "minLength": 1},
+        "retryable": {"type": "boolean"},
+        "details": {"type": "object", "additionalProperties": true}
+      },
+      "required": ["code", "message", "retryable", "details"]
+    }
+  }
+}

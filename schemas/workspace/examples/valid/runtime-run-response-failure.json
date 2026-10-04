@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "uniclaw.workspace.runtime-run-response.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "ok": false,
+  "error": {
+    "code": "runtime-run-not-found",
+    "message": "Run does not exist",
+    "retryable": false,
+    "details": {}
+  }
+}

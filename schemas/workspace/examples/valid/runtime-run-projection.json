@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "uniclaw.workspace.runtime-run-projection.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "runId": "run-20261004-0001",
+  "productSessionId": "session-0001",
+  "taskInstanceId": "task-instance-0001",
+  "hostSessionRef": {
+    "host": "dsh",
+    "sessionId": "dsh-session-0001"
+  },
+  "projectRef": {
+    "id": "uni-claw-tests",
+    "label": "UniClaw tests"
+  },
+  "testSetRef": {
+    "id": "smoke",
+    "version": "default",
+    "sourceRevision": "working-tree"
+  },
+  "taskRef": {
+    "id": "settings-wifi",
+    "label": "Wi-Fi state confirmation"
+  },
+  "status": "completed",
+  "phase": "finalize",
+  "startedAt": "2026-10-04T06:00:00Z",
+  "endedAt": "2026-10-04T06:00:12Z",
+  "outcome": "completion",
+  "reason": "completion evidence recorded",
+  "revision": 7,
+  "observedAt": "2026-10-04T06:00:12Z",
+  "lastEventSequence": 6,
+  "consistency": "current",
+  "artifacts": [
+    {
+      "artifactId": "facts-0001",
+      "kind": "facts",
+      "availability": "present",
+      "detailEndpoint": "runs/run-20261004-0001/artifacts/facts-0001"
+    },
+    {
+      "artifactId": "trace-0001",
+      "kind": "trace",
+      "availability": "partial",
+      "detailEndpoint": "runs/run-20261004-0001/artifacts/trace-0001"
+    }
+  ]
+}

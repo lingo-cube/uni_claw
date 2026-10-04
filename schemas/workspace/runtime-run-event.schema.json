@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.dev/schemas/workspace/runtime-run-event/v1",
+  "title": "UniClaw RuntimeRunEvent",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": "uniclaw.workspace.runtime-run-event.v1"},
+    "contractVersion": {"const": "uniclaw.workspace.contract.v1"},
+    "eventId": {"type": "string", "minLength": 1},
+    "runId": {"type": "string", "minLength": 1},
+    "eventType": {"type": "string", "minLength": 1},
+    "source": {"enum": ["uniclaw", "dsh", "runtime", "kernel", "device", "otel", "filesystem", "external"]},
+    "authority": {"enum": ["uniclaw-runtime", "dsh-host", "kernel", "device", "external-system"]},
+    "occurredAt": {"type": "string", "format": "date-time"},
+    "observedAt": {"type": "string", "format": "date-time"},
+    "sequence": {"type": "integer", "minimum": 0},
+    "summary": {"type": "string"},
+    "payloadRef": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?![A-Za-z][A-Za-z0-9+.-]*://)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*[\\u0000-\\u001F]).+$"},
+    "payloadAvailable": {"type": "boolean"}
+  },
+  "required": ["schemaVersion", "contractVersion", "eventId", "runId", "eventType", "source", "authority", "occurredAt", "sequence", "summary"]
+}

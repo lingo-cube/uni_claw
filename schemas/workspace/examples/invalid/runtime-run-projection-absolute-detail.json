@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "uniclaw.workspace.runtime-run-projection.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "runId": "run-invalid",
+  "productSessionId": "session-invalid",
+  "taskInstanceId": "task-invalid",
+  "status": "completed",
+  "revision": 1,
+  "observedAt": "2026-10-04T06:00:00Z",
+  "lastEventSequence": 1,
+  "consistency": "current",
+  "artifacts": [
+    {
+      "artifactId": "facts-invalid",
+      "kind": "facts",
+      "availability": "present",
+      "detailEndpoint": "/Users/fran/.dsh/runs/facts.json"
+    }
+  ]
+}

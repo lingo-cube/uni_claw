@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.dev/schemas/workspace/runtime-run-projection/v1",
+  "title": "UniClaw RuntimeRunProjection",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": "uniclaw.workspace.runtime-run-projection.v1"},
+    "contractVersion": {"const": "uniclaw.workspace.contract.v1"},
+    "runId": {"type": "string", "minLength": 1},
+    "productSessionId": {"type": "string", "minLength": 1},
+    "taskInstanceId": {"type": "string", "minLength": 1},
+    "hostSessionRef": {"$ref": "#/$defs/hostSessionRef"},
+    "projectRef": {"$ref": "#/$defs/logicalRef"},
+    "testSetRef": {"$ref": "#/$defs/testSetRef"},
+    "taskRef": {"$ref": "#/$defs/logicalRef"},
+    "status": {"enum": ["starting", "running", "completed", "failed", "interrupted"]},
+    "phase": {"type": "string", "minLength": 1},
+    "startedAt": {"type": "string", "format": "date-time"},
+    "endedAt": {"type": "string", "format": "date-time"},
+    "outcome": {"enum": ["completion", "failure", "unknown"]},
+    "reason": {"type": "string"},
+    "revision": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "string", "minLength": 1}]},
+    "observedAt": {"type": "string", "format": "date-time"},
+    "lastEventSequence": {"type": "integer", "minimum": 0},
+    "consistency": {"enum": ["current", "stale", "partial"]},
+    "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifactRef"}}
+  },
+  "required": ["schemaVersion", "contractVersion", "runId", "productSessionId", "status", "revision", "observedAt", "lastEventSequence", "consistency"],
+  "$defs": {
+    "logicalRef": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"id": {"type": "string", "minLength": 1}, "label": {"type": "string", "minLength": 1}},
+      "required": ["id"]
+    },
+    "testSetRef": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"id": {"type": "string", "minLength": 1}, "version": {"const": "default"}, "sourceRevision": {"type": "string", "minLength": 1}},
+      "required": ["id", "version"]
+    },
+    "hostSessionRef": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"host": {"enum": ["dsh", "other"]}, "sessionId": {"type": "string", "minLength": 1}},
+      "required": ["host", "sessionId"]
+    },
+    "artifactRef": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "artifactId": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["facts", "trace", "evidence", "journal", "other"]},
+        "availability": {"enum": ["present", "partial", "unavailable", "not-collected"]},
+        "detailEndpoint": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?![A-Za-z][A-Za-z0-9+.-]*://)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*[\\u0000-\\u001F]).+$"}
+      },
+      "required": ["artifactId", "kind", "availability"]
+    }
+  }
+}
