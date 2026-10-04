@@ -7,21 +7,53 @@
   "displayName": "Android Settings",
   "tasks": [
     {
-      "taskRef": "task/android-settings/wifi-state",
-      "displayName": "Wi-Fi navigation and state confirmation",
+      "taskRef": "task/android-settings/find-network-menu",
+      "displayName": "Find the Network & internet menu",
       "fixtureRefs": [
-        "fixture/android-settings/wifi-enabled"
+        "fixture/android-settings/settings-root"
       ],
       "acceptanceRefs": [
-        "acceptance/android-settings/wifi-enabled-no-toggle"
+        "acceptance/android-settings/network-menu-reachable"
+      ]
+    },
+    {
+      "taskRef": "task/android-settings/toggle-wifi-reuse",
+      "displayName": "Find, toggle, verify, and reuse the Wi-Fi switch",
+      "fixtureRefs": [
+        "fixture/android-settings/settings-root",
+        "fixture/android-settings/wifi-target"
+      ],
+      "acceptanceRefs": [
+        "acceptance/android-settings/wifi-toggle-idempotent"
+      ]
+    },
+    {
+      "taskRef": "task/android-settings/safe-full-traversal",
+      "displayName": "Traverse the Settings menu with a precomputed safe-action policy",
+      "fixtureRefs": [
+        "fixture/android-settings/settings-root",
+        "fixture/android-settings/forbidden-action-policy"
+      ],
+      "acceptanceRefs": [
+        "acceptance/android-settings/safe-traversal-no-forbidden-effect"
       ]
     }
   ],
   "fixtures": [
     {
-      "fixtureRef": "fixture/android-settings/wifi-enabled",
+      "fixtureRef": "fixture/android-settings/settings-root",
       "kind": "device-state",
-      "description": "Android Settings fixture with Wi-Fi already enabled"
+      "description": "Android Settings root is open and the hierarchy is stable"
+    },
+    {
+      "fixtureRef": "fixture/android-settings/wifi-target",
+      "kind": "device-state",
+      "description": "Wi-Fi target switch is observable with a declared desired state"
+    },
+    {
+      "fixtureRef": "fixture/android-settings/forbidden-action-policy",
+      "kind": "safety-policy",
+      "description": "Safe and forbidden action classes are generated before traversal"
     }
   ]
 }
