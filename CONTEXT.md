@@ -148,6 +148,9 @@ _Avoid_: global singleton、second registry、Tool identity
 **Capability Instance**: 某次 Host 或 Task 根据 Capability Binding 解析出的运行时实现实例；它具有本次作用域，不回写全局注册状态。
 _Avoid_: global capability state、canonical capability truth
 
+**Task-scoped Capability Binding**: 将能力实现与一次任务的固定配置、Runtime 身份和局部生命周期关联的装配关系；任务结束后关闭该关系，不改变全局能力注册状态或其他任务的关联。
+_Avoid_: global singleton、registry scope、Product Owner
+
 **Provider**: 可独立运行、通过明确跨进程或跨语言协议接入 Capability Plane 的外部实现；Provider 只拥有自己的实现和运行事实，不拥有 Product canonical state。
 _Avoid_: platform bucket、Product Owner、authority service
 
