@@ -28,6 +28,12 @@ first_divergence: Host/Runtime transport is not configured after catalog resolut
 evidence:
   - browser snapshot after interface launch: HTTP 503 runtime-unavailable
   - browser snapshot after page launch: Workspace 状态 / TaskCommand structured error
+host_surface_probe:
+  service: authenticated DSH web host at http://127.0.0.1:3081/
+  request: GET and POST /api/uniclaw-runtime/runs
+  actual: HTTP 404; body=not found
+  interpretation: 3081 is a live DSH Host, but it does not expose the Runtime launch
+    transport required by this contract; its existing Agent/decision APIs are a different seam
 ```
 
 ## Fix made during verification
@@ -40,6 +46,7 @@ tests pass 64/64 and the deployed profile drift check is clean.
 
 ## Remaining gate
 
-Deploy a real Host-facing Runtime HTTP service and set `UNICLAW_RUNTIME_BASE_URL`; then repeat
+Expose the Runtime launch transport from the existing Host composition (or a separate Runtime
+adapter) and set `UNICLAW_RUNTIME_BASE_URL` to that dedicated endpoint; then repeat
 the same interface and page flows and prove Runtime-owned `runId`, Product Session, Host Session,
 and recovery binding. Until that exists, the observed 503 is the expected safe boundary.
