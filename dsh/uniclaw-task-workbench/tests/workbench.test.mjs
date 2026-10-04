@@ -101,6 +101,12 @@ test('apply registers a Host Runtime provider without minting local identities',
   assert.equal(typeof provided.uniclawRuntime?.recoverRun, 'function')
 })
 
+test('apply preserves an existing Host Runtime provider', () => {
+  const runtime = { createRun() {}, recoverRun() {} }
+  const { provided } = applyHost({ runtime })
+  assert.equal(provided.uniclawRuntime, undefined)
+})
+
 test('schema artifact self-check: drifted schema refuses apply() startup', () => {
   const tamperedDir = join(TEST_ROOT, 'tampered-schema')
   mkdirSync(tamperedDir, { recursive: true })
