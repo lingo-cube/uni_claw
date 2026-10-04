@@ -1,0 +1,64 @@
+{
+  "id": "WI-CAP001-005",
+  "objective": "完成独立 Slow Visual 的纵向能力接缝，并证明它不依赖 Text Semantic 的 Fast YOLO/OCR 门控。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Kernel/Perception/",
+      "src/UniClaw.Host/",
+      "tests/UniClaw.Kernel.Tests/Perception/",
+      "tests/UniClaw.Host.Tests/",
+      "evidence/",
+      "workitems/WI-CAP001-005.json"
+    ],
+    "read_hints": [
+      "changes/CAP-001/state.md",
+      "docs/adr/0035-capability-management-hub-trust-scoped-registries.md",
+      "src/UniClaw.Kernel/Perception/SlowConsultation.cs",
+      "src/UniClaw.Kernel/Perception/OpenCodeSlowRealization.cs",
+      "src/UniClaw.Kernel/Perception/SlowOrchestration.cs",
+      "tests/UniClaw.Kernel.Tests/Perception/SlowReplayRealizationTests.cs"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "以现有 SlowConsultation/Orchestrator 为唯一组合缝，完成独立 Slow Visual 的 raw artifact → visual semantic proposal 路径；Visual 不读取或依赖 FastTextBasis。",
+    "core_points": [
+      "Visual 请求必须由同一 capture/cycle 的 raw artifact 支撑。",
+      "Visual 路径不经过 SlowTextGate，也不要求 YOLO/OCR。",
+      "缺少 artifact、provider unavailable、timeout 和 late 结果必须显式诊断。",
+      "结果仍只能经 SlowResultProjector/P2 进入 Evidence，不能直写 WorldModel 或 Effect。",
+      "保留后续同时实现 Semantic/UI Element Perception 的注册扩展接缝。"
+    ]
+  },
+  "contract_refs": [
+    "changes/CAP-001/state.md",
+    "docs/adr/0035-capability-management-hub-trust-scoped-registries.md",
+    "plans/2026-10-04-cap-001-plan.md"
+  ],
+  "acceptance": [
+    "独立 Slow Visual 能在没有 FastTextBasis 的情况下完成 raw artifact → bounded request → proposal 路径。",
+    "Visual 请求缺少或无法解析同 capture 的 raw artifact 时 fail closed，并保留可诊断状态。",
+    "Visual provider unavailable、timeout、late 结果分别保持既有状态语义，不能产生越权事实。",
+    "成功与空结果仍经 SlowResultProjector/P2；不新增 Evidence、WorldModel、Control、Assurance 或 Effect Owner。",
+    "测试和证据覆盖独立 Visual 成功、无 Fast 前置、缺 artifact、provider 不可用、timeout/late 及公共面一致性。"
+  ],
+  "forbidden": [
+    "不得把 Slow Visual 合并为 Text Semantic 的隐式 fallback。",
+    "不得为 Visual 复制第二套 Slow orchestration 或直接写 Evidence Ledger/WorldModel。",
+    "不得把 provider confidence 直接升级为 Product Authority。",
+    "不得修改 Capability Hub 的分类冻结、P2/P3 Owner 或 Effect Boundary。"
+  ],
+  "dependencies": [
+    "WI-CAP001-001",
+    "WI-CAP001-002",
+    "WI-CAP001-003",
+    "WI-CAP001-004"
+  ],
+  "status": "done",
+  "required_skills": [
+    "codebase-design",
+    "tdd",
+    "uniclaw-debug-evidence",
+    "code-review"
+  ],
+  "required_capability": "implementation"
+}

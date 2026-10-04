@@ -108,7 +108,9 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
             WriteEvidenceFile(_evidenceDir, captureId + ".png", capture.Artifact.Payload);
 
         var fastStart = Stopwatch.GetTimestamp();
-        var fastAvailable = TryFast(capture.Artifact.Payload);
+        var fastBasis = TryFast(capture.Artifact.Payload, captureId, observationCycleId,
+            capture.Artifact.Metadata.CaptureTime);
+        var fastAvailable = fastBasis?.HasDetection == true;
         var fastLatency = Stopwatch.GetElapsedTime(fastStart);
 
         var hierarchyStart = Stopwatch.GetTimestamp();
@@ -157,7 +159,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
             trigger: DeriveSlowTrigger(
                 xmlResult.Xml is not null, fastAvailable, CountClickableNodes(xmlResult.Xml), routeKey,
                 UpdatePopupStreak(popupState), _coverageConfig?.SlowSettings),
-            captureId, observationCycleId, capture.Artifact.Payload, fastAvailable);
+            captureId, observationCycleId, capture.Artifact.Payload, fastAvailable, fastBasis);
         if (xmlResult.Xml is not null)
         {
             var api = UiAutomatorDump.TryGetApiLevel(_assets.DeviceId);
@@ -366,7 +368,8 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     /// 视觉触发且 config 允许时携带截图 raw artifact；Reason 指名触发词）。</summary>
     internal static SlowConsultationRequest BuildSlowRequest(
         string trigger, bool visual, byte[]? screenshot,
-        string captureId, DateTimeOffset captureTime, string observationCycleId)
+        string captureId, DateTimeOffset captureTime, string observationCycleId,
+        FastTextBasis? fastBasis = null)
     {
         var popupTrigger = trigger == "PopupConsecutiveFailures";
         return new SlowConsultationRequest(
@@ -382,7 +385,8 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
             CaptureTimestamp: captureTime,
             ObservationCycleId: observationCycleId,
             EvidenceIds: Array.Empty<string>(),
-            RawArtifact: visual ? screenshot : null);
+            RawArtifact: visual ? screenshot : null,
+            FastBasis: visual ? null : fastBasis);
     }
 
     /// <summary>AGT-009 — trace 摘要：trigger|status|projected=N[|late]。
@@ -421,7 +425,8 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     /// 不发起；否则 build request → Consult（有界等待，永不阻塞周期）；
     /// 超时/未配置 → trace + 继续（Defer/Unknown 语义）。本路径零 Effect。</summary>
     private string? ConsultSlowIfTriggered(
-        string? trigger, string captureId, string observationCycleId, byte[] screenshot, bool fastAvailable)
+        string? trigger, string captureId, string observationCycleId, byte[] screenshot,
+        bool fastAvailable, FastTextBasis? fastBasis = null)
     {
         if (trigger is null)
             return null;
@@ -432,26 +437,46 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         if (kernel is null)
             return $"{trigger}|Skipped";
         _slowRequests++;
-        var visual = slow.VisualEnabled && fastAvailable;
-        var request = BuildSlowRequest(trigger, visual, screenshot, captureId, _clock.Now, observationCycleId);
+        // Visual Slow is backed by this cycle's raw artifact and has no Fast
+        // YOLO/OCR prerequisite. Fast availability only influences the trigger
+        // classification; it must never gate the independent Visual path.
+        var visual = slow.VisualEnabled;
+        if (!visual && fastBasis is not null)
+        {
+            var sessionCorrelation = string.IsNullOrWhiteSpace(kernel.RunId)
+                ? "host.settings-coverage"
+                : kernel.RunId;
+            fastBasis = fastBasis with { SessionCorrelation = sessionCorrelation };
+        }
+        var request = BuildSlowRequest(trigger, visual, screenshot, captureId,
+            fastBasis?.CaptureTimestamp ?? _clock.Now, observationCycleId, fastBasis);
         var outcome = _slowConsult(request, kernel, false,
             TimeSpan.FromMilliseconds(slow.BoundedWaitMs));
         return FormatSlowTrace(trigger, outcome);
     }
 
-    private bool TryFast(byte[] png)
+    private FastTextBasis? TryFast(byte[] png, string captureId, string observationCycleId,
+        DateTimeOffset captureTime)
     {
         try
         {
             var response = _vision.Analyze(png);
             using var json = JsonDocument.Parse(response);
-            return json.RootElement.TryGetProperty("yolo", out var yolo)
-                && yolo.ValueKind == JsonValueKind.Array
-                && yolo.GetArrayLength() > 0;
+            var root = json.RootElement;
+            static IReadOnlyList<string> Read(JsonElement root, string name) =>
+                root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Array
+                    ? value.EnumerateArray().Select(x => x.ToString()).Where(x => x.Length > 0).ToArray()
+                    : Array.Empty<string>();
+            return new FastTextBasis(captureId, _assets.DeviceId, observationCycleId,
+                Read(root, "yolo"), Read(root, "ocr"), captureTime);
         }
         catch (Exception)
         {
-            return false;
+            // Preserve a typed negative observation so provider unavailability
+            // remains distinguishable from a valid empty detection result.
+            return new FastTextBasis(captureId, _assets.DeviceId, observationCycleId,
+                Array.Empty<string>(), Array.Empty<string>(), captureTime,
+                ProviderAvailable: false, IsFresh: true);
         }
     }
 

@@ -32,7 +32,10 @@ public sealed class SlowConsultationTests
         CaptureTimestamp: CaptureTime,
         ObservationCycleId: "cycle-1",
         EvidenceIds: Array.Empty<string>(),
-        RawArtifact: rawArtifact);
+        RawArtifact: rawArtifact,
+        FastBasis: requiresRawArtifact ? null : new FastTextBasis(
+            "capture-1", "host.settings-coverage", "cycle-1",
+            new[] { "button" }, new[] { "Settings" }, CaptureTime));
 
     private static UniKernel Kernel(EvidenceLedger? ledger = null, string subject = "ui.overlay.popup") =>
         new(ledger ?? new EvidenceLedger(), new WorldModel(new HashSet<string> { subject }), DisabledRunTrace.Instance);

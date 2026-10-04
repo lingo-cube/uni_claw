@@ -173,15 +173,19 @@ public sealed class SettingsPopupClassifierTests
     public void SlowRequest_BuildsFromTrigger_WithBoundedContext()
     {
         var now = DateTimeOffset.Parse("2026-10-02T09:00:00Z");
+        var fastBasis = new FastTextBasis(
+            "capture-abc", "session-1", "settings-cycle-001",
+            new[] { "text_block" }, new[] { "Settings" }, now);
         var request = SettingsTraversalLiveFeed.BuildSlowRequest(
             "NoXml", visual: false, screenshot: new byte[] { 1 },
-            "capture-abc", now, "settings-cycle-001");
+            "capture-abc", now, "settings-cycle-001", fastBasis);
         Assert.Equal("slow-NoXml-capture-abc", request.RequestId);
         Assert.Equal("ui.screen.route", request.ClaimSubject);
         Assert.False(request.RequiresRawArtifact);
         Assert.Null(request.RawArtifact);
         Assert.Equal("slow-trigger:NoXml", request.Reason);
         Assert.Equal("settings-cycle-001", request.ObservationCycleId);
+        Assert.Same(fastBasis, request.FastBasis);
 
         var popup = SettingsTraversalLiveFeed.BuildSlowRequest(
             "PopupConsecutiveFailures", visual: true, screenshot: new byte[] { 1 },
@@ -189,6 +193,13 @@ public sealed class SettingsPopupClassifierTests
         Assert.Equal("ui.overlay.popup", popup.ClaimSubject);
         Assert.True(popup.RequiresRawArtifact);
         Assert.NotNull(popup.RawArtifact);
+        Assert.Null(popup.FastBasis);
+
+        var visualWithoutFast = SettingsTraversalLiveFeed.BuildSlowRequest(
+            "StructuralVisualConflict", visual: true, screenshot: new byte[] { 2 },
+            "capture-abc", now, "settings-cycle-001");
+        Assert.True(visualWithoutFast.RequiresRawArtifact);
+        Assert.Null(visualWithoutFast.FastBasis);
     }
 
     [Fact]

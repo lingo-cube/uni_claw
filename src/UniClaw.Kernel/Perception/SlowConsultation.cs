@@ -44,7 +44,8 @@ public sealed record SlowConsultationRequest(
     DateTimeOffset CaptureTimestamp,
     string ObservationCycleId,
     IReadOnlyList<string> EvidenceIds,
-    byte[]? RawArtifact = null);
+    byte[]? RawArtifact = null,
+    FastTextBasis? FastBasis = null);
 
 /// <summary>
 /// AGT-009 — Host 侧 Slow 咨询结果：状态 + P2 admission 摘要。ProjectedProposals
@@ -93,7 +94,8 @@ public sealed class SlowConsultation
     /// </summary>
     public SlowConsultationOutcome Consult(
         SlowConsultationRequest request, UniKernel kernel,
-        bool effectCritical = false, TimeSpan? boundedWait = null)
+        bool effectCritical = false, TimeSpan? boundedWait = null,
+        FastTextBasis? fastBasis = null)
     {
         ArgumentNullException.ThrowIfNull(kernel);
         if (request is null || !HasRequiredFields(request))
@@ -102,10 +104,20 @@ public sealed class SlowConsultation
         var profile = request.RequiresRawArtifact && request.RawArtifact is not null
             ? LogicalProfileId.Visual
             : LogicalProfileId.Text;
+        fastBasis ??= request.FastBasis;
         var resolution = _models.Resolve(profile);
         if (!resolution.IsResolved)
             return new(SlowConsultationStatus.NotConfigured, false, 0,
                 resolution.Diagnostic, IsLate: false);
+        if (profile == LogicalProfileId.Text)
+        {
+            var gate = SlowTextGate.Evaluate(
+                new FusionCapture(request.CaptureId,
+                    string.IsNullOrWhiteSpace(kernel.RunId) ? request.BuyerRef : kernel.RunId,
+                    request.ObservationCycleId, request.CaptureTimestamp), fastBasis);
+            if (!gate.Eligible)
+                return new(SlowConsultationStatus.Rejected, false, 0, gate.Diagnostic, false);
+        }
 
         var claim = new RequiredClaim(request.ClaimSubject, request.ClaimField);
         // Session correlation 用当前 run；run 未激活（host 直接咨询）时退回
@@ -125,7 +137,8 @@ public sealed class SlowConsultation
             claim, profile, request.BuyerRef, request.Reason, capture, context,
             profile == LogicalProfileId.Visual ? new RawArtifactRef(request.CaptureId) : null,
             resolution.Binding,
-            boundedWait);
+            boundedWait,
+            fastBasis);
 
         var orchestration = _orchestrator.Execute(internalRequest, effectCritical, boundedWait);
         return Project(orchestration, kernel);

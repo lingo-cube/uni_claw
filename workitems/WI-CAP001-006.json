@@ -1,0 +1,63 @@
+{
+  "id": "WI-CAP001-006",
+  "objective": "建立 Runtime Integration 与 Harness 能力共用的 Host-neutral 协议契约，为 Inspector、Measurement、Artifact 和 Fixture 后续能力提供稳定输入输出形状。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Kernel/Capability/",
+      "tests/UniClaw.Kernel.Tests/Capability/",
+      "evidence/cap-001/integration/",
+      "workitems/WI-CAP001-006.json"
+    ],
+    "read_hints": [
+      "docs/capability-hub/customization-integration-development-protocol-v0.1.md",
+      "docs/design/runtime-capability-integration-seams-v0.1.md",
+      "docs/adr/0035-capability-management-hub-trust-scoped-registries.md",
+      "src/UniClaw.Kernel/Capability/CapabilityHub.cs",
+      "src/UniClaw.Kernel/Trace/",
+      "src/UniClaw.Kernel/Perception/"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "把已冻结的 Host-neutral lifecycle Envelope、Finding、MeasurementSample、ArtifactReference 和 Fixture 状态语义落成窄的共享契约；不实现语言检查、性能算法或资源管理。",
+    "core_points": [
+      "统一 Envelope 只承载事件身份、顺序、来源、版本、状态和 correlation，不承载任意 opaque payload。",
+      "Finding、MeasurementSample、ArtifactReference 和 Fixture 状态互相分型，不能用万能结果对象替代。",
+      "Runtime Integration 与 Harness 只共享词汇和契约，不共享可变 Registry、权限或业务事实。",
+      "Measurement 支持内部/外部时间来源及显式关联，不能由时间窗口猜测归属。",
+      "契约只提供事实和诊断，不直接写 Evidence、WorldModel、Control、Assurance 或 Effect。"
+    ]
+  },
+  "contract_refs": [
+    "docs/capability-hub/customization-integration-development-protocol-v0.1.md",
+    "docs/design/runtime-capability-integration-seams-v0.1.md",
+    "docs/adr/0035-capability-management-hub-trust-scoped-registries.md"
+  ],
+  "acceptance": [
+    "Kernel 中存在可验证的 Host-neutral Envelope 和 correlation 契约，能区分 Point Event 与 Operation 终点状态。",
+    "Finding、MeasurementSample、ArtifactReference 和 FixtureLifecycleState 为独立类型，字段携带来源、版本、关联和诊断语义。",
+    "契约能明确表达 Completed、Failed、Cancelled、TimedOut、Unknown、Unavailable、Late、Duplicate 等状态。",
+    "Measurement 可同时表达 Runtime elapsed、Host monotonic time 和外部设备/传感器时间，且不生成 canonical wall-clock。",
+    "确定性测试覆盖成功、缺少关联、迟到、重复、超时和无来源样本；契约不提供任何 Owner 写入路径。"
+  ],
+  "forbidden": [
+    "不得实现语言判断、性能算法、摄像头采集或 Fixture 资源管理。",
+    "不得把协议契约接入 UniKernel 主循环或新增万能 Hook。",
+    "不得让 Finding、Measurement 或 Artifact 自动进入 Evidence Ledger、WorldModel、Assurance 或 Effect。",
+    "不得迁移现有 Capability Hub 文件夹或修改目录布局。"
+  ],
+  "dependencies": [
+    "WI-CAP001-001",
+    "WI-CAP001-002",
+    "WI-CAP001-003",
+    "WI-CAP001-004",
+    "WI-CAP001-005"
+  ],
+  "status": "done",
+  "required_skills": [
+    "codebase-design",
+    "tdd",
+    "uniclaw-debug-evidence",
+    "code-review"
+  ],
+  "required_capability": "implementation"
+}

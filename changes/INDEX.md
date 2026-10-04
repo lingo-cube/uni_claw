@@ -2,7 +2,8 @@
 
 > 派生索引：列出所有 lifecycle_state ≠ closed 的 change。
 > 再生：`python3 tools/gen-open-changes.py`（GATE-001 P-E′；一致性执法二期）。
-> 统计：127 changes · 0 open。
+> 统计：130 changes · 1 open。
 
 | change | lifecycle_state | disposition | depth | title |
 |---|---|---|---|---|
+| CAP-005 | open | none | standard | CAP-005 — Task-scoped capability injection seam |

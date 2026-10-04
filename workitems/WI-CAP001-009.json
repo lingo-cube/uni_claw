@@ -1,0 +1,59 @@
+{
+  "id": "WI-CAP001-009",
+  "objective": "收敛外挂摄像头/传感器的 Fixture、Artifact 与外部 Measurement 关联契约，使异步样本能够显式回挂到 Capture/Receipt 而不依赖时间窗口。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Kernel/Capability/",
+      "tests/UniClaw.Kernel.Tests/Capability/",
+      "evidence/cap-001/external/",
+      "workitems/WI-CAP001-009.json"
+    ],
+    "read_hints": [
+      "changes/CAP-001/state.md",
+      "docs/capability-hub/customization-integration-development-protocol-v0.1.md",
+      "docs/design/runtime-capability-integration-seams-v0.1.md",
+      "src/UniClaw.Kernel/Capability/IntegrationContracts.cs"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "定义外挂 Fixture 生命周期事实与 ArtifactReference/MeasurementSample 的显式关联，支持摄像头、录屏和设备传感器的异步外部证据，不实现采集、存储或视觉分析。",
+    "core_points": [
+      "Fixture 的 Setup、Ready、Failed、Teardown、Closed、Unknown、Unavailable 状态独立于业务成功。",
+      "ArtifactReference 表示可追溯原始材料，不能自动成为 Evidence 或 Product truth。",
+      "外部 Measurement 必须通过相同 Capture/Receipt/Operation correlation 关联 Artifact，禁止时间窗口猜测。",
+      "设备/传感器时间与 Runtime/Host 时间并存但不互相改写。",
+      "Fixture teardown 幂等语义由 Host/Harness 持有，Hub 只消费事实。"
+    ]
+  },
+  "contract_refs": [
+    "changes/CAP-001/state.md",
+    "docs/capability-hub/customization-integration-development-protocol-v0.1.md",
+    "docs/design/runtime-capability-integration-seams-v0.1.md"
+  ],
+  "acceptance": [
+    "Kernel 中存在外部 Artifact/Measurement 关联契约，拒绝不同 Run/Capture/Receipt 的错配。",
+    "Setup、Ready、Failed、Teardown、Closed、Unknown、Unavailable Fixture 状态可被确定性表达且不表示业务成功。",
+    "外部 Measurement 能携带 ExternalDeviceTime/SensorTime 并保留样本状态、来源、版本和诊断。",
+    "缺失 artifact、无法关联、迟到、重复和外部来源不可用场景有确定性测试。",
+    "公共面、证据和 WorkItem 状态同步；不实现摄像头采集、视频存储、去重服务或主流程 Hook。"
+  ],
+  "forbidden": [
+    "不得实现摄像头、录屏、传感器驱动、Artifact 存储或视觉分析。",
+    "不得用外部样本替换 Runtime canonical 时间或自动声称用户可见响应。",
+    "不得把 Artifact、Measurement 或 Fixture 状态直接写入 Evidence、WorldModel、Assurance 或 Effect。",
+    "不得用时间窗口、文件名或 provider opaque id 猜测样本归属。",
+    "不得迁移 Capability Hub 或其他目录。"
+  ],
+  "dependencies": [
+    "WI-CAP001-006",
+    "WI-CAP001-008"
+  ],
+  "status": "done",
+  "required_skills": [
+    "codebase-design",
+    "tdd",
+    "uniclaw-debug-evidence",
+    "code-review"
+  ],
+  "required_capability": "implementation"
+}

@@ -1,0 +1,53 @@
+{
+  "id": "WI-CAP001-002",
+  "objective": "冻结正确的感知能力分类与协议，使外部买方接口、复合能力、独立能力、实现来源和适配器有明确边界。",
+  "scope": {
+    "write": [
+      "docs/design/runtime-capability-integration-seams-v0.1.md",
+      "docs/adr/0035-capability-management-hub-trust-scoped-registries.md",
+      "CONTEXT.md",
+      "workitems/WI-CAP001-002.json"
+    ],
+    "read_hints": [
+      "changes/CAP-001/state.md",
+      "plans/2026-10-04-cap-001-plan.md",
+      "src/UniClaw.Kernel/Perception/",
+      "src/UniClaw.Kernel/Evidence/ObservationProposal.cs",
+      "docs/architecture/product-architecture-baseline-l0-l3.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "把感知协议从 Fast/Slow 实现分类提升为两个外部买方接口，并冻结来源、融合、评估和复合能力关系。",
+    "core_points": [
+      "Semantic Perception 与 UI Element Perception 是外部接口；Fast/Slow 是内部 realization。",
+      "XML 属于 UI Element 来源；YOLO/OCR 是快速来源或实现，不直接等于 Product 能力。",
+      "Text Semantic Perception 强绑定 Fast YOLO+OCR 与 Slow Text；Slow Visual 可独立并可实现两个接口。",
+      "PerceptionAssessment 是非权威结构化评估。"
+    ]
+  },
+  "contract_refs": [
+    "changes/CAP-001/state.md",
+    "docs/adr/0035-capability-management-hub-trust-scoped-registries.md"
+  ],
+  "acceptance": [
+    "形成可审阅的能力分类矩阵，逐项标明外部接口、复合能力、独立能力、实现来源和适配器。",
+    "冻结 Semantic Perception、UI Element Perception、PerceptionAssessment 的语义、Owner、输入输出和失败/不确定状态。",
+    "冻结 XML、YOLO、OCR 的来源与字段级融合边界，以及 Text Semantic Perception 和 Slow Visual 的独立性/依赖性。",
+    "明确置信度、覆盖度、关联质量和 provider confidence 的层级，避免把 provider 数值直接变成 Product Authority。",
+    "文档与 CONTEXT/ADR 术语一致，且不引入新的 Kernel Owner。"
+  ],
+  "forbidden": [
+    "不得实现具体模型链路或修改 Fast/Slow 运行时行为。",
+    "不得把 XML、YOLO 或 OCR 单独升级为 Product 业务权威。",
+    "不得以数组拼接代替字段级、capture/cycle 对齐的融合语义。"
+  ],
+  "dependencies": [
+    "WI-CAP001-001"
+  ],
+  "status": "done",
+  "required_skills": [
+    "domain-modeling",
+    "codebase-design"
+  ],
+  "required_capability": "architecture"
+}

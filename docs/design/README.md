@@ -21,3 +21,4 @@
 | `runtime-core-model-interface-archive-skeleton-v0.1.md` | Runtime/Core 模型接口 archive 骨架 | DRAFT / REVIEW_REQUIRED |
 | `runtime-perception-world-simulation-replay-roadmap-v0.1.md` | Runtime 感知/世界/仿真/回放路线图 | DRAFT / ACCEPTED_AS_CHANGE_INPUT（H2） |
 | `uniclaw-workspace-architecture-v0.1.md` | UniClaw Workspace 架构方案 v0.1（目标/边界/分层/数据形状/前端组织；PNL-003 主文档，AGT-009 基线卫生修复迁入） | DRAFT / REVIEW_REQUIRED |
+| `../capability-hub/customization-integration-development-protocol-v0.1.md` | Capability 定制化、协议选择、注册集成、Adapter 开发与验收流程（Capability Hub 管理入口） | DRAFT / GUIDE |

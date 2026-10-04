@@ -1,0 +1,60 @@
+{
+  "id": "WI-CAP001-004",
+  "objective": "按已冻结的能力分类完成第一条具体感知能力纵向路径，并保留独立 Slow Visual 的后续扩展接缝。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Kernel/Perception/",
+      "src/UniClaw.Host/",
+      "tests/UniClaw.Kernel.Tests/Perception/",
+      "tests/UniClaw.Host.Tests/",
+      "evidence/",
+      "workitems/WI-CAP001-004.json"
+    ],
+    "read_hints": [
+      "changes/CAP-001/state.md",
+      "plans/2026-10-04-cap-001-plan.md",
+      "src/UniClaw.Host/SettingsTraversalLiveFeed.cs",
+      "src/UniClaw.Kernel/Perception/OpenCodeSlowRealization.cs",
+      "src/UniClaw.Kernel/Perception/FastPerception.cs",
+      "src/UniClaw.Kernel/Evidence/ObservationProposal.cs"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "实现 Text Semantic Perception 的真实纵向接缝：同一 capture/cycle 的 Fast YOLO+OCR 前置依据进入 Slow Text，经既有 P2/P3 产生 proposal；Slow Visual 保持独立。",
+    "core_points": [
+      "缺少对齐的 Fast 前置依据时不调用 Slow Text、不产生 Slow Text proposal。",
+      "Fast 合法输出保持原路径；正常空检测与能力缺失分开。",
+      "结果经过既有 Evidence ingress，不直接写 WorldModel 或替代 Ledger。",
+      "Slow Visual 作为独立能力保留双接口扩展。"
+    ]
+  },
+  "contract_refs": [
+    "changes/CAP-001/state.md",
+    "docs/adr/0035-capability-management-hub-trust-scoped-registries.md"
+  ],
+  "acceptance": [
+    "Text Semantic Perception 能完成 Fast YOLO+OCR → Slow Text 的同 capture/cycle 有界请求与 proposal 路径。",
+    "缺少、过期或未对齐的 Fast 前置依据时，Slow Text 被明确跳过并保留可诊断状态。",
+    "YOLO/OCR 正常但检测为空时，不被误判为能力缺失；Fast 既有输出不回滚。",
+    "语义和 UI 元素结果分别经既有 P2/P3 进入 Evidence Ledger/WorldModel，Hub 不成为事实权威。",
+    "测试和证据覆盖成功、前置缺失、空检测、超时/晚到、provider 不可用和 Slow Visual 独立注册场景。"
+  ],
+  "forbidden": [
+    "不得把 Slow Text 单独注册为 Product 感知能力。",
+    "不得把 provider confidence 直接升级为 Gate 或 Product Authority。",
+    "不得绕过 Evidence Ledger、WorldModel、Effect Boundary 或现有 P2/P3。"
+  ],
+  "dependencies": [
+    "WI-CAP001-001",
+    "WI-CAP001-002",
+    "WI-CAP001-003"
+  ],
+  "status": "done",
+  "required_skills": [
+    "codebase-design",
+    "tdd",
+    "uniclaw-debug-evidence",
+    "code-review"
+  ],
+  "required_capability": "implementation"
+}

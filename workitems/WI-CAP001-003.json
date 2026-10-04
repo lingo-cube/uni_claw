@@ -1,0 +1,59 @@
+{
+  "id": "WI-CAP001-003",
+  "objective": "把冻结后的感知能力分类接入 Capability Registry，验证 Hub 能区分复合能力、独立能力、实现来源和适配器。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Kernel/Capability/",
+      "src/UniClaw.Kernel/Perception/",
+      "tests/UniClaw.Kernel.Tests/Capability/",
+      "tests/UniClaw.Kernel.Tests/Perception/",
+      "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs",
+      "evidence/cap-001/registry/",
+      "workitems/WI-CAP001-003.json",
+      "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs",
+      "evidence/cap-001/registry/"
+    ],
+    "read_hints": [
+      "changes/CAP-001/state.md",
+      "plans/2026-10-04-cap-001-plan.md",
+      "docs/design/runtime-capability-integration-seams-v0.1.md",
+      "docs/adr/0035-capability-management-hub-trust-scoped-registries.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "用已冻结的感知分类验证 Registry 的能力描述与装配关系；只验证注册和协议一致性，不实现模型链路。",
+    "core_points": [
+      "Text Semantic Perception 以复合能力注册，Slow Text 不作为独立 Product 能力注册。",
+      "Slow Visual 以独立能力注册，并可声明同时实现两个感知接口。",
+      "XML、YOLO、OCR 以来源/适配器或 realization 身份出现，不伪装为业务能力。",
+      "注册描述必须能表达依赖、协议实现和装配边界。"
+    ]
+  },
+  "contract_refs": [
+    "changes/CAP-001/state.md",
+    "docs/adr/0035-capability-management-hub-trust-scoped-registries.md"
+  ],
+  "acceptance": [
+    "Registry 能注册并查询 Text Semantic Perception 的复合描述及其 Fast YOLO+OCR → Slow Text 依赖。",
+    "Registry 能独立注册 Slow Visual，并声明其实现 Semantic Perception、UI Element Perception 或二者。",
+    "XML、YOLO、OCR 的来源/适配器描述不会被当作 Product 业务能力或 Evidence authority。",
+    "注册、查询、生命周期和协议不一致场景都有确定性测试；不调用真实模型、不产生模型结果。",
+    "现有 Hub 管理骨架和 Kernel 回归测试通过。"
+  ],
+  "forbidden": [
+    "不得实现 Fast YOLO、OCR、Slow Text 或 Slow Visual 的实际推理。",
+    "不得修改 P2/P3、Evidence Ledger、WorldModel 或直接写入业务事实。",
+    "不得新增隐式依赖链或按名称猜测能力关系。"
+  ],
+  "dependencies": [
+    "WI-CAP001-001",
+    "WI-CAP001-002"
+  ],
+  "status": "done",
+  "required_skills": [
+    "codebase-design",
+    "tdd",
+    "code-review"
+  ],
+  "required_capability": "implementation"
+}

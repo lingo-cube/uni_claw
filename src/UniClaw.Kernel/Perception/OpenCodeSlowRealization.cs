@@ -275,6 +275,16 @@ internal sealed class OpenCodeSlowRealization : IDisposable
             semanticReasoning = request.Context.SemanticReasoning,
             conflictBasis = request.Context.ConflictBasis,
             exclusions = request.Context.Exclusions,
+            fastBasis = request.FastBasis is null ? null : new {
+                captureId = request.FastBasis.CaptureId,
+                sessionCorrelation = request.FastBasis.SessionCorrelation,
+                observationCycleId = request.FastBasis.ObservationCycleId,
+                captureTimestamp = request.FastBasis.CaptureTimestamp,
+                yoloDetections = request.FastBasis.YoloDetections,
+                ocrTokens = request.FastBasis.OcrTokens,
+                providerAvailable = request.FastBasis.ProviderAvailable,
+                isFresh = request.FastBasis.IsFresh,
+            },
             rawArtifactId = request.RawArtifact?.ArtifactId,
         };
         return JsonSerializer.Serialize(context, _json);

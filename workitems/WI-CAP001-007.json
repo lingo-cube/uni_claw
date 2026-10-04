@@ -1,0 +1,59 @@
+{
+  "id": "WI-CAP001-007",
+  "objective": "把语言合规 Inspector 的输入、规则、Finding 输出和生命周期关联收敛为一个 Runtime Integration 协议，实现 ObservationAccepted 到 Finding 的最小可验证接缝。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Kernel/Capability/",
+      "tests/UniClaw.Kernel.Tests/Capability/",
+      "evidence/cap-001/inspection/",
+      "workitems/WI-CAP001-007.json"
+    ],
+    "read_hints": [
+      "changes/CAP-001/state.md",
+      "docs/capability-hub/customization-integration-development-protocol-v0.1.md",
+      "docs/design/runtime-capability-integration-seams-v0.1.md",
+      "src/UniClaw.Kernel/Capability/IntegrationContracts.cs",
+      "src/UniClaw.Kernel/Evidence/ObservationProposal.cs"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "定义语言 Inspector 的只读文本投影和规则协议，输出已有 Finding；不实现语言识别算法、不接入主循环、不把违规升格为 Product truth。",
+    "core_points": [
+      "输入必须保留 Run/Capture/ObservationCycle/Revision 等适用关联和 declared/rendered 文本区分。",
+      "规则版本、期望语言、覆盖范围和输入状态必须可追溯。",
+      "输出只能是 Pass、Violation、Unknown 或 NotApplicable 的 Finding，并保留诊断和来源。",
+      "缺输入、部分覆盖、冲突、不可用和迟到结果不能伪造成通过。",
+      "契约只提供只读投影到 Finding 的接口，不写 Evidence、WorldModel、Assurance 或 Effect。"
+    ]
+  },
+  "contract_refs": [
+    "changes/CAP-001/state.md",
+    "docs/capability-hub/customization-integration-development-protocol-v0.1.md",
+    "docs/design/runtime-capability-integration-seams-v0.1.md"
+  ],
+  "acceptance": [
+    "Kernel 中存在语言 Inspector 的 Host-neutral request/result 或接口契约，能从 ObservationAccepted 的只读文本投影生成 Finding。",
+    "契约区分 declaredText 与 renderedText，并保留每个文本项的 occurrence/source reference 和适用 correlation。",
+    "规则版本、期望语言、覆盖状态、Unknown/Violation/Pass 语义和诊断可确定表达。",
+    "成功、违规、输入缺失或不可用、部分覆盖、错配和迟到场景有确定性测试。",
+    "公共面白名单、证据和 WorkItem 状态同步；不新增主流程 Hook 或 Owner 写入路径。"
+  ],
+  "forbidden": [
+    "不得实现语言检测算法、翻译模型、菜单扫描器或 UI 修改动作。",
+    "不得接入 UniKernel 主循环或等待语言检查完成后改变主流程。",
+    "不得把 Finding 自动写入 Evidence Ledger、WorldModel、Assurance 或 Effect。",
+    "不得使用万能 opaque payload、时间窗口关联或单一 confidence 分数替代结构化状态。",
+    "不得迁移 Capability Hub 或其他目录。"
+  ],
+  "dependencies": [
+    "WI-CAP001-006"
+  ],
+  "status": "done",
+  "required_skills": [
+    "codebase-design",
+    "tdd",
+    "uniclaw-debug-evidence",
+    "code-review"
+  ],
+  "required_capability": "implementation"
+}

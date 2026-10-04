@@ -1,0 +1,71 @@
+{
+  "id": "WI-CAP001-001",
+  "objective": "建立信任域隔离的 Capability Hub 管理骨架，使能力能够被显式注册、描述、装配和管理，同时保持既有业务 Owner/Authority 不变。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Kernel/Capability/",
+      "tests/UniClaw.Kernel.Tests/Capability/",
+      "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs",
+      "docs/design/runtime-capability-integration-seams-v0.1.md",
+      "workitems/WI-CAP001-001.json"
+    ],
+    "read_hints": [
+      "CONTEXT.md",
+      "docs/adr/0035-capability-management-hub-trust-scoped-registries.md",
+      "docs/architecture/product-architecture-baseline-l0-l3.md",
+      "src/UniClaw.Kernel/UniClaw.Kernel.csproj",
+      "src/UniClaw.Kernel/Evidence/",
+      "src/UniClaw.Kernel/World/"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Capability Hub 是信任域内的能力管理/装配 realization，不是业务事实或授权权威。第一步只提供 Product Registry 可复用的管理骨架。",
+    "core_points": [
+      "注册描述必须显式包含信任域、能力标识、版本、作用域、协议声明、依赖和健康状态。",
+      "生命周期必须可验证且状态事实在提交后发布；Hub 不生成或重排 Evidence/WorldModel 事实。",
+      "Product、Runtime Integration、Harness 的注册状态与 Composition Root 保持隔离。",
+      "本 WorkItem 不实现 Semantic Perception、UI Element Perception 或具体模型链路。"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "docs/design/runtime-capability-integration-seams-v0.1.md",
+      "symbol": "Capability Hub"
+    },
+    {
+      "path": "docs/adr/0035-capability-management-hub-trust-scoped-registries.md",
+      "symbol": "trust-scoped registries"
+    }
+  ],
+  "contract_refs": [
+    "docs/adr/0035-capability-management-hub-trust-scoped-registries.md",
+    "docs/architecture/product-architecture-baseline-l0-l3.md"
+  ],
+  "acceptance": [
+    "Product Capability Registry 能注册能力描述，并保留信任域、能力标识、版本、作用域、协议声明、依赖和健康状态。",
+    "能力生命周期至少支持 Declared、Registered、Ready、Active、Draining、Closed，并能显式表达 Failed/Quarantined；非法跳转和重复注册有确定性结果。",
+    "生命周期事实只在状态提交后发布，包含来源、版本和单调序列；Hub 不伪造、不重排、不改写业务事实。",
+    "Product、Runtime Integration、Harness 注册域不能共享可变注册状态或权限；本 WorkItem 至少用边界测试证明 Product Registry 不越域。",
+    "Hub 管理 API 不暴露任意 opaque payload，不自动串联能力，不创建 Evidence、WorldModel、Control、Assurance 或 Effect authority。",
+    "契约/单元/边界测试通过，并证明现有 Kernel 测试不回归。"
+  ],
+  "forbidden": [
+    "不得实现 Semantic Perception、UI Element Perception、PerceptionAssessment 或 Text Semantic Perception。",
+    "不得接入 Fast YOLO、OCR、Slow Text、Slow Visual、XML、摄像头或具体 provider。",
+    "不得建立跨信任域的全局 Registry、动态任意插件加载或隐式能力链。",
+    "不得修改 Evidence Ledger、WorldModel、Control、Assurance、Effect Boundary 的 Owner/Authority。"
+  ],
+  "frozen_decisions": [
+    "Capability Hub 是 Capability Plane 的管理角色，不是新的 L2、Owner 或 Authority。",
+    "Product Runtime、Runtime Integration、Harness 使用独立注册域与 Composition Root。",
+    "生命周期事实是不可变 Host-neutral 事实，Hub 不拥有业务事实。"
+  ],
+  "status": "done",
+  "required_skills": [
+    "codebase-design",
+    "domain-modeling",
+    "tdd",
+    "code-review"
+  ],
+  "required_capability": "implementation"
+}

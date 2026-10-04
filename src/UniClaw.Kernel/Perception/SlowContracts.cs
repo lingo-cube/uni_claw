@@ -243,7 +243,8 @@ internal sealed record SlowPerceptionRequest(
     EvidenceContext Context,
     RawArtifactRef? RawArtifact = null,
     ModelBindingSnapshot? Binding = null,
-    TimeSpan? Budget = null)
+    TimeSpan? Budget = null,
+    FastTextBasis? FastBasis = null)
 {
     public bool IsValid => !string.IsNullOrWhiteSpace(RequestId)
         && AttemptKey is { IsValid: true }
