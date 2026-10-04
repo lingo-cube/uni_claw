@@ -32,6 +32,7 @@ Usage:
 from __future__ import annotations
 
 import json, re, subprocess, sys
+from concurrent.futures import ThreadPoolExecutor
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -105,18 +106,48 @@ def parse_trx(trx: Path) -> dict[str, str]:
     return outcomes
 
 
-def scenario_test_map(scenario_ids: list[str]) -> dict[str, list[str]]:
+def scenario_test_map(scenario_ids: list[str], *, no_build: bool = False) -> dict[str, list[str]]:
     """scenario-id → 测试 FQN 清单（从二进制的 trait 发现；locale 无关）。"""
-    mapping: dict[str, list[str]] = {}
-    for scenario_id in scenario_ids:
+    if not no_build:
+        # Preserve the explicit-TRX entry point's ability to build missing
+        # binaries, but do it once before the read-only per-scenario probes.
+        warmup = subprocess.run(
+            ["dotnet", "test", str(SIM_TESTS), "--list-tests", "--no-restore"],
+            cwd=ROOT, capture_output=True, text=True,
+        )
+        if warmup.returncode != 0:
+            print("  FAIL: Simulation 测试枚举/构建失败：", file=sys.stderr)
+            print(warmup.stderr, file=sys.stderr)
+            sys.exit(2)
+        no_build = True
+
+    def discover(scenario_id: str) -> tuple[str, list[str]]:
+        build_flags = ["--no-build", "--no-restore"] if no_build else []
         proc = subprocess.run(
             ["dotnet", "test", str(SIM_TESTS), "--list-tests",
+             *build_flags,
              "--filter", f"Scenario={scenario_id}"],
             cwd=ROOT, capture_output=True, text=True,
         )
+        if proc.returncode != 0:
+            detail = proc.stderr.strip() or proc.stdout.strip()
+            raise RuntimeError(
+                f"{scenario_id}: dotnet test --list-tests 退出码 {proc.returncode}"
+                + (f"：{detail}" if detail else "")
+            )
         fqns = re.findall(r"^\s+(UniClaw\.\S+)$", proc.stdout, re.M)
-        mapping[scenario_id] = [f.strip() for f in fqns]
-    return mapping
+        return scenario_id, [f.strip() for f in fqns]
+
+    # The simulation binary is already built by run_tests() for --run, or by
+    # the single warmup above for an explicit TRX. Keep each filter
+    # independent for trait truth, but avoid serial process startup.
+    workers = min(4, max(1, len(scenario_ids)))
+    try:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            return dict(pool.map(discover, scenario_ids))
+    except RuntimeError as exc:
+        print(f"  FAIL: 场景 trait 映射失败：{exc}", file=sys.stderr)
+        sys.exit(2)
 
 
 def freshness_violation(trx: Path) -> str | None:
@@ -238,7 +269,9 @@ def main() -> int:
     trx = run_tests() if do_run else discover_trx(trx_arg)
     trx_outcomes = parse_trx(trx)
     scenario_ids = [p.stem for p in sorted(SCENARIOS.glob("SCN-*.json"))]
-    test_map = scenario_test_map(scenario_ids)
+    # The explicit --trx path retains one build-capable warmup. The default
+    # latest-TRX path is read-only and requires the existing test binary.
+    test_map = scenario_test_map(scenario_ids, no_build=do_run or trx_arg is None)
     entries, violations = load(trx_outcomes, test_map)
 
     stale = freshness_violation(trx)
