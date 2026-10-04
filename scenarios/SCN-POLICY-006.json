@@ -34,9 +34,9 @@
     "schemaVersion": 2,
     "expectationsDigest": "4b272fd73ef58ede4eb2a817e583e30dbd588b319d777a8d0daffe3b1b604eeb",
     "executionDigest": "e5304887067e744961d3a9ce2bc0f5b756653e62c8e614e761b2443a5b6755c3",
-    "runtimeSourceHash": "7ac36bf88160bc219f6a79f38db6922a58c4aaa29e7fc104fc55b0a0be623c7c",
-    "certifiedByChange": "AGT-009",
-    "certifiedAt": "2026-10-02"
+    "runtimeSourceHash": "50797535091ca64e48d1dcefc795b3b364f9df96e5cda06c764acc55d7f7ecd8",
+    "certifiedByChange": "CAP-001",
+    "certifiedAt": "2026-10-04"
   },
   "security": {
     "sensitiveReview": "cleared",
