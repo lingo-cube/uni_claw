@@ -127,6 +127,39 @@ Core、不经 Kernel（CORE-016 先例）；第二个需要运行时机制的非
 _Avoid_: 通用运行时（无买家的泛化声明）、god runtime（第二套总
 Owner）、把 Core 记录层当运行时机制来源
 
+**Capability Plane**: 承载可替换 typed capability 的 Product L1 架构面；能力可以接收有界输入并产生 raw artifact、typed proposal、candidate binding 或 mechanical receipt，但不拥有 canonical Evidence、WorldBelief、Run State、Control、Assurance、Effect 或 terminal authority。
+_Avoid_: Capability Integration Plane、插件总线、第二套 Product Owner
+
+**Capability Management Role**: 管理 Capability Plane 能力注册、分类、协议、作用域、健康和生命周期的架构角色；它是装配与分发语义，不是新的 L2 或 canonical state owner。
+_Avoid_: god hub、authority hub、万能回调中心
+
+**Capability Hub**: Capability Management Role 在一个信任域中的 realization。Product Runtime、Runtime Integration 和 Development Harness 各有独立注册域与 Composition Root，只共享 Host-neutral lifecycle fact 和 correlation 词汇，不共享可变注册状态或权限。
+_Avoid_: 跨域共享注册表、Capability Integration Plane、隐式插件加载
+
+**Capability Definition**: Product 对外承诺的能力语义与协议边界；它定义消费者可以依赖的输入、输出、作用域和失败语义，不等于某个模型、Provider 或运行实例。
+_Avoid_: model、provider response、implementation detail
+
+**Capability Implementation**: Capability Definition 的具体实现来源，可以是模型链路、外部 Provider、内部算法或组合 realization；它不得因此取得 Product canonical authority。
+_Avoid_: Product capability identity、canonical owner
+
+**Capability Binding**: 将 Capability Definition 绑定到特定 Host、Task 或信任域的装配关系；Binding 决定注入、激活和暴露形态，但不改变 Capability 的语义或 authority。
+_Avoid_: global singleton、second registry、Tool identity
+
+**Capability Instance**: 某次 Host 或 Task 根据 Capability Binding 解析出的运行时实现实例；它具有本次作用域，不回写全局注册状态。
+_Avoid_: global capability state、canonical capability truth
+
+**Provider**: 可独立运行、通过明确跨进程或跨语言协议接入 Capability Plane 的外部实现；Provider 只拥有自己的实现和运行事实，不拥有 Product canonical state。
+_Avoid_: platform bucket、Product Owner、authority service
+
+**Provider Manifest**: Provider 的静态发现与装配声明，描述 provider identity、supported capability、协议版本、transport、启动入口、健康检查和测试入口；它不是 Product Capability 语义或运行时健康事实的权威。
+_Avoid_: capability truth、health result、runtime fact
+
+**DSH Development Configuration**: `.dsh/` 下供 DSH 开发、profile 装配和本地观测使用的配置；它不是 DSH 产品源码，也不是 Provider 实现或生成缓存。
+_Avoid_: DSH product source、provider、build output
+
+**Lifecycle Fact**: canonical Owner 或 Host 在自身 post-commit 点发布的、带来源和 correlation 的不可变生命周期事实；Hub 只能分发和投影，不能推断、重排、改写或把它升级为 Product fact。
+_Avoid_: Hub 推断事件、Trace truth、可变上下文
+
 **Perception**: Capability Plane 中从有界外部输入获取 raw artifact、或从
 raw artifact 派生 `ObservationProposal` 的 typed capability；跨 owner 的观察
 输出只经 P2 出面，不拥有 Evidence admission、WorldBelief、identity、control、
@@ -138,6 +171,18 @@ _Avoid_: L1/L2 Owner、canonical authority、直连 World Model
 或算法只是 realization。两者都必须产生兼容的 observation / association evidence，
 并经同一 P2/P3 链汇入 UIWorld Authority。
 _Avoid_: realization category、顶层 Owner、固定算法、独立 authority、绕过 P2 直连 WorldModel
+
+**Semantic Perception**: 面向“界面或元素表达了什么”的外部感知协议；接收同一 capture/cycle 下的有界元素依据、文本/视觉依据和 claim 上下文，产生带 provenance、lineage 与 `PerceptionAssessment` 的 `SemanticObservationProposal`。它不拥有 Evidence、WorldModel、Assurance 或 Effect authority。
+_Avoid_: Slow Text 专属接口、provider response、直接语义真相
+
+**UI Element Perception**: 面向“capture 中有哪些元素、属性、几何和关联”的外部感知协议；XML/Hierarchy、YOLO/Visual、OCR 都是可声明的来源。输出的 occurrence 只在 capture 内有效，不能直接成为跨 revision identity 或 binding。
+_Avoid_: XML 等于 Product truth、坐标等于 identity、数组拼接
+
+**PerceptionAssessment**: Semantic Perception 与 UI Element Perception 共用的非权威结构化评估，表达 disposition、coverage、uncertainty、association quality、source path 和可选 provider confidence。provider confidence 只作校准/诊断输入，不能直接成为 Evidence admission、Assurance 或 Effect Gate 权威。
+_Avoid_: bare confidence float、全局 source ranking、把缺失置信度当零
+
+**Text Semantic Perception**: Fast（YOLO + OCR）与 Slow Text 构成的组合感知能力：对外至少实现 Semantic Perception，并可在 Fast 投影具备元素观察输出时同时实现 UI Element Perception；Slow Text 依赖同一 capture/cycle 的定位与文本依据完成语义解释，不能作为独立 Product capability 注册。Slow Visual 可以独立并按能力实现一个或两个协议接口。
+_Avoid_: standalone Slow Text、把文本模型当作独立图像观察源、把 Fast 来源数组直接拼接
 
 **Evidence Record**: Evidence Ledger admission 通过后形成的不可变
 canonical 观察依据记录（EvidenceId + claim + kind + observation
