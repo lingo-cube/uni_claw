@@ -50,7 +50,7 @@ const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 const REPOSITORY_ROOT = dirname(dirname(PACKAGE_ROOT))
 const AGENT_PRESET_ID = 'uniagent-task'
 const DEFAULT_LOCAL_LAUNCH_DEFAULTS = Object.freeze({
-  projectRef: { id: 'project/uni-claw-workspace', label: 'UniClaw Workspace' },
+  projectRef: { id: 'project/uni-claw-test-lab', label: 'UniClaw Test Lab' },
   testSetRef: { id: 'testset/workspace-contract', version: 'default' },
   taskRef: { id: 'task/workspace-contract/request-decision-result', label: 'Request, decision, and result timeline' },
 })

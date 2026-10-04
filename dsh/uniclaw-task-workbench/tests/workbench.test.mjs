@@ -293,7 +293,7 @@ test('launch: Host failure leaves a partial recoverable instance after Runtime c
   const runtime = { async createRun() { return { runId: 'run-partial-1', productSessionId: 'product-partial-1' } } }
   const controller = mockController({ createError: new Error('host unavailable') })
   const { routes } = applyHost({ controller, registry: mockRegistry(), runtime })
-  const response = await post(routes, '/api/uniclaw-task/tasks/launch', { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-partial', projectRef: { id: 'project/uni-claw-workspace' }, testSetRef: { id: 'testset/workspace-contract', version: 'default' }, taskRef: { id: 'task/workspace-contract/request-decision-result' }, idempotencyKey: 'idem-partial', correlationId: 'corr-partial', requestedAt: new Date().toISOString(), metadata: [] })
+  const response = await post(routes, '/api/uniclaw-task/tasks/launch', { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-partial', projectRef: { id: 'project/uni-claw-test-lab' }, testSetRef: { id: 'testset/workspace-contract', version: 'default' }, taskRef: { id: 'task/workspace-contract/request-decision-result' }, idempotencyKey: 'idem-partial', correlationId: 'corr-partial', requestedAt: new Date().toISOString(), metadata: [] })
   assert.equal(response.status, 500)
   const payload = await response.json()
   assert.equal(payload.error.code, 'launch-partial')
@@ -310,7 +310,7 @@ test('launch: Runtime failure keeps a stable pending instance and requires recov
   }
   const controller = mockController()
   const { routes } = applyHost({ controller, registry: mockRegistry(), runtime })
-  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-runtime-retry', projectRef: { id: 'project/uni-claw-workspace' }, testSetRef: { id: 'testset/workspace-contract', version: 'default' }, taskRef: { id: 'task/workspace-contract/request-decision-result' }, idempotencyKey: 'idem-runtime-retry', correlationId: 'corr-runtime-retry', requestedAt: new Date().toISOString(), metadata: [] }
+  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-runtime-retry', projectRef: { id: 'project/uni-claw-test-lab' }, testSetRef: { id: 'testset/workspace-contract', version: 'default' }, taskRef: { id: 'task/workspace-contract/request-decision-result' }, idempotencyKey: 'idem-runtime-retry', correlationId: 'corr-runtime-retry', requestedAt: new Date().toISOString(), metadata: [] }
   const first = await post(routes, '/api/uniclaw-task/tasks/launch', request)
   assert.equal(first.status, 500)
   const second = await post(routes, '/api/uniclaw-task/tasks/launch', request)
@@ -325,7 +325,7 @@ test('launch: missing Product Session stays partial and does not create a Host s
   const controller = mockController()
   const runtime = { async createRun() { return { runId: 'run-without-product-session' } } }
   const { routes } = applyHost({ controller, registry: mockRegistry(), runtime })
-  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-no-product-session', projectRef: { id: 'project/uni-claw-workspace' }, testSetRef: { id: 'testset/workspace-contract', version: 'default' }, taskRef: { id: 'task/workspace-contract/request-decision-result' }, idempotencyKey: 'idem-no-product-session', correlationId: 'corr-no-product-session', requestedAt: new Date().toISOString(), metadata: [] }
+  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-no-product-session', projectRef: { id: 'project/uni-claw-test-lab' }, testSetRef: { id: 'testset/workspace-contract', version: 'default' }, taskRef: { id: 'task/workspace-contract/request-decision-result' }, idempotencyKey: 'idem-no-product-session', correlationId: 'corr-no-product-session', requestedAt: new Date().toISOString(), metadata: [] }
   const response = await post(routes, '/api/uniclaw-task/tasks/launch', request)
   const payload = await response.json()
   assert.equal(response.status, 409)
@@ -343,7 +343,7 @@ test('launch: partial retry reuses the Runtime run and binds the recovered Host 
   } }
   const runtime = { calls: [], async createRun(request) { runtime.calls.push(request); return { runId: 'run-recover-1', productSessionId: 'product-recover-1' } } }
   const { routes } = applyHost({ controller, registry: mockRegistry(), runtime })
-  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-retry', projectRef: { id: 'project/uni-claw-workspace' }, testSetRef: { id: 'testset/workspace-contract', version: 'default' }, taskRef: { id: 'task/workspace-contract/request-decision-result' }, idempotencyKey: 'idem-retry', correlationId: 'corr-retry', requestedAt: new Date().toISOString(), metadata: [] }
+  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-retry', projectRef: { id: 'project/uni-claw-test-lab' }, testSetRef: { id: 'testset/workspace-contract', version: 'default' }, taskRef: { id: 'task/workspace-contract/request-decision-result' }, idempotencyKey: 'idem-retry', correlationId: 'corr-retry', requestedAt: new Date().toISOString(), metadata: [] }
   const first = await post(routes, '/api/uniclaw-task/tasks/launch', request)
   assert.equal(first.status, 500)
   failHost = false

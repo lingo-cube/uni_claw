@@ -1,6 +1,6 @@
 {
   "schemaVersion": "testset-manifest.v1",
-  "projectRef": "project/uni-claw-workspace",
+  "projectRef": "project/uni-claw-test-lab",
   "testSetRef": "testset/workspace-contract",
   "version": "default",
   "sourceRevision": "repo-default",
