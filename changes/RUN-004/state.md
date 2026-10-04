@@ -69,6 +69,7 @@ L2 Policy 形态（RUN-005）；传输层 schema（LLM realization 立项时）�
 
 ## Status log
 
+- 2026-10-04 · ARCH-DOC-019 文档复核 · §11 旧评审表明确标为历史快照，§12 继续作为当前事实入口；全量 solution 退出码 0，RUN-004 专项验收 7/7 通过。
 - 2026-09-24 · **closed（owner 授权 closure）**· 四元组：method = 全 solution
   测试套件于 HEAD `16ce8b44` 复验（dotnet test UniClaw.Kernel.slnx）；
   expected = 十项完成条件 + 11 项 acceptance 全绿（spec §12.4 映射表）；
