@@ -73,7 +73,7 @@ level: CONTRACT
 method: python3 tools/validate-workspace-schemas.py; Runtime Host contract tests; real 3083→3090→emulator scenario
 expected: schema and business responses are valid; state/event/projection behavior matches decisions
 actual: RuntimeRunStore and HTTP query surface implemented; contract/unit/smoke checks pass, real DSH/ADB scenario pending environment startup
-evidence: plans/2026-10-04-pnl-005-plan.md
+evidence: evidence/pnl-005/runtime-run-store.md
 ```
 
 ## Status log
