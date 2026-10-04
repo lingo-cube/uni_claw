@@ -18,7 +18,8 @@
   "dsh": {
     "description": "UniClaw Product Workspace host surface (PNL-002)",
     "capabilities": [
-      "ui"
+      "ui",
+      "runtime-extension"
     ],
     "client": {
       "inject": [
