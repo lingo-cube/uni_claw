@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json.Serialization;
 using UniClaw.Agent.Dsh;
 using UniClaw.Host;
 using UniClaw.Host.Runtime;
@@ -18,6 +19,7 @@ namespace UniClaw.Host.Dsh;
 public sealed class RuntimeHttpServer
 {
     private const string ResponseSchema = "uniclaw.workspace.runtime-run-response.v1";
+    private const string ListResponseSchema = "uniclaw.workspace.runtime-run-list-response.v1";
     private const string EventsResponseSchema = "uniclaw.workspace.runtime-run-events-response.v1";
     private const string ContractVersion = "uniclaw.workspace.contract.v1";
     private readonly WebApplication _app;
@@ -38,12 +40,17 @@ public sealed class RuntimeHttpServer
     public static RuntimeHttpServer Create(string[] args, string runsRoot, string device)
     {
         var builder = WebApplication.CreateBuilder(args);
-        builder.Services.Configure<JsonOptions>(options => options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
+        builder.Services.Configure<JsonOptions>(options =>
+        {
+            options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        });
         var app = builder.Build();
         var config = UniagentProdYaml.LoadDefault();
         var server = new RuntimeHttpServer(app, runsRoot, device, config);
         app.MapGet("/api/uniclaw-runtime/health", () => Results.Ok(new { ok = true, service = "uniclaw-runtime" }));
         app.MapPost("/api/uniclaw-runtime/runs", server.StartRunAsync);
+        app.MapGet("/api/uniclaw-runtime/runs", server.ListRunsAsync);
         app.MapGet("/api/uniclaw-runtime/runs/{runId}", server.GetRunAsync);
         app.MapGet("/api/uniclaw-runtime/runs/{runId}/events", server.GetEventsAsync);
         // Kept for PNL-004 compatibility. Recovery semantics are intentionally
@@ -139,6 +146,30 @@ public sealed class RuntimeHttpServer
         return Task.FromResult<IResult>(run is null
             ? Error(StatusCodes.Status404NotFound, "runtime-run-not-found", "Run does not exist", retryable: false)
             : Results.Ok(Response(run)));
+    }
+
+    private Task<IResult> ListRunsAsync(string? status, string? productSessionId, string? cursor, int? limit)
+    {
+        try
+        {
+            var page = _store.List(status, productSessionId, cursor, limit ?? 50);
+            var observedAt = page.Runs.Count == 0 ? DateTimeOffset.UtcNow : page.Runs.Max(run => run.ObservedAt);
+            var revision = page.Runs.Count == 0 ? 0 : page.Runs.Max(run => run.Revision);
+            return Task.FromResult<IResult>(Results.Ok(new
+            {
+                schemaVersion = "uniclaw.workspace.runtime-run-list-response.v1",
+                contractVersion = ContractVersion,
+                ok = true,
+                runs = page.Runs,
+                nextCursor = page.NextCursor,
+                revision,
+                observedAt
+            }));
+        }
+        catch (FormatException ex)
+        {
+            return Task.FromResult<IResult>(Error(StatusCodes.Status400BadRequest, "invalid-cursor", ex.Message, retryable: false, schema: ListResponseSchema));
+        }
     }
 
     private Task<IResult> GetEventsAsync(string runId, string? source, string? cursor, int? limit)
@@ -242,10 +273,10 @@ public sealed class RuntimeHttpServer
         consistency = run.Consistency
     };
 
-    private static IResult Error(int statusCode, string code, string message, bool retryable, object? details = null) =>
+    private static IResult Error(int statusCode, string code, string message, bool retryable, object? details = null, string schema = ResponseSchema) =>
         Results.Json(new
         {
-            schemaVersion = ResponseSchema,
+            schemaVersion = schema,
             contractVersion = ContractVersion,
             ok = false,
             error = new { code, message, retryable, details = details ?? new { } }

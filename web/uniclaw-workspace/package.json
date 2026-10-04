@@ -6,7 +6,8 @@
   "type": "commonjs",
   "exports": {
     ".": "./src/core/index.js",
-    "./core": "./src/core/index.js"
+    "./core": "./src/core/index.js",
+    "./adapters/runtime-http": "./src/adapters/runtime-http.js"
   },
   "scripts": {
     "test": "node --test tests/**/*.test.js",

@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "uniclaw.workspace.runtime-run-list-response.v1",
+  "contractVersion": "uniclaw.workspace.contract.v1",
+  "ok": true,
+  "runs": [],
+  "revision": 0,
+  "observedAt": "2026-10-04T06:00:00Z"
+}

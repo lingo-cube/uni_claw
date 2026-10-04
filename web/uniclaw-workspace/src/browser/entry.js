@@ -208,7 +208,7 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
           correlationId: `workspace-${Date.now()}`, requestedAt: new Date().toISOString(),
           ...(selectedDevice ? { environmentIntent: { device: { id: selectedDevice, override: deviceOverrideEnabled, source: deviceOverrideEnabled ? 'workspace-launch-form' : 'local-config', valueOrigin: 'configured' } } } : {}),
           metadata
-        }).then((result) => { if (result.launch?.status === 'ready') controller.closeLaunchComposer(); });
+        }).then((result) => { if (result.status === 'ready') controller.closeLaunchComposer(); });
       } else if (action === 'close-launch-composer') {
         controller.closeLaunchComposer();
       } else if (action === 'select-pane') {

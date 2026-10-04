@@ -88,4 +88,31 @@ public sealed class RuntimeRunStoreTests
             Directory.Delete(root, recursive: true);
         }
     }
+
+    [Fact]
+    public void ListFiltersBySessionAndUsesOpaqueStableCursor()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "uniclaw-run-store-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new RuntimeRunStore(root);
+            var first = store.Create(new RuntimeRunStore.CreateRequest("session-list", null, "launch-list-1", "idem-list-1", "corr-1", null, null, null, null), DateTimeOffset.Parse("2026-10-04T06:00:00Z"));
+            var second = store.Create(new RuntimeRunStore.CreateRequest("session-list", null, "launch-list-2", "idem-list-2", "corr-2", null, null, null, null), DateTimeOffset.Parse("2026-10-04T06:01:00Z"));
+            store.Create(new RuntimeRunStore.CreateRequest("other-session", null, "launch-list-3", "idem-list-3", "corr-3", null, null, null, null), DateTimeOffset.Parse("2026-10-04T06:02:00Z"));
+
+            var page = store.List(productSessionId: "session-list", limit: 1);
+            Assert.Single(page.Runs);
+            Assert.Equal(second.RunId, page.Runs[0].RunId);
+            Assert.NotNull(page.NextCursor);
+            var next = store.List(productSessionId: "session-list", cursor: page.NextCursor, limit: 1);
+            Assert.Single(next.Runs);
+            Assert.Equal(first.RunId, next.Runs[0].RunId);
+            Assert.Null(next.NextCursor);
+            Assert.Throws<FormatException>(() => store.List(cursor: "invalid"));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
 }

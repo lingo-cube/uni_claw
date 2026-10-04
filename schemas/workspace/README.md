@@ -39,7 +39,9 @@ UniClaw Runtime 的 source-native 事件。Run response 和 events response 使�
 
 Run 状态固定为 `starting`、`running`、`completed`、`failed`、`interrupted`。
 `revision`、`observedAt`、`lastEventSequence` 和 `consistency` 使最终一致的
-查询可观察；事件列表使用 `nextCursor` 分页。Artifact 只暴露逻辑
+查询可观察；事件列表使用 `nextCursor` 分页。Runtime Run 列表使用
+`GET /api/uniclaw-runtime/runs`，支持 `status`、`productSessionId`、不透明
+`cursor` 和 `limit` 过滤；列表响应只携带摘要投影，`nextCursor` 只在还有下一页时出现。Artifact 只暴露逻辑
 `detailEndpoint`，不暴露 Host 绝对路径。
 
 ### Runtime HTTP 结果

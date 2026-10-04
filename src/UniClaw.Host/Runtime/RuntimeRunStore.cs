@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace UniClaw.Host.Runtime;
 
@@ -16,8 +17,8 @@ public sealed class RuntimeRunStore
     private const string ContractVersion = "uniclaw.workspace.contract.v1";
     private readonly string _root;
     private readonly object _gate = new();
-    private readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
-    private readonly JsonSerializerOptions _lineJson = new(JsonSerializerDefaults.Web);
+    private readonly JsonSerializerOptions _json = CreateJsonOptions(writeIndented: true);
+    private readonly JsonSerializerOptions _lineJson = CreateJsonOptions(writeIndented: false);
 
     public RuntimeRunStore(string root)
     {
@@ -99,6 +100,27 @@ public sealed class RuntimeRunStore
     {
         if (string.IsNullOrWhiteSpace(launchId)) return null;
         lock (_gate) return FindByLaunchIdUnsafe(launchId);
+    }
+
+    public RunPage List(string? status = null, string? productSessionId = null, string? cursor = null, int limit = 50)
+    {
+        lock (_gate)
+        {
+            var after = DecodeListCursor(cursor);
+            var runs = FindAllUnsafe()
+                .Where(run => string.IsNullOrWhiteSpace(status) || string.Equals(run.Status, status, StringComparison.OrdinalIgnoreCase))
+                .Where(run => string.IsNullOrWhiteSpace(productSessionId) || string.Equals(run.ProductSessionId, productSessionId, StringComparison.Ordinal))
+                .OrderByDescending(run => run.StartedAt)
+                .ThenByDescending(run => run.RunId, StringComparer.Ordinal)
+                .Where(run => after is null || IsBefore(run, after.Value))
+                .ToList();
+            var boundedLimit = Math.Clamp(limit, 1, 100);
+            var page = runs.Take(boundedLimit).ToArray();
+            var next = runs.Count > page.Length && page.Length > 0
+                ? EncodeListCursor(page[^1])
+                : null;
+            return new RunPage(page, next);
+        }
     }
 
     public RuntimeRunProjection Transition(
@@ -219,6 +241,11 @@ public sealed class RuntimeRunStore
     private static bool IsSafeId(string value) => value.Length > 0 && value.All(c => char.IsLetterOrDigit(c) || c is '-' or '_' or '.');
     private static bool IsTerminal(string status) => status is "completed" or "failed" or "interrupted";
     private static string? OutcomeFor(string status) => status switch { "completed" => "completion", "failed" => "failure", _ => "unknown" };
+    private static JsonSerializerOptions CreateJsonOptions(bool writeIndented) => new(JsonSerializerDefaults.Web)
+    {
+        WriteIndented = writeIndented,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
     private static string EncodeCursor(long sequence) => Convert.ToBase64String(Encoding.UTF8.GetBytes(sequence.ToString(System.Globalization.CultureInfo.InvariantCulture)));
     private static long DecodeCursor(string? cursor)
     {
@@ -229,6 +256,27 @@ public sealed class RuntimeRunStore
             return long.TryParse(raw, out var sequence) && sequence >= 0 ? sequence : throw new FormatException();
         }
         catch (Exception) { throw new FormatException("cursor must be an opaque cursor returned by Runtime Run events query"); }
+    }
+
+    private static bool IsBefore(RuntimeRunProjection run, ListCursor cursor) =>
+        run.StartedAt < cursor.StartedAt
+        || (run.StartedAt == cursor.StartedAt && string.CompareOrdinal(run.RunId, cursor.RunId) < 0);
+
+    private static string EncodeListCursor(RuntimeRunProjection run) => Convert.ToBase64String(Encoding.UTF8.GetBytes(
+        run.StartedAt.ToUniversalTime().ToString("O", System.Globalization.CultureInfo.InvariantCulture) + "\n" + run.RunId));
+
+    private static ListCursor? DecodeListCursor(string? cursor)
+    {
+        if (string.IsNullOrWhiteSpace(cursor)) return null;
+        try
+        {
+            var raw = Encoding.UTF8.GetString(Convert.FromBase64String(cursor));
+            var parts = raw.Split('\n', 2);
+            if (parts.Length != 2 || !DateTimeOffset.TryParse(parts[0], null, System.Globalization.DateTimeStyles.RoundtripKind, out var startedAt) || !IsSafeId(parts[1]))
+                throw new FormatException();
+            return new ListCursor(startedAt, parts[1]);
+        }
+        catch (Exception) { throw new FormatException("cursor must be an opaque cursor returned by Runtime Run list query"); }
     }
 
     public sealed record CreateRequest(
@@ -243,6 +291,8 @@ public sealed class RuntimeRunStore
         JsonElement? Environment);
 
     public sealed record EventPage(IReadOnlyList<RuntimeRunEvent> Events, string? NextCursor);
+    public sealed record RunPage(IReadOnlyList<RuntimeRunProjection> Runs, string? NextCursor);
+    private readonly record struct ListCursor(DateTimeOffset StartedAt, string RunId);
 
     public sealed record RuntimeRunProjection(
         string SchemaVersion,
