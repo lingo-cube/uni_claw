@@ -18,11 +18,36 @@ actual: HostRunner.RunOnce(runRoot, options) at src/UniClaw.Host/HostRunner.cs:5
 evidence: src/UniClaw.Host/HostRunner.cs; tests/UniClaw.Host.Tests/HostTests.cs; dsh/uniclaw-task-workbench/src/index.js launchTask and tests; dsh/uniclaw-task-workbench/tests/workbench.test.mjs; 56 DSH tests; 67 Web tests; Host 142 tests; 7 workspace schemas; 2 test-set manifests; evidence/pnl003-real-task-android-settings-20261003/run-20261003-075727-844/
 ```
 
+## Interface validation (2026-10-04)
+
+The launch interface itself is usable and fail-closed. The task-workbench
+accepts the versioned logical `TaskLaunchRequest`, calls
+`ctx.get('uniclawRuntime').createRun(...)`, requires the Runtime response to
+contain both `runId` and `productSessionId`, and only then calls the DSH
+`sessionController.create(...)`. Existing tests prove idempotency, Runtime
+failure recovery, missing Product Session handling, and Host-session partial
+recovery. `HostRunner.LaunchContext` also accepts the same five correlation
+values and verifies the supplied Runtime `RunId` against Kernel's canonical
+`RunId`.
+
+This validation does not prove production registration. In the current
+repository `uniclawRuntime` is only a test context double: there is no DSH
+plugin or Host transport that provides `createRun`/`recoverRun`, and
+`UniClaw.Host.Dsh` is a console composition root that mints a Product Session
+locally and runs `HostRunner.RunOnce`; it is not an RPC service. Registering a
+Node object that merely returns IDs would violate the Runtime-owned run and
+Product Session authority rules, so no fake provider was added.
+
 ## Required next slice
 
 Implement WI-PNL004-007 as an explicit adapter. It must receive logical
 references and launch metadata, make Runtime the owner of `runId`, establish or
 obtain Product Session before Host binding, pass the correlation into
 HostRunner/DSH consultation, and register the capability through the existing
-DSH plugin seam. It must preserve the current fail-closed recovery behavior and
-must not change AGT-001/RUN-005 authority boundaries.
+DSH plugin seam. The missing prerequisite is a real Host-facing launch
+transport (or an in-process Host service owned by the same composition root)
+whose response contract returns the Runtime-created `runId` and
+`productSessionId`. Once that seam exists, the provider registration is a thin
+adapter; until then the correct behavior is the existing structured
+`runtime-unavailable` response. It must preserve the current fail-closed
+recovery behavior and must not change AGT-001/RUN-005 authority boundaries.
