@@ -18,3 +18,4 @@
 | `per-005-ocr-backend-research.md` | OCR/推理后端候选调研 | CANDIDATE / NOT_ADOPTED |
 | `dsh-tool-scope-restricted-sessions.md` | DSH 工具可见性语义与受限会话正确实现形状 | COMPLETE / EVIDENCE-BACKED |
 | `agt-002-b1-fix-instruction.md` | AGT-002 B1 工具面泄漏修复指令（据上篇起草） | CANDIDATE |
+| `sim-006-first-baseline-matrix.md` | SIM-006 首批 8 场景+组件契约双轴基线矩阵（A1 交付物） | COMPLETE / EVIDENCE-BACKED |

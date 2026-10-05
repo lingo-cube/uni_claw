@@ -1,0 +1,74 @@
+{
+  "id": "WI-SIM006-001",
+  "objective": "只读核对 SIM-006 首批 8 个场景的现有事实：真实载体、ScenarioRunner/SimulationHost 调用链、主要断言、两个 Agent realization 维度、execution carrier、scenario→测试 FQN→TRX/evidence 关联、配置来源与第一处缺口；产出带文件行号与命令证据的审计报告，供 Leader 复核后形成实现 PLAN。",
+  "scope": {
+    "write": [
+      "evidence/sim-006/wi-sim006-001/**"
+    ],
+    "read_hints": [
+      "changes/SIM-006/state.md（Current facts、Initial baseline matrix、Reading entry points）",
+      "docs/architecture/simulation-baseline-v0.1.md（C1–C9）",
+      "docs/architecture/simulation-baseline-v0.2-c7-amendment.md（C7 v0.2 两面标注）",
+      "scenarios/schema.json 与 8 个 SCN JSON",
+      "tests/UniClaw.Simulation.Tests/（ScenarioRunner.cs、SimulationHost.cs、ScenarioLibrary.cs、GeneratedScenarioTests.cs、DeterministicScenarioTests.cs、PolicyScenarioTests.cs、SimulationHostSmokeTests.cs、ScriptedUniAgent.cs、SeamOverrideTests.cs、ScenarioRealizationAnnotationTests.cs）",
+      "tools/scenario-coverage.py、tools/scenario_certify.py（只读源码，理解 trait→FQN→TRX 关联与认证字段）",
+      "tests/UniClaw.Simulation.Tests/TestResults/coverage.trx（既有 TRX，仅读取）",
+      "testsets/android-settings/manifest.json（配置来源之一）"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "对 8 个既有场景做静态事实审计：每个场景从测试类追到 ScenarioRunner/SimulationHost 再到断言，核 realization 标注、execution carrier、FQN/TRX 关联、配置来源与第一处缺口；一切以文件行号与既有证据为准。",
+    "core_points": [
+      "只读审计：唯一可写路径是 evidence/sim-006/wi-sim006-001/",
+      "每条结论必须附 文件:行号 或 命令+输出 证据；无证据就写 unknown",
+      "场景 JSON 的 status 与旧 certification 不是新鲜执行证据，不得据此宣称 PASS",
+      "SCN-SMOKE-001 与 SCN-WIFI-001 疑似共用 wifi-off-to-on carrier；SCN-PERC-001 execution.kind=none 需查明专有载体",
+      "与 changes/SIM-006/state.md 的 Current facts/baseline matrix 冲突处单独列出，交 Leader 裁决，不自行修饰"
+    ]
+  },
+  "anchors": [
+    { "path": "scenarios/SCN-SMOKE-001.json" },
+    { "path": "scenarios/SCN-WIFI-001.json" },
+    { "path": "scenarios/SCN-WIFI-002.json" },
+    { "path": "scenarios/SCN-PERC-001.json" },
+    { "path": "scenarios/SCN-BARRIER-001.json" },
+    { "path": "scenarios/SCN-POLICY-006.json" },
+    { "path": "scenarios/SCN-POLICY-007.json" },
+    { "path": "scenarios/SCN-POLICY-009.json" },
+    { "path": "tests/UniClaw.Simulation.Tests/ScenarioRunner.cs", "symbol": "ScenarioRunner" },
+    { "path": "tests/UniClaw.Simulation.Tests/SimulationHost.cs", "symbol": "SimulationHost" },
+    { "path": "tests/UniClaw.Simulation.Tests/ScenarioLibrary.cs", "symbol": "ScenarioLibrary" },
+    { "path": "tools/scenario-coverage.py" },
+    { "path": "tools/scenario_certify.py" }
+  ],
+  "contract_refs": [
+    "changes/SIM-006/state.md",
+    "docs/architecture/simulation-baseline-v0.1.md",
+    "docs/architecture/simulation-baseline-v0.2-c7-amendment.md"
+  ],
+  "acceptance": [
+    "对 SCN-SMOKE-001、SCN-WIFI-001、SCN-WIFI-002、SCN-PERC-001、SCN-BARRIER-001、SCN-POLICY-006、SCN-POLICY-007、SCN-POLICY-009 逐一给出：(a) 真实载体=测试类/方法+源文件:行号；(b) 从测试入口经 ScenarioRunner（AdmitContract→Activate→Drive→报告读取）到 SimulationHost 的调用链，或该场景的专有 harness 链路，每跳带 文件:行号；(c) 主要断言（期望的外部行为，含 expectations 关键字段与测试代码断言的对应）；(d) agentDecisionRealization 与 goalEvaluationRealization 的 JSON 值 + 使其成立的组合面锚点（决策 double 与评估真件的实际类型与位置）；(e) execution.kind、carrier 及 golden bundle/资产的物理来源；(f) scenario→测试 FQN 的映射机制（trait 如何被发现）+ 实际 FQN + 既有 TRX/evidence 是否含该 FQN 的结果；(g) 该场景实际消费的配置来源（fixture、bundle、manifest、profile 等）；(h) 第一处缺口=所声明保证最早在哪里没有被真正建立（无则写 none 并给证据）",
+    "每条结论标注证据：文件路径:行号、JSON 字段引用、或只读命令及其真实输出摘录；证据不足处如实写 unknown，不得推断成事实",
+    "明确区分：场景 JSON status、certification digest（certifiedByChange/runtimeSourceHash 的覆盖范围）与本次审计的关系；报告不得出现任何新鲜执行 PASS 的表述",
+    "专有核对项：SCN-SMOKE-001 与 SCN-WIFI-001 是否共用 carrier 及断言差异；SCN-PERC-001 execution.kind=none 的实际测试载体、断言与资产来源；SCN-POLICY-009 断言的是 effect class 契约拒绝而非未知菜单识别",
+    "单列『与 state.md 的出入』章节：凡与 changes/SIM-006/state.md Current facts 或 Initial baseline matrix 不符的事实，逐条列出（state.md 表述 / 实际观察 / 证据），不修饰、不代 Leader 裁决",
+    "审计报告写入 evidence/sim-006/wi-sim006-001/scenario-audit.md，并附本次运行过的只读命令清单与 git status --porcelain 输出（证明零工作树改动）",
+    "结构化结论随报告返回：每场景的载体、FQN、两个 realization、execution.kind、配置来源、第一处缺口及证据计数，供 Leader 复核"
+  ],
+  "forbidden": [
+    "禁止创建/修改/删除 evidence/sim-006/wi-sim006-001/** 以外的任何文件（包括但不限于 src/**、tests/**、scenarios/** 及 golden、tools/**、changes/**、workitems/**、schemas/**、docs/**、testsets/**、model-routing.yaml、.dsh/**、AGENTS.md）",
+    "禁止执行 dotnet build / dotnet test / dotnet run 及任何会产生新构建或新测试证据的命令；审计只基于现有源码与既有证据",
+    "禁止执行 scenario_certify.py、scenario-coverage.py、verify-change、verify-live 的任何写模式或整体执行；只允许只读阅读其源码与既有输出",
+    "禁止 git commit / push / reset / checkout / clean / stash 等改变工作树或历史的命令；git log / show / diff 只读可用",
+    "禁止伪造 PASS、把场景 JSON status 字段或旧 TRX 当作本次执行证据、擅自改判 state.md 的矩阵/缺口/结论",
+    "禁止修改本 WorkItem 的 acceptance / forbidden / frozen_decisions",
+    "禁止把新字段/新接口的改进想法写成事实；此类内容只能标注为『候选』单独列出"
+  ],
+  "frozen_decisions": [
+    "changes/SIM-006/state.md Decisions 1–15（尤其 D2 双轴、D3 首批 8 场景、D4 断言分层、D8 关联链、D9 覆盖范围表达）",
+    "simulation-baseline-v0.1 C1–C9 + v0.2 C7（同一 Runtime、双 Host 对称、两面 realization 标注、C8 golden 协议）"
+  ],
+  "dependencies": [],
+  "status": "done",
+  "required_capability": "verification"
+}

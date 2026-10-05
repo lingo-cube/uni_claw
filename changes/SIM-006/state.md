@@ -1,6 +1,6 @@
 # SIM-006 — 本地测试链路、仿真基线与反馈工程化
 
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: bc3bd984ae5833c88b0643dd3b9909014f352f53
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: bc3bd984ae5833c88b0643dd3b9909014f352f53
 
 ## Intent（WHAT/WHY）
 
@@ -50,6 +50,18 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
 - testsets 当前是 Host Catalog 未就绪前的声明式来源；manifest 使用 default revision，可附 sourceRevision。repo-default 不能单独定位历史内容，快照须补充实际内容版本/digest。
 - UniClaw Test Lab 的规范 projectRef 为 project/uni-claw-test-lab；Android Settings 资产现用 project/android-settings。本 Change 不未经裁决重命名既有 Project identity。
 
+### Current facts 补充（2026-10-05 WI-SIM006-001 只读审计核实）
+
+审计载荷 `workitems/WI-SIM006-001.json`；报告 `evidence/sim-006/wi-sim006-001/scenario-audit.md`；Leader 已抽查复核（TRX/trait/JSON digest/构成锚点/只写纪律均证实）。要点：
+
+- 7/8 场景经 ScenarioLibrary.Load → ScenarioRunner → SimulationHost 标准链（decision=double：ScriptedUniAgent 经 SimulationHost.Compose；evaluation=real：ScenarioRunner.BuildReport 经 `new UniAgent(BuildGoal).Evaluate`）。
+- SCN-PERC-001 走专有 AsyncPerceptionHost（AsyncPerceptionScenarioTests.S1，不经 ScenarioRunner/ScenarioLibrary）：decision=double 成立；但 `goalEvaluationRealization=real` 标注未由该载体建立（专有 harness 全程不构造 UniAgent/GoalEvaluation），且其 certified expectations 六字段（与 SCN-WIFI-001 逐字节相同）无任何运行时消费者——悬空声明。ScenarioRealizationAnnotationTests 构成锚点为静态常量，只覆盖 ScenarioRunner 构成，不检查 kind=none 专有载体。
+- SCN-SMOKE-001 与 SCN-WIFI-001 的 certification 三个 digest 逐字节相同；SMOKE 断言（3 条 Type-B）为 WIFI-001 断言的严格子集。
+- SCN-BARRIER-001 的负向关联面已存在：SCN-BARRIER-002/003 同文件（TwoStepBarrierTests），trait 映射非悬空。
+- 本批 8 场景测试代码零消费 testsets/（无执行级关联）；golden 资产唯一来源 platforms/perception/evaluation/assets/captures/golden-run-v1/（manifest contentHash 双核对）。
+- 既有 TRX（coverage.trx，2026-10-04T23:00:09+08:00，188 结果）含全部 8 个 FQN=Passed——旧执行记录，不是本 Change 的新鲜证据。
+- 处置：PERC-001 的 realization 标注语义修正（词汇表扩展或专有载体期望消费面）不在本 Change 内裁决——涉及 C7 v0.2 执法面扩展；本 Change 只把该缺口如实记录进基线矩阵与反馈，修正候选交由后续致因 Change 承接。
+
 ## Decisions（已确认）
 
 1. 分层验证：组件契约、闭环仿真、本地 Product Host、真实模型/设备分别表达覆盖和执行结果。测试层不是新的 UniFlow verification level，也不新增未经实现的 Product Outcome 标签。
@@ -72,14 +84,14 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
 
 | 场景 | 拟复用的行为证明 | 需核对的证据边界 |
 |---|---|---|
-| SCN-SMOKE-001 | 同一 Runtime 的 Host 整装闭环，到 Outcome/Evaluation | 现用 wifi-off-to-on carrier，含 1 次 effect；不是零动作烟测，不能当成与 WIFI-001 独立的新能力 |
-| SCN-WIFI-001 | off→on，后置观察支持完成 | driver/decision 为 double，不能证明真实设备切换 |
-| SCN-WIFI-002 | 已满足 desired state 时零 dispatch | 保留观察和满足证据；不靠零动作数单独判成功 |
-| SCN-PERC-001 | Fast-only 感知到验证闭环 | execution.kind=none；需确认专有 harness 的实际断言与资产来源，不冒充真实感知模型基线 |
-| SCN-BARRIER-001 | 两步之间有验证证据，才允许下一步 | 同时关联既有负向契约/场景，否则正向案例不能证明阻断有效 |
-| SCN-POLICY-006 | guard Unknown 时零新 effect | 冲突/Unknown 不折叠为 false 或安全授权 |
-| SCN-POLICY-007 | 后置观察违背 desired state，policy 失效 | 已送达不等于已完成，terminal absence 不能伪造 SafeStop/Failure |
-| SCN-POLICY-009 | effect class 超出 Execution Contract 被拒绝 | 不是未知 Settings 菜单的语义风险识别测试 |
+| SCN-SMOKE-001 | 同一 Runtime 的 Host 整装闭环，到 Outcome/Evaluation | 已核实（2026-10-05 审计）：与 WIFI-001 共用 wifi-off-to-on carrier，三个 certification digest 逐字节相同，断言为 WIFI-001 的严格子集；不能当成独立新能力 |
+| SCN-WIFI-001 | off→on，后置观察支持完成 | 已核实：driver/decision 为 double，不能证明真实设备切换；断言面含 decision-id 协议、消费顺序、GoalEvaluation 同 RunId、driver 自驱证明 |
+| SCN-WIFI-002 | 已满足 desired state 时零 dispatch | 已核实：零 dispatch 是 certified expectations 六字段之一，非仅靠零动作计数判成功 |
+| SCN-PERC-001 | Fast-only 感知到验证闭环 | 已核实：execution.kind=none，专有 AsyncPerceptionHost；certified expectations 与 goalEvaluationRealization=real 均未被该载体消费/建立（悬空声明）——见 Current facts 补充；断言为测试字面量（合法等待/覆盖并集/恰 1 effect 接地/omission≠absence） |
+| SCN-BARRIER-001 | 两步之间有验证证据，才允许下一步 | 已核实：负向面 SCN-BARRIER-002/003 同文件存在且 trait 映射非悬空；正向案例证明力以负向面并存为条件成立 |
+| SCN-POLICY-006 | guard Unknown 时零新 effect | 已核实：Unknown 不降级（FailureReason=policy:guard-unknown，零 dispatch） |
+| SCN-POLICY-007 | 后置观察违背 desired state，policy 失效 | 已核实：既有转移 + policy 作废（post-action-desired-state-not-satisfied，ApplicationsUsed=0，不伪造 SafeStop/Failure） |
+| SCN-POLICY-009 | effect class 超出 Execution Contract 被拒绝 | 已核实：断言为 V6d 咨询期契约拒绝（policy:effect-class-not-allowed），bundle 无 Settings 菜单语义内容 |
 
 ## Candidate choices（不当作已冻结接口）
 
@@ -157,10 +169,10 @@ verification:
 
 | level | method | expected | actual / evidence |
 |---|---|---|---|
-| CONTRACT | schema/引用/输入覆盖与脱敏验证；产品边界检查；配置和报告实际消费路径核对 | A1/A3/A4/A5/A11 通过，非法映射/配置拒绝 | NOT_RUN；后续填写真实输出与证据引用 |
-| DETERMINISTIC | 工具聚合行为测试，包括同时失败、选择范围、跳过和未知归因；组件契约回归 | A5/A6/A7/A8；原始失败均保留，无虚构 PASS/owner | NOT_RUN |
-| SCENARIO | 首批场景新鲜执行与重复 digest；按实际变更执行完整 Simulation/solution、认证检查和完整 coverage | A2/A9/A10/A11；partial coverage 不声称全绿，不自动改 golden | NOT_RUN |
-| ENVIRONMENT | 若后续独立请求真实模型/设备，走已登记环境 gate 和实际任务验收 | 与前几层分开；不可用如实报告；本 Change 不要求 live PASS 才证明仿真工程化 | NOT_RUN；本轮未启动模型或设备 |
+| CONTRACT | schema/引用/输入覆盖与脱敏验证；产品边界检查；配置和报告实际消费路径核对 | A1/A3/A4/A5/A11 通过，非法映射/配置拒绝 | PASS：validate-testset-manifests 3 manifests+2 负例 fail-closed；verify-change self-test T1–T18；DocsMetadataTests 4 PASS（曾抓到本 Change 新文档缺头，修复后转绿）；validate-workspace-schemas 12 PASS；git diff --check；产品代码零改动。evidence/sim-006/verification-2026-10-05.md |
+| DETERMINISTIC | 工具聚合行为测试，包括同时失败、选择范围、跳过和未知归因；组件契约回归 | A5/A6/A7/A8；原始失败均保留，无虚构 PASS/owner | PASS：T10/T14 多失败并存（behavior+stale+env 全保留）、T16 聚合不可 PASS、T17/T18 选择与跳过；A5 三路端到端拒绝 rc=2（参数冲突/未知场景/必需配置缺失，均在执行前）。evidence/sim-006/verification-2026-10-05.md 运行清单 |
+| SCENARIO | 首批场景新鲜执行与重复 digest；按实际变更执行完整 Simulation/solution、认证检查和完整 coverage | A2/A9/A10/A11；partial coverage 不声称全绿，不自动改 golden | PASS：quick 8/8 场景 Passed（TRX 恰 8 结果，SKIPPED 组带原因）；full×2 全绿（sim 188 全量单次执行+TRX 复用驱动 coverage 29/29 certified）；certification 29 files 0 violations；EXPECTATIONS_DIGEST=UNCHANGED×3；8 场景 quick/full 两 TRX outcome 一致；4 份 resolved-config 快照每场景 digest 与 runtimeSourceHash 完全一致。evidence/sim-006/verification-2026-10-05.md + runs/（本地） |
+| ENVIRONMENT | 若后续独立请求真实模型/设备，走已登记环境 gate 和实际任务验收 | 与前几层分开；不可用如实报告；本 Change 不要求 live PASS 才证明仿真工程化 | NOT_RUN（如实）：--live 未请求，四次运行均 LIVE=SKIPPED (not requested)；无模型/设备执行或 PASS 声明 |
 
 ## Residual risks / 接手须先核对
 
@@ -185,3 +197,5 @@ verification:
 - 2026-10-05 · UNDERSTAND → RESOLVE · 用户经 grill-with-docs 确认分层验证、组件契约与闭环基线、首批 8 场景、配置快照、映射与最小反馈；接受方案审核后的收紧边界。
 - 2026-10-05 · RESOLVE → PERSIST · 用户授权 to-spec，后续交 GLM-5.3 实施；按项目 issue-tracker 映射创建本 state，候选字段不冻结，后续验收未执行。
 - 2026-10-05 · PERSIST（保持） · 文档结构、8 场景与引用、index 和 exact scope 检查通过；后续实现 verification 仍为 NOT_RUN，未进入 PLAN。
+- 2026-10-05 · RESOLVE（修订） · WI-SIM006-001 只读审计（固定 Worker 执行 + Leader 抽查复核）核实首批 8 场景事实；发现 SCN-PERC-001 的 goalEvaluationRealization=real 标注与 certified expectations 未被专有载体建立（悬空声明）；Current facts 补充与基线矩阵已按审计修订；标注语义修正不在本 Change 裁决（涉及 C7 v0.2 执法面，留后续致因 Change）。无阻塞 Human Decision，进入 PLAN。
+- 2026-10-05 · PLAN → IMPLEMENT → REVIEW → VERIFY · 垂直切片：A1 基线矩阵（docs/analysis/sim-006-first-baseline-matrix.md）；A3 testsets/simulation-baseline manifest + validator scenarioRefs fail-closed 扩展；A4–A8 verify-change 重构（--scope quick|full、单次执行 TRX 复用去重、多失败并存聚合、A5 执行前冲突拒绝、resolved-config 快照、失败定位输出）。REVIEW：既有 DocsMetadataTests tripwire 抓到新文档缺头（修复：补 Status/Authority + analysis 索引）；首轮 full 该失败为唯一 RED，修复后 full×2 全绿。VERIFY：四级四元组回填（CONTRACT/DETERMINISTIC/SCENARIO PASS；ENVIRONMENT NOT_RUN 如实）；A1–A11 均有证据；产品代码/scenarios/golden/AGT-012 零改动。
