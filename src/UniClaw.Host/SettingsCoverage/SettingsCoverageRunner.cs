@@ -211,11 +211,14 @@ public sealed class SettingsCoverageRunner
                 c.DecisionKind,
                 c.DeviationReason,
                 c.Attempts,
+                c.Justification,
                 c.PolicyDigest,
                 c.GuardVerdict,
             }).ToArray();
             var facts = new
             {
+                schemaVersion = "uniclaw.settings-coverage-facts.v2",
+                runDir,
                 status = drive.Status.ToString(),
                 reason = drive.Reason,
                 outcome = drive.Outcome?.Classification.ToString(),
@@ -228,6 +231,15 @@ public sealed class SettingsCoverageRunner
                 uncovered = report.UncoveredItems,
                 firstDivergence = report.FirstDivergence,
                 terminalJustification = director.TerminalJustification,
+                diagnostics = new
+                {
+                    firstDivergence = report.FirstDivergence,
+                    terminalJustification = director.TerminalJustification,
+                    nextFiles = new[] { "facts.json", "coverage-report.json", "coverage-steps.json", "trace.json", "settings-trace.json", "exec.journal" },
+                    guidance = report.FirstDivergence is null && drive.Status == RunDriveStatus.Completed
+                        ? "运行完成；如需核对每一步，先看 coverage-steps.json，再用 DecisionId 对照 trace.json。"
+                        : "先看 firstDivergence/reason，再用 DecisionId 对照 coverage-steps.json、trace.json 和 exec.journal。"
+                },
                 actionPolicy = config.ActionPolicy is { } policy
                     ? new { policy.PolicyRef, policy.Digest, policy.SourcePath }
                     : null,

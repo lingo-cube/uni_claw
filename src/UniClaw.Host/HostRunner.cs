@@ -231,6 +231,10 @@ public sealed class HostRunner
                 .ToArray();
             var facts = new
             {
+                schemaVersion = "uniclaw.host-facts.v2",
+                runDir,
+                runId = kernel.RunId,
+                correlationId = options.Launch?.CorrelationId,
                 status = drive.Status.ToString(),
                 reason = drive.Reason,
                 outcome = drive.Outcome?.Classification.ToString(),
@@ -238,6 +242,13 @@ public sealed class HostRunner
                 receipts,
                 terminal = kernel.IsRunTerminal,
                 journalBytes = new FileInfo(journalPath).Length,
+                diagnostics = new
+                {
+                    nextFiles = new[] { "facts.json", "trace.json", "settings-trace.json", "exec.journal" },
+                    guidance = drive.Status == RunDriveStatus.Completed
+                        ? "运行完成；如需核对动作，先看 facts.completedSteps，再用 DecisionId 对照 trace.json。"
+                        : "先看 facts.reason 和 policyGuard，再用 DecisionId 对照 trace.json 与 exec.journal。"
+                },
                 completionAnchors = driver.PendingCompletionDossier?.Results
                     .Select(r => new { anchor = r.Anchor, verified = r.Verified })
                     .ToArray(),

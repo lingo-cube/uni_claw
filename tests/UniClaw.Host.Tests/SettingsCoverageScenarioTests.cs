@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using UniClaw.Host;
 using UniClaw.Host.SettingsCoverage;
 using UniClaw.Kernel.Effects;
@@ -593,6 +594,14 @@ public sealed class SettingsCoverageScenarioTests
         Assert.True(File.Exists(Path.Combine(result.RunDir, "coverage-report.json")));
         Assert.True(File.Exists(Path.Combine(result.RunDir, "facts.json")));
         Assert.True(File.Exists(Path.Combine(result.RunDir, "trace.json")));
+
+        using var facts = JsonDocument.Parse(File.ReadAllText(Path.Combine(result.RunDir, "facts.json")));
+        Assert.Equal("uniclaw.settings-coverage-facts.v2", facts.RootElement.GetProperty("schemaVersion").GetString());
+        Assert.Equal(result.RunDir, facts.RootElement.GetProperty("runDir").GetString());
+        Assert.True(facts.RootElement.GetProperty("diagnostics").GetProperty("nextFiles").GetArrayLength() >= 5);
+        Assert.Contains("DecisionId", facts.RootElement.GetProperty("diagnostics").GetProperty("guidance").GetString());
+        Assert.All(facts.RootElement.GetProperty("consults").EnumerateArray(), consult =>
+            Assert.True(consult.TryGetProperty("justification", out _)));
     }
 
     [Fact]
