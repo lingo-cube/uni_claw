@@ -10,7 +10,9 @@ namespace UniClaw.Simulation.Tests;
 ///   goalEvaluationRealization —— 评估面（PrimaryGoal→GoalEvaluation）
 /// 标注必须与 Simulation Host 的**实际构成**一致（当前 hybrid：
 /// decision=double（ScriptedUniAgent），evaluation=真件（UniAgent——
-/// ScenarioRunner.BuildReport 经 new UniAgent(BuildGoal(...)).Evaluate））。
+/// ScenarioRunner.BuildReport 经 new UniAgent(BuildGoal(...)).Evaluate）；
+/// kind=none 的专有载体若不构造 GoalEvaluation，evaluation 使用
+/// not-applicable，表示该面不属于该载体的证明范围。
 /// 构成翻转时本测试的构成锚点必须同步改，从而强制场景库重标注。
 /// </summary>
 public sealed class ScenarioRealizationAnnotationTests
@@ -21,7 +23,7 @@ public sealed class ScenarioRealizationAnnotationTests
 
     private static readonly HashSet<string> LegalValues = new(StringComparer.Ordinal)
     {
-        "real", "double",
+        "real", "double", "not-applicable",
     };
 
     private static string RepoRoot()
@@ -80,6 +82,15 @@ public sealed class ScenarioRealizationAnnotationTests
                 violations.Add($"{name}: 缺 goalEvaluationRealization（C7 v0.2 拆分标注）");
             else if (!LegalValues.Contains(evaluation.GetString()))
                 violations.Add($"{name}: goalEvaluationRealization 非法值 '{evaluation.GetString()}'（legal: real|double）");
+            else if (root.TryGetProperty("execution", out var execution)
+                && execution.TryGetProperty("kind", out var kind)
+                && kind.GetString() == "none")
+            {
+                if (evaluation.GetString() != "not-applicable")
+                    violations.Add(
+                        $"{name}: execution.kind=none 的 goalEvaluationRealization 必须为 'not-applicable'"
+                        + $"（当前 '{evaluation.GetString()}'，专有载体不构造 GoalEvaluation）");
+            }
             else if (evaluation.GetString() != ActualEvaluationRealization)
                 violations.Add(
                     $"{name}: goalEvaluationRealization='{evaluation.GetString()}' 与实际构成不符"

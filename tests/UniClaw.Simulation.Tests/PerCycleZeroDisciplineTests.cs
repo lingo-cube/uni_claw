@@ -23,7 +23,6 @@ public sealed class PerCycleZeroDisciplineTests
         "TwoStepBarrierTests.cs",
         "ImportReDriveTests.cs",
         "BundleIntegrityTests.cs",
-        "SimulationHostSmokeTests.cs",
         "SemanticDigestTests.cs",
         "ScriptedUniAgentTests.cs",
         "ScenarioImporterTests.cs",

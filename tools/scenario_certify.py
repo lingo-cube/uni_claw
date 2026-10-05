@@ -114,9 +114,26 @@ def verify_entry(data: dict, filename: str, source_hash: str) -> list[str]:
         return [f"{filename}: 缺 expectations 块"]
     if "execution" not in data or not isinstance(data["execution"], dict):
         return [f"{filename}: 缺 execution 块（SIM-003 G3：execution.kind/carrier/options）"]
+    execution = data["execution"]
+    if execution.get("kind") not in VALID_EXECUTION_KINDS:
+        problems.append(
+            f"{filename}: execution.kind 非法 '{execution.get('kind')}'（legal: {'|'.join(VALID_EXECUTION_KINDS)}）"
+        )
+    elif execution.get("kind") == "golden-bundle" and not execution.get("carrier"):
+        problems.append(f"{filename}: execution.kind=golden-bundle 须携带非空 carrier")
+    elif execution.get("kind") == "none" and execution.get("carrier"):
+        problems.append(f"{filename}: execution.kind=none 不得携带 carrier")
+
     cert = data.get("certification")
+    if execution.get("kind") == "none":
+        if cert is not None:
+            problems.append(
+                f"{filename}: execution.kind=none 不得携带 certification（SIM-007：expectations 仅作描述性记录）"
+            )
+        return problems
     if not isinstance(cert, dict):
-        return [f"{filename}: 缺 certification 块（经 scenario_certify.py --change <致因change> 认证）"]
+        problems.append(f"{filename}: 缺 certification 块（经 scenario_certify.py --change <致因change> 认证）")
+        return problems
 
     if cert.get("schemaVersion") != BLOCK_SCHEMA_VERSION:
         problems.append(
@@ -134,16 +151,6 @@ def verify_entry(data: dict, filename: str, source_hash: str) -> list[str]:
             f"{filename}: expectations 摘要不匹配——期望值在认证后被改动且未重认证"
             f"（经 scenario_certify.py --change <致因change> 重认证）"
         )
-
-    execution = data["execution"]
-    if execution.get("kind") not in VALID_EXECUTION_KINDS:
-        problems.append(
-            f"{filename}: execution.kind 非法 '{execution.get('kind')}'（legal: {'|'.join(VALID_EXECUTION_KINDS)}）"
-        )
-    elif execution.get("kind") == "golden-bundle" and not execution.get("carrier"):
-        problems.append(f"{filename}: execution.kind=golden-bundle 须携带非空 carrier")
-    elif execution.get("kind") == "none" and execution.get("carrier"):
-        problems.append(f"{filename}: execution.kind=none 不得携带 carrier")
 
     if "executionDigest" not in cert:
         problems.append(f"{filename}: certification.executionDigest 缺失（SIM-003 G2 v2）")
@@ -171,6 +178,12 @@ def certify_file(path: Path, change: str, source_hash: str, today: str) -> bool:
         raise SystemExit(
             f"ERROR: {path.name} 缺 execution 块——先补 execution 绑定（SIM-003 G3），再认证"
         )
+    if data["execution"].get("kind") == "none":
+        if "certification" in data:
+            raise SystemExit(
+                f"ERROR: {path.name}: kind=none 场景不允许写 certification（SIM-007：仅保留描述性 expectations）"
+            )
+        return False
     cert = {
         "schemaVersion": BLOCK_SCHEMA_VERSION,
         "expectationsDigest": expectations_digest(data["expectations"]),

@@ -18,21 +18,23 @@
 `schema.json` v2（SIM-002 S5 重建——v1 曾为非法 JSON 且零消费）：由
 `tools/scenario-coverage.py` 以 jsonschema（draft-07）对每条目真校验
 （结构 / 枚举 / 必填 / additionalProperties 严格），违规 exit 1。字段
-= 元数据 8 项 + 期望值 + golden 认证（G2）+ Agent realization 拆分标注
+= 元数据 8 项 + 期望值 + 可选 golden 认证（G2）+ Agent realization 拆分标注
 （G4 / C7 v0.2）+ `deviation`（C1/R1 已知 double 偏差，可选）+
 `security.sensitiveReview`（C9 fail-closed：库内条目必须 cleared）。
 
 ## Golden 认证（SIM-002 G2）
 
-每个场景的 `expectations` 经 `certification` 块钉扎（C8 golden 期望更新
-协议的机械执法）：
+`execution.kind=golden-bundle` 场景的 `expectations` 经 `certification` 块钉扎
+（C8 golden 期望更新协议的机械执法）。`execution.kind=none` 专有载体可保留
+未认证 expectations 作为描述性记录，但不得携带 certification；其
+`goalEvaluationRealization` 使用 `not-applicable` 表示该载体没有目标评估面：
 
 | 字段 | 含义 |
 |------|------|
 | `expectationsDigest` | 期望值 canonical rendering 的 SHA-256（改期望必须重认证） |
 | `runtimeSourceHash` | 认证时 Kernel+Agent **源码**状态哈希（源码而非 DLL：跨机可复现） |
-| `certifiedByChange` | 致因 change 引用（必填——期望迁移搭乘致因 change） |
-| `certifiedAt` | 认证日期 |
+| `certifiedByChange` | 致因 change 引用（golden-bundle 必填） |
+| `certifiedAt` | 认证日期（golden-bundle 必填） |
 
 唯一写入口（test runtime 只 Verify、无写回路径）：
 

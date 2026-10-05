@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace UniClaw.Simulation.Tests;
 
 /// <summary>库场景解析失败（fail-closed；不得静默降级）。</summary>
@@ -57,6 +59,29 @@ internal static class ScenarioLibrary
     /// </summary>
     public static LibraryScenario Load(string scenarioId, string? scenariosDirectory = null)
     {
+        var directory = scenariosDirectory
+            ?? Path.Combine(GoldenPaths.RepoRoot(), "scenarios");
+        var scenarioPath = Path.Combine(directory, scenarioId + ".json");
+        if (!File.Exists(scenarioPath))
+            throw new ScenarioLibraryException($"场景条目不存在: {scenarioPath}");
+        try
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(scenarioPath));
+            var executionElement = document.RootElement.GetProperty("execution");
+            var kind = executionElement.GetProperty("kind").GetString();
+            if (kind == "none")
+                throw new ScenarioLibraryException(
+                    $"{scenarioId}: execution.kind=none 无 bundle carrier（kind=none 场景不在 executable expectation projection 保证内）");
+        }
+        catch (ScenarioLibraryException)
+        {
+            throw;
+        }
+        catch (Exception e) when (e is JsonException or KeyNotFoundException or InvalidOperationException)
+        {
+            throw new ScenarioLibraryException($"{scenarioId}: execution 块无法解析", e);
+        }
+
         var verified = ScenarioExpectations.Verify(scenarioId, scenariosDirectory);
         var execution = verified.Execution;
 

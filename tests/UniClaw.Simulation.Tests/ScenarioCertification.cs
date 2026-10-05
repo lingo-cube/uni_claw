@@ -5,8 +5,10 @@ using System.Text.Json;
 namespace UniClaw.Simulation.Tests;
 
 /// <summary>
-/// SIM-002 G2（S2）：golden 认证持久化——场景库条目的期望值快照经
+/// SIM-002 G2（S2）：golden 认证持久化——golden-bundle 场景的期望值快照经
 /// 认证记录钉扎（certification block），test runtime 只允许 Verify。
+/// SIM-007：kind=none 专有载体的 expectations 仅是描述性记录，不得携带
+/// certification，也不进入 executable projection。
 ///
 /// 认证绑定（C8 golden 期望更新协议的机械执法面；SIM-003 G2 升级 v2）：
 ///  1. expectationsDigest——expectations 块 canonical rendering 的 SHA-256
@@ -176,6 +178,23 @@ internal static class ScenarioCertification
         catch (Exception e) when (e is KeyNotFoundException or InvalidOperationException or FormatException)
         {
             return new[] { $"{Path.GetFileName(scenarioJsonPath)}: expectations 块字段缺失/类型异常（{e.Message}）" };
+        }
+
+        // SIM-007：kind=none 的专有载体保留 expectations 作为描述性记录，
+        // 但不进入 golden certification。认证块若残留必须 fail-closed，
+        // 防止局部载体继续冒充已认证的 executable expectation。
+        if (root.TryGetProperty("execution", out var descriptiveExecution)
+            && descriptiveExecution.ValueKind == JsonValueKind.Object
+            && descriptiveExecution.TryGetProperty("kind", out var descriptiveKind)
+            && descriptiveKind.ValueKind == JsonValueKind.String
+            && descriptiveKind.GetString() == "none")
+        {
+            if (root.TryGetProperty("certification", out var certificationElement))
+                violations.Add($"{Path.GetFileName(scenarioJsonPath)}: execution.kind=none 不得携带 certification（SIM-007：expectations 仅作描述性记录）");
+            if (descriptiveExecution.TryGetProperty("carrier", out var carrier)
+                && carrier.ValueKind != JsonValueKind.Null)
+                violations.Add($"{Path.GetFileName(scenarioJsonPath)}: execution.kind=none 不得携带 carrier");
+            return violations;
         }
 
         if (!root.TryGetProperty("certification", out var certification))

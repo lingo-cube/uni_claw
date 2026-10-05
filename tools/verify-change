@@ -104,10 +104,10 @@ def selection_conflicts(requested, manifest_ids):
 
 def scenario_caveats(scenario_ids):
     """Mechanically derived reporting caveats (D9): scenarios whose
-    execution.kind is 'none' run on dedicated carriers that do not consume
-    the certified expectations/realization annotations via the
-    ScenarioRunner chain — a passing carrier does not establish those
-    declarations. Derived from scenario JSON, never hand-listed."""
+    execution.kind is 'none' run on dedicated carriers. Their expectations
+    are descriptive only (no certification), their goal evaluation is
+    explicitly not-applicable, and a passing carrier proves local behavior
+    only. Derived from scenario JSON, never hand-listed."""
     caveats = []
     for sid in scenario_ids:
         path = os.path.join(ROOT, "scenarios", f"{sid}.json")
@@ -119,6 +119,16 @@ def scenario_caveats(scenario_ids):
         if isinstance(data.get("execution"), dict) and data["execution"].get("kind") == "none":
             caveats.append(sid)
     return caveats
+
+
+def scenario_caveat_message(sid):
+    """Return the honest caveat text for a dedicated kind=none carrier."""
+    return (
+        f"SCENARIO_CAVEAT={sid} execution.kind=none: dedicated carrier; "
+        "expectations are descriptive-only (no golden certification), "
+        "goalEvaluationRealization=not-applicable, decision=double via "
+        "ConsultAgent seam; carrier PASS proves local behavior only"
+    )
 
 
 def scope_skips(scope):
@@ -344,6 +354,9 @@ def self_test(change):
     check("T20", "kind=none scenarios reported with carrier caveats (derived, not hand-listed)",
           lambda: scenario_caveats(manifest_scenario_ids()) == ["SCN-PERC-001"]
           and scenario_caveats(["SCN-WIFI-001"]) == [])
+    check("T21", "kind=none caveat names descriptive expectations and absent evaluation",
+          lambda: "descriptive-only" in scenario_caveat_message("SCN-PERC-001")
+          and "goalEvaluationRealization=not-applicable" in scenario_caveat_message("SCN-PERC-001"))
     print(f"CHANGE={change} SELF_TEST")
     for key in ("FOCUSED", "ARCHITECTURE", "SIMULATION", "FULL_TEST_PROJECTS", "CERTIFICATION", "COVERAGE", "LIVE", "DIFF_CHECK", "EXPECTATIONS_DIGEST"):
         print(f"{key}=PASS")
@@ -395,13 +408,13 @@ def main():
         print(f"FAIL: --scenarios outside the first-batch testset: {', '.join(conflicts)} — scope mismatch rejected before execution")
         return 2
     # D9: separate carrier pass from claim establishment. kind=none scenarios
-    # pass on dedicated carriers that do not consume their certified
-    # expectations/realization annotations — reported per run, derived from JSON.
+    # pass on dedicated carriers with descriptive expectations and no goal
+    # evaluation — reported per run, derived from JSON.
     caveats = scenario_caveats(scenario_ids)
     for sid in caveats:
-        print(f"SCENARIO_CAVEAT={sid} execution.kind=none: dedicated carrier; certified expectations and realization annotations are NOT consumed by the carrier (carrier PASS ≠ claim established)")
+        print(scenario_caveat_message(sid))
     if caveats:
-        print(f"SCENARIO_CAVEATS_SUMMARY={len(caveats)}/{len(scenario_ids)} selected scenario(s) with dangling library declarations; baseline claims are partial for them")
+        print(f"SCENARIO_CAVEATS_SUMMARY={len(caveats)}/{len(scenario_ids)} selected scenario(s) with descriptive-only local carriers; baseline claims are partial for them")
 
     results = []
     skipped = scope_skips(ns.scope)

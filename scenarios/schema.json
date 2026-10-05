@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "UniClaw Scenario Library Entry (v2)",
-  "description": "仿真场景库条目：元数据 + 期望值快照 + golden 认证 + Agent realization 拆分标注 + 安全评审。独立基础设施，不依附于任何文档。SIM-002 S5/S6/S8 重建：v1 曾为非法 JSON 且零消费；v2 起由 tools/scenario-coverage.py 以 jsonschema（draft-07）真校验，违规 exit 1。",
+  "description": "仿真场景库条目：元数据 + 期望值快照 + 可选 golden 认证 + Agent realization 拆分标注 + 安全评审。kind=none 的专有载体可保留未认证 expectations 作为描述性记录，但不得携带 certification。独立基础设施，不依附于任何文档。SIM-002 S5/S6/S8 重建：v1 曾为非法 JSON 且零消费；v2 起由 tools/scenario-coverage.py 以 jsonschema（draft-07）真校验，违规 exit 1。",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,7 +17,6 @@
     "goalEvaluationRealization",
     "expectations",
     "execution",
-    "certification",
     "security"
   ],
   "properties": {
@@ -73,8 +72,8 @@
     },
     "goalEvaluationRealization": {
       "type": "string",
-      "enum": ["real", "double"],
-      "description": "C7 v0.2 评估面（PrimaryGoal→GoalEvaluation）；与实际构成一致性由 ScenarioRealizationAnnotationTests 执法"
+      "enum": ["real", "double", "not-applicable"],
+      "description": "C7 v0.2 + SIM-007：评估面（PrimaryGoal→GoalEvaluation）；kind=none 且载体不构造评估时使用 not-applicable；与实际构成一致性由 ScenarioRealizationAnnotationTests 执法"
     },
     "deviation": {
       "type": "array",
@@ -182,5 +181,23 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "execution": { "properties": { "kind": { "const": "golden-bundle" } } }
+        }
+      },
+      "then": { "required": ["certification"] }
+    },
+    {
+      "if": {
+        "properties": {
+          "execution": { "properties": { "kind": { "const": "none" } } }
+        }
+      },
+      "then": { "not": { "required": ["certification"] } }
+    }
+  ]
 }

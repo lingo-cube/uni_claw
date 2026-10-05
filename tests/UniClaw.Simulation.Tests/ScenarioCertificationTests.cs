@@ -1,11 +1,12 @@
 using Xunit;
+using System.Text.Json.Nodes;
 
 namespace UniClaw.Simulation.Tests;
 
 /// <summary>
-/// SIM-002 G2（S2）验收面：golden 认证持久化 + Verify-only。
+/// SIM-002 G2（S2）验收面：golden-bundle 认证持久化 + Verify-only。
 /// 验收语义（spec）：「修改 Expected 后重跑测试不再自动通过认证」——
-/// 本测试族对整个场景库执法：期望值摘要、执行绑定摘要（SIM-003 G2 v2）、
+/// 本测试族对适用的 golden 场景执法：期望值摘要、执行绑定摘要（SIM-003 G2 v2）、
 /// 运行时源码哈希、致因 change 引用钉扎在 certification 块中，test
 /// runtime 无写回路径。
 /// </summary>
@@ -25,7 +26,7 @@ public sealed class ScenarioCertificationTests
     }
 
     [Fact]
-    public void ScenarioLibrary_EveryEntryCertifiedAndMatching()
+    public void ScenarioLibrary_CertifiedEntriesAndDescriptiveEntriesAreValid()
     {
         var repo = RepoRoot();
         var (violations, files) = ScenarioCertification.VerifyLibrary(
@@ -35,9 +36,40 @@ public sealed class ScenarioCertificationTests
         Assert.Empty(violations);
     }
 
+    [Fact]
+    public void DescriptiveKindNone_WithCertification_IsRejected()
+    {
+        var repo = RepoRoot();
+        var source = Path.Combine(repo, "scenarios", "SCN-PERC-001.json");
+        var temp = Path.Combine(Path.GetTempPath(), "uniclaw-descriptive-cert-" + Guid.NewGuid().ToString("N") + ".json");
+        try
+        {
+            var root = JsonNode.Parse(File.ReadAllText(source))!.AsObject();
+            root["certification"] = new JsonObject
+            {
+                ["schemaVersion"] = 2,
+                ["expectationsDigest"] = new string('0', 64),
+                ["executionDigest"] = new string('0', 64),
+                ["runtimeSourceHash"] = new string('0', 64),
+                ["certifiedByChange"] = "TEST",
+                ["certifiedAt"] = "2026-10-05",
+            };
+            File.WriteAllText(temp, root.ToJsonString());
+
+            var violations = ScenarioCertification.VerifyFile(temp, repo);
+
+            Assert.Contains(violations, v => v.Contains("kind=none 不得携带 certification"));
+        }
+        finally
+        {
+            if (File.Exists(temp)) File.Delete(temp);
+        }
+    }
+
     /// <summary>
     /// SIM-002 G3：test-case ↔ scenario-id 映射执法——场景库每个条目必须
-    /// 有测试承载（[Trait("Scenario", "SCN-…")]）。映射随测试存活：测试
+    /// 有测试承载（[Trait("Scenario", "SCN-…")]）。golden-bundle 条目的
+    /// 认证由 Verify 执法；kind=none 条目可为描述性记录。映射随测试存活：测试
     /// 改名/删除 → trait 消失 → 本测试红（覆盖率工具同规则：无结果 →
     /// exit 1）。反向（trait 指向不存在的场景）同样违规。
     /// </summary>

@@ -3,8 +3,9 @@
 
 `status` is derived from REAL test executions (TRX), never from JSON
 self-report. The acceptance this enforces: a scenario reported "passing"
-means "at this HEAD, with these certified expectations, its mapped test just
-executed and passed".
+means "at this HEAD, with its applicable expectation contract, its mapped test
+just executed and passed". kind=none descriptive scenarios remain in the
+coverage truth chain but are excluded from golden certification counts.
 
 Truth chain:
   1. test-case ↔ scenario-id mapping lives WITH the tests:
@@ -51,7 +52,7 @@ SIM_TESTS = ROOT / "tests" / "UniClaw.Simulation.Tests"
 TRX_DIR = SIM_TESTS / "TestResults"
 VALID_STATUS = {"passing", "failing", "pending-env", "not-implemented"}
 VALID_SOURCE = {"recorded", "synthetic", "derived-from-doc", "bug-repro", "component-test"}
-VALID_REALIZATION = {"real", "double"}
+VALID_REALIZATION = {"real", "double", "not-applicable"}
 
 OUTCOME_TO_STATUS = {
     "Passed": "passing",
@@ -222,7 +223,17 @@ def load(trx_outcomes: dict[str, str], test_map: dict[str, list[str]]) -> tuple[
             violations.append(f"{f.name}: invalid source '{data.get('source')}'（S6：generated 已更名 synthetic）")
         for field in ("agentDecisionRealization", "goalEvaluationRealization"):
             if data.get(field) not in VALID_REALIZATION:
-                violations.append(f"{f.name}: {field} 缺失或非法值 '{data.get(field)}'（legal: real|double）")
+                violations.append(f"{f.name}: {field} 缺失或非法值 '{data.get(field)}'（legal: real|double|not-applicable）")
+        execution = data.get("execution") if isinstance(data.get("execution"), dict) else {}
+        execution_kind = execution.get("kind")
+        if execution_kind == "none" and data.get("goalEvaluationRealization") != "not-applicable":
+            violations.append(
+                f"{f.name}: execution.kind=none 的 goalEvaluationRealization 必须为 'not-applicable'"
+            )
+        if execution_kind == "golden-bundle" and data.get("goalEvaluationRealization") == "not-applicable":
+            violations.append(
+                f"{f.name}: execution.kind=golden-bundle 不得使用 goalEvaluationRealization='not-applicable'"
+            )
         # S8/C9：场景库 fail-closed——敏感内容评审未 cleared 的条目不得留在库内
         security = data.get("security") or {}
         if security.get("sensitiveReview") != "cleared":
@@ -330,19 +341,25 @@ def main() -> int:
 
     print(f"\n── Golden Certification (SIM-002 G2) ──")
     certified_by = {}
+    uncertified = []
     for e in entries:
         cert = e.get("certification") or {}
         if cert.get("certifiedByChange"):
             certified_by[cert["certifiedByChange"]] = certified_by.get(cert["certifiedByChange"], 0) + 1
+        else:
+            uncertified.append(e["id"])
     for change, count in sorted(certified_by.items()):
         print(f"  certified by {change}: {count} scenarios")
+    if uncertified:
+        print(f"  uncertified descriptive scenarios: {len(uncertified)} ({', '.join(uncertified)})")
 
     if violations:
         print(f"\n  FAIL ({len(violations)} violations):")
         for v in violations:
             print(f"    {v}")
     else:
-        print(f"  all {len(entries)} entries certified; truth chain verified against {trx.name}")
+        certified_count = len(entries) - len(uncertified)
+        print(f"  truth chain verified against {trx.name}: {len(entries)} scenarios, {certified_count} certified + {len(uncertified)} descriptive")
 
     print(f"\n{'='*60}")
     return 0 if not violations else 1

@@ -1,6 +1,6 @@
 # SIM-008 — SCN-SMOKE-001 与 SCN-WIFI-001 载体重复裁决
 
-lifecycle_state: persisted · disposition: none · depth: standard · base: 12c5763f2e3ba1bda9db4e3ba8b4c78d2ac12c76
+lifecycle_state: closed · disposition: none · depth: standard · base: 12c5763f2e3ba1bda9db4e3ba8b4c78d2ac12c76
 
 ## Intent（WHAT/WHY）
 
@@ -16,6 +16,12 @@ SIM-006 审计核实：SCN-SMOKE-001 与 SCN-WIFI-001 共用 wifi-off-to-on carr
 - 实施与同步：scenarios JSON、测试载体、testsets/simulation-baseline manifest、docs/analysis/sim-006-first-baseline-matrix.md 相应行。
 - 认证变更按 C8 搭乘本 change；coverage/certification 全绿。
 
+## Decision / Plan（Owner 已批准方案 B）
+
+- 退役 `SCN-SMOKE-001`，保留 `SCN-WIFI-001` 作为 Host 整装闭环证明。
+- 删除 SMOKE 场景 JSON 与唯一测试载体；从 simulation-baseline manifest 和当前基线矩阵移除条目。
+- 不改 WIFI-001 断言、不重写剩余场景 expectations；验证场景映射、manifest、认证和 coverage 无悬空。
+
 ### 不在本 Change 内
 
 - 不改 WIFI-001 的行为断言（它是超集方，为基准）。
@@ -30,16 +36,18 @@ SIM-006 审计核实：SCN-SMOKE-001 与 SCN-WIFI-001 共用 wifi-off-to-on carr
 | A2 | 实施后无"同载体同断言子集"冗余 | 差异化则断言面独立且期望搭乘 C8 重认证；退役则库/manifest/矩阵无悬空引用 |
 | A3 | 首批基线语义不降级 | 剩余场景仍覆盖原 Host 整装闭环证明；scenario_certify/coverage 全绿 |
 
-## Verification（本轮 PERSIST）
+## Verification
 
 ```yaml
-level: CONTRACT
-method: python3 tools/gen-open-changes.py; 引用检查（SIM-006 审计 §1 证据路径有效）; git diff --check
-expected: SIM-008 为 persisted；索引含本 change；未动任何场景/测试
-actual: PASS（仅 PERSIST 文档检查）
-evidence: 本 state、changes/INDEX.md
+level: SCENARIO
+method: manifest/schema/certification checks; Simulation.Tests 全量；scenario-coverage 使用新鲜 TRX；verify-change SIM-008 quick; git diff --check
+expected: SMOKE 场景、唯一载体和 manifest 引用删除；WIFI-001 保留 Host 闭环；无反向 trait/悬空引用；测试与 coverage 通过
+actual: PASS：SMOKE JSON/测试/manifest/matrix 已移除；Simulation.Tests 188/188；coverage 28/28；verify-change quick 7/7 PASS；certification check 28 files 0 violations；git diff --check
+evidence: evidence/sim-008/verification-2026-10-05.md
 ```
 
 ## Status log
 
 - 2026-10-05 · UNDERSTAND → RESOLVE → PERSIST · 依据 SIM-006 终审（所有者）指令创建；事实基础为 SIM-006 审计 §1（digest 逐字节相同、断言严格子集）。
+- 2026-10-05 · RESOLVE → PLAN → IMPLEMENT · Owner 批准方案 B：退役 SMOKE，保留 WIFI-001 超集闭环，等待 REVIEW/VERIFY。
+- 2026-10-05 · IMPLEMENT → REVIEW → VERIFY → CLOSED · 删除 SMOKE 场景、载体、manifest 任务和当前矩阵行；WIFI-001 保留；188/188 Simulation、28/28 coverage、quick 验证通过。
