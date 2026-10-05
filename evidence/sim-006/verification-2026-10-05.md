@@ -67,3 +67,17 @@ ENVIRONMENT:
 - AGT-012 范围未触碰；testsets/android-settings 原样。
 - 仿真 PASS 未替代任何 live 声明；quick PASS 带 SCOPE_NOTE 不冒充完整验收。
 - WorkItem WI-SIM006-001（只读审计）与本文件互为证据；runs/ 快照不提交。
+
+## 附录：2026-10-05 审阅回合（post-closure review rework）
+
+所有者审阅复现并确认 4 项，处置与重验：
+
+| # | 发现 | 处置 | 重验 |
+|---|---|---|---|
+| 1（高） | `--scenarios SCN-POLICY-001` 越出首批 manifest 仍执行并 PASS（范围不匹配静默通过，违反 A5/D9） | `selection_conflicts()`：显式选择必须是 manifest 子集；T19 | 越界复现命令现在 `FAIL: …scope mismatch rejected before execution`，rc=2；合法子集（SCN-WIFI-001,SCN-BARRIER-001）正常执行 PASS |
+| 2（中） | FULL_SOLUTION 名实不符（已无 slnx 单命令，实为逐项目聚合） | 改名 `FULL_TEST_PROJECTS` + NOTE 说明聚合与复用；T9 契约同步。不保留 slnx 命令（会重新引入 sim 重复执行，违反 A6） | full4 输出 `GROUP_FULL_TEST_PROJECTS=PASS` + NOTE |
+| 3（中） | runs/ 快照仅本地证据，跨机器不可复原 | 不单方翻转 D7（不提交生成运行文件）；登记所有者待决：提交脱敏快照 vs 外部 evidence 存储。快照可复算部分（per-scenario digest）可由 committed scenarios/*.json 经确定性函数重导 | 见 state.md status log 审阅回合条目 |
+| 4（低） | 审计报告 WorkItem status 文字过期（in_progress vs 实际 done） | 带日期注记修正（终态以 WorkItem 文件为准） | scenario-audit.md 头部 |
+| 附 | "8/8" 混同载体通过与声明成立 | 新增 `SCENARIO_CAVEATS`（`execution.kind=none` 机械推导，非人工清单/PERC 特判，T20）：载体 PASS ≠ 库声明成立；输出与快照均携带 | full4：`SCENARIO_CAVEAT=SCN-PERC-001 …`、`SCENARIO_CAVEATS_SUMMARY=1/8`；快照 `scenarioCaveats=["SCN-PERC-001"]` |
+
+**本回合验证**：self-test T1–T20 全 PASS（rc=0）；越界拒绝 rc=2；合法子集 rc=0；full 重跑（`--scope full`）7 组全 PASS、`EXPECTATIONS_DIGEST=UNCHANGED`、`FINAL_STATUS=PASS`（rc=0），快照 `SIM-006-full-20261005T120623Z`。C7 realization 语义与 SMOKE/WIFI 载体合并仍未触碰（后续致因 Change）。

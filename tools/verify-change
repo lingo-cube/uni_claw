@@ -6,8 +6,8 @@ SIM-006 rework (A4-A8):
   first-batch scenarios (trait-filtered; selection from the declarative
   testset manifest) + certification check. full = complete regression with
   single-execution reuse: the simulation suite runs once with a TRX logger,
-  coverage consumes that TRX, and FULL_SOLUTION covers the remaining
-  solution projects (simulation portion reused, never re-run for reporting).
+  coverage consumes that TRX, and FULL_TEST_PROJECTS covers the remaining
+  solution test projects (simulation portion reused, never re-run for reporting).
 - Aggregation preserves ALL failure classes: behavior regression,
   certification-staleness and environment unavailability can coexist and the
   aggregate can never mask one with another (A7). FINAL_STATUS is scope-local;
@@ -26,7 +26,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SIM_PROJECT = "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj"
 SIM_TRX_DIR = os.path.join(ROOT, "tests", "UniClaw.Simulation.Tests", "TestResults")
-# FULL_SOLUTION covers every solution test project; the simulation project is
+# FULL_TEST_PROJECTS covers every solution test project (aggregated); the
+# simulation project is
 # executed once by the SIMULATION group and reused (A6: no duplicate runs).
 OTHER_TEST_PROJECTS = (
     "tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj",
@@ -95,11 +96,36 @@ def validate_scenario_ids(ids):
     return problems
 
 
+def selection_conflicts(requested, manifest_ids):
+    """--scenarios may only NARROW the manifest first-batch selection (A5/D9:
+    a scope mismatch must never silently pass). Returns the offending ids."""
+    return sorted(set(requested) - set(manifest_ids))
+
+
+def scenario_caveats(scenario_ids):
+    """Mechanically derived reporting caveats (D9): scenarios whose
+    execution.kind is 'none' run on dedicated carriers that do not consume
+    the certified expectations/realization annotations via the
+    ScenarioRunner chain — a passing carrier does not establish those
+    declarations. Derived from scenario JSON, never hand-listed."""
+    caveats = []
+    for sid in scenario_ids:
+        path = os.path.join(ROOT, "scenarios", f"{sid}.json")
+        try:
+            with open(path, encoding="utf-8") as fh:
+                data = json.load(fh)
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(data.get("execution"), dict) and data["execution"].get("kind") == "none":
+            caveats.append(sid)
+    return caveats
+
+
 def scope_skips(scope):
     """Groups not requested by this scope, with honest reasons (A6/D11)."""
     if scope == "quick":
         return [
-            ("FULL_SOLUTION", "scope=quick (not requested)"),
+            ("FULL_TEST_PROJECTS", "scope=quick (not requested)"),
             ("COVERAGE", "scope=quick (trait-filtered subset cannot assert library-wide truth)"),
         ]
     return []
@@ -200,7 +226,7 @@ def git_facts():
     return head, branch, dirty
 
 
-def write_resolved_config(ns, scenario_ids, selection_source, results, skipped, classes, sim_trx, live_state):
+def write_resolved_config(ns, scenario_ids, selection_source, results, skipped, classes, sim_trx, live_state, caveats):
     """Redacted resolved-config snapshot: inputs actually consumed (A4).
 
     Run A can never be overwritten by run B: each snapshot lands in its own
@@ -244,6 +270,7 @@ def write_resolved_config(ns, scenario_ids, selection_source, results, skipped, 
             "skipped": [{"name": n, "reason": r} for n, r in skipped],
             "simTrx": ({"path": os.path.relpath(sim_trx, ROOT), "sha256": sha256_file(sim_trx)}
                        if sim_trx and os.path.isfile(sim_trx) else None),
+            "scenarioCaveats": caveats,
             "classification": classes,
         },
         "environment": {"live": live_state},
@@ -284,7 +311,7 @@ def self_test(change):
                 "Checked": True, "Unchecked": False}.get(axis)
     check("T7", "Unknown is not off", lambda: all(semantic_value(x) is None for x in ("Unknown", "Partial", "Unsupported")))
     check("T8", "rendered is not semantic", lambda: ("rendered-on", "checked") != ("semantic-on", "checked"))
-    required = {"CHANGE", "FOCUSED", "ARCHITECTURE", "SIMULATION", "FULL_SOLUTION", "CERTIFICATION",
+    required = {"CHANGE", "FOCUSED", "ARCHITECTURE", "SIMULATION", "FULL_TEST_PROJECTS", "CERTIFICATION",
                 "COVERAGE", "LIVE", "DIFF_CHECK", "EXPECTATIONS_DIGEST", "FIRST_FAILURE", "FINAL_STATUS", "SCOPE"}
     orchestrator = open(__file__, encoding="utf-8").read()
     check("T9", "clean orchestrator contract", lambda: all(field in orchestrator for field in required))
@@ -308,11 +335,17 @@ def self_test(change):
           and validate_scenario_ids(manifest_scenario_ids()) == [])
     check("T18", "quick scope skips recorded with reasons",
           lambda: scope_skips("quick") == [
-              ("FULL_SOLUTION", "scope=quick (not requested)"),
+              ("FULL_TEST_PROJECTS", "scope=quick (not requested)"),
               ("COVERAGE", "scope=quick (trait-filtered subset cannot assert library-wide truth)")]
           and scope_skips("full") == [])
+    check("T19", "explicit selection must be a subset of the manifest first batch",
+          lambda: selection_conflicts(["SCN-POLICY-001"], manifest_scenario_ids()) == ["SCN-POLICY-001"]
+          and selection_conflicts(manifest_scenario_ids()[:2], manifest_scenario_ids()) == [])
+    check("T20", "kind=none scenarios reported with carrier caveats (derived, not hand-listed)",
+          lambda: scenario_caveats(manifest_scenario_ids()) == ["SCN-PERC-001"]
+          and scenario_caveats(["SCN-WIFI-001"]) == [])
     print(f"CHANGE={change} SELF_TEST")
-    for key in ("FOCUSED", "ARCHITECTURE", "SIMULATION", "FULL_SOLUTION", "CERTIFICATION", "COVERAGE", "LIVE", "DIFF_CHECK", "EXPECTATIONS_DIGEST"):
+    for key in ("FOCUSED", "ARCHITECTURE", "SIMULATION", "FULL_TEST_PROJECTS", "CERTIFICATION", "COVERAGE", "LIVE", "DIFF_CHECK", "EXPECTATIONS_DIGEST"):
         print(f"{key}=PASS")
     print("FIRST_FAILURE=NONE")
     print("SCOPE=self-test")
@@ -336,25 +369,39 @@ def main():
     if ns.self_test:
         return self_test(ns.change)
 
-    # A5: validate the requested configuration BEFORE any execution (fail closed;
-    # explicit parameters can only narrow the quick selection, never widen scope).
+    # A5: validate the requested configuration BEFORE any execution (fail closed).
+    # The manifest first batch is always the boundary: an explicit --scenarios
+    # selection may only narrow it, never widen it into an arbitrary debug entry.
     selection_source = "testsets/simulation-baseline/manifest.json scenarioRefs"
+    try:
+        manifest_ids = manifest_scenario_ids()
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"FAIL: first-batch scenario selection unavailable ({exc}) — unknown required config rejected before execution")
+        return 2
     if ns.scenarios:
         if ns.scope != "quick":
             print("FAIL: --scenarios is only valid with --scope quick (parameter conflict rejected before execution)")
             return 2
         scenario_ids = [s.strip() for s in ns.scenarios.split(",") if s.strip()]
-        selection_source = "explicit --scenarios"
+        selection_source = "explicit --scenarios (subset of manifest first batch)"
     else:
-        try:
-            scenario_ids = manifest_scenario_ids()
-        except (OSError, ValueError, json.JSONDecodeError) as exc:
-            print(f"FAIL: first-batch scenario selection unavailable ({exc}) — unknown required config rejected before execution")
-            return 2
+        scenario_ids = manifest_ids
     unknown = validate_scenario_ids(scenario_ids)
     if unknown:
         print(f"FAIL: unknown scenario id(s): {', '.join(unknown)} — rejected before execution")
         return 2
+    conflicts = selection_conflicts(scenario_ids, manifest_ids)
+    if conflicts:
+        print(f"FAIL: --scenarios outside the first-batch testset: {', '.join(conflicts)} — scope mismatch rejected before execution")
+        return 2
+    # D9: separate carrier pass from claim establishment. kind=none scenarios
+    # pass on dedicated carriers that do not consume their certified
+    # expectations/realization annotations — reported per run, derived from JSON.
+    caveats = scenario_caveats(scenario_ids)
+    for sid in caveats:
+        print(f"SCENARIO_CAVEAT={sid} execution.kind=none: dedicated carrier; certified expectations and realization annotations are NOT consumed by the carrier (carrier PASS ≠ claim established)")
+    if caveats:
+        print(f"SCENARIO_CAVEATS_SUMMARY={len(caveats)}/{len(scenario_ids)} selected scenario(s) with dangling library declarations; baseline claims are partial for them")
 
     results = []
     skipped = scope_skips(ns.scope)
@@ -375,16 +422,16 @@ def main():
         rc, out = run("SIMULATION", ["dotnet", "test", SIM_PROJECT, "--no-restore", "--logger", "console;verbosity=minimal", "--logger", f"trx;LogFileName={trx_name}"])
         results.append(("SIMULATION", rc, out))
         # A6 dedup: every remaining solution project once; the simulation
-        # portion of FULL_SOLUTION is the SIMULATION execution above (same
+        # portion of FULL_TEST_PROJECTS is the SIMULATION execution above (same
         # binaries, same TRX) — never re-run just to assemble the report.
         fs_rc, fs_out = 0, []
         for project in OTHER_TEST_PROJECTS:
-            label = f"FULL_SOLUTION[{os.path.basename(os.path.dirname(project))}]"
+            label = f"FULL_TEST_PROJECTS[{os.path.basename(os.path.dirname(project))}]"
             prc, pout = run(label, ["dotnet", "test", project, "--no-restore", "--logger", "console;verbosity=minimal"])
             fs_rc = max(fs_rc, prc)
             fs_out.append(pout)
-        results.append(("FULL_SOLUTION", fs_rc, "\n".join(fs_out)))
-        print("FULL_SOLUTION_NOTE=simulation portion reused from SIMULATION (single execution; TRX shared with COVERAGE)")
+        results.append(("FULL_TEST_PROJECTS", fs_rc, "\n".join(fs_out)))
+        print("FULL_TEST_PROJECTS_NOTE=all solution test projects, aggregated; simulation portion reused from SIMULATION (single execution; TRX shared with COVERAGE)")
 
     rc, out = run("CERTIFICATION", ["python3", "tools/scenario_certify.py", "--check"]); results.append(("CERTIFICATION", rc, out))
     if ns.scope == "full":
@@ -424,7 +471,7 @@ def main():
 
     if not ns.no_snapshot:
         write_resolved_config(ns, scenario_ids, selection_source, results, skipped, classes,
-                              sim_trx, live_state)
+                              sim_trx, live_state, caveats)
     return 1 if (failed or classes) else 0
 
 

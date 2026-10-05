@@ -1,6 +1,6 @@
 # WI-SIM006-001 — SIM-006 首批 8 场景只读审计报告
 
-- WorkItem：`workitems/WI-SIM006-001.json`（status=in_progress）
+- WorkItem：`workitems/WI-SIM006-001.json`（审计执行时 status=in_progress；派发方复核结果后置 done——2026-10-05 修订注记，终态以 WorkItem 文件为准）
 - 审计性质：**只读静态审计**。不执行任何构建/测试；一切执行性结论仅引用**既有**证据（TRX 时间戳 2026-10-04 23:00:09，见 §5），**不构成新鲜执行 PASS**。
 - 基线校准：`changes/SIM-006/state.md`（Current facts L40–51、baseline matrix L71–82）、`docs/architecture/simulation-baseline-v0.1.md`（C1–C9）、`docs/architecture/simulation-baseline-v0.2-c7-amendment.md`（C7 双面标注）。
 - 仓库状态：分支 uni-harness，HEAD `14597766`（docs(sim-006): persist local test engineering spec）；`git status --porcelain` 见文末。
