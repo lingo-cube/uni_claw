@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "testset-manifest.v1",
+  "projectRef": "project/uni-claw-test-lab",
+  "testSetRef": "testset/simulation-baseline",
+  "version": "default",
+  "sourceRevision": "repo-default",
+  "displayName": "Simulation Baseline (SIM-006 first batch)",
+  "tasks": [
+    {
+      "taskRef": "task/simulation-baseline/scn-smoke-001",
+      "displayName": "Host-integrated closed loop to Outcome/Evaluation (shares wifi-off-to-on carrier with SCN-WIFI-001; strict-subset assertions)",
+      "scenarioRefs": ["SCN-SMOKE-001"],
+      "fixtureRefs": ["fixture/simulation-baseline/golden-run-v1"],
+      "acceptanceRefs": ["acceptance/simulation-baseline/scn-smoke-001-certified-expectations"]
+    },
+    {
+      "taskRef": "task/simulation-baseline/scn-wifi-001",
+      "displayName": "Wi-Fi off-to-on with one authorized effect and post-action verification",
+      "scenarioRefs": ["SCN-WIFI-001"],
+      "fixtureRefs": ["fixture/simulation-baseline/golden-run-v1"],
+      "acceptanceRefs": ["acceptance/simulation-baseline/scn-wifi-001-certified-expectations"]
+    },
+    {
+      "taskRef": "task/simulation-baseline/scn-wifi-002",
+      "displayName": "Already-satisfied desired state yields zero dispatch",
+      "scenarioRefs": ["SCN-WIFI-002"],
+      "fixtureRefs": ["fixture/simulation-baseline/golden-run-v1"],
+      "acceptanceRefs": ["acceptance/simulation-baseline/scn-wifi-002-certified-expectations"]
+    },
+    {
+      "taskRef": "task/simulation-baseline/scn-perc-001",
+      "displayName": "Fast-only perception misses, targeted slow recovers, one effect on the real target (dedicated carrier; certified expectations and goalEvaluationRealization=real are dangling declarations, see sim-006 baseline matrix)",
+      "scenarioRefs": ["SCN-PERC-001"],
+      "fixtureRefs": ["fixture/simulation-baseline/fsv001-perception-assets"],
+      "acceptanceRefs": ["acceptance/simulation-baseline/scn-perc-001-carrier-assertions"]
+    },
+    {
+      "taskRef": "task/simulation-baseline/scn-barrier-001",
+      "displayName": "Verified evidence between steps gates the second effect (negative faces SCN-BARRIER-002/003 coexist)",
+      "scenarioRefs": ["SCN-BARRIER-001"],
+      "fixtureRefs": ["fixture/simulation-baseline/golden-run-v1"],
+      "acceptanceRefs": ["acceptance/simulation-baseline/scn-barrier-001-certified-expectations"]
+    },
+    {
+      "taskRef": "task/simulation-baseline/scn-policy-006",
+      "displayName": "Guard Unknown fail-closed with zero new effects",
+      "scenarioRefs": ["SCN-POLICY-006"],
+      "fixtureRefs": ["fixture/simulation-baseline/golden-run-v1"],
+      "acceptanceRefs": ["acceptance/simulation-baseline/scn-policy-006-certified-expectations"]
+    },
+    {
+      "taskRef": "task/simulation-baseline/scn-policy-007",
+      "displayName": "Post-action observation violating desired state voids the policy on an existing transition",
+      "scenarioRefs": ["SCN-POLICY-007"],
+      "fixtureRefs": ["fixture/simulation-baseline/golden-run-v1"],
+      "acceptanceRefs": ["acceptance/simulation-baseline/scn-policy-007-certified-expectations"]
+    },
+    {
+      "taskRef": "task/simulation-baseline/scn-policy-009",
+      "displayName": "Effect class outside the Execution Contract rejected at consultation",
+      "scenarioRefs": ["SCN-POLICY-009"],
+      "fixtureRefs": ["fixture/simulation-baseline/golden-run-v1"],
+      "acceptanceRefs": ["acceptance/simulation-baseline/scn-policy-009-certified-expectations"]
+    }
+  ],
+  "fixtures": [
+    {
+      "fixtureRef": "fixture/simulation-baseline/golden-run-v1",
+      "kind": "golden-bundle",
+      "description": "Certified golden bundles read from platforms/perception/evaluation/assets/captures/golden-run-v1 (manifest contentHash double-checked)"
+    },
+    {
+      "fixtureRef": "fixture/simulation-baseline/fsv001-perception-assets",
+      "kind": "recorded-assets",
+      "description": "FSV-001 probe assets: type-truth.json (human-reviewed ground truth) and type-dual-local.json (historical predictions)"
+    }
+  ]
+}
