@@ -45,7 +45,7 @@ adb_bin="${sdk_root:+$sdk_root/platform-tools/adb}"
 [[ -n "$adb_bin" && -x "$adb_bin" ]] || adb_bin=$(command -v adb || true)
 [[ -n "$emulator_bin" && -x "$emulator_bin" ]] || { echo "ENVIRONMENT_UNAVAILABLE: emulator binary not found" >&2; exit 2; }
 [[ -n "$adb_bin" && -x "$adb_bin" ]] || { echo "ENVIRONMENT_UNAVAILABLE: adb binary not found" >&2; exit 2; }
-"$emulator_bin" -avd "$avd_name" -datadir "$clone_dir" -port "$port" -no-snapshot -no-snapshot-save -no-boot-anim >"$run_dir/emulator.log" 2>&1 &
+nohup "$emulator_bin" -avd "$avd_name" -datadir "$clone_dir" -port "$port" -read-only -no-snapshot -no-snapshot-save -no-boot-anim >"$run_dir/emulator.log" 2>&1 < /dev/null &
 pid=$!
 cat >"$run_dir/.state" <<EOF
 PID=$pid

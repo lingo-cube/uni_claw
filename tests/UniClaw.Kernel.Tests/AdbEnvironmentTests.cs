@@ -49,7 +49,25 @@ public sealed class AdbEnvironmentTests
 
     private static (bool Checked, (int X1, int Y1, int X2, int Y2) Bounds) DumpWifiSwitch()
     {
-        Adb("-s", Serial, "shell", "uiautomator", "dump", "/sdcard/wifi.xml");
+        Exception? lastFailure = null;
+        for (var attempt = 1; attempt <= 4; attempt++)
+        {
+            try
+            {
+                Adb("-s", Serial, "shell", "uiautomator", "dump", "/sdcard/wifi.xml");
+                lastFailure = null;
+                break;
+            }
+            catch (Exception ex) when (attempt < 4)
+            {
+                lastFailure = ex;
+                Thread.Sleep(750);
+            }
+        }
+
+        if (lastFailure is not null)
+            throw new InvalidOperationException($"uiautomator dump 在 4 次有界重试后仍失败（设备 {Serial}，Settings 可能尚未 idle）", lastFailure);
+
         var xml = Adb("-s", Serial, "shell", "cat", "/sdcard/wifi.xml");
         var doc = XDocument.Parse(xml);
         var sw = doc.Descendants("node")
