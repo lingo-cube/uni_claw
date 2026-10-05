@@ -61,7 +61,9 @@ public sealed record SettingsCoverageConfig(
     string BackDescriptor,
     CoverageEvidenceOptions? Evidence = null,
     PopupClearanceConfig? Popup = null,
-    SlowTriggerConfig? Slow = null)
+    SlowTriggerConfig? Slow = null,
+    SettingsActionPolicy? ActionPolicy = null,
+    bool ActionPolicyRequired = false)
 {
     /// <summary>证据持久化（缺省全开；旧配置无该段时保持缺省）。</summary>
     public CoverageEvidenceOptions EvidenceSettings => Evidence ?? new CoverageEvidenceOptions();
@@ -120,8 +122,51 @@ public sealed record SettingsCoverageConfig(
             Evidence: ReadEvidenceOptions(document, path),
             Popup: ReadPopupOptions(document, path),
             Slow: ReadSlowOptions(document, path),
+            ActionPolicy: ReadActionPolicy(document, path, out var actionPolicyRequired),
+            ActionPolicyRequired: actionPolicyRequired,
             ScrollContainerDescriptor: RequireNamed(document, ["scrollContainerDescriptor"], path),
             BackDescriptor: RequireNamed(document, ["backDescriptor"], path));
+    }
+
+    private static SettingsActionPolicy? ReadActionPolicy(
+        YamlDocument document,
+        string configPath,
+        out bool required)
+    {
+        required = document.OptionalBool(["actionPolicy", "required"]) ?? false;
+        var relativePath = document.OptionalScalar(["actionPolicy", "path"]);
+        if (relativePath is null)
+        {
+            if (required)
+                throw new InvalidOperationException(
+                    "PROFILE_CONTRACT_NOT_READY: actionPolicy.path is required");
+            return null;
+        }
+
+        var policyPath = Path.IsPathRooted(relativePath)
+            ? relativePath
+            : ResolvePolicyPath(configPath, relativePath);
+        try
+        {
+            return SettingsActionPolicy.Load(policyPath);
+        }
+        catch (InvalidOperationException error) when (error.Message.StartsWith("PROFILE_CONTRACT_NOT_READY", StringComparison.Ordinal))
+        {
+            if (required)
+                throw;
+            return null;
+        }
+    }
+
+    private static string ResolvePolicyPath(string configPath, string relativePath)
+    {
+        var configDirectory = new DirectoryInfo(Path.GetDirectoryName(Path.GetFullPath(configPath))!);
+        for (var directory = configDirectory; directory is not null; directory = directory.Parent)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "AGENTS.md")))
+                return Path.Combine(directory.FullName, relativePath);
+        }
+        return Path.GetFullPath(Path.Combine(configDirectory.FullName, relativePath));
     }
 
     private static string RequireVersion(YamlDocument document, string path)

@@ -54,10 +54,14 @@
 
 ## 当前执行边界
 
-任务一和任务二可以复用现有 Settings traversal/live 证据链；任务三的静态测试集
-契约已经建立，但当前 `.dsh/profiles/settings-coverage.yaml` 还没有
-`safeActionSet` / `forbiddenActionSet` 字段，也没有把它们注入 UniAgent context。
-因此任务三在补齐该接缝前只能判为 `PROFILE_CONTRACT_NOT_READY`，不能宣称全树
-安全遍历通过。
+`.dsh/profiles/settings-coverage.yaml` 现在要求在首次咨询前加载
+`forbidden-action-policy.json`。策略 digest 会进入 Agent 的只读上下文，Runtime
+在 dispatch 前继续做最终 target/action guard；缺失、非法或未生成完成的策略统一
+返回 `PROFILE_CONTRACT_NOT_READY`，不产生咨询或 effect。
+
+这仍然是有界覆盖测试，不是 Android Settings 字面意义的全树穷举。任务一和任务二
+需要分别验证导航零 effect 与开关幂等；任务三需要在真实设备上验证禁止 occurrence
+始终没有 `DeliveryCompleted`，并保存 coverage、route、effect、verification 和
+原始 hierarchy/screenshot 证据。
 
 已有真实证据：`evidence/pnl003-real-task-android-settings-20261003/`。

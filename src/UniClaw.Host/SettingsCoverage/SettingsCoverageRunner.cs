@@ -78,6 +78,9 @@ public sealed class SettingsCoverageRunner
         ArgumentNullException.ThrowIfNull(runRoot);
         ArgumentNullException.ThrowIfNull(options);
         var config = options.Config;
+        if (config.ActionPolicyRequired && config.ActionPolicy is null)
+            throw new InvalidOperationException(
+                "PROFILE_CONTRACT_NOT_READY: required Settings action policy is not loaded");
         Directory.CreateDirectory(runRoot);
         var runDir = Path.Combine(runRoot, $"run-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}");
         Directory.CreateDirectory(runDir);
@@ -159,7 +162,9 @@ public sealed class SettingsCoverageRunner
                     + "Settings root page. Choose every target only from the current semantic hierarchy.",
                 Scope: scope,
                 AllowedEffects: new HashSet<string>(StringComparer.Ordinal) { "tap", "swipe-up" },
-                ForbiddenEffects: new HashSet<string>(StringComparer.Ordinal),
+                ForbiddenEffects: config.ActionPolicy is { } actionPolicy
+                    ? new HashSet<string>(actionPolicy.ForbiddenActionClasses, StringComparer.OrdinalIgnoreCase)
+                    : new HashSet<string>(StringComparer.Ordinal),
                 ProofCriteria: new[] { "settings-coverage" },
                 Obligations: new[]
                 {
@@ -206,6 +211,8 @@ public sealed class SettingsCoverageRunner
                 c.DecisionKind,
                 c.DeviationReason,
                 c.Attempts,
+                c.PolicyDigest,
+                c.GuardVerdict,
             }).ToArray();
             var facts = new
             {
@@ -221,6 +228,9 @@ public sealed class SettingsCoverageRunner
                 uncovered = report.UncoveredItems,
                 firstDivergence = report.FirstDivergence,
                 terminalJustification = director.TerminalJustification,
+                actionPolicy = config.ActionPolicy is { } policy
+                    ? new { policy.PolicyRef, policy.Digest, policy.SourcePath }
+                    : null,
                 evidenceDir = evidenceDir,
                 evidenceFiles = evidenceDir is not null && Directory.Exists(evidenceDir)
                     ? Directory.GetFiles(evidenceDir).Length

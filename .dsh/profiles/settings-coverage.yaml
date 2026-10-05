@@ -37,3 +37,6 @@ evidence:
 rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
 scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
 backDescriptor: Navigate up
+actionPolicy:
+  required: true
+  path: testsets/android-settings/forbidden-action-policy.json

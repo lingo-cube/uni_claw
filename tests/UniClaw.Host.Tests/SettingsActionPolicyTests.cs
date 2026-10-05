@@ -1,0 +1,185 @@
+using UniClaw.Host.SettingsCoverage;
+using UniClaw.Kernel.Runtime;
+using Xunit;
+
+namespace UniClaw.Host.Tests;
+
+/// <summary>AGT-013：策略在首次咨询前加载、投影与 dispatch 前 guard。</summary>
+public sealed class SettingsActionPolicyTests
+{
+    private static string RepoRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "AGENTS.md")))
+                return directory.FullName;
+            directory = directory.Parent!;
+        }
+        throw new InvalidOperationException("未定位到仓库根");
+    }
+
+    private static AgentDecisionContext Context(params ElementSummary[] elements) => new(
+        DecisionId: "decision-1",
+        RunId: "run-1",
+        ContractVersion: "v0",
+        Objective: "settings",
+        AllowedEffects: new HashSet<string>(StringComparer.Ordinal) { "tap", "swipe-up" },
+        CurrentWorldClaims: new Dictionary<string, ClaimSummary>(),
+        PendingObligations: Array.Empty<AgentObligationView>(),
+        Phase: AgentDecisionPhase.InitialPlanning,
+        Elements: elements);
+
+    private static AgentActionStep Step(string target, string? desired = null, string effect = "tap") =>
+        new("ui.element", target, effect, desired);
+
+    private static SettingsActionPolicy Policy() =>
+        SettingsCoverageConfig.LoadDefault().ActionPolicy
+        ?? throw new InvalidOperationException("default settings profile did not load action policy");
+
+    [Fact]
+    public void DefaultProfile_LoadsRequiredPolicyBeforeConsultation()
+    {
+        var config = SettingsCoverageConfig.LoadDefault();
+
+        Assert.True(config.ActionPolicyRequired);
+        Assert.NotNull(config.ActionPolicy);
+        Assert.Equal(SettingsActionPolicy.SupportedSchemaVersion, config.ActionPolicy!.SchemaVersion);
+        Assert.False(string.IsNullOrWhiteSpace(config.ActionPolicy.Digest));
+    }
+
+    [Fact]
+    public void MissingRequiredPolicy_FailsClosed()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"settings-policy-missing-{Guid.NewGuid():N}.yaml");
+        try
+        {
+            File.WriteAllText(path, """
+                configVersion: "1"
+                session:
+                  taskTitle: t
+                  workspace: w
+                  workspaceReuse: true
+                  autoCloseTurn: false
+                bounds:
+                  maxSteps: 1
+                  maxConsultRounds: 1
+                  maxScrolls: 0
+                  maxConsecutiveFailures: 1
+                  maxDirectiveRetries: 0
+                coverage:
+                  rootPage: true
+                  firstLevelMode: all-visible
+                  scrollDiscoveredEntries: 1
+                  secondLevelPages: 1
+                  backNavigation: true
+                  repeatedEntries: 0
+                targetPages:
+                  - Network & internet
+                termination:
+                  onCoverageComplete: true
+                  onMaxSteps: true
+                  onMaxScrolls: true
+                  onConsecutiveFailures: true
+                rootRoute: Settings
+                scrollContainerDescriptor: scroll
+                backDescriptor: Navigate up
+                actionPolicy:
+                  required: true
+                  path: missing-policy.json
+                """);
+
+            var error = Assert.Throws<InvalidOperationException>(() => SettingsCoverageConfig.Load(path));
+            Assert.Contains("PROFILE_CONTRACT_NOT_READY", error.Message);
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void ForbiddenAndUnknownTargets_AreRejectedBeforeDispatch()
+    {
+        var policy = Policy();
+
+        var forbidden = SettingsActionGuard.Evaluate(
+            Step("USB debugging"), Context(), policy);
+        var unknown = SettingsActionGuard.Evaluate(
+            Step("Some unknown control", desired: "checked"), Context(), policy);
+
+        Assert.Equal(SettingsActionGuardVerdict.Reject, forbidden.Verdict);
+        Assert.Equal("forbidden-target", forbidden.SemanticAction);
+        Assert.Equal(SettingsActionGuardVerdict.Reject, unknown.Verdict);
+        Assert.Equal("toggle-non-target", unknown.SemanticAction);
+        Assert.Equal(policy.Digest, forbidden.PolicyDigest);
+    }
+
+    [Fact]
+    public void SatisfiedTargetedToggle_BecomesNoAction()
+    {
+        var policy = Policy();
+        var result = SettingsActionGuard.Evaluate(
+            Step("Wi-Fi", desired: "checked"),
+            Context(new ElementSummary(
+                "switch", "Wi-Fi", null, true, true, true,
+                ElementEpistemic.Observed, "checked")),
+            policy);
+
+        Assert.Equal(SettingsActionGuardVerdict.NoAction, result.Verdict);
+        Assert.Equal("toggle:Wi-Fi", result.SemanticAction);
+    }
+
+    [Fact]
+    public void UnsatisfiedTargetedToggle_IsAllowedOnce()
+    {
+        var policy = Policy();
+        var result = SettingsActionGuard.Evaluate(
+            Step("Wi-Fi", desired: "checked"),
+            Context(new ElementSummary(
+                "switch", "Wi-Fi", null, true, true, true,
+                ElementEpistemic.Observed, "unchecked")),
+            policy);
+
+        Assert.Equal(SettingsActionGuardVerdict.Allow, result.Verdict);
+        Assert.Equal("toggle:Wi-Fi", result.SemanticAction);
+    }
+
+    [Fact]
+    public void GuardDecision_RejectsBeforeKernelDispatch()
+    {
+        var policy = Policy();
+        var context = Context();
+        var decision = new AgentDecision.Act(new AgentActionProposal(
+            context.DecisionId,
+            new[] { Step("Developer options") },
+            "model proposal"));
+
+        var guarded = SettingsActionGuard.GuardDecision(decision, context, policy, out var result);
+
+        Assert.Null(guarded);
+        Assert.NotNull(result);
+        Assert.Equal(SettingsActionGuardVerdict.Reject, result!.Verdict);
+        Assert.Equal("forbidden-target", result.SemanticAction);
+    }
+
+    [Fact]
+    public void MultiActProposal_IsRejectedBeforePolicyCanBeBypassed()
+    {
+        var policy = Policy();
+        var context = Context();
+        var decision = new AgentDecision.Plan(
+            context.DecisionId,
+            new AgentPlanProposal(new PlanItem[]
+            {
+                new PlanItem.ActItem("ui.element", "Wi-Fi", "tap", null),
+                new PlanItem.ActItem("ui.element", "USB debugging", "tap", null),
+            }, "multi-act"));
+
+        var guarded = SettingsActionGuard.GuardDecision(decision, context, policy, out var result);
+
+        Assert.Null(guarded);
+        Assert.Equal(SettingsActionGuardVerdict.Reject, result!.Verdict);
+        Assert.Contains("multi-act", result.Reason);
+    }
+}

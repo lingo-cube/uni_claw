@@ -24,7 +24,9 @@ public sealed class SettingsCoverageDirector
         string? DecisionKind,
         string? DeviationReason,
         int Attempts,
-        string? Justification);
+        string? Justification,
+        string? PolicyDigest = null,
+        string? GuardVerdict = null);
 
     private readonly Func<AgentDecisionContext, AgentDecision?> _underlying;
     private readonly SettingsCoverageLedger _ledger;
@@ -167,7 +169,11 @@ public sealed class SettingsCoverageDirector
                 + "\nRespond with an act proposal containing EXACTLY ONE step that performs "
                 + "this directive. Copy targetDescriptor exactly from the element list. "
                 + "Navigation and scroll targets must omit desiredState (typed switch states "
-                + "only; never invent one).",
+                + "only; never invent one)."
+                + (_config.ActionPolicy is { } policy
+                    ? "\n\nSETTINGS ACTION POLICY (read-only; Runtime Guard is authoritative): "
+                      + policy.AgentProjection()
+                    : string.Empty),
         };
 
         var attempts = 0;
@@ -184,6 +190,26 @@ public sealed class SettingsCoverageDirector
             var adopted = adoptedStep;
             if (deviation is null)
             {
+                var guard = _config.ActionPolicy is { } actionPolicy
+                    ? SettingsActionGuard.Evaluate(adopted!, context, actionPolicy)
+                    : null;
+                if (guard is { Verdict: SettingsActionGuardVerdict.Reject })
+                {
+                    lastDeviation = $"policy-guard:{guard.SemanticAction}:{guard.Reason}";
+                    _log.Add(new ConsultRecord(
+                        context.DecisionId, context.Phase.ToString(), directive, kind,
+                        decision is AgentDecision.Plan ? "plan" : "act",
+                        lastDeviation, attempts, null, guard.PolicyDigest, "REJECT"));
+                    return null;
+                }
+                if (guard is { Verdict: SettingsActionGuardVerdict.NoAction })
+                {
+                    _log.Add(new ConsultRecord(
+                        context.DecisionId, context.Phase.ToString(), directive, kind,
+                        "noAction", null, attempts, guard.Reason, guard.PolicyDigest, "NO_ACTION"));
+                    return new AgentDecision.NoAction(new AgentNoActionProposal(
+                        context.DecisionId, $"settings-policy:{guard.Reason}"));
+                }
                 // Act 单步与受约束 Plan 的唯一 ActItem 都物化为 AgentActionStep
                 // 归属（归因/journal 路径不变；Plan 的执行由 driver 负责）。
                 _adoptedSteps.Add((context.DecisionId, directive, adopted!));
@@ -196,7 +222,9 @@ public sealed class SettingsCoverageDirector
                         AgentDecision.Act act => act.Proposal.Justification,
                         AgentDecision.Plan plan => plan.Proposal.Justification,
                         _ => null,
-                    }));
+                    },
+                    guard?.PolicyDigest,
+                    guard?.Verdict.ToString().ToUpperInvariant()));
                 return decision;
             }
             lastDeviation = deviation;

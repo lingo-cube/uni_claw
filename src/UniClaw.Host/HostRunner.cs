@@ -13,6 +13,7 @@ using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
+using UniClaw.Host.SettingsCoverage;
 
 namespace UniClaw.Host;
 
@@ -51,7 +52,8 @@ public sealed class HostRunner
         LivePerception.LiveAssets? Live = null,
         Func<AgentDecisionContext, AgentDecision?>? ConsultAgent = null,
         bool SettingsTraversal = false,
-        LaunchContext? Launch = null);
+        LaunchContext? Launch = null,
+        SettingsActionPolicy? SettingsActionPolicy = null);
 
     public sealed record HostRunResult(
         string RunDir,
@@ -66,7 +68,8 @@ public sealed class HostRunner
         string? ProductSessionId = null,
         string? LaunchId = null,
         string? IdempotencyKey = null,
-        string? CorrelationId = null);
+        string? CorrelationId = null,
+        string? ActionPolicyDigest = null);
 
     public static HostRunResult RunOnce(string runRoot, HostOptions? options = null)
     {
@@ -146,6 +149,7 @@ public sealed class HostRunner
             var planPolicy = new AgentPlanPolicy();
             var traceScope = RunTraceFactory.BeginRun(new RunCorrelation(options.Launch?.RunId ?? "host:v0-flip-switch"));
             var ledger = new EvidenceLedger();
+            var policyGuardResults = new List<SettingsActionGuardResult>();
             var kernel = new UniKernel(
                 ledger, world, traceScope.Trace,
                 new RunModel(), new ControlLoop(planPolicy), assurance, effectBoundary, metrics);
@@ -154,7 +158,26 @@ public sealed class HostRunner
                 new RunDriverInputs
                 {
                     NextInput = nextInput,
-                    ConsultAgent = options.ConsultAgent,
+                    ConsultAgent = context =>
+                    {
+                        var policy = options.SettingsActionPolicy;
+                        var projected = policy is null
+                            ? context
+                            : context with
+                            {
+                                Objective = context.Objective
+                                    + "\n\nSETTINGS ACTION POLICY (read-only; Runtime Guard is authoritative): "
+                                    + policy.AgentProjection(),
+                            };
+                        var decision = options.ConsultAgent(projected);
+                        if (policy is null)
+                            return decision;
+                        var guarded = SettingsActionGuard.GuardDecision(
+                            decision, projected, policy, out var guardResult);
+                        if (guardResult is not null)
+                            policyGuardResults.Add(guardResult);
+                        return guarded;
+                    },
                 });
 
             // ---- 单次 run ---------------------------------------------------
@@ -165,8 +188,10 @@ public sealed class HostRunner
                     : "flip-switch",
                 Scope: scope,
                 AllowedEffects: new HashSet<string> { "tap" },
-                ForbiddenEffects: new HashSet<string>(),
                 ProofCriteria: new[] { "switch-state-checked" },
+                ForbiddenEffects: options.SettingsActionPolicy is { } policy
+                    ? new HashSet<string>(policy.ForbiddenActionClasses, StringComparer.OrdinalIgnoreCase)
+                    : new HashSet<string>(StringComparer.Ordinal),
                 // 显式义务（PER-014 R3 typed 迁移）：role-scoped semantic
                 // checked requirement——Subject 不再是 legacy state subject，
                 // RequiredValue 为 typed checked 词汇（checked/unchecked）；
@@ -219,6 +244,10 @@ public sealed class HostRunner
                 completedSteps = driver.CompletedSteps
                     .Select(s => new { decision = s.DecisionN, step = s.StepIndex, receipt = s.ReceiptId })
                     .ToArray(),
+                actionPolicy = options.SettingsActionPolicy is { } factsPolicy
+                    ? new { factsPolicy.PolicyRef, factsPolicy.Digest, factsPolicy.SourcePath }
+                    : null,
+                policyGuard = policyGuardResults,
             };
             var factsJson = JsonSerializer.Serialize(facts, JsonOptions);
             WriteText(runDir, "facts.json", factsJson);
@@ -232,7 +261,8 @@ public sealed class HostRunner
                 options.Launch?.ProductSessionId,
                 options.Launch?.LaunchId,
                 options.Launch?.IdempotencyKey,
-                options.Launch?.CorrelationId);
+                options.Launch?.CorrelationId,
+                options.SettingsActionPolicy?.Digest);
         }
         finally
         {

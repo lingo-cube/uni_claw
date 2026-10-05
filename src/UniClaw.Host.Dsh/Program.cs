@@ -144,11 +144,13 @@ try
     }
     else
     {
+        var settingsPolicyConfig = SettingsCoverageConfig.LoadDefault();
         result = HostRunner.RunOnce(runsRoot, new HostRunner.HostOptions
         {
             DeviceId = device,
             ConsultAgent = Consult,
             SettingsTraversal = true,
+            SettingsActionPolicy = settingsPolicyConfig.ActionPolicy,
             TargetState = targetState ?? "checked",
             TargetSemanticDescriptor = targetDescriptor,
             Live = new LivePerception.LiveAssets(

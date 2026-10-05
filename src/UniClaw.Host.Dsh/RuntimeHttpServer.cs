@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using UniClaw.Agent.Dsh;
 using UniClaw.Host;
 using UniClaw.Host.Runtime;
+using UniClaw.Host.SettingsCoverage;
 using UniClaw.Kernel.Runtime;
 
 namespace UniClaw.Host.Dsh;
@@ -210,11 +211,13 @@ public sealed class RuntimeHttpServer
             RunAdb(device, "shell", "am", "start", "-S", "-a", "android.settings.WIFI_SETTINGS");
             await Task.Delay(1500).ConfigureAwait(false);
             AgentDecision? Consult(AgentDecisionContext context) => agent.Consult(context);
+            var settingsPolicyConfig = SettingsCoverageConfig.LoadDefault();
             var result = HostRunner.RunOnce(_runsRoot, new HostRunner.HostOptions
             {
                 DeviceId = device,
                 ConsultAgent = Consult,
                 SettingsTraversal = true,
+                SettingsActionPolicy = settingsPolicyConfig.ActionPolicy,
                 Launch = launch,
                 Live = new LivePerception.LiveAssets(
                     device,
