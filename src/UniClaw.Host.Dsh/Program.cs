@@ -230,7 +230,20 @@ static void RunAdb(string device, params string[] arguments)
     foreach (var argument in arguments) info.ArgumentList.Add(argument);
     using var process = System.Diagnostics.Process.Start(info)
         ?? throw new InvalidOperationException("ENVIRONMENT_UNAVAILABLE: adb did not start");
-    process.WaitForExit(10000);
+    if (!process.WaitForExit(10000))
+    {
+        try
+        {
+            if (!process.HasExited)
+                process.Kill(entireProcessTree: true);
+        }
+        catch (InvalidOperationException)
+        {
+            // 进程已退出；仍按超时报告，不能把启动阶段误报为成功。
+        }
+        throw new InvalidOperationException(
+            $"ENVIRONMENT_UNAVAILABLE: adb timed out after 10s (device={device})");
+    }
     if (process.ExitCode != 0)
         throw new InvalidOperationException($"ENVIRONMENT_UNAVAILABLE: adb failed: {process.StandardError.ReadToEnd()}");
 }
