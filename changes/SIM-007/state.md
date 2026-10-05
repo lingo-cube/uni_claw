@@ -46,6 +46,17 @@ SIM-006 审计核实：SCN-PERC-001（execution.kind=none，专有 AsyncPercepti
 - 本 Change 不取得 WorldBelief/Assurance/Effect 等 canonical authority；专有 harness 仍为测试基础设施。
 - 场景库 status 真值链（trait→FQN→TRX）不因标注语义变化而弱化。
 
+## Current facts（2026-10-05 WI-SIM007-001 只读审计核实）
+
+审计载荷 `workitems/WI-SIM007-001.json`；报告 `evidence/sim-007/wi-sim007-001/perc-carrier-audit.md`；Leader 已抽查复核（trait 行号、零 ScenarioExpectations 消费、零 UniAgent/GoalEvaluation 构造、digest 值均证实）。
+
+- **8/8 kind=none 场景同构悬空**：SCN-PERC-001..008 均经专有 AsyncPerceptionHost 家族载体（同构缝：ScriptedUniAgent → RunDriverInputs.ConsultAgent，AsyncPerceptionTracer.cs:579-591），**均不消费 certified expectations**（四个 AsyncPerception* 文件对 ScenarioExpectations 零引用）、**均不构造 GoalEvaluation**（无 UniAgent 构造）。
+- realization 两面分离：`agentDecisionRealization=double` 在 8/8 载体**有**运行时对应物；`goalEvaluationRealization=real` 在 8/8 载体**无**对应物（悬空）。
+- PERC-001 与 SIM-006 既有审计逐条一致（仅 fixtures 行号 50-53→51-53 微移）。
+- expectations 复制来源实证：PERC-002/004/005/006/007 的 expectationsDigest=7de541f2…（=SCN-WIFI-001）；PERC-003=400b1755…（=SCN-POLICY-009）；PERC-008=4b272fd7…（=SCN-POLICY-006）。
+- 对 tools/verify-change SCENARIO_CAVEATS 规则的含义：核心断言（专有载体不消费 certified expectations）经 8/8 核实成立（由待证假设升级为事实）；但文案 "realization annotations are NOT consumed" 对 decision 半边过宽（decision=double 有载体对应物）——两面拆分候选已登记，随路径裁决一并处置。
+- 旧 TRX 引用为既有记录；本轮无新鲜执行、无 PASS 声明。
+
 ## Verification（本轮 PERSIST）
 
 ```yaml
@@ -59,3 +70,4 @@ evidence: 本 state、changes/INDEX.md
 ## Status log
 
 - 2026-10-05 · UNDERSTAND → RESOLVE → PERSIST · 依据 SIM-006 终审（所有者）指令创建；kind=none 全量盘点 8 个 PERC 场景、仅 001 已核实为切入事实；C7 修订的 Human Gate 为实施前置条件。
+- 2026-10-05 · PERSIST（保持；审计回合） · WI-SIM007-001 只读审计完成（固定 Worker + Leader 抽查复核）：8/8 同构悬空（expectations 无消费者、evaluation=real 无对应物、decision=double 有对应物）；expectations 复制来源实证（7de541f2/400b1755/4b272fd7）；CAVEATS 规则核心断言 8/8 成立、文案对 decision 面过宽（候选）。Acceptance A1 的逐载体事实已就绪；路径裁决与 C7 Human Gate 材料见 plans/2026-10-05-sim-007-c7-human-gate-material.md，等 Owner 裁决后进入 PLAN。

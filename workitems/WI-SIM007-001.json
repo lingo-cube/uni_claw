@@ -1,0 +1,66 @@
+{
+  "id": "WI-SIM007-001",
+  "objective": "只读核实 8 个 execution.kind=none 场景（SCN-PERC-001..008）的逐载体事实：实际载体与入口、是否消费 certified expectations、是否构造真实 GoalEvaluation、realization 标注是否有运行时对应物；产出带文件行号证据的逐载体事实矩阵，供 SIM-007 路径裁决与 C7 Human Gate 材料使用。",
+  "scope": {
+    "write": [
+      "evidence/sim-007/wi-sim007-001/**"
+    ],
+    "read_hints": [
+      "changes/SIM-007/state.md（Intent、Scope、Decisions、Acceptance）",
+      "changes/SIM-006/state.md（Current facts 补充：SCN-PERC-001 已核实结论，作交叉核对基准）",
+      "evidence/sim-006/wi-sim006-001/scenario-audit.md §3（PERC-001 既有审计，含专有 harness 链路锚点）",
+      "scenarios/SCN-PERC-001.json .. SCN-PERC-008.json",
+      "tests/UniClaw.Simulation.Tests/AsyncPerceptionScenarioTests.cs、AsyncPerceptionTracer.cs、AsyncPerceptionFixtures.cs、AsyncPerceptionRealizationTests.cs、ScenarioExpectations.cs、ScenarioLibrary.cs、ScriptedUniAgent.cs、ScenarioRealizationAnnotationTests.cs",
+      "tests/UniClaw.Simulation.Tests/TestResults/coverage.trx（既有 TRX，仅读取）",
+      "platforms/perception/evaluation/reports/fsv001/（专有资产来源，只读）"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "对 8 个 kind=none 的 PERC 场景做逐载体静态审计：每个场景从 JSON 声明追到真实测试载体，核实 certified expectations 消费与否、GoalEvaluation 构造与否、realization 标注的运行时对应物；一切以文件行号与既有证据为准。",
+    "core_points": [
+      "只读审计：唯一可写路径 evidence/sim-007/wi-sim007-001/",
+      "每条结论附 文件:行号 或命令+输出证据；无证据写 unknown，不得推断成事实",
+      "PERC-001 已有 SIM-006 审计结论——本轮须重核并显式标注与既有结论一致/不一致",
+      "SCENARIO_CAVEATS 的 kind=none 通用推导对 002-008 是待证假设：本轮产出的事实矩阵就是判定该规则收窄/维持/精确化的依据",
+      "不裁决修正路径（那是 Owner/Human Gate 的事）；只产出事实"
+    ]
+  },
+  "anchors": [
+    { "path": "changes/SIM-007/state.md" },
+    { "path": "evidence/sim-006/wi-sim006-001/scenario-audit.md" },
+    { "path": "tests/UniClaw.Simulation.Tests/AsyncPerceptionScenarioTests.cs" },
+    { "path": "tests/UniClaw.Simulation.Tests/AsyncPerceptionTracer.cs", "symbol": "AsyncPerceptionHost" },
+    { "path": "tests/UniClaw.Simulation.Tests/AsyncPerceptionFixtures.cs" },
+    { "path": "tests/UniClaw.Simulation.Tests/ScenarioExpectations.cs" },
+    { "path": "tests/UniClaw.Simulation.Tests/ScenarioRealizationAnnotationTests.cs" }
+  ],
+  "contract_refs": [
+    "changes/SIM-007/state.md",
+    "docs/architecture/simulation-baseline-v0.2-c7-amendment.md",
+    "changes/SIM-006/state.md Current facts 补充"
+  ],
+  "acceptance": [
+    "对 SCN-PERC-001..008 逐一给出事实矩阵行：(a) JSON 声明（expectations 六字段、agentDecisionRealization、goalEvaluationRealization、execution.kind、certification digest 摘录）；(b) 实际载体=测试类/方法+源文件:行号+[Trait] 映射；(c) 是否消费 certified expectations（是否调用 ScenarioExpectations.Verify/Load/任何 digest 校验；有则给行号，无则明确 none）；(d) 是否构造真实 GoalEvaluation（是否出现 UniAgent/GoalEvaluation 构造；有则行号，无则明确 none）；(e) decision 面运行时对应物（ConsultAgent seam 的实际实现+位置）；(f) realization 标注运行时对应物结论（两标注各自：有对应物/无对应物/部分）；(g) 配置与资产来源；(h) 结论一句话+关键证据 文件:行号",
+    "PERC-001 与 SIM-006 既有审计结论（悬空声明）做显式对照：一致/不一致逐条列出",
+    "单列『对 SCENARIO_CAVEATS 推导规则的含义』章节：按本轮事实，说明 kind=none→caveat 规则对 8 个场景各自成立/不成立/证据不足（不裁决收窄或维持）",
+    "每条结论标注证据；证据不足如实 unknown；不产生任何新鲜执行 PASS 表述；旧 TRX 只作为既有记录引用",
+    "审计报告写入 evidence/sim-007/wi-sim007-001/perc-carrier-audit.md，末尾附只读命令清单 + git status --porcelain 实际输出（证明零工作树改动）",
+    "结构化结论随报告返回：每场景一行事实摘要，供 Leader 复核"
+  ],
+  "forbidden": [
+    "禁止创建/修改/删除 evidence/sim-007/wi-sim007-001/** 以外的任何文件（包括但不限于 src/**、tests/**、scenarios/** 及 golden、tools/**、changes/**、workitems/**、schemas/**、docs/**、testsets/**、model-routing.yaml、.dsh/**、AGENTS.md）",
+    "禁止执行 dotnet build / dotnet test / dotnet run 及任何产生新构建或新测试证据的命令",
+    "禁止执行 scenario_certify.py、scenario-coverage.py、verify-change、verify-live 的任何写模式或整体执行；只允许只读阅读其源码与既有输出",
+    "禁止 git commit / push / reset / checkout / clean / stash 等改变工作树或历史的命令；git log / show / diff / status 只读可用",
+    "禁止伪造 PASS、把场景 JSON status 或旧 TRX 当作本次执行证据",
+    "禁止裁决修正路径（消费投影/词汇表扩展/撤回声明三选一是 Human Gate 材料，不是审计产物）；改进想法只能标注为『候选』",
+    "禁止修改本 WorkItem 的 acceptance / forbidden / frozen_decisions"
+  ],
+  "frozen_decisions": [
+    "changes/SIM-007/state.md Decisions 1–3（逐载体事实先于路径裁决；C7 变更须 Human Gate；CAVEATS 推导规则随事实同步）",
+    "simulation-baseline-v0.1 C1–C9 + v0.2 C7"
+  ],
+  "dependencies": [],
+  "status": "done",
+  "required_capability": "verification"
+}
