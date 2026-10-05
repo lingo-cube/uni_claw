@@ -112,6 +112,7 @@ public sealed class HostRunner
         SettingsTraversalLiveFeed? settingsFeed = null;
         Func<ObservationDirective, RunDriverInput?> nextInput;
         IUiObservationStrategy observationStrategy;
+        UniKernel? kernel = null;
         if (options.SettingsTraversal)
         {
             // AGT-011 §4：SettingsTraversal 模式证据持久化（AGT-008 缺省全开）。
@@ -150,7 +151,7 @@ public sealed class HostRunner
             var traceScope = RunTraceFactory.BeginRun(new RunCorrelation(options.Launch?.RunId ?? "host:v0-flip-switch"));
             var ledger = new EvidenceLedger();
             var policyGuardResults = new List<SettingsActionGuardResult>();
-            var kernel = new UniKernel(
+            kernel = new UniKernel(
                 ledger, world, traceScope.Trace,
                 new RunModel(), new ControlLoop(planPolicy), assurance, effectBoundary, metrics);
             var driver = new KernelRunDriver(
@@ -244,7 +245,7 @@ public sealed class HostRunner
                 journalBytes = new FileInfo(journalPath).Length,
                 diagnostics = new
                 {
-                    nextFiles = new[] { "facts.json", "trace.json", "settings-trace.json", "exec.journal" },
+                    nextFiles = new[] { "facts.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
                     guidance = drive.Status == RunDriveStatus.Completed
                         ? "运行完成；如需核对动作，先看 facts.completedSteps，再用 DecisionId 对照 trace.json。"
                         : "先看 facts.reason 和 policyGuard，再用 DecisionId 对照 trace.json 与 exec.journal。"
@@ -274,6 +275,30 @@ public sealed class HostRunner
                 options.Launch?.IdempotencyKey,
                 options.Launch?.CorrelationId,
                 options.SettingsActionPolicy?.Digest);
+        }
+        catch (Exception error)
+        {
+            // Keep a durable, beginner-readable artifact when execution fails
+            // before the normal facts/trace flush. RuntimeHttp can still report
+            // the exception, while this file preserves the local run context.
+            try
+            {
+                WriteText(runDir, "failure.json", JsonSerializer.Serialize(new
+                {
+                    schemaVersion = "uniclaw.host-failure.v1",
+                    runDir,
+                    runId = kernel?.RunId,
+                    correlationId = options.Launch?.CorrelationId,
+                    errorType = error.GetType().FullName,
+                    message = error.Message,
+                    guidance = "先看 message；再检查 exec.journal、trace.json（若存在）和 settings-trace.json（若存在）。"
+                }, JsonOptions));
+            }
+            catch
+            {
+                // Preserve the original failure if diagnostics cannot be written.
+            }
+            throw;
         }
         finally
         {

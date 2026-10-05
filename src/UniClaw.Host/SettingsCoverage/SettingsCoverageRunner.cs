@@ -235,7 +235,7 @@ public sealed class SettingsCoverageRunner
                 {
                     firstDivergence = report.FirstDivergence,
                     terminalJustification = director.TerminalJustification,
-                    nextFiles = new[] { "facts.json", "coverage-report.json", "coverage-steps.json", "trace.json", "settings-trace.json", "exec.journal" },
+                    nextFiles = new[] { "facts.json", "coverage-report.json", "coverage-steps.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
                     guidance = report.FirstDivergence is null && drive.Status == RunDriveStatus.Completed
                         ? "运行完成；如需核对每一步，先看 coverage-steps.json，再用 DecisionId 对照 trace.json。"
                         : "先看 firstDivergence/reason，再用 DecisionId 对照 coverage-steps.json、trace.json 和 exec.journal。"
@@ -263,6 +263,25 @@ public sealed class SettingsCoverageRunner
                 director.ConsultLog,
                 Array.Empty<string>(),
                 digest);
+        }
+        catch (Exception error)
+        {
+            try
+            {
+                WriteText(runDir, "failure.json", JsonSerializer.Serialize(new
+                {
+                    schemaVersion = "uniclaw.settings-coverage-failure.v1",
+                    runDir,
+                    errorType = error.GetType().FullName,
+                    message = error.Message,
+                    guidance = "先看 message；再检查 exec.journal、trace.json、settings-trace.json 和 coverage-report.json（若存在）。"
+                }, JsonOptions));
+            }
+            catch
+            {
+                // Preserve the original failure if diagnostics cannot be written.
+            }
+            throw;
         }
         finally
         {
