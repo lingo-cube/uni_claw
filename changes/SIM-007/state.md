@@ -53,7 +53,7 @@ SIM-006 审计核实：SCN-PERC-001（execution.kind=none，专有 AsyncPercepti
 - **8/8 kind=none 场景同构悬空**：SCN-PERC-001..008 均经专有 AsyncPerceptionHost 家族载体（同构缝：ScriptedUniAgent → RunDriverInputs.ConsultAgent，AsyncPerceptionTracer.cs:579-591），**均不消费 certified expectations**（四个 AsyncPerception* 文件对 ScenarioExpectations 零引用）、**均不构造 GoalEvaluation**（无 UniAgent 构造）。
 - realization 两面分离：`agentDecisionRealization=double` 在 8/8 载体**有**运行时对应物；`goalEvaluationRealization=real` 在 8/8 载体**无**对应物（悬空）。
 - PERC-001 与 SIM-006 既有审计逐条一致（仅 fixtures 行号 50-53→51-53 微移）。
-- expectations 复制来源实证：PERC-002/004/005/006/007 的 expectationsDigest=7de541f2…（=SCN-WIFI-001）；PERC-003=400b1755…（=SCN-POLICY-009）；PERC-008=4b272fd7…（=SCN-POLICY-006）。
+- expectations 同内容实证（修订措辞 2026-10-05：digest 一致证明六字段逐字节相同；"复制自"为方向性推断，源文件行号见审计附录 S.2）：PERC-001/002/004/005/006/007 的 expectationsDigest=7de541f2…（同内容源 scenarios/SCN-WIFI-001.json:18-25）；PERC-003=400b1755…（同内容源 scenarios/SCN-POLICY-009.json:20-27）；PERC-008=4b272fd7…（同内容源 scenarios/SCN-POLICY-006.json:20-27）。逐场景 JSON 声明行号见审计附录 S.1。
 - 对 tools/verify-change SCENARIO_CAVEATS 规则的含义：核心断言（专有载体不消费 certified expectations）经 8/8 核实成立（由待证假设升级为事实）；但文案 "realization annotations are NOT consumed" 对 decision 半边过宽（decision=double 有载体对应物）——两面拆分候选已登记，随路径裁决一并处置。
 - 旧 TRX 引用为既有记录；本轮无新鲜执行、无 PASS 声明。
 
@@ -63,11 +63,12 @@ SIM-006 审计核实：SCN-PERC-001（execution.kind=none，专有 AsyncPercepti
 level: CONTRACT
 method: python3 tools/gen-open-changes.py; 结构/引用检查（8 个 SCN-PERC JSON 存在、SIM-006 证据引用有效）; git diff --check
 expected: SIM-007 为 persisted；索引含本 change；无实现、无 Human Gate 前的 C7 修改
-actual: PASS（仅 PERSIST 文档检查）
-evidence: 本 state、changes/INDEX.md
+actual: PASS（仅 PERSIST 文档检查；含审计回合后的结构复核输出，见 evidence/sim-007/persist-structure-check.md）
+evidence: 本 state、changes/INDEX.md、evidence/sim-007/persist-structure-check.md
 ```
 
 ## Status log
 
 - 2026-10-05 · UNDERSTAND → RESOLVE → PERSIST · 依据 SIM-006 终审（所有者）指令创建；kind=none 全量盘点 8 个 PERC 场景、仅 001 已核实为切入事实；C7 修订的 Human Gate 为实施前置条件。
 - 2026-10-05 · PERSIST（保持；审计回合） · WI-SIM007-001 只读审计完成（固定 Worker + Leader 抽查复核）：8/8 同构悬空（expectations 无消费者、evaluation=real 无对应物、decision=double 有对应物）；expectations 复制来源实证（7de541f2/400b1755/4b272fd7）；CAVEATS 规则核心断言 8/8 成立、文案对 decision 面过宽（候选）。Acceptance A1 的逐载体事实已就绪；路径裁决与 C7 Human Gate 材料见 plans/2026-10-05-sim-007-c7-human-gate-material.md，等 Owner 裁决后进入 PLAN。
+- 2026-10-05 · PERSIST（保持；审阅回补） · Owner 审阅指出：P1——Gate 材料原稿把方案 A 表述为"完整闭环/CAVEATS 可整体退役"不成立（A 不构造 GoalEvaluation，evaluation 悬空依旧），已重写为 A/B/C×两类悬空的作用面矩阵（A+B 或 C 才满足 A2；另列"载体真评估"为未评估的第四路径）；P2——补齐审计附录 S（逐场景 JSON 声明行号 S.1 + 同内容源文件行号 S.2，"复制"降级为方向性推断）；P2/P3——审计报告时间状态注记、GoldenScenarioBundles Load 调用计数 8→9（行号列表本正确）、新增 persist-structure-check.md 结构复核输出。SIM-007 维持 persisted，等 Owner 裁决。

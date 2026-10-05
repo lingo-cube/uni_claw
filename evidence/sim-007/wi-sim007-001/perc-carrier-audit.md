@@ -1,7 +1,7 @@
 # WI-SIM007-001 — 8 个 execution.kind=none 场景逐载体事实矩阵（只读审计）
 
-- WorkItem: `workitems/WI-SIM007-001.json`（status: in_progress）
-- 基线：分支 `uni-harness`，HEAD `b8fe563a`（已核实 `git log --oneline -1`）
+- WorkItem: `workitems/WI-SIM007-001.json`（审计执行时 status: in_progress；派发方复核结果后置 done——2026-10-05 修订注记，终态以 WorkItem 文件为准）
+- 基线：分支 `uni-harness`，HEAD `b8fe563a`（**审计执行时状态**；审计落地后提交已推进（33cd0030 起），本报告结论与行号绑定审计执行时点的源码/JSON——2026-10-05 修订注记）
 - 性质：纯静态只读审计。所有证据为源码 文件:行号 与既有记录；**不含任何新鲜执行 PASS 表述**。
 - 唯一可写路径：`evidence/sim-007/wi-sim007-001/**`（本报告）。
 
@@ -10,7 +10,7 @@
 ## 0. 结构性总述（对 8 个场景同构的事实）
 
 1. **8 个场景的专有载体全部在同一个测试类**：`tests/UniClaw.Simulation.Tests/AsyncPerceptionScenarioTests.cs`，经 `[Fact, Trait("Scenario", "SCN-PERC-00N")]` 映射 FQN（行 158/255/313/432/488/548/850/1134）。
-2. **certified expectations 消费：8/8 全部为 none**。全仓库 `ScenarioExpectations.Load/Verify` 的调用点只有 `GoldenScenarioBundles.cs`（8 处，行 74/111/138/175/250/302/355/375/467）、`ScenarioLibrary.cs:60`、`ExecutableExpectationBindingTests.cs`（WIFI 场景）。`AsyncPerceptionScenarioTests.cs` / `AsyncPerceptionTracer.cs` / `AsyncPerceptionFixtures.cs` / `AsyncPerceptionRealizationTests.cs` **零调用**（grep 全量核对）。且 `ScenarioLibrary.Load` 对 kind=none 显式 fail-closed 拒绝（`ScenarioLibrary.cs:63-65`）——PERC 场景与 executable expectation projection 保证结构性脱钩，这是设计内行为。
+2. **certified expectations 消费：8/8 全部为 none**。全仓库 `ScenarioExpectations.Load/Verify` 的调用点只有 `GoldenScenarioBundles.cs`（**9 处**，行 74/111/138/175/250/302/355/375/467——2026-10-05 修订注记：原稿计数误写"8 处"而行号列表本就列出 9 个，经 Owner 审阅指出更正；grep 复核另命中注释行 16，非调用点）、`ScenarioLibrary.cs:60`、`ExecutableExpectationBindingTests.cs`（WIFI 场景）。`AsyncPerceptionScenarioTests.cs` / `AsyncPerceptionTracer.cs` / `AsyncPerceptionFixtures.cs` / `AsyncPerceptionRealizationTests.cs` **零调用**（grep 全量核对）。且 `ScenarioLibrary.Load` 对 kind=none 显式 fail-closed 拒绝（`ScenarioLibrary.cs:63-65`）——PERC 场景与 executable expectation projection 保证结构性脱钩，这是设计内行为。
 3. **GoalEvaluation 构造：8/8 全部为 none**。PERC harness（`AsyncPerceptionHost`，`AsyncPerceptionTracer.cs:527-611`）不构造 `UniAgent`、不产生 `GoalEvaluation`；grep 该 4 个文件仅命中 `ScriptedUniAgent` 构造（`AsyncPerceptionTracer.cs:579`）。`GoalEvaluation` 类型在产品面（`src/UniClaw.Agent/Evaluation/GoalEvaluation.cs:11`），测试面消费点仅在 `ScenarioRunner.cs:159/189`（golden-bundle 链路）。
 4. **digest 校验：8/8 全部为 none**。PERC 测试文件不读取 `certification` 块、不引用 expectationsDigest。
 5. **decision 面运行时对应物（8/8 同构，部分成立）**：`AsyncPerceptionHost` 构造 `ScriptedUniAgent(scenario.AgentScript)` 并经 `ConsultationJournal` 注入 `KernelRunDriver.RunDriverInputs.ConsultAgent`（`AsyncPerceptionTracer.cs:579-581, 591`）。缝的产品定义为 `src/UniClaw.Kernel/Runtime/RunDriverInputs.cs:66`，消费点 `src/UniClaw.Kernel/Runtime/KernelRunDriver.cs:1021`。decision 面确有运行时对应物（double：ScriptedUniAgent）；但无任何测试断言 consultation **计数**（`agentConsultations=2/1` 期望无计数断言对应，grep `Calls.Count` 在 AsyncPerceptionScenarioTests.cs 零命中）。
@@ -190,3 +190,37 @@ mkdir -p evidence/sim-007/wi-sim007-001
 ```
 
 （本审计创建的仅 `evidence/sim-007/wi-sim007-001/perc-carrier-audit.md`；`workitems/WI-SIM007-001.json` 为派发时已存在的未跟踪文件；`plans/2026-10-05-sim-008-carrier-duplication-options.md` 非本轮创建，系会话期间并行出现的未跟踪文件，本轮未读写其内容。审计全程零 M/D 工作树改动。）
+
+---
+
+## 附录 S（2026-10-05 Owner 审阅回补：逐场景 JSON 声明行号与同内容源文件引用）
+
+> 本附录由 Leader 依 Owner 审阅意见（P2：A1 逐场景证据形式完整性）补齐；采集方式为只读行号定位，
+> 不改变 §0–§6 任何结论。行号以本附录采集时点工作树为准（HEAD `33cd0030` 后、本附录提交前）。
+
+### S.1 逐场景 JSON 声明行号（scenarios/SCN-PERC-00N.json）
+
+| 场景 | expectations 块 | 六字段行域 | agentDecision Realization | goalEvaluation Realization | execution 块 | expectations Digest | certifiedByChange |
+|---|---|---|---|---|---|---|---|
+| SCN-PERC-001 | 17-24 | 17-24 | 15 | 16 | 25 | 30 | 33 |
+| SCN-PERC-002 | 17-24 | 17-24 | 15 | 16 | 25 | 30 | 33 |
+| SCN-PERC-003 | 17-24 | 17-24 | 15 | 16 | 25 | 30 | 33 |
+| SCN-PERC-004 | 17-24 | 17-24 | 15 | 16 | 25 | 30 | 33 |
+| SCN-PERC-005 | 16-23 | 16-23 | 14 | 15 | 24 | 29 | 32 |
+| SCN-PERC-006 | 16-23 | 16-23 | 14 | 15 | 24 | 29 | 32 |
+| SCN-PERC-007 | 17-24 | 17-24 | 15 | 16 | 25 | 30 | 33 |
+| SCN-PERC-008 | 18-25 | 18-25 | 16 | 17 | 26 | 31 | 34 |
+
+（六字段行域 = expectations 块整体：status/classification/effects/agentConsultations/unconsumedStimuli/goalSatisfaction 六键连续分布于该块内。）
+
+### S.2 expectations 同内容源文件引用（digest 一致的原始文件证据）
+
+digest 相同证明六字段内容**逐字节相同**；"复制自"为方向性推断（创建时序未逐仓核查），此处给出同内容的原始文件与行号：
+
+| digest 族 | PERC 场景（行号见 S.1） | 同内容源文件（expectations 块行号 / digest 行号） |
+|---|---|---|
+| `7de541f2…`（status=Completed/effects=1/consultations=2/Satisfied） | 001、002、004、005、006、007 | scenarios/SCN-WIFI-001.json（18-25 / 32） |
+| `400b1755…`（status=AgentDecisionFailed） | 003 | scenarios/SCN-POLICY-009.json（20-27 / 35） |
+| `4b272fd7…`（status=TerminalNotProven） | 008 | scenarios/SCN-POLICY-006.json（20-27 / 35） |
+
+（源文件 expectations 块与对应 PERC 块内容逐字段相同——digest 由 tools/scenario_certify.py expectations_digest 的 canonical 渲染保证内容等价即同 digest。）
