@@ -28,3 +28,6 @@ show-me-*.html
 
 # ScreenParser v2 weights — deliberately not in git (README: download prerequisite)
 platforms/perception/models/yolo/screenparser_v2/
+
+# SIM-006 run artifacts (resolved-config snapshots; evidence kept locally, not committed)
+evidence/sim-006/runs/

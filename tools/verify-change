@@ -1,9 +1,45 @@
 #!/usr/bin/env python3
-"""Read-only verification orchestrator; it never changes governance state."""
+"""Verification orchestrator; it never changes governance state.
+
+SIM-006 rework (A4-A8):
+- --scope quick|full (default full). quick = architecture tripwires + the
+  first-batch scenarios (trait-filtered; selection from the declarative
+  testset manifest) + certification check. full = complete regression with
+  single-execution reuse: the simulation suite runs once with a TRX logger,
+  coverage consumes that TRX, and FULL_SOLUTION covers the remaining
+  solution projects (simulation portion reused, never re-run for reporting).
+- Aggregation preserves ALL failure classes: behavior regression,
+  certification-staleness and environment unavailability can coexist and the
+  aggregate can never mask one with another (A7). FINAL_STATUS is scope-local;
+  a quick PASS never claims full acceptance (D11).
+- Requested configuration is validated before any execution: unknown scenario
+  ids and scope/parameter conflicts are rejected fail-closed (A5).
+- Each run emits a redacted resolved-config snapshot (inputs actually
+  consumed: scenario digests, testset manifest hash, runtime source hash,
+  TRX hash, git state) under evidence/sim-006/runs/ (A4; gitignored).
+"""
 from __future__ import annotations
-import argparse, os, subprocess, sys
+import argparse, datetime, hashlib, json, os, re, subprocess, sys
+import xml.etree.ElementTree as ET
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+SIM_PROJECT = "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj"
+SIM_TRX_DIR = os.path.join(ROOT, "tests", "UniClaw.Simulation.Tests", "TestResults")
+# FULL_SOLUTION covers every solution test project; the simulation project is
+# executed once by the SIMULATION group and reused (A6: no duplicate runs).
+OTHER_TEST_PROJECTS = (
+    "tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj",
+    "tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj",
+    "tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj",
+    "tests/UniClaw.FileSystemRealization.Tests/UniClaw.FileSystemRealization.Tests.csproj",
+    "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj",
+    "tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj",
+)
+TESTSET_MANIFEST = os.path.join(ROOT, "testsets", "simulation-baseline", "manifest.json")
+SCENARIO_ID_RE = re.compile(r"^SCN-[A-Z0-9][A-Z0-9-]*$")
+RUNS_DIR = os.path.join(ROOT, "evidence", "sim-006", "runs")
+
 
 def run(label, args):
     print(f"[{label}] {' '.join(args)}")
@@ -11,17 +47,219 @@ def run(label, args):
     print(p.stdout, end="")
     return p.returncode, p.stdout
 
-def classify(sim_rc, sim_out, cert_rc, cert_out, live_out=""):
-    combined = sim_out + cert_out
-    if "FINAL_STATUS=ENVIRONMENT_UNAVAILABLE" in live_out:
-        return "ENVIRONMENT_UNAVAILABLE"
-    if sim_rc or "expectationsDigest" in combined:
-        return "BEHAVIOR_REGRESSION"
-    if cert_rc and "runtimeSourceHash" in cert_out and "expectationsDigest" not in cert_out:
-        return "CERTIFICATION_STALE_ONLY"
-    return "FAIL" if cert_rc else "PASS"
 
-def self_test():
+def classify(sim_rc, sim_out, cert_rc, cert_out, live_out=""):
+    """All applicable failure classes, coexisting failures preserved (A7).
+
+    Order is by evidence strength, not priority: a behavior regression is
+    never masked by an environment classification or vice versa."""
+    classes = []
+    combined = sim_out + cert_out
+    if sim_rc or "expectationsDigest" in combined:
+        classes.append("BEHAVIOR_REGRESSION")
+    if cert_rc and "runtimeSourceHash" in cert_out and "expectationsDigest" not in cert_out:
+        classes.append("CERTIFICATION_STALE_ONLY")
+    if "FINAL_STATUS=ENVIRONMENT_UNAVAILABLE" in live_out:
+        classes.append("ENVIRONMENT_UNAVAILABLE")
+    if not classes and cert_rc:
+        classes.append("FAIL")
+    return classes
+
+
+def final_status(classes, failed):
+    if classes:
+        return "|".join(classes)
+    return "FAIL" if failed else "PASS"
+
+
+def manifest_scenario_ids():
+    """First-batch scenario selection: the declarative testset manifest (A3)."""
+    with open(TESTSET_MANIFEST, encoding="utf-8") as fh:
+        manifest = json.load(fh)
+    ids = []
+    for task in manifest.get("tasks", []):
+        ids.extend(task.get("scenarioRefs", []))
+    if not ids:
+        raise ValueError("testset manifest declares no scenarioRefs")
+    return sorted(set(ids))
+
+
+def validate_scenario_ids(ids):
+    """Unknown scenario ids must fail closed BEFORE any execution (A5)."""
+    problems = []
+    for sid in ids:
+        if not SCENARIO_ID_RE.fullmatch(sid) or not os.path.isfile(
+            os.path.join(ROOT, "scenarios", f"{sid}.json")
+        ):
+            problems.append(sid)
+    return problems
+
+
+def scope_skips(scope):
+    """Groups not requested by this scope, with honest reasons (A6/D11)."""
+    if scope == "quick":
+        return [
+            ("FULL_SOLUTION", "scope=quick (not requested)"),
+            ("COVERAGE", "scope=quick (trait-filtered subset cannot assert library-wide truth)"),
+        ]
+    return []
+
+
+def owner_basis(fqn):
+    """Honest localization basis: the test project owning the FQN (A8)."""
+    prefix = fqn.split(".Tests.")[0] + ".Tests"
+    return {
+        "UniClaw.Simulation.Tests": "simulation-harness/tests",
+        "UniClaw.Kernel.Tests": "kernel",
+        "UniClaw.Host.Tests": "host",
+        "UniClaw.Agent.Tests": "agent",
+        "UniClaw.Agent.Dsh.Tests": "agent-dsh",
+        "UniClaw.Core.Tests": "core",
+        "UniClaw.FileSystemRealization.Tests": "fs-realization",
+    }.get(prefix, "unknown")
+
+
+def trx_failures(trx_path):
+    """TRX → [(FQN, message excerpt)] for Failed outcomes (read-only)."""
+    try:
+        root = ET.parse(trx_path).getroot()
+    except ET.ParseError:
+        return []
+    out = []
+    for el in root.iter():
+        if el.tag.split("}")[-1] != "UnitTestResult" or el.get("outcome") != "Failed":
+            continue
+        message = ""
+        for child in el.iter():
+            if child.tag.split("}")[-1] == "Message":
+                message = (child.text or "").strip()
+                break
+        out.append((el.get("testName") or "<unnamed>", message))
+    return out
+
+
+def emit_failure_details(results, sim_trx):
+    """Expected/actual evidence per failure; unknown preserved as unknown (A8)."""
+    lines = ["── Failure details (expected/actual; classification; owner basis) ──"]
+    for name, rc, out in results:
+        if rc == 0:
+            continue
+        if name == "SIMULATION" and sim_trx and os.path.isfile(sim_trx):
+            failures = trx_failures(sim_trx)
+            if not failures:
+                lines.append(f"  GROUP {name}: rc={rc} but no Failed UnitTestResult in TRX — classification=UNCLASSIFIED firstDivergence=unknown")
+            for fqn, message in failures:
+                lines.append(
+                    f"  FAIL {fqn} ownerBasis={owner_basis(fqn)}"
+                    " classification=BEHAVIOR_REGRESSION firstDivergence=unknown"
+                    " (message follows; expected values live in the scenario's certified expectations)"
+                )
+                for chunk in (message[:600] or "<no message captured>").splitlines():
+                    lines.append(f"      {chunk}")
+        elif name == "CERTIFICATION":
+            for line in out.splitlines():
+                if "FAIL" in line:
+                    cls = ("CERTIFICATION_STALE_ONLY"
+                           if "runtimeSourceHash" in line and "expectationsDigest" not in line
+                           else "BEHAVIOR_REGRESSION")
+                    lines.append(f"  {line.strip()} classification={cls}")
+        else:
+            console_failures = [
+                line.strip() for line in out.splitlines()
+                if line.strip().startswith(("失败 ", "Failed "))
+            ]
+            if console_failures:
+                for line in console_failures[:10]:
+                    parts = line.split()
+                    fqn = parts[1] if len(parts) > 1 else line
+                    lines.append(
+                        f"  FAIL {fqn} ownerBasis={owner_basis(fqn)}"
+                        " classification=BEHAVIOR_REGRESSION firstDivergence=unknown"
+                        " (console excerpt follows; expected values live in the owning contract)")
+                    lines.append(f"      {line.strip()[:300]}")
+            else:
+                lines.append(f"  GROUP {name}: rc={rc} classification=UNCLASSIFIED firstDivergence=unknown ownerBasis=see-group-output")
+    print("\n".join(lines))
+
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def git_facts():
+    def cap(*args):
+        return subprocess.run(list(args), cwd=ROOT, text=True,
+                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout
+    head = cap("git", "rev-parse", "HEAD").strip()
+    branch = cap("git", "branch", "--show-current").strip()
+    dirty = [l for l in cap("git", "status", "--porcelain").splitlines() if l.strip()]
+    return head, branch, dirty
+
+
+def write_resolved_config(ns, scenario_ids, selection_source, results, skipped, classes, sim_trx, live_state):
+    """Redacted resolved-config snapshot: inputs actually consumed (A4).
+
+    Run A can never be overwritten by run B: each snapshot lands in its own
+    timestamped directory. No environment variables, credentials or secrets
+    are captured by construction."""
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    from scenario_certify import execution_digest, expectations_digest, runtime_source_hash
+
+    scenarios = {}
+    for sid in scenario_ids:
+        with open(os.path.join(ROOT, "scenarios", f"{sid}.json"), encoding="utf-8") as fh:
+            data = json.load(fh)
+        scenarios[sid] = {
+            "expectationsDigest": expectations_digest(data["expectations"]),
+            "executionDigest": execution_digest(data["execution"]),
+            "agentDecisionRealization": data.get("agentDecisionRealization"),
+            "goalEvaluationRealization": data.get("goalEvaluationRealization"),
+            "declaredStatus": data.get("status"),
+        }
+    head, branch, dirty = git_facts()
+    stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    outdir = os.path.join(RUNS_DIR, f"{ns.change}-{ns.scope}-{stamp}")
+    os.makedirs(outdir, exist_ok=True)
+    cfg = {
+        "schemaVersion": "sim006-resolved-config.v1",
+        "change": ns.change,
+        "scope": ns.scope,
+        "selection": {"source": selection_source, "scenarioIds": scenario_ids},
+        "git": {"head": head, "branch": branch, "dirtyPaths": dirty},
+        "inputs": {
+            "runtimeSourceHash": runtime_source_hash(),
+            "scenarios": scenarios,
+            "testsetManifest": {
+                "path": "testsets/simulation-baseline/manifest.json",
+                "sha256": sha256_file(TESTSET_MANIFEST),
+            },
+            "solution": "UniClaw.Kernel.slnx",
+        },
+        "execution": {
+            "groups": [{"name": n, "rc": rc, "status": "executed"} for n, rc, _ in results],
+            "skipped": [{"name": n, "reason": r} for n, r in skipped],
+            "simTrx": ({"path": os.path.relpath(sim_trx, ROOT), "sha256": sha256_file(sim_trx)}
+                       if sim_trx and os.path.isfile(sim_trx) else None),
+            "classification": classes,
+        },
+        "environment": {"live": live_state},
+        "redaction": ("by construction: only git head/branch/dirty paths, repo-relative asset"
+                      " paths, content digests and tool names are recorded; no environment"
+                      " variables, credentials or secrets are captured"),
+    }
+    target = os.path.join(outdir, "resolved-config.json")
+    with open(target, "w", encoding="utf-8") as fh:
+        json.dump(cfg, fh, ensure_ascii=False, indent=2)
+        fh.write("\n")
+    print(f"RESOLVED_CONFIG={os.path.relpath(target, ROOT)}")
+    return target
+
+
+def self_test(change):
     """Executable isolated contract tests; never writes repository files."""
     results = {}
     def check(key, description, predicate):
@@ -47,56 +285,148 @@ def self_test():
     check("T7", "Unknown is not off", lambda: all(semantic_value(x) is None for x in ("Unknown", "Partial", "Unsupported")))
     check("T8", "rendered is not semantic", lambda: ("rendered-on", "checked") != ("semantic-on", "checked"))
     required = {"CHANGE", "FOCUSED", "ARCHITECTURE", "SIMULATION", "FULL_SOLUTION", "CERTIFICATION",
-                "COVERAGE", "LIVE", "DIFF_CHECK", "EXPECTATIONS_DIGEST", "FIRST_FAILURE", "FINAL_STATUS"}
+                "COVERAGE", "LIVE", "DIFF_CHECK", "EXPECTATIONS_DIGEST", "FIRST_FAILURE", "FINAL_STATUS", "SCOPE"}
     orchestrator = open(__file__, encoding="utf-8").read()
     check("T9", "clean orchestrator contract", lambda: all(field in orchestrator for field in required))
-    check("T10", "behavior regression classifier", lambda: classify(1, "test failed", 1, "runtimeSourceHash") == "BEHAVIOR_REGRESSION")
-    check("T11", "expectations mismatch is behavior regression", lambda: classify(0, "", 1, "expectationsDigest mismatch; runtimeSourceHash stale") == "BEHAVIOR_REGRESSION")
+    check("T10", "behavior regression coexisting with stale certification: both preserved",
+          lambda: classify(1, "test failed", 1, "runtimeSourceHash")
+          == ["BEHAVIOR_REGRESSION", "CERTIFICATION_STALE_ONLY"])
+    check("T11", "expectations mismatch is behavior regression", lambda: classify(0, "", 1, "expectationsDigest mismatch; runtimeSourceHash stale") == ["BEHAVIOR_REGRESSION"])
     forbidden_all = "--" + "all"
-    check("T12", "stale certification classifier", lambda: classify(0, "", 1, "runtimeSourceHash stale") == "CERTIFICATION_STALE_ONLY")
+    check("T12", "stale certification classifier", lambda: classify(0, "", 1, "runtimeSourceHash stale") == ["CERTIFICATION_STALE_ONLY"])
     check("T13", "no automatic re-certification", lambda: "scenario_certify.py" in orchestrator and "--check" in orchestrator and forbidden_all not in orchestrator)
-    check("T14", "environment failure separated", lambda: classify(0, "", 2, "", "FINAL_STATUS=ENVIRONMENT_UNAVAILABLE") == "ENVIRONMENT_UNAVAILABLE")
-    print("CHANGE=WMP-005 SELF_TEST")
+    check("T14", "coexisting behavior+stale+environment failures all preserved",
+          lambda: classify(1, "test failed", 1, "runtimeSourceHash", "FINAL_STATUS=ENVIRONMENT_UNAVAILABLE")
+          == ["BEHAVIOR_REGRESSION", "CERTIFICATION_STALE_ONLY", "ENVIRONMENT_UNAVAILABLE"])
+    check("T15", "isolated environment failure preserved",
+          lambda: classify(0, "", 0, "", "FINAL_STATUS=ENVIRONMENT_UNAVAILABLE") == ["ENVIRONMENT_UNAVAILABLE"])
+    check("T16", "aggregate cannot PASS while failures exist",
+          lambda: final_status(["BEHAVIOR_REGRESSION", "ENVIRONMENT_UNAVAILABLE"], True) != "PASS"
+          and final_status([], False) == "PASS")
+    check("T17", "unknown scenario ids rejected; manifest selection valid",
+          lambda: validate_scenario_ids(["SCN-DOES-NOT-EXIST"]) == ["SCN-DOES-NOT-EXIST"]
+          and validate_scenario_ids(manifest_scenario_ids()) == [])
+    check("T18", "quick scope skips recorded with reasons",
+          lambda: scope_skips("quick") == [
+              ("FULL_SOLUTION", "scope=quick (not requested)"),
+              ("COVERAGE", "scope=quick (trait-filtered subset cannot assert library-wide truth)")]
+          and scope_skips("full") == [])
+    print(f"CHANGE={change} SELF_TEST")
     for key in ("FOCUSED", "ARCHITECTURE", "SIMULATION", "FULL_SOLUTION", "CERTIFICATION", "COVERAGE", "LIVE", "DIFF_CHECK", "EXPECTATIONS_DIGEST"):
         print(f"{key}=PASS")
     print("FIRST_FAILURE=NONE")
+    print("SCOPE=self-test")
     print("FINAL_STATUS=" + ("PASS" if all(results.values()) else "FAIL"))
     return 0 if all(results.values()) else 1
+
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("change")
     ap.add_argument("--self-test", action="store_true")
     ap.add_argument("--live", action="store_true")
+    ap.add_argument("--scope", choices=["quick", "full"], default="full",
+                    help="quick = contracts + selected scenarios; full = complete regression with single-execution reuse")
+    ap.add_argument("--scenarios",
+                    help="comma-separated scenario ids; quick scope only — overrides the testset manifest selection")
+    ap.add_argument("--no-snapshot", action="store_true",
+                    help="skip the resolved-config evidence snapshot")
     ns = ap.parse_args()
     print(f"CHANGE={ns.change}")
-    if ns.self_test: return self_test()
+    if ns.self_test:
+        return self_test(ns.change)
+
+    # A5: validate the requested configuration BEFORE any execution (fail closed;
+    # explicit parameters can only narrow the quick selection, never widen scope).
+    selection_source = "testsets/simulation-baseline/manifest.json scenarioRefs"
+    if ns.scenarios:
+        if ns.scope != "quick":
+            print("FAIL: --scenarios is only valid with --scope quick (parameter conflict rejected before execution)")
+            return 2
+        scenario_ids = [s.strip() for s in ns.scenarios.split(",") if s.strip()]
+        selection_source = "explicit --scenarios"
+    else:
+        try:
+            scenario_ids = manifest_scenario_ids()
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"FAIL: first-batch scenario selection unavailable ({exc}) — unknown required config rejected before execution")
+            return 2
+    unknown = validate_scenario_ids(scenario_ids)
+    if unknown:
+        print(f"FAIL: unknown scenario id(s): {', '.join(unknown)} — rejected before execution")
+        return 2
+
     results = []
+    skipped = scope_skips(ns.scope)
+    print(f"SCOPE={ns.scope}")
     print("FOCUSED=SKIPPED (change-specific tests remain change-owned)")
     rc, out = run("DIFF_CHECK", ["git", "diff", "--check"]); results.append(("DIFF_CHECK", rc, out))
     rc, out = run("ARCHITECTURE", ["dotnet", "test", "tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj", "--no-restore", "--filter", "FullyQualifiedName~LegacyStateSurfaceFreezeTests|FullyQualifiedName~Per014CutoverTests|FullyQualifiedName~ConflictResolverTests|FullyQualifiedName~Per009RemediationTests|FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~SemanticCheckedResolverTests", "--logger", "console;verbosity=minimal"]); results.append(("ARCHITECTURE", rc, out))
     rc, out = run("ARCHITECTURE_HOST", ["dotnet", "test", "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj", "--no-restore", "--filter", "FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~LiveDeviceSelectorTests|FullyQualifiedName~LegacySurfaceRemovalTripwireTests", "--logger", "console;verbosity=minimal"]); results.append(("ARCHITECTURE_HOST", rc, out))
-    rc, out = run("SIMULATION", ["dotnet", "test", "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj", "--no-restore", "--logger", "console;verbosity=minimal"]); results.append(("SIMULATION", rc, out))
-    rc, out = run("FULL_SOLUTION", ["dotnet", "test", "UniClaw.Kernel.slnx", "--no-restore", "--logger", "console;verbosity=minimal"]); results.append(("FULL_SOLUTION", rc, out))
+
+    trx_name = f"sim006-{'quick' if ns.scope == 'quick' else 'full'}.trx"
+    sim_trx = os.path.join(SIM_TRX_DIR, trx_name)
+    if ns.scope == "quick":
+        scenario_filter = "|".join(f"Scenario={sid}" for sid in scenario_ids)
+        rc, out = run("SIMULATION", ["dotnet", "test", SIM_PROJECT, "--no-restore", "--filter", scenario_filter, "--logger", "console;verbosity=minimal", "--logger", f"trx;LogFileName={trx_name}"])
+        results.append(("SIMULATION", rc, out))
+        print(f"SIMULATION_NOTE=quick subset (trait-filtered: {scenario_filter}); not library-wide coverage")
+    else:
+        rc, out = run("SIMULATION", ["dotnet", "test", SIM_PROJECT, "--no-restore", "--logger", "console;verbosity=minimal", "--logger", f"trx;LogFileName={trx_name}"])
+        results.append(("SIMULATION", rc, out))
+        # A6 dedup: every remaining solution project once; the simulation
+        # portion of FULL_SOLUTION is the SIMULATION execution above (same
+        # binaries, same TRX) — never re-run just to assemble the report.
+        fs_rc, fs_out = 0, []
+        for project in OTHER_TEST_PROJECTS:
+            label = f"FULL_SOLUTION[{os.path.basename(os.path.dirname(project))}]"
+            prc, pout = run(label, ["dotnet", "test", project, "--no-restore", "--logger", "console;verbosity=minimal"])
+            fs_rc = max(fs_rc, prc)
+            fs_out.append(pout)
+        results.append(("FULL_SOLUTION", fs_rc, "\n".join(fs_out)))
+        print("FULL_SOLUTION_NOTE=simulation portion reused from SIMULATION (single execution; TRX shared with COVERAGE)")
+
     rc, out = run("CERTIFICATION", ["python3", "tools/scenario_certify.py", "--check"]); results.append(("CERTIFICATION", rc, out))
-    rc, out = run("COVERAGE", ["python3", "tools/scenario-coverage.py", "--run"]); results.append(("COVERAGE", rc, out))
+    if ns.scope == "full":
+        rc, out = run("COVERAGE", ["python3", "tools/scenario-coverage.py", "--trx", os.path.relpath(sim_trx, ROOT)]); results.append(("COVERAGE", rc, out))
     if ns.live:
         rc, out = run("LIVE", ["tools/verify-live"]); results.append(("LIVE", rc, out))
+        live_state = "executed"
     else:
         print("LIVE=SKIPPED (use --live to run environment gate)")
-    failed = [name for name, rc, _ in results if rc]
-    sim_failed = any(name == "SIMULATION" and rc for name, rc, _ in results)
-    cert_result = next(((rc, out) for name, rc, out in results if name == "CERTIFICATION"), (0, ""))
-    sim_result = next(((rc, out) for name, rc, out in results if name == "SIMULATION"), (0, ""))
-    live_out = next((out for name, _, out in results if name == "LIVE"), "")
-    cert_rc, cert_out = cert_result
-    sim_rc, sim_out = sim_result
-    classification = classify(sim_rc, sim_out, cert_rc, cert_out, live_out)
-    cert_stale = classification == "CERTIFICATION_STALE_ONLY"
-    digest_changed = "expectationsDigest" in sim_out or "expectationsDigest" in cert_out
-    print(f"FIRST_FAILURE={failed[0] if failed else 'NONE'}")
-    print("EXPECTATIONS_DIGEST=" + ("CHANGED" if digest_changed else "UNCHANGED"))
-    print("FINAL_STATUS=" + (classification if classification != "PASS" else "FAIL" if failed else "PASS"))
-    return 1 if failed else 0
+        live_state = "not-requested"
 
-if __name__ == "__main__": sys.exit(main())
+    failed = [name for name, rc, _ in results if rc]
+    def group(name):
+        return next(((rc, out) for n, rc, out in results if n == name), (0, ""))
+    sim_rc, sim_out = group("SIMULATION")
+    cert_rc, cert_out = group("CERTIFICATION")
+    live_out = next((out for n, _, out in results if n == "LIVE"), "")
+    classes = classify(sim_rc, sim_out, cert_rc, cert_out, live_out)
+    digest_changed = "expectationsDigest" in sim_out or "expectationsDigest" in cert_out
+
+    for name, rc, _ in results:
+        print(f"GROUP_{name}={'FAIL' if rc else 'PASS'}")
+    for name, reason in skipped:
+        print(f"GROUP_{name}=SKIPPED ({reason})")
+    if ns.live:
+        print(f"GROUP_LIVE={'FAIL' if group('LIVE')[0] else 'PASS'}"
+              + ("|UNAVAILABLE" if "FINAL_STATUS=ENVIRONMENT_UNAVAILABLE" in live_out else ""))
+    print(f"FIRST_FAILURE={failed[0] if failed else 'NONE'}")
+    print("FIRST_FAILURE_SEMANTIC=execution-order group; not the first behavioral divergence (see Failure details)")
+    print(f"EXPECTATIONS_DIGEST={'CHANGED' if digest_changed else 'UNCHANGED'}")
+    if ns.scope == "quick":
+        print("SCOPE_NOTE=quick verdict covers architecture tripwires + selected scenarios only; full acceptance requires --scope full")
+    final = final_status(classes, failed)
+    print(f"FINAL_STATUS={final}")
+    if failed or classes:
+        emit_failure_details(results, sim_trx)
+
+    if not ns.no_snapshot:
+        write_resolved_config(ns, scenario_ids, selection_source, results, skipped, classes,
+                              sim_trx, live_state)
+    return 1 if (failed or classes) else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
