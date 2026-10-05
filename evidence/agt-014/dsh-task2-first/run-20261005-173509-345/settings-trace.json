@@ -1,0 +1,21 @@
+[
+  {
+    "cycle": 1,
+    "context": "External",
+    "captureId": "capture-84635063c871414cbd8ebf6dcf738aff",
+    "observationCycleId": "settings-cycle-001",
+    "fastAvailable": true,
+    "hierarchyAvailable": true,
+    "proposalCount": 586,
+    "fastLatency": "00:01:03.7454155",
+    "hierarchyLatency": "00:00:02.0425680",
+    "screenIdentity": "android.settings|rk1:Settings|src=homepage_title|up=0",
+    "popup": "absent",
+    "slow": null,
+    "viewportDigest": "vd1:53DCAF07",
+    "grounding": null,
+    "assurance": null,
+    "effect": null,
+    "verification": null
+  }
+]

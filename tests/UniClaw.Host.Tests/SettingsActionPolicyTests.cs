@@ -5,6 +5,7 @@ using Xunit;
 namespace UniClaw.Host.Tests;
 
 /// <summary>AGT-013：策略在首次咨询前加载、投影与 dispatch 前 guard。</summary>
+[Collection("SettingsCoverageConfigSerial")]
 public sealed class SettingsActionPolicyTests
 {
     private static string RepoRoot()

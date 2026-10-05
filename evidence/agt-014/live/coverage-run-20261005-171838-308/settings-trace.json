@@ -1,0 +1,40 @@
+[
+  {
+    "cycle": 1,
+    "context": "External",
+    "captureId": "capture-520f517ac4c344c88d516ce545aafb2b",
+    "observationCycleId": "settings-cycle-001",
+    "fastAvailable": false,
+    "hierarchyAvailable": true,
+    "proposalCount": 586,
+    "fastLatency": "00:00:00.2987642",
+    "hierarchyLatency": "00:00:02.0205470",
+    "screenIdentity": "android.settings|rk1:Settings|src=homepage_title|up=0",
+    "popup": "absent",
+    "slow": "StructuralVisualConflict|Skipped",
+    "viewportDigest": "vd1:53DCAF07",
+    "grounding": null,
+    "assurance": null,
+    "effect": null,
+    "verification": null
+  },
+  {
+    "cycle": 2,
+    "context": "PostActionEffectFlow",
+    "captureId": "capture-98c51968ac7e4f428e1a2eb7a52afe35",
+    "observationCycleId": "settings-cycle-002",
+    "fastAvailable": false,
+    "hierarchyAvailable": false,
+    "proposalCount": 2,
+    "fastLatency": "00:00:00.3110527",
+    "hierarchyLatency": "00:00:03.5773794",
+    "screenIdentity": "android.settings",
+    "popup": null,
+    "slow": "NoXml|Skipped",
+    "viewportDigest": null,
+    "grounding": null,
+    "assurance": null,
+    "effect": null,
+    "verification": null
+  }
+]

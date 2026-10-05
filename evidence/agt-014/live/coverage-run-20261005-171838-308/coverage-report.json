@@ -1,0 +1,55 @@
+{
+  "status": "BoundedStop",
+  "items": [
+    {
+      "requirement": "root-page",
+      "detail": "root route observed",
+      "covered": true,
+      "evidence": "android.settings|rk1:Settings|src=homepage_title|up=0"
+    },
+    {
+      "requirement": "first-level-all-visible",
+      "detail": "entered 1/1",
+      "covered": true,
+      "evidence": "entered:Network \u0026 internet-\u003Eandroid.settings"
+    },
+    {
+      "requirement": "scroll-discovered-entry",
+      "detail": "entered 0/99 scroll-discovered",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "second-level-pages",
+      "detail": "distinct second-level routes 1/2",
+      "covered": false,
+      "evidence": "android.settings"
+    },
+    {
+      "requirement": "back-navigation",
+      "detail": "back verified 0",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "repeated-entry",
+      "detail": "satisfied 0/1",
+      "covered": false,
+      "evidence": null
+    }
+  ],
+  "coverageRate": 0.3333333333333333,
+  "stepSuccessRate": 1,
+  "uncoveredItems": [
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "back-navigation",
+    "repeated-entry"
+  ],
+  "firstDivergence": null,
+  "stepsExecuted": 1,
+  "stepsVerified": 1,
+  "scrollsUsed": 0,
+  "scrollAttempts": 0,
+  "consultRounds": 2
+}

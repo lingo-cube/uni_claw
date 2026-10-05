@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-facts.v2",
+  "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/agt-010/live-rerun/run-20261005-171838-308",
+  "status": "TerminalNotProven",
+  "reason": "evidence-insufficient",
+  "outcome": null,
+  "delivered": 1,
+  "receipts": [
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0.3333333333333333,
+  "stepSuccessRate": 1,
+  "uncovered": [
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "back-navigation",
+    "repeated-entry"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": null,
+  "diagnostics": {
+    "firstDivergence": null,
+    "terminalJustification": null,
+    "nextFiles": [
+      "facts.json",
+      "coverage-report.json",
+      "coverage-steps.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B firstDivergence/reason\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 coverage-steps.json\u3001trace.json \u548C exec.journal\u3002"
+  },
+  "actionPolicy": null,
+  "evidenceDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/agt-010/live-rerun/run-20261005-171838-308/evidence",
+  "evidenceFiles": 3,
+  "journalBytes": 1534,
+  "consults": [
+    {
+      "decisionId": "decision-024b7c98d54c-1",
+      "phase": "InitialPlanning",
+      "directive": "Enter the Settings first-level entry \u0027\u003CNetwork \u0026 internet\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "live-rerun-follower",
+      "policyDigest": null,
+      "guardVerdict": null
+    },
+    {
+      "decisionId": "decision-024b7c98d54c-2",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "live-rerun-follower",
+      "policyDigest": null,
+      "guardVerdict": null
+    }
+  ],
+  "steps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-c6884aaefed4-3-1"
+    }
+  ]
+}

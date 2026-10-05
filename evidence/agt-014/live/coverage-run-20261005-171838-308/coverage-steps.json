@@ -1,0 +1,39 @@
+[
+  {
+    "index": 0,
+    "decisionId": "decision-024b7c98d54c-1",
+    "dshSessionId": "agt-010-live-rerun",
+    "directive": "Enter the Settings first-level entry \u0027\u003CNetwork \u0026 internet\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Network \u0026 internet",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-1-occ-c6884aaefed4-3-1",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 831",
+    "routeBefore": "android.settings|rk1:Settings|src=homepage_title|up=0",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-98c51968ac7e4f428e1a2eb7a52afe35",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      }
+    ]
+  }
+]
