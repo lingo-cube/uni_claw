@@ -3,8 +3,9 @@
 ## 结果摘要
 
 本回合把确定性、真实设备、真实 DSH 三个层次分开执行。确定性 Guard 与真实
-ADB/感知链通过；真实 DSH 已完成握手，但首次咨询连续两次在 75 秒服务时限内
-无响应，未产生 effect。当前不能把三项真实模型任务标为 PASS。
+ADB/感知链通过；真实 DSH 已完成握手，但独立运行中的首次咨询在 75 秒服务时限内
+无响应，未产生 effect。最终预热回合只有一次 consultation；重复诊断行不代表
+两次请求（见下文 provider 诊断）。当前不能把三项真实模型任务标为 PASS。
 
 ## 真实设备结果
 
@@ -22,7 +23,7 @@ ADB/感知链通过；真实 DSH 已完成握手，但首次咨询连续两次�
 ## 真实 DSH 结果
 
 真实入口使用 profile 中的 `zai-coding-cn/glm-5.3-flash`，设备为 API 35
-emulator，DSH handshake 成功。随后两次 consultation 均为：
+emulator，DSH handshake 成功。独立运行的 consultation 均为：
 
 - `turn-timeout: consult turn deadline elapsed (75000ms)`
 - `status: AgentDecisionFailed (no-response)`
@@ -34,7 +35,7 @@ emulator，DSH handshake 成功。随后两次 consultation 均为：
 耗时：对同一真实截图的冷启动复测拆分为服务启动 `63.314s`、PNG 解码
 `0.056s`、当前截图推理 `0.619s`（详见 `fast-perception-timing-2026-10-06.md`）。
 因此首个已证实分歧点是 Host 在第一次观察中懒启动视觉服务；原先把它归因为
-586 proposals 带来的上下文压力是不成立的。DSH consultation 后续仍有两次
+586 proposals 带来的上下文压力是不成立的。此前两个独立 DSH 运行均出现
 75s 无响应，但是否与 586 proposals 有关目前没有证据。问题不在 ADB 点击、
 Guard 或 post-action verification。
 
@@ -44,7 +45,7 @@ Guard 或 post-action verification。
 `0.721s`、PNG 解码 `0.055s`、当前截图推理 `0.664s`、hierarchy
 `2.011s`，`fastInferenceSucceeded=true`，proposal 数量为 586。首帧不再携带
 视觉服务冷启动。
-这次回合仍连续两次出现 `turn-timeout: consult turn deadline elapsed (75000ms)`，
+这次回合仍出现 `turn-timeout: consult turn deadline elapsed (75000ms)`，
 `delivered=0`，说明剩余故障在 Agent consultation 或其服务边界，不能再归因于
 快感知首帧 63 秒。
 
@@ -75,15 +76,25 @@ ADB 启动超时。已完成不改变架构/协议/模型的局部修复：
   `device`、API 35、`sys.boot_completed=1`，`.state` 中 supervisor PID 存活；
   `stop-test-device.sh` 可回收该实例。
 
-## 后续需要裁决
+## Provider 诊断与下一步
 
-当前剩余问题集中在真实 DSH consultation；视觉服务冷启动已做局部修复，待重新跑真实 DSH 复验：
+后续读取最终 DSH 会话原始 journal，确认：首次请求 + 5 次重试，每次约 10.5s
+均为 `TIMEOUT`；实际 consultation prompt 为 6,445 UTF-8 bytes、8 个元素、
+4 条 claim、1 个 obligation，586 个感知 proposals 没有全部下发给模型。
+最终回合只有一次 consultation；adapter 对同一 null response 重复记录了
+no-decision，撤回此前根据重复诊断行写的“本回合两次 consultation”。
 
-1. 预热后的真实 Settings 回合是否仍出现 consultation 超时；若仍出现，再评估
-   是否为真实任务建立更小的首轮上下文/候选投影，以降低 586 proposals 带来的
-   模型压力。这要等去除冷启动干扰后重新实测，再决定是否需要 Owner 裁决。
-2. 是否调整 DSH consultation 服务时限或 provider 运行策略；这属于
-   Host/DSH 运行配置边界，不能在本回合静默改变。
+当前 DSH 进程没有 proxy 环境。无凭据网络探针复现：Node 直连同一智谱地址
+10.551s 后报 `UND_ERR_CONNECT_TIMEOUT`；走授权的 7890 线路 0.159s 收到
+HTTP 401（仅证明网络可达，不证明模型请求成功）。直接故障位于 provider
+网络线路；75s 是重试累积后撞上的外层截止时间。
+
+已按 7890 配置并重启 DSH；同一 provider/model 的专用 3081 最小真实咨询通过，
+DSH 日志为 `consult captured`、`kind=act`、`durationMs=11177`，测试耗时
+12.172s。下一步重跑正式 Settings 流程，确认完整上下文和设备链也能通过。
+无需先改模型、协议、缩小上下文或提高外层时限。另需验证重复诊断与超时后取消
+生命周期。
+详见 `dsh-provider-timeout-diagnosis-2026-10-06.md`。
 
 本回合已完成的局部修复：SettingsTraversalLiveFeed 构造阶段显式预热视觉服务，
 并在 settings-trace 中记录预热耗时/结果；首轮 Analyze 只记录当前截图的解码和

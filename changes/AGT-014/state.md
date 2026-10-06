@@ -48,7 +48,7 @@ trace/facts/evidence。目标是暴露可靠性、智能性、容错性和可诊
 level: ENVIRONMENT
 method: real API 35 emulator + DSH Agent + ADB + SettingsCoverage/HostRunner live runs; deterministic regression after any local fix
 expected: three tasks and failure paths produce traceable, safe, honest outcomes
-actual: deterministic + real-device chain partial PASS; full solution 1307/1307 and Host.Dsh build pass; real DSH handshake accepted but two 75s consultation timeouts, zero effects; owner decision required
+actual: deterministic + real-device chain partial PASS; full solution 1307/1307 and Host.Dsh build pass; independent real DSH runs time out at the 75s consultation boundary with zero effects; provider journal and current probes locate direct transport TIMEOUT, authorized proxy preparation and authenticated verification remain
 evidence: evidence/agt-014/verification-2026-10-06.md
 ```
 
@@ -68,7 +68,8 @@ evidence: evidence/agt-014/verification-2026-10-06.md
   原有 hierarchy 可用、fast fail-closed 语义。
 - 2026-10-06 · VERIFY · 最终构建预热复验首帧 fast path 0.721s（startup=0、
   decode=0.055s、inference=0.664s），environment-preflight=true；但 DSH
-  consultation 仍两次 75s 无响应、零 effect；
+  consultation 仍 75s 无响应、零 effect（后续 journal 复核修正：最终回合一次请求，
+  adapter 重复诊断行不能计作两次 consultation）；
   环境启动器 supervisor 复验通过，设备在启动脚本退出后仍在线。
 - 2026-10-06 · IMPLEMENT · 正式流程前写入 environment-preflight.json，facts 的
   beginner guidance 增加该入口；启动脚本改用独立 emulator supervisor，补齐
@@ -76,3 +77,13 @@ evidence: evidence/agt-014/verification-2026-10-06.md
 - 2026-10-06 · VERIFY → IMPLEMENT → VERIFY · 全量并行回归暴露 process-wide
   config-path 环境变量竞态；将相关 Host tests 收入不可并行集合后 Host.Tests
   恢复 153/153 PASS。
+- 2026-10-06 · RESOLVE · DSH 原始 session journal 证实 provider 首次请求 + 5 次
+  重试均为 TIMEOUT；实际上下文只有 8 elements/4 claims/1 obligation。
+  当前无凭据网络探针复现直连 UND_ERR_CONNECT_TIMEOUT（10.551s），7890
+  线路 HTTP 401（0.159s）；故障定位至 provider 网络准备，撤回 586 proposals
+  上下文压力假设与最终回合“两次 consultation”的重复日志计数。
+  证据：evidence/agt-014/dsh-provider-timeout-diagnosis-2026-10-06.md。
+- 2026-10-06 · VERIFY · DSH 家目录配置 HTTP/HTTPS proxy=127.0.0.1:7890 后，
+  专用 3081 + 同一 `zai-coding-cn/glm-5.3-flash` 的最小真实咨询通过；DSH
+  日志为 `consult captured`、`kind=act`、11.177s，测试 1/1 PASS（12.172s）。
+  provider/submit_decision seam 已恢复，正式 Settings 全链路尚待复验。
