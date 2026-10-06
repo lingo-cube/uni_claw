@@ -29,10 +29,27 @@ emulator，DSH handshake 成功。随后两次 consultation 均为：
 - `delivered: 0`
 - 未进入 Runtime Guard dispatch，也未产生 effect receipt。
 
-真实 Settings trace 显示首帧：586 个 proposals，fast perception latency
-`63.745s`，hierarchy latency `2.043s`。因此首个分歧点在真实 Agent consultation
-之前的感知/上下文压力与 DSH consultation 响应时限之间；不是 ADB 点击、Guard
-或 post-action verification。
+真实 Settings trace 显示首帧：586 个 proposals，原始快路径总耗时
+`63.745s`，hierarchy latency `2.043s`。该数字不能解释为当前截图的视觉推理
+耗时：对同一真实截图的冷启动复测拆分为服务启动 `63.314s`、PNG 解码
+`0.056s`、当前截图推理 `0.619s`（详见 `fast-perception-timing-2026-10-06.md`）。
+因此首个已证实分歧点是 Host 在第一次观察中懒启动视觉服务；原先把它归因为
+586 proposals 带来的上下文压力是不成立的。DSH consultation 后续仍有两次
+75s 无响应，但是否与 586 proposals 有关目前没有证据。问题不在 ADB 点击、
+Guard 或 post-action verification。
+
+### 预热复验
+
+最终构建的真实 DSH 回合首帧记录为：预热 `63.233s`、快路径总耗时
+`0.721s`、PNG 解码 `0.055s`、当前截图推理 `0.664s`、hierarchy
+`2.011s`，`fastInferenceSucceeded=true`，proposal 数量为 586。首帧不再携带
+视觉服务冷启动。
+这次回合仍连续两次出现 `turn-timeout: consult turn deadline elapsed (75000ms)`，
+`delivered=0`，说明剩余故障在 Agent consultation 或其服务边界，不能再归因于
+快感知首帧 63 秒。
+
+证据：`dsh-task2-prewarm-final/run-20261006-013701-765/environment-preflight.json`、
+同目录 `settings-trace.json`、`facts.json` 和 `trace.json`。
 
 证据：
 
@@ -54,14 +71,25 @@ ADB 启动超时。已完成不改变架构/协议/模型的局部修复：
 - Host/coverage 早期异常会落 `failure.json`，facts 提供初级程序员的查找顺序。
 - Host 配置测试中的进程级环境变量覆盖已归入同一串行集合，避免全量回归时
   临时 profile 污染默认 Settings profile。
+- emulator 生命周期复验：启动脚本退出 3 秒后，`emulator-5558` 仍为
+  `device`、API 35、`sys.boot_completed=1`，`.state` 中 supervisor PID 存活；
+  `stop-test-device.sh` 可回收该实例。
 
 ## 后续需要裁决
 
-当前剩余问题集中在真实 DSH consultation：
+当前剩余问题集中在真实 DSH consultation；视觉服务冷启动已做局部修复，待重新跑真实 DSH 复验：
 
-1. 是否允许为 Settings 真实任务建立更小的首轮上下文/候选投影，以降低 586
-   proposals 带来的模型压力；这涉及任务智能性与上下文取舍，需 Owner 决定。
-2. 是否允许调整 DSH consultation 服务时限或 provider 运行策略；这属于
+1. 预热后的真实 Settings 回合是否仍出现 consultation 超时；若仍出现，再评估
+   是否为真实任务建立更小的首轮上下文/候选投影，以降低 586 proposals 带来的
+   模型压力。这要等去除冷启动干扰后重新实测，再决定是否需要 Owner 裁决。
+2. 是否调整 DSH consultation 服务时限或 provider 运行策略；这属于
    Host/DSH 运行配置边界，不能在本回合静默改变。
 
-在这两项裁决前，AGT-014 保持 persisted，不能关闭为真实模型全链路完成。
+本回合已完成的局部修复：SettingsTraversalLiveFeed 构造阶段显式预热视觉服务，
+并在 settings-trace 中记录预热耗时/结果；首轮 Analyze 只记录当前截图的解码和
+推理耗时。`start-test-device.sh` 通过独立 supervisor 托管 emulator，并用
+`environment-preflight.json` 标记正式流程是在环境预检之后启动。上述修复不改变
+模型、协议或架构。
+
+在预热后的真实 DSH 复验已完成但 consultation 仍失败的情况下，AGT-014 保持 persisted，不能关闭为真实模型
+全链路完成。

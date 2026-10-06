@@ -60,8 +60,19 @@ evidence: evidence/agt-014/verification-2026-10-06.md
 - 2026-10-06 · PLAN → IMPLEMENT → VERIFY · 真实 API35 emulator 链路通过 typed、
   Host Wi-Fi、ADB、坐标和有界 coverage；首轮环境故障已做局部修复。
 - 2026-10-06 · VERIFY · 真实 DSH handshake 成功，但 glm-5.3-flash consultation
-  两次 75s 无响应，586 proposals/首帧感知 63.7s；未产生 effect，保留为需 Owner
-  裁决的运行边界，未关闭 Change。
+  两次 75s 无响应，未产生 effect。首帧原始快路径 63.7s 已拆证为视觉服务
+  冷启动 63.314s、PNG 解码 0.056s、当前截图推理 0.619s；撤回“586 proposals
+  导致首帧感知变慢”的未证实归因，保留首轮预热与后续 consultation 作为待处理项。
+- 2026-10-06 · IMPLEMENT · SettingsTraversalLiveFeed 在首轮观察前显式预热视觉
+  服务；settings-trace 增加预热、解码和当前截图推理分段计时；预热失败仍沿用
+  原有 hierarchy 可用、fast fail-closed 语义。
+- 2026-10-06 · VERIFY · 最终构建预热复验首帧 fast path 0.721s（startup=0、
+  decode=0.055s、inference=0.664s），environment-preflight=true；但 DSH
+  consultation 仍两次 75s 无响应、零 effect；
+  环境启动器 supervisor 复验通过，设备在启动脚本退出后仍在线。
+- 2026-10-06 · IMPLEMENT · 正式流程前写入 environment-preflight.json，facts 的
+  beginner guidance 增加该入口；启动脚本改用独立 emulator supervisor，补齐
+  PID/serial/clone 生命周期记录。
 - 2026-10-06 · VERIFY → IMPLEMENT → VERIFY · 全量并行回归暴露 process-wide
   config-path 环境变量竞态；将相关 Host tests 收入不可并行集合后 Host.Tests
   恢复 153/153 PASS。

@@ -118,6 +118,15 @@ public sealed class HostRunner
             // AGT-011 §4：SettingsTraversal 模式证据持久化（AGT-008 缺省全开）。
             settingsFeed = new SettingsTraversalLiveFeed(
                 clock, options.Live, Path.Combine(runDir, "evidence"));
+            // Environment preparation is completed before the formal driver
+            // loop starts. Keep a small durable marker so a failed warmup is
+            // visible without reading the later Agent/Kernel artifacts.
+            WriteText(runDir, "environment-preflight.json", TryJson(new
+            {
+                schemaVersion = "uniclaw.environment-preflight.v1",
+                visionServiceWarmup = settingsFeed.EnvironmentPreflight,
+                formalFlowStartedAfterPreflight = true,
+            }));
             nextInput = settingsFeed.Next;
             observationStrategy = new UiHierarchyOccurrenceStrategy();
         }
@@ -245,7 +254,7 @@ public sealed class HostRunner
                 journalBytes = new FileInfo(journalPath).Length,
                 diagnostics = new
                 {
-                    nextFiles = new[] { "facts.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
+                    nextFiles = new[] { "facts.json", "environment-preflight.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
                     guidance = drive.Status == RunDriveStatus.Completed
                         ? "运行完成；如需核对动作，先看 facts.completedSteps，再用 DecisionId 对照 trace.json。"
                         : "先看 facts.reason 和 policyGuard，再用 DecisionId 对照 trace.json 与 exec.journal。"
@@ -291,7 +300,7 @@ public sealed class HostRunner
                     correlationId = options.Launch?.CorrelationId,
                     errorType = error.GetType().FullName,
                     message = error.Message,
-                    guidance = "先看 message；再检查 exec.journal、trace.json（若存在）和 settings-trace.json（若存在）。"
+                    guidance = "先看 message；再检查 environment-preflight.json、exec.journal、trace.json（若存在）和 settings-trace.json（若存在）。"
                 }, JsonOptions));
             }
             catch

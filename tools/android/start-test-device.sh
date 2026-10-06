@@ -1,6 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+root="$(cd "$(dirname "$0")/../.." && pwd)"
+supervisor_pid=""
+adb_bin=""
+serial=""
+ready=0
+cleanup_failed_start() {
+  local status=$?
+  if [[ "$ready" -eq 0 && -n "$supervisor_pid" && -n "$adb_bin" && -n "$serial" ]]; then
+    set +e
+    "$adb_bin" -s "$serial" emu kill >/dev/null 2>&1 || true
+    kill "$supervisor_pid" >/dev/null 2>&1 || true
+    set -e
+  fi
+  exit "$status"
+}
+trap cleanup_failed_start EXIT
+
 sdk_root=${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}
 avd_home=${ANDROID_AVD_HOME:-${HOME}/.android/avd}
 avd_name=${UNICLAW_ANDROID_AVD:-}
@@ -41,17 +58,23 @@ done
 serial="emulator-$port"
 emulator_bin="${sdk_root:+$sdk_root/emulator/emulator}"
 adb_bin="${sdk_root:+$sdk_root/platform-tools/adb}"
+python_bin=$(command -v python3 || true)
 [[ -n "$emulator_bin" && -x "$emulator_bin" ]] || emulator_bin=$(command -v emulator || true)
 [[ -n "$adb_bin" && -x "$adb_bin" ]] || adb_bin=$(command -v adb || true)
 [[ -n "$emulator_bin" && -x "$emulator_bin" ]] || { echo "ENVIRONMENT_UNAVAILABLE: emulator binary not found" >&2; exit 2; }
 [[ -n "$adb_bin" && -x "$adb_bin" ]] || { echo "ENVIRONMENT_UNAVAILABLE: adb binary not found" >&2; exit 2; }
-nohup "$emulator_bin" -avd "$avd_name" -datadir "$clone_dir" -port "$port" -read-only -no-snapshot -no-snapshot-save -no-boot-anim >"$run_dir/emulator.log" 2>&1 < /dev/null &
+[[ -n "$python_bin" && -x "$python_bin" ]] || { echo "ENVIRONMENT_UNAVAILABLE: python3 not found for emulator supervisor" >&2; exit 2; }
+supervisor="$root/tools/android/emulator-supervisor.py"
+[[ -f "$supervisor" ]] || { echo "ENVIRONMENT_UNAVAILABLE: emulator supervisor missing: $supervisor" >&2; exit 2; }
+nohup "$python_bin" "$supervisor" "$emulator_bin" -avd "$avd_name" -datadir "$clone_dir" -port "$port" -read-only -no-snapshot -no-snapshot-save -no-boot-anim >"$run_dir/emulator.log" 2>&1 < /dev/null &
 pid=$!
+supervisor_pid="$pid"
 cat >"$run_dir/.state" <<EOF
 PID=$pid
 SERIAL=$serial
 RUN_DIR=$run_dir
 CLONE_DIR=$clone_dir
+SUPERVISOR=emulator-supervisor
 EOF
 deadline=$((SECONDS + 180))
 while ! "$adb_bin" -s "$serial" get-state >/dev/null 2>&1; do
@@ -78,6 +101,7 @@ fi
 "$adb_bin" -s "$serial" exec-out screencap -p >/dev/null || { echo "ENVIRONMENT_UNAVAILABLE: screenshot unavailable" >&2; exit 4; }
 "$adb_bin" -s "$serial" shell uiautomator dump /sdcard/window.xml >/dev/null || { echo "ENVIRONMENT_UNAVAILABLE: uiautomator unavailable" >&2; exit 4; }
 "$adb_bin" -s "$serial" shell settings get global wifi_on >/dev/null || { echo "ENVIRONMENT_UNAVAILABLE: settings fixture unavailable" >&2; exit 4; }
+ready=1
 echo "UNICLAW_ANDROID_DEVICE=$serial"
 echo "UNICLAW_ANDROID_RUN_DIR=$run_dir"
 echo "android_api=$api"

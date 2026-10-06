@@ -24,10 +24,18 @@
   默认显式跳过（零影响全量套件——V2 断言面）。
 - **fail-closed**：启用后前置缺失（模拟器离线 / adb 缺席 / 页面未打开）
   直接 FAIL，不静默跳过（legacy Tier-2 约定）。
-- **生命周期外部管理**：测试不负责 boot/关机；模拟器由调用方预先启动。
-  推荐使用 `tools/android/start-test-device.sh`，它会克隆 `p26_pixel`、选择
-  空闲 serial，并输出 `UNICLAW_ANDROID_DEVICE` 与 `UNICLAW_ANDROID_RUN_DIR`。
-  测试和 Host live selector 都读取这个 serial，不再假定固定端口。
+- **生命周期由调用方显式管理**：测试不负责 boot/关机；调用方使用启动器
+  完成环境预检并持有 run lease，正式流程结束后显式回收。
+推荐使用 `tools/android/start-test-device.sh`，它会克隆 `p26_pixel`、选择
+空闲 serial，并输出 `UNICLAW_ANDROID_DEVICE` 与 `UNICLAW_ANDROID_RUN_DIR`。
+
+启动脚本通过独立的 emulator supervisor 托管实例：启动脚本退出不代表设备
+已经可用，只有输出 `android_api`、`wm_size`、截图、uiautomator 和 Settings
+探针全部通过后才会报告 READY。正式测试应在同一个 shell 会话中保留
+`UNICLAW_ANDROID_RUN_DIR`，结束时调用 `tools/android/stop-test-device.sh`；
+`.state` 保存 supervisor PID、serial 和 clone 目录，设备消失时应先看
+`emulator.log`，再重新执行环境预检。
+- 测试和 Host live selector 都读取这个 serial，不再假定固定端口。
 - **确定性纪律**：ENVIRONMENT 测试只验证「真实物理映射 + 世界变化经
   再观察证实」，不做性能断言、不依赖时序精度（轮询间隔为宽松常量）。
 

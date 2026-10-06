@@ -106,6 +106,13 @@ public sealed class SettingsCoverageRunner
                 evidenceSettings.PersistScreenshots, evidenceSettings.PersistHierarchies,
                 coverageConfig: config)
             : null;
+        if (liveFeed is not null)
+            WriteText(runDir, "environment-preflight.json", TryJson(new
+            {
+                schemaVersion = "uniclaw.environment-preflight.v1",
+                visionServiceWarmup = liveFeed.EnvironmentPreflight,
+                formalFlowStartedAfterPreflight = true,
+            }));
         var feedNext = options.FeedNext ?? liveFeed!.Next;
         var currentCaptureId = options.CurrentCaptureId
             ?? (liveFeed is not null ? () => liveFeed.Trace.Count > 0 ? liveFeed.Trace[^1].CaptureId : null : () => null);
@@ -235,7 +242,7 @@ public sealed class SettingsCoverageRunner
                 {
                     firstDivergence = report.FirstDivergence,
                     terminalJustification = director.TerminalJustification,
-                    nextFiles = new[] { "facts.json", "coverage-report.json", "coverage-steps.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
+                    nextFiles = new[] { "facts.json", "environment-preflight.json", "coverage-report.json", "coverage-steps.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
                     guidance = report.FirstDivergence is null && drive.Status == RunDriveStatus.Completed
                         ? "运行完成；如需核对每一步，先看 coverage-steps.json，再用 DecisionId 对照 trace.json。"
                         : "先看 firstDivergence/reason，再用 DecisionId 对照 coverage-steps.json、trace.json 和 exec.journal。"
@@ -274,7 +281,7 @@ public sealed class SettingsCoverageRunner
                     runDir,
                     errorType = error.GetType().FullName,
                     message = error.Message,
-                    guidance = "先看 message；再检查 exec.journal、trace.json、settings-trace.json 和 coverage-report.json（若存在）。"
+                    guidance = "先看 message；再检查 environment-preflight.json、exec.journal、trace.json、settings-trace.json 和 coverage-report.json（若存在）。"
                 }, JsonOptions));
             }
             catch

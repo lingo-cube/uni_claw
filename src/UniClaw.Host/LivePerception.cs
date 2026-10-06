@@ -13,12 +13,32 @@ namespace UniClaw.Host;
 /// </summary>
 public sealed class VisionServiceSession : IDisposable
 {
+    /// <summary>
+    /// 一次快感知调用的分段计时。Total 包含懒启动服务的冷启动；Inference
+    /// 只表示当前截图从客户端发出到服务响应的时间。两者必须分开，避免把
+    /// 首次服务启动误报成单帧视觉推理耗时。
+    /// </summary>
+    public sealed record AnalyzeTiming(
+        TimeSpan Total,
+        TimeSpan ServiceStartup,
+        TimeSpan PngDecode,
+        TimeSpan Inference,
+        bool Succeeded);
+
+    public sealed record WarmupTiming(
+        TimeSpan Duration,
+        bool Succeeded,
+        string? Error = null);
+
     private readonly string _providerRoot;
     private readonly string _python;
     private readonly string? _cacheRoot;
     private VisionServiceHost? _host;
     private VisionServiceClient? _client;
     private string? _socketPath;
+
+    public AnalyzeTiming? LastAnalyzeTiming { get; private set; }
+    public WarmupTiming? LastWarmupTiming { get; private set; }
 
     public VisionServiceSession(string providerRoot, string python, string? cacheRoot = null)
     {
@@ -30,19 +50,62 @@ public sealed class VisionServiceSession : IDisposable
     /// <summary>真推理：PNG 字节 → 在线响应 JSON（确定性锚格式）。</summary>
     public string Analyze(byte[] png)
     {
-        EnsureService();
-        var image = PngImage.Decode(png);
-        var result = _client!.AnalyzeAsync(image.Rgba, image.Width, image.Height, CancellationToken.None)
-            .GetAwaiter().GetResult();
-        if (!result.Success || result.ResponseJson is null)
-            throw new InvalidOperationException($"感知服务推理失败：{result.Diagnostic}");
-        return result.ResponseJson;
+        var totalStart = Stopwatch.GetTimestamp();
+        var startup = TimeSpan.Zero;
+        var decode = TimeSpan.Zero;
+        var inference = TimeSpan.Zero;
+        try
+        {
+            startup = EnsureService();
+            var decodeStart = Stopwatch.GetTimestamp();
+            var image = PngImage.Decode(png);
+            decode = Stopwatch.GetElapsedTime(decodeStart);
+
+            var inferenceStart = Stopwatch.GetTimestamp();
+            var result = _client!.AnalyzeAsync(image.Rgba, image.Width, image.Height, CancellationToken.None)
+                .GetAwaiter().GetResult();
+            inference = Stopwatch.GetElapsedTime(inferenceStart);
+            LastAnalyzeTiming = new AnalyzeTiming(
+                Stopwatch.GetElapsedTime(totalStart), startup, decode, inference,
+                result.Success && result.ResponseJson is not null);
+            if (!result.Success || result.ResponseJson is null)
+                throw new InvalidOperationException($"感知服务推理失败：{result.Diagnostic}");
+            return result.ResponseJson;
+        }
+        catch
+        {
+            LastAnalyzeTiming = new AnalyzeTiming(
+                Stopwatch.GetElapsedTime(totalStart), startup, decode, inference, false);
+            throw;
+        }
     }
 
     /// <summary>真采集 + 真推理：设备截屏 → 在线响应 JSON。</summary>
     public string CaptureAndAnalyze(AdbScreenshotAcquisition acquisition)
         => Analyze(acquisition.CaptureAsync(CancellationToken.None).GetAwaiter().GetResult()
             .Artifact.Payload);
+
+    /// <summary>
+    /// 在首帧进入 Agent 前显式启动视觉服务。失败只记录结果并保留原有
+    /// Analyze 的 fail-closed 行为；调用方可继续用层次结构完成观察。
+    /// </summary>
+    public WarmupTiming Warmup()
+    {
+        var started = Stopwatch.GetTimestamp();
+        try
+        {
+            EnsureService();
+            LastWarmupTiming = new WarmupTiming(
+                Stopwatch.GetElapsedTime(started), true);
+        }
+        catch (Exception exception)
+        {
+            LastWarmupTiming = new WarmupTiming(
+                Stopwatch.GetElapsedTime(started), false,
+                exception.Message.Length > 512 ? exception.Message[..512] : exception.Message);
+        }
+        return LastWarmupTiming;
+    }
 
     public void Dispose()
     {
@@ -55,10 +118,11 @@ public sealed class VisionServiceSession : IDisposable
         }
     }
 
-    private void EnsureService()
+    private TimeSpan EnsureService()
     {
         if (_client is not null)
-            return;
+            return TimeSpan.Zero;
+        var startupStart = Stopwatch.GetTimestamp();
         var cacheRoot = _cacheRoot ?? Path.Combine(Path.GetTempPath(), "uniclaw-perception-cache");
         Directory.CreateDirectory(Path.Combine(cacheRoot, "matplotlib"));
         _socketPath = Path.Combine(Path.GetTempPath(), $"uniclaw-host-{Guid.NewGuid():N}.sock");
@@ -72,12 +136,31 @@ public sealed class VisionServiceSession : IDisposable
                 ["XDG_CACHE_HOME"] = cacheRoot,
                 ["MPLCONFIGDIR"] = Path.Combine(cacheRoot, "matplotlib"),
             }));
-        var startup = _host.StartAsync().GetAwaiter().GetResult();
-        if (!startup.Healthy)
-            throw new InvalidOperationException($"感知服务启动失败：{startup.Error}\n{startup.StderrTail}");
-        _client = new VisionServiceClient(
-            new VisionServiceTransport.UnixDomainSocket(_socketPath),
-            timeout: TimeSpan.FromSeconds(120));
+        try
+        {
+            var startup = _host.StartAsync().GetAwaiter().GetResult();
+            if (!startup.Healthy)
+                throw new InvalidOperationException($"感知服务启动失败：{startup.Error}\n{startup.StderrTail}");
+            _client = new VisionServiceClient(
+                new VisionServiceTransport.UnixDomainSocket(_socketPath),
+                timeout: TimeSpan.FromSeconds(120));
+            return Stopwatch.GetElapsedTime(startupStart);
+        }
+        catch
+        {
+            // A failed warmup must not leave an orphaned service behind. The
+            // next Analyze attempt may retry once through the same session.
+            _client?.Dispose();
+            _client = null;
+            if (_host is not null)
+                _host.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            _host = null;
+            if (_socketPath is not null)
+            {
+                try { File.Delete(_socketPath); } catch (IOException) { }
+            }
+            throw;
+        }
     }
 }
 

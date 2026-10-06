@@ -38,7 +38,15 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         string? Grounding = null,
         string? Assurance = null,
         string? Effect = null,
-        string? Verification = null);
+        string? Verification = null,
+        // 快路径总耗时包含首次视觉服务冷启动；分段字段用于定位真实瓶颈。
+        TimeSpan? FastServiceStartupLatency = null,
+        TimeSpan? FastDecodeLatency = null,
+        TimeSpan? FastInferenceLatency = null,
+        bool? FastInferenceSucceeded = null,
+        TimeSpan? FastServiceWarmupLatency = null,
+        bool? FastServiceWarmupSucceeded = null,
+        string? FastServiceWarmupError = null);
 
     private readonly HostUtilities.VirtualClock _clock;
     private readonly LivePerception.LiveAssets _assets;
@@ -50,6 +58,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     private readonly bool _persistScreenshots;
     private readonly bool _persistHierarchies;
     private readonly SettingsCoverageConfig? _coverageConfig;
+    private readonly VisionServiceSession.WarmupTiming _warmup;
     private Func<SlowConsultationRequest, UniKernel, bool, TimeSpan?, SlowConsultationOutcome> _slowConsult;
     private int _popupPresentStreak;
     private int _slowRequests;
@@ -78,11 +87,17 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         _persistScreenshots = persistScreenshots;
         _persistHierarchies = persistHierarchies;
         _coverageConfig = coverageConfig;
+        // Keep service cold-start outside the first Agent observation window.
+        // This is a Host lifecycle optimization; the model, protocol and
+        // observation payload remain unchanged.
+        _warmup = _vision.Warmup();
         _slowConsult = (request, kernel, effectCritical, boundedWait) =>
             new SlowConsultation().Consult(request, kernel, effectCritical, boundedWait);
     }
 
     public IReadOnlyList<TraceEntry> Trace => _trace;
+
+    public VisionServiceSession.WarmupTiming EnvironmentPreflight => _warmup;
 
     /// <summary>AGT-009：kernel 访问缝（runner 注入）——Slow 结果投影目标；
     /// 未注入或 Slow 关闭时不发起咨询。</summary>
@@ -179,7 +194,14 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         _trace.Add(new TraceEntry(cycle, directive.Context.ToString(), captureId,
             observationCycleId, fastAvailable, xmlResult.Xml is not null,
             proposals.Count, fastLatency, hierarchyLatency, routeKey,
-            popupState, slowTrace, viewportDigest));
+            popupState, slowTrace, viewportDigest,
+            FastServiceStartupLatency: _vision.LastAnalyzeTiming?.ServiceStartup,
+            FastDecodeLatency: _vision.LastAnalyzeTiming?.PngDecode,
+            FastInferenceLatency: _vision.LastAnalyzeTiming?.Inference,
+            FastInferenceSucceeded: _vision.LastAnalyzeTiming?.Succeeded,
+            FastServiceWarmupLatency: cycle == 1 ? _warmup.Duration : null,
+            FastServiceWarmupSucceeded: cycle == 1 ? _warmup.Succeeded : null,
+            FastServiceWarmupError: cycle == 1 ? _warmup.Error : null));
         return new RunDriverInput.Observation(proposals);
     }
 
