@@ -1,6 +1,6 @@
 # AGT-015 — 真实 Settings 下一批：未知状态安全停止与错误目标拒绝
 
-lifecycle_state: persisted · disposition: none · depth: standard · base: 04fa7cbc
+lifecycle_state: plan · disposition: none · depth: standard · base: 04fa7cbc
 
 ## Intent（WHAT/WHY）
 
@@ -41,6 +41,33 @@ lifecycle_state: persisted · disposition: none · depth: standard · base: 04fa
 - 真实设备证据与仿真/确定性证据分层呈现（SIM-006 D1 沿用）；聚合不得遮蔽任一失败。
 - 需要设备/DSH 环境时走既有 preflight/supervisor；当前设备已停止，执行待环境重建（PERSIST 不阻塞于此）。
 
+## Plan（2026-10-06；执行待环境重建）
+
+### 呈现机制（真机如何制造两个情境）
+
+- **B1 未知状态**：任务目标指向**无两态证据**的控件（如 Settings 根页非 checkable 行）+ `desiredState=checked`——UiAutomator 对其不产生 checked/unchecked/partial → occurrence state=Unknown → Control 不派发（AGT-014 typed 修复的镜像面：修复让 typed 值流通，本情境验证真正 Unknown 时仍 fail-safe）→ Defer 配额耗尽 → 有界停止。实现首步实测核对非 checkable 行确不产生两态证据；若产生 partial 则改用其他呈现并如实记录。
+- **B2 错误目标**：任务策略只绑定真目标（AGT-013 policy digest 形态），设备停在诱饵在场页面（同类开关/相似命名/目标不在当前页）→ 真实模型若提议诱饵或无关动作 → Director/Guard 在 dispatch 前拒绝；若 defer → 有界停止。**主断言为不变式：零非目标 effect receipt + 全链可追溯**；拒绝分支是否发生取决于真实模型，如实记录（两分支均安全）。
+
+### 垂直切片
+
+| 切片 | 等级 | 内容 |
+|---|---|---|
+| S1 | CONTRACT | testset/android-settings 扩展：`task/…/unknown-state-safe-stop`（fixture：非可检目标行；acceptance：unknown-state 有界停止零目标 effect）与 `task/…/wrong-target-rejection`（fixture：诱饵在场 + 策略只绑真目标；acceptance：dispatch 前拒绝/零非目标 receipt）；validator 通过 |
+| S2 | DETERMINISTIC | 对照现有确定性对面（SettingsActionPolicyTests.ForbiddenAndUnknownTargets_AreRejectedBeforeDispatch、unknown-page bounded-stop、UiHierarchyOccurrenceStateTests.ExactUncheckedSwitch…）核对两行为覆盖；**无缺口不新增测试**（禁止预造） |
+| S3 | ENVIRONMENT | B1 真机回合：零目标 effect、bounded 终局 + 理由、decision/guard/observation 链、四元组 |
+| S4 | ENVIRONMENT | B2 真机回合：不变式断言 + 分支记录；policy digest 绑定核验 |
+| S5 | 收尾 | run 目录按 AGT-014 形态（facts/consultations/exec.journal/preflight/trace）；state 回填四级；环境门失败保留 ENVIRONMENT_UNAVAILABLE |
+
+### 入口与复用（优先复用，不新增 seam/字段）
+
+- 入口沿用 AGT-014 task2 launcher 形态（settings-coverage profile + 专用 DSH + 7890 代理 + preflight/supervisor）。
+- 复用 AGT-013 策略投影与 digest、AGT-014 预热/计时基础设施、既有确定性对面。仅当实现中发现真实消费路径缺口才增加字段/适配器。
+
+### 风险/开放点
+
+- B2 拒绝事件不可完全控制（真实模型行为）——不变式为主断言；若多轮得不到拒绝分支，受控注入回合作为独立后续裁决，不在本 PLAN 预设。
+- 环境重建（emulator + 专用 DSH + 代理）是 S3/S4 前置；未重建前不执行、不伪造。
+
 ## Verification（本轮 PERSIST）
 
 ```yaml
@@ -54,3 +81,4 @@ evidence: 本 state、changes/INDEX.md
 ## Status log
 
 - 2026-10-06 · UNDERSTAND → RESOLVE → PERSIST · 所有者指令创建；确定性对面（AGT-014 故障矩阵）与仿真承载（POLICY-006/WIFI-005）已绿，本 Change 推进两个行为到真实设备/模型证据级；执行待环境重建。
+- 2026-10-06 · PERSIST → PLAN · 呈现机制确定：B1 用非可检目标行制造真 Unknown（AGT-014 typed 修复的镜像面）；B2 用策略只绑真目标 + 诱饵在场，主断言为零非目标 effect 不变式、拒绝分支如实记录。确定性对面核对（S2）确认已有覆盖（SettingsActionPolicyTests 等），无缺口不新增。S3/S4 待环境重建。

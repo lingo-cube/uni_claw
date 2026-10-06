@@ -6,4 +6,4 @@
 
 | change | lifecycle_state | disposition | depth | title |
 |---|---|---|---|---|
-| AGT-015 | persisted | none | standard | AGT-015 — 真实 Settings 下一批：未知状态安全停止与错误目标拒绝 |
+| AGT-015 | plan | none | standard | AGT-015 — 真实 Settings 下一批：未知状态安全停止与错误目标拒绝 |
