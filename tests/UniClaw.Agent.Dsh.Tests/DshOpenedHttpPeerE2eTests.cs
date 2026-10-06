@@ -117,24 +117,35 @@ public sealed class DshOpenedHttpPeerE2eTests
         await using var channel = new DshOpenedDecisionChannel(Peer(), attachTimeout: TimeSpan.FromSeconds(20));
         var adapter = new DshAgentAdapter(channel, "e2e-product-session-1", "e2e-run-1",
             turnTimeout: TimeSpan.FromSeconds(110));
-
-        var decision = await adapter.ConsultAsync(Context("decision-e2e-1"));
-
-        // Whatever the real service answers — a captured real-model decision
-        // or a fail-closed provider/credential/no-submit error — the adapter
-        // must never invent a decision, and the diagnostics must say which.
-        if (decision is null)
+        try
         {
-            Assert.NotEmpty(adapter.Diagnostics);
-            if (Environment.GetEnvironmentVariable("UNICLAW_DSH_E2E_MODEL") == "deepseekV41")
-                Assert.Fail(string.Join("; ", adapter.Diagnostics.Select(d => $"{d.Code}:{d.Message}")));
+            var decision = await adapter.ConsultAsync(Context("decision-e2e-1"));
+
+            // Whatever the real service answers — a captured real-model decision
+            // or a fail-closed provider/credential/no-submit error — the adapter
+            // must never invent a decision, and the diagnostics must say which.
+            if (decision is null)
+            {
+                Assert.NotEmpty(adapter.Diagnostics);
+                if (Environment.GetEnvironmentVariable("UNICLAW_DSH_E2E_MODEL") == "deepseekV41")
+                    Assert.Fail(string.Join("; ", adapter.Diagnostics.Select(d => $"{d.Code}:{d.Message}")));
+            }
+            else
+            {
+                var decisionId = AgentDecisionCorrelation.TryGetDecisionId(decision);
+                Assert.Equal("decision-e2e-1", decisionId);
+            }
+            Assert.NotEqual(string.Empty, adapter.ProductSessionId);
         }
-        else
+        finally
         {
-            var decisionId = AgentDecisionCorrelation.TryGetDecisionId(decision);
-            Assert.Equal("decision-e2e-1", decisionId);
+            // AGT-015 运维注记修复：咨询测试的 product-session 挂接必须释放，
+            // 否则同一实例上的后续真实回合（不同 product session）会在握手被
+            // 拒（another-product-session-attached）。teardown 尽力而为，不掩盖
+            // 测试本体断言。
+            try { await adapter.RevokeAttachmentAsync(); }
+            catch (ObjectDisposedException) { }
         }
-        Assert.NotEqual(string.Empty, adapter.ProductSessionId);
     }
 
     [Fact]

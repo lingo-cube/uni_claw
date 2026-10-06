@@ -47,5 +47,5 @@ ENVIRONMENT:
 
 ## 运维注记
 
-- E2E 预检测试会占用 3081 的 product-session 挂接且不 revoke——实例需重启后才能跑正式回合（已按此操作；后续可考虑给 E2E teardown 补 revoke）。
+- E2E 预检测试会占用 3081 的 product-session 挂接且不 revoke——实例需重启后才能跑正式回合（已按此操作；**同日修复**：E2E consult teardown 补 `RevokeAttachmentAsync`，验证=同实例连续 E2E 测试→真实回合成功，见 rounds/teardown-verify）。
 - B1 首回合（run-20261006-045101-746）为缺陷 1 的复现证据：错误目标 Wi-Fi 被放行切换（已随即恢复 wifi_on=1）；该 run dir 保留不删（失败尝试是证据）。
