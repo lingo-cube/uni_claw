@@ -9,6 +9,7 @@ using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Effects.ExecutionSource;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Run;
+using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
@@ -53,7 +54,9 @@ public sealed class HostRunner
         Func<AgentDecisionContext, AgentDecision?>? ConsultAgent = null,
         bool SettingsTraversal = false,
         LaunchContext? Launch = null,
-        SettingsActionPolicy? SettingsActionPolicy = null);
+        SettingsActionPolicy? SettingsActionPolicy = null,
+        // AGT-017：live Slow 咨询桥注入缝（null = 默认回放桩，行为不变）。
+        Func<SlowConsultationRequest, UniKernel, bool, TimeSpan?, SlowConsultationOutcome>? SlowConsult = null);
 
     public sealed record HostRunResult(
         string RunDir,
@@ -117,7 +120,8 @@ public sealed class HostRunner
         {
             // AGT-011 §4：SettingsTraversal 模式证据持久化（AGT-008 缺省全开）。
             settingsFeed = new SettingsTraversalLiveFeed(
-                clock, options.Live, Path.Combine(runDir, "evidence"));
+                clock, options.Live, Path.Combine(runDir, "evidence"),
+                slowConsult: options.SlowConsult);
             // Environment preparation is completed before the formal driver
             // loop starts. Keep a small durable marker so a failed warmup is
             // visible without reading the later Agent/Kernel artifacts.

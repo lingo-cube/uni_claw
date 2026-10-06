@@ -6,16 +6,16 @@ session:
   workspaceReuse: true
   autoCloseTurn: false
 bounds:
-  maxSteps: 24
-  maxConsultRounds: 24
-  maxScrolls: 4
+  maxSteps: 48
+  maxConsultRounds: 48
+  maxScrolls: 6
   maxConsecutiveFailures: 3
   maxDirectiveRetries: 1
 coverage:
   rootPage: true
   firstLevelMode: all-visible
   scrollDiscoveredEntries: 1
-  secondLevelPages: 2
+  secondLevelPages: 8
   backNavigation: true
   repeatedEntries: 1
 targetPages:
@@ -37,6 +37,14 @@ evidence:
 rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
 scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
 backDescriptor: Navigate up
+# AGT-017：Slow 感知 live 启用（所有者指令）。text 档走会话模型；
+# 有界等待 15s（周期不阻塞超此界）；每 run 预算 6 次；visual 暂不启用。
+slow:
+  enabled: true
+  boundedWaitMs: 15000
+  maxRequestsPerRun: 6
+  visualEnabled: false
+  popupConsecutiveCycles: 2
 actionPolicy:
   required: true
   path: testsets/android-settings/forbidden-action-policy.json

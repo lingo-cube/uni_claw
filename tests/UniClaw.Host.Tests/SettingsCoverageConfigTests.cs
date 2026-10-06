@@ -211,8 +211,9 @@ public sealed class SettingsCoverageConfigTests
         Assert.Equal("UniClaw_Product_Tasks", config.Session.Workspace);
         Assert.True(config.Session.WorkspaceReuse);
         Assert.False(config.Session.AutoCloseTurn);
-        Assert.Equal(new CoverageBounds(24, 24, 4, 3, 1), config.Bounds);
-        Assert.Equal(new CoverageRequirements(true, "all-visible", 1, 2, true, 1), config.Coverage);
+        // AGT-017：深度预算（48/48/6/8）为所有者指令的持久基线。
+        Assert.Equal(new CoverageBounds(48, 48, 6, 3, 1), config.Bounds);
+        Assert.Equal(new CoverageRequirements(true, "all-visible", 1, 8, true, 1), config.Coverage);
         Assert.Equal(7, config.TargetPages.Count);
         Assert.Contains("Network & internet", config.TargetPages);
         Assert.Equal("Sound & vibration", config.TargetPages[^1]);

@@ -2,7 +2,7 @@
 
 > 派生索引：列出所有 lifecycle_state ≠ closed 的 change。
 > 再生：`python3 tools/gen-open-changes.py`（GATE-001 P-E′；一致性执法二期）。
-> 统计：140 changes · 0 open。
+> 统计：141 changes · 0 open。
 
 | change | lifecycle_state | disposition | depth | title |
 |---|---|---|---|---|

@@ -23,6 +23,61 @@ public sealed class SettingsCoverageLedgerTests
 
     private static SettingsCoverageConfig Config() => SettingsCoverageConfig.LoadDefault();
 
+    /// <summary>AGT-017：语义测试不绑默认 profile 值（默认已按所有者指令加深到
+    /// 48/8）。本测试类中依赖具体预算数字的用例改用此固定配置。</summary>
+    private static SettingsCoverageConfig BoundedConfig()
+    {
+        var prior = Environment.GetEnvironmentVariable(SettingsCoverageConfig.ConfigPathEnvironmentVariable);
+        var path = Path.Combine(Path.GetTempPath(), "uniclaw-ledger-bounded-" + Guid.NewGuid().ToString("N") + ".yaml");
+        try
+        {
+            File.WriteAllText(path, """
+                configVersion: "1"
+                session:
+                  taskTitle: 遍历设置菜单覆盖测试
+                  workspace: UniClaw_Product_Tasks
+                  workspaceReuse: true
+                  autoCloseTurn: false
+                bounds:
+                  maxSteps: 24
+                  maxConsultRounds: 24
+                  maxScrolls: 4
+                  maxConsecutiveFailures: 3
+                  maxDirectiveRetries: 1
+                coverage:
+                  rootPage: true
+                  firstLevelMode: all-visible
+                  scrollDiscoveredEntries: 1
+                  secondLevelPages: 2
+                  backNavigation: true
+                  repeatedEntries: 1
+                targetPages:
+                  - Network & internet
+                  - Connected devices
+                  - Apps
+                  - Notifications
+                  - Battery
+                  - Storage
+                  - Sound & vibration
+                termination:
+                  onCoverageComplete: true
+                  onMaxSteps: true
+                  onMaxScrolls: true
+                  onConsecutiveFailures: true
+                rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
+                scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
+                backDescriptor: Navigate up
+                """);
+            Environment.SetEnvironmentVariable(SettingsCoverageConfig.ConfigPathEnvironmentVariable, path);
+            return SettingsCoverageConfig.LoadDefault();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(SettingsCoverageConfig.ConfigPathEnvironmentVariable, prior);
+            try { File.Delete(path); } catch { /* temp cleanup best effort */ }
+        }
+    }
+
     private static SettingsCoverageConfig ConfigWith(string yaml)
     {
         var path = Path.Combine(Path.GetTempPath(), $"settings-coverage-ledger-{Guid.NewGuid():N}.yaml");
@@ -114,6 +169,12 @@ public sealed class SettingsCoverageLedgerTests
         return report.Items.Single(item => item.Requirement == requirement);
     }
 
+    private static CoverageItem Item(SettingsCoverageLedger ledger, SettingsCoverageConfig config, string requirement)
+    {
+        var report = ledger.Report(config);
+        return report.Items.Single(item => item.Requirement == requirement);
+    }
+
     [Fact]
     public void RootObservation_CoversRootPage()
     {
@@ -136,9 +197,10 @@ public sealed class SettingsCoverageLedgerTests
         EnterAllTargetPages(ledger);
         BackStep(ledger, $"android.settings|route:{TargetPages[^1]}");
 
-        Assert.True(Item(ledger, "first-level-all-visible").Covered);
-        Assert.True(Item(ledger, "second-level-pages").Covered);
-        Assert.True(Item(ledger, "back-navigation").Covered);
+        var config = BoundedConfig();
+        Assert.True(Item(ledger, config, "first-level-all-visible").Covered);
+        Assert.True(Item(ledger, config, "second-level-pages").Covered);
+        Assert.True(Item(ledger, config, "back-navigation").Covered);
     }
 
     [Fact]
@@ -248,7 +310,7 @@ public sealed class SettingsCoverageLedgerTests
                 failureReason: "post-action-target-unique");
         }
 
-        Assert.True(ledger.Snapshot(Config()).MaxStepsReached);
+        Assert.True(ledger.Snapshot(BoundedConfig()).MaxStepsReached);
     }
 
     [Fact]

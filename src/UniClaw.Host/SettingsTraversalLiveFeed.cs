@@ -82,14 +82,16 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     }
 
     /// <summary>AGT-008：evidenceDir 非 null 时每周期落盘 {captureId}.png/.xml
-    /// （文件名与步骤记录 postCaptureId 直接关联；写失败 fail closed）。</summary>
+    /// （文件名与步骤记录 postCaptureId 直接关联；写失败 fail closed）。
+    /// AGT-017：slowConsult 非 null 时替代默认回放桩（live 模型桥注入缝）。</summary>
     public SettingsTraversalLiveFeed(
         HostUtilities.VirtualClock clock,
         LivePerception.LiveAssets assets,
         string? evidenceDir,
         bool persistScreenshots = true,
         bool persistHierarchies = true,
-        SettingsCoverageConfig? coverageConfig = null)
+        SettingsCoverageConfig? coverageConfig = null,
+        Func<SlowConsultationRequest, UniKernel, bool, TimeSpan?, SlowConsultationOutcome>? slowConsult = null)
     {
         _clock = clock;
         _assets = assets;
@@ -103,8 +105,8 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         // This is a Host lifecycle optimization; the model, protocol and
         // observation payload remain unchanged.
         _warmup = _vision.Warmup();
-        _slowConsult = (request, kernel, effectCritical, boundedWait) =>
-            new SlowConsultation().Consult(request, kernel, effectCritical, boundedWait);
+        _slowConsult = slowConsult ?? ((request, kernel, effectCritical, boundedWait) =>
+            new SlowConsultation().Consult(request, kernel, effectCritical, boundedWait));
     }
 
     public IReadOnlyList<TraceEntry> Trace => _trace;

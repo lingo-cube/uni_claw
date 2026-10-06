@@ -104,6 +104,13 @@ try
         ?? configuredModel.Name;
     var model = new ModelConfiguration(configuredModel.Provider, modelName);
     Console.WriteLine($"agent.provider={model.Provider} agent.model={modelName} dsh.endpoint={config.Service.BaseUri}");
+    // AGT-017：peer 提前创建，决策通道与 Slow 桥共享同一 attached 会话
+    //（/slow 服务端要求 attached 且单飞行）。peer 构造零网络副作用。
+    dshPeer = new DshOpenedHttpPeer(config.Service, model: model);
+    var slowBridge = new DshSlowConsult(
+        (requestId, prompt, slowModel, imagePng, cancellationToken) =>
+            dshPeer.ExecuteSlowAsync(requestId, prompt, slowModel, imagePng, cancellationToken),
+        model);
 
     RunAdb(device, "shell", "am", "start", "-S", "-a", "android.settings.SETTINGS");
     Thread.Sleep(2000);
@@ -112,7 +119,6 @@ try
     {
         if (dshAgent is null)
         {
-            dshPeer = new DshOpenedHttpPeer(config.Service, model: model);
             dshChannel = new DshOpenedDecisionChannel(dshPeer, attachTimeout: TimeSpan.FromSeconds(30));
             dshAgent = new DshAgentAdapter(dshChannel, productSessionId, context.RunId,
                 turnTimeout: TimeSpan.FromSeconds(110));
@@ -139,7 +145,8 @@ try
             Live: liveAssets,
             Config: coverageConfig,
             UnderlyingConsult: Consult,
-            DshSessionIdAccessor: () => dshAgent?.DshSessionId));
+            DshSessionIdAccessor: () => dshAgent?.DshSessionId,
+            SlowConsult: slowBridge.Consult));
     }
     else
     {
@@ -161,6 +168,7 @@ try
             SettingsActionPolicy = settingsPolicyConfig.ActionPolicy,
             TargetState = targetState ?? "checked",
             TargetSemanticDescriptor = targetDescriptor,
+            SlowConsult = slowBridge.Consult,
             Live = new LivePerception.LiveAssets(
                 device,
                 "wifi-settings",

@@ -9,6 +9,7 @@ using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Effects.ExecutionSource;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Run;
+using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
@@ -40,7 +41,9 @@ public sealed class SettingsCoverageRunner
         // + AdbLiveEffectDriver（真实档）。
         Func<ObservationDirective, RunDriverInput?>? FeedNext = null,
         Func<string?>? CurrentCaptureId = null,
-        IEffectDriver? EffectDriver = null);
+        IEffectDriver? EffectDriver = null,
+        // AGT-017：live Slow 咨询桥（null = 默认回放桩）。
+        Func<SlowConsultationRequest, UniKernel, bool, TimeSpan?, SlowConsultationOutcome>? SlowConsult = null);
 
     public sealed record StepArtifact(
         int Index,
@@ -104,7 +107,7 @@ public sealed class SettingsCoverageRunner
             ? new SettingsTraversalLiveFeed(
                 clock, options.Live, evidenceDir,
                 evidenceSettings.PersistScreenshots, evidenceSettings.PersistHierarchies,
-                coverageConfig: config)
+                coverageConfig: config, slowConsult: options.SlowConsult)
             : null;
         if (liveFeed is not null)
             WriteText(runDir, "environment-preflight.json", TryJson(new
