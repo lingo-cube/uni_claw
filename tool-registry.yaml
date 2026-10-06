@@ -1,0 +1,52 @@
+# UniClaw Tool Registry — Harness 层工具暴露清单（ADR-0039）
+#
+# 概念边界（详见 docs/adr/0039 与 CONTEXT.md「Tool」词条）：
+#
+# - Capability = 产品层概念：Kernel / Runtime 可调用的能力单元，
+#   语义权威在 CapabilityHub（ADR-0035/0038 三层治理）。
+# - Tool = Harness 层概念：面向 harness 消费者（AI Coder、Workbench、
+#   前端模型调用）暴露的调用单元。调用形态（CLI / MCP / HTTP / skill
+#   procedure）是 Tool 的 implementation detail。
+# - skill = procedure 载体：model-procedure 类工具的说明书，不是 Tool
+#   的同义词。skill 单源双路径：研发态经 skill catalog 直载；产品态经本清单
+#   的 skillRef 由 adapter 解析注入。产品代码不得直接引用 harness skill 路径。
+#
+# 管理层级：本清单是 Development Harness 信任域的注册面（ADR-0035 预留的
+# 各域独立注册），与 Product Runtime 的 CapabilityHub 不共享可变状态；
+# capability 映射（backing: capability + capabilityRef）为单向引用，只持
+# 暴露元数据，不复制能力语义。
+#
+# 维护规则：
+#
+# - 登记新工具 = 在 tools 下加条目并通过校验器；字段最小集为十字段加
+#   consumes（工具间依赖，由 run-diagnosis 的真实需求引入），不加更多。
+# - 枚举词汇（backing / invocation / posture / surfaces / status）冻结于
+#   本文件与校验器，扩展需同步改两处并过 ADR 记录。
+# - capability-backed 变体本期只有词汇（backing + capabilityRef），解析
+#   机制待第一个真实 buyer 出现后冻结（ADR-0026，不预造）。
+# - 校验：python3 tools/validate-tool-registry.py（从仓库根目录运行）。
+
+version: 1
+
+tools:
+  run-report:
+    summary: 全链路单 run 测试/执行报告；L1-L4 分层只读投影，json+md 双格式，字节级确定性
+    backing: harness-native            # 语义来源：harness-native | capability
+    invocation: deterministic-script   # 调用形态：deterministic-script | model-procedure
+    entry: tools/gen-run-report.py
+    outputSchema: schemas/workspace/run-report.schema.json
+    requiredCapability: tool_only      # 必须存在于 model-routing.yaml capabilities
+    posture: local-write               # 安全姿态：read-only | local-write | external-effect
+    surfaces: [cli, workbench]         # 消费面：cli | coder | workbench
+    status: implemented                # implemented | planned
+
+  run-diagnosis:
+    summary: run 结果诊断；消费 run-report 产出结论性诊断（报告本身永不产出结论，边界见 PNL-006）
+    backing: harness-native
+    invocation: model-procedure
+    skillRef: .agents/skills/uniclaw-debug-evidence
+    consumes: [run-report]
+    requiredCapability: semantic_analysis
+    posture: read-only
+    surfaces: [coder, workbench]
+    status: planned

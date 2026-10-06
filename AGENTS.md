@@ -14,7 +14,8 @@
   （Target v0.1，L0-L3 CLOSED；对 GREENFIELD 产品代码为直接权威）。
 - Canonical surface（OpenAI/Codex 原生约定）：`AGENTS.md`（本文件）、
   `.agents/skills/<name>/SKILL.md`（含 `uniflow` 控制面本体）、`schemas/`、
-  `model-routing.yaml`。
+  `model-routing.yaml`、`tool-registry.yaml`（Harness 工具暴露清单，
+  ADR-0039）。
 
 ## 1.5 开发原则（2026-09-20 所有者补充；对所有工作生效）
 
@@ -50,6 +51,7 @@ Gate / Acceptance / 评审编号（F/M/G/D/S…）只作括号引用，不做叙
 | Skill 清单与 provenance | `.agents/skills/` + `skills-lock.json` |
 | WorkItem 派发协议（Leader→SubAgent，仅委派工作；字段级契约） | `schemas/work-item.schema.json`（载荷按需落 `workitems/`） |
 | 模型路由（capability → tier） | `model-routing.yaml`（provider 绑定只在 adapter） |
+| 工具暴露清单（Harness 层 Tool：登记 / 调用形态 / 消费面 / 姿态，ADR-0039） | `tool-registry.yaml`（执法：`tools/validate-tool-registry.py`） |
 | 架构决策 | `docs/adr/`（上游 ADR 约定） |
 | 计划 / 证据 | `plans/` · `evidence/` |
 | 本地测试环境基准（模拟器启停/DSH 线路/代理/预检规则） | `docs/agents/test-emulator.md` |

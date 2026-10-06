@@ -151,6 +151,9 @@ _Avoid_: global capability state、canonical capability truth
 **Task-scoped Capability Binding**: 将能力实现与一次任务的固定配置、Runtime 身份和局部生命周期关联的装配关系；任务结束后关闭该关系，不改变全局能力注册状态或其他任务的关联。
 _Avoid_: global singleton、registry scope、Product Owner
 
+**Tool**: Development Harness 面向其消费者（AI Coder、Workbench、前端模型调用）暴露的调用单元，登记于 `tool-registry.yaml`（ADR-0039）；它可由 Capability 经 `capabilityRef` 单向映射得到，也可以是 harness-native 的确定性脚本或以 skill 为 procedure 载体的模型过程；调用形态（CLI / MCP / HTTP）是它的 implementation detail。Tool 条目只持暴露元数据，不定义产品能力语义、不拥有运行时状态；skill 单源双路径——研发态经 catalog 直载，产品态经 skillRef 由 adapter 解析注入，产品代码不得直接引用 harness skill 路径。
+_Avoid_: Capability 类型、第二套 CapabilityHub、skill 同义词、产品 runtime 直接调用面
+
 **Provider**: 可独立运行、通过明确跨进程或跨语言协议接入 Capability Plane 的外部实现；Provider 只拥有自己的实现和运行事实，不拥有 Product canonical state。
 _Avoid_: platform bucket、Product Owner、authority service
 
