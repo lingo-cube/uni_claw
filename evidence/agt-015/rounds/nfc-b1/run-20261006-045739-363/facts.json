@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "uniclaw.host-facts.v2",
+  "runDir": "evidence/agt-015/rounds/nfc-b1/run-20261006-045739-363",
+  "runId": "run-21d7e36fbc722f70c005ac9b597193fcfbe1761329e75444fdf3e175d08282ee",
+  "correlationId": null,
+  "status": "TerminalNotProven",
+  "reason": "evidence-insufficient",
+  "outcome": null,
+  "delivered": 2,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "journalBytes": 3070,
+  "diagnostics": {
+    "nextFiles": [
+      "facts.json",
+      "environment-preflight.json",
+      "consultations.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B facts.reason \u548C policyGuard\uFF0C\u518D\u7528 consultations.json \u7684 DecisionId \u5BF9\u7167 trace.json \u4E0E exec.journal\u3002"
+  },
+  "completionAnchors": null,
+  "completedSteps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-edd33ac0a54f-3-1"
+    },
+    {
+      "decision": 2,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-c3d656a2582c-3-2"
+    }
+  ],
+  "actionPolicy": {
+    "policyRef": "fixture/android-settings/decoy-target-policy",
+    "digest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/testsets/android-settings/decoy-target-policy.json"
+  },
+  "policyGuard": [
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    }
+  ]
+}

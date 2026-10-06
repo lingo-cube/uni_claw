@@ -38,6 +38,51 @@ public sealed class SettingsActionPolicyTests
         SettingsCoverageConfig.LoadDefault().ActionPolicy
         ?? throw new InvalidOperationException("default settings profile did not load action policy");
 
+    /// <summary>AGT-015 B1 真实回合暴露：目标不是 Wi-Fi 的任务在策略下仍放行
+    /// toggle:Wi-Fi。traversal 目标必须与策略声明的 targeted toggle 绑定，
+    /// 冲突在运行前拒绝（配置冲突不得静默通过）。</summary>
+    [Fact]
+    public void TraversalTarget_UndeclaredByPolicy_IsConfigConflict()
+    {
+        var policy = Policy();
+
+        var mismatch = policy.ValidateTraversalTargetDescriptor("Network & internet");
+        Assert.NotNull(mismatch);
+        Assert.Contains("toggle:Network & internet", mismatch);
+        Assert.Contains("toggle:Wi-Fi", mismatch); // 声明面必须可见，供排障
+        Assert.Null(policy.ValidateTraversalTargetDescriptor("Wi-Fi"));
+        Assert.NotNull(policy.ValidateTraversalTargetDescriptor("  ")); // 空/缺省也是冲突
+    }
+
+    /// <summary>可见性冻结规则不得绑定字面 "Wi-Fi"：策略声明的目标开关才冻结
+    /// 导航。NFC 任务穿过 Wi-Fi 开关可见页面时，导航 tap 必须按 safe class
+    /// 放行，而不是被无关目标冻结。</summary>
+    [Fact]
+    public void UndeclaredSwitchVisible_DoesNotBlockNavigation()
+    {
+        var nfcPolicy = new SettingsActionPolicy(
+            SettingsActionPolicy.SupportedSchemaVersion,
+            "fixture/android-settings/decoy-target-policy", true,
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "observe", "scroll", "navigate", "back" },
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "toggle:NFC" },
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "toggle-non-target", "destructive", "unknown-action" },
+            new[] { "factory reset", "developer options" },
+            SettingsActionPolicy.RejectUnknown,
+            "digest-test-nfc", "test");
+
+        var result = SettingsActionGuard.Evaluate(
+            Step("T-Mobile"),
+            Context(
+                new ElementSummary("switch", "Wi-Fi", null, true, true, true,
+                    ElementEpistemic.Observed, "unchecked"),
+                new ElementSummary("ui.element", "T-Mobile", null, true, false, true,
+                    ElementEpistemic.Observed)),
+            nfcPolicy);
+
+        Assert.Equal(SettingsActionGuardVerdict.Allow, result.Verdict);
+        Assert.Equal("navigate", result.SemanticAction);
+    }
+
     [Fact]
     public void DefaultProfile_LoadsRequiredPolicyBeforeConsultation()
     {

@@ -1,0 +1,147 @@
+[
+  {
+    "context": {
+      "decisionId": "decision-e175d08282ee-1",
+      "runId": "run-21d7e36fbc722f70c005ac9b597193fcfbe1761329e75444fdf3e175d08282ee",
+      "contractVersion": "v0",
+      "objective": "Confirm the Wi-Fi state in Android Settings and leave Wi-Fi enabled. Choose every next control only from the current semantic hierarchy; navigate as needed to reach the Wi-Fi control, and never toggle it when the observed state is already enabled.\n\nSETTINGS ACTION POLICY (read-only; Runtime Guard is authoritative): policyRef=fixture/android-settings/forbidden-action-policy; policyDigest=4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e; safe=[back,navigate,observe,scroll]; targeted=[toggle:Wi-Fi]; forbidden=[account-removal,credential-change,destructive,developer-debug,permission-grant,toggle-non-target,unknown-action]; unknownTargetDisposition=reject; effectClass=runtime token from context.allowedEffects; semanticMapping={navigate:tap,back:tap,scroll:swipe-up}",
+      "allowedEffects": [
+        "tap"
+      ],
+      "currentWorldClaims": {
+        "ui.container.current": {
+          "value": "ctr-602853c0c34b",
+          "disposition": "established",
+          "inConflict": false
+        },
+        "ui.container.signature.ctr-602853c0c34b": {
+          "value": "android.settings",
+          "disposition": "established",
+          "inConflict": false
+        },
+        "ui.screen.route": {
+          "value": "android.settings|rk1:Settings|src=homepage_title|up=0",
+          "disposition": "established",
+          "inConflict": false
+        },
+        "ui.screen": {
+          "value": "android.settings",
+          "disposition": "established",
+          "inConflict": false
+        }
+      },
+      "pendingObligations": [
+        {
+          "obligationId": "obj-switch-checked",
+          "kind": "Objective",
+          "subject": "ui.role.switch.checked",
+          "requiredValue": "checked",
+          "mandatory": true
+        }
+      ],
+      "phase": 0,
+      "failureReason": null,
+      "failedStepIndex": null,
+      "screen": {
+        "containerId": "ctr-602853c0c34b",
+        "signature": "android.settings"
+      },
+      "elements": [
+        {
+          "role": "scrollable",
+          "text": "com.android.settings:id/settings_homepage_container",
+          "bounds": "0,0.0568,1,0.9344",
+          "clickable": false,
+          "checkable": false,
+          "enabled": true,
+          "epistemic": 0,
+          "state": null
+        },
+        {
+          "role": "ui.element",
+          "text": "Search settings",
+          "bounds": "0.0389,0.2979,0.9611,0.3693",
+          "clickable": true,
+          "checkable": false,
+          "enabled": true,
+          "epistemic": 0,
+          "state": null
+        },
+        {
+          "role": "scrollable",
+          "text": "com.android.settings:id/main_content_scrollable_container",
+          "bounds": "0,0.3911,1,0.9344",
+          "clickable": false,
+          "checkable": false,
+          "enabled": true,
+          "epistemic": 0,
+          "state": null
+        },
+        {
+          "role": "ui.element",
+          "text": "Network \u0026 internet",
+          "bounds": "0,0.3911,1,0.5115",
+          "clickable": true,
+          "checkable": false,
+          "enabled": true,
+          "epistemic": 0,
+          "state": null
+        },
+        {
+          "role": "ui.element",
+          "text": "Connected devices",
+          "bounds": "0,0.5115,1,0.6318",
+          "clickable": true,
+          "checkable": false,
+          "enabled": true,
+          "epistemic": 0,
+          "state": null
+        },
+        {
+          "role": "ui.element",
+          "text": "Apps",
+          "bounds": "0,0.6318,1,0.7521",
+          "clickable": true,
+          "checkable": false,
+          "enabled": true,
+          "epistemic": 0,
+          "state": null
+        },
+        {
+          "role": "ui.element",
+          "text": "Notifications",
+          "bounds": "0,0.7521,1,0.8724",
+          "clickable": true,
+          "checkable": false,
+          "enabled": true,
+          "epistemic": 0,
+          "state": null
+        },
+        {
+          "role": "ui.element",
+          "text": "Battery",
+          "bounds": "0,0.8724,1,0.9344",
+          "clickable": true,
+          "checkable": false,
+          "enabled": true,
+          "epistemic": 0,
+          "state": null
+        }
+      ],
+      "progress": {
+        "roundsUsed": 1,
+        "stepsDispatched": 0,
+        "stepsVerified": 0,
+        "policyState": null
+      },
+      "budgetRemaining": {
+        "roundsRemaining": 15,
+        "stepsRemaining": 256
+      }
+    },
+    "decision": null,
+    "guardedDecision": null,
+    "guard": null,
+    "durationMs": 21.0164
+  }
+]

@@ -144,6 +144,15 @@ try
     else
     {
         var settingsPolicyConfig = SettingsCoverageConfig.LoadDefault();
+        // AGT-015：traversal 目标必须与策略声明的 targeted toggle 绑定；
+        // 冲突在任何设备动作/咨询前 fail-closed（静态授权不随 CLI 扩大）。
+        var targetConflict = settingsPolicyConfig.ActionPolicy?
+            .ValidateTraversalTargetDescriptor(targetDescriptor);
+        if (targetConflict is not null)
+        {
+            Console.Error.WriteLine($"CONFIG_CONFLICT: {targetConflict}");
+            return 2;
+        }
         result = HostRunner.RunOnce(runsRoot, new HostRunner.HostOptions
         {
             DeviceId = device,

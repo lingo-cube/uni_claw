@@ -207,7 +207,7 @@ public sealed class HostRunner
             var admission = kernel.AdmitContract(new ExecutionContract(
                 Version: "v0",
                 Objective: options.SettingsTraversal
-                    ? "Confirm the Wi-Fi state in Android Settings and leave Wi-Fi enabled. Choose every next control only from the current semantic hierarchy; navigate as needed to reach the Wi-Fi control, and never toggle it when the observed state is already enabled."
+                    ? $"Confirm the {options.TargetSemanticDescriptor} switch state in Android Settings and leave it {options.TargetState}. Choose every next control only from the current semantic hierarchy; navigate as needed to reach the {options.TargetSemanticDescriptor} control, and never toggle it when the observed state is already {options.TargetState}."
                     : "flip-switch",
                 Scope: scope,
                 AllowedEffects: new HashSet<string> { "tap" },

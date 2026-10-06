@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "uniclaw.host-facts.v2",
+  "runDir": "evidence/agt-015/rounds/wifi-regression/run-20261006-050719-090",
+  "runId": "run-f4d0b1cd013a8e2016e05dabc6d9e0e1413442efcd9777c4018f74fafe194b03",
+  "correlationId": null,
+  "status": "Completed",
+  "reason": "terminal-emitted",
+  "outcome": "Completion",
+  "delivered": 2,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": true,
+  "journalBytes": 3070,
+  "diagnostics": {
+    "nextFiles": [
+      "facts.json",
+      "environment-preflight.json",
+      "consultations.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u8FD0\u884C\u5B8C\u6210\uFF1B\u5982\u9700\u6838\u5BF9\u52A8\u4F5C\uFF0C\u5148\u770B facts.completedSteps\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 trace.json\u3002"
+  },
+  "completionAnchors": null,
+  "completedSteps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-6088776330c2-3-1"
+    },
+    {
+      "decision": 2,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-cf33b3a5cc81-3-2"
+    }
+  ],
+  "actionPolicy": {
+    "policyRef": "fixture/android-settings/forbidden-action-policy",
+    "digest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/testsets/android-settings/forbidden-action-policy.json"
+  },
+  "policyGuard": [
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e"
+    }
+  ]
+}

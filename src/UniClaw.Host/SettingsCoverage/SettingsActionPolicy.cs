@@ -25,6 +25,31 @@ public sealed record SettingsActionPolicy(
     public const string SupportedSchemaVersion = "android-settings-action-policy.v1";
     public const string RejectUnknown = "reject";
 
+    /// <summary>AGT-015：traversal 目标必须与策略声明的 targeted toggle 绑定。
+    /// 返回 null 表示一致；否则返回冲突原因（含声明面），供运行入口在任何
+    /// 设备动作/咨询前 fail-closed。静态预评审授权不随 CLI 参数动态扩大。</summary>
+    public string? ValidateTraversalTargetDescriptor(string? descriptor)
+    {
+        var normalized = descriptor?.Trim();
+        var declared = string.Join(",", TargetedActionClasses.OrderBy(x => x, StringComparer.Ordinal));
+        if (string.IsNullOrWhiteSpace(normalized))
+            return $"traversal target descriptor is empty; policy declares: {declared}";
+        var semantic = $"toggle:{normalized}";
+        if (TargetedActionClasses.Contains(semantic))
+            return null;
+        return $"traversal target '{normalized}' is not declared by the action policy "
+            + $"(required: {semantic}; declared: {declared})";
+    }
+
+    /// <summary>策略声明的目标开关文字（"toggle:Wi-Fi" → "Wi-Fi"）。
+    /// 可见性冻结规则只对声明目标生效，不绑定任何字面量。</summary>
+    public IReadOnlyList<string> DeclaredTargetSwitchLabels =>
+        TargetedActionClasses
+            .Where(c => c.StartsWith("toggle:", StringComparison.OrdinalIgnoreCase))
+            .Select(c => c["toggle:".Length..].Trim())
+            .Where(l => l.Length > 0)
+            .ToList();
+
     public string AgentProjection() =>
         $"policyRef={PolicyRef}; policyDigest={Digest}; "
         + $"safe=[{string.Join(",", SafeActionClasses.OrderBy(x => x, StringComparer.Ordinal))}]; "
@@ -251,9 +276,13 @@ public static class SettingsActionGuard
         if (switchTarget)
             return Reject("unknown-action", "switch target requires typed desiredState", policy);
 
+        // Only the policy-declared target switch freezes navigation (AGT-015：
+        // 字面 "Wi-Fi" 通用化——非声明目标的可见开关不得冻结其他任务的导航）。
+        var declaredLabels = policy.DeclaredTargetSwitchLabels;
         var targetedSwitchVisible = (context.Elements ?? Array.Empty<ElementSummary>()).Any(element =>
             string.Equals(element.Role, "switch", StringComparison.OrdinalIgnoreCase)
-            && string.Equals(element.Text?.Trim(), "Wi-Fi", StringComparison.OrdinalIgnoreCase));
+            && declaredLabels.Any(label =>
+                string.Equals(element.Text?.Trim(), label, StringComparison.OrdinalIgnoreCase)));
         if (targetedSwitchVisible && step.EffectClass is "tap" or "click")
             return Reject("unknown-action", "target switch is visible; choose typed desiredState before another navigation", policy);
 

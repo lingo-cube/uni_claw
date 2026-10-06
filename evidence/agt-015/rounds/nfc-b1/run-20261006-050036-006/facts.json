@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "uniclaw.host-facts.v2",
+  "runDir": "evidence/agt-015/rounds/nfc-b1/run-20261006-050036-006",
+  "runId": "run-3f596208d90b87b67b376f79ca97f57a5556ac3868fb38fcc6cf55529ae87b9e",
+  "correlationId": null,
+  "status": "TerminalNotProven",
+  "reason": "evidence-insufficient",
+  "outcome": null,
+  "delivered": 4,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "journalBytes": 6149,
+  "diagnostics": {
+    "nextFiles": [
+      "facts.json",
+      "environment-preflight.json",
+      "consultations.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B facts.reason \u548C policyGuard\uFF0C\u518D\u7528 consultations.json \u7684 DecisionId \u5BF9\u7167 trace.json \u4E0E exec.journal\u3002"
+  },
+  "completionAnchors": null,
+  "completedSteps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-3c70d995ba7b-3-1"
+    },
+    {
+      "decision": 2,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-606a223906a3-1-2"
+    },
+    {
+      "decision": 3,
+      "step": 0,
+      "receipt": "receipt-bind-intent-3-occ-ee8803292c0d-4-3"
+    },
+    {
+      "decision": 4,
+      "step": 0,
+      "receipt": "receipt-bind-intent-4-occ-b01e880f170d-5-4"
+    }
+  ],
+  "actionPolicy": {
+    "policyRef": "fixture/android-settings/decoy-target-policy",
+    "digest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/testsets/android-settings/decoy-target-policy.json"
+  },
+  "policyGuard": [
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "back",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 2,
+      "semanticAction": "unknown-action",
+      "reason": "multi-step act is not policy-guardable",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # AGT-015 — 真实 Settings 下一批：未知状态安全停止与错误目标拒绝
 
-lifecycle_state: plan · disposition: none · depth: standard · base: 04fa7cbc
+lifecycle_state: closed · disposition: none · depth: standard · base: 04fa7cbc
 
 ## Intent（WHAT/WHY）
 
@@ -68,14 +68,14 @@ lifecycle_state: plan · disposition: none · depth: standard · base: 04fa7cbc
 - B2 拒绝事件不可完全控制（真实模型行为）——不变式为主断言；若多轮得不到拒绝分支，受控注入回合作为独立后续裁决，不在本 PLAN 预设。
 - 环境重建（emulator + 专用 DSH + 代理）是 S3/S4 前置；未重建前不执行、不伪造。
 
-## Verification（本轮 PERSIST）
+## Verification（2026-10-06 实施+验证回填）
 
 ```yaml
-level: CONTRACT
-method: python3 tools/gen-open-changes.py; 引用检查（AGT-012/013/014 与故障矩阵证据路径有效）; git diff --check
-expected: AGT-015 为 persisted；索引含本 change；无实现、无设备/模型执行
-actual: PASS（仅 PERSIST 文档检查）
-evidence: 本 state、changes/INDEX.md
+level: ENVIRONMENT（主）+ CONTRACT/DETERMINISTIC（回归）
+method: 真实回合×3（NFC-B1/NFC-B2/Wi-Fi 同链正回归）+ 红绿回归×2 + 全量 Host/AgentDsh 套件 + manifest/certify
+expected: A1 未知状态零目标 effect+诚实有界终止+理由可追溯；A2 零非目标 receipt+dispatch 前拒绝机制 live+正确目标同链可执行；A5 局部缺陷红→绿
+actual: PASS——三缺陷修复（traversal 目标-策略绑定 fail-closed、guard 字面 Wi-Fi 通用化、objective descriptor 化）；NFC 两回合零 toggle/零目标 effect、一回合捕获 multi-step dispatch 前拒绝、模型 defer 理由入 trace；Wi-Fi 正回归 Completed/Completion 零重复切换；Host.Tests 159/159、Agent.Dsh.Tests 132/132、manifest 3/3、certify 28/28
+evidence: evidence/agt-015/verification-2026-10-06.md + rounds/{nfc-b1,nfc-b2,wifi-regression}
 ```
 
 ## Status log
@@ -83,3 +83,5 @@ evidence: 本 state、changes/INDEX.md
 - 2026-10-06 · UNDERSTAND → RESOLVE → PERSIST · 所有者指令创建；确定性对面（AGT-014 故障矩阵）与仿真承载（POLICY-006/WIFI-005）已绿，本 Change 推进两个行为到真实设备/模型证据级；执行待环境重建。
 - 2026-10-06 · PERSIST → PLAN · 呈现机制确定：B1 用非可检目标行制造真 Unknown（AGT-014 typed 修复的镜像面）；B2 用策略只绑真目标 + 诱饵在场，主断言为零非目标 effect 不变式、拒绝分支如实记录。确定性对面核对（S2）确认已有覆盖（SettingsActionPolicyTests 等），无缺口不新增。S3/S4 待环境重建。
 - 2026-10-06 · IMPLEMENT（S1） · 测试集扩展落地：android-settings manifest 增 task/unknown-state-safe-stop 与 task/wrong-target-rejection 两任务 + non-checkable-target/decoy-target-policy 两 fixture，validate-testset-manifests 3/3 通过。另按所有者指令固化本地环境基准规则（docs/agents/test-emulator.md 汇总规则 + DSH 线路基准节；AGENTS.md 真相表登记）——S3/S4 的环境前置即按该规则执行。S2 复核确定性对面仍在位（ForbiddenAndUnknownTargets:112、ExactUncheckedSwitch:14），无缺口不新增。剩余 S3/S4/S5 待环境（模拟器 + 专用 DSH + 7890 代理）按基准规则拉起。
+- 2026-10-06 · IMPLEMENT → VERIFY（S3/S4/S5） · 环境按基准规则拉起（emulator-5556 + 专用 3081 + 7890；E2E 预检后实例因挂接残留重启一次）。真实回合暴露三个局部缺陷并按 A5 修复（traversal 目标-策略绑定 fail-closed、guard 可见性字面 Wi-Fi 通用化、objective descriptor 化；各带红→绿回归）。修复后 NFC 两回合证明 A1（零目标 effect+诚实有界终止+defer 理由入 trace）与 A2 不变式（零非目标 receipt；multi-step dispatch 前拒绝 live；toggle-non-target 分支未发生如实记录）；Wi-Fi 同链正回归 Completed/Completion 证明正确目标路径完好。Host.Tests 159/159、Agent.Dsh.Tests 132/132、certify 28/28。证据 evidence/agt-015/verification-2026-10-06.md。
+- 2026-10-06 · VERIFY → CLOSED · A1–A5 全部有证据；环境按基准规则回收（设备 stop、专用 3081 关闭）；无未授权改动（src 变更仅三处局部缺陷修复，均在 A5 授权内）。
