@@ -105,7 +105,6 @@ try
     var model = new ModelConfiguration(configuredModel.Provider, modelName);
     Console.WriteLine($"agent.provider={model.Provider} agent.model={modelName} dsh.endpoint={config.Service.BaseUri}");
 
-    RunAdb(device, "shell", "svc", "wifi", "enable");
     RunAdb(device, "shell", "am", "start", "-S", "-a", "android.settings.SETTINGS");
     Thread.Sleep(2000);
 

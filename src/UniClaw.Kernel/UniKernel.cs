@@ -125,6 +125,12 @@ public sealed class UniKernel
     internal IReadOnlyList<string> CurrentConflictedSubjects =>
         _world.DeriveControlBeliefViewOrNull()?.ConflictedSubjects ?? Array.Empty<string>();
 
+    /// <summary>Agent 摘要复用既有 typed checked 解析，只读；缺证据不回退展示态。</summary>
+    internal ObservedValue<CheckedState> ResolveCheckedForConsultation(TargetDescriptor target) =>
+        _world.Current is { } belief
+            ? SemanticCheckedResolver.Resolve(belief, target, _ledger.CanonicalRecords)
+            : ObservedValue<CheckedState>.Unknown("belief-absent");
+
     /// <summary>
     /// PER-009 C-1 / PER-014：权威域冲突裁决 + owner 销案。对每个悬案
     /// subject 构造 ConflictCase，并从同一 occurrence 的 typed checked claim

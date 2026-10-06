@@ -24,7 +24,8 @@ public sealed record ElementSummary(
     ElementEpistemic Epistemic,
     // Semantic state is part of the advisory projection so the agent can
     // avoid a non-idempotent tap when the current checked state is already
-    // satisfied.  Canonical authority remains the WorldModel occurrence.
+    // satisfied. Switch values derive from the existing typed checked resolver;
+    // missing/unsupported evidence stays null. Canonical authority is unchanged.
     string? State = null);
 
 /// <summary>claim 摘要（值 + 判别 + 冲突标记）。</summary>

@@ -1116,7 +1116,12 @@ public sealed class KernelRunDriver
                 Checkable: o.Role == "switch",
                 Enabled: true,
                 ElementEpistemic.Observed,
-                State: o.State))
+                State: o.Role == "switch"
+                    ? _kernel.ResolveCheckedForConsultation(new TargetDescriptor(
+                        o.Role, o.SemanticDescriptor, o.OwningContainerId)) is { State: FieldState.Observed } checkedValue
+                        ? checkedValue.Value.ToString().ToLowerInvariant()
+                        : null
+                    : o.State))
             .ToList();
     }
 

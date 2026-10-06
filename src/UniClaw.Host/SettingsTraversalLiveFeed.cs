@@ -20,6 +20,18 @@ namespace UniClaw.Host;
 /// </summary>
 public sealed class SettingsTraversalLiveFeed : IDisposable
 {
+    // The Android Settings Wi-Fi preference is a declared two-state test
+    // target. This is an explicit fixture-backed contract, not an inference
+    // from API level, class name, or a sample capture.
+    private static readonly HierarchyCapabilities WifiToggleCapabilities =
+        new(HierarchyCapability.SemanticText
+            | HierarchyCapability.ContentDescription
+            | HierarchyCapability.CheckedBooleanExact);
+    private static readonly CheckedExactProof WifiToggleExactProof = new(
+        "contract:settings.wifi-toggle/two-state",
+        "capability:android-settings-profile/wifi-switch/exact",
+        "testsets/android-settings/wifi-toggle-contract.json");
+
     public sealed record TraceEntry(
         int Cycle,
         string Context,
@@ -185,6 +197,8 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
                         captureId, _clock.Now, _assets.DeviceId,
                         $"settings:{_assets.DeviceId}", api.Value,
                         ObservationCycleId: observationCycleId,
+                        Capabilities: WifiToggleCapabilities,
+                        ExactProof: WifiToggleExactProof,
                         Space: CoordinateSpace.DeviceViewport(capture.Width, capture.Height)));
                 if (typed.Observation is { } observation)
                     proposals.AddRange(TypedHierarchyProposalProjector.Project(observation, directive.Context));

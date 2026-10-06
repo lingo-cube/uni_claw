@@ -1,0 +1,5 @@
+{
+  "exitCode": 1,
+  "command": "dotnet run --project src/UniClaw.Host.Dsh/UniClaw.Host.Dsh.csproj --no-build -- --settings-traversal --device emulator-5556 --runs /Users/fran/Documents/Code/spacex/uni_claw/evidence/agt-014/task2-toggle-first-real-20261006 --target checked --target-descriptor Wi-Fi",
+  "fixture": "wifi disabled 3s after host launch"
+}

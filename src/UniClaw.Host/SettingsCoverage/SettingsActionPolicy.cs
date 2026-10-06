@@ -240,6 +240,23 @@ public static class SettingsActionGuard
                 : Reject("toggle-non-target", semantic, policy);
         }
 
+        // A switch is never a navigation control.  Requiring the typed state
+        // here prevents an agent from turning a missing desiredState into a
+        // safe-looking tap and bypassing the targeted-toggle policy.
+        var switchTarget = string.Equals(step.TargetRole, "switch", StringComparison.OrdinalIgnoreCase)
+            || (context.Elements ?? Array.Empty<ElementSummary>()).Any(element =>
+                string.Equals(element.Text?.Trim(), target, StringComparison.OrdinalIgnoreCase)
+                && (string.Equals(element.Role, "switch", StringComparison.OrdinalIgnoreCase)
+                    || element.Checkable == true));
+        if (switchTarget)
+            return Reject("unknown-action", "switch target requires typed desiredState", policy);
+
+        var targetedSwitchVisible = (context.Elements ?? Array.Empty<ElementSummary>()).Any(element =>
+            string.Equals(element.Role, "switch", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(element.Text?.Trim(), "Wi-Fi", StringComparison.OrdinalIgnoreCase));
+        if (targetedSwitchVisible && step.EffectClass is "tap" or "click")
+            return Reject("unknown-action", "target switch is visible; choose typed desiredState before another navigation", policy);
+
         var safeSemantic = step.EffectClass switch
         {
             "swipe-up" => "scroll",

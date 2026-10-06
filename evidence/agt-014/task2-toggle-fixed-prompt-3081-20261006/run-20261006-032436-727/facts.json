@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "uniclaw.host-facts.v2",
+  "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/agt-014/task2-toggle-fixed-prompt-3081-20261006/run-20261006-032436-727",
+  "runId": "run-21d7e36fbc722f70c005ac9b597193fcfbe1761329e75444fdf3e175d08282ee",
+  "correlationId": null,
+  "status": "TerminalNotProven",
+  "reason": "evidence-insufficient",
+  "outcome": null,
+  "delivered": 2,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "journalBytes": 3070,
+  "diagnostics": {
+    "nextFiles": [
+      "facts.json",
+      "environment-preflight.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B facts.reason \u548C policyGuard\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 trace.json \u4E0E exec.journal\u3002"
+  },
+  "completionAnchors": null,
+  "completedSteps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-94275a9e2fb3-3-1"
+    },
+    {
+      "decision": 2,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-be9f9a2edcd2-3-2"
+    }
+  ],
+  "actionPolicy": {
+    "policyRef": "fixture/android-settings/forbidden-action-policy",
+    "digest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/testsets/android-settings/forbidden-action-policy.json"
+  },
+  "policyGuard": [
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e"
+    },
+    {
+      "verdict": 2,
+      "semanticAction": "unknown-action",
+      "reason": "switch target requires typed desiredState",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e"
+    }
+  ]
+}

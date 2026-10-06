@@ -156,6 +156,40 @@ public sealed class SettingsActionPolicyTests
     }
 
     [Fact]
+    public void SwitchTargetWithoutDesiredState_IsRejectedBeforeDispatch()
+    {
+        var policy = Policy();
+        var result = SettingsActionGuard.Evaluate(
+            Step("Wi-Fi"),
+            Context(new ElementSummary(
+                "switch", "Wi-Fi", null, true, true, true,
+                ElementEpistemic.Observed, "unchecked")),
+            policy);
+
+        Assert.Equal(SettingsActionGuardVerdict.Reject, result.Verdict);
+        Assert.Equal("unknown-action", result.SemanticAction);
+        Assert.Contains("desiredState", result.Reason);
+    }
+
+    [Fact]
+    public void VisibleTargetSwitch_RejectsUnrelatedNavigation()
+    {
+        var policy = Policy();
+        var result = SettingsActionGuard.Evaluate(
+            Step("T-Mobile"),
+            Context(
+                new ElementSummary("switch", "Wi-Fi", null, true, true, true,
+                    ElementEpistemic.Observed, "unchecked"),
+                new ElementSummary("ui.element", "T-Mobile", null, true, false, true,
+                    ElementEpistemic.Observed)),
+            policy);
+
+        Assert.Equal(SettingsActionGuardVerdict.Reject, result.Verdict);
+        Assert.Equal("unknown-action", result.SemanticAction);
+        Assert.Contains("target switch is visible", result.Reason);
+    }
+
+    [Fact]
     public void GuardDecision_RejectsBeforeKernelDispatch()
     {
         var policy = Policy();

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "android-settings-toggle-contract.v1",
+  "fixtureRef": "fixture/android-settings/wifi-target",
+  "targetDescriptor": "Wi-Fi",
+  "checkedCapability": "checkedBooleanExact",
+  "twoStateContractId": "contract:settings.wifi-toggle/two-state",
+  "adapterCapabilityDeclaration": "capability:android-settings-profile/wifi-switch/exact",
+  "traceableEvidenceRef": "testsets/android-settings/wifi-toggle-contract.json",
+  "source": "Android Settings Wi-Fi preference is the declared two-state target for task/android-settings/toggle-wifi-reuse"
+}

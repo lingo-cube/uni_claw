@@ -399,6 +399,7 @@ test('B3: consultation prompt binds effectClass to runtime allowedEffects', asyn
   assert.match(prompt, /use `tap`/i)
   assert.match(prompt, /use `swipe-up`/i)
   assert.match(prompt, /policy meanings navigate, back, and scroll/i)
+  assert.match(prompt, /switch\/checkable control[\s\S]*desiredState is mandatory/i)
   emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
   const result = await consultPromise
   assert.equal(result.body.error, 'no-submit-decision')

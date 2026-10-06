@@ -1,6 +1,6 @@
 # AGT-014 — Android Settings full-chain reliability run
 
-lifecycle_state: persisted · disposition: none · depth: standard · base: e68ba121
+lifecycle_state: closed · disposition: none · depth: standard · base: e68ba121
 
 ## Intent（WHAT/WHY）
 
@@ -48,8 +48,8 @@ trace/facts/evidence。目标是暴露可靠性、智能性、容错性和可诊
 level: ENVIRONMENT
 method: real API 35 emulator + DSH Agent + ADB + SettingsCoverage/HostRunner live runs; deterministic regression after any local fix
 expected: three tasks and failure paths produce traceable, safe, honest outcomes
-actual: deterministic + real-device chain partial PASS; full solution 1307/1307 and Host.Dsh build pass; the prewarmed real DSH Wi-Fi objective completes through 3 consultations and 2 guarded ADB taps, the bounded Settings coverage completes through 20 consultations and 19 verified effects after the 7890 proxy and runtime-token prompt fix, and the deterministic fault matrix is 44/44 PASS with invalid-device safe stop; the task-set evidence summary is still open
-evidence: evidence/agt-014/verification-2026-10-06.md; evidence/agt-014/dsh-runtime-token-fix-2026-10-06.md; evidence/agt-014/dsh-task3-coverage-2026-10-06.md; evidence/agt-014/fault-injection-2026-10-06.md
+actual: deterministic + real-device chain PASS; full solution 1307/1307 and Host.Dsh build pass; task one has independent real menu-location evidence and is re-covered by the first traversal step, task two has real first-toggle and same-device reuse PASS, task three has bounded real DSH coverage PASS, and the deterministic fault matrix is 46/46 PASS with invalid-device safe stop; all three tasks now have method/expected/actual/evidence links and no open gate remains
+evidence: evidence/agt-014/verification-2026-10-06.md; evidence/agt-014/task2-toggle-reuse-2026-10-06.md; evidence/agt-014/dsh-runtime-token-fix-2026-10-06.md; evidence/agt-014/dsh-task3-coverage-2026-10-06.md; evidence/agt-014/fault-injection-2026-10-06.md
 ```
 
 ## Status log
@@ -110,3 +110,18 @@ evidence: evidence/agt-014/verification-2026-10-06.md; evidence/agt-014/dsh-runt
   非法目标状态和 forbidden/unknown action 均保持 fail-closed 或 bounded stop。真实
   Host 使用不存在设备时在 ADB 环境门以 rc=1 停止，未进入 consultation/effect。
   证据：`evidence/agt-014/fault-injection-2026-10-06.md`。
+
+- 2026-10-06 · VERIFY → IMPLEMENT → VERIFY · 真实任务二先复现出“模型决策和 Guard
+  都正确但零开关 effect”：exact `unchecked` 证据在 occurrence 投影处丢失，Control
+  将目标视为 Unknown。修复 `UiHierarchyOccurrenceStrategy` 保留 typed
+  `checked/unchecked/partial`，新增 occurrence-state 回归测试；Host.Dsh 重建通过。
+
+- 2026-10-06 · VERIFY · 真实任务二首次回合 PASS：关闭态设备经
+  `Network & internet` → `Internet` → `switch Wi‑Fi desiredState=checked`，3/3
+  ADB receipt，设备 `wifi_on=0→1`，终局 `Completed/Completion`。同一设备复用回合
+  PASS：2/2 导航 receipt 后 `noAction`，无重复 toggle effect，设备保持 `wifi_on=1`。
+  `consultations.json`、`facts.json`、`exec.journal` 与预热标志均已落盘，详见
+  `evidence/agt-014/task2-toggle-reuse-2026-10-06.md`。
+
+- 2026-10-06 · CLOSED · 三项真实任务、故障矩阵、预热/生命周期标志和初级程序员
+  查错入口均已复核；本 Change 无剩余 Human Gate。

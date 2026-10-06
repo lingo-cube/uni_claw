@@ -3,9 +3,9 @@
 ## 结果摘要
 
 本回合把确定性、真实设备、真实 DSH 三个层次分开执行。确定性 Guard、故障矩阵与
-真实 ADB/感知链通过；代理配置和运行时动作词汇修复后，真实 DSH 的 Wi-Fi 目标回合
-和有界 Settings 覆盖回合均已完成。AGT-014 仍需要把三项任务证据汇总成最终验收，
-因此 Change 继续保持 persisted。
+真实 ADB/感知链通过；代理配置、运行时动作词汇和 typed 开关状态投影修复后，真实
+DSH 的 Wi-Fi 首次切换/复用回合和有界 Settings 覆盖回合均已完成。三项任务证据已
+汇总，AGT-014 可闭合。
 
 ## 真实设备结果
 
@@ -123,6 +123,40 @@ DSH 日志为 `consult captured`、`kind=act`、`durationMs=11177`，测试耗�
 `environment-preflight.json` 标记正式流程是在环境预检之后启动。上述修复不改变
 模型、协议或架构。
 
+## 任务二：真实首次切换与同设备复用
+
+首次回合的第一次修复验证暴露了一个比 Guard 更靠后的局部问题：模型已经返回
+`targetRole=switch`、`targetDescriptor=Wi‑Fi`、`desiredState=checked`，Guard 也返回
+`toggle:Wi‑Fi / Allow`，但 Control 没有派发 effect。原因是 exact two-state typed
+证据中的 `unchecked` 在 `UiHierarchyOccurrenceStrategy` 投影时被丢弃，
+`DescriptorTargetPolicy` 只能看到 `State=null`，按 fail-closed 规则选择观察而不是动作。
+现已改为保留合法 typed 值 `checked/unchecked/partial`，并由
+`UiHierarchyOccurrenceStateTests` 固定回归。
+
+修复后的首次运行目录：
+`evidence/agt-014/task2-toggle-first-final2-20261006/run-20261006-034418-669/`
+
+- `facts.json`：`Completed / Completion`、`delivered=3`、3 个
+  `DeliveryCompleted`，completed steps 为 decision 1/2/3。
+- `consultations.json`：两次导航、一次 typed Wi‑Fi toggle、一次 `noAction`；Guard
+  只允许 safe navigation 和声明目标 `toggle:Wi‑Fi`。
+- `exec.journal`：三次 prepare/submission/receipt；最后一次实际命令为
+  `adb -s emulator-5556 shell input tap 969 835`。
+- 真实设备：回合前 `wifi_on=0`，回合后 `wifi_on=1`。
+- `environment-preflight.json`：视觉服务预热成功，且显式标记正式流程在预热后开始；
+  `settings-trace.json` 记录预热、快感知、hierarchy 的分段耗时。
+
+同一设备立即复用的运行目录：
+`evidence/agt-014/task2-toggle-reuse-final-20261006/run-20261006-034642-214/`
+
+- `facts.json`：`Completed / Completion`、`delivered=2`、2 个 receipt。
+- `consultations.json`：两次导航后 `noAction`，没有 `toggle:Wi‑Fi` Guard 记录。
+- `exec.journal`：只有两次 prepare/submission/receipt；没有重复开关 effect。
+- 设备复核仍为 `wifi_on=1`。
+
+这两次运行的初级查错入口已统一为：`facts.json` → `consultations.json` →
+`policyGuard/completedSteps` → `exec.journal` → `settings-trace.json` 与 XML/截图。
+
 ## 真实 DSH 有界覆盖回合
 
 覆盖入口在同一 7890 代理和 `glm-5.3-flash` 配置下重新执行，结果为
@@ -140,12 +174,13 @@ act consultation 的 facts 都回填同一 digest，说明策略是在首次咨�
 
 ## 故障注入与诊断回合
 
-Host Settings 覆盖、Director、Ledger 和 ActionPolicy 的故障矩阵 `44/44` 通过，
+Host Settings 覆盖、Director、Ledger 和 ActionPolicy 的故障矩阵 `46/46` 通过，
 覆盖弹窗不消失、未知页、连续验证失败、滚动无变化、步数上限、模型偏离、多步动作、
 非法目标状态和 forbidden/unknown action；每项都保持 fail-closed 或 bounded stop。
 另外用不存在设备做真实 Host 环境门测试，退出码 `1`，在 ADB 检查处停止，未进入
 consultation 或 effect dispatch。证据：`evidence/agt-014/fault-injection-2026-10-06.md`。
 
-Wi-Fi 目标回合、有界覆盖回合和故障矩阵已经通过；任务一的独立证据来自 AGT-003/
-AGT-004，本次覆盖第 1 步也重新证明了 `Network & internet` 的唯一定位和 route
-transition。AGT-014 还需要把三项任务证据汇总成最终验收后再关闭。
+Wi-Fi 首次切换/复用回合、有界覆盖回合和故障矩阵已经通过；任务一的独立证据来自
+AGT-003/AGT-004，本次覆盖第 1 步也重新证明了 `Network & internet` 的唯一定位和
+route transition。三项任务的 method/expected/actual/evidence 已齐全，AGT-014
+已进入 CLOSED。

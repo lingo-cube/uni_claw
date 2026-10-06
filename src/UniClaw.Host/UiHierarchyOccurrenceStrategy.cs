@@ -146,7 +146,13 @@ public sealed class UiHierarchyOccurrenceStrategy : IUiObservationStrategy
                 continue;
 
             var role = isSwitch ? "switch" : "ui.element";
-            var state = isSwitch && node.Checked == "checked" ? "checked" : null;
+            // Preserve the typed checked value when the hierarchy acquirer has
+            // declared a valid capability/proof.  The old projection kept only
+            // `checked`, silently turning a proven `unchecked` switch into
+            // Unknown; Control then refused the required enable action.
+            var state = isSwitch && node.Checked is "checked" or "unchecked" or "partial"
+                ? node.Checked
+                : null;
             var native = string.IsNullOrWhiteSpace(node.ResourceId)
                 ? null
                 : new NativeLocator("android.resource-id", node.ResourceId);

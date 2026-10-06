@@ -207,7 +207,6 @@ public sealed class RuntimeHttpServer
     {
         try
         {
-            RunAdb(device, "shell", "svc", "wifi", "enable");
             RunAdb(device, "shell", "am", "start", "-S", "-a", "android.settings.WIFI_SETTINGS");
             await Task.Delay(1500).ConfigureAwait(false);
             AgentDecision? Consult(AgentDecisionContext context) => agent.Consult(context);

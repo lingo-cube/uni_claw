@@ -160,6 +160,7 @@ public sealed class HostRunner
             var traceScope = RunTraceFactory.BeginRun(new RunCorrelation(options.Launch?.RunId ?? "host:v0-flip-switch"));
             var ledger = new EvidenceLedger();
             var policyGuardResults = new List<SettingsActionGuardResult>();
+            var consultations = new List<object>();
             kernel = new UniKernel(
                 ledger, world, traceScope.Trace,
                 new RunModel(), new ControlLoop(planPolicy), assurance, effectBoundary, metrics);
@@ -179,13 +180,25 @@ public sealed class HostRunner
                                     + "\n\nSETTINGS ACTION POLICY (read-only; Runtime Guard is authoritative): "
                                     + policy.AgentProjection(),
                             };
+                        var consultationStarted = System.Diagnostics.Stopwatch.StartNew();
                         var decision = options.ConsultAgent(projected);
-                        if (policy is null)
-                            return decision;
-                        var guarded = SettingsActionGuard.GuardDecision(
-                            decision, projected, policy, out var guardResult);
+                        SettingsActionGuardResult? guardResult = null;
+                        var guarded = policy is null
+                            ? decision
+                            : SettingsActionGuard.GuardDecision(decision, projected, policy, out guardResult);
                         if (guardResult is not null)
                             policyGuardResults.Add(guardResult);
+                        consultations.Add(new
+                        {
+                            context = projected,
+                            decision = DecisionArtifact(decision),
+                            guardedDecision = DecisionArtifact(guarded),
+                            guard = guardResult,
+                            durationMs = consultationStarted.Elapsed.TotalMilliseconds,
+                        });
+                        // Preserve each completed consultation before later dispatch/verification
+                        // can fail; no DSH-private session journal is needed for localization.
+                        WriteText(runDir, "consultations.json", TryJson(consultations));
                         return guarded;
                     },
                 });
@@ -254,10 +267,10 @@ public sealed class HostRunner
                 journalBytes = new FileInfo(journalPath).Length,
                 diagnostics = new
                 {
-                    nextFiles = new[] { "facts.json", "environment-preflight.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
+                    nextFiles = new[] { "facts.json", "environment-preflight.json", "consultations.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
                     guidance = drive.Status == RunDriveStatus.Completed
                         ? "运行完成；如需核对动作，先看 facts.completedSteps，再用 DecisionId 对照 trace.json。"
-                        : "先看 facts.reason 和 policyGuard，再用 DecisionId 对照 trace.json 与 exec.journal。"
+                        : "先看 facts.reason 和 policyGuard，再用 consultations.json 的 DecisionId 对照 trace.json 与 exec.journal。"
                 },
                 completionAnchors = driver.PendingCompletionDossier?.Results
                     .Select(r => new { anchor = r.Anchor, verified = r.Verified })
@@ -326,6 +339,16 @@ public sealed class HostRunner
 
     private static readonly JsonSerializerOptions JsonOptions =
         new(JsonSerializerDefaults.Web) { WriteIndented = true };
+
+    private static object? DecisionArtifact(AgentDecision? decision) => decision switch
+    {
+        AgentDecision.Act act => new { kind = "act", decisionId = act.Proposal.DecisionId, proposal = (object)act.Proposal },
+        AgentDecision.NoAction noAction => new { kind = "noAction", decisionId = noAction.Proposal.DecisionId, proposal = (object)noAction.Proposal },
+        AgentDecision.Defer defer => new { kind = "defer", decisionId = defer.DecisionId, spec = defer.Spec },
+        AgentDecision.Policy policy => new { kind = "policy", decisionId = policy.DecisionId, proposal = (object)policy.Proposal },
+        AgentDecision.Plan plan => new { kind = "plan", decisionId = plan.DecisionId, proposal = (object)plan.Proposal },
+        _ => null,
+    };
 
     private static string TryJson<T>(T value)
     {
