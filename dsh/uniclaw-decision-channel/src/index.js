@@ -291,7 +291,7 @@ const CAPABILITIES = ['submit_decision']
 const AGENT_PRESET_ID = 'uniagent-prod'
 const EXPECTED_SESSION_TOOLS = ['submit_decision']
 const DEFAULT_TURN_TIMEOUT_MS = 60_000
-const MAX_TURN_TIMEOUT_MS = 120_000
+const MAX_TURN_TIMEOUT_MS = 240_000  // PER-019: reasoning models (deepseek-flash thinking) legitimately exceed 120s
 
 // ---------------------------------------------------------------------------
 // Process-local event ledger (PNL-001). Observation only — never a Product

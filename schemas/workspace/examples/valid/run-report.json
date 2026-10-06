@@ -1,0 +1,57 @@
+{
+ "schemaVersion": "uniclaw.workspace.run-report.v1",
+ "contractVersion": "uniclaw.workspace.contract.v1",
+ "reportKind": "full-link-single-run",
+ "generator": {"name": "gen-run-report", "version": 1},
+ "identities": {
+  "runId": {"value": "run-example-0001", "availability": "present", "valueOrigin": "observed", "source": "facts.json"},
+  "traceId": {"value": "trc-example", "availability": "present", "valueOrigin": "observed", "source": "trace.json"},
+  "productSessionId": {"value": "session-example", "availability": "present", "valueOrigin": "observed", "source": "metadata.json"},
+  "dshSessionId": {"value": null, "availability": "not-collected", "valueOrigin": "observed"},
+  "runDir": {"value": "evidence/example/run-0001", "availability": "present", "valueOrigin": "configured"}
+ },
+ "input": {
+  "artifacts": [
+   {"name": "metadata", "file": "metadata.json", "availability": "present", "bytes": 210, "sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
+   {"name": "facts", "file": "facts.json", "availability": "present", "bytes": 96, "sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
+   {"name": "trace", "availability": "not-collected"},
+   {"name": "settingsTrace", "availability": "not-collected"},
+   {"name": "journal", "availability": "not-collected"},
+   {"name": "consultations", "availability": "not-collected"},
+   {"name": "environmentPreflight", "availability": "not-collected"},
+   {"name": "failure", "availability": "not-collected"}
+  ]
+ },
+ "coverage": {
+  "sections": [
+   {"section": "host", "availability": "partial", "reason": "Runtime Host lifecycle 事件（.runtime-runs）不在输入内；仅由 run 目录产物重建"},
+   {"section": "agent", "availability": "not-collected"},
+   {"section": "capability", "availability": "partial", "reason": "settings-trace.json 缺失；capability 侧只剩 journal 中的 executor 标识"},
+   {"section": "worldModel", "availability": "not-collected", "reason": "trace.json 无 world.reconcile span"},
+   {"section": "evidence", "availability": "not-collected", "reason": "trace.json 无 evidence.admit span"},
+   {"section": "operations", "availability": "not-collected", "reason": "exec.journal 缺失"},
+   {"section": "timeline", "availability": "partial", "reason": "无任何可排序 anchor"}
+  ]
+ },
+ "anomalies": [],
+ "summary": {
+  "requirement": {"text": null, "availability": "not-collected", "valueOrigin": "observed"},
+  "environment": {"device": "emulator-5554", "real": true},
+  "counts": {"consultations": 0, "deliveredEffects": 0, "completedSteps": 0, "observationCycles": 0, "evidenceAdmissions": 0, "worldRevisions": 0, "journalRecords": 0},
+  "achievement": {"availability": "partial", "status": "Interrupted", "terminal": false, "completedSteps": 0, "anchorsAvailability": "not-collected", "anchorsTotal": 0, "anchorsVerified": 0, "receipts": []}
+ },
+ "timeline": [
+  {"ordinal": 1, "track": "terminal", "kind": "run-terminal", "orderingBasis": "terminal", "status": "Interrupted", "refs": ["run-example-0001"]}
+ ],
+ "layers": {
+  "host": {"availability": "partial", "artifactsWritten": ["metadata", "facts"], "preflight": {"availability": "not-collected"}},
+  "agent": {"availability": "not-collected"},
+  "capability": {"availability": "partial", "perceptionCycles": [], "executors": []},
+  "worldModel": {"availability": "not-collected", "revisionCount": 0, "checkpoints": []},
+  "evidence": {"availability": "not-collected", "admissionCount": 0},
+  "operations": {"availability": "not-collected", "attempts": [], "completedSteps": [], "receipts": []}
+ },
+ "references": [
+  {"id": "run-example-0001", "kind": "run", "artifact": "report envelope", "locator": "identities.runId"}
+ ]
+}

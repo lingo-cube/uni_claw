@@ -137,7 +137,7 @@ Hub 不负责业务规则、语言判断、性能算法、WorldModel 写入、As
 
 ### 4.0.1 现有能力的候选归类
 
-前面六类不足以覆盖当前实现。当前代码中已经存在主动观察源、诊断接收器和 Host 夹具；因此暂时扩展为以下九类候选。分类是协议选择输入，不是实现层级，也不表示这些分类已经冻结。
+前面六类不足以覆盖当前实现。当前代码中已经存在主动观察源、诊断接收器和 Host 夹具；因此暂时扩展为以下十类候选。分类是协议选择输入，不是实现层级，也不表示这些分类已经冻结。
 
 | 候选分类 | 当前/计划能力 | 适合的协议 | 说明 |
 |---|---|---|---|
@@ -150,8 +150,29 @@ Hub 不负责业务规则、语言判断、性能算法、WorldModel 写入、As
 | **Artifact / Report Sink** | screenshot/XML raw artifact 落盘、`StepArtifact`、trace/report writer、外部视频/JSON 保存 | Artifact Reference → append/finalize/retention | 保存附件和报告；Artifact 不因存在而成为 Product fact，也不直接产生 Evidence Record |
 | **Fixture / Environment Manager** | 设备连接、Host setup/teardown、摄像头/录屏启动与清理、环境 identity/health | `Setup → Ready/Failed → Teardown` | 属于 Host/Harness；不拥有业务 Run 成功或 Product truth |
 | **Harness Stimulus / Fault Injector** | 测试延迟、超时、断连、错误回执、外部输入注入 | Test-only stimulus → controlled runtime input | 只存在于 Harness；不能作为普通 Product capability 启用 |
+| **Model Routing / Binding Management**（CAP-008 增） | `ModelManagement`（`uni.model.management`，registry 类别 ModelRouting） | logical profile → 冻结 binding 解析（`Model Binding Resolution@1.0`；候选偏好 + 健康证据 + 拉式健康聚合） | 产品拥有解析与 fail-closed 语义；realization（当前缺省借用 DSH）只注入候选数据；不下载、不安装、不热切换；必须实例注册 |
 
 `Slow` 需要拆开看：Slow provider 属于 `Observation Source / Observation Proposal Producer`；由 Control 授权的 Slow consultation 属于 `Advisory / Planner`；两者可以由同一个 Host adapter 实现，但在 Hub 中应声明为两个协议角色，不能共享一个无边界的“Slow Hook”。
+
+#### 能力依赖图（CAP-009，Product Registry 实况）
+
+```mermaid
+graph LR
+    subgraph ProductRegistry[Product Capability Registry]
+        UNI["uni.perception<br/>CompositeProductPerception<br/>（实例注册：双协议 + 健康聚合）"]
+        FY["fast.yolo<br/>（依赖锚点，本地确定性资产）"]
+        FO["fast.ocr<br/>（依赖锚点，本地确定性资产）"]
+        SV["slow.visual<br/>（description-only：visual 未接线）"]
+        MM["uni.model.management<br/>ModelRouting<br/>（实例注册：解析权威）"]
+    end
+    UNI -->|Requires| FY
+    UNI -->|Requires| FO
+    UNI -.->|"Requires slow.text（设计决定：不注册为条目，<br/>由 uni.model.management 的 slow.semantic.text profile 承载）"| MM
+    UNI ---|"健康源：fast 资产探针"| FY
+    UNI ---|"健康源：模型端 CheckHealth"| MM
+```
+
+图例：实线 `Requires` = descriptor 声明依赖；虚线 = 语义承载边（依赖 id 指向的逻辑档由另一能力承接，非注册条目）；`---` = 运行期健康探测关系。运行时执法另有一条图中不可见的硬边：`SlowTextGate` 强制"缺可用 fast 前置不得调用 Slow Text"（AGT-017）。
 
 对于 Fast + Slow Text，Product Capability Registry 注册的是 `UniPerception` 组合能力（2026-10-06 前旧名 Text Semantic Perception），Slow Text 不独立注册；需要文本语义解释时，其依赖链固定为 `Fast（YOLO + OCR）→ Slow Text`。缺少可用的 YOLO/OCR 前置依据或关联不完整时，不调用 Slow Text、不产生该阶段的语义 proposal；Fast 已有的合法输出仍按既有路径处理。YOLO/OCR 正常完成但检测结果为空不等于能力缺失，是否足以回答具体 claim 需要另行定义。`Slow Visual` 和其他感知能力可保持独立。
 

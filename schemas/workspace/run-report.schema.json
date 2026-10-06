@@ -1,0 +1,344 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.dev/schemas/workspace/run-report/v1",
+  "title": "UniClaw Workspace Full-Link Single-Run Report",
+  "type": "object", "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": "uniclaw.workspace.run-report.v1"},
+    "contractVersion": {"const": "uniclaw.workspace.contract.v1"},
+    "reportKind": {"const": "full-link-single-run"},
+    "generator": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "name": {"const": "gen-run-report"},
+        "version": {"type": "integer", "minimum": 1}
+      },
+      "required": ["name", "version"]
+    },
+    "identities": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "runId": {"$ref": "#/$defs/identityField"},
+        "traceId": {"$ref": "#/$defs/identityField"},
+        "productSessionId": {"$ref": "#/$defs/identityField"},
+        "dshSessionId": {"$ref": "#/$defs/identityField"},
+        "runDir": {"$ref": "#/$defs/identityField"}
+      },
+      "required": ["runId", "traceId", "productSessionId", "dshSessionId", "runDir"]
+    },
+    "input": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "artifacts": {
+          "type": "array", "minItems": 1,
+          "items": {"$ref": "#/$defs/artifactRef"}
+        }
+      },
+      "required": ["artifacts"]
+    },
+    "coverage": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "sections": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "properties": {
+              "section": {"enum": ["host", "agent", "capability", "worldModel", "evidence", "operations", "timeline"]},
+              "availability": {"$ref": "#/$defs/availability"},
+              "reason": {"type": "string", "minLength": 1}
+            },
+            "required": ["section", "availability"]
+          }
+        }
+      },
+      "required": ["sections"]
+    },
+    "anomalies": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "properties": {
+          "code": {"type": "string", "minLength": 1},
+          "severity": {"enum": ["info", "warning", "failure"]},
+          "detail": {"type": "string", "minLength": 1},
+          "refs": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["code", "severity", "detail", "refs"]
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "requirement": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "text": {"type": ["string", "null"]},
+            "availability": {"$ref": "#/$defs/availability"},
+            "valueOrigin": {"enum": ["configured", "generated", "observed", "derived"]},
+            "source": {"type": "string", "minLength": 1}
+          },
+          "required": ["text", "availability", "valueOrigin"],
+          "allOf": [
+            {"if": {"properties": {"availability": {"const": "present"}}},
+             "then": {"properties": {"text": {"type": "string", "minLength": 1}}}}
+          ]
+        },
+        "environment": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "device": {"type": "string"},
+            "androidApi": {"type": "integer"},
+            "wmSize": {"type": "string"},
+            "real": {"type": "boolean"},
+            "taskSet": {"type": "string"},
+            "workspace": {"type": "string"},
+            "dshEndpoint": {"type": "string"}
+          }
+        },
+        "model": {"type": "string"},
+        "counts": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "consultations": {"type": "integer", "minimum": 0},
+            "deliveredEffects": {"type": "integer", "minimum": 0},
+            "completedSteps": {"type": "integer", "minimum": 0},
+            "observationCycles": {"type": "integer", "minimum": 0},
+            "evidenceAdmissions": {"type": "integer", "minimum": 0},
+            "worldRevisions": {"type": "integer", "minimum": 0},
+            "journalRecords": {"type": "integer", "minimum": 0}
+          },
+          "required": ["consultations", "deliveredEffects", "completedSteps", "observationCycles", "evidenceAdmissions", "worldRevisions", "journalRecords"]
+        },
+        "achievement": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "availability": {"$ref": "#/$defs/availability"},
+            "status": {"type": "string", "minLength": 1},
+            "outcome": {"type": "string", "minLength": 1},
+            "terminal": {"type": "boolean"},
+            "deliveredEffects": {"type": "integer", "minimum": 0},
+            "completedSteps": {"type": "integer", "minimum": 0},
+            "anchorsAvailability": {"$ref": "#/$defs/availability"},
+            "anchorsTotal": {"type": "integer", "minimum": 0},
+            "anchorsVerified": {"type": "integer", "minimum": 0},
+            "receipts": {"type": "array", "items": {"type": "string"}}
+          },
+          "required": ["availability"]
+        }
+      },
+      "required": ["environment", "counts", "requirement", "achievement"]
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "properties": {
+          "ordinal": {"type": "integer", "minimum": 1},
+          "track": {"enum": ["observation", "kernel", "effect", "agent", "terminal"]},
+          "kind": {"type": "string", "minLength": 1},
+          "orderingBasis": {"enum": ["cycle", "captureSequence", "journalSeq", "derived", "terminal"]},
+          "availability": {"$ref": "#/$defs/availability"},
+          "cycle": {"type": "integer", "minimum": 1},
+          "context": {"type": "string"},
+          "captureId": {"type": "string"},
+          "observationCycleId": {"type": "string"},
+          "screenIdentity": {"type": "string"},
+          "proposalCount": {"type": "integer", "minimum": 0},
+          "fastLatencyMs": {"type": "number", "minimum": 0},
+          "hierarchyLatencyMs": {"type": "number", "minimum": 0},
+          "popup": {"type": "string"},
+          "viewportDigest": {"type": "string"},
+          "spanId": {"type": "string"},
+          "spanDefinitionId": {"type": "string"},
+          "revisionNumber": {"type": "integer", "minimum": 0},
+          "attemptId": {"type": "string"},
+          "effectClass": {"type": "string"},
+          "targetSubject": {"type": "string"},
+          "intentId": {"type": "string"},
+          "executorId": {"type": "string"},
+          "admissionNote": {"type": "string"},
+          "receipt": {"type": "string"},
+          "consultationIndex": {"type": "integer", "minimum": 1},
+          "durationMs": {"type": "number", "minimum": 0},
+          "status": {"type": "string"},
+          "outcome": {"type": "string"},
+          "reason": {"type": "string"},
+          "refs": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["ordinal", "track", "kind", "orderingBasis"]
+      }
+    },
+    "layers": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "host": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "availability": {"$ref": "#/$defs/availability"},
+            "reason": {"type": "string", "minLength": 1},
+            "artifactsWritten": {"type": "array", "items": {"type": "string"}},
+            "preflight": {"type": "object", "additionalProperties": true}
+          },
+          "required": ["availability", "artifactsWritten"]
+        },
+        "agent": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "availability": {"$ref": "#/$defs/availability"},
+            "reason": {"type": "string", "minLength": 1},
+            "consultationCount": {"type": "integer", "minimum": 0},
+            "model": {"type": "string"},
+            "modelSource": {"type": "string"},
+            "consultations": {
+              "type": "array",
+              "items": {"type": "object", "additionalProperties": true}
+            }
+          },
+          "required": ["availability"]
+        },
+        "capability": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "availability": {"$ref": "#/$defs/availability"},
+            "reason": {"type": "string", "minLength": 1},
+            "perceptionCycles": {
+              "type": "array",
+              "items": {"type": "object", "additionalProperties": true}
+            },
+            "executors": {"type": "array", "items": {"type": "string"}},
+            "model": {"type": "string"}
+          },
+          "required": ["availability"]
+        },
+        "worldModel": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "availability": {"$ref": "#/$defs/availability"},
+            "reason": {"type": "string", "minLength": 1},
+            "revisionCount": {"type": "integer", "minimum": 0},
+            "firstRevision": {"type": "string"},
+            "lastRevision": {"type": "string"},
+            "checkpoints": {
+              "type": "array",
+              "items": {
+                "type": "object", "additionalProperties": false,
+                "properties": {
+                  "spanId": {"type": "string"},
+                  "spanDefinitionId": {"type": "string"},
+                  "captureSequence": {"type": "integer", "minimum": 0}
+                },
+                "required": ["spanId", "spanDefinitionId", "captureSequence"]
+              }
+            }
+          },
+          "required": ["availability"]
+        },
+        "evidence": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "availability": {"$ref": "#/$defs/availability"},
+            "reason": {"type": "string", "minLength": 1},
+            "admissionCount": {"type": "integer", "minimum": 0},
+            "recorderTerminal": {"type": "integer", "minimum": 0},
+            "recorderTerminalLabel": {"type": "string"},
+            "integritySha256": {"type": "string"},
+            "integrityDeclared": {"type": "boolean"}
+          },
+          "required": ["availability"]
+        },
+        "operations": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "availability": {"$ref": "#/$defs/availability"},
+            "reason": {"type": "string", "minLength": 1},
+            "attempts": {
+              "type": "array",
+              "items": {
+                "type": "object", "additionalProperties": false,
+                "properties": {
+                  "attemptId": {"type": "string"},
+                  "effectClass": {"type": ["string", "null"]},
+                  "targetSubject": {"type": ["string", "null"]},
+                  "intentId": {"type": ["string", "null"]},
+                  "bindingId": {"type": ["string", "null"]},
+                  "effectRef": {"type": ["string", "null"]},
+                  "executorId": {"type": ["string", "null"]},
+                  "admissionNote": {"type": ["string", "null"]},
+                  "revisionNumber": {"type": ["integer", "null"]},
+                  "receiptOutcome": {"type": ["string", "null"]},
+                  "stages": {
+                    "type": "object", "additionalProperties": true
+                  }
+                },
+                "required": ["attemptId", "stages"]
+              }
+            },
+            "completedSteps": {
+              "type": "array",
+              "items": {
+                "type": "object", "additionalProperties": true
+              }
+            },
+            "receipts": {"type": "array", "items": {"type": "string"}}
+          },
+          "required": ["availability"]
+        }
+      },
+      "required": ["host", "agent", "capability", "worldModel", "evidence", "operations"]
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["run", "evidence", "revision", "receipt", "attempt", "binding", "intent", "capture", "span", "session", "trace"]},
+          "artifact": {"type": "string", "minLength": 1},
+          "locator": {"type": "string", "minLength": 1}
+        },
+        "required": ["id", "kind", "artifact", "locator"]
+      }
+    }
+  },
+  "required": ["schemaVersion", "contractVersion", "reportKind", "generator", "identities",
+               "input", "coverage", "anomalies", "summary", "timeline", "layers", "references"],
+  "$defs": {
+    "availability": {
+      "enum": ["present", "partial", "unavailable", "not-collected", "not-applicable", "not-associated", "permission-denied"]
+    },
+    "identityField": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "value": {"type": ["string", "null"]},
+        "availability": {"$ref": "#/$defs/availability"},
+        "valueOrigin": {"enum": ["configured", "generated", "observed", "derived"]},
+        "source": {"type": "string", "minLength": 1}
+      },
+      "required": ["value", "availability", "valueOrigin"],
+      "allOf": [
+        {"if": {"properties": {"availability": {"const": "present"}}},
+         "then": {"properties": {"value": {"type": "string", "minLength": 1}}}}
+      ]
+    },
+    "artifactRef": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "name": {"enum": ["metadata", "facts", "trace", "settingsTrace", "journal",
+                          "consultations", "environmentPreflight", "failure", "runtimeRunEvents"]},
+        "file": {"type": "string", "minLength": 1},
+        "availability": {"$ref": "#/$defs/availability"},
+        "bytes": {"type": "integer", "minimum": 0},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "records": {"type": "integer", "minimum": 0},
+        "note": {"type": "string", "minLength": 1}
+      },
+      "required": ["name", "availability"],
+      "allOf": [
+        {"if": {"properties": {"availability": {"const": "present"}}},
+         "then": {"required": ["file"]}}
+      ]
+    }
+  }
+}

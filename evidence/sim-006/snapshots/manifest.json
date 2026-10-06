@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "sim006-resolved-config-snapshot-manifest.v1",
+  "change": "SIM-006",
+  "policy": {
+    "rawRunDirectory": "evidence/sim-006/runs/",
+    "rawRunDirectoryTracked": false,
+    "selectedSnapshotsTracked": true,
+    "redaction": "verify-change writes only repository-relative paths, digests, git facts, tool names and test-group status; no environment variables or credentials"
+  },
+  "snapshots": [
+    {
+      "file": "2026-10-05/SIM-006-full-20261005T111332Z.resolved-config.json",
+      "sha256": "5205296d2fb23d77ba0fd17da5960ad15c4ad791842265ebd8164ee742b928fb",
+      "runId": "SIM-006-full-20261005T111332Z",
+      "gitHead": "145977668891310498d9fd0b01cb5f126cc51e07",
+      "scope": "full",
+      "scenarioCount": 8,
+      "scenarioIds": [
+        "SCN-BARRIER-001",
+        "SCN-PERC-001",
+        "SCN-POLICY-006",
+        "SCN-POLICY-007",
+        "SCN-POLICY-009",
+        "SCN-SMOKE-001",
+        "SCN-WIFI-001",
+        "SCN-WIFI-002"
+      ],
+      "failedGroups": [
+        "FULL_SOLUTION"
+      ],
+      "classifications": [],
+      "live": "not-requested"
+    },
+    {
+      "file": "2026-10-05/SIM-006-full-20261005T111519Z.resolved-config.json",
+      "sha256": "88ea7b08a60bc230a9bb5f5d59825f5d71b4102f6b18efb8380f21a690407fc0",
+      "runId": "SIM-006-full-20261005T111519Z",
+      "gitHead": "145977668891310498d9fd0b01cb5f126cc51e07",
+      "scope": "full",
+      "scenarioCount": 8,
+      "scenarioIds": [
+        "SCN-BARRIER-001",
+        "SCN-PERC-001",
+        "SCN-POLICY-006",
+        "SCN-POLICY-007",
+        "SCN-POLICY-009",
+        "SCN-SMOKE-001",
+        "SCN-WIFI-001",
+        "SCN-WIFI-002"
+      ],
+      "failedGroups": [],
+      "classifications": [],
+      "live": "not-requested"
+    },
+    {
+      "file": "2026-10-05/SIM-006-full-20261005T111612Z.resolved-config.json",
+      "sha256": "65f8175a664ad1b5757bbb73d417506e94845e5bcb15bada067dc3d9376df11d",
+      "runId": "SIM-006-full-20261005T111612Z",
+      "gitHead": "145977668891310498d9fd0b01cb5f126cc51e07",
+      "scope": "full",
+      "scenarioCount": 8,
+      "scenarioIds": [
+        "SCN-BARRIER-001",
+        "SCN-PERC-001",
+        "SCN-POLICY-006",
+        "SCN-POLICY-007",
+        "SCN-POLICY-009",
+        "SCN-SMOKE-001",
+        "SCN-WIFI-001",
+        "SCN-WIFI-002"
+      ],
+      "failedGroups": [],
+      "classifications": [],
+      "live": "not-requested"
+    },
+    {
+      "file": "2026-10-05/SIM-006-full-20261005T120623Z.resolved-config.json",
+      "sha256": "a192031cd0330e59a9ff7b3e89b29e3fd94c73400a74f90fc69f4e83da154461",
+      "runId": "SIM-006-full-20261005T120623Z",
+      "gitHead": "3a0a82ff17a03049d80bfb15a142a8a31afbe3e9",
+      "scope": "full",
+      "scenarioCount": 8,
+      "scenarioIds": [
+        "SCN-BARRIER-001",
+        "SCN-PERC-001",
+        "SCN-POLICY-006",
+        "SCN-POLICY-007",
+        "SCN-POLICY-009",
+        "SCN-SMOKE-001",
+        "SCN-WIFI-001",
+        "SCN-WIFI-002"
+      ],
+      "failedGroups": [],
+      "classifications": [],
+      "live": "not-requested"
+    },
+    {
+      "file": "2026-10-05/SIM-006-quick-20261005T111234Z.resolved-config.json",
+      "sha256": "6e1e046cf92ca01e4f8d1171068f897104fbad69f2bdc9d6cae33debee7ec4aa",
+      "runId": "SIM-006-quick-20261005T111234Z",
+      "gitHead": "145977668891310498d9fd0b01cb5f126cc51e07",
+      "scope": "quick",
+      "scenarioCount": 8,
+      "scenarioIds": [
+        "SCN-BARRIER-001",
+        "SCN-PERC-001",
+        "SCN-POLICY-006",
+        "SCN-POLICY-007",
+        "SCN-POLICY-009",
+        "SCN-SMOKE-001",
+        "SCN-WIFI-001",
+        "SCN-WIFI-002"
+      ],
+      "failedGroups": [],
+      "classifications": [],
+      "live": "not-requested"
+    },
+    {
+      "file": "2026-10-06/SIM-006-full-20261006T091209Z.resolved-config.json",
+      "sha256": "efd292777113ef76716c26059dabab05359f1869d63b27078f540f289ee90051",
+      "runId": "SIM-006-full-20261006T091209Z",
+      "gitHead": "63804f7a320a081029a129daa92c379cc84b09bf",
+      "scope": "full",
+      "scenarioCount": 7,
+      "scenarioIds": [
+        "SCN-BARRIER-001",
+        "SCN-PERC-001",
+        "SCN-POLICY-006",
+        "SCN-POLICY-007",
+        "SCN-POLICY-009",
+        "SCN-WIFI-001",
+        "SCN-WIFI-002"
+      ],
+      "failedGroups": [
+        "SIMULATION",
+        "FULL_TEST_PROJECTS",
+        "CERTIFICATION",
+        "COVERAGE"
+      ],
+      "classifications": [
+        "BEHAVIOR_REGRESSION",
+        "CERTIFICATION_STALE_ONLY"
+      ],
+      "live": "not-requested"
+    }
+  ]
+}

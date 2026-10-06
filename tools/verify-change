@@ -58,13 +58,29 @@ def classify(sim_rc, sim_out, cert_rc, cert_out, live_out=""):
     combined = sim_out + cert_out
     if sim_rc or "expectationsDigest" in combined:
         classes.append("BEHAVIOR_REGRESSION")
-    if cert_rc and "runtimeSourceHash" in cert_out and "expectationsDigest" not in cert_out:
+    if cert_rc and is_stale_certification_output(cert_out) and not has_expectations_mismatch(cert_out):
         classes.append("CERTIFICATION_STALE_ONLY")
     if "FINAL_STATUS=ENVIRONMENT_UNAVAILABLE" in live_out:
         classes.append("ENVIRONMENT_UNAVAILABLE")
     if not classes and cert_rc:
         classes.append("FAIL")
     return classes
+
+
+def is_stale_certification_output(text):
+    """Recognize the certification tool's stable stale-hash markers.
+
+    ``scenario_certify.py`` reports human-readable diagnostics in Chinese while
+    the machine-oriented self-tests historically used the English field name.
+    Keep both spellings at this adapter boundary so a stale certification can
+    coexist with a real behavior failure instead of being silently collapsed.
+    """
+    return "runtimeSourceHash" in text or "运行时源码哈希不匹配" in text
+
+
+def has_expectations_mismatch(text):
+    """Whether certification output says the expected result itself changed."""
+    return "expectationsDigest" in text or "期望值在认证后被改动" in text
 
 
 def final_status(classes, failed):
@@ -196,7 +212,7 @@ def emit_failure_details(results, sim_trx):
             for line in out.splitlines():
                 if "FAIL" in line:
                     cls = ("CERTIFICATION_STALE_ONLY"
-                           if "runtimeSourceHash" in line and "expectationsDigest" not in line
+                           if is_stale_certification_output(line) and not has_expectations_mismatch(line)
                            else "BEHAVIOR_REGRESSION")
                     lines.append(f"  {line.strip()} classification={cls}")
         else:
@@ -357,6 +373,11 @@ def self_test(change):
     check("T21", "kind=none caveat names descriptive expectations and absent evaluation",
           lambda: "descriptive-only" in scenario_caveat_message("SCN-PERC-001")
           and "goalEvaluationRealization=not-applicable" in scenario_caveat_message("SCN-PERC-001"))
+    check("T22", "localized stale certification marker is classified",
+          lambda: classify(0, "", 1, "运行时源码哈希不匹配") == ["CERTIFICATION_STALE_ONLY"])
+    check("T23", "localized stale marker coexists with behavior failure",
+          lambda: classify(1, "test failed", 1, "运行时源码哈希不匹配")
+          == ["BEHAVIOR_REGRESSION", "CERTIFICATION_STALE_ONLY"])
     print(f"CHANGE={change} SELF_TEST")
     for key in ("FOCUSED", "ARCHITECTURE", "SIMULATION", "FULL_TEST_PROJECTS", "CERTIFICATION", "COVERAGE", "LIVE", "DIFF_CHECK", "EXPECTATIONS_DIGEST"):
         print(f"{key}=PASS")

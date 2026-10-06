@@ -17,7 +17,9 @@ modelSelection:
       provider: opencode-go
       name: space-bunny-free
     deepseekFlash:
-      provider: opencode-go
+      # 2026-10-06 所有者指令：供应商 DeepSeek 官方（deepseek-official 路由，
+      # api.deepseek.com 直连不走代理；凭据 DEEPSEEK_API_KEY 于实例凭据库）
+      provider: deepseek-official
       name: deepseek-flash
     glm53Flash:
       provider: zai-coding-cn

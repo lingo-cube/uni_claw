@@ -73,6 +73,28 @@ Run 状态固定为 `starting`、`running`、`completed`、`failed`、`interrupt
 
 事件查询的 `source` 过滤器只过滤投影，不改写来源事件；`cursor` 是不透明值，服务端负责校验和推进。默认返回摘要，明细通过事件或 artifact 的逻辑 `detailEndpoint` 获取。
 
+## Run Report 契约（PNL-006）
+
+`run-report.schema.json`（`uniclaw.workspace.run-report.v1`）是全链路单 run
+测试报告的只读投影契约：把一个 run 目录的 source-native 产物
+（metadata / facts / trace / settings-trace / exec.journal / consultations /
+environment-preflight / failure）关联为四个粒度层——L1 summary、L2 timeline、
+L3 六个 layer 明细（host / agent / capability / worldModel / evidence /
+operations）、L4 引用索引（报告提及的 id → artifact + locator）。
+
+纪律：报告不拥有任何状态（每个 section 声明 availability）；跨轨排序只用各
+来源原生序（cycle / journalSeq / captureSequence），derived 先后显式标
+`orderingBasis: derived`，不伪造 wall-clock 时间轴；输出字节级确定（envelope
+无时间戳，记录输入 artifact 的 SHA256 清单）；anomalies 只做观察不做归因，
+诊断能力属于未来消费本报告的独立功能。
+
+呈现为验收者漏斗（JSON 保持全量 canonical）：① 需求 → ② 效果达成（终态/
+投递/验证锚点/receipts）→ ③ 组件概览 → 异常观察 → 细节区（默认折叠，异常
+或未完成时自动展开）。需求原文 run 产物暂不携带，`--requirement` 显式传入
+（`summary.requirement.valueOrigin: configured`）。生成器：
+`python3 tools/gen-run-report.py --run-dir <dir> --out-dir <dir>`（`--strict`
+供 CI/evidence，`--check` 做 golden 字节比对）。
+
 ## 校验
 
 从仓库根目录运行：

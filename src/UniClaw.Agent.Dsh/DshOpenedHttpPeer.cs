@@ -132,7 +132,7 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
             ["productSessionId"] = request.ProductSessionId,
             ["productRunId"] = request.ProductRunId,
             ["context"] = JsonDocument.Parse(contextJson).RootElement.Clone(),
-            ["turnTimeoutMs"] = (int)TimeSpan.FromSeconds(75).TotalMilliseconds,
+            ["turnTimeoutMs"] = (int)TimeSpan.FromSeconds(180).TotalMilliseconds, // PER-019: reasoning models need longer consult turns
         };
         if (_dshSessionId is { Length: > 0 })
             body["dshSessionId"] = _dshSessionId;

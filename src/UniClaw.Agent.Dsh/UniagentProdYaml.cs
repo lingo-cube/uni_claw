@@ -83,15 +83,72 @@ public static class UniagentProdYaml
             || (serviceUri.Scheme != "http" && serviceUri.Scheme != "https"))
             throw new InvalidOperationException($"config-invalid:service.baseUrl:{baseUrl} ({path})");
 
+        // CAP-007：保留完整 choices 目录（per-profile 选择按 key 解析；任何
+        // choice 条目残缺都 fail-closed，不再只校验被选中者）。
+        var choices = new Dictionary<string, ModelConfiguration>(StringComparer.Ordinal);
+        if (document.TryWalk(new[] { "modelSelection", "choices" }) is Dictionary<string, object> choiceMap)
+        {
+            foreach (var (choiceKey, value) in choiceMap)
+            {
+                if (value is not Dictionary<string, object> entry)
+                    throw new InvalidOperationException(
+                        $"config-invalid:modelSelection.choices.{choiceKey} ({path})");
+                choices[choiceKey] = new ModelConfiguration(
+                    RequireEntryScalar(entry, "provider", $"modelSelection.choices.{choiceKey}.provider", path),
+                    RequireEntryScalar(entry, "name", $"modelSelection.choices.{choiceKey}.name", path));
+            }
+        }
+        if (choices.Count == 0)
+            throw new InvalidOperationException($"config-missing:modelSelection.choices ({path})");
+
         var selected = document.RequireScalar(new[] { "modelSelection", "selected" });
-        var provider = document.RequireScalar(new[] { "modelSelection", "choices", selected, "provider" });
-        var name = document.RequireScalar(new[] { "modelSelection", "choices", selected, "name" });
+        if (!choices.TryGetValue(selected, out var selectedChoice))
+            throw new InvalidOperationException(
+                $"config-missing:modelSelection.choices.{selected} ({path})");
+
+        // CAP-007：可选 per-profile 选择块——profile → choice key（标量=单选；
+        // "- " 列表=有序偏好，首选在前）。引用不存在的 choice 一律 fail-closed。
+        // profile 名的产品值域校验在 DshModelManagement（它拥有 LogicalProfileId 词汇）。
+        var profileSelections = new List<ModelProfileSelection>();
+        if (document.TryWalk(new[] { "modelSelection", "profiles" }) is Dictionary<string, object> profiles)
+        {
+            foreach (var (profile, value) in profiles)
+            {
+                if (string.IsNullOrWhiteSpace(profile))
+                    throw new InvalidOperationException(
+                        $"config-invalid:modelSelection.profiles.<empty> ({path})");
+                IReadOnlyList<string> keys = value switch
+                {
+                    string single => new[] { single },
+                    string[] ordered => ordered,
+                    _ => throw new InvalidOperationException(
+                        $"config-invalid:modelSelection.profiles.{profile} ({path}): scalar choice key or ordered list required"),
+                };
+                var selection = new ModelProfileSelection(profile, keys);
+                if (!selection.IsValid)
+                    throw new InvalidOperationException(
+                        $"config-invalid:modelSelection.profiles.{profile} ({path}): at least one non-empty choice key required");
+                foreach (var key in selection.ChoiceKeys)
+                    if (!choices.ContainsKey(key))
+                        throw new InvalidOperationException(
+                            $"config-invalid:modelSelection.profiles.{profile} ({path}): unknown choice '{key}'");
+                profileSelections.Add(selection);
+            }
+        }
 
         return UniagentProdConfiguration.Create(
-            new ModelConfiguration(provider, name),
+            selectedChoice,
             new DshServiceEndpoint(serviceUri),
-            selected);
+            selected,
+            choices,
+            profileSelections.Count == 0 ? null : profileSelections);
     }
+
+    private static string RequireEntryScalar(
+        Dictionary<string, object> entry, string key, string diagnosticPath, string path)
+        => entry.TryGetValue(key, out var value) && value is string text && !string.IsNullOrWhiteSpace(text)
+            ? text
+            : throw new InvalidOperationException($"config-missing:{diagnosticPath} ({path})");
 
     /// <summary>
     /// Minimal purpose-built YAML subset parser for the uniagent-prod config:
@@ -185,6 +242,9 @@ public static class UniagentProdYaml
                 return value;
             throw new InvalidOperationException($"config-missing:{string.Join(".", path)}");
         }
+
+        /// <summary>CAP-007：可选路径读取（profiles 块缺省合法；返回原始节点）。</summary>
+        public object? TryWalk(string[] path) => Walk(path);
 
         public IReadOnlyList<string> RequireList(string[] path)
         {

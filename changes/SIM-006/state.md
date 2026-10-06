@@ -182,6 +182,16 @@ verification:
 - Settings 测试文字中“导航零 DeliveryCompleted”的可判定性需对照 receipt 语义，不能误把安全导航当成禁止 effect。本 Change 不顺手修改 AGT-012；证伪时记录独立修订。
 - 持久化期间未新增领域词或接口；接手方先从已有 ScenarioReport/config/trait seam 派生最小实现。需要改共享契约时先返回 RESOLVE 并明确 authority impact。
 
+## Post-closure follow-up（2026-10-06）
+
+- D7 已采用“提交脱敏快照副本、原始运行目录本地保留”的证据策略：选定快照位于
+  `evidence/sim-006/snapshots/`，索引和 SHA-256 见 `manifest.json`；`runs/` 仍被
+  `.gitignore` 忽略，TRX/完整控制台输出不进入仓库。
+- 当前工作树重核发现认证工具的中文 stale 诊断未被 `verify-change.classify()` 识别，
+  会把并存失败压成单一 `BEHAVIOR_REGRESSION`。已在 `tools/verify-change` 增加中英文
+  marker 识别和 T22/T23；重核结果与 CAP-006/007/008 尚未收口造成的 RED 见
+  `evidence/sim-006/verification-2026-10-06.md`。不在当前工作树上自动重认证。
+
 ## Reading entry points（定位材料；不是实现文件分配或 WorkItem）
 
 - 流程与交付：AGENTS.md、changes/README.md、docs/agents/issue-tracker.md、.agents/skills/uniflow/SKILL.md、docs/agents/work-reporting.md。
@@ -200,3 +210,4 @@ verification:
 - 2026-10-05 · RESOLVE（修订） · WI-SIM006-001 只读审计（固定 Worker 执行 + Leader 抽查复核）核实首批 8 场景事实；发现 SCN-PERC-001 的 goalEvaluationRealization=real 标注与 certified expectations 未被专有载体建立（悬空声明）；Current facts 补充与基线矩阵已按审计修订；标注语义修正不在本 Change 裁决（涉及 C7 v0.2 执法面，留后续致因 Change）。无阻塞 Human Decision，进入 PLAN。
 - 2026-10-05 · PLAN → IMPLEMENT → REVIEW → VERIFY · 垂直切片：A1 基线矩阵（docs/analysis/sim-006-first-baseline-matrix.md）；A3 testsets/simulation-baseline manifest + validator scenarioRefs fail-closed 扩展；A4–A8 verify-change 重构（--scope quick|full、单次执行 TRX 复用去重、多失败并存聚合、A5 执行前冲突拒绝、resolved-config 快照、失败定位输出）。REVIEW：既有 DocsMetadataTests tripwire 抓到新文档缺头（修复：补 Status/Authority + analysis 索引）；首轮 full 该失败为唯一 RED，修复后 full×2 全绿。VERIFY：四级四元组回填（CONTRACT/DETERMINISTIC/SCENARIO PASS；ENVIRONMENT NOT_RUN 如实）；A1–A11 均有证据；产品代码/scenarios/golden/AGT-012 零改动。
 - 2026-10-05 · CLOSED → IMPLEMENT（所有者审阅回边）→ VERIFY · 审阅确认本地工具改造成立，但发现 4 项处置：(1) 高——`--scenarios` 可越出首批 manifest（所有者已复现 SCN-POLICY-001 越界 PASS），违反 A5/D9；修复为显式选择必须是 manifest 子集（selection_conflicts + T19 + 端到端 rc=2 拒绝）。(2) 中——FULL_SOLUTION 名实不符（已不再执行 slnx 单命令）；改名 FULL_TEST_PROJECTS（聚合语义，T9 契约同步；保留 slnx 命令会重新引入 sim 重复执行，违反 A6，故不取）。(3) 中——runs/ 快照仅本地证据；D7 已决策不提交生成运行文件，不单方翻转，登记所有者待决：提交脱敏快照 vs 外部 evidence 存储。(4) 低——审计报告 WorkItem status 文字过期，带日期注记修正。另按 D9 新增 SCENARIO_CAVEATS 输出（execution.kind=none 机械推导，非人工清单、非 PERC 特判，T20）：载体 PASS ≠ 库声明成立，quick/full 输出与快照均携带。重验：self-test T1–T20 全 PASS、越界拒绝 rc=2、合法子集通过、full 重跑全绿；C7 realization 语义与 SMOKE/WIFI 载体合并仍不在本 Change。
+- 2026-10-06 · CLOSED follow-up → CLOSED · 按证据目录规则选择提交脱敏快照副本；当前 HEAD 重核暴露中文 stale 诊断分类缺口，补充 `is_stale_certification_output` / `has_expectations_mismatch` 与 T22/T23。自测全绿；full 结果如实保留 `BEHAVIOR_REGRESSION|CERTIFICATION_STALE_ONLY`，等待 CAP-006/007/008 完成后再由其致因 change 重认证。

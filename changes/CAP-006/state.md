@@ -1,6 +1,6 @@
 # CAP-006 — Model Management 产品能力组件声明（缺省 DSH realization）
 
-lifecycle_state: implement · disposition: none · depth: standard · base: 待回填
+lifecycle_state: closed · disposition: none · depth: standard · base: 84a3abc2
 
 ## Intent（WHAT/WHY）
 
@@ -89,3 +89,4 @@ lifecycle_state: implement · disposition: none · depth: standard · base: 待�
 - 2026-10-06 · UNDERSTAND → RESOLVE → PERSIST · 事实链核实（缝在但 internal、live 路径绕缝直连 yaml、管理面无声明）；所有者裁决深度/范围；开工。
 - 2026-10-06 · IMPLEMENT → REVIEW → VERIFY · 落地：Kernel 公开缝（5 型 + AgentDecision 值域）→ Perception 6 文件去重切换 → 白名单增集 5 型 → Host 声明组合 → Agent.Dsh 缺省 realization → Program.cs/RuntimeHttpServer 改线；场景哈希再认证 20 块；验证四元组见上。与并行 PER-019 会话共享 Program.cs（改动区域不相交，合并态已复核）。文档同步：capability-hub README Product Registry 域描述。
 - 待所有者验收后 CLOSED（Agent.Dsh 套件的 yaml 中间态失败归属并行会话收尾）。
+- 2026-10-06 · CLOSED（所有者验收，2026-10-06）· 验收基线：全量测试绿（最终核验 1372/1372、build 0 error，含 CAP-007/008 叠加后的回归）；范围完成、acceptance A1-A5 均有四元组证据、无未授权改动、文档已同步（capability-hub README + 白名单）。当时记录的 yaml 中间态失败已由 CAP-007 附带同步解决。后续深化见 CAP-007（选择能力）与 CAP-008（可执行契约）。

@@ -131,11 +131,28 @@ public sealed record ModelConfiguration(string Provider, string Name)
     }
 }
 
+/// <summary>
+/// CAP-007 — per-profile 模型选择：一个产品 logical profile 到有序 choice keys
+/// 的映射（单个 key = 单选；多个 = 偏好序，首选在前）。choice key 必须能在
+/// <see cref="UniagentProdConfiguration.Choices"/> 中解析（loader fail-closed 校验）。
+/// </summary>
+public sealed record ModelProfileSelection(
+    string Profile,
+    IReadOnlyList<string> ChoiceKeys)
+{
+    /// <summary>profile 非空且至少一个非空 choice key。</summary>
+    public bool IsValid => !string.IsNullOrWhiteSpace(Profile)
+        && ChoiceKeys is { Count: > 0 }
+        && ChoiceKeys.All(key => !string.IsNullOrWhiteSpace(key));
+}
+
 public sealed record UniagentProdConfiguration(
     ProductProfile Profile,
     ModelConfiguration Model,
     DshServiceEndpoint Service,
-    string? SelectedModelKey = null)
+    string? SelectedModelKey = null,
+    IReadOnlyDictionary<string, ModelConfiguration>? Choices = null,
+    IReadOnlyList<ModelProfileSelection>? ProfileSelections = null)
 {
     /// <summary>Explicit construction for tests and fixtures. The composed
     /// runtime loads its configuration from the single source
@@ -143,13 +160,15 @@ public sealed record UniagentProdConfiguration(
     public static UniagentProdConfiguration Create(
         ModelConfiguration model,
         DshServiceEndpoint service,
-        string? selectedModelKey = null)
+        string? selectedModelKey = null,
+        IReadOnlyDictionary<string, ModelConfiguration>? choices = null,
+        IReadOnlyList<ModelProfileSelection>? profileSelections = null)
     {
         ArgumentNullException.ThrowIfNull(model);
         ArgumentNullException.ThrowIfNull(service);
         model.Validate();
         service.Validate();
-        return new(UniagentProdProfile.Current, model, service, selectedModelKey);
+        return new(UniagentProdProfile.Current, model, service, selectedModelKey, choices, profileSelections);
     }
 }
 

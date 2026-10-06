@@ -96,6 +96,8 @@ DshOpenedDecisionChannel? dshChannel = null;
 DshOpenedHttpPeer? dshPeer = null;
 HostRunner.HostRunResult? result = null;
 UniClaw.Kernel.Capability.CapabilityRegistry? capabilityRegistry = null;
+// CAP-012：Runtime Integration 域独立注册表（ADR-0035 三域不共享注册状态）。
+UniClaw.Kernel.Capability.CapabilityRegistry? runtimeIntegrationRegistry = null;
 SettingsCoverageRunner.RunResult? coverageResult = null;
 var productSessionId = $"{(settingsCoverage ? "settings-coverage" : "settings-traversal")}-session-{Guid.NewGuid():N}";
 try
@@ -126,10 +128,37 @@ try
                 t.Result.Status, t.Result.Admitted, t.Result.Proposals,
                 t.Result.SemanticDisposition, t.Result.Diagnostic), TaskScheduler.Default);
     // PER-019：组合根能力注册（管理面；描述无 provider/model 名）。
-    capabilityRegistry = UniClaw.Host.SettingsCoverage.PerceptionCapabilityComposition.RegisterProductPerception();
-    // CAP-006：管理面声明 uni.model.management（缺省 realization = 借用 DSH 的
-    // dsh-model-management；与上方运行时接线是同一事实）。
-    UniClaw.Host.Capability.ModelManagementCapabilityComposition.RegisterModelManagement(capabilityRegistry);
+    // CAP-009：uni.perception 注册为可执行实例（双协议 marker + 健康聚合
+    // owner）——fast 探针查资产可观测面（懒执行），模型端探针直接复用
+    // CAP-008 的 ModelManagement.CheckHealth；无接口的源缺席=诚实 Unknown。
+    var fastAssetsProbe = new UniClaw.Kernel.Capability.PerceptionHealthSource(
+        "fast.yolo-ocr-assets",
+        () =>
+        {
+            var root = RepoRoot();
+            var missing = new List<string>();
+            if (!Directory.Exists(Path.Combine(root, "platforms", "perception")))
+                missing.Add("platforms/perception");
+            if (!File.Exists(Path.Combine(root, ".perception", "venv", "bin", "python")))
+                missing.Add(".perception/venv/bin/python");
+            return missing.Count == 0
+                ? new UniClaw.Kernel.Capability.CapabilityHealthReport(UniClaw.Kernel.Capability.HealthStatus.Healthy, null)
+                : new UniClaw.Kernel.Capability.CapabilityHealthReport(UniClaw.Kernel.Capability.HealthStatus.Degraded,
+                    $"missing: {string.Join(",", missing)}");
+        });
+    var modelHealthProbe = new UniClaw.Kernel.Capability.PerceptionHealthSource(
+        "slow.text-models", models.CheckHealth);
+    capabilityRegistry = UniClaw.Host.SettingsCoverage.PerceptionCapabilityComposition
+        .RegisterProductPerception(uniPerception: new UniClaw.Kernel.Capability.UniPerceptionCapability(
+            new[] { fastAssetsProbe, modelHealthProbe }));
+    // CAP-012：Runtime Integration 域注册语言检查能力（skill 首次全新实战：
+    // 确定性 Unicode 脚本规则，Finding 非权威）。
+    runtimeIntegrationRegistry = UniClaw.Host.Capability.RuntimeIntegrationCapabilityComposition
+        .RegisterLanguageInspector();
+    // CAP-008：注册**可执行实例**（声明与运行时缝同一事实，Resolve 可取回）；
+    // realization 名显式取 adapter 侧常量（消除 Host/DSH 双写字符串）。
+    UniClaw.Host.Capability.ModelManagementCapabilityComposition.RegisterModelManagement(
+        capabilityRegistry, models, DshModelManagement.RealizationName);
 
     RunAdb(device, "shell", "am", "start", "-S", "-a", "android.settings.SETTINGS");
     Thread.Sleep(2000);
@@ -140,7 +169,7 @@ try
         {
             dshChannel = new DshOpenedDecisionChannel(dshPeer, attachTimeout: TimeSpan.FromSeconds(30));
             dshAgent = new DshAgentAdapter(dshChannel, productSessionId, context.RunId,
-                turnTimeout: TimeSpan.FromSeconds(110));
+                turnTimeout: TimeSpan.FromSeconds(200)); // PER-019: 高于服务端 180s 界
         }
         return dshAgent.Consult(context);
     }
@@ -228,7 +257,10 @@ if (coverageResult is not null)
             System.IO.File.WriteAllText(
                 System.IO.Path.Combine(capabilityFactsDir, "capability-facts.json"),
                 System.Text.Json.JsonSerializer.Serialize(
-                    capabilityRegistry.Facts.Select(f => new
+                    // CAP-012：合并双域注册表事实（Product + Runtime Integration）。
+                    capabilityRegistry.Facts
+                        .Concat(runtimeIntegrationRegistry?.Facts ?? Array.Empty<UniClaw.Kernel.Capability.CapabilityLifecycleFact>())
+                        .Select(f => new
                     {
                         f.CapabilityId, f.Version, f.Lifecycle, f.Source, f.Sequence, domain = f.Domain.ToString(),
                     })));
@@ -267,9 +299,12 @@ if (capabilityRegistry is not null && result.RunDir is not null)
         System.IO.File.WriteAllText(
             System.IO.Path.Combine(result.RunDir, "capability-facts.json"),
             System.Text.Json.JsonSerializer.Serialize(
-                capabilityRegistry.Facts.Select(f => new
-                {
-                    f.CapabilityId, f.Version, f.Lifecycle, f.Source, f.Sequence, domain = f.Domain.ToString(),
+                // CAP-012：合并双域注册表事实（Product + Runtime Integration）。
+                capabilityRegistry.Facts
+                    .Concat(runtimeIntegrationRegistry?.Facts ?? Array.Empty<UniClaw.Kernel.Capability.CapabilityLifecycleFact>())
+                    .Select(f => new
+                    {
+                        f.CapabilityId, f.Version, f.Lifecycle, f.Source, f.Sequence, domain = f.Domain.ToString(),
                 })));
     }
     catch (Exception factsError)

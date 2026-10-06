@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "sim006-resolved-config.v1",
+  "change": "SIM-006",
+  "scope": "full",
+  "selection": {
+    "source": "testsets/simulation-baseline/manifest.json scenarioRefs",
+    "scenarioIds": [
+      "SCN-BARRIER-001",
+      "SCN-PERC-001",
+      "SCN-POLICY-006",
+      "SCN-POLICY-007",
+      "SCN-POLICY-009",
+      "SCN-SMOKE-001",
+      "SCN-WIFI-001",
+      "SCN-WIFI-002"
+    ]
+  },
+  "git": {
+    "head": "145977668891310498d9fd0b01cb5f126cc51e07",
+    "branch": "uni-harness",
+    "dirtyPaths": [
+      " M .gitignore",
+      " M changes/INDEX.md",
+      " M changes/SIM-006/state.md",
+      " M docs/analysis/README.md",
+      " M tools/validate-testset-manifests.py",
+      " M tools/verify-change",
+      "?? docs/analysis/sim-006-first-baseline-matrix.md",
+      "?? evidence/sim-006/",
+      "?? testsets/simulation-baseline/",
+      "?? workitems/WI-SIM006-001.json"
+    ]
+  },
+  "inputs": {
+    "runtimeSourceHash": "50797535091ca64e48d1dcefc795b3b364f9df96e5cda06c764acc55d7f7ecd8",
+    "scenarios": {
+      "SCN-BARRIER-001": {
+        "expectationsDigest": "e70845d5e3000ddfb414741a304d86784719da988872676d98646580dfaaded5",
+        "executionDigest": "b772211aad026e21a4459e2b36d08f926623011ad712704046bd2eb85c7e3e9a",
+        "agentDecisionRealization": "double",
+        "goalEvaluationRealization": "real",
+        "declaredStatus": "passing"
+      },
+      "SCN-PERC-001": {
+        "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+        "executionDigest": "681e3afcd6d1fd935c911386cf8d963361d8d875227b410c08df10f1c0b18fcd",
+        "agentDecisionRealization": "double",
+        "goalEvaluationRealization": "real",
+        "declaredStatus": "passing"
+      },
+      "SCN-POLICY-006": {
+        "expectationsDigest": "4b272fd73ef58ede4eb2a817e583e30dbd588b319d777a8d0daffe3b1b604eeb",
+        "executionDigest": "e5304887067e744961d3a9ce2bc0f5b756653e62c8e614e761b2443a5b6755c3",
+        "agentDecisionRealization": "double",
+        "goalEvaluationRealization": "real",
+        "declaredStatus": "passing"
+      },
+      "SCN-POLICY-007": {
+        "expectationsDigest": "5fc118241dc16870c7ab7655c6483647d1f9ee3b5c85a69ddd5e8641d7c7bec1",
+        "executionDigest": "455438ba3398670dbe3be2e2cbc489960abb5e342f915b6157680d9613501a62",
+        "agentDecisionRealization": "double",
+        "goalEvaluationRealization": "real",
+        "declaredStatus": "passing"
+      },
+      "SCN-POLICY-009": {
+        "expectationsDigest": "400b1755b0e41e92f3af95979a13117a0329550c4907c34c39fe755e049fd778",
+        "executionDigest": "d0d5aebf09d10aeca655585c170c27730b97031aab80a92a7b4be80f7946835a",
+        "agentDecisionRealization": "double",
+        "goalEvaluationRealization": "real",
+        "declaredStatus": "passing"
+      },
+      "SCN-SMOKE-001": {
+        "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+        "executionDigest": "981ff6dac9b804f8e5e1208f622ef50567d89aba289df01f6410e1d635cbb8ae",
+        "agentDecisionRealization": "double",
+        "goalEvaluationRealization": "real",
+        "declaredStatus": "passing"
+      },
+      "SCN-WIFI-001": {
+        "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+        "executionDigest": "981ff6dac9b804f8e5e1208f622ef50567d89aba289df01f6410e1d635cbb8ae",
+        "agentDecisionRealization": "double",
+        "goalEvaluationRealization": "real",
+        "declaredStatus": "passing"
+      },
+      "SCN-WIFI-002": {
+        "expectationsDigest": "e9f7b914e94096aeb03ac500921303d1b00e70239184a124664cdd00d71f341e",
+        "executionDigest": "0f1f21449f1f460ae9f58efffcc826c7f600aba4a1a2ba226c80a65ed8b6e654",
+        "agentDecisionRealization": "double",
+        "goalEvaluationRealization": "real",
+        "declaredStatus": "passing"
+      }
+    },
+    "testsetManifest": {
+      "path": "testsets/simulation-baseline/manifest.json",
+      "sha256": "eab8fc142102c55153fa8a7a84ebec1cb219013fa870c383c1d67fae8ee055f0"
+    },
+    "solution": "UniClaw.Kernel.slnx"
+  },
+  "execution": {
+    "groups": [
+      {
+        "name": "DIFF_CHECK",
+        "rc": 0,
+        "status": "executed"
+      },
+      {
+        "name": "ARCHITECTURE",
+        "rc": 0,
+        "status": "executed"
+      },
+      {
+        "name": "ARCHITECTURE_HOST",
+        "rc": 0,
+        "status": "executed"
+      },
+      {
+        "name": "SIMULATION",
+        "rc": 0,
+        "status": "executed"
+      },
+      {
+        "name": "FULL_SOLUTION",
+        "rc": 0,
+        "status": "executed"
+      },
+      {
+        "name": "CERTIFICATION",
+        "rc": 0,
+        "status": "executed"
+      },
+      {
+        "name": "COVERAGE",
+        "rc": 0,
+        "status": "executed"
+      }
+    ],
+    "skipped": [],
+    "simTrx": {
+      "path": "tests/UniClaw.Simulation.Tests/TestResults/sim006-full.trx",
+      "sha256": "e60fa76e7fa6c2c95d6dfa7baf40c6ef9ceb563b860e562847a93b0033d2732c"
+    },
+    "classification": []
+  },
+  "environment": {
+    "live": "not-requested"
+  },
+  "redaction": "by construction: only git head/branch/dirty paths, repo-relative asset paths, content digests and tool names are recorded; no environment variables, credentials or secrets are captured"
+}

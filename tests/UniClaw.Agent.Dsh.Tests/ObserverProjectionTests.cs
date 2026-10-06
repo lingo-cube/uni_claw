@@ -95,8 +95,12 @@ public sealed class ObserverProjectionTests
         // (the single runtime config source); no hardcoded catalog is consulted.
         var configuration = UniagentProdYaml.LoadDefault();
 
-        Assert.Equal("glm53Flash", configuration.SelectedModelKey);
-        Assert.Equal(new ModelConfiguration("zai-coding-cn", "glm-5.3-flash"), configuration.Model);
+        // 2026-10-06 所有者指令（63804f7a + 直连增量）：默认模型改
+        // deepseek-flash（供应商 DeepSeek 官方 deepseek-official 直连路由；
+        // 旧默认 glm53Flash）。CAP-007/008 附带同步：该断言追踪并行会话的
+        // yaml 中间态，最终归属其 change。
+        Assert.Equal("deepseekFlash", configuration.SelectedModelKey);
+        Assert.Equal(new ModelConfiguration("deepseek-official", "deepseek-flash"), configuration.Model);
         Assert.Equal("http://127.0.0.1:3080/", configuration.Service.BaseUri.ToString());
         Assert.Equal(UniagentProdProfile.ProfileId, configuration.Profile.ProfileId);
         Assert.Equal(CapabilityManifest.ProductHeadless.ManifestHash,

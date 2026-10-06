@@ -1,0 +1,813 @@
+{
+ "schemaVersion": "uniclaw.workspace.run-report.v1",
+ "contractVersion": "uniclaw.workspace.contract.v1",
+ "reportKind": "full-link-single-run",
+ "generator": {
+  "name": "gen-run-report",
+  "version": 1
+ },
+ "identities": {
+  "runId": {
+   "value": "host:v0-flip-switch",
+   "availability": "present",
+   "valueOrigin": "observed",
+   "source": "trace.json"
+  },
+  "traceId": {
+   "value": "trc-d25f7036d4c2",
+   "availability": "present",
+   "valueOrigin": "observed",
+   "source": "trace.json"
+  },
+  "productSessionId": {
+   "value": "settings-traversal-session-6098c7dddc9d40bda955f82d9e72a27e",
+   "availability": "present",
+   "valueOrigin": "observed",
+   "source": "metadata.json"
+  },
+  "dshSessionId": {
+   "value": "session-06d69e93-56f4-4b58-b991-69eabe3301e2",
+   "availability": "present",
+   "valueOrigin": "observed",
+   "source": "metadata.json"
+  },
+  "runDir": {
+   "value": "evidence/pnl003-real-task-android-settings-20261003/run-20261003-075727-844",
+   "availability": "present",
+   "valueOrigin": "configured"
+  }
+ },
+ "input": {
+  "artifacts": [
+   {
+    "name": "metadata",
+    "availability": "present",
+    "file": "metadata.json",
+    "bytes": 773,
+    "sha256": "7b9303b2c681afa10ab98bd116be01912ce5ba52d0f9a543757e2a1505fe76fc"
+   },
+   {
+    "name": "facts",
+    "availability": "present",
+    "file": "facts.json",
+    "bytes": 499,
+    "sha256": "056683261cdf6bf8c2e2064338f2b088ea638832036d25b3861fd88e8169e0d6"
+   },
+   {
+    "name": "trace",
+    "availability": "present",
+    "file": "trace.json",
+    "bytes": 2579356,
+    "sha256": "b983a1d177a90dbaeb5827ba933f38b817f790b298f7c3dd561e3da720f43644"
+   },
+   {
+    "name": "settingsTrace",
+    "availability": "present",
+    "file": "settings-trace.json",
+    "bytes": 1742,
+    "sha256": "500d7d60c4ccdfe16181603626c386a6ed43cf27f1d10584278633731f2718aa"
+   },
+   {
+    "name": "journal",
+    "availability": "present",
+    "file": "exec.journal",
+    "bytes": 3070,
+    "sha256": "2cf5f9ec7a27422ccc62ffc4d0e6dda7bbc96245b8095104b3bfa9fdff18bec5"
+   },
+   {
+    "name": "consultations",
+    "availability": "not-collected"
+   },
+   {
+    "name": "environmentPreflight",
+    "availability": "not-collected"
+   },
+   {
+    "name": "failure",
+    "availability": "not-collected"
+   }
+  ]
+ },
+ "coverage": {
+  "sections": [
+   {
+    "section": "host",
+    "availability": "partial",
+    "reason": "Runtime Host lifecycle 事件（.runtime-runs）不在输入内；仅由 run 目录产物重建"
+   },
+   {
+    "section": "agent",
+    "availability": "partial",
+    "reason": "consultations.json 缺失；仅有 metadata.consultations 计数"
+   },
+   {
+    "section": "capability",
+    "availability": "present"
+   },
+   {
+    "section": "worldModel",
+    "availability": "present"
+   },
+   {
+    "section": "evidence",
+    "availability": "present"
+   },
+   {
+    "section": "operations",
+    "availability": "present"
+   },
+   {
+    "section": "timeline",
+    "availability": "present"
+   }
+  ]
+ },
+ "anomalies": [],
+ "summary": {
+  "title": "Android Settings · Wi‑Fi 导航与状态确认",
+  "requirement": {
+   "text": null,
+   "availability": "not-collected",
+   "valueOrigin": "observed"
+  },
+  "environment": {
+   "device": "emulator-5556",
+   "androidApi": 35,
+   "wmSize": "1080x1920",
+   "real": true,
+   "taskSet": "Android Settings 测试集",
+   "workspace": "Android Settings 测试集",
+   "dshEndpoint": "http://127.0.0.1:3083/"
+  },
+  "model": "zai-coding-cn/glm-5.3-flash",
+  "counts": {
+   "consultations": 3,
+   "deliveredEffects": 2,
+   "completedSteps": 2,
+   "observationCycles": 3,
+   "evidenceAdmissions": 1910,
+   "worldRevisions": 1905,
+   "journalRecords": 6
+  },
+  "achievement": {
+   "availability": "present",
+   "status": "Completed",
+   "outcome": "Completion",
+   "terminal": true,
+   "deliveredEffects": 2,
+   "completedSteps": 2,
+   "anchorsAvailability": "not-collected",
+   "anchorsTotal": 0,
+   "anchorsVerified": 0,
+   "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+   ]
+  }
+ },
+ "timeline": [
+  {
+   "ordinal": 1,
+   "track": "observation",
+   "kind": "observation-cycle",
+   "orderingBasis": "cycle",
+   "cycle": 1,
+   "context": "External",
+   "captureId": "capture-18b449d9804b400b8585535c88e0df73",
+   "observationCycleId": "settings-cycle-001",
+   "screenIdentity": "android.settings|rk1:Settings|src=homepage_title|up=0",
+   "proposalCount": 585,
+   "fastLatencyMs": 64400.587,
+   "hierarchyLatencyMs": 2079.396,
+   "popup": "absent",
+   "viewportDigest": "vd1:53DCAF07",
+   "refs": [
+    "capture-18b449d9804b400b8585535c88e0df73"
+   ]
+  },
+  {
+   "ordinal": 2,
+   "track": "kernel",
+   "kind": "world.derive-slice",
+   "orderingBasis": "captureSequence",
+   "spanId": "sp-1169",
+   "revisionNumber": 584,
+   "refs": [
+    "sp-1169"
+   ]
+  },
+  {
+   "ordinal": 3,
+   "track": "kernel",
+   "kind": "world.resolve-current",
+   "orderingBasis": "captureSequence",
+   "spanId": "sp-1170",
+   "revisionNumber": 584,
+   "refs": [
+    "sp-1170"
+   ]
+  },
+  {
+   "ordinal": 4,
+   "track": "effect",
+   "kind": "effect-attempt",
+   "orderingBasis": "journalSeq",
+   "attemptId": "attempt-1",
+   "effectClass": "tap",
+   "targetSubject": "occ-9f610212f8ba-3",
+   "intentId": "intent-1",
+   "executorId": "AdbLiveEffectDriver",
+   "admissionNote": "admissible:True:checks:10:freshness:Sufficient",
+   "revisionNumber": 584,
+   "receipt": "DeliveryCompleted",
+   "refs": [
+    "attempt-1",
+    "bind-intent-1-occ-9f610212f8ba-3"
+   ]
+  },
+  {
+   "ordinal": 5,
+   "track": "observation",
+   "kind": "observation-cycle",
+   "orderingBasis": "cycle",
+   "cycle": 2,
+   "context": "PostActionEffectFlow",
+   "captureId": "capture-eeb9a6842e8a48289629ae0ead110017",
+   "observationCycleId": "settings-cycle-002",
+   "screenIdentity": "android.settings|rk1:Internet|src=title|up=1",
+   "proposalCount": 635,
+   "fastLatencyMs": 892.445,
+   "hierarchyLatencyMs": 1994.851,
+   "popup": "absent",
+   "viewportDigest": "vd1:8FC5DF70",
+   "refs": [
+    "capture-eeb9a6842e8a48289629ae0ead110017"
+   ]
+  },
+  {
+   "ordinal": 6,
+   "track": "kernel",
+   "kind": "world.derive-slice",
+   "orderingBasis": "captureSequence",
+   "spanId": "sp-2441",
+   "revisionNumber": 1218,
+   "refs": [
+    "sp-2441"
+   ]
+  },
+  {
+   "ordinal": 7,
+   "track": "kernel",
+   "kind": "world.derive-slice",
+   "orderingBasis": "captureSequence",
+   "spanId": "sp-2442",
+   "revisionNumber": 1218,
+   "refs": [
+    "sp-2442"
+   ]
+  },
+  {
+   "ordinal": 8,
+   "track": "kernel",
+   "kind": "world.resolve-current",
+   "orderingBasis": "captureSequence",
+   "spanId": "sp-2443",
+   "revisionNumber": 1218,
+   "refs": [
+    "sp-2443"
+   ]
+  },
+  {
+   "ordinal": 9,
+   "track": "effect",
+   "kind": "effect-attempt",
+   "orderingBasis": "journalSeq",
+   "attemptId": "attempt-4",
+   "effectClass": "tap",
+   "targetSubject": "occ-a3cc6414152a-3",
+   "intentId": "intent-2",
+   "executorId": "AdbLiveEffectDriver",
+   "admissionNote": "admissible:True:checks:10:freshness:Sufficient",
+   "revisionNumber": 1218,
+   "receipt": "DeliveryCompleted",
+   "refs": [
+    "attempt-4",
+    "bind-intent-2-occ-a3cc6414152a-3"
+   ]
+  },
+  {
+   "ordinal": 10,
+   "track": "observation",
+   "kind": "observation-cycle",
+   "orderingBasis": "cycle",
+   "cycle": 3,
+   "context": "PostActionEffectFlow",
+   "captureId": "capture-13e008ebc7e0470aada29a5794b1f39c",
+   "observationCycleId": "settings-cycle-003",
+   "screenIdentity": "android.settings|rk1:T-Mobile|src=title|up=1",
+   "proposalCount": 688,
+   "fastLatencyMs": 836.084,
+   "hierarchyLatencyMs": 2061.769,
+   "popup": "absent",
+   "viewportDigest": "vd1:630328E7",
+   "refs": [
+    "capture-13e008ebc7e0470aada29a5794b1f39c"
+   ]
+  },
+  {
+   "ordinal": 11,
+   "track": "kernel",
+   "kind": "world.derive-slice",
+   "orderingBasis": "captureSequence",
+   "spanId": "sp-3820",
+   "revisionNumber": 1905,
+   "refs": [
+    "sp-3820"
+   ]
+  },
+  {
+   "ordinal": 12,
+   "track": "terminal",
+   "kind": "run-terminal",
+   "orderingBasis": "terminal",
+   "status": "Completed",
+   "outcome": "Completion",
+   "reason": "terminal-emitted",
+   "refs": [
+    "host:v0-flip-switch"
+   ]
+  }
+ ],
+ "layers": {
+  "host": {
+   "availability": "partial",
+   "artifactsWritten": [
+    "metadata",
+    "facts",
+    "trace",
+    "settingsTrace",
+    "journal"
+   ],
+   "preflight": {
+    "availability": "not-collected"
+   }
+  },
+  "agent": {
+   "availability": "partial",
+   "consultationCount": 3,
+   "model": "zai-coding-cn/glm-5.3-flash",
+   "modelSource": "metadata.json"
+  },
+  "capability": {
+   "availability": "present",
+   "perceptionCycles": [
+    {
+     "cycle": 1,
+     "context": "External",
+     "captureId": "capture-18b449d9804b400b8585535c88e0df73",
+     "observationCycleId": "settings-cycle-001",
+     "fastAvailable": true,
+     "hierarchyAvailable": true,
+     "proposalCount": 585,
+     "fastLatency": "00:01:04.4005867",
+     "hierarchyLatency": "00:00:02.0793960",
+     "screenIdentity": "android.settings|rk1:Settings|src=homepage_title|up=0",
+     "popup": "absent",
+     "slow": null,
+     "viewportDigest": "vd1:53DCAF07",
+     "grounding": null,
+     "assurance": null,
+     "effect": null,
+     "verification": null
+    },
+    {
+     "cycle": 2,
+     "context": "PostActionEffectFlow",
+     "captureId": "capture-eeb9a6842e8a48289629ae0ead110017",
+     "observationCycleId": "settings-cycle-002",
+     "fastAvailable": true,
+     "hierarchyAvailable": true,
+     "proposalCount": 635,
+     "fastLatency": "00:00:00.8924446",
+     "hierarchyLatency": "00:00:01.9948514",
+     "screenIdentity": "android.settings|rk1:Internet|src=title|up=1",
+     "popup": "absent",
+     "slow": null,
+     "viewportDigest": "vd1:8FC5DF70",
+     "grounding": null,
+     "assurance": null,
+     "effect": null,
+     "verification": null
+    },
+    {
+     "cycle": 3,
+     "context": "PostActionEffectFlow",
+     "captureId": "capture-13e008ebc7e0470aada29a5794b1f39c",
+     "observationCycleId": "settings-cycle-003",
+     "fastAvailable": true,
+     "hierarchyAvailable": true,
+     "proposalCount": 688,
+     "fastLatency": "00:00:00.8360841",
+     "hierarchyLatency": "00:00:02.0617687",
+     "screenIdentity": "android.settings|rk1:T-Mobile|src=title|up=1",
+     "popup": "absent",
+     "slow": null,
+     "viewportDigest": "vd1:630328E7",
+     "grounding": null,
+     "assurance": null,
+     "effect": null,
+     "verification": null
+    }
+   ],
+   "executors": [
+    "AdbLiveEffectDriver"
+   ],
+   "model": "zai-coding-cn/glm-5.3-flash"
+  },
+  "worldModel": {
+   "availability": "present",
+   "revisionCount": 1905,
+   "firstRevision": "rev-1",
+   "lastRevision": "rev-1905",
+   "checkpoints": [
+    {
+     "spanId": "sp-1169",
+     "spanDefinitionId": "world.derive-slice",
+     "captureSequence": 1170
+    },
+    {
+     "spanId": "sp-1170",
+     "spanDefinitionId": "world.resolve-current",
+     "captureSequence": 1171
+    },
+    {
+     "spanId": "sp-2441",
+     "spanDefinitionId": "world.derive-slice",
+     "captureSequence": 2442
+    },
+    {
+     "spanId": "sp-2442",
+     "spanDefinitionId": "world.derive-slice",
+     "captureSequence": 2443
+    },
+    {
+     "spanId": "sp-2443",
+     "spanDefinitionId": "world.resolve-current",
+     "captureSequence": 2444
+    },
+    {
+     "spanId": "sp-3820",
+     "spanDefinitionId": "world.derive-slice",
+     "captureSequence": 3821
+    }
+   ]
+  },
+  "evidence": {
+   "availability": "present",
+   "admissionCount": 1910,
+   "recorderTerminal": 0,
+   "recorderTerminalLabel": "Finalized",
+   "integritySha256": "917082f53e9a9aba488e56a05fa7424c2147e78869c56937991329091273ab89",
+   "integrityDeclared": true
+  },
+  "operations": {
+   "availability": "present",
+   "attempts": [
+    {
+     "attemptId": "attempt-1",
+     "stages": {
+      "prepare": {
+       "K": "prepare",
+       "Seq": 1,
+       "AttemptId": "attempt-1",
+       "EffectRef": "bind-intent-1-occ-9f610212f8ba-3",
+       "IntentId": "intent-1",
+       "BindingId": "bind-intent-1-occ-9f610212f8ba-3",
+       "EffectClass": "tap",
+       "TargetSubject": "occ-9f610212f8ba-3",
+       "TargetValue": null,
+       "RevisionId": "rev-584",
+       "RevisionNumber": 584,
+       "ExecutorId": "AdbLiveEffectDriver",
+       "AdmissionNote": "admissible:True:checks:10:freshness:Sufficient",
+       "RetryOf": null,
+       "Compensates": null,
+       "Note": null,
+       "ReceiptId": null,
+       "Outcome": null,
+       "Report": null,
+       "CompletedAt": null,
+       "Reason": null,
+       "FeedbackId": null,
+       "LinkKind": null
+      },
+      "submission": {
+       "K": "submission",
+       "Seq": 2,
+       "AttemptId": "attempt-1",
+       "EffectRef": null,
+       "IntentId": null,
+       "BindingId": null,
+       "EffectClass": null,
+       "TargetSubject": null,
+       "TargetValue": null,
+       "RevisionId": null,
+       "RevisionNumber": 0,
+       "ExecutorId": null,
+       "AdmissionNote": null,
+       "RetryOf": null,
+       "Compensates": null,
+       "Note": "driver:DeliveryCompleted",
+       "ReceiptId": null,
+       "Outcome": null,
+       "Report": null,
+       "CompletedAt": null,
+       "Reason": null,
+       "FeedbackId": null,
+       "LinkKind": null
+      },
+      "receipt": {
+       "K": "receipt",
+       "Seq": 3,
+       "AttemptId": "attempt-1",
+       "EffectRef": null,
+       "IntentId": null,
+       "BindingId": null,
+       "EffectClass": null,
+       "TargetSubject": null,
+       "TargetValue": null,
+       "RevisionId": null,
+       "RevisionNumber": 0,
+       "ExecutorId": null,
+       "AdmissionNote": null,
+       "RetryOf": null,
+       "Compensates": null,
+       "Note": "receipt-bind-intent-1-occ-9f610212f8ba-3-1",
+       "ReceiptId": "receipt-bind-intent-1-occ-9f610212f8ba-3-1",
+       "Outcome": "DeliveryCompleted",
+       "Report": "adb -s emulator-5556 shell input tap 540 866",
+       "CompletedAt": "2026-09-20T12:01:00.0000000+00:00",
+       "Reason": null,
+       "FeedbackId": null,
+       "LinkKind": null
+      }
+     },
+     "effectClass": "tap",
+     "targetSubject": "occ-9f610212f8ba-3",
+     "intentId": "intent-1",
+     "bindingId": "bind-intent-1-occ-9f610212f8ba-3",
+     "effectRef": "bind-intent-1-occ-9f610212f8ba-3",
+     "executorId": "AdbLiveEffectDriver",
+     "admissionNote": "admissible:True:checks:10:freshness:Sufficient",
+     "revisionNumber": 584,
+     "receiptOutcome": "DeliveryCompleted"
+    },
+    {
+     "attemptId": "attempt-4",
+     "stages": {
+      "prepare": {
+       "K": "prepare",
+       "Seq": 4,
+       "AttemptId": "attempt-4",
+       "EffectRef": "bind-intent-2-occ-a3cc6414152a-3",
+       "IntentId": "intent-2",
+       "BindingId": "bind-intent-2-occ-a3cc6414152a-3",
+       "EffectClass": "tap",
+       "TargetSubject": "occ-a3cc6414152a-3",
+       "TargetValue": null,
+       "RevisionId": "rev-1218",
+       "RevisionNumber": 1218,
+       "ExecutorId": "AdbLiveEffectDriver",
+       "AdmissionNote": "admissible:True:checks:10:freshness:Sufficient",
+       "RetryOf": null,
+       "Compensates": null,
+       "Note": null,
+       "ReceiptId": null,
+       "Outcome": null,
+       "Report": null,
+       "CompletedAt": null,
+       "Reason": null,
+       "FeedbackId": null,
+       "LinkKind": null
+      },
+      "submission": {
+       "K": "submission",
+       "Seq": 5,
+       "AttemptId": "attempt-4",
+       "EffectRef": null,
+       "IntentId": null,
+       "BindingId": null,
+       "EffectClass": null,
+       "TargetSubject": null,
+       "TargetValue": null,
+       "RevisionId": null,
+       "RevisionNumber": 0,
+       "ExecutorId": null,
+       "AdmissionNote": null,
+       "RetryOf": null,
+       "Compensates": null,
+       "Note": "driver:DeliveryCompleted",
+       "ReceiptId": null,
+       "Outcome": null,
+       "Report": null,
+       "CompletedAt": null,
+       "Reason": null,
+       "FeedbackId": null,
+       "LinkKind": null
+      },
+      "receipt": {
+       "K": "receipt",
+       "Seq": 6,
+       "AttemptId": "attempt-4",
+       "EffectRef": null,
+       "IntentId": null,
+       "BindingId": null,
+       "EffectClass": null,
+       "TargetSubject": null,
+       "TargetValue": null,
+       "RevisionId": null,
+       "RevisionNumber": 0,
+       "ExecutorId": null,
+       "AdmissionNote": null,
+       "RetryOf": null,
+       "Compensates": null,
+       "Note": "receipt-bind-intent-2-occ-a3cc6414152a-3-2",
+       "ReceiptId": "receipt-bind-intent-2-occ-a3cc6414152a-3-2",
+       "Outcome": "DeliveryCompleted",
+       "Report": "adb -s emulator-5556 shell input tap 540 682",
+       "CompletedAt": "2026-09-20T12:02:00.0000000+00:00",
+       "Reason": null,
+       "FeedbackId": null,
+       "LinkKind": null
+      }
+     },
+     "effectClass": "tap",
+     "targetSubject": "occ-a3cc6414152a-3",
+     "intentId": "intent-2",
+     "bindingId": "bind-intent-2-occ-a3cc6414152a-3",
+     "effectRef": "bind-intent-2-occ-a3cc6414152a-3",
+     "executorId": "AdbLiveEffectDriver",
+     "admissionNote": "admissible:True:checks:10:freshness:Sufficient",
+     "revisionNumber": 1218,
+     "receiptOutcome": "DeliveryCompleted"
+    }
+   ],
+   "completedSteps": [
+    {
+     "decision": 1,
+     "step": 0,
+     "receipt": "receipt-bind-intent-1-occ-9f610212f8ba-3-1"
+    },
+    {
+     "decision": 2,
+     "step": 0,
+     "receipt": "receipt-bind-intent-2-occ-a3cc6414152a-3-2"
+    }
+   ],
+   "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+   ]
+  }
+ },
+ "references": [
+  {
+   "id": "attempt-1",
+   "kind": "attempt",
+   "artifact": "exec.journal",
+   "locator": "attempt attempt-1"
+  },
+  {
+   "id": "attempt-4",
+   "kind": "attempt",
+   "artifact": "exec.journal",
+   "locator": "attempt attempt-4"
+  },
+  {
+   "id": "bind-intent-1-occ-9f610212f8ba-3",
+   "kind": "binding",
+   "artifact": "exec.journal",
+   "locator": "attempt attempt-1 prepare.BindingId"
+  },
+  {
+   "id": "bind-intent-2-occ-a3cc6414152a-3",
+   "kind": "binding",
+   "artifact": "exec.journal",
+   "locator": "attempt attempt-4 prepare.BindingId"
+  },
+  {
+   "id": "capture-13e008ebc7e0470aada29a5794b1f39c",
+   "kind": "capture",
+   "artifact": "settings-trace.json",
+   "locator": "cycle 3"
+  },
+  {
+   "id": "capture-18b449d9804b400b8585535c88e0df73",
+   "kind": "capture",
+   "artifact": "settings-trace.json",
+   "locator": "cycle 1"
+  },
+  {
+   "id": "capture-eeb9a6842e8a48289629ae0ead110017",
+   "kind": "capture",
+   "artifact": "settings-trace.json",
+   "locator": "cycle 2"
+  },
+  {
+   "id": "host:v0-flip-switch",
+   "kind": "run",
+   "artifact": "report envelope",
+   "locator": "identities.runId"
+  },
+  {
+   "id": "intent-1",
+   "kind": "intent",
+   "artifact": "exec.journal",
+   "locator": "attempt attempt-1 prepare.IntentId"
+  },
+  {
+   "id": "intent-2",
+   "kind": "intent",
+   "artifact": "exec.journal",
+   "locator": "attempt attempt-4 prepare.IntentId"
+  },
+  {
+   "id": "receipt-bind-intent-1-occ-9f610212f8ba-3-1",
+   "kind": "receipt",
+   "artifact": "facts.json",
+   "locator": "completedSteps[].receipt"
+  },
+  {
+   "id": "receipt-bind-intent-2-occ-a3cc6414152a-3-2",
+   "kind": "receipt",
+   "artifact": "facts.json",
+   "locator": "completedSteps[].receipt"
+  },
+  {
+   "id": "rev-1",
+   "kind": "revision",
+   "artifact": "trace.json",
+   "locator": "first world.reconcile event reference"
+  },
+  {
+   "id": "rev-1905",
+   "kind": "revision",
+   "artifact": "trace.json",
+   "locator": "last world.reconcile event reference"
+  },
+  {
+   "id": "session-06d69e93-56f4-4b58-b991-69eabe3301e2",
+   "kind": "session",
+   "artifact": "report envelope",
+   "locator": "identities.dshSessionId"
+  },
+  {
+   "id": "settings-traversal-session-6098c7dddc9d40bda955f82d9e72a27e",
+   "kind": "run",
+   "artifact": "report envelope",
+   "locator": "identities.productSessionId"
+  },
+  {
+   "id": "sp-1169",
+   "kind": "span",
+   "artifact": "trace.json",
+   "locator": "spans / sp-1169"
+  },
+  {
+   "id": "sp-1170",
+   "kind": "span",
+   "artifact": "trace.json",
+   "locator": "spans / sp-1170"
+  },
+  {
+   "id": "sp-2441",
+   "kind": "span",
+   "artifact": "trace.json",
+   "locator": "spans / sp-2441"
+  },
+  {
+   "id": "sp-2442",
+   "kind": "span",
+   "artifact": "trace.json",
+   "locator": "spans / sp-2442"
+  },
+  {
+   "id": "sp-2443",
+   "kind": "span",
+   "artifact": "trace.json",
+   "locator": "spans / sp-2443"
+  },
+  {
+   "id": "sp-3820",
+   "kind": "span",
+   "artifact": "trace.json",
+   "locator": "spans / sp-3820"
+  },
+  {
+   "id": "trc-d25f7036d4c2",
+   "kind": "trace",
+   "artifact": "report envelope",
+   "locator": "identities.traceId"
+  }
+ ]
+}

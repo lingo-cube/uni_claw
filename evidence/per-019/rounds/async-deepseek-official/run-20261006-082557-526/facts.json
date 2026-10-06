@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-facts.v2",
+  "runDir": "evidence/per-019/rounds/async-deepseek-official/run-20261006-082557-526",
+  "status": "AgentDecisionFailed",
+  "reason": "no-response",
+  "outcome": null,
+  "delivered": 0,
+  "receipts": [],
+  "terminal": false,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0.16666666666666666,
+  "stepSuccessRate": 0,
+  "uncovered": [
+    "first-level-all-visible",
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "back-navigation",
+    "repeated-entry"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": null,
+  "diagnostics": {
+    "firstDivergence": null,
+    "terminalJustification": null,
+    "nextFiles": [
+      "facts.json",
+      "environment-preflight.json",
+      "coverage-report.json",
+      "coverage-steps.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B firstDivergence/reason\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 coverage-steps.json\u3001trace.json \u548C exec.journal\u3002"
+  },
+  "actionPolicy": {
+    "policyRef": "fixture/android-settings/forbidden-action-policy",
+    "digest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/testsets/android-settings/forbidden-action-policy.json"
+  },
+  "evidenceDir": "evidence/per-019/rounds/async-deepseek-official/run-20261006-082557-526/evidence",
+  "evidenceFiles": 2,
+  "journalBytes": 0,
+  "consults": [
+    {
+      "decisionId": "decision-393d2a5b88c7-1",
+      "phase": "InitialPlanning",
+      "directive": "Enter the Settings first-level entry \u0027\u003CNetwork \u0026 internet\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": null,
+      "deviationReason": "no-response",
+      "attempts": 1,
+      "justification": null,
+      "policyDigest": null,
+      "guardVerdict": null
+    }
+  ],
+  "steps": []
+}

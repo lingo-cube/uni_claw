@@ -8,12 +8,15 @@
 
 | 代码面 | 当前位置 | 负责什么 | 不负责什么 |
 |---|---|---|---|
-| Hub 管理面 | [`CapabilityHub.cs`](CapabilityHub.cs) | `ICapability`、`ICapabilityHub`、`CapabilityDescription`、信任域、注册/解析、生命周期事实、健康状态和装配校验 | 不执行语言/视觉/性能算法，不拥有 Finding、Measurement 或 Product authority；不把任务专属实例当成全局单例 |
+| Hub 管理面 | [`CapabilityHub.cs`](CapabilityHub.cs) | `ICapability`、`ICapabilityHub`、`CapabilityDescription`、信任域、注册/解析、生命周期事实、健康状态和装配校验（CAP-008 起含 ModelRouting 类别的协议/实例执法） | 不执行语言/视觉/性能算法，不拥有 Finding、Measurement 或 Product authority；不把任务专属实例当成全局单例 |
 | Host-neutral 协议面 | [`IntegrationContracts.cs`](IntegrationContracts.cs) | correlation、Envelope、Finding、Measurement、Artifact、Fixture lifecycle、语言 Inspector request 等跨 Host 结果协议 | 不注册实例、不调度能力、不决定 DSH Tool 形状 |
 | Product 感知协议 | `CapabilityHub.cs` 中的 `ISemanticPerception`、`IUiElementPerception` 及其协议常量 | 表达 Product 买方接口和协议一致性 | 不表达 Fast/Slow provider，不携带 DSH 或模型 provider 语义 |
+| Model Management 能力组件 | [`ModelManagement.cs`](ModelManagement.cs)（CAP-006/007/008） | `IModelManagement : ICapability`（logical profile → 冻结 binding 解析、候选偏好、健康证据）、`ModelManagementProtocol`、可选健康能力面 `ICapabilityHealthCheckable` + `CapabilityHealthReport` | 不下载/安装/热切换模型；不把外部 binding registry 带入 Product Runtime；provider 词汇不进此层 |
+| UniPerception L2 | [`UniPerceptionCapability.cs`](UniPerceptionCapability.cs)（CAP-009） | `uni.perception` 组合能力的可执行实现：双协议 marker（Semantic + UI Element）+ 健康聚合 owner（`PerceptionHealthSource` 命名源注入，worst-of 聚合） | 不拥有协议负载词汇（SemanticObservationProposal / PerceptionAssessment 待后续感知 change 冻结）；不执行感知算法 |
+| Language Inspection | [`LanguageInspection.cs`](LanguageInspection.cs)（CAP-012） | `ILanguageInspector : ICapability`（有界文本投影 → 语言格式 Finding）+ `LanguageFormatInspector`（确定性 Unicode 脚本规则，en/zh；不支持诚实 Unknown）+ `LanguageInspectionProtocol` 常量 | 不接 Assurance/Effect（Finding 非权威）；不支持语言不猜（Unknown）；不做异步调度 |
 | Product realization | `src/UniClaw.Kernel/Perception/` | Fast/Slow 感知的具体实现和既有 P2/P3 接缝 | 不把实现细节倒灌到 Hub 管理面 |
 | Host / 外部 Adapter | `src/UniClaw.Host/`、`src/UniClaw.Host.Dsh/` | 设备、Host transport、外部观测和必要的 DSH 原生投影 | 不修改 Kernel 的 Capability 管理规则 |
-| Kernel contract tests | [`tests/UniClaw.Kernel.Tests/Capability/`](../../../tests/UniClaw.Kernel.Tests/Capability/) | Hub 注册/解析、跨域隔离、协议一致性和 Integration contract 边界 | 不放真实模型、设备或 DSH fixture |
+| Kernel contract tests | [`tests/UniClaw.Kernel.Tests/Capability/`](../../../tests/UniClaw.Kernel.Tests/Capability/) | Hub 注册/解析、跨域隔离、协议一致性（含 ModelRouting 执法、UniPerception 双协议一致性、健康聚合契约）和 Integration contract 边界 | 不放真实模型、设备或 DSH fixture |
 | Simulation fixtures | [`tests/UniClaw.Simulation.Tests/`](../../../tests/UniClaw.Simulation.Tests/) | 用确定性夹具验证能力装配、关联和结果状态 | 不把仿真类加入 Kernel public surface，不代表真实算法质量 |
 
 ## 变更规则
@@ -83,13 +86,16 @@ Kernel Capability 只保留 Host-neutral 管理和协议语义。是否投影为
 
 ## 当前文件与后续拆分
 
-当前两个 C# 文件保持原位置，以降低工作树迁移风险：
+当前四个 C# 文件保持原位置，以降低工作树迁移风险：
 
 ```text
 Capability/
-├── CapabilityHub.cs          # Hub 管理面 + Product protocol marker
-├── IntegrationContracts.cs   # Host-neutral integration contracts
-└── README.md                 # ownership/index（本文件）
+├── CapabilityHub.cs            # Hub 管理面 + Product protocol marker + ModelRouting/LanguageInspection 执法
+├── IntegrationContracts.cs     # Host-neutral integration contracts
+├── ModelManagement.cs          # Model Management 能力组件 + 健康能力面 mixin（CAP-006/007/008）
+├── UniPerceptionCapability.cs  # uni.perception L2：双协议 marker + 健康聚合 owner（CAP-009）
+├── LanguageInspection.cs       # Language Inspection：L1 + L2 + 协议常量（CAP-012）
+└── README.md                   # ownership/index（本文件）
 ```
 
 如果后续需要拆成 `Hub/`、`Contracts/`、`Protocols/` 子目录，必须单独建立 Change，

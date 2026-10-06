@@ -6,7 +6,7 @@ public enum TrustDomain { Product, RuntimeIntegration, Harness }
 public enum CapabilityScope { ProductRuntime, RuntimeIntegration, Harness }
 public enum HealthStatus { Unknown, Healthy, Degraded, Unhealthy }
 public enum CapabilityLifecycle { Declared, Registered, Ready, Active, Draining, Closed, Failed, Quarantined }
-public enum CapabilityCategory { Generic, CompositeProductPerception, IndependentProductPerception, Realization, Source, Adapter }
+public enum CapabilityCategory { Generic, CompositeProductPerception, IndependentProductPerception, Realization, Source, Adapter, ModelRouting, LanguageInspection }
 public enum CapabilityRoleKind { ProductProtocol, Realization, Source, Adapter }
 public enum CapabilityRelationshipKind { Requires }
 
@@ -151,6 +151,13 @@ public sealed class CapabilityRegistry : ICapabilityHub
         ValidateSource(source);
         if (!MatchesDomain(description.Scope)) throw new ArgumentException("Capability scope crosses registry trust domain.", nameof(description));
         ValidateDescription(description);
+        // CAP-008 P2：模型管理是可执行能力——description-only 注册无正当场景
+        //（正是 CAP-006 走岔的路），ModelRouting 类别必须携带实例。
+        // CAP-012 同构：LanguageInspection 亦为可执行能力，同样必须实例注册。
+        if (description.Category is CapabilityCategory.ModelRouting or CapabilityCategory.LanguageInspection
+            && instance is null)
+            throw new ArgumentException(
+                $"{description.Category} capabilities require an executable instance.", nameof(description));
         if (!entries.TryAdd(description.CapabilityId, (description, CapabilityLifecycle.Registered, instance)))
             throw new InvalidOperationException($"Capability '{description.CapabilityId}' is already registered.");
         return Publish(description, CapabilityLifecycle.Registered, source);
@@ -178,6 +185,20 @@ public sealed class CapabilityRegistry : ICapabilityHub
     private void ValidateSource(string source) { if (string.IsNullOrWhiteSpace(source)) throw new ArgumentException("A lifecycle fact source is required.", nameof(source)); }
     private static void ValidateDescription(CapabilityDescription description)
     {
+        // CAP-008：ModelRouting 类别的协议执法（R4：每能力一协议，registry 校验
+        // 协议-接口一致性；感知同构先例）。CAP-012：单协议类别的公共形状提取共享。
+        if (description.Category == CapabilityCategory.ModelRouting)
+        {
+            ValidateSingleProtocolCategoryShape(description, CapabilityScope.ProductRuntime,
+                ModelManagementProtocol.BindingResolution, ModelManagementProtocol.Version, "Model routing");
+            return;
+        }
+        if (description.Category == CapabilityCategory.LanguageInspection)
+        {
+            ValidateSingleProtocolCategoryShape(description, CapabilityScope.RuntimeIntegration,
+                LanguageInspectionProtocol.Inspection, LanguageInspectionProtocol.Version, "Language inspection");
+            return;
+        }
         if (description.Category is not (CapabilityCategory.CompositeProductPerception or CapabilityCategory.IndependentProductPerception)) return;
         if (description.Scope != CapabilityScope.ProductRuntime) throw new ArgumentException("Product perception must use the product scope.", nameof(description));
         if (description.Protocols.Any(p => p.Version != PerceptionProtocol.Version)) throw new ArgumentException("Unsupported perception protocol version.", nameof(description));
@@ -206,9 +227,56 @@ public sealed class CapabilityRegistry : ICapabilityHub
             throw new ArgumentException("Composite perception must declare Semantic Perception.", nameof(description));
     }
 
+    /// <summary>CAP-012 提取：单协议类别的公共执法形状（scope、恰一协议、
+    /// 角色镜像、依赖-关系镜像）；ModelRouting 与 LanguageInspection 共用。</summary>
+    private static void ValidateSingleProtocolCategoryShape(
+        CapabilityDescription description, CapabilityScope requiredScope,
+        string protocolName, string protocolVersion, string categoryLabel)
+    {
+        if (description.Scope != requiredScope)
+            throw new ArgumentException($"{categoryLabel} must use the {requiredScope} scope.", nameof(description));
+        if (description.Protocols.Length != 1
+            || !string.Equals(description.Protocols[0].Name, protocolName, StringComparison.Ordinal)
+            || !string.Equals(description.Protocols[0].Version, protocolVersion, StringComparison.Ordinal))
+            throw new ArgumentException(
+                $"{categoryLabel} must declare exactly one {protocolName}@{protocolVersion} protocol.",
+                nameof(description));
+        if (description.Roles.GroupBy(r => $"{r.Kind}:{r.Name}", StringComparer.Ordinal).Any(g => g.Count() > 1))
+            throw new ArgumentException("Duplicate capability roles are not allowed.", nameof(description));
+        if (description.Roles.Any(r => r.Kind is CapabilityRoleKind.Source or CapabilityRoleKind.Adapter))
+            throw new ArgumentException($"{categoryLabel} cannot claim source or adapter role.", nameof(description));
+        var protocolNames = description.Protocols.Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
+        foreach (var role in description.Roles.Where(r => r.Kind == CapabilityRoleKind.ProductProtocol))
+            if (!protocolNames.Contains(role.Name))
+                throw new ArgumentException("Product protocol role must match a declared protocol.", nameof(description));
+        var dependencyIds = description.Dependencies.Select(d => d.CapabilityId).ToHashSet(StringComparer.Ordinal);
+        var relationshipTargets = description.Relationships
+            .Where(r => r.Kind == CapabilityRelationshipKind.Requires)
+            .Select(r => r.TargetCapabilityId)
+            .ToHashSet(StringComparer.Ordinal);
+        if (!relationshipTargets.SetEquals(dependencyIds))
+            throw new ArgumentException($"{categoryLabel} relationships must explicitly mirror declared dependencies.", nameof(description));
+    }
+
     private static void ValidateImplementation(ICapability capability)
     {
         var description = capability.Description ?? throw new ArgumentException("Capability description is required.", nameof(capability));
+        if (description.Category == CapabilityCategory.ModelRouting)
+        {
+            if (capability is not IModelManagement)
+                throw new ArgumentException("Model routing declaration requires an IModelManagement implementation.", nameof(capability));
+            return;
+        }
+        if (capability is IModelManagement)
+            throw new ArgumentException("IModelManagement implementations must use the model routing category.", nameof(capability));
+        if (description.Category == CapabilityCategory.LanguageInspection)
+        {
+            if (capability is not ILanguageInspector)
+                throw new ArgumentException("Language inspection declaration requires an ILanguageInspector implementation.", nameof(capability));
+            return;
+        }
+        if (capability is ILanguageInspector)
+            throw new ArgumentException("ILanguageInspector implementations must use the language inspection category.", nameof(capability));
         var protocolNames = description.Protocols.Select(protocol => protocol.Name).ToHashSet(StringComparer.Ordinal);
         var semantic = capability is ISemanticPerception;
         var uiElement = capability is IUiElementPerception;

@@ -19,7 +19,7 @@ public sealed class ModelManagementCapabilityCompositionTests
 
         Assert.NotNull(description);
         Assert.Equal(CapabilityScope.ProductRuntime, description!.Scope);
-        Assert.Equal(CapabilityCategory.Generic, description.Category);
+        Assert.Equal(CapabilityCategory.ModelRouting, description.Category);
         Assert.Contains(description.Protocols,
             p => p.Name == ModelManagementCapabilityComposition.ModelBindingResolutionProtocol
                 && p.Version == ModelManagementCapabilityComposition.ProtocolVersion);
@@ -32,6 +32,64 @@ public sealed class ModelManagementCapabilityCompositionTests
         Assert.Contains(description.Roles,
             r => r.Kind == CapabilityRoleKind.ProductProtocol
                 && r.Name == ModelManagementCapabilityComposition.ModelBindingResolutionProtocol);
+    }
+
+    [Fact]
+    public void Register_InstanceRegistration_MakesDeclarationAndRuntimeOneFact()
+    {
+        var registry = new CapabilityRegistry(TrustDomain.Product);
+        var instance = new ModelManagement(new[]
+        {
+            new ModelBindingSnapshot(LogicalProfileId.AgentDecision, "zai", "glm"),
+        });
+
+        ModelManagementCapabilityComposition.RegisterModelManagement(
+            registry, instance, realization: "dsh-model-management");
+
+        var resolved = registry.Resolve(ModelManagementCapabilityComposition.ModelManagementId);
+        Assert.IsAssignableFrom<IModelManagement>(resolved);
+        // 注册的是原实例的重述视图（共享活注册表）：声明与运行时同一事实——
+        // 经原实例的注册/健康更新对 registry 解回的实例可见，无状态分叉。
+        var viaRegistry = (IModelManagement)resolved!;
+        Assert.True(viaRegistry.Resolve(LogicalProfileId.AgentDecision).IsResolved);
+        instance.ApplyHealth(LogicalProfileId.AgentDecision, "zai", "glm", healthy: false);
+        Assert.False(viaRegistry.IsAvailable(LogicalProfileId.AgentDecision));
+        // 描述携带组合的 realization 角色。
+        Assert.Contains(registry.Get(ModelManagementCapabilityComposition.ModelManagementId)!.Roles,
+            r => r.Kind == CapabilityRoleKind.Realization && r.Name == "dsh-model-management");
+    }
+
+    [Fact]
+    public void Lifecycle_DriveChain_IsLegalThroughCommitFacts()
+    {
+        // CAP-008 RL 样本：持资源能力的合法驱动链（打在测试 fake 上——
+        // ModelManagement 按 RL1 停在 Registered，不走此链）。
+        var registry = new CapabilityRegistry(TrustDomain.Product);
+        var fake = new FakeResourceCapability();
+        registry.Register(fake, "test-composition");
+
+        registry.Commit(fake.Description.CapabilityId, CapabilityLifecycle.Ready, "composition-root");
+        registry.Commit(fake.Description.CapabilityId, CapabilityLifecycle.Active, "composition-root");
+        registry.Commit(fake.Description.CapabilityId, CapabilityLifecycle.Draining, "teardown");
+        registry.Commit(fake.Description.CapabilityId, CapabilityLifecycle.Closed, "teardown");
+
+        var states = registry.Facts.Where(f => f.CapabilityId == fake.Description.CapabilityId)
+            .Select(f => f.Lifecycle).ToArray();
+        Assert.Equal(
+            new[] { CapabilityLifecycle.Registered, CapabilityLifecycle.Ready,
+                CapabilityLifecycle.Active, CapabilityLifecycle.Draining, CapabilityLifecycle.Closed },
+            states);
+        // 非法迁移仍被拒（Closed 无后继）。
+        Assert.Throws<InvalidOperationException>(() =>
+            registry.Commit(fake.Description.CapabilityId, CapabilityLifecycle.Active, "test"));
+    }
+
+    private sealed class FakeResourceCapability : ICapability
+    {
+        public CapabilityDescription Description { get; } = new(
+            "test.resource-capability", "1.0.0", CapabilityScope.ProductRuntime,
+            new[] { new CapabilityProtocol("observation", "1") },
+            Array.Empty<CapabilityDependency>(), HealthStatus.Unknown);
     }
 
     [Fact]

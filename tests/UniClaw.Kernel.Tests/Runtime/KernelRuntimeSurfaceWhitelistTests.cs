@@ -58,6 +58,7 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Capability.CapabilityDescription",
             "UniClaw.Kernel.Capability.CapabilityEnvelope",
             "UniClaw.Kernel.Capability.CapabilityEventKind",
+            "UniClaw.Kernel.Capability.CapabilityHealthReport",
             "UniClaw.Kernel.Capability.CapabilityLifecycle",
             "UniClaw.Kernel.Capability.CapabilityLifecycleFact",
             "UniClaw.Kernel.Capability.CapabilityProtocol",
@@ -74,29 +75,43 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Capability.FixtureLifecycleState",
             "UniClaw.Kernel.Capability.HealthStatus",
             "UniClaw.Kernel.Capability.ICapability",
+            "UniClaw.Kernel.Capability.ICapabilityHealthCheckable",
             "UniClaw.Kernel.Capability.ICapabilityHub",
+            // CAP-012 增集（3）：Language Inspection 能力组件（skill 首次全新实战）。
+            "UniClaw.Kernel.Capability.ILanguageInspector",
+            "UniClaw.Kernel.Capability.IModelManagement",
             "UniClaw.Kernel.Capability.ISemanticPerception",
             "UniClaw.Kernel.Capability.IUiElementPerception",
             "UniClaw.Kernel.Capability.InspectorCoverage",
             "UniClaw.Kernel.Capability.InspectorInputState",
+            "UniClaw.Kernel.Capability.LanguageFormatInspector",
+            "UniClaw.Kernel.Capability.LanguageInspectionProtocol",
             "UniClaw.Kernel.Capability.LanguageInspectorRequest",
             // CAP-006 增集（5）：Model Management 产品能力组件公开化——
             // LogicalProfileId（+AgentDecision 值）/ ModelBindingResolution /
             // ModelBindingSnapshot / ModelManagement / ModelRoutingStatus。
             // 语义自 internal SlowModelManagement 冻结；DSH 只经 Register 注入。
+            // CAP-008 增集（4）：可执行契约对齐——IModelManagement : ICapability
+            // (+ICapabilityHealthCheckable) / ModelManagementProtocol /
+            // CapabilityHealthReport / ICapabilityHealthCheckable（健康能力面）。
             "UniClaw.Kernel.Capability.LogicalProfileId",
             "UniClaw.Kernel.Capability.MeasurementSample",
             "UniClaw.Kernel.Capability.ModelBindingResolution",
             "UniClaw.Kernel.Capability.ModelBindingSnapshot",
             "UniClaw.Kernel.Capability.ModelManagement",
+            "UniClaw.Kernel.Capability.ModelManagementProtocol",
             "UniClaw.Kernel.Capability.ModelRoutingStatus",
             "UniClaw.Kernel.Capability.ObservationTextItem",
             "UniClaw.Kernel.Capability.OperationMeasurementPair",
             "UniClaw.Kernel.Capability.OperationMeasurementStage",
             "UniClaw.Kernel.Capability.OperationMeasurementStart",
             "UniClaw.Kernel.Capability.OperationMeasurementTerminal",
+            // CAP-009 增集（2）：UniPerception L2 可执行实现（双协议 marker +
+            // 健康聚合 owner）与命名健康源。
+            "UniClaw.Kernel.Capability.PerceptionHealthSource",
             "UniClaw.Kernel.Capability.PerceptionProtocol",
             "UniClaw.Kernel.Capability.TrustDomain",
+            "UniClaw.Kernel.Capability.UniPerceptionCapability",
             "UniClaw.Kernel.Control.ControlDecision",
             "UniClaw.Kernel.Control.ControlInputs",
             "UniClaw.Kernel.Control.ControlIntent",
