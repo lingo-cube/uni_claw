@@ -20,6 +20,11 @@ authoring · Goal Evaluation。
 - **自己定义的 tools**：tool 词汇归 UniAgent 所有，可调用；执行经
   realization（Host adapter）投影——DSH Tool 是 Binding/Exposure，不是
   能力类型（ADR-0038）；
+  - 两层概念勿混（ADR-0039）：这里的 tools 是**产品层调用词汇**；
+    Harness 层的 Tool 是 `tool-registry.yaml` 暴露清单（面向 AI Coder /
+    Workbench 等 harness 消费者）。两层经 `backing: capability` +
+    `capabilityRef` 单向映射（语义真相在 CapabilityHub），产品代码不
+    硬编码 harness skill 路径；
 - **realization 可替换**：当前用 DSH 实现（`../UniClaw.Agent.Dsh/`），
   可以在其他宿主用其他方式实现。宿主既有能力（模型、工具、记忆等）
   经 adapter **复用**映射进系统，而不必自研（ADR-0022：codex 与 DSH
