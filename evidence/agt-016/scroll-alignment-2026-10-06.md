@@ -25,3 +25,19 @@
 
 - 确定性：Host.Tests 159/159（对齐后无回归）。
 - 真实：上表回合四元组（facts/consultations/exec.journal/trace 全落 run dir）。
+
+## 机制链补记（同日"下一步"核查）
+
+授权对齐后，B2（滚动无变化→验证失败有界停止）的完整链路在 traversal 下**全部就位**：
+
+1. 授权面：契约 AllowedEffects 含 swipe-up（本次裁决）；
+2. Guard 面：swipe-up→scroll，策略 scroll=safe → Allow（本回合 7 次实证）；
+3. Driver 面：AdbEffectDriver 支持 swipe-up（AGT-005 词汇）；
+4. **验证面（内核级，与 coverage 共享同一缝）**：UniKernel 滚动后比对 dispatch
+   前后可见 occurrence (role, descriptor) 集合——集合对称 ⇒ `ScrollContentChanged=false`
+   ⇒ Assurance fail closed（UniKernel.cs VerifyPostAction；AGT-014 故障矩阵
+   "滚动到底但内容不变"行的确定性对面，44/44 已证）。
+
+即：**无变化滚动的检测不再有架构障碍**；真实回合中是否出现到底事件取决于 agent
+当轮判断（本回合 7 次滚动未触发连续失败终局，终局原因为 evidence-insufficient/defer）。
+本回合未捕获到底事件属机会性事实，如实记录；机制的确定性证明由故障矩阵承载。
