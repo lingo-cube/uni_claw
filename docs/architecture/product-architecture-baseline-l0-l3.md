@@ -64,7 +64,7 @@ Session 是 Product correlation root。它关联 Goal、Contract、Run、Evidenc
 
 **Definition**
 
-面向用户的完整智能主体。负责理解 Primary Goal、形成全局策略、创建 Execution Contract，并评价最终 Goal satisfaction。
+整个系统的大脑（cognition core）——系统级认知与决策中枢。负责理解 Primary Goal、形成全局策略、创建 Execution Contract，并评价最终 Goal satisfaction。
 
 **Owner / Authority**
 
@@ -1217,3 +1217,17 @@ accepted Contract View
 
 本节不修改 §17–§20 既有条目，不锁定任何实现名称；与冻结协议（P1–P23）的
 衔接见 Inter-Component Protocol Baseline 同日 narrow amendment。
+
+## 25. Narrow Amendment v0.1.2 — §3.1 UniAgent 定位措辞（系统的大脑）
+
+> 修订依据：所有者裁决（2026-10-07，AGT-018 定义审核）+ ARCH-DOC-021。
+> 性质：narrow amendment——仅修正 §3.1 Definition 的定位措辞；Owner /
+> Authority / Boundary / Lifecycle 零变化，不重开 §23 已关闭的 L0-L3
+> 横向结构。
+
+原措辞「面向用户的完整智能主体」与所有者意图不符：UniAgent 是**整个
+系统的大脑**（cognition core）——系统级认知与决策中枢，不以「面向
+用户」为其定位属性。§3.1 Definition 首句已按此修正，本节留痕修订
+依据。UniAgent 可调用自定义 tools 与 realization 可替换（当前 DSH，
+宿主能力经 adapter 复用）的语义见 `src/UniClaw.Agent/README.md`
+（AGT-018）。

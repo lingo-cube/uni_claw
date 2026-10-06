@@ -61,9 +61,9 @@ goal/策略/contract/evaluation 语义与 tool 词汇进本目录；宿主特有
 
 ## 已知偏差
 
-- 基线 §3.1 定位措辞（「面向用户的完整智能主体」）与所有者裁决
-  （「系统的大脑」）不一致——权威语义（owner/边界）不受影响；基线
-  措辞修订待独立 change（L0-L3 重开条件见基线 §23）。
+- ~~基线 §3.1 定位措辞与所有者裁决不一致~~ → 已由 ARCH-DOC-021
+  Narrow Amendment v0.1.2（基线 §25）收口：定位句改为「整个系统的
+  大脑（cognition core）」，Owner/Authority/Boundary 零变化。
 
 ## 指向
 
