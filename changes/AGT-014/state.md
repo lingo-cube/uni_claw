@@ -48,8 +48,8 @@ trace/facts/evidence。目标是暴露可靠性、智能性、容错性和可诊
 level: ENVIRONMENT
 method: real API 35 emulator + DSH Agent + ADB + SettingsCoverage/HostRunner live runs; deterministic regression after any local fix
 expected: three tasks and failure paths produce traceable, safe, honest outcomes
-actual: deterministic + real-device chain partial PASS; full solution 1307/1307 and Host.Dsh build pass; the prewarmed real DSH Settings objective now completes through 3 consultations and 2 guarded ADB taps after the 7890 proxy and runtime-token prompt fix; the remaining AGT-014 tasks and fault-injection summary are still open
-evidence: evidence/agt-014/verification-2026-10-06.md; evidence/agt-014/dsh-runtime-token-fix-2026-10-06.md
+actual: deterministic + real-device chain partial PASS; full solution 1307/1307 and Host.Dsh build pass; the prewarmed real DSH Wi-Fi objective completes through 3 consultations and 2 guarded ADB taps, and the bounded Settings coverage completes through 20 consultations and 19 verified effects after the 7890 proxy and runtime-token prompt fix; the task-set evidence summary and fault-injection pass are still open
+evidence: evidence/agt-014/verification-2026-10-06.md; evidence/agt-014/dsh-runtime-token-fix-2026-10-06.md; evidence/agt-014/dsh-task3-coverage-2026-10-06.md
 ```
 
 ## Status log
@@ -99,3 +99,9 @@ evidence: evidence/agt-014/verification-2026-10-06.md; evidence/agt-014/dsh-runt
   两个 `DeliveryCompleted`，无 Wi-Fi 重复切换。证据：
   `evidence/agt-014/dsh-task2-proxy-runtime-token-fix-20261006/run-20261006-020702-678/`
   和 `evidence/agt-014/dsh-runtime-token-fix-2026-10-06.md`。
+- 2026-10-06 · VERIFY · 真实 DSH 有界覆盖回合通过：20 次 consultation、19/19
+  steps verified、CoverageComplete、7/7 一级入口、滚动发现项、8 个二级路由、9 次
+  返回、1 次重复进入，firstDivergence=NONE；首个上下文已带入固定安全策略
+  digest，所有 act Guard=ALLOW，未提出目标开关或 forbidden action。证据：
+  `evidence/agt-014/dsh-task3-coverage-proxy-20261006/run-20261006-025112-969/`
+  和 `evidence/agt-014/dsh-task3-coverage-2026-10-06.md`。

@@ -3,8 +3,9 @@
 ## 结果摘要
 
 本回合把确定性、真实设备、真实 DSH 三个层次分开执行。确定性 Guard 与真实
-ADB/感知链通过；代理配置和运行时动作词汇修复后，真实 DSH 的 Wi-Fi 目标回合
-已完成。AGT-014 仍包含其他任务和故障注入汇总，因此 Change 继续保持 persisted。
+ADB/感知链通过；代理配置和运行时动作词汇修复后，真实 DSH 的 Wi-Fi 目标回合和
+有界 Settings 覆盖回合均已完成。AGT-014 仍包含任务证据汇总和故障注入回合，
+因此 Change 继续保持 persisted。
 
 ## 真实设备结果
 
@@ -122,5 +123,21 @@ DSH 日志为 `consult captured`、`kind=act`、`durationMs=11177`，测试耗�
 `environment-preflight.json` 标记正式流程是在环境预检之后启动。上述修复不改变
 模型、协议或架构。
 
-在真实 DSH 的 Wi-Fi 目标回合已通过，但指定菜单项、完整覆盖和故障注入汇总尚未
-全部完成的情况下，AGT-014 保持 persisted，不能关闭为三任务全链路完成。
+## 真实 DSH 有界覆盖回合
+
+覆盖入口在同一 7890 代理和 `glm-5.3-flash` 配置下重新执行，结果为
+`CoverageComplete`、`100%`、`19/19` steps verified、`firstDivergence=NONE`。
+20 轮 consultation 复用了单一 DSH session；7/7 一级入口、滚动发现项、8 个二级
+路由、9 次返回和重复进入均有逐步证据。动作集合为 `tap=18`、`swipe-up=1`，没有
+Wi-Fi、USB debugging 或其他 forbidden/targeted switch effect。
+
+首次真实咨询上下文已经携带安全策略 ref、safe/forbidden 集合和固定 digest
+`4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e`；后续每个
+act consultation 的 facts 都回填同一 digest，说明策略是在首次咨询前生成并持续复用。
+
+证据：`evidence/agt-014/dsh-task3-coverage-proxy-20261006/run-20261006-025112-969/`
+和 `evidence/agt-014/dsh-task3-coverage-2026-10-06.md`。
+
+Wi-Fi 目标回合和有界覆盖回合已经通过；任务一的独立证据来自 AGT-003/AGT-004，
+本次覆盖第 1 步也重新证明了 `Network & internet` 的唯一定位和 route transition。
+AGT-014 还需要把三项任务证据汇总，并完成故障注入/诊断回合后再关闭。
