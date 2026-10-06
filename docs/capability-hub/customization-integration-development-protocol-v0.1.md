@@ -1,5 +1,5 @@
-> Status: DRAFT
-> Authority: NONE
+> Status: FROZEN / PROTOCOL GUIDE v0.1（修订必须经 change；CAP-010 升格——先例：perception-provider-baseline 的 COMPONENT-BASELINE 体例）
+> Authority: COMPONENT（协议指南：能力定制/集成/开发的 canonical 路径，被 capability-component skill 引用；架构权威在 ADR-0035/0038 与产品基线，冲突时以其为准）
 > Applies to: Product Capability Registry、Runtime Integration Registry、Harness Capability Registry
 > Date: 2026-10-04
 > Prerequisites: [Capability Hub 与信任域注册 ADR](../adr/0035-capability-management-hub-trust-scoped-registries.md)、[Runtime 能力集成接缝](../design/runtime-capability-integration-seams-v0.1.md)

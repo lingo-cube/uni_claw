@@ -12,8 +12,8 @@
 | 定制、集成、协议和开发指南 | [`customization-integration-development-protocol-v0.1.md`](customization-integration-development-protocol-v0.1.md) | 新 Capability 的买方判断、协议选择、Adapter 开发和验收流程 |
 | 运行时接缝设计 | [`../design/runtime-capability-integration-seams-v0.1.md`](../design/runtime-capability-integration-seams-v0.1.md) | lifecycle fact、Envelope、correlation 和能力类别语义 |
 | 架构决策 | [`../adr/0035-capability-management-hub-trust-scoped-registries.md`](../adr/0035-capability-management-hub-trust-scoped-registries.md) | Hub 的架构地位、注册域和权威边界 |
-| 当前 Change State | [`../../changes/CAP-001/state.md`](../../changes/CAP-001/state.md) | CAP-001 的路线、WorkItem 状态和验证记录 |
-| 验证证据 | [`../../evidence/cap-001/`](../../evidence/cap-001/) | Registry、Text Semantic 和 Slow Visual 的运行证据 |
+| 当前 Change State | [`../../changes/CAP-009/state.md`](../../changes/CAP-009/state.md)（谱系：CAP-006 声明 → CAP-007 候选选择 → CAP-008 可执行契约 → CAP-009 感知实例化，均 CLOSED） | Model Management 声明/候选偏好/健康证据/可执行实例注册 + UniPerception 实例化与健康聚合的路线与验证记录 |
+| 验证证据 | [`../../evidence/cap-001/`](../../evidence/cap-001/)、[`../../evidence/cap-005/`](../../evidence/cap-005/) | Registry 与感知装配的运行证据；CAP-006~008 的四元组验证见各自 state.md 的 Verification 节 |
 
 ## 三个注册域
 
@@ -55,10 +55,23 @@ Product perception 的协议接口继承 `ICapability`：
 
 Product perception Descriptor 声明的协议必须与实例实现的派生接口一致；不一致时
 注册失败且不发布 lifecycle fact。具体 payload 方法、请求/结果 DTO 和模型链路
-在后续的感知纵向 Change 中冻结。
+在后续的感知纵向 Change 中冻结（`SemanticObservationProposal` /
+`PerceptionAssessment` 尚无代码类型——协议语义见开发协议指南 §4.1-4.4）。
 
-DSH Tool/Skill 不属于 Kernel Capability 接口。本 Change 只提供共享 Capability
-实例；如果 DSH 需要调用某项能力，由 Host/DSH Adapter 使用 DSH 原生
-`ctx.tools.register(...)` 做显式投影。
+**实现现状（CAP-008/009）**：
+
+- `uni.perception` 注册为**可执行实例**：`UniPerceptionCapability`（Kernel）实现
+  双协议 marker，并承担健康聚合 owner（见下）；协议-接口一致性执法在生产注册
+  路径实际行使。
+- `slow.visual` 维持 description-only（visual 未接线，无运行时实例；理由记录于
+  组合根与 change）。
+- 健康能力面（可选 mixin，不进 `ICapability` 根）：`ICapabilityHealthCheckable.
+  CheckHealth()` 返回 `CapabilityHealthReport`（Unknown/Healthy/Degraded/Unhealthy）。
+  拉式只读探测；外部可观测可用性的能力必须实现（开发纪律 R7）。先例：
+  `ModelManagement`（模型端候选健康聚合）、`UniPerceptionCapability`（fast 资产
+  探针 + 模型端 `ModelManagement.CheckHealth` 的 worst-of 聚合）。
+
+DSH Tool/Skill 不属于 Kernel Capability 接口。如果 DSH 需要调用某项能力，由
+Host/DSH Adapter 使用 DSH 原生 `ctx.tools.register(...)` 做显式投影。
 
 具体协议和开发规则见[Capability 定制化、集成与开发协议指南](customization-integration-development-protocol-v0.1.md)。
