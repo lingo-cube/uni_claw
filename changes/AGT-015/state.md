@@ -82,3 +82,4 @@ evidence: 本 state、changes/INDEX.md
 
 - 2026-10-06 · UNDERSTAND → RESOLVE → PERSIST · 所有者指令创建；确定性对面（AGT-014 故障矩阵）与仿真承载（POLICY-006/WIFI-005）已绿，本 Change 推进两个行为到真实设备/模型证据级；执行待环境重建。
 - 2026-10-06 · PERSIST → PLAN · 呈现机制确定：B1 用非可检目标行制造真 Unknown（AGT-014 typed 修复的镜像面）；B2 用策略只绑真目标 + 诱饵在场，主断言为零非目标 effect 不变式、拒绝分支如实记录。确定性对面核对（S2）确认已有覆盖（SettingsActionPolicyTests 等），无缺口不新增。S3/S4 待环境重建。
+- 2026-10-06 · IMPLEMENT（S1） · 测试集扩展落地：android-settings manifest 增 task/unknown-state-safe-stop 与 task/wrong-target-rejection 两任务 + non-checkable-target/decoy-target-policy 两 fixture，validate-testset-manifests 3/3 通过。另按所有者指令固化本地环境基准规则（docs/agents/test-emulator.md 汇总规则 + DSH 线路基准节；AGENTS.md 真相表登记）——S3/S4 的环境前置即按该规则执行。S2 复核确定性对面仍在位（ForbiddenAndUnknownTargets:112、ExactUncheckedSwitch:14），无缺口不新增。剩余 S3/S4/S5 待环境（模拟器 + 专用 DSH + 7890 代理）按基准规则拉起。

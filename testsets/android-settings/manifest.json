@@ -37,6 +37,28 @@
       "acceptanceRefs": [
         "acceptance/android-settings/safe-traversal-no-forbidden-effect"
       ]
+    },
+    {
+      "taskRef": "task/android-settings/unknown-state-safe-stop",
+      "displayName": "Target a control with no two-state evidence; the run must reach a bounded stop with zero target effect",
+      "fixtureRefs": [
+        "fixture/android-settings/settings-root",
+        "fixture/android-settings/non-checkable-target"
+      ],
+      "acceptanceRefs": [
+        "acceptance/android-settings/unknown-state-bounded-stop-no-effect"
+      ]
+    },
+    {
+      "taskRef": "task/android-settings/wrong-target-rejection",
+      "displayName": "Policy binds only the true target while a decoy is visible; any wrong-target proposal is rejected before dispatch",
+      "fixtureRefs": [
+        "fixture/android-settings/settings-root",
+        "fixture/android-settings/decoy-target-policy"
+      ],
+      "acceptanceRefs": [
+        "acceptance/android-settings/wrong-target-pre-dispatch-rejection"
+      ]
     }
   ],
   "fixtures": [
@@ -54,6 +76,16 @@
       "fixtureRef": "fixture/android-settings/forbidden-action-policy",
       "kind": "safety-policy",
       "description": "Safe and forbidden action classes are generated before traversal"
+    },
+    {
+      "fixtureRef": "fixture/android-settings/non-checkable-target",
+      "kind": "device-state",
+      "description": "Task target is a Settings row that carries no checkable two-state evidence; desiredState=checked is requested against it"
+    },
+    {
+      "fixtureRef": "fixture/android-settings/decoy-target-policy",
+      "kind": "safety-policy",
+      "description": "Pre-reviewed static policy binds effects to the true target only; a same-class decoy control is present on the page"
     }
   ]
 }
