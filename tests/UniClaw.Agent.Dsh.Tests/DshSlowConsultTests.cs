@@ -5,6 +5,7 @@ using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.Perception;
+using UniClaw.Kernel.Perception.Fusion;
 using Xunit;
 
 namespace UniClaw.Agent.Dsh.Tests;
@@ -19,10 +20,16 @@ public sealed class DshSlowConsultTests
         new(new EvidenceLedger(), new WorldModel(new HashSet<string> { "ui.overlay.popup" }),
             DisabledRunTrace.Instance);
 
-    private static SlowConsultationRequest Request() => new(
+    private static readonly DateTimeOffset CaptureTime = DateTimeOffset.UtcNow;
+
+    private static FastTextBasis AlignedBasis() => new(
+        "capture-1", "buyer-1", "cycle-1",
+        new[] { "switch" }, new[] { "Wi-Fi" }, CaptureTime);
+
+    private static SlowConsultationRequest Request(FastTextBasis? fastBasis = null) => new(
         "slow-test-1", "Wi-Fi", "ui.overlay.popup", "value", RequiresRawArtifact: false,
-        "buyer-1", "slow-trigger:SemanticUnclear", "capture-1", DateTimeOffset.Now,
-        "cycle-1", Array.Empty<string>());
+        "buyer-1", "slow-trigger:SemanticUnclear", "capture-1", CaptureTime,
+        "cycle-1", Array.Empty<string>(), FastBasis: fastBasis);
 
     private static DshSlowConsult Bridge(DshSlowConsult.Transport transport) =>
         new(transport, Model);
@@ -37,7 +44,7 @@ public sealed class DshSlowConsultTests
             """{"status":"Succeeded","semanticDisposition":"Supported","proposals":[{"subject":"ui.overlay.popup","value":"present"}]}""",
             Error: null)));
 
-        var outcome = consult.Consult(Request(), kernel, effectCritical: false, boundedWait: TimeSpan.FromSeconds(5));
+        var outcome = consult.Consult(Request(AlignedBasis()), kernel, effectCritical: false, boundedWait: TimeSpan.FromSeconds(5));
 
         Assert.Equal(SlowConsultationStatus.Succeeded, outcome.Status);
         Assert.Equal(1, outcome.ProjectedProposals);
@@ -53,7 +60,7 @@ public sealed class DshSlowConsultTests
         var consult = Bridge((_, _, _, _, _) => Task.FromResult(new DshSlowResponse(
             "slow-test-1", Text: null, Error: "one-in-flight")));
 
-        var outcome = consult.Consult(Request(), kernel, false, TimeSpan.FromSeconds(5));
+        var outcome = consult.Consult(Request(AlignedBasis()), kernel, false, TimeSpan.FromSeconds(5));
 
         Assert.Equal(SlowConsultationStatus.Rejected, outcome.Status);
         Assert.False(outcome.Admitted);
@@ -73,7 +80,7 @@ public sealed class DshSlowConsultTests
 
         var started = DateTimeOffset.UtcNow;
         var outcome = await Task.Run(() =>
-            consult.Consult(Request(), kernel, false, TimeSpan.FromMilliseconds(300)));
+            consult.Consult(Request(AlignedBasis()), kernel, false, TimeSpan.FromMilliseconds(300)));
         var elapsed = DateTimeOffset.UtcNow - started;
 
         Assert.Equal(SlowConsultationStatus.TimedOut, outcome.Status);
@@ -89,7 +96,7 @@ public sealed class DshSlowConsultTests
         var consult = Bridge((_, _, _, _, _) => Task.FromResult(new DshSlowResponse(
             "slow-test-1", "the screen shows settings", null)));
 
-        var outcome = consult.Consult(Request(), kernel, false, TimeSpan.FromSeconds(5));
+        var outcome = consult.Consult(Request(AlignedBasis()), kernel, false, TimeSpan.FromSeconds(5));
 
         Assert.Equal(SlowConsultationStatus.Rejected, outcome.Status);
         Assert.Contains("slow-response-not-json", outcome.Diagnostic);
@@ -103,6 +110,38 @@ public sealed class DshSlowConsultTests
         Assert.Contains("ui.overlay.popup", prompt);
         Assert.Contains("slow-trigger:SemanticUnclear", prompt);
         Assert.Contains("proposals", prompt);
+    }
+
+    [Fact]
+    public void TextSlowWithoutFastBasis_IsRejectedBeforeTransport_CombinedCapabilityRule()
+    {
+        // runtime-capability-integration-seams：Fast→Slow Text 组合能力依赖链——
+        // 缺 fast 前置不得调用 Slow Text（transport 计数必须为零）。
+        var kernel = Kernel();
+        var transportCalls = 0;
+        var consult = Bridge((_, _, _, _, _) => { transportCalls++; return Task.FromResult(new DshSlowResponse("slow-test-1", "{}", null)); });
+
+        var outcome = consult.Consult(Request(fastBasis: null), kernel, false, TimeSpan.FromSeconds(5));
+
+        Assert.Equal(SlowConsultationStatus.Rejected, outcome.Status);
+        Assert.Equal(0, outcome.ProjectedProposals);
+        Assert.Contains("text-slow-gate", outcome.Diagnostic);
+        Assert.Equal(0, transportCalls);
+    }
+
+    [Fact]
+    public void TextSlowWithMisalignedFastBasis_IsRejected()
+    {
+        var kernel = Kernel();
+        var transportCalls = 0;
+        var consult = Bridge((_, _, _, _, _) => { transportCalls++; return Task.FromResult(new DshSlowResponse("slow-test-1", "{}", null)); });
+        var stale = AlignedBasis() with { CaptureId = "capture-OTHER" };
+
+        var outcome = consult.Consult(Request(stale), kernel, false, TimeSpan.FromSeconds(5));
+
+        Assert.Equal(SlowConsultationStatus.Rejected, outcome.Status);
+        Assert.Contains("text-slow-gate", outcome.Diagnostic);
+        Assert.Equal(0, transportCalls);
     }
 
     [Fact]

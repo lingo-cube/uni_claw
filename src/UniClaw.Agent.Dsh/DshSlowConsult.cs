@@ -2,6 +2,7 @@ using System.Text.Json;
 using UniClaw.Kernel;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception;
+using UniClaw.Kernel.Perception.Fusion;
 
 namespace UniClaw.Agent.Dsh;
 
@@ -63,6 +64,24 @@ public sealed class DshSlowConsult
         if (model is null)
             return new(SlowConsultationStatus.NotConfigured, false, 0,
                 visual ? "visual slow model not configured" : "text slow model not configured", IsLate: false);
+
+        // 设计对齐（runtime-capability-integration-seams §Fast+SlowText）：Fast 与
+        // Slow Text 是「Text Semantic Perception」组合能力，依赖链固定 Fast→Slow
+        // Text——缺可用/对齐的 fast 前置时不得调用（Kernel 侧 SlowTextGate 同款
+        // 执法，AGT-009；桥不复制规则，直接复用 public 门）。Visual 不经此门。
+        if (!visual)
+        {
+            var sessionCorrelation = string.IsNullOrWhiteSpace(kernel.RunId)
+                ? request.BuyerRef
+                : kernel.RunId;
+            var gate = SlowTextGate.Evaluate(
+                new FusionCapture(request.CaptureId, sessionCorrelation,
+                    request.ObservationCycleId, request.CaptureTimestamp),
+                request.FastBasis);
+            if (!gate.Eligible)
+                return new(SlowConsultationStatus.Rejected, false, 0,
+                    $"text-slow-gate:{gate.Diagnostic}", IsLate: false);
+        }
 
         var budget = boundedWait ?? DefaultBoundedWait;
         if (budget <= TimeSpan.Zero)

@@ -45,4 +45,5 @@ lifecycle_state: closed · disposition: none · depth: standard · base: b93a009
 ## Status log
 
 - 2026-10-06 · UNDERSTAND → RESOLVE → PERSIST → PLAN → IMPLEMENT · 事实链：peer 通道在、服务端契约（attached/单飞行）已读、Kernel 编排硬绑回放桩、InternalsVisibleTo 冻结——设计定公开缝桥；实现中。
+- 2026-10-06 · CLOSED（设计符合性回补） · 所有者引证 docs/design/runtime-capability-integration-seams-v0.1.md §151/191：Fast+Slow Text 为「Text Semantic Perception」组合能力（依赖链 Fast→Slow Text，缺前置不调用）、Slow Visual 独立。对照发现 AGT-017 桥初版绕过 Kernel SlowTextGate（fast 缺失/失配仍会调 Slow Text）——已修：桥内复用 public SlowTextGate 同款执法（visual 不经此门）；新增红绿回归 2 例（MissingFast/Misaligned 均在 transport 前拒绝、传输计数为零）。桥测试 8/8、Agent.Dsh 140/140。
 - 2026-10-06 · IMPLEMENT → REVIEW → VERIFY → CLOSED · 桥（Agent.Dsh 公开缝）+ Host/Host.Dsh 注入 + profile（slow 段 + 深度预算 48/8）落地；确定性 6/6+159+798 全绿；真实深度遍历 CoverageComplete 100%（7/7 一级、8/8 二级路由、19 步）；**live slow 感知首次真实生效**：SemanticUnclear 触发 → 真模型 glm-5.3-flash 经 /slow 往返（DSH 会话日志留痕）→ 桥解析 → kernel.Process 投影 → trace 记录；模型对模糊路由诚实答 Unknown 未编造。A1–A4 全部有证据。
