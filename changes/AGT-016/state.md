@@ -1,6 +1,6 @@
 # AGT-016 — 真实 Settings 下一批：验证失败有界停止与滚动无变化
 
-lifecycle_state: plan · disposition: none · depth: standard · base: 4c456463
+lifecycle_state: closed · disposition: none · depth: standard · base: 4c456463
 
 ## Intent（WHAT/WHY）
 
@@ -50,14 +50,30 @@ AGT-015 完成了"未知状态安全停止"与"错误目标拒绝"的真实设�
 
 B2 备注：滚动由模型提议；若模型不滚动（目标在首屏可达），记录实际路径并如实呈现——B2 的验收以"滚动无变化检测机制被真实触发"为准，未触发则标 not-elicited 而非伪造。
 
-## Verification（待实施回填）
+## Verification（2026-10-06 实施回填：探索回合 + 诚实不可呈现结论）
 
-| level | method | expected | actual/evidence |
-|---|---|---|---|
-| CONTRACT | manifest/绑定校验 | S1 通过 | NOT_RUN |
-| DETERMINISTIC | 对面在位检查（不重复实现） | 故障矩阵相关行仍绿 | NOT_RUN |
-| ENVIRONMENT | B1/B2 真实回合 | A1/A2 四元组 | NOT_RUN |
+```yaml
+level: ENVIRONMENT（探索）+ CONTRACT（探索一致性）
+method: 真实 NFC traversal 回合（专用 3081 + 真模型）+ 10 页 uiautomator 全量扫描
+expected: A3 呈现探索诚实记录；回合零越权、终局诚实；不硬凑、不扩授权
+actual: >
+  B1 不可呈现（全镜像 0 个禁用可检控件，扫描证据）；B2 机制不可达（traversal 契约
+  AllowedEffects={tap} 而策略资产 scroll=safe——授权两面不一致；模型 3 次
+  "swipe-up not in allowedEffects" defer 可追溯）；回合 12 导航零 toggle、
+  TerminalNotProven 诚实终局；manifest 不增补（无载体不声明）
+evidence: evidence/agt-016/exploration-2026-10-06.md + rounds/nfc-scroll/run-20261006-055534-070
+```
+
+### 验收复核（按探索结果重释，A3 条款）
+
+- A1/A2：呈现载体不存在/机制不可达 → 如实标注（见 verification），不以硬凑满足。
+- A3：✓（扫描 + 回合证据，含"未找到"结论）。
+- A4：改释为"无增补即无悬空声明"——不添加无载体任务（决策记录于状态日志）。
+- A5：无局部缺陷需修（授权不一致是裁决项非顺手修）。
+
+**所有者裁决项（新发现）**：traversal 契约 AllowedEffects 是否与预评审策略资产对齐（纳入 swipe-up→scroll）。属授权扩大，须显式决策后由致因 Change 实施。
 
 ## Status log
 
 - 2026-10-06 · UNDERSTAND → RESOLVE → PERSIST → PLAN · 所有者"进入下一步"指令创建；承接 AGT-015 模式（任务级策略 + fail-closed 绑定 + 基准环境规则）；多步拒绝/持续偏离列为机会性捕获不设验收；B1/B2 呈现探索为实现首步，成败均记录。
+- 2026-10-06 · PLAN → IMPLEMENT（S2 探索+S4 回合）→ RESOLVE（重释）→ CLOSED · 探索结论：B1 不可呈现（10 页扫描 0 个禁用可检控件）；B2 机制不可达——发现**授权两面不一致**（traversal 契约 AllowedEffects={tap} vs 策略资产 scroll=safe），真实回合中模型 3 次 defer 引用 "swipe-up not in allowedEffects"（授权尊重可追溯，12 导航零 toggle、诚实终局）。manifest 不增补（无载体不声明）。授权对齐列为所有者裁决项，不由本 Change 实施。证据 evidence/agt-016/exploration-2026-10-06.md。

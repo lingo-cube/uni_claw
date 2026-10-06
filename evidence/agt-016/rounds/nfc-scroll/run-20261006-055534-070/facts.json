@@ -1,0 +1,180 @@
+{
+  "schemaVersion": "uniclaw.host-facts.v2",
+  "runDir": "evidence/agt-016/rounds/nfc-scroll/run-20261006-055534-070",
+  "runId": "run-3f596208d90b87b67b376f79ca97f57a5556ac3868fb38fcc6cf55529ae87b9e",
+  "correlationId": null,
+  "status": "TerminalNotProven",
+  "reason": "evidence-insufficient",
+  "outcome": null,
+  "delivered": 12,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "journalBytes": 18503,
+  "diagnostics": {
+    "nextFiles": [
+      "facts.json",
+      "environment-preflight.json",
+      "consultations.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B facts.reason \u548C policyGuard\uFF0C\u518D\u7528 consultations.json \u7684 DecisionId \u5BF9\u7167 trace.json \u4E0E exec.journal\u3002"
+  },
+  "completionAnchors": null,
+  "completedSteps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-9becb5e90b34-3-1"
+    },
+    {
+      "decision": 3,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-ced7f9df09be-1-2"
+    },
+    {
+      "decision": 4,
+      "step": 0,
+      "receipt": "receipt-bind-intent-3-occ-e2679284b75b-4-3"
+    },
+    {
+      "decision": 5,
+      "step": 0,
+      "receipt": "receipt-bind-intent-4-occ-a197f2fc04f0-5-4"
+    },
+    {
+      "decision": 7,
+      "step": 0,
+      "receipt": "receipt-bind-intent-5-occ-4aa7d1cd6108-2-5"
+    },
+    {
+      "decision": 8,
+      "step": 0,
+      "receipt": "receipt-bind-intent-6-occ-2c07c938573f-1-6"
+    },
+    {
+      "decision": 9,
+      "step": 0,
+      "receipt": "receipt-bind-intent-7-occ-45636da8f2db-3-7"
+    },
+    {
+      "decision": 10,
+      "step": 0,
+      "receipt": "receipt-bind-intent-8-occ-b7d9ce369e77-1-8"
+    },
+    {
+      "decision": 11,
+      "step": 0,
+      "receipt": "receipt-bind-intent-9-occ-f05d8d4cc8db-4-9"
+    },
+    {
+      "decision": 12,
+      "step": 0,
+      "receipt": "receipt-bind-intent-10-occ-701b10cb6a53-1-10"
+    },
+    {
+      "decision": 13,
+      "step": 0,
+      "receipt": "receipt-bind-intent-11-occ-e86bdb40f9f8-1-11"
+    },
+    {
+      "decision": 15,
+      "step": 0,
+      "receipt": "receipt-bind-intent-12-occ-cfda4c93ef3a-4-12"
+    }
+  ],
+  "actionPolicy": {
+    "policyRef": "fixture/android-settings/decoy-target-policy",
+    "digest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/testsets/android-settings/decoy-target-policy.json"
+  },
+  "policyGuard": [
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "back",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "back",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "back",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "back",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "back",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    },
+    {
+      "verdict": 0,
+      "semanticAction": "navigate",
+      "reason": "safe action class",
+      "policyDigest": "e7ebcd0886ee89e2bcedc1feec1c90115f889ed1e3b6e75d7f059316b981f761"
+    }
+  ]
+}
