@@ -39,6 +39,33 @@
 - **确定性纪律**：ENVIRONMENT 测试只验证「真实物理映射 + 世界变化经
   再观察证实」，不做性能断言、不依赖时序精度（轮询间隔为宽松常量）。
 
+## 本地环境基准规则（汇总；2026-10-06 所有者指令固化）
+
+一切 ENVIRONMENT 级（真实设备/真实模型）工作遵守：
+
+1. **设备**：只用 `tools/android/start-test-device.sh` / `stop-test-device.sh`
+   启停（supervisor 托管、READY 探针全过才可用）；禁止 ad-hoc 手起模拟器
+   或绕过 `.state` 生命周期记录。
+2. **模型线路**：真实咨询走专用 DSH 实例（见下节）；禁止临时改代理或
+   绕过家目录代理配置直连 provider。
+3. **预检**：正式流程前 environment-preflight 必须通过并落盘
+   （`environment-preflight.json`）；预热与正式流程分段计时，不混记。
+4. **诚实停止**：环境不可用一律 `ENVIRONMENT_UNAVAILABLE` 如实停止，
+   不静默降级、不把环境失败改写为行为结论。
+5. **证据归属**：preflight/trace/run 目录是运行证据，不回写产品配置、
+   不提交生成运行文件（除评审决定保留的脱敏件）。
+
+本节与「注册事实」同权：变更须在对应 change 留痕。
+
+## DSH/模型线路基准（AGT-014 起）
+
+| 项 | 值 / 约定 |
+|---|---|
+| 承载 | 专用 DSH 实例（本地 3081），绑定 settings 链路真实咨询（`zai-coding-cn/glm-5.3-flash`） |
+| provider 访问 | DSH **家目录**配置 `HTTP/HTTPS proxy=127.0.0.1:7890`（一次性、持久化；重启 DSH 生效）。无代理时 provider 直连超时（实测 `UND_ERR_CONNECT_TIMEOUT` ≈10.5s）；配置后真实咨询通过（实测单次 ~11.2s） |
+| 预检证据 | 正式流程前写 `environment-preflight.json`（含视觉服务预热与 `formalFlowStartedAfterPreflight` 标志）；预热耗时（实测 ~63.5s 视觉服务冷启动）与正式流程分段计时分开记录 |
+| 诊断入口 | provider 不通先看专用实例日志与代理线路（排查顺序见 `evidence/agt-014/dsh-provider-timeout-diagnosis-2026-10-06.md`），不先怀疑上下文压力 |
+
 ## 运行速查
 
 ```bash

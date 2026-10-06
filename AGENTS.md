@@ -52,6 +52,7 @@ Gate / Acceptance / 评审编号（F/M/G/D/S…）只作括号引用，不做叙
 | 模型路由（capability → tier） | `model-routing.yaml`（provider 绑定只在 adapter） |
 | 架构决策 | `docs/adr/`（上游 ADR 约定） |
 | 计划 / 证据 | `plans/` · `evidence/` |
+| 本地测试环境基准（模拟器启停/DSH 线路/代理/预检规则） | `docs/agents/test-emulator.md` |
 
 UniFlow 回答 WHEN / WHAT NEXT；**Skill 只回答 HOW**，不得拥有第二套生命周期。
 
