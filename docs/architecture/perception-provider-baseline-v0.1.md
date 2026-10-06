@@ -2,7 +2,7 @@
 
 > DocumentType: `PERCEPTION_PROVIDER_BASELINE_V0_1`
 >
-> Status: `FROZEN / COMPONENT-BASELINE v0.1`（修订必须经 change）
+> Status: `FROZEN / COMPONENT-BASELINE v0.2`（修订必须经 change）
 >
 > Authority: `COMPONENT`（组件基线：实现层权威；不修改任何产品级冻结基线，
 > 与其冲突时以产品基线为准）
@@ -11,6 +11,10 @@
 > PER-008（管道配置化+身份+基准）→ ARCH-DOC-014 候选 → ARCH-DOC-015
 > 冻结（分类学修复：已建成组件架构直接冻结，docs/README §3.3）。
 > 证据见各 change state 与 evidence；不可逆决策见 ADR-0020/0021。
+> v0.2（2026-10-07，PER-020）：§1 L0 组成图补齐现役模块（Fast/Slow
+> 家族、Fusion/、UiHierarchy/）+ 双协议身份与快慢概念澄清；§3 契约
+> 零变化，无需 supersede ADR-0020/0021。文件名保留 v0.1 字样以维持
+> 历史引用，语义版本以本头部为准。
 
 ---
 
@@ -24,6 +28,20 @@
 │ LiveVisionStrategy        响应 JSON → ArtifactObservation（parity 锚）    │
 │ VisionServiceHost         provider 进程生命周期（拉起/探活/fail-loud）    │
 │ PngImage                  PNG→RGBA 零依赖解码（analyze_raw 输入）         │
+│ FastPerception            fast 观察入口（strategy 组合根，P2 提案产出）  │
+│ TextFastBasis             同一 capture 内 Fast YOLO/OCR 的 typed 传递    │
+│ StrategyObservationCache  strategy 观察缓存（帧计算复用）                │
+│ CoordinateSpace           坐标空间归一与 capture 几何执法               │
+│ SlowContracts             Slow 缝词汇（request/result/status 封闭集）    │
+│ SlowConsultation          Slow 语义咨询（有界等待 + 诚实状态）           │
+│ SlowOrchestration         Control-owned 编排缝（keyed attempt 预留）     │
+│ SlowEscalationRoute       Fast→Slow 升级路由决策                        │
+│ OpenCodeSlowRealization   OpenCode provider adapter（binding 经缝注入）  │
+│ SlowReplayRealization     deterministic replay 缺省替换件               │
+│ Fusion/                   YOLO+OCR 证据融合（lineage 校验、occurrence   │
+│                           关联、有界升级策略）                          │
+│ UiHierarchy/              UI 层级采集→typed proposal 投影（元数据、     │
+│                           语义核验、覆盖与能力声明）                     │
 └───────────────────────────────────────────────────────────────────────────┘
         │ 契约：UDS（默认）/ loopback TCP · 响应 JSON schema · 失败分类
 ┌─ Provider 侧（platforms/perception/，Python，选择性迁移自 uni-agent）────┐
@@ -37,6 +55,14 @@
 树，交互只经传输契约（ADR-0021）。感知 acquisition（拿像素）≠ Perception
 （解释像素）——词汇面见 CONTEXT.md「Perception / Fast-Slow」（PER-004）与
 PER-006（待落）。
+
+概念澄清（PER-020）：本 plane 承载的感知能力，身份是**两个协议接口**——
+`ISemanticPerception`（语义感知）与 `IUiElementPerception`（UI 元素感知），
+union 组件 `UniPerceptionCapability` 同时实现两者（Capability 面注册，
+协议-接口一致性经 registry 执法）。**Fast/Slow 不是能力协议**，是 union
+内部的异步实现策略（行为默认异步：Fast+XML 先行入世界模型，Slow 晚到补
+语义）——隐性概念，降级表述但保留。代码归属索引见
+`src/UniClaw.Kernel/Perception/README.md`。
 
 ## 2. 组件与数据流（L1）
 
