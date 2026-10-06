@@ -125,3 +125,12 @@ evidence: evidence/agt-014/verification-2026-10-06.md; evidence/agt-014/task2-to
 
 - 2026-10-06 · CLOSED · 三项真实任务、故障矩阵、预热/生命周期标志和初级程序员
   查错入口均已复核；本 Change 无剩余 Human Gate。
+- 2026-10-06 · CLOSED（收口后 C8 搭带补记） · Leader 会话复验发现：本 change 的
+  Kernel 修改（ConsultationTypes/KernelRunDriver/UniKernel）使 20 个
+  golden-bundle 场景 runtimeSourceHash 陈旧（50797535→3b04c047），收口时漏掉
+  C8 搭带重认证——scenario_certify --check FAIL(20)、ScenarioCertificationTests
+  2 失败（篡改测试的"源未变"前提被打破，属正确执法）。已按 C8 逐场景
+  `--change AGT-014` 重认证（未用 --all，8 个 PERC 描述性条目护栏未触碰）；
+  期望/执行 digest 未变，仅哈希/致因/日期三行重绑。复核：certify --check
+  PASS(28)、Simulation 188/188、coverage 真值链 20 certified + 8 descriptive
+  全绿（TRX agt014-recert2.trx）。
