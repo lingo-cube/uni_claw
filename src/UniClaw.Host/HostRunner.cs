@@ -210,7 +210,10 @@ public sealed class HostRunner
                     ? $"Confirm the {options.TargetSemanticDescriptor} switch state in Android Settings and leave it {options.TargetState}. Choose every next control only from the current semantic hierarchy; navigate as needed to reach the {options.TargetSemanticDescriptor} control, and never toggle it when the observed state is already {options.TargetState}."
                     : "flip-switch",
                 Scope: scope,
-                AllowedEffects: new HashSet<string> { "tap" },
+                // AGT-016 裁决对齐（所有者 2026-10-06：滚动时机由 agent 自行判断）：
+                // 与预评审策略资产对齐——scroll 为 safe class、guard 有 swipe-up→scroll
+                // 映射、driver 支持 swipe-up；授权面三处一致，滚动时机交由模型判断。
+                AllowedEffects: new HashSet<string> { "tap", "swipe-up" },
                 ProofCriteria: new[] { "switch-state-checked" },
                 ForbiddenEffects: options.SettingsActionPolicy is { } policy
                     ? new HashSet<string>(policy.ForbiddenActionClasses, StringComparer.OrdinalIgnoreCase)

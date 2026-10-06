@@ -77,3 +77,4 @@ evidence: evidence/agt-016/exploration-2026-10-06.md + rounds/nfc-scroll/run-202
 
 - 2026-10-06 · UNDERSTAND → RESOLVE → PERSIST → PLAN · 所有者"进入下一步"指令创建；承接 AGT-015 模式（任务级策略 + fail-closed 绑定 + 基准环境规则）；多步拒绝/持续偏离列为机会性捕获不设验收；B1/B2 呈现探索为实现首步，成败均记录。
 - 2026-10-06 · PLAN → IMPLEMENT（S2 探索+S4 回合）→ RESOLVE（重释）→ CLOSED · 探索结论：B1 不可呈现（10 页扫描 0 个禁用可检控件）；B2 机制不可达——发现**授权两面不一致**（traversal 契约 AllowedEffects={tap} vs 策略资产 scroll=safe），真实回合中模型 3 次 defer 引用 "swipe-up not in allowedEffects"（授权尊重可追溯，12 导航零 toggle、诚实终局）。manifest 不增补（无载体不声明）。授权对齐列为所有者裁决项，不由本 Change 实施。证据 evidence/agt-016/exploration-2026-10-06.md。
+- 2026-10-06 · CLOSED（收口后裁决实施） · 所有者裁决"滚动让 agent 自行判断"：契约 AllowedEffects 对齐为 {tap, swipe-up}（与策略资产/guard/driver 三面一致，授权扩大留痕）。真实回合结果：7 次自主滚动全部放行可追溯、13 效应零越权零 toggle、搜索从横向换页升级为纵向下探、终局保持诚实 TerminalNotProven；Host.Tests 159/159 无回归。证据 evidence/agt-016/scroll-alignment-2026-10-06.md。
