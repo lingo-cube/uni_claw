@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "uniclaw.host-facts.v2",
+  "runDir": "evidence/agt-014/dsh-task2-proxy-20261006/run-20261006-015710-346",
+  "runId": "run-21d7e36fbc722f70c005ac9b597193fcfbe1761329e75444fdf3e175d08282ee",
+  "correlationId": null,
+  "status": "AgentDecisionFailed",
+  "reason": "no-response",
+  "outcome": null,
+  "delivered": 0,
+  "receipts": [],
+  "terminal": false,
+  "journalBytes": 0,
+  "diagnostics": {
+    "nextFiles": [
+      "facts.json",
+      "environment-preflight.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B facts.reason \u548C policyGuard\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 trace.json \u4E0E exec.journal\u3002"
+  },
+  "completionAnchors": null,
+  "completedSteps": [],
+  "actionPolicy": {
+    "policyRef": "fixture/android-settings/forbidden-action-policy",
+    "digest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/testsets/android-settings/forbidden-action-policy.json"
+  },
+  "policyGuard": [
+    {
+      "verdict": 2,
+      "semanticAction": "unknown-action",
+      "reason": "action class not declared: navigate",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e"
+    }
+  ]
+}

@@ -370,6 +370,40 @@ test('B3: prose containing valid-looking JSON but no submit_decision → fail cl
   assert.equal(result.body.error, 'no-submit-decision')
 })
 
+test('B3: consultation prompt binds effectClass to runtime allowedEffects', async () => {
+  const harness = mockCtx()
+  applyHost(harness)
+  await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  const consultPromise = call(harness.routes, '/api/uniclaw-agent/consult', {
+    requestId: 'req-effect-token-1',
+    generation: 1,
+    productSessionId: 'product-A',
+    productRunId: 'run-A',
+    dshSessionId: 'session-test-1-1',
+    turnTimeoutMs: 5000,
+    context: {
+      decisionId: 'decision-effect-token-1',
+      runId: 'run-A',
+      phase: 'InitialPlanning',
+      allowedEffects: ['tap'],
+    },
+  })
+  for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++) {
+    await new Promise(resolve => setTimeout(resolve, 5))
+  }
+  assert.equal(harness.controller.promptCalls.length, 1)
+  const prompt = harness.controller.promptCalls[0].content[0].text
+  assert.match(prompt, /effectClass.*runtime token/i)
+  assert.match(prompt, /MUST be[\s\S]*context\.allowedEffects/i)
+  assert.match(prompt, /Allowed effectClass tokens.*\["tap"\]/i)
+  assert.match(prompt, /use `tap`/i)
+  assert.match(prompt, /use `swipe-up`/i)
+  assert.match(prompt, /policy meanings navigate, back, and scroll/i)
+  emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
+  const result = await consultPromise
+  assert.equal(result.body.error, 'no-submit-decision')
+})
+
 test('B3: missing Product-required fields → schema-invalid, never completed', async () => {
   const harness = mockCtx()
   applyHost(harness)

@@ -2,7 +2,7 @@
 
 ## Conclusion
 
-The final prewarmed Settings consultation reached the selected provider
+The initial prewarmed Settings consultation reached the selected provider
 (`zai-coding-cn/glm-5.3-flash`), but every provider attempt failed with `TIMEOUT`.
 The local DSH process had no proxy environment configured. A fresh unauthenticated
 Node fetch to the same provider endpoint reproduced `UND_ERR_CONNECT_TIMEOUT`
@@ -15,7 +15,7 @@ DSH home proxy was configured, a dedicated authenticated smoke consultation
 using the same provider/model captured an `act` decision in 11.177s. The
 outer 75s consultation deadline explains the final Product `no-response`, but
 is not the initiating failure. This also rules out a general protocol or prompt
-failure for the minimal context; the full Settings run still needs revalidation.
+failure for the minimal context; the full Settings run was revalidated below.
 
 ## Readable session evidence
 
@@ -80,10 +80,10 @@ same live E2E test and same `zai-coding-cn/glm-5.3-flash` selection then produce
 
 This smoke run used the bounded test context and did not touch Android or dispatch
 an effect. It proves the provider route is usable through the proxy and that the
-DSH `submit_decision` seam works after proxy setup. It does not yet prove the
-full Settings task succeeds.
+DSH `submit_decision` seam works after proxy setup. The later full Settings run
+also succeeded after the runtime-token prompt/projection fix described below.
 
-The running DSH listener was PID 1123 on 127.0.0.1:3080. Inspection of only
+The earlier DSH listener was PID 1123 on 127.0.0.1:3080. Inspection of only
 the proxy-related process environment found HTTP_PROXY, HTTPS_PROXY, ALL_PROXY,
 their lowercase variants, and NODE_USE_ENV_PROXY unset. Git's separately scoped
 7890 proxy does not configure this process.
@@ -103,12 +103,29 @@ their lowercase variants, and NODE_USE_ENV_PROXY unset. Git's separately scoped
 - DSH retries continued to ~79s after the channel's ~75s deadline. This is a
   cancellation/lifecycle observation to verify when preparing the next run.
 
+## Runtime-token 分歧与修复
+
+7890 代理后的首次正式 Settings 回合不再卡在 provider timeout，而是返回了合法
+AgentDecision；模型把策略语义 `navigate` 放进了 `effectClass`。本轮
+`context.allowedEffects` 只有 `tap`，所以 Host Guard 将它分类为
+`unknown-action` 并在 dispatch 前拒绝，设备没有被触碰。
+
+修复在 DSH prompt 和 Host policy projection 中同时声明：`effectClass` 必须逐字
+复制 `context.allowedEffects`；Settings 的 `tap` 对应导航/返回，`swipe-up`
+对应滚动。没有放宽 Runtime allowed effects，也没有修改模型、协议或策略文件。
+
+修复后的正式运行目录：
+`evidence/agt-014/dsh-task2-proxy-runtime-token-fix-20261006/run-20261006-020702-678/`
+
+- DSH 三次咨询：`tap Network & internet`、`tap Internet`、`noAction Wi-Fi=checked`。
+- facts：`Completed / Completion / delivered=2`；两个 Guard 均 `Allow / navigate`。
+- exec journal：两个 `DeliveryCompleted`，没有 Wi-Fi 开关点击。
+- Node plugin 全量 22/22 PASS；SettingsActionPolicyTests 8/8 PASS；Host.Dsh 构建 0 errors。
+
 ## Next engineering step
 
-The provider route is now configured and the small authenticated request passed.
-Next, rerun the formal preflight + prewarmed Settings task against the restarted
-3080 DSH service. Project evidence should retain provider failure/retry details,
-rather than reporting only the outer no-response. Routing the provider, fixing
-diagnostic duplication, and validating timeout cancellation do not require
-changing the model or Product protocol. No repository DSH code, model, or
-protocol was changed in this diagnosis.
+The provider route and the formal prewarmed Settings task are now verified. Keep
+the provider retry evidence alongside the successful run rather than reporting
+only the old outer no-response. The remaining AGT-014 work is the other real
+tasks and the fault-injection/observability summary; no model or Product protocol
+change is required by this diagnosis.

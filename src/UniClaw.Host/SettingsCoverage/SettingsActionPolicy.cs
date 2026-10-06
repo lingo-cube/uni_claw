@@ -30,7 +30,9 @@ public sealed record SettingsActionPolicy(
         + $"safe=[{string.Join(",", SafeActionClasses.OrderBy(x => x, StringComparer.Ordinal))}]; "
         + $"targeted=[{string.Join(",", TargetedActionClasses.OrderBy(x => x, StringComparer.Ordinal))}]; "
         + $"forbidden=[{string.Join(",", ForbiddenActionClasses.OrderBy(x => x, StringComparer.Ordinal))}]; "
-        + $"unknownTargetDisposition={UnknownTargetDisposition}";
+        + $"unknownTargetDisposition={UnknownTargetDisposition}; "
+        + "effectClass=runtime token from context.allowedEffects; "
+        + "semanticMapping={navigate:tap,back:tap,scroll:swipe-up}";
 
     public static SettingsActionPolicy Load(string path)
     {

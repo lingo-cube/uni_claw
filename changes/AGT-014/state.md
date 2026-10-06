@@ -48,8 +48,8 @@ trace/facts/evidence。目标是暴露可靠性、智能性、容错性和可诊
 level: ENVIRONMENT
 method: real API 35 emulator + DSH Agent + ADB + SettingsCoverage/HostRunner live runs; deterministic regression after any local fix
 expected: three tasks and failure paths produce traceable, safe, honest outcomes
-actual: deterministic + real-device chain partial PASS; full solution 1307/1307 and Host.Dsh build pass; independent real DSH runs time out at the 75s consultation boundary with zero effects; provider journal and current probes locate direct transport TIMEOUT, authorized proxy preparation and authenticated verification remain
-evidence: evidence/agt-014/verification-2026-10-06.md
+actual: deterministic + real-device chain partial PASS; full solution 1307/1307 and Host.Dsh build pass; the prewarmed real DSH Settings objective now completes through 3 consultations and 2 guarded ADB taps after the 7890 proxy and runtime-token prompt fix; the remaining AGT-014 tasks and fault-injection summary are still open
+evidence: evidence/agt-014/verification-2026-10-06.md; evidence/agt-014/dsh-runtime-token-fix-2026-10-06.md
 ```
 
 ## Status log
@@ -87,3 +87,15 @@ evidence: evidence/agt-014/verification-2026-10-06.md
   专用 3081 + 同一 `zai-coding-cn/glm-5.3-flash` 的最小真实咨询通过；DSH
   日志为 `consult captured`、`kind=act`、11.177s，测试 1/1 PASS（12.172s）。
   provider/submit_decision seam 已恢复，正式 Settings 全链路尚待复验。
+- 2026-10-06 · VERIFY → IMPLEMENT → VERIFY · 7890 代理后的首次正式回合确认
+  DSH 已返回模型决策，但 `effectClass=navigate` 被 Host 以 `unknown-action`
+  在 dispatch 前拒绝；这不是网络超时，也没有产生设备 effect。随后把
+  `effectClass` 与 `context.allowedEffects` 的逐字约束和
+  `navigate:tap / back:tap / scroll:swipe-up` 映射加入 DSH prompt 与 Host
+  policy projection，并补回归测试。
+- 2026-10-06 · VERIFY · 修复后的真实 Settings 回合通过：3 次 consultation
+  分别为 `tap Network & internet`、`tap Internet`、`noAction Wi-Fi=checked`；
+  `facts.status=Completed`、`delivered=2`、两个 Guard 均 Allow，ADB journal
+  两个 `DeliveryCompleted`，无 Wi-Fi 重复切换。证据：
+  `evidence/agt-014/dsh-task2-proxy-runtime-token-fix-20261006/run-20261006-020702-678/`
+  和 `evidence/agt-014/dsh-runtime-token-fix-2026-10-06.md`。

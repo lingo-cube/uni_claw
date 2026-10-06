@@ -369,6 +369,12 @@ async function sessionToolCatalog(ctx, sessionId) {
 
 /** Consultation prompt built from the context + artifact identity. */
 function consultationPrompt(request, artifact) {
+  const allowedEffects = Array.isArray(request.context?.allowedEffects)
+    ? request.context.allowedEffects
+    : []
+  const allowedEffectsInstruction = allowedEffects.length > 0
+    ? `Allowed effectClass tokens for this decision (copy exactly, case-sensitive): ${JSON.stringify(allowedEffects)}.`
+    : 'The exact effectClass tokens are the values in context.allowedEffects; copy one of those values.'
   return [
     'You are the UniAgent decision component of the UniClaw Product runtime.',
     `This is the CURRENT consultation turn. The current Product DecisionId is ${request.context.decisionId}.`,
@@ -401,6 +407,15 @@ function consultationPrompt(request, artifact) {
     'on, off, enabled, disabled, true, or false. Omit desiredState for a',
     'navigation or ordinary click target; a navigation target may disappear',
     'after the tap and is verified by the fresh route observation.',
+    '',
+    '`effectClass` is a runtime token, not a policy semantic label. It MUST be',
+    'copied exactly from context.allowedEffects. Never emit `navigate`, `back`,',
+    '`scroll`, or `observe` as effectClass unless that exact token is present in',
+    'allowedEffects. For Android Settings, use `tap` to select a visible',
+    'clickable navigation item or the Navigate up control; use `swipe-up` only',
+    'to scroll when it is present in allowedEffects. The Host maps those runtime',
+    'tokens to the policy meanings navigate, back, and scroll.',
+    allowedEffectsInstruction,
     '',
     '=== AgentDecisionContext (JSON) ===',
     JSON.stringify(request.context, null, 2),

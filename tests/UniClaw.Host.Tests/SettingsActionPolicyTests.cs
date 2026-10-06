@@ -50,6 +50,15 @@ public sealed class SettingsActionPolicyTests
     }
 
     [Fact]
+    public void AgentProjection_DistinguishesRuntimeTokensFromPolicySemantics()
+    {
+        var projection = Policy().AgentProjection();
+
+        Assert.Contains("effectClass=runtime token from context.allowedEffects", projection);
+        Assert.Contains("semanticMapping={navigate:tap,back:tap,scroll:swipe-up}", projection);
+    }
+
+    [Fact]
     public void MissingRequiredPolicy_FailsClosed()
     {
         var path = Path.Combine(Path.GetTempPath(), $"settings-policy-missing-{Guid.NewGuid():N}.yaml");

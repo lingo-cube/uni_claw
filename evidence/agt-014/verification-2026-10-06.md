@@ -3,9 +3,8 @@
 ## 结果摘要
 
 本回合把确定性、真实设备、真实 DSH 三个层次分开执行。确定性 Guard 与真实
-ADB/感知链通过；真实 DSH 已完成握手，但独立运行中的首次咨询在 75 秒服务时限内
-无响应，未产生 effect。最终预热回合只有一次 consultation；重复诊断行不代表
-两次请求（见下文 provider 诊断）。当前不能把三项真实模型任务标为 PASS。
+ADB/感知链通过；代理配置和运行时动作词汇修复后，真实 DSH 的 Wi-Fi 目标回合
+已完成。AGT-014 仍包含其他任务和故障注入汇总，因此 Change 继续保持 persisted。
 
 ## 真实设备结果
 
@@ -23,7 +22,7 @@ ADB/感知链通过；真实 DSH 已完成握手，但独立运行中的首次�
 ## 真实 DSH 结果
 
 真实入口使用 profile 中的 `zai-coding-cn/glm-5.3-flash`，设备为 API 35
-emulator，DSH handshake 成功。独立运行的 consultation 均为：
+emulator，DSH handshake 成功。最初的独立运行 consultation 均为：
 
 - `turn-timeout: consult turn deadline elapsed (75000ms)`
 - `status: AgentDecisionFailed (no-response)`
@@ -46,8 +45,9 @@ Guard 或 post-action verification。
 `2.011s`，`fastInferenceSucceeded=true`，proposal 数量为 586。首帧不再携带
 视觉服务冷启动。
 这次回合仍出现 `turn-timeout: consult turn deadline elapsed (75000ms)`，
-`delivered=0`，说明剩余故障在 Agent consultation 或其服务边界，不能再归因于
-快感知首帧 63 秒。
+`delivered=0`，说明当时剩余故障在 Agent consultation 或其服务边界，不能再归因于
+快感知首帧 63 秒；7890 代理修复后已另行完成正式回合，见“Runtime-token 修复与
+正式回合”。
 
 证据：`dsh-task2-prewarm-final/run-20261006-013701-765/environment-preflight.json`、
 同目录 `settings-trace.json`、`facts.json` 和 `trace.json`。
@@ -84,17 +84,37 @@ ADB 启动超时。已完成不改变架构/协议/模型的局部修复：
 最终回合只有一次 consultation；adapter 对同一 null response 重复记录了
 no-decision，撤回此前根据重复诊断行写的“本回合两次 consultation”。
 
-当前 DSH 进程没有 proxy 环境。无凭据网络探针复现：Node 直连同一智谱地址
+当时的 DSH 进程没有 proxy 环境。无凭据网络探针复现：Node 直连同一智谱地址
 10.551s 后报 `UND_ERR_CONNECT_TIMEOUT`；走授权的 7890 线路 0.159s 收到
 HTTP 401（仅证明网络可达，不证明模型请求成功）。直接故障位于 provider
 网络线路；75s 是重试累积后撞上的外层截止时间。
 
 已按 7890 配置并重启 DSH；同一 provider/model 的专用 3081 最小真实咨询通过，
 DSH 日志为 `consult captured`、`kind=act`、`durationMs=11177`，测试耗时
-12.172s。下一步重跑正式 Settings 流程，确认完整上下文和设备链也能通过。
-无需先改模型、协议、缩小上下文或提高外层时限。另需验证重复诊断与超时后取消
-生命周期。
+12.172s。随后正式 Settings 回合发现第二个分歧：DSH 返回了合法 AgentDecision，
+但 `effectClass=navigate` 是策略语义词，不是本轮 `allowedEffects=[tap]` 中的
+运行时 token，Host Guard 因此在 dispatch 前安全拒绝。修复 prompt/projection 后，
+正式回合 3 次 consultation、2 个 `tap` effect 和 1 个 `noAction` 均通过。
 详见 `dsh-provider-timeout-diagnosis-2026-10-06.md`。
+
+## Runtime-token 修复与正式回合
+
+首次代理修复后的正式回合把 `navigate` 误用暴露为首个非网络分歧点。修复内容是：
+
+- DSH prompt 明确 `effectClass` 必须逐字复制 `context.allowedEffects`，并给出
+  `tap`/`swipe-up` 到 Settings 语义动作的映射。
+- Host policy projection 同步显示这条边界；没有放宽 Host 的 allowed effects，
+  也没有把策略文件中的 `navigate` 改成运行时 token。
+- Node plugin 全量 22/22 PASS；SettingsActionPolicyTests 8/8 PASS；Host.Dsh
+  构建 0 errors。
+
+正式运行目录：
+`evidence/agt-014/dsh-task2-proxy-runtime-token-fix-20261006/run-20261006-020702-678/`
+
+- facts：`Completed / Completion / delivered=2`，两个 Guard `Allow / navigate`。
+- DSH decisions：`tap Network & internet` → `tap Internet` → `noAction Wi-Fi=checked`。
+- exec journal：两个 `DeliveryCompleted`，没有 Wi-Fi 开关点击。
+- preflight：视觉预热 `63.556s`，正式首帧快路径 `2.595s`，后续约 `0.9s/0.74s`。
 
 本回合已完成的局部修复：SettingsTraversalLiveFeed 构造阶段显式预热视觉服务，
 并在 settings-trace 中记录预热耗时/结果；首轮 Analyze 只记录当前截图的解码和
@@ -102,5 +122,5 @@ DSH 日志为 `consult captured`、`kind=act`、`durationMs=11177`，测试耗�
 `environment-preflight.json` 标记正式流程是在环境预检之后启动。上述修复不改变
 模型、协议或架构。
 
-在预热后的真实 DSH 复验已完成但 consultation 仍失败的情况下，AGT-014 保持 persisted，不能关闭为真实模型
-全链路完成。
+在真实 DSH 的 Wi-Fi 目标回合已通过，但指定菜单项、完整覆盖和故障注入汇总尚未
+全部完成的情况下，AGT-014 保持 persisted，不能关闭为三任务全链路完成。
