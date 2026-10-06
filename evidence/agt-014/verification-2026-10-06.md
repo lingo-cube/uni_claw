@@ -2,9 +2,9 @@
 
 ## 结果摘要
 
-本回合把确定性、真实设备、真实 DSH 三个层次分开执行。确定性 Guard 与真实
-ADB/感知链通过；代理配置和运行时动作词汇修复后，真实 DSH 的 Wi-Fi 目标回合和
-有界 Settings 覆盖回合均已完成。AGT-014 仍包含任务证据汇总和故障注入回合，
+本回合把确定性、真实设备、真实 DSH 三个层次分开执行。确定性 Guard、故障矩阵与
+真实 ADB/感知链通过；代理配置和运行时动作词汇修复后，真实 DSH 的 Wi-Fi 目标回合
+和有界 Settings 覆盖回合均已完成。AGT-014 仍需要把三项任务证据汇总成最终验收，
 因此 Change 继续保持 persisted。
 
 ## 真实设备结果
@@ -138,6 +138,14 @@ act consultation 的 facts 都回填同一 digest，说明策略是在首次咨�
 证据：`evidence/agt-014/dsh-task3-coverage-proxy-20261006/run-20261006-025112-969/`
 和 `evidence/agt-014/dsh-task3-coverage-2026-10-06.md`。
 
-Wi-Fi 目标回合和有界覆盖回合已经通过；任务一的独立证据来自 AGT-003/AGT-004，
-本次覆盖第 1 步也重新证明了 `Network & internet` 的唯一定位和 route transition。
-AGT-014 还需要把三项任务证据汇总，并完成故障注入/诊断回合后再关闭。
+## 故障注入与诊断回合
+
+Host Settings 覆盖、Director、Ledger 和 ActionPolicy 的故障矩阵 `44/44` 通过，
+覆盖弹窗不消失、未知页、连续验证失败、滚动无变化、步数上限、模型偏离、多步动作、
+非法目标状态和 forbidden/unknown action；每项都保持 fail-closed 或 bounded stop。
+另外用不存在设备做真实 Host 环境门测试，退出码 `1`，在 ADB 检查处停止，未进入
+consultation 或 effect dispatch。证据：`evidence/agt-014/fault-injection-2026-10-06.md`。
+
+Wi-Fi 目标回合、有界覆盖回合和故障矩阵已经通过；任务一的独立证据来自 AGT-003/
+AGT-004，本次覆盖第 1 步也重新证明了 `Network & internet` 的唯一定位和 route
+transition。AGT-014 还需要把三项任务证据汇总成最终验收后再关闭。

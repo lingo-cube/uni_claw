@@ -1,0 +1,5 @@
+{
+  "command": "dotnet run --project src/UniClaw.Host.Dsh/UniClaw.Host.Dsh.csproj --no-build -- --settings-coverage --device emulator-__fault_injected__ --runs /Users/fran/Documents/Code/spacex/uni_claw/evidence/agt-014/fault-injection-20261006/invalid-device-run",
+  "exitCode": 1,
+  "expected": "non-zero environment failure before agent consultation"
+}
