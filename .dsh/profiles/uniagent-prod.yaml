@@ -10,7 +10,8 @@ service:
 # Model selection is intentionally a separate block. Changing provider/name does
 # not change Product protocol, DecisionId, Kernel, or the Observer authority.
 modelSelection:
-  selected: glm53Flash
+  # 2026-10-06 所有者指令：默认模型改 DeepSeek deepseek-flash（旧默认 glm53Flash）
+  selected: deepseekFlash
   choices:
     free:
       provider: opencode-go

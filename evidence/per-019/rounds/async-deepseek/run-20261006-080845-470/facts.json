@@ -1,0 +1,398 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-facts.v2",
+  "runDir": "evidence/per-019/rounds/async-deepseek/run-20261006-080845-470",
+  "status": "Completed",
+  "reason": "terminal-emitted",
+  "outcome": "Completion",
+  "delivered": 19,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": true,
+  "coverageStatus": "CoverageComplete",
+  "coverageRate": 1,
+  "stepSuccessRate": 1,
+  "uncovered": [],
+  "firstDivergence": null,
+  "terminalJustification": "coverage-complete",
+  "diagnostics": {
+    "firstDivergence": null,
+    "terminalJustification": "coverage-complete",
+    "nextFiles": [
+      "facts.json",
+      "environment-preflight.json",
+      "coverage-report.json",
+      "coverage-steps.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u8FD0\u884C\u5B8C\u6210\uFF1B\u5982\u9700\u6838\u5BF9\u6BCF\u4E00\u6B65\uFF0C\u5148\u770B coverage-steps.json\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 trace.json\u3002"
+  },
+  "actionPolicy": {
+    "policyRef": "fixture/android-settings/forbidden-action-policy",
+    "digest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/testsets/android-settings/forbidden-action-policy.json"
+  },
+  "evidenceDir": "evidence/per-019/rounds/async-deepseek/run-20261006-080845-470/evidence",
+  "evidenceFiles": 40,
+  "journalBytes": 29372,
+  "consults": [
+    {
+      "decisionId": "decision-393d2a5b88c7-1",
+      "phase": "InitialPlanning",
+      "directive": "Enter the Settings first-level entry \u0027\u003CNetwork \u0026 internet\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: enter the first-level entry \u0027Network \u0026 internet\u0027 by tapping it from the current Settings root hierarchy.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-2",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: return to Settings root by tapping the Navigate up control.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-3",
+      "phase": "StepVerified",
+      "directive": "Enter the Settings first-level entry \u0027\u003CConnected devices\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: enter the first-level entry \u0027Connected devices\u0027 by tapping it from the Settings root.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-4",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: return to Settings root by tapping the Navigate up control.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-5",
+      "phase": "StepVerified",
+      "directive": "Enter the Settings first-level entry \u0027\u003CApps\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: enter the first-level entry \u0027Apps\u0027 by tapping it from the Settings root.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-6",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: return to Settings root by tapping the Navigate up control.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-7",
+      "phase": "StepVerified",
+      "directive": "Enter the Settings first-level entry \u0027\u003CNotifications\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: enter the first-level entry \u0027Notifications\u0027 by tapping it from the Settings root.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-8",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: return to Settings root by tapping the Navigate up control.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-9",
+      "phase": "StepVerified",
+      "directive": "Enter the Settings first-level entry \u0027\u003CBattery\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: enter the first-level entry \u0027Battery\u0027 by tapping it from the Settings root.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-10",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: return to Settings root by tapping the Navigate up control.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-11",
+      "phase": "StepVerified",
+      "directive": "Scroll the Settings list down with swipe-up on \u0027\u003Ccom.android.settings:id/main_content_scrollable_container\u003E\u0027",
+      "directiveKind": "scroll",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: scroll the Settings list down to discover scroll-only entries.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-12",
+      "phase": "StepVerified",
+      "directive": "Enter the Settings first-level entry \u0027\u003CStorage\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: enter the scroll-discovered entry \u0027Storage\u0027 by tapping it.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-13",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: return to Settings root by tapping the Navigate up control.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-14",
+      "phase": "StepVerified",
+      "directive": "Enter the Settings first-level entry \u0027\u003CSound \u0026 vibration\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: enter the first-level entry \u0027Sound \u0026 vibration\u0027 by tapping it.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-15",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: return to Settings root by tapping the Navigate up control.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-16",
+      "phase": "StepVerified",
+      "directive": "Enter the scroll-discovered Settings entry \u0027\u003CSearch settings\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: enter the \u0027Search settings\u0027 entry by tapping it.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-17",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: return to Settings root by tapping the Navigate up control.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-18",
+      "phase": "StepVerified",
+      "directive": "Enter \u0027\u003CNotifications\u003E\u0027 again to verify repeated entry.",
+      "directiveKind": "re-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: verify repeated entry by tapping \u0027Notifications\u0027 again.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-19",
+      "phase": "StepVerified",
+      "directive": "Return to the Settings root page by tapping \u0027\u003CNavigate up\u003E\u0027.",
+      "directiveKind": "back",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Coverage directive: return to Settings root by tapping the Navigate up control to satisfy the end-on-root objective.",
+      "policyDigest": "4186f07dfc6b17b29f59c57d782130cf16245bb503fd66511a7018176801081e",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-393d2a5b88c7-20",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": null,
+      "decisionKind": "noAction",
+      "deviationReason": null,
+      "attempts": 0,
+      "justification": "coverage-complete",
+      "policyDigest": null,
+      "guardVerdict": null
+    }
+  ],
+  "steps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-0c7cb9d56756-3-1"
+    },
+    {
+      "decision": 2,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-021ab1c5276d-1-2"
+    },
+    {
+      "decision": 3,
+      "step": 0,
+      "receipt": "receipt-bind-intent-3-occ-91e08cc56498-4-3"
+    },
+    {
+      "decision": 4,
+      "step": 0,
+      "receipt": "receipt-bind-intent-4-occ-d3021d0e4618-1-4"
+    },
+    {
+      "decision": 5,
+      "step": 0,
+      "receipt": "receipt-bind-intent-5-occ-c84318820b2b-5-5"
+    },
+    {
+      "decision": 6,
+      "step": 0,
+      "receipt": "receipt-bind-intent-6-occ-bbab1f5f587a-1-6"
+    },
+    {
+      "decision": 7,
+      "step": 0,
+      "receipt": "receipt-bind-intent-7-occ-051855bafed2-6-7"
+    },
+    {
+      "decision": 8,
+      "step": 0,
+      "receipt": "receipt-bind-intent-8-occ-92e8a08d679a-1-8"
+    },
+    {
+      "decision": 9,
+      "step": 0,
+      "receipt": "receipt-bind-intent-9-occ-30d17b72f7f5-7-9"
+    },
+    {
+      "decision": 10,
+      "step": 0,
+      "receipt": "receipt-bind-intent-10-occ-2d4ede62c9e3-1-10"
+    },
+    {
+      "decision": 11,
+      "step": 0,
+      "receipt": "receipt-bind-intent-11-occ-275d0b794bbf-2-11"
+    },
+    {
+      "decision": 12,
+      "step": 0,
+      "receipt": "receipt-bind-intent-12-occ-25b87c96c88f-4-12"
+    },
+    {
+      "decision": 13,
+      "step": 0,
+      "receipt": "receipt-bind-intent-13-occ-fb06f1adfe3d-1-13"
+    },
+    {
+      "decision": 14,
+      "step": 0,
+      "receipt": "receipt-bind-intent-14-occ-36b6106deb65-5-14"
+    },
+    {
+      "decision": 15,
+      "step": 0,
+      "receipt": "receipt-bind-intent-15-occ-58fe470b76a8-1-15"
+    },
+    {
+      "decision": 16,
+      "step": 0,
+      "receipt": "receipt-bind-intent-16-occ-37025322a84e-0-16"
+    },
+    {
+      "decision": 17,
+      "step": 0,
+      "receipt": "receipt-bind-intent-17-occ-382509ddd537-0-17"
+    },
+    {
+      "decision": 18,
+      "step": 0,
+      "receipt": "receipt-bind-intent-18-occ-9997b8bbfc3e-2-18"
+    },
+    {
+      "decision": 19,
+      "step": 0,
+      "receipt": "receipt-bind-intent-19-occ-92619907433a-1-19"
+    }
+  ]
+}

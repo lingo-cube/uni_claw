@@ -1,3 +1,4 @@
+using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.Perception.Fusion;
 using Xunit;

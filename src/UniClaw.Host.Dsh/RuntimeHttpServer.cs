@@ -8,6 +8,7 @@ using UniClaw.Agent.Dsh;
 using UniClaw.Host;
 using UniClaw.Host.Runtime;
 using UniClaw.Host.SettingsCoverage;
+using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Runtime;
 
 namespace UniClaw.Host.Dsh;
@@ -99,8 +100,12 @@ public sealed class RuntimeHttpServer
             request.TaskRef,
             request.EnvironmentIntent));
 
-        var modelName = Environment.GetEnvironmentVariable("UNICLAW_UNIAGENT_PROD_MODEL") ?? _config.Model.Name;
-        var model = new ModelConfiguration(_config.Model.Provider, modelName);
+        // CAP-006：runtime-http 面同样经产品 ModelManagement 缝 resolve
+        //（缺省 realization 借用 DSH；不直连 yaml）。
+        var model = DshModelManagement.ResolveDshModel(
+            DshModelManagement.FromProfile(
+                _config, Environment.GetEnvironmentVariable("UNICLAW_UNIAGENT_PROD_MODEL")),
+            LogicalProfileId.AgentDecision);
         var device = RequestedDevice(request.EnvironmentIntent) ?? _device;
         var peer = new DshOpenedHttpPeer(_config.Service, model: model);
         var channel = new DshOpenedDecisionChannel(peer, attachTimeout: TimeSpan.FromSeconds(30));

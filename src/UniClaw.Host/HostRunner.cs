@@ -55,8 +55,8 @@ public sealed class HostRunner
         bool SettingsTraversal = false,
         LaunchContext? Launch = null,
         SettingsActionPolicy? SettingsActionPolicy = null,
-        // AGT-017：live Slow 咨询桥注入缝（null = 默认回放桩，行为不变）。
-        Func<SlowConsultationRequest, UniKernel, bool, TimeSpan?, SlowConsultationOutcome>? SlowConsult = null);
+        // PER-019：UniPerception fetch 缝（null = slow 关闭；异步流水在 feed 内）。
+        UniPerceptionPipeline.Fetch? UniPerceptionFetch = null);
 
     public sealed record HostRunResult(
         string RunDir,
@@ -121,7 +121,7 @@ public sealed class HostRunner
             // AGT-011 §4：SettingsTraversal 模式证据持久化（AGT-008 缺省全开）。
             settingsFeed = new SettingsTraversalLiveFeed(
                 clock, options.Live, Path.Combine(runDir, "evidence"),
-                slowConsult: options.SlowConsult);
+                uniPerceptionFetch: options.UniPerceptionFetch);
             // Environment preparation is completed before the formal driver
             // loop starts. Keep a small durable marker so a failed warmup is
             // visible without reading the later Agent/Kernel artifacts.
@@ -168,6 +168,10 @@ public sealed class HostRunner
             kernel = new UniKernel(
                 ledger, world, traceScope.Trace,
                 new RunModel(), new ControlLoop(planPolicy), assurance, effectBoundary, metrics);
+            // PER-019：traversal 模式补齐 KernelProvider 注入（coverage 模式已有）——
+            // UniPerception 晚到投影需要 kernel；闭包捕获后赋值，首周期前生效。
+            if (settingsFeed is not null)
+                settingsFeed.KernelProvider = () => kernel;
             var driver = new KernelRunDriver(
                 kernel, planPolicy,
                 new RunDriverInputs

@@ -1,6 +1,11 @@
 > Status: DRAFT
 > Authority: NONE
 > Grill: ACCEPTED · 2026-10-04
+> 修订 2026-10-06（所有者命名裁决）：组合能力更名 **Text Semantic Perception
+> → UniPerception**（capability id `text.semantic` → `uni.perception`）。
+> 理由：语义识别只是该组件能力之一，它同时提供 UI 元素识别（双协议）；
+> 命名不得偏向单一能力。旧名在历史记录中保留为别名。同裁决：该组件为
+> 本仓自定义组件，行为默认异步（Fast+XML 先行入世界模型，Slow 晚到补语义）。
 > 日期: 2026-10-03 · 方法: 现有调用链盘点 × 能力买家场景 × 接缝推导 × 对抗性审阅
 
 # Runtime 能力集成接缝 v0.1
@@ -148,7 +153,7 @@ Hub 不负责业务规则、语言判断、性能算法、WorldModel 写入、As
 
 `Slow` 需要拆开看：Slow provider 属于 `Observation Source / Observation Proposal Producer`；由 Control 授权的 Slow consultation 属于 `Advisory / Planner`；两者可以由同一个 Host adapter 实现，但在 Hub 中应声明为两个协议角色，不能共享一个无边界的“Slow Hook”。
 
-对于 Fast + Slow Text，Product Capability Registry 注册的是 `Text Semantic Perception` 组合能力，Slow Text 不独立注册；需要文本语义解释时，其依赖链固定为 `Fast（YOLO + OCR）→ Slow Text`。缺少可用的 YOLO/OCR 前置依据或关联不完整时，不调用 Slow Text、不产生该阶段的语义 proposal；Fast 已有的合法输出仍按既有路径处理。YOLO/OCR 正常完成但检测结果为空不等于能力缺失，是否足以回答具体 claim 需要另行定义。`Slow Visual` 和其他感知能力可保持独立。
+对于 Fast + Slow Text，Product Capability Registry 注册的是 `UniPerception` 组合能力（2026-10-06 前旧名 Text Semantic Perception），Slow Text 不独立注册；需要文本语义解释时，其依赖链固定为 `Fast（YOLO + OCR）→ Slow Text`。缺少可用的 YOLO/OCR 前置依据或关联不完整时，不调用 Slow Text、不产生该阶段的语义 proposal；Fast 已有的合法输出仍按既有路径处理。YOLO/OCR 正常完成但检测结果为空不等于能力缺失，是否足以回答具体 claim 需要另行定义。`Slow Visual` 和其他感知能力可保持独立。
 
 该决定限定组合能力的装配边界，不要求每次 Fast 调用都执行 Slow Text，也不把 Slow Text 的模型适配与 transport 实现合并进 Fast。
 
@@ -163,7 +168,7 @@ Hub 不负责业务规则、语言判断、性能算法、WorldModel 写入、As
 
 协议结果必须带 `CaptureId`、`ObservationCycleId`、`SessionCorrelation`、来源 lineage 和能力状态。结果不完整时保留失败/不确定语义，不用空列表冒充“没有元素”或“没有语义”。
 
-`Text Semantic Perception` 是注册级复合能力：它至少声明 `Semantic Perception`，并在 Fast 投影能够产出 capture-local 元素依据时同时声明 `UI Element Perception`。后者来自 Fast 的 YOLO/OCR/结构投影，不意味着 Slow Text 自身成为 UI 元素能力；Slow Text 只负责在有界前置依据上完成语义解释。`Slow Visual` 可以独立注册，并按实现能力声明一个或两个协议接口。
+`UniPerception`（旧名 Text Semantic Perception）是注册级复合能力：它至少声明 `Semantic Perception`，并在 Fast 投影能够产出 capture-local 元素依据时同时声明 `UI Element Perception`。后者来自 Fast 的 YOLO/OCR/结构投影，不意味着 Slow Text 自身成为 UI 元素能力；Slow Text 只负责在有界前置依据上完成语义解释。`Slow Visual` 可以独立注册，并按实现能力声明一个或两个协议接口。
 
 `PerceptionAssessment` 是两个协议共用的非权威评估包，最小字段语义如下：
 
@@ -217,7 +222,7 @@ Capability Hub 是一个架构管理角色，不等于一个跨域可加载的�
 
 这类能力不能阻止动作，除非另有明确的 Runtime Contract / Assurance 语义接管它。
 
-### 4.2 Text Semantic Perception
+### 4.2 UniPerception（旧名 Text Semantic Perception）
 
 这是一个组合能力，而不是一个新的 Evidence 或 World Owner。它对外至少提供 Semantic Perception，并可把 Fast 阶段的 YOLO/OCR/结构投影作为 UI Element Perception 输出；它消费同一 capture/cycle 下由 Fast 阶段产生的 YOLO 与 OCR 依据，再按 bounded budget 调用 Slow Text。两阶段的 provenance、correlation、coverage、`PerceptionAssessment` 和失败状态必须保留在组合结果中。只有形成合法 `ObservationProposal` 后，结果才进入既有 P2。
 

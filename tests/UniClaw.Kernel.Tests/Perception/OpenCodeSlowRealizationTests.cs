@@ -8,6 +8,7 @@ using UniClaw.Kernel.Perception.Fusion;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using Xunit;
+using UniClaw.Kernel.Capability;
 
 namespace UniClaw.Kernel.Tests.Perception;
 
@@ -152,7 +153,7 @@ public sealed class OpenCodeSlowRealizationTests
     public async Task UnavailableBinding_FailsClosedBeforeProviderCall()
     {
         var profile = LogicalProfileId.Text;
-        var models = new SlowModelManagement(new[] {
+        var models = new ModelManagement(new[] {
             new ModelBindingSnapshot(profile, "zai-coding-cn", "glm-5.3-flash", Available: false)
         });
         var handler = new SequenceHandler(_ => JsonResponse(200, "{}"));
@@ -189,7 +190,7 @@ public sealed class OpenCodeSlowRealizationTests
     private static OpenCodeSlowRealization NewRealization(HttpClient client) =>
         new(Models(), OpenCodeSlowRealizationOptions.Local(new Uri("http://127.0.0.1/")), client);
 
-    private static SlowModelManagement Models() => new(new[] {
+    private static ModelManagement Models() => new(new[] {
         new ModelBindingSnapshot(LogicalProfileId.Text, "zai-coding-cn", "glm-5.3-flash", Available: true),
         new ModelBindingSnapshot(LogicalProfileId.Visual, "opencode", "deepseek-v4-flash-vision-exp", Available: true),
     });

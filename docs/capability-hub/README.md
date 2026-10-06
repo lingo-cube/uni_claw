@@ -19,7 +19,7 @@
 
 Capability Hub 不是一个跨域共享注册表。三个信任域分别由自己的 Composition Root 创建独立 Registry：
 
-- Product Capability Registry：Product perception、acquisition、grounding 和 effect provider；
+- Product Capability Registry：Product perception、acquisition、grounding、effect provider 和 model management（CAP-006：`uni.model.management`，logical profile → 冻结 binding 解析；缺省 realization 借用 DSH，替换只动 adapter）；
 - Runtime Integration Registry：Observer、Inspector、Measurement、Artifact/Report Sink；
 - Harness Capability Registry：Fixture、Environment Manager、Stimulus、Fault Injector。
 

@@ -1,3 +1,4 @@
+using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception.Fusion;
 
@@ -69,7 +70,7 @@ public sealed record SlowConsultationOutcome(
 public sealed class SlowConsultation
 {
     private readonly SlowPerceptionOrchestrator _orchestrator;
-    private readonly SlowModelManagement _models;
+    private readonly ModelManagement _models;
 
     /// <summary>测试 seam（Kernel.Tests 注入 deterministic replay）。</summary>
     internal SlowConsultation(SlowPerceptionOrchestrator orchestrator)

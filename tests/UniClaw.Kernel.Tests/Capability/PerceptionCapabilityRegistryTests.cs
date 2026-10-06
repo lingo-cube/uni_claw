@@ -6,11 +6,11 @@ namespace UniClaw.Kernel.Tests.Capability;
 public sealed class PerceptionCapabilityRegistryTests
 {
     [Fact]
-    public void ProductRegistry_RegistersCompositeTextSemantic_WithTypedRolesAndDependencies()
+    public void ProductRegistry_RegistersUniPerception_WithTypedRolesAndDependencies()
     {
         var registry = new CapabilityRegistry(TrustDomain.Product);
         var description = new CapabilityDescription(
-            "text.semantic", "1.0.0", CapabilityScope.ProductRuntime,
+            "uni.perception", "1.0.0", CapabilityScope.ProductRuntime,
             new[] { new CapabilityProtocol(PerceptionProtocol.Semantic, PerceptionProtocol.Version), new CapabilityProtocol(PerceptionProtocol.UiElement, PerceptionProtocol.Version) },
             new[] { new CapabilityDependency("fast.yolo", "1.0"), new CapabilityDependency("fast.ocr", "1.0"), new CapabilityDependency("slow.text", "1.0") },
             HealthStatus.Healthy, CapabilityCategory.CompositeProductPerception,
@@ -19,8 +19,8 @@ public sealed class PerceptionCapabilityRegistryTests
 
         registry.Register(description, "product-composition-root");
 
-        Assert.Equal(description, registry.Get("text.semantic"));
-        Assert.Equal(CapabilityCategory.CompositeProductPerception, registry.Get("text.semantic")!.Category);
+        Assert.Equal(description, registry.Get("uni.perception"));
+        Assert.Equal(CapabilityCategory.CompositeProductPerception, registry.Get("uni.perception")!.Category);
         Assert.DoesNotContain(registry.Facts, f => f.CapabilityId == "slow.text");
     }
 

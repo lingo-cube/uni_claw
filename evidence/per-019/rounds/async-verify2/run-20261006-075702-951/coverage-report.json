@@ -1,0 +1,50 @@
+{
+  "status": "CoverageComplete",
+  "items": [
+    {
+      "requirement": "root-page",
+      "detail": "root route observed",
+      "covered": true,
+      "evidence": "android.settings|rk1:Settings|src=homepage_title|up=0"
+    },
+    {
+      "requirement": "first-level-all-visible",
+      "detail": "entered 7/7",
+      "covered": true,
+      "evidence": "entered:Network \u0026 internet-\u003Eandroid.settings|rk1:Internet|src=title|up=1;entered:Connected devices-\u003Eandroid.settings|rk1:Pair new device|src=title|up=1;entered:Apps-\u003Eandroid.settings|rk1:All apps|src=title|up=1;entered:Notifications-\u003Eandroid.settings|rk1:Manage|src=title|up=1;entered:Notifications-\u003Eandroid.settings|rk1:Manage|src=title|up=1;entered:Battery-\u003Eandroid.settings|rk1:Battery usage|src=title|up=1;entered:Storage-\u003Eandroid.settings|rk1:Storage manager|src=title|up=1;entered:Sound \u0026 vibration-\u003Eandroid.settings|rk1:Media volume|src=title|up=1;entered:Search settings-\u003Eandroid.settings"
+    },
+    {
+      "requirement": "scroll-discovered-entry",
+      "detail": "entered 1/1 scroll-discovered",
+      "covered": true,
+      "evidence": "Search settings"
+    },
+    {
+      "requirement": "second-level-pages",
+      "detail": "distinct second-level routes 8/8",
+      "covered": true,
+      "evidence": "android.settings|rk1:Internet|src=title|up=1;android.settings|rk1:Pair new device|src=title|up=1;android.settings|rk1:All apps|src=title|up=1;android.settings|rk1:Manage|src=title|up=1;android.settings|rk1:Battery usage|src=title|up=1;android.settings|rk1:Storage manager|src=title|up=1;android.settings|rk1:Media volume|src=title|up=1;android.settings"
+    },
+    {
+      "requirement": "back-navigation",
+      "detail": "back verified 9",
+      "covered": true,
+      "evidence": "Navigate up"
+    },
+    {
+      "requirement": "repeated-entry",
+      "detail": "satisfied 1/1",
+      "covered": true,
+      "evidence": "Notifications"
+    }
+  ],
+  "coverageRate": 1,
+  "stepSuccessRate": 1,
+  "uncoveredItems": [],
+  "firstDivergence": null,
+  "stepsExecuted": 19,
+  "stepsVerified": 19,
+  "scrollsUsed": 1,
+  "scrollAttempts": 1,
+  "consultRounds": 20
+}

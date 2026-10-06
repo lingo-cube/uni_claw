@@ -5,6 +5,7 @@ using UniClaw.Kernel.Perception.Fusion;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using Xunit;
+using UniClaw.Kernel.Capability;
 
 namespace UniClaw.Kernel.Tests.Perception;
 
@@ -69,7 +70,7 @@ public sealed class SlowConsultationTests
     {
         var consultation = new SlowConsultation(new SlowPerceptionOrchestrator(
             new EphemeralAttemptLedger(),
-            new DeterministicSlowRealization(new SlowModelManagement())));
+            new DeterministicSlowRealization(new ModelManagement())));
         var ledger = new EvidenceLedger();
 
         var outcome = consultation.Consult(Request(), Kernel());

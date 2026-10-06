@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Evidence;
 
 namespace UniClaw.Kernel.Perception;
@@ -63,7 +64,7 @@ internal sealed class OpenCodeSlowRealization : IDisposable
 {
     private readonly HttpClient _http;
     private readonly bool _ownsHttp;
-    private readonly SlowModelManagement _models;
+    private readonly ModelManagement _models;
     private readonly OpenCodeSlowRealizationOptions _options;
     private readonly Func<string, CancellationToken, ValueTask<byte[]?>>? _rawArtifactResolver;
     private readonly ConcurrentQueue<SlowProviderInvocation> _invocations = new();
@@ -74,7 +75,7 @@ internal sealed class OpenCodeSlowRealization : IDisposable
     private bool _disposed;
 
     public OpenCodeSlowRealization(
-        SlowModelManagement models,
+        ModelManagement models,
         OpenCodeSlowRealizationOptions options,
         HttpClient? http = null,
         Func<string, CancellationToken, ValueTask<byte[]?>>? rawArtifactResolver = null)

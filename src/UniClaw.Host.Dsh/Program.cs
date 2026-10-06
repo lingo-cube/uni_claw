@@ -1,6 +1,7 @@
 using UniClaw.Agent.Dsh;
 using UniClaw.Host;
 using UniClaw.Host.SettingsCoverage;
+using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Runtime;
 using UniClaw.Host.Dsh;
 
@@ -94,23 +95,41 @@ DshAgentAdapter? dshAgent = null;
 DshOpenedDecisionChannel? dshChannel = null;
 DshOpenedHttpPeer? dshPeer = null;
 HostRunner.HostRunResult? result = null;
+UniClaw.Kernel.Capability.CapabilityRegistry? capabilityRegistry = null;
 SettingsCoverageRunner.RunResult? coverageResult = null;
 var productSessionId = $"{(settingsCoverage ? "settings-coverage" : "settings-traversal")}-session-{Guid.NewGuid():N}";
 try
 {
     var config = UniagentProdYaml.LoadDefault();
-    var configuredModel = config.Model;
-    var modelName = Environment.GetEnvironmentVariable("UNICLAW_UNIAGENT_PROD_MODEL")
-        ?? configuredModel.Name;
-    var model = new ModelConfiguration(configuredModel.Provider, modelName);
-    Console.WriteLine($"agent.provider={model.Provider} agent.model={modelName} dsh.endpoint={config.Service.BaseUri}");
+    // CAP-006：模型管理声明为产品能力组件（Kernel 公开缝 ModelManagement）；
+    // 缺省 realization 借用 DSH——binding 从 DSH profile（modelSelection）
+    // 推导注入，决策/slow 模型一律经缝 resolve，不再直连 yaml。
+    var models = DshModelManagement.FromProfile(
+        config, Environment.GetEnvironmentVariable("UNICLAW_UNIAGENT_PROD_MODEL"));
+    var model = DshModelManagement.ResolveDshModel(models, LogicalProfileId.AgentDecision);
+    var slowTextModel = DshModelManagement.ResolveDshModel(models, LogicalProfileId.Text);
+    Console.WriteLine($"agent.provider={model.Provider} agent.model={model.Name} dsh.endpoint={config.Service.BaseUri} model.realization={DshModelManagement.RealizationName}");
     // AGT-017：peer 提前创建，决策通道与 Slow 桥共享同一 attached 会话
     //（/slow 服务端要求 attached 且单飞行）。peer 构造零网络副作用。
     dshPeer = new DshOpenedHttpPeer(config.Service, model: model);
     var slowBridge = new DshSlowConsult(
         (requestId, prompt, slowModel, imagePng, cancellationToken) =>
             dshPeer.ExecuteSlowAsync(requestId, prompt, slowModel, imagePng, cancellationToken),
-        model);
+        slowTextModel);
+    // PER-019：UniPerception 异步 fetch 缝（Host 形状；fetch 界随 slow 配置）。
+    var slowSettings = SettingsCoverageConfig.LoadDefault().SlowSettings;
+    var slowFetchBound = TimeSpan.FromMilliseconds(slowSettings?.BoundedWaitMs ?? 15000);
+    UniClaw.Host.UniPerceptionPipeline.Fetch uniPerceptionFetch =
+        (request, sessionCorrelation, cancellationToken) => slowBridge
+            .FetchAsync(request, sessionCorrelation, slowFetchBound, cancellationToken)
+            .ContinueWith(t => new UniClaw.Host.UniPerceptionFetchResult(
+                t.Result.Status, t.Result.Admitted, t.Result.Proposals,
+                t.Result.SemanticDisposition, t.Result.Diagnostic), TaskScheduler.Default);
+    // PER-019：组合根能力注册（管理面；描述无 provider/model 名）。
+    capabilityRegistry = UniClaw.Host.SettingsCoverage.PerceptionCapabilityComposition.RegisterProductPerception();
+    // CAP-006：管理面声明 uni.model.management（缺省 realization = 借用 DSH 的
+    // dsh-model-management；与上方运行时接线是同一事实）。
+    UniClaw.Host.Capability.ModelManagementCapabilityComposition.RegisterModelManagement(capabilityRegistry);
 
     RunAdb(device, "shell", "am", "start", "-S", "-a", "android.settings.SETTINGS");
     Thread.Sleep(2000);
@@ -146,7 +165,7 @@ try
             Config: coverageConfig,
             UnderlyingConsult: Consult,
             DshSessionIdAccessor: () => dshAgent?.DshSessionId,
-            SlowConsult: slowBridge.Consult));
+            SlowConsult: uniPerceptionFetch));
     }
     else
     {
@@ -168,7 +187,7 @@ try
             SettingsActionPolicy = settingsPolicyConfig.ActionPolicy,
             TargetState = targetState ?? "checked",
             TargetSemanticDescriptor = targetDescriptor,
-            SlowConsult = slowBridge.Consult,
+            UniPerceptionFetch = uniPerceptionFetch,
             Live = new LivePerception.LiveAssets(
                 device,
                 "wifi-settings",
@@ -200,6 +219,25 @@ finally
 if (coverageResult is not null)
 {
     var coverage = coverageResult;
+    // PER-019：组合根注册事实落盘（管理面证据；直接写已知 run dir）。
+    var capabilityFactsDir = coverage.RunDir;
+    if (capabilityRegistry is not null && capabilityFactsDir is not null)
+    {
+        try
+        {
+            System.IO.File.WriteAllText(
+                System.IO.Path.Combine(capabilityFactsDir, "capability-facts.json"),
+                System.Text.Json.JsonSerializer.Serialize(
+                    capabilityRegistry.Facts.Select(f => new
+                    {
+                        f.CapabilityId, f.Version, f.Lifecycle, f.Source, f.Sequence, domain = f.Domain.ToString(),
+                    })));
+        }
+        catch (Exception factsError)
+        {
+            Console.Error.WriteLine($"capability-facts write failed: {factsError.Message}");
+        }
+    }
     Console.WriteLine($"status   : {coverage.Status}" + (coverage.Reason is null ? "" : $" ({coverage.Reason})"));
     Console.WriteLine($"outcome  : {coverage.Outcome ?? "-"}");
     Console.WriteLine($"coverage : {coverage.Report.Status} rate={coverage.Report.CoverageRate:P0} steps={coverage.Steps.Count}");
@@ -221,7 +259,24 @@ Console.WriteLine($"status   : {result.Status}" + (result.Reason is null ? "" : 
 Console.WriteLine($"outcome  : {result.OutcomeClassification ?? "-"}");
 Console.WriteLine($"delivered: {result.DeliveredEffects} [{string.Join(",", result.ReceiptOutcomes)}]");
 Console.WriteLine($"run dir  : {result.RunDir}");
-Console.WriteLine($"digest   : {result.FactsDigest}");
+// PER-019：组合根注册事实落盘（traversal 模式同款）。
+if (capabilityRegistry is not null && result.RunDir is not null)
+{
+    try
+    {
+        System.IO.File.WriteAllText(
+            System.IO.Path.Combine(result.RunDir, "capability-facts.json"),
+            System.Text.Json.JsonSerializer.Serialize(
+                capabilityRegistry.Facts.Select(f => new
+                {
+                    f.CapabilityId, f.Version, f.Lifecycle, f.Source, f.Sequence, domain = f.Domain.ToString(),
+                })));
+    }
+    catch (Exception factsError)
+    {
+        Console.Error.WriteLine($"capability-facts write failed: {factsError.Message}");
+    }
+}
 return HostRunner.ExitCode(result.Status);
 
 static string RepoRoot()

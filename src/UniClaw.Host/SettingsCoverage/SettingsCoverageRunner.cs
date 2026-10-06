@@ -42,8 +42,8 @@ public sealed class SettingsCoverageRunner
         Func<ObservationDirective, RunDriverInput?>? FeedNext = null,
         Func<string?>? CurrentCaptureId = null,
         IEffectDriver? EffectDriver = null,
-        // AGT-017：live Slow 咨询桥（null = 默认回放桩）。
-        Func<SlowConsultationRequest, UniKernel, bool, TimeSpan?, SlowConsultationOutcome>? SlowConsult = null);
+        // PER-019：UniPerception fetch 缝（透传 feed 异步流水；null = slow 关闭）。
+        UniPerceptionPipeline.Fetch? SlowConsult = null);
 
     public sealed record StepArtifact(
         int Index,
@@ -107,7 +107,7 @@ public sealed class SettingsCoverageRunner
             ? new SettingsTraversalLiveFeed(
                 clock, options.Live, evidenceDir,
                 evidenceSettings.PersistScreenshots, evidenceSettings.PersistHierarchies,
-                coverageConfig: config, slowConsult: options.SlowConsult)
+                coverageConfig: config, uniPerceptionFetch: options.SlowConsult)
             : null;
         if (liveFeed is not null)
             WriteText(runDir, "environment-preflight.json", TryJson(new

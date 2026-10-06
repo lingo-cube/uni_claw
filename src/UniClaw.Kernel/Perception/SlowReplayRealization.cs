@@ -1,6 +1,23 @@
+using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Evidence;
 
 namespace UniClaw.Kernel.Perception;
+
+/// <summary>常用的 deterministic replay binding；仍标记 experimental。
+/// CAP-006：binding registry 是公开 <see cref="ModelManagement"/> 产品缝，
+/// replay 只是向它注册的缺省 realization（无 DSH 时的产品缺省）。</summary>
+internal static class SlowReplayProfiles
+{
+    public static ModelManagement CreateDefault() => new(new[]
+    {
+        new ModelBindingSnapshot(LogicalProfileId.Text, "replay", "slow-text-replay",
+            ConfigId: "replay-v1", PipelineRevision: "1", VariantId: "deterministic",
+            Available: true, Experimental: true),
+        new ModelBindingSnapshot(LogicalProfileId.Visual, "replay", "slow-visual-replay",
+            ConfigId: "replay-v1", PipelineRevision: "1", VariantId: "deterministic",
+            Available: true, Experimental: true),
+    });
+}
 
 /// <summary>Deterministic replay response；typed proposals are the only payload.</summary>
 internal sealed record SlowReplayResponse(
@@ -15,13 +32,13 @@ internal sealed record SlowReplayResponse(
 /// </summary>
 internal sealed class DeterministicSlowRealization
 {
-    private readonly SlowModelManagement _models;
+    private readonly ModelManagement _models;
     private readonly Dictionary<string, SlowReplayResponse> _responses = new(StringComparer.Ordinal);
 
     /// <summary>AGT-009：binding 解析来源透传（公开 Slow 缝的 NotConfigured 预检用）。</summary>
-    public SlowModelManagement Models => _models;
+    public ModelManagement Models => _models;
 
-    public DeterministicSlowRealization(SlowModelManagement? models = null)
+    public DeterministicSlowRealization(ModelManagement? models = null)
         => _models = models ?? SlowReplayProfiles.CreateDefault();
 
     public int SemanticInvocationCount { get; private set; }

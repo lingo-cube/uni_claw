@@ -6,6 +6,7 @@ using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using Xunit;
+using UniClaw.Kernel.Capability;
 
 namespace UniClaw.Kernel.Tests.Perception;
 
@@ -173,7 +174,7 @@ public sealed class SlowReplayRealizationTests
     {
         var management = SlowReplayProfiles.CreateDefault();
         var resolution = management.Resolve(new LogicalProfileId("slow.unknown"));
-        Assert.Equal(SlowRoutingStatus.RoutingUnavailable, resolution.Status);
+        Assert.Equal(ModelRoutingStatus.RoutingUnavailable, resolution.Status);
         Assert.Contains("ROUTING_UNAVAILABLE", resolution.Diagnostic);
     }
 
@@ -181,12 +182,12 @@ public sealed class SlowReplayRealizationTests
     public void UnhealthyBinding_IsUnavailableWithoutSilentFallback()
     {
         var profile = LogicalProfileId.Text;
-        var management = new SlowModelManagement(new[]
+        var management = new ModelManagement(new[]
         {
             new ModelBindingSnapshot(profile, "replay", "model", Available: true, Health: false),
         });
         var resolution = management.Resolve(profile);
-        Assert.Equal(SlowRoutingStatus.RoutingUnavailable, resolution.Status);
+        Assert.Equal(ModelRoutingStatus.RoutingUnavailable, resolution.Status);
         Assert.Null(resolution.Binding);
     }
 
@@ -194,7 +195,7 @@ public sealed class SlowReplayRealizationTests
     public void ExplicitFallback_IsRecordedOnResolvedSnapshot()
     {
         var profile = LogicalProfileId.Text;
-        var management = new SlowModelManagement(new[]
+        var management = new ModelManagement(new[]
         {
             new ModelBindingSnapshot(profile, "replay", "primary", Available: false),
         });

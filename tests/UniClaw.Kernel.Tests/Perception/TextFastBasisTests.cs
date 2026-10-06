@@ -5,6 +5,7 @@ using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.Perception.Fusion;
 using UniClaw.Kernel.World;
 using Xunit;
+using UniClaw.Kernel.Capability;
 
 namespace UniClaw.Kernel.Tests.Perception;
 
@@ -96,7 +97,7 @@ public sealed class TextFastBasisTests
             claim, LogicalProfileId.Text, "host.settings-coverage", "slow-trigger:SemanticUnclear",
             capture, context, FastBasis: Basis());
         using var realization = new OpenCodeSlowRealization(
-            new SlowModelManagement(), OpenCodeSlowRealizationOptions.Local());
+            new ModelManagement(), OpenCodeSlowRealizationOptions.Local());
 
         var json = realization.SerializeContext(request);
         using var document = JsonDocument.Parse(json);

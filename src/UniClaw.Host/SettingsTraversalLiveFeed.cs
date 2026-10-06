@@ -71,7 +71,8 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     private readonly bool _persistHierarchies;
     private readonly SettingsCoverageConfig? _coverageConfig;
     private readonly VisionServiceSession.WarmupTiming _warmup;
-    private Func<SlowConsultationRequest, UniKernel, bool, TimeSpan?, SlowConsultationOutcome> _slowConsult;
+    private readonly UniPerceptionPipeline? _uniPerception;
+    private readonly TimeSpan? _slowFetchBound;
     private int _popupPresentStreak;
     private int _slowRequests;
     private int _cycle;
@@ -91,7 +92,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         bool persistScreenshots = true,
         bool persistHierarchies = true,
         SettingsCoverageConfig? coverageConfig = null,
-        Func<SlowConsultationRequest, UniKernel, bool, TimeSpan?, SlowConsultationOutcome>? slowConsult = null)
+        UniPerceptionPipeline.Fetch? uniPerceptionFetch = null)
     {
         _clock = clock;
         _assets = assets;
@@ -101,12 +102,17 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         _persistScreenshots = persistScreenshots;
         _persistHierarchies = persistHierarchies;
         _coverageConfig = coverageConfig;
+        _slowFetchBound = coverageConfig?.SlowSettings is { } slowSettings
+            ? TimeSpan.FromMilliseconds(slowSettings.BoundedWaitMs)
+            : null;
         // Keep service cold-start outside the first Agent observation window.
         // This is a Host lifecycle optimization; the model, protocol and
         // observation payload remain unchanged.
         _warmup = _vision.Warmup();
-        _slowConsult = slowConsult ?? ((request, kernel, effectCritical, boundedWait) =>
-            new SlowConsultation().Consult(request, kernel, effectCritical, boundedWait));
+        _uniPerception = uniPerceptionFetch is null
+            ? null
+            : new UniPerceptionPipeline(uniPerceptionFetch,
+                coverageConfig?.SlowSettings?.MaxRequestsPerRun ?? 4);
     }
 
     public IReadOnlyList<TraceEntry> Trace => _trace;
@@ -117,11 +123,9 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     /// 未注入或 Slow 关闭时不发起咨询。</summary>
     internal Func<UniKernel?>? KernelProvider { get; set; }
 
-    /// <summary>AGT-009：测试缝——替换默认 SlowConsultation 组合（确定性桩）。</summary>
-    internal Func<SlowConsultationRequest, UniKernel, bool, TimeSpan?, SlowConsultationOutcome> SlowConsultOverride
-    {
-        set => _slowConsult = value;
-    }
+    /// <summary>PER-019：UniPerception 异步流水（null = slow 关闭）。晚到结果在
+    /// 驱动线程经 LandSlow 投影（IsLate 语义），路由已变诚实丢弃。</summary>
+    internal UniPerceptionPipeline? UniPerception => _uniPerception;
 
     public RunDriverInput? Next(ObservationDirective directive)
     {
@@ -183,12 +187,36 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         if (popupProposal is not null)
             proposals.Add(popupProposal);
 
-        // AGT-009 §8：有界 Slow 触发（默认关闭；预算/超时/config 三重收口）。
-        var slowTrace = ConsultSlowIfTriggered(
-            trigger: DeriveSlowTrigger(
-                xmlResult.Xml is not null, fastAvailable, CountClickableNodes(xmlResult.Xml), routeKey,
-                UpdatePopupStreak(popupState), _coverageConfig?.SlowSettings),
-            captureId, observationCycleId, capture.Artifact.Payload, fastAvailable, fastBasis);
+        // PER-019：UniPerception 异步流水——先结算上一批（晚到/丢弃/超时），
+        // 再非阻塞发射本周期触发（Fast+XML 已先行入世界模型，slow 不阻塞周期）。
+        var slowTokens = new List<string>();
+        if (_uniPerception is not null)
+            slowTokens.AddRange(_uniPerception.Poll(LandSlow, routeKey));
+        var trigger = DeriveSlowTrigger(
+            xmlResult.Xml is not null, fastAvailable, CountClickableNodes(xmlResult.Xml), routeKey,
+            UpdatePopupStreak(popupState), _coverageConfig?.SlowSettings);
+        if (trigger is not null && _uniPerception is not null && _coverageConfig?.SlowSettings is { Enabled: true } slowOn)
+        {
+            var kernel = KernelProvider?.Invoke();
+            if (kernel is null)
+                slowTokens.Add($"{trigger}|Skipped|kernel-unavailable");
+            else
+            {
+                var sessionCorrelation = string.IsNullOrWhiteSpace(kernel.RunId)
+                    ? "host.settings-coverage"
+                    : kernel.RunId;
+                // PER-019 修正：text 档 basis 的 SessionCorrelation 以当前 run 对齐
+                // （capture 时的值 ≠ run 相关性 → 门控 Misaligned；AGT-017 旧路径同款）。
+                if (fastBasis is not null && !slowOn.VisualEnabled)
+                    fastBasis = fastBasis with { SessionCorrelation = sessionCorrelation };
+                var request = BuildSlowRequest(
+                    trigger, slowOn.VisualEnabled, slowOn.VisualEnabled ? capture.Artifact.Payload : null,
+                    captureId, _clock.Now, observationCycleId, fastBasis);
+                slowTokens.Add(_uniPerception.Dispatch(
+                    request, sessionCorrelation, routeKey, trigger, _slowFetchBound));
+            }
+        }
+        var slowTrace = slowTokens.Count == 0 ? null : string.Join("; ", slowTokens);
         if (xmlResult.Xml is not null)
         {
             var api = UiAutomatorDump.TryGetApiLevel(_assets.DeviceId);
@@ -459,40 +487,49 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         return _popupPresentStreak;
     }
 
-    /// <summary>AGT-009 §8 — 有界 Slow 咨询：config 关闭/预算尽/kernel 不可得 →
-    /// 不发起；否则 build request → Consult（有界等待，永不阻塞周期）；
-    /// 超时/未配置 → trace + 继续（Defer/Unknown 语义）。本路径零 Effect。</summary>
-    private string? ConsultSlowIfTriggered(
-        string? trigger, string captureId, string observationCycleId, byte[] screenshot,
-        bool fastAvailable, FastTextBasis? fastBasis = null)
+    /// <summary>PER-019 — 晚到落成投影（驱动线程）：fetch 结果 → kernel.Process
+    /// （P2 公开缝），producer uni.perception，lineage 携 capture/request/reason/
+    /// fast-basis 关联与 late 标记；disposition（非权威）入 trace。</summary>
+    private string LandSlow(
+        Kernel.Perception.SlowConsultationRequest request,
+        UniPerceptionFetchResult result)
     {
-        if (trigger is null)
-            return null;
-        var slow = _coverageConfig?.SlowSettings;
-        if (slow is not { Enabled: true } || _slowRequests >= slow.MaxRequestsPerRun)
-            return $"{trigger}|Skipped";
         var kernel = KernelProvider?.Invoke();
         if (kernel is null)
-            return $"{trigger}|Skipped";
-        _slowRequests++;
-        // Visual Slow is backed by this cycle's raw artifact and has no Fast
-        // YOLO/OCR prerequisite. Fast availability only influences the trigger
-        // classification; it must never gate the independent Visual path.
-        var visual = slow.VisualEnabled;
-        if (!visual && fastBasis is not null)
+            return $"{TokenFromReason(request.Reason)}|Dropped|kernel-unavailable";
+        var lineage = new List<string>
         {
-            var sessionCorrelation = string.IsNullOrWhiteSpace(kernel.RunId)
-                ? "host.settings-coverage"
-                : kernel.RunId;
-            fastBasis = fastBasis with { SessionCorrelation = sessionCorrelation };
+            "real-model",
+            "capture:" + request.CaptureId,
+            "request:" + request.RequestId,
+            "reason:" + request.Reason,
+        };
+        if (request.FastBasis is { } basis)
+            lineage.Add("basis:" + basis.CaptureId);
+        lineage.Add("late");
+        var projected = 0;
+        foreach (var (subject, value) in result.Proposals)
+        {
+            kernel.Process(new ObservationProposal(
+                new ObservationClaim(subject, value),
+                IngressKind.Observation,
+                ObservationContext.External,
+                new Provenance(
+                    "uni.perception", request.CaptureTimestamp,
+                    $"scope:slow:{request.ObservationCycleId}", lineage)));
+            projected++;
         }
-        var request = BuildSlowRequest(trigger, visual, screenshot, captureId,
-            fastBasis?.CaptureTimestamp ?? _clock.Now, observationCycleId, fastBasis);
-        var outcome = _slowConsult(request, kernel, false,
-            TimeSpan.FromMilliseconds(slow.BoundedWaitMs));
-        return FormatSlowTrace(trigger, outcome);
+        var disposition = string.IsNullOrWhiteSpace(result.SemanticDisposition)
+            ? "n/a"
+            : result.SemanticDisposition;
+        return $"{TokenFromReason(request.Reason)}|Landed|projected={projected}"
+            + $"|disposition={disposition}|late";
     }
 
+    private static string TokenFromReason(string? reason) =>
+        reason is not null && reason.StartsWith("slow-trigger:", StringComparison.Ordinal)
+            ? reason["slow-trigger:".Length..]
+            : reason ?? "Unknown";
     private FastTextBasis? TryFast(byte[] png, string captureId, string observationCycleId,
         DateTimeOffset captureTime)
     {

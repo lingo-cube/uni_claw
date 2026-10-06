@@ -1,0 +1,1 @@
+[{"CapabilityId":"uni.perception","Version":"1.0.0","Lifecycle":1,"Source":"product-composition-root","Sequence":1,"domain":"Product"},{"CapabilityId":"slow.visual","Version":"1.0.0","Lifecycle":1,"Source":"product-composition-root","Sequence":2,"domain":"Product"}]

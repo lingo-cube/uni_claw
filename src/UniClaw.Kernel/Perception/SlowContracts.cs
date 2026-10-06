@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
+using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception.Fusion;
 using UniClaw.Kernel.Perception.UiHierarchy;
@@ -12,14 +13,8 @@ internal sealed record RequiredClaim(string Subject, string Field)
     public bool IsValid => !string.IsNullOrWhiteSpace(Subject) && !string.IsNullOrWhiteSpace(Field);
 }
 
-/// <summary>产品拥有的逻辑 profile 标识，concrete provider 绑定不在此处决定。</summary>
-internal readonly record struct LogicalProfileId(string Value)
-{
-    public static LogicalProfileId Text => new("slow.semantic.text");
-    public static LogicalProfileId Visual => new("slow.semantic.visual");
-    public bool IsValid => !string.IsNullOrWhiteSpace(Value);
-    public override string ToString() => Value;
-}
+// CAP-006：LogicalProfileId / ModelBindingSnapshot 已公开化为产品 Model Management
+// 能力组件（UniClaw.Kernel.Capability），此处经 using 消费，不再有第二份定义。
 
 /// <summary>一次语义调用的 correlation key。transport retry 不产生新的 key。</summary>
 internal sealed record SlowAttemptKey(
@@ -201,26 +196,6 @@ internal static class EvidenceContextBuilder
         if (distinct.Length > budget) return EvidenceContext.ContextInsufficient(claim, budget);
         return new EvidenceContext(claim, distinct, layout, semantic, conflict, exclusions, budget);
     }
-}
-
-/// <summary>realization 在启动时解析出的冻结 concrete binding。</summary>
-internal sealed record ModelBindingSnapshot(
-    LogicalProfileId LogicalProfile,
-    string ProviderId,
-    string ModelId,
-    string? ConfigId = null,
-    string? PipelineRevision = null,
-    string? DeploymentId = null,
-    string? VariantId = null,
-    bool Available = true,
-    bool Experimental = true,
-    string? FallbackFrom = null,
-    string SchemaVersion = "slow.binding.v1",
-    bool Health = true)
-{
-    public bool IsValid => LogicalProfile.IsValid && !string.IsNullOrWhiteSpace(ProviderId)
-        && !string.IsNullOrWhiteSpace(ModelId)
-        && !string.IsNullOrWhiteSpace(SchemaVersion);
 }
 
 internal enum SlowExecutionStatus

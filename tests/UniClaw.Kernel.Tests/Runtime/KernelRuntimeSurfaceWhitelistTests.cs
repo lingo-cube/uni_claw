@@ -80,7 +80,16 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Capability.InspectorCoverage",
             "UniClaw.Kernel.Capability.InspectorInputState",
             "UniClaw.Kernel.Capability.LanguageInspectorRequest",
+            // CAP-006 增集（5）：Model Management 产品能力组件公开化——
+            // LogicalProfileId（+AgentDecision 值）/ ModelBindingResolution /
+            // ModelBindingSnapshot / ModelManagement / ModelRoutingStatus。
+            // 语义自 internal SlowModelManagement 冻结；DSH 只经 Register 注入。
+            "UniClaw.Kernel.Capability.LogicalProfileId",
             "UniClaw.Kernel.Capability.MeasurementSample",
+            "UniClaw.Kernel.Capability.ModelBindingResolution",
+            "UniClaw.Kernel.Capability.ModelBindingSnapshot",
+            "UniClaw.Kernel.Capability.ModelManagement",
+            "UniClaw.Kernel.Capability.ModelRoutingStatus",
             "UniClaw.Kernel.Capability.ObservationTextItem",
             "UniClaw.Kernel.Capability.OperationMeasurementPair",
             "UniClaw.Kernel.Capability.OperationMeasurementStage",

@@ -1,3 +1,4 @@
+using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Evidence;
 
 namespace UniClaw.Kernel.Perception;
