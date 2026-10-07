@@ -12,6 +12,7 @@ binding 注入。语义权威在 Kernel/Agent，本目录只做宿主映射—�
 | `Program.cs` | DSH Host 入口：配置装载、ModelManagement 组合（经 `UniClaw.Agent.Dsh` 的 DshModelManagement/UniagentProdYaml）、HostRunner 装配 |
 | `RuntimeHttpServer.cs` | runtime-http 组合根（RuntimeRunStore 投影消费；模型 resolve 同经产品缝） |
 | `RuntimeToolHost.cs` | Harness 工具暴露清单在 Runtime 的宿主落点（PNL-008 / ADR-0039） |
+| `RuntimeToolConfig.cs` | Runtime Host 工具执行的本地配置/产出路径（PNL-010） |
 
 `evidence/`、`runs/` 为运行产物目录，非源码。
 
