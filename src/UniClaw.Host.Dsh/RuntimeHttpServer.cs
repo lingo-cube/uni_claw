@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json.Serialization;
 using UniClaw.Agent.Dsh;
 using UniClaw.Host;
+using UniClaw.Host.Capability;
 using UniClaw.Host.Runtime;
 using UniClaw.Host.SettingsCoverage;
 using UniClaw.Kernel.Capability;
@@ -58,6 +59,9 @@ public sealed class RuntimeHttpServer
         // Kept for PNL-004 compatibility. Recovery semantics are intentionally
         // not part of PNL-005 and will be replaced by a later Change.
         app.MapPost("/api/uniclaw-runtime/runs/recover", server.RecoverAsync);
+        // PNL-008 / ADR-0039：Harness 工具暴露面（只读投影 + adapter 执行）。
+        app.MapGet("/api/uniclaw-runtime/tools", server.GetToolsAsync);
+        app.MapPost("/api/uniclaw-runtime/tools/{name}/invoke", server.InvokeToolAsync);
         return server;
     }
 
@@ -214,15 +218,33 @@ public sealed class RuntimeHttpServer
         {
             RunAdb(device, "shell", "am", "start", "-S", "-a", "android.settings.WIFI_SETTINGS");
             await Task.Delay(1500).ConfigureAwait(false);
-            AgentDecision? Consult(AgentDecisionContext context) => agent.Consult(context);
+            LanguageInspectionSelection? agentLanguageInspectionSelection = null;
+            AgentDecision? ConsultWithCapabilitySelection(AgentDecisionContext context)
+            {
+                var decision = agent.Consult(context);
+                if (agentLanguageInspectionSelection is null
+                    && agent.TakeInitialTaskInitialization()?.CapabilitySelection is { } selection)
+                {
+                    agentLanguageInspectionSelection = new LanguageInspectionSelection(
+                        selection.CapabilityId,
+                        selection.ExpectedLanguage ?? string.Empty,
+                        selection.IgnoreRoutes);
+                }
+                return decision;
+            }
             var settingsPolicyConfig = SettingsCoverageConfig.LoadDefault();
+            var runtimeIntegrationRegistry = RuntimeIntegrationCapabilityComposition
+                .RegisterLanguageInspector();
             var result = HostRunner.RunOnce(_runsRoot, new HostRunner.HostOptions
             {
                 DeviceId = device,
-                ConsultAgent = Consult,
+                ConsultAgent = ConsultWithCapabilitySelection,
                 SettingsTraversal = true,
                 SettingsActionPolicy = settingsPolicyConfig.ActionPolicy,
                 Launch = launch,
+                LanguageInspection = settingsPolicyConfig.LanguageInspectionRequest,
+                LanguageInspectionSelectionProvider = () => agentLanguageInspectionSelection,
+                RuntimeIntegrationCapabilities = runtimeIntegrationRegistry,
                 Live = new LivePerception.LiveAssets(
                     device,
                     "wifi-settings",
@@ -267,6 +289,83 @@ public sealed class RuntimeHttpServer
             ? Results.Ok(Response(run))
             : Error(StatusCodes.Status404NotFound, "runtime-run-not-found", "no Runtime run matches launchId/idempotencyKey", retryable: false));
     }
+
+    private RuntimeToolHost? _toolHost;
+    private RuntimeToolHost ToolHost()
+    {
+        if (_toolHost is null)
+        {
+            var registry = Path.Combine(RepoRoot(), "tool-registry.yaml");
+            if (!File.Exists(registry))
+                throw new InvalidOperationException($"tool-registry-missing: {registry}");
+            _toolHost = RuntimeToolHost.Load(registry);
+        }
+        return _toolHost;
+    }
+
+    private Task<IResult> GetToolsAsync()
+    {
+        try
+        {
+            var tools = ToolHost().ForSurface("workbench").Select(tool => new
+            {
+                name = tool.Name,
+                summary = tool.Summary,
+                invocation = tool.Invocation,
+                posture = tool.Posture,
+                status = tool.Status,
+                outputSchema = tool.OutputSchema,
+                consumes = tool.Consumes,
+            });
+            return Task.FromResult<IResult>(Results.Ok(new
+            {
+                schemaVersion = "uniclaw.workspace.runtime-tools-response.v1",
+                contractVersion = ContractVersion,
+                ok = true,
+                tools,
+            }));
+        }
+        catch (InvalidOperationException ex) when (ex.Message.StartsWith("tool-registry-missing"))
+        {
+            return Task.FromResult<IResult>(Error(StatusCodes.Status503ServiceUnavailable, "tool-registry-missing", ex.Message["tool-registry-missing".Length..].Trim(), retryable: false));
+        }
+    }
+
+    private async Task<IResult> InvokeToolAsync(string name, ToolInvokeRequest? request)
+    {
+        if (request is null || string.IsNullOrWhiteSpace(request.RunDir))
+            return Error(StatusCodes.Status400BadRequest, "invalid-request", "body with runDir is required", retryable: false);
+        try
+        {
+            var result = await ToolHost().InvokeAsync(name, _runsRoot, request.RunDir.Trim());
+            return Results.Ok(new
+            {
+                schemaVersion = "uniclaw.workspace.runtime-tool-invoke-response.v1",
+                contractVersion = ContractVersion,
+                ok = result.Ok,
+                tool = name,
+                result = new
+                {
+                    exitCode = result.ExitCode,
+                    stdoutTail = result.StdoutTail,
+                    stderrTail = result.StderrTail,
+                    reportJson = result.ReportJson,
+                    reportMd = result.ReportMd,
+                },
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            var status = ex.Message.StartsWith("tool-not-found", StringComparison.Ordinal)
+                ? StatusCodes.Status404NotFound
+                : StatusCodes.Status400BadRequest;
+            var code = ex.Message.Split(':', 2)[0];
+            var message = ex.Message.Contains(':') ? ex.Message[(ex.Message.IndexOf(':') + 1)..].Trim() : ex.Message;
+            return Error(status, code, message, retryable: false);
+        }
+    }
+
+    public sealed record ToolInvokeRequest(string? RunDir = null);
 
     private static object Response(RuntimeRunStore.RuntimeRunProjection run, bool idempotent = false) => new
     {

@@ -13,6 +13,7 @@
     <Project Path="tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj" />
     <Project Path="tests/UniClaw.FileSystemRealization.Tests/UniClaw.FileSystemRealization.Tests.csproj" />
     <Project Path="tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj" />
+    <Project Path="tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj" />
     <Project Path="tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj" />
     <Project Path="tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj" />
   </Folder>
