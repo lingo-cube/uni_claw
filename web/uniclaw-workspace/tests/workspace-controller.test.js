@@ -192,3 +192,41 @@ test('trace node inspection opens a local detail modal without fetching the whol
   assert.equal(state.detail.detail.format, 'trace-record');
   assert.equal(state.detail.detail.record.source, 'uniflow');
 });
+
+// PNL-008：工具面板状态机（loadTools / setToolsRunDir / generateReport）。
+test('tools pane loads registry tools and generates a report through ToolInvoke', async () => {
+  const calls = [];
+  const capabilities = createStandaloneFixtureCapabilities({ fixture: fixture(), revision: 1 });
+  const c = createWorkspaceController({
+    queryCore: new WorkspaceQueryCore({
+      ...capabilities,
+      ToolInvoke: Object.freeze({
+        listTools: async () => { calls.push('listTools'); return { ok: true, data: { tools: [{ name: 'run-report', status: 'implemented' }, { name: 'run-diagnosis', status: 'planned' }] }, observedAt: '2026-10-06T12:00:00Z' }; },
+        invokeTool: async (name, request) => { calls.push(['invokeTool', name, request.runDir]); return { ok: true, data: { ok: true, tool: name, result: { exitCode: 0, stdoutTail: 'WROTE', stderrTail: '', reportJson: 'run-1/report/report.json', reportMd: 'run-1/report/report.md' } }, observedAt: '2026-10-06T12:00:01Z' }; },
+      }),
+    }),
+  });
+  await c.loadTools();
+  assert.equal(c.getState().tools.status, 'ready');
+  assert.deepEqual(c.getState().tools.items.map((tool) => tool.name), ['run-report', 'run-diagnosis']);
+
+  c.setToolsRunDir('run-1');
+  c.selectPane('tools');
+  assert.equal(c.getState().ui.activePane, 'tools');
+  await c.generateReport();
+  const report = c.getState().report;
+  assert.equal(report.status, 'ready');
+  assert.equal(report.data.result.reportMd, 'run-1/report/report.md');
+  assert.deepEqual(calls, ['listTools', ['invokeTool', 'run-report', 'run-1']]);
+});
+
+test('generateReport is a no-op without a run dir and errors without ToolInvoke', async () => {
+  const capabilities = createStandaloneFixtureCapabilities({ fixture: fixture(), revision: 1 });
+  const c = createWorkspaceController({ queryCore: new WorkspaceQueryCore(capabilities) });
+  await c.generateReport();
+  assert.equal(c.getState().report.status, 'idle');
+  c.setToolsRunDir('run-2');
+  await c.generateReport();
+  assert.equal(c.getState().report.status, 'error');
+  assert.equal(c.getState().report.errors[0].code, 'unavailable');
+});

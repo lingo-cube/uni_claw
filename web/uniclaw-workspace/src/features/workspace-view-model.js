@@ -14,6 +14,7 @@ function createWorkspaceViewModel(input, options = {}) {
   const session = state.session && state.session.session;
   const metadata = mergeMetadata(selectedTask, session);
   const notices = collectNotices(state, selectedTask);
+  const toolsState = page(state.tools || { status: 'idle', items: [], errors: [] });
 
   return {
     navigation: {
@@ -46,6 +47,13 @@ function createWorkspaceViewModel(input, options = {}) {
     conversationTimeline: timelinePane(state.timeline, session),
     tracePane: { ...groupedPane(state.traces, 'traces', (item) => item.source || 'unknown'), mode: state.ui && state.ui.traceMode === 'split' ? 'split' : 'combined', selectedSource: state.ui && state.ui.traceSource || 'all' },
     evidencePane: evidencePane(state.evidence),
+    toolsPane: {
+      status: toolsState.status,
+      items: toolsState.items,
+      errors: toolsState.errors,
+      runDir: state.ui && state.ui.toolsRunDir || '',
+      report: clone(state.report || { status: 'idle', data: null, errors: [] })
+    },
     executionPane: executionPane((state.session && state.session.session) || null),
     metadataPane: { status: state.session && state.session.status || 'idle', items: metadata, claims: metadataClaims(selectedTask, session), ...launchProjection(selectedTask, session), errors: errorsOf(state.session) },
     launchComposer: {

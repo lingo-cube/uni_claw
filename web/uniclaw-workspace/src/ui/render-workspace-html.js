@@ -48,6 +48,7 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
       <div class="workspace-pane-tabs" role="tablist" aria-label="任务信息标签页">
         ${renderTabButton('trace', 'Trace', activePane)}
         ${renderTabButton('evidence', 'Evidence', activePane)}
+        ${renderTabButton('tools', '工具', activePane)}
       </div>
       <div class="workspace-diagnostics-slot"><span><strong>诊断入口</strong><small>Skill 接入后可分析当前任务</small></span><button type="button" class="workspace-diagnostics-action" data-workspace-action="diagnose-task" disabled aria-disabled="true">诊断当前任务</button></div>
     </section>
@@ -57,6 +58,7 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
         <div class="workspace-tab-panels">
           ${renderTabPanel('trace', activePane, renderTracePane(vm.tracePane))}
           ${renderTabPanel('evidence', activePane, renderEvidencePane(vm.evidencePane))}
+          ${renderTabPanel('tools', activePane, renderToolsPane(vm.toolsPane))}
         </div>
       </div>
     </section>
@@ -194,6 +196,13 @@ function formatSpanDuration(item = {}) {
 
 function renderEvidencePane(pane = {}) {
   return `<section class="workspace-pane workspace-pane--evidence" data-pane="evidence"><h3>Evidence</h3>${(pane.items || []).map((item) => { const action = item.detailAction || {}; return `<article class="workspace-evidence-card" data-correlation-status="${escapeHtml(item.correlationStatus || '')}"><h4>${text(item.title, '未命名证据')}</h4><p>${text(item.source, '未知来源')}</p>${action.enabled && action.detailRef ? `<button type="button" class="workspace-detail-action" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(action.detailRef.refId || action.detailRef)}">查看明细</button>` : `<button type="button" class="workspace-detail-action" disabled aria-disabled="true">${text(action.reason, '详情不可用')}</button>`}${item.error ? `<p class="workspace-error">${text(item.error.message || item.error.code)}</p>` : ''}</article>`; }).join('')}</section>`;
+}
+function renderToolsPane(pane = {}) {
+  const rows = (pane.items || []).map((tool) => `<tr><td><code>${text(tool.name)}</code></td><td>${text(tool.summary)}</td><td>${text(tool.invocation)}</td><td>${text(tool.posture)}</td><td>${status(tool.status)}</td></tr>`).join('');
+  const report = pane.report || {};
+  const result = report.data && report.data.result ? report.data.result : null;
+  const resultBlock = report.status === 'idle' ? '' : `<div class="workspace-tools-result"><strong>生成结果</strong>${report.errors && report.errors.length ? `<ul class="workspace-notice__list">${errorText(report.errors)}</ul>` : ''}${result ? `<p>exitCode=${text(result.exitCode)}${result.reportMd ? ` · <code>${text(result.reportMd)}</code>` : ''}${result.reportJson ? ` · <code>${text(result.reportJson)}</code>` : ''}</p>${result.stderrTail ? `<pre class="workspace-tools-stderr">${text(result.stderrTail)}</pre>` : ''}` : (report.status === 'loading' ? '<p>生成中…</p>' : '')}</div>`;
+  return `<section class="workspace-pane workspace-pane--tools" data-pane="tools"><h3>工具</h3><p class="workspace-tools-note">Harness 工具暴露清单（tool-registry.yaml / ADR-0039）。</p><table class="workspace-tools-table"><thead><tr><th>名称</th><th>说明</th><th>调用形态</th><th>姿态</th><th>状态</th></tr></thead><tbody>${rows || '<tr><td colspan="5">未加载</td></tr>'}</tbody></table><div class="workspace-tools-invoke"><label for="workspace-tools-run-dir">Run 目录（runs 根下的目录名）</label><input id="workspace-tools-run-dir" type="text" data-workspace-tools-run-dir value="${text(pane.runDir)}" placeholder="run-20261003-075727-844"><button type="button" class="workspace-launch-action" data-workspace-action="generate-report"${pane.runDir && pane.runDir.trim() && report.status !== 'loading' ? '' : ' disabled aria-disabled="true"'}>${report.status === 'loading' ? '生成中…' : '生成全链路报告'}</button></div>${resultBlock}</section>`;
 }
 function renderMetadataPane(pane = {}) {
   const items = pane.items || {};

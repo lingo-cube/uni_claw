@@ -141,6 +141,32 @@ class WorkspaceQueryCore {
     return { status: 'ready', data: result.data || {}, errors: [], ...this.#envelope(result) };
   }
 
+  // PNL-008 / ADR-0039：ToolInvoke 可选能力（与 TaskCommand 同款优雅降级）。
+  async listTools() {
+    const capability = this.capabilities.ToolInvoke;
+    if (!capability || typeof capability.listTools !== 'function') return { status: 'error', items: [], errors: [queryError('unavailable', '当前 Host 未提供工具调用能力', 'ToolInvoke')] };
+    let result;
+    try { result = await capability.listTools(); } catch (error) { return { status: 'error', items: [], errors: [queryError('unavailable', error instanceof Error ? error.message : '工具列表获取失败', 'ToolInvoke')] }; }
+    if (!result || result.ok === false) {
+      const error = result?.error || queryError('unavailable', '工具列表返回无效结果', 'ToolInvoke');
+      return { status: 'error', items: [], errors: [error], ...this.#envelope(result || {}) };
+    }
+    const items = Array.isArray(result.data?.tools) ? result.data.tools : [];
+    return { status: 'ready', items, errors: [], ...this.#envelope(result) };
+  }
+
+  async invokeTool(name, request = {}) {
+    const capability = this.capabilities.ToolInvoke;
+    if (!capability || typeof capability.invokeTool !== 'function') return { status: 'error', errors: [queryError('unavailable', '当前 Host 未提供工具调用能力', 'ToolInvoke')] };
+    let result;
+    try { result = await capability.invokeTool(name, request); } catch (error) { return { status: 'error', errors: [queryError('unavailable', error instanceof Error ? error.message : '工具调用失败', 'ToolInvoke')] }; }
+    if (!result || result.ok === false) {
+      const error = result?.error || queryError('unavailable', '工具调用返回无效结果', 'ToolInvoke');
+      return { status: 'error', errors: [error], ...this.#envelope(result || {}) };
+    }
+    return { status: 'ready', data: result.data || {}, errors: [], ...this.#envelope(result) };
+  }
+
   async resolveDetail(detailRef, request = {}) {
     if (!detailRef || typeof detailRef.refId !== 'string') {
       return { status: 'error', errors: [queryError('not-found', 'DetailRef is required', 'workspace')] };

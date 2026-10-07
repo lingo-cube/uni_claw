@@ -5,12 +5,14 @@ function createWorkspaceController({ queryCore } = {}) {
   const state = {
     projects: idlePage('projects'),
     selection: { projectId: null, productSessionId: null },
-    ui: { activePane: 'trace', traceMode: 'combined', traceSource: 'all', detailReturnPane: 'trace', detailModalOpen: false, launchComposer: { open: false, projectId: null, requirement: '', deviceOverrideEnabled: false, deviceOverride: null, requirementDocument: null, documentError: null } },
+    ui: { activePane: 'trace', traceMode: 'combined', traceSource: 'all', detailReturnPane: 'trace', detailModalOpen: false, toolsRunDir: '', launchComposer: { open: false, projectId: null, requirement: '', deviceOverrideEnabled: false, deviceOverride: null, requirementDocument: null, documentError: null } },
     session: idleData('session'),
     timeline: idlePage('timeline'),
     traces: idlePage('traces'),
     evidence: idlePage('evidence'),
+    tools: idlePage('tools'),
     detail: idleData('detail'),
+    report: { status: 'idle', data: null, errors: [] },
     launch: { status: 'idle', data: null, errors: [] }
   };
   const tokens = new Map();
@@ -97,6 +99,31 @@ function createWorkspaceController({ queryCore } = {}) {
   async function loadEvidence(productSessionId = selected()) {
     return readSelected('evidence', productSessionId, () => queryCore.getEvidence(productSessionId), applyPage);
   }
+  async function loadTools() {
+    if (state.tools.status === 'loading') return publish();
+    return action('tools', async (token) => {
+      setLoading('tools');
+      const result = await queryCore.listTools();
+      const items = result.ok === false ? [] : (result.items || []);
+      return applyPage('tools', { status: result.status || (result.errors?.length ? 'error' : 'ready'), items, errors: result.errors || [] }, token);
+    });
+  }
+  function setToolsRunDir(value) {
+    state.ui.toolsRunDir = typeof value === 'string' ? value : '';
+    return publish();
+  }
+  async function generateReport() {
+    const runDir = (state.ui.toolsRunDir || '').trim();
+    if (!runDir) return publish();
+    return action('report', async (token) => {
+      state.report = { status: 'loading', data: null, errors: [] };
+      publish();
+      const result = await queryCore.invokeTool('run-report', { runDir });
+      if (!current('report', token)) return publish();
+      state.report = { status: result.status || (result.errors?.length ? 'error' : 'ready'), data: result.data || null, errors: result.errors || [] };
+      return publish();
+    });
+  }
   async function launchTask(request = {}) {
     if (typeof queryCore.launchTask !== 'function') {
       state.launch = { status: 'error', data: null, errors: [{ code: 'unavailable', message: '当前 Host 未提供任务发起能力', retryable: false, source: 'TaskCommand' }] };
@@ -152,7 +179,7 @@ function createWorkspaceController({ queryCore } = {}) {
     return applyData('detail', result, token);
   }
   function selectPane(pane) {
-    const allowed = ['trace', 'evidence', 'detail'];
+    const allowed = ['trace', 'evidence', 'tools', 'detail'];
     state.ui.activePane = allowed.includes(pane) ? pane : 'trace';
     if (pane === 'detail') state.ui.detailModalOpen = true;
     return publish();
@@ -193,6 +220,7 @@ function createWorkspaceController({ queryCore } = {}) {
   return Object.freeze({
     loadProjects, selectProject, selectTaskInstance, loadSession, loadTimeline,
     loadTraces, loadEvidence, launchTask, openLaunchComposer, setLaunchRequirement, setLaunchDeviceOverride, setLaunchDocument, setLaunchDocumentError, closeLaunchComposer, resolveDetail, inspectTrace, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
+    loadTools, setToolsRunDir, generateReport,
     getState: () => clone(state)
   });
 

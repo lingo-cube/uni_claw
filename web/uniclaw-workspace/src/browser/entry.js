@@ -212,7 +212,11 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
       } else if (action === 'close-launch-composer') {
         controller.closeLaunchComposer();
       } else if (action === 'select-pane') {
-        controller.selectPane(target.getAttribute('data-pane-tab'));
+        const paneTab = target.getAttribute('data-pane-tab');
+        controller.selectPane(paneTab);
+        if (paneTab === 'tools' && app.getState().tools?.status === 'idle') void controller.loadTools();
+      } else if (action === 'generate-report') {
+        void controller.generateReport();
       } else if (action === 'select-trace-mode') {
         controller.selectTraceMode(target.getAttribute('data-trace-mode'));
       } else if (action === 'select-trace-source') {
@@ -238,6 +242,7 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
     container.addEventListener('input', (event) => {
       const target = event.target;
       if (target && target.matches && target.matches('[data-workspace-launch-requirement]')) controller.setLaunchRequirement(target.value);
+      if (target && target.matches && target.matches('[data-workspace-tools-run-dir]')) controller.setToolsRunDir(target.value);
       if (target && target.matches && target.matches('[data-workspace-launch-device]') && target.value) controller.setLaunchDeviceOverride(true, target.value);
     });
     container.addEventListener('change', (event) => {

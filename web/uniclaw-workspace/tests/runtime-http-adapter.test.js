@@ -103,3 +103,44 @@ test('converts Runtime HTTP business errors to shared query errors', async () =>
   assert.equal(result.error.code, 'not-found');
   assert.equal(result.error.source, 'uniclaw-runtime');
 });
+
+// PNL-008：ToolInvoke capability（工具暴露面）。
+test('runtime-http adapter exposes ToolInvoke list and invoke with envelope shape', async () => {
+  const calls = [];
+  const fetchImpl = async (url, init = {}) => {
+    calls.push({ url, init });
+    if (url.endsWith('/api/uniclaw-runtime/tools')) {
+      return { ok: true, status: 200, json: async () => ({ schemaVersion: 'uniclaw.workspace.runtime-tools-response.v1', contractVersion: 'uniclaw.workspace.contract.v1', ok: true, tools: [{ name: 'run-report', summary: '全链路报告', invocation: 'deterministic-script', posture: 'local-write', status: 'implemented' }] }) };
+    }
+    return { ok: true, status: 200, json: async () => ({ schemaVersion: 'uniclaw.workspace.runtime-tool-invoke-response.v1', contractVersion: 'uniclaw.workspace.contract.v1', ok: true, tool: 'run-report', result: { exitCode: 0, stdoutTail: 'WROTE', stderrTail: '', reportJson: 'run-x/report/report.json', reportMd: 'run-x/report/report.md' } }) };
+  };
+  const capabilities = createRuntimeHttpCapabilities({ baseUrl: 'http://runtime.local/', fetchImpl });
+  assert.equal(typeof capabilities.ToolInvoke.listTools, 'function');
+  assert.equal(typeof capabilities.ToolInvoke.invokeTool, 'function');
+
+  const core = new WorkspaceQueryCore(capabilities);
+  const listed = await core.listTools();
+  assert.equal(listed.status, 'ready');
+  assert.equal(listed.items[0].name, 'run-report');
+
+  const invoked = await core.invokeTool('run-report', { runDir: 'run-x' });
+  assert.equal(invoked.status, 'ready');
+  assert.equal(invoked.data.result.exitCode, 0);
+  assert.equal(invoked.data.result.reportMd, 'run-x/report/report.md');
+  assert.match(calls[1].url, /\/tools\/run-report\/invoke$/);
+  assert.equal(JSON.parse(calls[1].init.body).runDir, 'run-x');
+  assert.equal(calls[1].init.method, 'POST');
+});
+
+test('core degrades gracefully when ToolInvoke capability is absent', async () => {
+  const capabilities = createRuntimeHttpCapabilities({
+    baseUrl: 'http://runtime.local/',
+    fetchImpl: async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }),
+  });
+  const core = new WorkspaceQueryCore({ ...capabilities, ToolInvoke: undefined });
+  const listed = await core.listTools();
+  assert.equal(listed.status, 'error');
+  assert.equal(listed.errors[0].code, 'unavailable');
+  const invoked = await core.invokeTool('run-report', { runDir: 'run-x' });
+  assert.equal(invoked.status, 'error');
+});

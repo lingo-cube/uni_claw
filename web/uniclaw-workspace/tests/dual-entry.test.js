@@ -36,7 +36,7 @@ test('standalone entry completes the canonical flow and exposes renderer-neutral
   const mounts = [];
   const host = await run(createStandaloneWorkspaceHost({ fixture: fixture(), revision, mount: value => mounts.push(value) }));
   const vm = mounts.at(-1).viewModel;
-  assert.deepEqual(Object.keys(vm).sort(), ['activePane', 'conversationTimeline', 'detailActions', 'evidencePane', 'executionPane', 'launchComposer', 'metadataPane', 'navigation', 'notices', 'status', 'taskHeader', 'tracePane']);
+  assert.deepEqual(Object.keys(vm).sort(), ['activePane', 'conversationTimeline', 'detailActions', 'evidencePane', 'executionPane', 'launchComposer', 'metadataPane', 'navigation', 'notices', 'status', 'taskHeader', 'toolsPane', 'tracePane']);
   assert.deepEqual(Object.keys(vm.conversationTimeline.groups).sort(), ['decision', 'request', 'result']);
   assert.equal(vm.taskHeader.productSessionId, 'product-1');
   assert.equal(vm.detailActions.status, 'ready');

@@ -143,6 +143,18 @@ function createRuntimeHttpCapabilities({ baseUrl, fetchImpl = globalThis.fetch, 
     return request('/api/uniclaw-runtime/runs', 'TaskCommand', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
   };
 
+  // PNL-008 / ADR-0039：Harness 工具暴露面（只读投影 + adapter 执行）。
+  const listTools = () => request('/api/uniclaw-runtime/tools', 'ToolInvoke');
+
+  const invokeTool = (name, requestOptions = {}) => {
+    if (typeof name !== 'string' || !name) throw new TypeError('tool name is required');
+    return request(`/api/uniclaw-runtime/tools/${encodeURIComponent(name)}/invoke`, 'ToolInvoke', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ runDir: requestOptions.runDir }),
+    });
+  };
+
   return Object.freeze({
     TaskQuery: Object.freeze({ listProjects, listTaskInstances }),
     SessionQuery: Object.freeze({ getSession, getTimeline }),
@@ -150,6 +162,7 @@ function createRuntimeHttpCapabilities({ baseUrl, fetchImpl = globalThis.fetch, 
     EvidenceQuery: Object.freeze({ getEvidence }),
     DetailQuery: Object.freeze({ resolveDetail }),
     TaskCommand: Object.freeze({ launchTask }),
+    ToolInvoke: Object.freeze({ listTools, invokeTool }),
   });
 }
 
