@@ -1,0 +1,5 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:   846，已跳过:     0，总计:   846，持续时间: 2 s - UniClaw.Kernel.Tests.dll (net10.0)

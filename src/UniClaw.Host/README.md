@@ -23,6 +23,9 @@ Product Host 的组合根：装配 Kernel 六个 L2 责任域与 Capability Plan
 |---|---|
 | `ModelManagementCapabilityComposition.cs` | uni.model.management 实例注册（CAP-006/008，DSH 缺省 realization） |
 | `RuntimeIntegrationCapabilityComposition.cs` | Runtime Integration 域能力组合根（CAP-012，ADR-0035 三域独立） |
+| `LanguageInspectionAllowlist.cs` | 全局术语白名单加载器（CAP-012 D2） |
+| `LanguageInspectionBinding.cs` | 语言检查的任务要求绑定（CAP-013） |
+| `LanguageInspectionPostCommit.cs` | observation 批处理后向绑定 inspector 提交（CAP-013） |
 
 ### Runtime/ — Host 自有持久化缝
 

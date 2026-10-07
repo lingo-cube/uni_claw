@@ -1,0 +1,2 @@
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/Trace/ProbeTemporary.cs(1,53): warning CS1591: 缺少对公共可见类型或成员“ProbeTemporary”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/UniClaw.Kernel.csproj]
+失败!  - 失败:     1，通过:     0，已跳过:     0，总计:     1，持续时间: 4 ms - UniClaw.Kernel.Tests.dll (net10.0)
