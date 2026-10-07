@@ -4,7 +4,7 @@ namespace UniClaw.Host.Dsh.Tests;
 
 public sealed class RuntimeToolHostTests
 {
-    private static string RepoRoot()
+    internal static string RepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "tool-registry.yaml")))
@@ -141,6 +141,74 @@ public sealed class RuntimeToolHostTests
             Assert.Equal("run-test-001/report/report.md", result.ReportMd?.Replace('\\', '/'));
             Assert.True(File.Exists(Path.Combine(runDir, "report", "report.json")));
             Assert.Contains("timelineEvents=", result.StdoutTail);
+        }
+        finally
+        {
+            runsRoot.Delete(recursive: true);
+        }
+    }
+}
+
+public sealed class RuntimeToolConfigTests
+{
+    private static string WriteConfig(string content)
+    {
+        var dir = Directory.CreateTempSubdirectory("pnl010-config-");
+        var path = Path.Combine(dir.FullName, "tool-runtime.yaml");
+        File.WriteAllText(path, content);
+        return path;
+    }
+
+    [Fact]
+    public void LoadsOutputBaseAndSubdir()
+    {
+        var path = WriteConfig("version: 1\noutput:\n  base: runs-root\n  subdir: reports\n");
+        var config = RuntimeToolConfig.Load(path);
+        Assert.Equal("runs-root", config.Base);
+        Assert.Equal("reports", config.Subdir);
+    }
+
+    [Fact]
+    public void LoadDefaultInRepoUsesCommittedProfile()
+    {
+        var config = RuntimeToolConfig.LoadDefault();
+        Assert.True(config.IsValid);
+        // 仓库落盘的默认配置（.dsh/profiles/tool-runtime.yaml）：run-dir / report。
+        Assert.Equal(RuntimeToolOutputConfig.BaseRunDir, config.Base);
+        Assert.Equal("report", config.Subdir);
+    }
+
+    [Theory]
+    [InlineData("output:\n  base: nowhere\n  subdir: report\n")]
+    [InlineData("output:\n  base: run-dir\n  subdir: ../escape\n")]
+    [InlineData("output:\n  base: run-dir\n  subdir: a/b\n")]
+    [InlineData("output:\n  base: run-dir\n  subdir: \"\"\n")]
+    public void InvalidConfigFailsClosed(string content)
+    {
+        var path = WriteConfig(content);
+        Assert.Throws<InvalidOperationException>(() => RuntimeToolConfig.Load(path));
+    }
+
+    [Fact]
+    public async Task InvokeHonorsRunsRootOutputBase()
+    {
+        var runsRoot = Directory.CreateTempSubdirectory("pnl010-runs-");
+        try
+        {
+            var runDir = Path.Combine(runsRoot.FullName, "run-cfg-001");
+            Directory.CreateDirectory(runDir);
+            File.WriteAllText(Path.Combine(runDir, "metadata.json"),
+                """{"productSessionId":"s1","productSessionTitle":"t","consultations":1}""");
+
+            var config = new RuntimeToolOutputConfig(RuntimeToolOutputConfig.BaseRunsRoot, "reports");
+            var host = RuntimeToolHost.Load(Path.Combine(RuntimeToolHostTests.RepoRoot(), "tool-registry.yaml"), config);
+            var result = await host.InvokeAsync("run-report", runsRoot.FullName, "run-cfg-001");
+
+            Assert.True(result.Ok);
+            Assert.Equal("reports/run-cfg-001/report.json", result.ReportJson?.Replace('\\', '/'));
+            Assert.True(File.Exists(Path.Combine(runsRoot.FullName, "reports", "run-cfg-001", "report.md")));
+            // 原始 run 目录不被污染（产出集中在 runs 根的 reports/ 下）。
+            Assert.False(Directory.Exists(Path.Combine(runDir, "report")));
         }
         finally
         {

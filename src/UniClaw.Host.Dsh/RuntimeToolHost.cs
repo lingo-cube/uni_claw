@@ -47,15 +47,23 @@ public sealed class RuntimeToolHost
 
     private readonly IReadOnlyDictionary<string, ToolDescriptor> _tools;
     private readonly string _repoRoot;
+    private readonly RuntimeToolOutputConfig _output;
 
-    private RuntimeToolHost(IReadOnlyDictionary<string, ToolDescriptor> tools, string repoRoot)
+    /// <summary>产出路径配置（PNL-010）；只读投影给端点透出。</summary>
+    public RuntimeToolOutputConfig Output => _output;
+
+    private RuntimeToolHost(IReadOnlyDictionary<string, ToolDescriptor> tools, string repoRoot, RuntimeToolOutputConfig output)
     {
         _tools = tools;
         _repoRoot = repoRoot;
+        _output = output;
     }
 
-    public static RuntimeToolHost Load(string registryPath)
+    public static RuntimeToolHost Load(string registryPath, RuntimeToolOutputConfig? output = null)
     {
+        var config = output ?? RuntimeToolOutputConfig.Default;
+        if (!config.IsValid)
+            throw new InvalidOperationException($"tool-output-config-invalid: base='{config.Base}' subdir='{config.Subdir}'");
         var repoRoot = Path.GetFullPath(Path.GetDirectoryName(registryPath) ?? ".");
         var tools = new Dictionary<string, ToolDescriptor>(StringComparer.Ordinal);
         ToolDescriptor? current = null;
@@ -87,7 +95,7 @@ public sealed class RuntimeToolHost
                 current = updated;
             }
         }
-        return new RuntimeToolHost(tools, repoRoot);
+        return new RuntimeToolHost(tools, repoRoot, config);
     }
 
     public IReadOnlyList<ToolDescriptor> ForSurface(string surface) =>
@@ -116,7 +124,13 @@ public sealed class RuntimeToolHost
         var entry = Path.GetFullPath(Path.Combine(_repoRoot, tool.Entry));
         if (!File.Exists(entry))
             throw new InvalidOperationException($"tool-not-invokable: entry does not exist: {tool.Entry}");
-        var outDir = Path.Combine(runDir, "report");
+        // PNL-010：产出路径可配置（run-dir | runs-root × subdir），解析后必须仍在 runs 根内。
+        var rootFull = Path.GetFullPath(runsRoot);
+        var outDir = Path.GetFullPath(_output.Base == RuntimeToolOutputConfig.BaseRunsRoot
+            ? Path.Combine(rootFull, _output.Subdir, runDirName)
+            : Path.Combine(runDir, _output.Subdir));
+        if (!outDir.StartsWith(rootFull + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+            throw new InvalidOperationException($"tool-output-escapes-runs-root: resolved output '{_output.Base}/{_output.Subdir}' leaves the runs root");
 
         var info = new ProcessStartInfo(Environment.GetEnvironmentVariable("UNICLAW_TOOL_PYTHON") ?? "python3")
         {

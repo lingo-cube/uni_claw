@@ -1,0 +1,13 @@
+# PNL-010：Runtime Host 工具执行配置（本地 profile；ADR-0039 工具面）。
+# 产出路径可配置：base 决定产出落点，subdir 是产出子目录名（runs 根下单段目录名）。
+#   base: run-dir    → <runsRoot>/<runDir>/<subdir>（默认，产出随 run 目录走）
+#   base: runs-root  → <runsRoot>/<subdir>/<runDir>（产出集中，便于批量查看/清理）
+# 约束：解析后路径必须仍在 runs 根内（越界 fail-closed）；Workbench 看到的
+# 产物引用恒为 runs 根相对路径，不泄露宿主绝对路径（PNL-008 D4）。
+# 文件缺失 → 默认 run-dir/report；存在但非法 → 启动/调用即失败，不静默回退。
+# 环境变量 UNICLAW_TOOL_RUNTIME_CONFIG 可覆盖本文件路径。
+
+version: 1
+output:
+  base: run-dir
+  subdir: report

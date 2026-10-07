@@ -298,7 +298,8 @@ public sealed class RuntimeHttpServer
             var registry = Path.Combine(RepoRoot(), "tool-registry.yaml");
             if (!File.Exists(registry))
                 throw new InvalidOperationException($"tool-registry-missing: {registry}");
-            _toolHost = RuntimeToolHost.Load(registry);
+            // PNL-010：产出路径配置来自本地 profile（.dsh/profiles/tool-runtime.yaml）。
+            _toolHost = RuntimeToolHost.Load(registry, RuntimeToolConfig.LoadDefault());
         }
         return _toolHost;
     }
@@ -307,7 +308,8 @@ public sealed class RuntimeHttpServer
     {
         try
         {
-            var tools = ToolHost().ForSurface("workbench").Select(tool => new
+            var host = ToolHost();
+            var tools = host.ForSurface("workbench").Select(tool => new
             {
                 name = tool.Name,
                 summary = tool.Summary,
@@ -322,6 +324,7 @@ public sealed class RuntimeHttpServer
                 schemaVersion = "uniclaw.workspace.runtime-tools-response.v1",
                 contractVersion = ContractVersion,
                 ok = true,
+                output = new { @base = host.Output.Base, subdir = host.Output.Subdir },
                 tools,
             }));
         }
