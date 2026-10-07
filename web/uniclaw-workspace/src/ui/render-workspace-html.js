@@ -50,7 +50,7 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
         ${renderTabButton('evidence', 'Evidence', activePane)}
         ${renderTabButton('tools', '工具', activePane)}
       </div>
-      <div class="workspace-diagnostics-slot"><span><strong>诊断入口</strong><small>Skill 接入后可分析当前任务</small></span><button type="button" class="workspace-diagnostics-action" data-workspace-action="diagnose-task" disabled aria-disabled="true">诊断当前任务</button></div>
+      <div class="workspace-diagnostics-slot"><span><strong>诊断入口</strong><small>Skill 接入后可分析当前任务</small></span><button type="button" class="workspace-diagnostics-action" data-workspace-action="diagnose-task"${vm.toolsPane.diagnosisAvailable ? '' : ' disabled aria-disabled="true"'} title="${text(vm.toolsPane.diagnosisAvailable ? '诊断当前任务（诊断输出：非权威观察，不构成 Runtime truth）' : vm.toolsPane.diagnosisUnavailableReason || '诊断当前任务不可用')}">诊断当前任务</button></div>
     </section>
     <section class="workspace-conversation" aria-labelledby="conversation-title"><h3 id="conversation-title">Uni-Agent 解决过程</h3><div class="workspace-conversation-shell">${renderTimeline(vm.conversationTimeline)}</div></section>
     <section class="workspace-inspector" aria-label="${text(options.panesLabel, '任务信息')}">
@@ -202,7 +202,19 @@ function renderToolsPane(pane = {}) {
   const report = pane.report || {};
   const result = report.data && report.data.result ? report.data.result : null;
   const resultBlock = report.status === 'idle' ? '' : `<div class="workspace-tools-result"><strong>生成结果</strong>${report.errors && report.errors.length ? `<ul class="workspace-notice__list">${errorText(report.errors)}</ul>` : ''}${result ? `<p>exitCode=${text(result.exitCode)}${result.reportMd ? ` · <code>${text(result.reportMd)}</code>` : ''}${result.reportJson ? ` · <code>${text(result.reportJson)}</code>` : ''}</p>${result.stderrTail ? `<pre class="workspace-tools-stderr">${text(result.stderrTail)}</pre>` : ''}` : (report.status === 'loading' ? '<p>生成中…</p>' : '')}</div>`;
-  return `<section class="workspace-pane workspace-pane--tools" data-pane="tools"><h3>工具</h3><p class="workspace-tools-note">Harness 工具暴露清单（tool-registry.yaml / ADR-0039）。</p><table class="workspace-tools-table"><thead><tr><th>名称</th><th>说明</th><th>调用形态</th><th>姿态</th><th>状态</th></tr></thead><tbody>${rows || '<tr><td colspan="5">未加载</td></tr>'}</tbody></table><div class="workspace-tools-invoke"><label for="workspace-tools-run-dir">Run 目录（runs 根下的目录名）</label><input id="workspace-tools-run-dir" type="text" data-workspace-tools-run-dir value="${text(pane.runDir)}" placeholder="run-20261003-075727-844"><button type="button" class="workspace-launch-action" data-workspace-action="generate-report"${pane.runDir && pane.runDir.trim() && report.status !== 'loading' ? '' : ' disabled aria-disabled="true"'}>${report.status === 'loading' ? '生成中…' : '生成全链路报告'}</button></div>${resultBlock}</section>`;
+  const diagnosisBlock = renderDiagnosisBlock(pane.diagnosis);
+  return `<section class="workspace-pane workspace-pane--tools" data-pane="tools"><h3>工具</h3><p class="workspace-tools-note">Harness 工具暴露清单（tool-registry.yaml / ADR-0039）。</p><table class="workspace-tools-table"><thead><tr><th>名称</th><th>说明</th><th>调用形态</th><th>姿态</th><th>状态</th></tr></thead><tbody>${rows || '<tr><td colspan="5">未加载</td></tr>'}</tbody></table><div class="workspace-tools-invoke"><label for="workspace-tools-run-dir">Run 目录（runs 根下的目录名）</label><input id="workspace-tools-run-dir" type="text" data-workspace-tools-run-dir value="${text(pane.runDir)}" placeholder="run-20261003-075727-844"><button type="button" class="workspace-launch-action" data-workspace-action="generate-report"${pane.runDir && pane.runDir.trim() && report.status !== 'loading' ? '' : ' disabled aria-disabled="true"'}>${report.status === 'loading' ? '生成中…' : '生成全链路报告'}</button></div>${resultBlock}${diagnosisBlock}</section>`;
+}
+
+// PNL-012：诊断结果区块（read-only：只展示；文本前强制显示非权威声明）。
+function renderDiagnosisBlock(diagnosis = {}) {
+  if (diagnosis.status === 'idle') return '';
+  const result = diagnosis.data && diagnosis.data.result ? diagnosis.data.result : null;
+  const errors = diagnosis.errors && diagnosis.errors.length ? `<ul class="workspace-notice__list">${errorText(diagnosis.errors)}</ul>` : '';
+  const body = result
+    ? `<p class="workspace-diagnosis-notice"><strong>诊断输出：非权威观察，不构成 Runtime truth</strong></p><p>model=<code>${text(result.model)}</code>${result.reportRef ? ` · report=<code>${text(result.reportRef)}</code>` : ''}</p><pre class="workspace-tools-stderr">${text(result.text)}</pre>`
+    : (diagnosis.status === 'loading' ? '<p>诊断中…</p>' : errors);
+  return `<div class="workspace-tools-result workspace-diagnosis-result"><strong>诊断结果</strong>${body}</div>`;
 }
 function renderMetadataPane(pane = {}) {
   const items = pane.items || {};

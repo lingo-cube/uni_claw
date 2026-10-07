@@ -368,9 +368,14 @@ public sealed class RuntimeHttpServer
     {
         if (request is null || string.IsNullOrWhiteSpace(request.RunDir))
             return Error(StatusCodes.Status400BadRequest, "invalid-request", "body with runDir is required", retryable: false);
+        var host = ToolHost();
+        // PNL-012：model-procedure 与 deterministic-script 响应形状不同
+        //（model/text/reportRef vs exitCode/stdout…）；错误 envelope 保持统一。
+        if (host.Find(name) is { Invocation: "model-procedure" })
+            return await InvokeProcedureToolAsync(host, name, request.RunDir.Trim());
         try
         {
-            var result = await ToolHost().InvokeAsync(name, _runsRoot, request.RunDir.Trim());
+            var result = await host.InvokeAsync(name, _runsRoot, request.RunDir.Trim());
             return Results.Ok(new
             {
                 schemaVersion = "uniclaw.workspace.runtime-tool-invoke-response.v1",
@@ -399,6 +404,73 @@ public sealed class RuntimeHttpServer
     }
 
     public sealed record ToolInvokeRequest(string? RunDir = null);
+
+    /// <summary>
+    /// PNL-012：model-procedure 工具执行（run-diagnosis）。模型经产品缝解析
+    /// （复用 agent.decision——诊断与执行决策同档语义能力；不新增 choice、
+    /// 不硬编码模型名）；解析不到 → 显式 ROUTING_UNAVAILABLE，不静默降级。
+    /// 传输缝复用 DshOpenedHttpPeer 的 slow 端点；诊断 prompt 大，有界等待
+    /// 放宽到 120s（state.md 记录）。诊断文本只返回，不写任何 store。
+    /// </summary>
+    private async Task<IResult> InvokeProcedureToolAsync(RuntimeToolHost host, string name, string runDir)
+    {
+        ModelConfiguration model;
+        try
+        {
+            model = DshModelManagement.ResolveDshModel(
+                DshModelManagement.FromBindings(
+                    _bindings, _agentProfile,
+                    Environment.GetEnvironmentVariable("UNICLAW_UNIAGENT_PROD_MODEL")),
+                LogicalProfileId.AgentDecision);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Error(StatusCodes.Status503ServiceUnavailable, "routing-unavailable", ex.Message, retryable: false);
+        }
+        try
+        {
+            var result = await host.InvokeProcedureAsync(
+                name, _runsRoot, runDir,
+                (requestId, prompt, model, cancellationToken) => TransportAsync(requestId, prompt, model, cancellationToken),
+                model).ConfigureAwait(false);
+            return Results.Ok(new
+            {
+                schemaVersion = "uniclaw.workspace.runtime-tool-invoke-response.v1",
+                contractVersion = ContractVersion,
+                ok = true,
+                tool = name,
+                result = new
+                {
+                    model = result.Model,
+                    text = result.Text,
+                    reportRef = result.ReportRef,
+                },
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            var code = ex.Message.Split(':', 2)[0];
+            var message = ex.Message.Contains(':') ? ex.Message[(ex.Message.IndexOf(':') + 1)..].Trim() : ex.Message;
+            var status = code switch
+            {
+                "tool-not-found" => StatusCodes.Status404NotFound,
+                "diagnosis-timeout" => StatusCodes.Status504GatewayTimeout,
+                "diagnosis-transport-failed" => StatusCodes.Status503ServiceUnavailable,
+                _ => StatusCodes.Status400BadRequest,
+            };
+            return Error(status, code, message, retryable: status != StatusCodes.Status400BadRequest);
+        }
+    }
+
+    /// <summary>生产传输：slow 端点只取 assistant 文本；端点错误诚实上抛。</summary>
+    private async Task<string> TransportAsync(string requestId, string prompt, ModelConfiguration model, CancellationToken cancellationToken)
+    {
+        await using var peer = new DshOpenedHttpPeer(_bindings.Service, model: model);
+        var response = await peer.ExecuteSlowAsync(requestId, prompt, model, imagePng: null, cancellationToken).ConfigureAwait(false);
+        if (!string.IsNullOrWhiteSpace(response.Error))
+            throw new InvalidOperationException($"slow-endpoint-error:{response.Error}:{response.Diagnostic}");
+        return response.Text ?? string.Empty;
+    }
 
     private static object Response(RuntimeRunStore.RuntimeRunProjection run, bool idempotent = false) => new
     {

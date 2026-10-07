@@ -49,4 +49,4 @@ tools:
     requiredCapability: semantic_analysis
     posture: read-only
     surfaces: [coder, workbench]
-    status: planned
+    status: implemented               # PNL-012：model-procedure 执行执法 + workbench 诊断入口落地

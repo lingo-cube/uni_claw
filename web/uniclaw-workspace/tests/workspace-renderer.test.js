@@ -122,3 +122,28 @@ test('renders flat task instances when projects have no nested tasks and preserv
   assert.match(html, /data-correlation-status="uncorrelated"/);
 });
 test('renderer and stylesheet have no host dependencies', () => { const fs = require('node:fs'); const source = fs.readFileSync(require('node:path').join(__dirname,'../src/ui/render-workspace-html.js'),'utf8'); assert.doesNotMatch(source,/react|document\.|window\.|fetch\(|node:fs|node:path|dsh|host/i); const css = fs.readFileSync(require('node:path').join(__dirname,'../src/styles/workspace.css'),'utf8'); for (const selector of ['.workspace-navigation','.workspace-timeline','.workspace-pane','.workspace-detail-action','@media']) assert.match(css,new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'))); });
+
+// PNL-012：诊断入口按钮可用性与诊断结果区块。
+test('diagnose-task button stays disabled with a reason until the diagnosis gate opens', () => {
+  const closed = renderWorkspaceHtml(view());
+  assert.match(closed, /data-workspace-action="diagnose-task"[^>]*disabled/);
+  assert.match(closed, /title="[^"]*(?:Run 目录|未加载)[^"]*"/);
+  const open = renderWorkspaceHtml(view({
+    tools: { status: 'ready', items: [{ name: 'run-diagnosis', status: 'implemented', invocation: 'model-procedure' }], errors: [] },
+    ui: { activePane: 'tools', toolsRunDir: 'run-1' }
+  }));
+  assert.doesNotMatch(open, /data-workspace-action="diagnose-task"[^>]*disabled/);
+});
+test('diagnosis result block renders the non-authoritative notice before the text', () => {
+  const html = renderWorkspaceHtml(view({
+    tools: { status: 'ready', items: [{ name: 'run-diagnosis', status: 'implemented', invocation: 'model-procedure' }], errors: [] },
+    ui: { activePane: 'tools', toolsRunDir: 'run-1' },
+    diagnosis: { status: 'ready', data: { result: { model: 'prov/diag-1', text: '根因：A', reportRef: 'run-1/report/report.json' } }, errors: [] }
+  }));
+  assert.match(html, /workspace-diagnosis-result/);
+  assert.match(html, /诊断输出：非权威观察，不构成 Runtime truth/);
+  assert.match(html, /model=<code>prov\/diag-1<\/code>/);
+  assert.match(html, /根因：A/);
+  const failed = renderWorkspaceHtml(view({ ui: { activePane: 'tools' }, diagnosis: { status: 'error', data: null, errors: [{ code: 'diagnosis-report-missing', message: 'diagnosis-report-missing: invoke run-report first' }] } }));
+  assert.match(failed, /diagnosis-report-missing/);
+});

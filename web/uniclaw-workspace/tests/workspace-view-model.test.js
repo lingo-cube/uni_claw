@@ -164,3 +164,22 @@ test('does not expose renderer or host dependencies', () => {
   const source = require('node:fs').readFileSync(require('node:path').join(__dirname, '../src/features/workspace-view-model.js'), 'utf8');
   assert.doesNotMatch(source, /react|document\.|window\.|fetch\(|node:fs|node:path|dsh|host/i);
 });
+
+// PNL-012：诊断入口门控投影。
+test('diagnosis gate requires loaded tools, an implemented model-procedure tool, and a run dir', () => {
+  const toolsReady = { status: 'ready', items: [{ name: 'run-diagnosis', status: 'implemented', invocation: 'model-procedure' }], errors: [] };
+  const open = createWorkspaceViewModel({ tools: toolsReady, ui: { toolsRunDir: 'run-1' } });
+  assert.equal(open.toolsPane.diagnosisAvailable, true);
+  assert.equal(open.toolsPane.diagnosisUnavailableReason, '');
+  const noRunDir = createWorkspaceViewModel({ tools: toolsReady, ui: { toolsRunDir: '  ' } });
+  assert.equal(noRunDir.toolsPane.diagnosisAvailable, false);
+  assert.match(noRunDir.toolsPane.diagnosisUnavailableReason, /Run 目录/);
+  const notLoaded = createWorkspaceViewModel({ tools: { status: 'idle', items: [], errors: [] }, ui: { toolsRunDir: 'run-1' } });
+  assert.equal(notLoaded.toolsPane.diagnosisAvailable, false);
+  assert.match(notLoaded.toolsPane.diagnosisUnavailableReason, /未加载/);
+  const noProcedureTool = createWorkspaceViewModel({ tools: { status: 'ready', items: [{ name: 'run-report', status: 'implemented', invocation: 'deterministic-script' }], errors: [] }, ui: { toolsRunDir: 'run-1' } });
+  assert.equal(noProcedureTool.toolsPane.diagnosisAvailable, false);
+  assert.match(noProcedureTool.toolsPane.diagnosisUnavailableReason, /model-procedure/);
+  const planned = createWorkspaceViewModel({ tools: { status: 'ready', items: [{ name: 'run-diagnosis', status: 'planned', invocation: 'model-procedure' }], errors: [] }, ui: { toolsRunDir: 'run-1' } });
+  assert.equal(planned.toolsPane.diagnosisAvailable, false);
+});

@@ -52,7 +52,11 @@ function createWorkspaceViewModel(input, options = {}) {
       items: toolsState.items,
       errors: toolsState.errors,
       runDir: state.ui && state.ui.toolsRunDir || '',
-      report: clone(state.report || { status: 'idle', data: null, errors: [] })
+      report: clone(state.report || { status: 'idle', data: null, errors: [] }),
+      // PNL-012：诊断入口可用性投影（tools 已加载 + 存在 implemented 的
+      // model-procedure 工具 + runDir 非空）；不可用时给 title 说明。
+      diagnosis: clone(state.diagnosis || { status: 'idle', data: null, errors: [] }),
+      ...diagnosisGate(toolsState, state.ui && state.ui.toolsRunDir)
     },
     executionPane: executionPane((state.session && state.session.session) || null),
     metadataPane: { status: state.session && state.session.status || 'idle', items: metadata, claims: metadataClaims(selectedTask, session), ...launchProjection(selectedTask, session), errors: errorsOf(state.session) },
@@ -271,6 +275,21 @@ function executionPane(session) {
     evidenceRefs: Array.isArray(item.evidenceRefs) ? item.evidenceRefs : []
   })) : [];
   return { status: items.length > 0 ? 'ready' : 'empty', items };
+}
+
+// PNL-012：诊断入口门控投影。available 仅在 tools 已加载、存在 implemented 的
+// model-procedure 工具且 runDir 非空时为 true；否则 unavailableReason 说明原因。
+function diagnosisGate(toolsState, runDir) {
+  const items = Array.isArray(toolsState.items) ? toolsState.items : [];
+  const hasProcedureTool = items.some((tool) => tool && tool.status === 'implemented' && tool.invocation === 'model-procedure');
+  const hasRunDir = typeof runDir === 'string' && runDir.trim().length > 0;
+  const available = toolsState.status === 'ready' && hasProcedureTool && hasRunDir;
+  const unavailableReason = toolsState.status !== 'ready'
+    ? '工具清单未加载，无法确认诊断能力'
+    : !hasProcedureTool
+      ? '清单中没有已实现（implemented）的 model-procedure 诊断工具'
+      : !hasRunDir ? '请先在工具面板填写 Run 目录' : '';
+  return { diagnosisAvailable: available, diagnosisUnavailableReason: unavailableReason };
 }
 
 function evidencePane(value) {

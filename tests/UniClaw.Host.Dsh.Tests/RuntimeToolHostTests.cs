@@ -42,7 +42,7 @@ public sealed class RuntimeToolHostTests
 
         var diagnosis = host.Find("run-diagnosis");
         Assert.NotNull(diagnosis);
-        Assert.Equal("planned", diagnosis!.Status);
+        Assert.Equal("implemented", diagnosis!.Status); // PNL-012 翻转
         Assert.Equal("model-procedure", diagnosis.Invocation);
         Assert.Equal(".agents/skills/uniclaw-debug-evidence", diagnosis.SkillRef);
         Assert.Equal(new[] { "run-report" }, diagnosis.Consumes);
@@ -94,9 +94,11 @@ public sealed class RuntimeToolHostTests
     public async Task Invoke_RejectsPlannedAndNonWorkbenchTools()
     {
         var host = LoadReal();
-        var planned = await Assert.ThrowsAsync<InvalidOperationException>(() => host.InvokeAsync("run-diagnosis", Path.GetTempPath(), "x"));
-        Assert.StartsWith("tool-not-invokable", planned.Message);
-        Assert.Contains("planned", planned.Message);
+        // PNL-012 翻转后 run-diagnosis 是 implemented 的 model-procedure 工具：
+        // deterministic-script 执行器不再以 planned 拒绝，而是以调用形态拒绝。
+        var wrongShape = await Assert.ThrowsAsync<InvalidOperationException>(() => host.InvokeAsync("run-diagnosis", Path.GetTempPath(), "x"));
+        Assert.StartsWith("tool-not-invokable", wrongShape.Message);
+        Assert.Contains("model-procedure", wrongShape.Message);
     }
 
     [Theory]

@@ -230,3 +230,57 @@ test('generateReport is a no-op without a run dir and errors without ToolInvoke'
   assert.equal(c.getState().report.status, 'error');
   assert.equal(c.getState().report.errors[0].code, 'unavailable');
 });
+
+// PNL-012：diagnoseRun（model-procedure 诊断）状态机。
+test('diagnoseRun invokes run-diagnosis through ToolInvoke and stores the result', async () => {
+  const calls = [];
+  const capabilities = createStandaloneFixtureCapabilities({ fixture: fixture(), revision: 1 });
+  const c = createWorkspaceController({
+    queryCore: new WorkspaceQueryCore({
+      ...capabilities,
+      ToolInvoke: Object.freeze({
+        listTools: async () => ({ ok: true, data: { tools: [{ name: 'run-diagnosis', status: 'implemented', invocation: 'model-procedure' }] }, observedAt: '2026-10-06T12:00:00Z' }),
+        invokeTool: async (name, request) => { calls.push([name, request.runDir]); return { ok: true, data: { ok: true, tool: name, result: { model: 'prov/diag-1', text: '诊断输出：非权威观察，不构成 Runtime truth\n根因：A', reportRef: 'run-9/report/report.json' } }, observedAt: '2026-10-06T12:00:01Z' }; },
+      }),
+    }),
+  });
+  await c.diagnoseRun();
+  assert.equal(c.getState().diagnosis.status, 'idle'); // 无 runDir → no-op
+  c.setToolsRunDir('run-9');
+  await c.diagnoseRun();
+  const diagnosis = c.getState().diagnosis;
+  assert.equal(diagnosis.status, 'ready');
+  assert.equal(diagnosis.data.result.model, 'prov/diag-1');
+  assert.deepEqual(calls, [['run-diagnosis', 'run-9']]);
+});
+test('diagnoseRun is a no-op without a run dir and errors without ToolInvoke', async () => {
+  const capabilities = createStandaloneFixtureCapabilities({ fixture: fixture(), revision: 1 });
+  const c = createWorkspaceController({ queryCore: new WorkspaceQueryCore(capabilities) });
+  await c.diagnoseRun();
+  assert.equal(c.getState().diagnosis.status, 'idle');
+  c.setToolsRunDir('run-2');
+  await c.diagnoseRun();
+  assert.equal(c.getState().diagnosis.status, 'error');
+  assert.equal(c.getState().diagnosis.errors[0].code, 'unavailable');
+});
+test('stale diagnosis response cannot overwrite a newer one', async () => {
+  const releases = [];
+  const capabilities = createStandaloneFixtureCapabilities({ fixture: fixture(), revision: 1 });
+  const c = createWorkspaceController({
+    queryCore: new WorkspaceQueryCore({
+      ...capabilities,
+      ToolInvoke: Object.freeze({
+        listTools: async () => ({ ok: true, data: { tools: [] }, observedAt: '2026-10-06T12:00:00Z' }),
+        invokeTool: async () => new Promise((resolve) => { releases.push(() => resolve({ ok: true, data: { result: { model: 'stale', text: 'stale', reportRef: 'r' } } })); }),
+      }),
+    }),
+  });
+  c.setToolsRunDir('run-1');
+  const pending = c.diagnoseRun();
+  c.setToolsRunDir('run-2');
+  const second = c.diagnoseRun();
+  releases[0](); releases[1]();
+  await pending; await second;
+  assert.equal(c.getState().diagnosis.status, 'ready'); // 旧 token 丢弃，只有新请求结果生效
+  assert.equal(c.getState().diagnosis.data.result.reportRef, 'r');
+});

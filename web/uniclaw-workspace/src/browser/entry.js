@@ -217,6 +217,9 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
         if (paneTab === 'tools' && app.getState().tools?.status === 'idle') void controller.loadTools();
       } else if (action === 'generate-report') {
         void controller.generateReport();
+      } else if (action === 'diagnose-task') {
+        // PNL-012：诊断入口（model-procedure）。结果只进 state.diagnosis。
+        void controller.diagnoseRun();
       } else if (action === 'select-trace-mode') {
         controller.selectTraceMode(target.getAttribute('data-trace-mode'));
       } else if (action === 'select-trace-source') {

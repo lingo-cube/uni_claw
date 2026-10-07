@@ -13,6 +13,7 @@ function createWorkspaceController({ queryCore } = {}) {
     tools: idlePage('tools'),
     detail: idleData('detail'),
     report: { status: 'idle', data: null, errors: [] },
+    diagnosis: { status: 'idle', data: null, errors: [] },
     launch: { status: 'idle', data: null, errors: [] }
   };
   const tokens = new Map();
@@ -124,6 +125,20 @@ function createWorkspaceController({ queryCore } = {}) {
       return publish();
     });
   }
+  // PNL-012：run 诊断（model-procedure 工具）。read-only posture：结果只进
+  // state.diagnosis，不写任何 run 目录或 store；文本在展示层强制带非权威声明。
+  async function diagnoseRun() {
+    const runDir = (state.ui.toolsRunDir || '').trim();
+    if (!runDir) return publish();
+    return action('diagnosis', async (token) => {
+      state.diagnosis = { status: 'loading', data: null, errors: [] };
+      publish();
+      const result = await queryCore.invokeTool('run-diagnosis', { runDir });
+      if (!current('diagnosis', token)) return publish();
+      state.diagnosis = { status: result.status || (result.errors?.length ? 'error' : 'ready'), data: result.data || null, errors: result.errors || [] };
+      return publish();
+    });
+  }
   async function launchTask(request = {}) {
     if (typeof queryCore.launchTask !== 'function') {
       state.launch = { status: 'error', data: null, errors: [{ code: 'unavailable', message: '当前 Host 未提供任务发起能力', retryable: false, source: 'TaskCommand' }] };
@@ -220,7 +235,7 @@ function createWorkspaceController({ queryCore } = {}) {
   return Object.freeze({
     loadProjects, selectProject, selectTaskInstance, loadSession, loadTimeline,
     loadTraces, loadEvidence, launchTask, openLaunchComposer, setLaunchRequirement, setLaunchDeviceOverride, setLaunchDocument, setLaunchDocumentError, closeLaunchComposer, resolveDetail, inspectTrace, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
-    loadTools, setToolsRunDir, generateReport,
+    loadTools, setToolsRunDir, generateReport, diagnoseRun,
     getState: () => clone(state)
   });
 

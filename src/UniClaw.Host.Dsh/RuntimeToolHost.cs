@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using UniClaw.Agent.Dsh;
 
 namespace UniClaw.Host.Dsh;
 
@@ -44,6 +45,17 @@ public sealed class RuntimeToolHost
         public static InvokeError NotInvokable(string reason) => new("tool-not-invokable", reason);
         public static InvokeError InvalidRunDir(string reason) => new("invalid-run-dir", reason);
     }
+
+    /// <summary>
+    /// PNL-012：model-procedure 诊断的传输缝，与 <see cref="DshSlowConsult.Transport"/>
+    /// 同形（裁剪到纯文本：诊断无需图像）。生产实现经 <see cref="DshOpenedHttpPeer"/>
+    /// 的 slow 端点；测试注入 fake。posture=read-only：本缝只返回文本，不落任何文件。
+    /// </summary>
+    public delegate Task<string> DiagnosisTransport(
+        string requestId, string prompt, ModelConfiguration model, CancellationToken cancellationToken);
+
+    /// <summary>诊断结果：exitCode 概念不适用，改为 ok 语义（异常即失败）。</summary>
+    public sealed record DiagnosisResult(string Model, string Text, string ReportRef);
 
     private readonly IReadOnlyDictionary<string, ToolDescriptor> _tools;
     private readonly string _repoRoot;
@@ -124,13 +136,7 @@ public sealed class RuntimeToolHost
         var entry = Path.GetFullPath(Path.Combine(_repoRoot, tool.Entry));
         if (!File.Exists(entry))
             throw new InvalidOperationException($"tool-not-invokable: entry does not exist: {tool.Entry}");
-        // PNL-010：产出路径可配置（run-dir | runs-root × subdir），解析后必须仍在 runs 根内。
-        var rootFull = Path.GetFullPath(runsRoot);
-        var outDir = Path.GetFullPath(_output.Base == RuntimeToolOutputConfig.BaseRunsRoot
-            ? Path.Combine(rootFull, _output.Subdir, runDirName)
-            : Path.Combine(runDir, _output.Subdir));
-        if (!outDir.StartsWith(rootFull + Path.DirectorySeparatorChar, StringComparison.Ordinal))
-            throw new InvalidOperationException($"tool-output-escapes-runs-root: resolved output '{_output.Base}/{_output.Subdir}' leaves the runs root");
+        var outDir = ResolveOutputDir(runsRoot, runDirName, runDir);
 
         var info = new ProcessStartInfo(Environment.GetEnvironmentVariable("UNICLAW_TOOL_PYTHON") ?? "python3")
         {
@@ -161,6 +167,99 @@ public sealed class RuntimeToolHost
             stderr,
             File.Exists(reportJson) ? Relative(runsRoot, reportJson) : null,
             File.Exists(reportMd) ? Relative(runsRoot, reportMd) : null);
+    }
+
+    /// <summary>PNL-012：执行一个 model-procedure 工具（消费 run-report 产出的
+    /// 结论性诊断）。read-only posture：不写任何文件，只返回模型文本。所有前置
+    /// 条件在此执法；报告缺失时显式报错，不自动生成（报告由 run-report 拥有）。</summary>
+    public const string DiagnosisNotice = "诊断输出：非权威观察，不构成 Runtime truth";
+    private static readonly TimeSpan DefaultDiagnosisTimeout = TimeSpan.FromSeconds(120);
+
+    public async Task<DiagnosisResult> InvokeProcedureAsync(
+        string name, string runsRoot, string runDirName,
+        DiagnosisTransport transport, ModelConfiguration model, TimeSpan? timeout = null)
+    {
+        var tool = Find(name) ?? throw new InvalidOperationException("tool-not-found");
+        if (tool.Status != "implemented")
+            throw new InvalidOperationException($"tool-not-invokable: tool '{name}' has status '{tool.Status}'");
+        if (tool.Invocation != "model-procedure")
+            throw new InvalidOperationException($"tool-not-invokable: invocation '{tool.Invocation}' is not a model-procedure tool");
+        if (!tool.Surfaces.Contains("workbench", StringComparer.Ordinal))
+            throw new InvalidOperationException("tool-not-invokable: tool is not exposed to the workbench surface");
+        if (string.IsNullOrWhiteSpace(tool.SkillRef))
+            throw new InvalidOperationException("tool-not-invokable: registry entry has no skillRef (procedure carrier)");
+        var skillPath = Path.GetFullPath(Path.Combine(_repoRoot, tool.SkillRef, "SKILL.md"));
+        if (!File.Exists(skillPath))
+            throw new InvalidOperationException($"tool-not-invokable: procedure does not exist: {tool.SkillRef}/SKILL.md");
+
+        var runDir = ResolveRunDir(runsRoot, runDirName);
+        var outDir = ResolveOutputDir(runsRoot, runDirName, runDir);
+        var reportPath = Path.Combine(outDir, "report.json");
+        if (!File.Exists(reportPath))
+            throw new InvalidOperationException(
+                $"diagnosis-report-missing: no report.json under '{Relative(runsRoot, reportPath)}' — invoke the run-report tool for this run first");
+
+        var procedure = await File.ReadAllTextAsync(skillPath).ConfigureAwait(false);
+        var report = await File.ReadAllTextAsync(reportPath).ConfigureAwait(false);
+        var prompt = BuildDiagnosisPrompt(procedure, report);
+
+        var budget = timeout ?? DefaultDiagnosisTimeout;
+        string text;
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken.None);
+            cts.CancelAfter(budget);
+            text = await transport($"{name}:{runDirName}", prompt, model, cts.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw new InvalidOperationException($"diagnosis-timeout: model transport exceeded {(int)budget.TotalSeconds}s");
+        }
+        catch (InvalidOperationException)
+        {
+            throw;
+        }
+        catch (Exception error)
+        {
+            throw new InvalidOperationException($"diagnosis-transport-failed: {error.Message}");
+        }
+        if (string.IsNullOrWhiteSpace(text))
+            throw new InvalidOperationException("diagnosis-transport-failed: model returned empty text");
+        return new DiagnosisResult($"{model.Provider}/{model.Name}", text, Relative(runsRoot, reportPath));
+    }
+
+    /// <summary>Prompt 组装：procedure 全文 + report.json + 明确输出指示（结论性
+    /// 诊断 markdown，开头必须带非权威声明）。</summary>
+    public static string BuildDiagnosisPrompt(string procedure, string reportJson)
+    {
+        return $"""
+            You are the run-diagnosis tool of the UniClaw Runtime Host. Diagnose the
+            run described by the report below STRICTLY following the procedure
+            (skill) text. Output conclusive diagnostic findings as markdown. The
+            FIRST line of your output MUST be exactly:
+            {DiagnosisNotice}
+
+            You read facts only; you never write files and never invent facts that
+            are absent from the report.
+
+            ===== PROCEDURE（uniclaw-debug-evidence）=====
+            {procedure}
+
+            ===== REPORT（report.json）=====
+            {reportJson}
+            """;
+    }
+
+    /// <summary>PNL-010：产出路径可配置（run-dir | runs-root × subdir），解析后必须仍在 runs 根内。</summary>
+    private string ResolveOutputDir(string runsRoot, string runDirName, string runDir)
+    {
+        var rootFull = Path.GetFullPath(runsRoot);
+        var outDir = Path.GetFullPath(_output.Base == RuntimeToolOutputConfig.BaseRunsRoot
+            ? Path.Combine(rootFull, _output.Subdir, runDirName)
+            : Path.Combine(runDir, _output.Subdir));
+        if (!outDir.StartsWith(rootFull + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+            throw new InvalidOperationException($"tool-output-escapes-runs-root: resolved output '{_output.Base}/{_output.Subdir}' leaves the runs root");
+        return outDir;
     }
 
     private static string? Limit(string text)
