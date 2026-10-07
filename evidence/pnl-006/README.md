@@ -21,12 +21,14 @@ python3 tools/gen-run-report.py \
 注意：`--check` 需从仓库根目录以相同相对路径调用（报告 envelope 记录调用者
 原样路径以保证字节确定性）。
 
-## 报告中两处「降级」的定性（历史局限，非设计缺口）
+## 报告中两处「降级」的定性（历史局限；P2 已于 PNL-011 落地）
 
 - **UniAgent 降级**：旧 fixture 早于「每次咨询后即时落盘
   `consultations.json`」的 HostRunner 机制；新 run 该分区应为完整。
-- **Runtime Host 降级**：`.runtime-runs` 事件库在 Runtime 进程工作目录，
-  不随 run 目录落盘，生成器当前输入不含它；P2 挂接时将其并入输入（或由
-  Host 在 finalize 时直接产出报告），该分区即为完整。
+- **Runtime Host 降级**：旧 fixture 无 `runtime-run-events.json` 导出与
+  `metadata.requirement`。PNL-011 起，RuntimeHttpServer finalize 会写
+  metadata 投影（含需求原文）、导出 runtime 事件并自动产出报告——新 run
+  的 host 分区应为完整、①需求区应有原文。
 
-预期：P2 之后的新 run 报告中，这两处降级不应再出现；若再出现即回归。
+回归判据（PNL-011 起生效）：新 run 的报告若再出现这两处降级，或①需求区
+显示「未采集」，即为回归。

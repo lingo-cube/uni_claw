@@ -146,7 +146,13 @@ public sealed class RuntimeHttpServer
             p => p with { HostSessionRef = new RuntimeRunStore.HostSessionRef("dsh", attachment.DshSessionId) });
         var launch = new HostRunner.LaunchContext(running.RunId, running.ProductSessionId, launchId, idempotency, correlation);
         var agent = new DshAgentAdapter(channel, running.ProductSessionId, running.RunId, turnTimeout: TimeSpan.FromSeconds(110));
-        _ = Task.Run(() => RunBackground(running.RunId, device, launch, agent, channel, peer), CancellationToken.None);
+        // PNL-011：需求原文经 taskRef（web launch 流把 requirement 放在 taskRef.label）
+        // 进入 run 目录 metadata 投影，报告①区从此有真相，不再依赖 --requirement。
+        var requirement = JsonLabel(request.TaskRef, "requirement", "label");
+        var title = JsonLabel(request.TaskRef, "title") ?? requirement;
+        var taskSet = JsonLabel(request.TestSetRef, "label", "id");
+        var modelRef = $"{model.Provider}/{model.Name}";
+        _ = Task.Run(() => RunBackground(running.RunId, device, launch, agent, channel, peer, requirement, title, taskSet, modelRef), CancellationToken.None);
         return Results.Accepted($"/api/uniclaw-runtime/runs/{running.RunId}", Response(running));
     }
 
@@ -212,7 +218,7 @@ public sealed class RuntimeHttpServer
         }
     }
 
-    private async Task RunBackground(string runId, string device, HostRunner.LaunchContext launch, DshAgentAdapter agent, DshOpenedDecisionChannel channel, DshOpenedHttpPeer peer)
+    private async Task RunBackground(string runId, string device, HostRunner.LaunchContext launch, DshAgentAdapter agent, DshOpenedDecisionChannel channel, DshOpenedHttpPeer peer, string? requirement, string? title, string? taskSet, string model)
     {
         try
         {
@@ -258,11 +264,35 @@ public sealed class RuntimeHttpServer
                     ? "interrupted"
                     : "failed";
             var outcome = status == "completed" ? "completion" : status == "interrupted" ? "unknown" : "failure";
-            _store.Transition(runId, status, "finalize", "run." + status, "runtime", "uniclaw-runtime", "Runtime execution finished", p => p with
+
+            // PNL-011：finalize 附带产物（metadata 投影 / runtime 事件导出 / 全链路
+            // 报告）。失败不改变 run 终态，只落 report-generation.log 到 run 目录。
+            var dirName = Path.GetFileName(result.RunDir);
+            var artifacts = BuildArtifacts(runId);
+            var note = "Runtime execution finished";
+            try
+            {
+                WriteRunMetadata(result.RunDir, runId, launch, device, model, requirement, title, taskSet, status, outcome, result);
+                ExportRuntimeEvents(result.RunDir, runId);
+                var report = await ToolHost().InvokeAsync("run-report", _runsRoot, dirName).ConfigureAwait(false);
+                artifacts = BuildArtifacts(runId, dirName, report.ReportMd is not null, report.ReportJson is not null);
+                note = $"Runtime execution finished; report exit={report.ExitCode}";
+            }
+            catch (Exception reportError)
+            {
+                try
+                {
+                    File.AppendAllText(Path.Combine(result.RunDir, "report-generation.log"),
+                        $"{DateTimeOffset.UtcNow:O} finalize-artifact-failed: {reportError.Message}\n");
+                }
+                catch { }
+            }
+
+            _store.Transition(runId, status, "finalize", "run." + status, "runtime", "uniclaw-runtime", note, p => p with
             {
                 Outcome = outcome,
                 Reason = result.Reason,
-                Artifacts = BuildArtifacts(runId)
+                Artifacts = artifacts
             });
         }
         catch (OperationCanceledException ex)
@@ -391,13 +421,87 @@ public sealed class RuntimeHttpServer
             error = new { code, message, retryable, details = details ?? new { } }
         }, statusCode: statusCode);
 
-    private static RuntimeRunStore.RuntimeArtifactRef[] BuildArtifacts(string runId) =>
-    [
-        new("facts", "facts", "present", $"runs/{runId}/artifacts/facts"),
-        new("trace", "trace", "present", $"runs/{runId}/artifacts/trace"),
-        new("evidence", "evidence", "partial", $"runs/{runId}/artifacts/evidence"),
-        new("journal", "journal", "present", $"runs/{runId}/artifacts/journal")
-    ];
+    private static RuntimeRunStore.RuntimeArtifactRef[] BuildArtifacts(string runId, string? dirName = null, bool reportMd = false, bool reportJson = false)
+    {
+        var artifacts = new List<RuntimeRunStore.RuntimeArtifactRef>
+        {
+            new("facts", "facts", "present", $"runs/{runId}/artifacts/facts"),
+            new("trace", "trace", "present", $"runs/{runId}/artifacts/trace"),
+            new("evidence", "evidence", "partial", $"runs/{runId}/artifacts/evidence"),
+            new("journal", "journal", "present", $"runs/{runId}/artifacts/journal"),
+        };
+        if (dirName is not null)
+            artifacts.Add(new("report", "report", reportMd && reportJson ? "present" : "partial", $"runs/{dirName}/report/report.md"));
+        return [.. artifacts];
+    }
+
+    private static string? JsonLabel(JsonElement? element, params string[] keys)
+    {
+        if (element is not { } value || value.ValueKind != JsonValueKind.Object) return null;
+        foreach (var key in keys)
+        {
+            if (value.TryGetProperty(key, out var property) && property.ValueKind == JsonValueKind.String
+                && !string.IsNullOrWhiteSpace(property.GetString()))
+                return property.GetString();
+        }
+        return null;
+    }
+
+    private static readonly JsonSerializerOptions ArtifactJson = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+    };
+
+    /// <summary>
+    /// PNL-011：run 目录的 metadata 投影（adapter 层观测：设备/模型/endpoint 是
+    /// realization 关切，产品 HostRunner 不拥有）。历史 fixture 的 metadata.json
+    /// 由采集流程手写；本方法使其成为 finalize 的正式产物。
+    /// </summary>
+    private void WriteRunMetadata(string runDir, string runId, HostRunner.LaunchContext launch, string device, string model,
+        string? requirement, string? title, string? taskSet, string status, string outcome, HostRunner.HostRunResult result)
+    {
+        var dshSessionId = _store.Get(runId)?.HostSessionRef?.SessionId;
+        var metadata = new Dictionary<string, object?>
+        {
+            ["schemaVersion"] = "uniclaw.host-metadata.v1",
+            ["runDir"] = runDir,
+            ["runId"] = runId,
+            ["productSessionId"] = launch.ProductSessionId,
+            ["launchId"] = launch.LaunchId,
+            ["correlationId"] = launch.CorrelationId,
+            ["dshSessionId"] = dshSessionId,
+            ["requirement"] = requirement,
+            ["productSessionTitle"] = title,
+            ["taskSet"] = taskSet,
+            ["workspace"] = taskSet,
+            ["device"] = device,
+            ["productModel"] = model,
+            ["dshEndpoint"] = _config.Service.BaseUri?.ToString(),
+            ["real"] = true,
+            ["status"] = status,
+            ["outcome"] = outcome,
+            ["deliveredEffects"] = result.DeliveredEffects,
+            ["receipts"] = result.ReceiptOutcomes,
+        };
+        File.WriteAllText(Path.Combine(runDir, "metadata.json"), JsonSerializer.Serialize(metadata, ArtifactJson));
+    }
+
+    /// <summary>PNL-011：把 RuntimeRunStore 的生命周期事件导出进 run 目录，让报告
+    /// 的 host 分区有真相，同时 run 目录成为自包含 evidence（store 仍是 authority）。</summary>
+    private void ExportRuntimeEvents(string runDir, string runId)
+    {
+        var events = new List<RuntimeRunStore.RuntimeRunEvent>();
+        string? cursor = null;
+        do
+        {
+            var page = _store.ReadEvents(runId, cursor: cursor, limit: 100);
+            events.AddRange(page.Events);
+            cursor = page.NextCursor;
+        }
+        while (cursor is not null);
+        File.WriteAllText(Path.Combine(runDir, "runtime-run-events.json"), JsonSerializer.Serialize(events, ArtifactJson));
+    }
 
     private static string? Required(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     private static bool HasReference(JsonElement? value) => value is { } element && element.ValueKind is JsonValueKind.Object or JsonValueKind.String;

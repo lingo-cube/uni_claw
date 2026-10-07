@@ -19,7 +19,8 @@
    {"name": "journal", "availability": "not-collected"},
    {"name": "consultations", "availability": "not-collected"},
    {"name": "environmentPreflight", "availability": "not-collected"},
-   {"name": "failure", "availability": "not-collected"}
+   {"name": "failure", "availability": "not-collected"},
+   {"name": "runtimeRunEvents", "availability": "not-collected"}
   ]
  },
  "coverage": {

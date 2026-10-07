@@ -179,6 +179,22 @@
             "availability": {"$ref": "#/$defs/availability"},
             "reason": {"type": "string", "minLength": 1},
             "artifactsWritten": {"type": "array", "items": {"type": "string"}},
+            "lifecycle": {
+              "type": "array",
+              "items": {
+                "type": "object", "additionalProperties": false,
+                "properties": {
+                  "sequence": {"type": "integer", "minimum": 1},
+                  "eventId": {"type": "string"},
+                  "eventType": {"type": "string"},
+                  "source": {"type": "string"},
+                  "authority": {"type": "string"},
+                  "summary": {"type": "string"},
+                  "occurredAt": {"type": "string"}
+                },
+                "required": ["sequence", "eventType", "source", "summary"]
+              }
+            },
             "preflight": {"type": "object", "additionalProperties": true}
           },
           "required": ["availability", "artifactsWritten"]

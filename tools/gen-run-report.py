@@ -53,6 +53,7 @@ ARTIFACT_FILES = [
     ("consultations", "consultations.json"),
     ("environmentPreflight", "environment-preflight.json"),
     ("failure", "failure.json"),
+    ("runtimeRunEvents", "runtime-run-events.json"),
 ]
 STRICT_REQUIRED = ["metadata", "facts", "trace", "journal"]
 
@@ -218,6 +219,7 @@ def build_report(run_dir: Path, run_dir_argument: str | None = None, requirement
     consultations = parsed.get("consultations") if isinstance(parsed.get("consultations"), list) else None
     preflight = parsed.get("environmentPreflight") if isinstance(parsed.get("environmentPreflight"), dict) else None
     failure = parsed.get("failure") if isinstance(parsed.get("failure"), dict) else None
+    runtime_events = parsed.get("runtimeRunEvents") if isinstance(parsed.get("runtimeRunEvents"), list) else None
 
     # ---- identities --------------------------------------------------------
     run_id_value = field(facts, "runId") or field(trace, "runId")
@@ -362,9 +364,10 @@ def build_report(run_dir: Path, run_dir_argument: str | None = None, requirement
     agent_count = field(metadata, "consultations")
     coverage_sections = [
         {"section": "host",
-         "availability": AV_PARTIAL if host_available else AV_NOT_COLLECTED,
-         "reason": ("Runtime Host lifecycle 事件（.runtime-runs）不在输入内；仅由 run 目录产物重建"
-                    if host_available else "run 目录内无 metadata/facts 可用"),
+         "availability": AV_PRESENT if runtime_events is not None else (AV_PARTIAL if host_available else AV_NOT_COLLECTED),
+         "reason": (None if runtime_events is not None else
+                    ("Runtime Host lifecycle 事件（.runtime-runs）不在输入内；仅由 run 目录产物重建"
+                     if host_available else "run 目录内无 metadata/facts 可用")),
          },
         {"section": "agent",
          "availability": AV_PRESENT if consultations is not None else (AV_PARTIAL if agent_count is not None else AV_NOT_COLLECTED),
@@ -478,13 +481,27 @@ def build_report(run_dir: Path, run_dir_argument: str | None = None, requirement
 
     # ---- L3 layers ----------------------------------------------------------------
     host_layer = {
-        "availability": AV_PARTIAL if host_available else AV_NOT_COLLECTED,
-        "reason": None if host_available else "无 metadata/facts",
+        "availability": AV_PRESENT if runtime_events is not None else (AV_PARTIAL if host_available else AV_NOT_COLLECTED),
+        "reason": None if (runtime_events is not None or host_available) else "无 metadata/facts",
         "artifactsWritten": [entry["name"] for entry in artifacts if entry["availability"] != AV_NOT_COLLECTED],
+        "lifecycle": [
+            {
+                "sequence": event.get("sequence"),
+                "eventId": event.get("eventId"),
+                "eventType": event.get("eventType"),
+                "source": event.get("source"),
+                "authority": event.get("authority"),
+                "summary": event.get("summary"),
+                "occurredAt": event.get("occurredAt"),
+            }
+            for event in (runtime_events or [])
+        ] if runtime_events is not None else None,
         "preflight": preflight,
     }
     if host_layer["reason"] is None:
         del host_layer["reason"]
+    if host_layer["lifecycle"] is None:
+        del host_layer["lifecycle"]
     if host_layer["preflight"] is None:
         host_layer["preflight"] = {"availability": AV_NOT_COLLECTED}
 
@@ -558,13 +575,29 @@ def build_report(run_dir: Path, run_dir_argument: str | None = None, requirement
         anchors_total = anchors_verified = 0
         anchors_availability = AV_NOT_COLLECTED
 
-    requirement = {
-        "text": requirement_text,
-        "availability": AV_PRESENT if requirement_text else AV_NOT_COLLECTED,
-        "valueOrigin": "configured" if requirement_text else "observed",
-    }
-    if requirement_text:
-        requirement["source"] = "operator --requirement"
+    # 需求解析链（PNL-011）：metadata.requirement（finalize 投影）→
+    # --requirement（操作者显式）→ 未采集。
+    metadata_requirement = field(metadata, "requirement")
+    if metadata_requirement:
+        requirement = {
+            "text": metadata_requirement,
+            "availability": AV_PRESENT,
+            "valueOrigin": "observed",
+            "source": "metadata.json",
+        }
+    elif requirement_text:
+        requirement = {
+            "text": requirement_text,
+            "availability": AV_PRESENT,
+            "valueOrigin": "configured",
+            "source": "operator --requirement",
+        }
+    else:
+        requirement = {
+            "text": None,
+            "availability": AV_NOT_COLLECTED,
+            "valueOrigin": "observed",
+        }
 
     receipts = field(facts, "receipts") or field(metadata, "receipts") or []
     achievement = {
@@ -785,6 +818,14 @@ def render_markdown(report: dict) -> str:
     add("")
     add(f"- availability: {AV_LABELS.get(host['availability'], host['availability'])}")
     add(f"- 落盘产物: {', '.join(host.get('artifactsWritten', [])) or '—'}")
+    lifecycle = host.get("lifecycle") or []
+    if lifecycle:
+        add("")
+        add("| seq | 事件 | source | authority | 摘要 |")
+        add("|---|---|---|---|---|")
+        for event in lifecycle:
+            add(f"| {fmt(event.get('sequence'))} | `{fmt(event.get('eventType'))}` | {fmt(event.get('source'))} | "
+                f"{fmt(event.get('authority'))} | {fmt(event.get('summary'))} |")
     preflight = host.get("preflight") or {}
     if preflight.get("availability") != "not-collected":
         add(f"- environment-preflight: `{json.dumps(preflight, ensure_ascii=False)[:400]}`")
