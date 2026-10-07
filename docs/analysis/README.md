@@ -1,6 +1,8 @@
 # analysis/ 索引（考察既有现实 · Authority: NONE · 永非规范）
 
 > 规则见 docs/README.md §1/§2/§3：分析结论要产生约束力，必须经 change
+> Status: DRAFT（梳理/调研产物，未授权实现）
+> Authority: `NONE`（分析产物，不是架构决策；与 ADR / baseline 冲突时以后者为准）
 > 落入 design/adr/architecture，而非原地升格。
 
 | 文档 | 用途 | 状态 |
@@ -18,4 +20,5 @@
 | `per-005-ocr-backend-research.md` | OCR/推理后端候选调研 | CANDIDATE / NOT_ADOPTED |
 | `dsh-tool-scope-restricted-sessions.md` | DSH 工具可见性语义与受限会话正确实现形状 | COMPLETE / EVIDENCE-BACKED |
 | `agt-002-b1-fix-instruction.md` | AGT-002 B1 工具面泄漏修复指令（据上篇起草） | CANDIDATE |
+| `fast-perception-strategy-seam-fate.md` | IFastPerceptionStrategy 去留裁决材料：牵连面盘点 + 三路线成本（PER-021） | COMPLETE / EVIDENCE-BACKED |
 | `sim-006-first-baseline-matrix.md` | SIM-006 首批 8 场景+组件契约双轴基线矩阵（A1 交付物） | COMPLETE / EVIDENCE-BACKED |
