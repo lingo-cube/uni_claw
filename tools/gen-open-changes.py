@@ -40,6 +40,10 @@ def parse_state(path: Path) -> dict[str, str] | None:
             # precedes the first '·', so the leading segment has no ':'.
             first_value = seg
     lifecycle = fields.get("lifecycle_state") or first_value
+    # State headers may carry a human-readable parenthetical explanation, e.g.
+    # `verified (E2E slice: ...)`. The lifecycle token remains the first part;
+    # keep the generated index faithful to the 8-state spine.
+    lifecycle = lifecycle.split("(", 1)[0].strip()
     if not lifecycle:
         return None
     return {

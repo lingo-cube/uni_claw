@@ -36,6 +36,14 @@
 `.state` 保存 supervisor PID、serial 和 clone 目录，设备消失时应先看
 `emulator.log`，再重新执行环境预检。
 - 测试和 Host live selector 都读取这个 serial，不再假定固定端口。
+- **快照锁恢复（ADB-003）**：启动报 `snapshot operation ... pending` FATAL 时，
+  先确认无 emulator 进程，再清 `~/.android/avd/<avd>/*.lock` 并将
+  `snapshots/` 改名备份后冷启动（`-no-snapshot` 路径）；禁止 ad-hoc 手起，
+  修复后仍走本脚本。
+- **DSH 专线重载（ADB-003）**：握手报 `schema-hash-mismatch` 时，比对
+  `dsh/uniclaw-decision-channel/schema/schema-hash.txt` 与产品侧哈希——不一致
+  即专线实例（3081）加载的是旧插件：重启该实例（dk-harness checkout 内
+  `dsh web --port 3081 --no-open`）重载；3080 非注册线路，不得接入。
 - **确定性纪律**：ENVIRONMENT 测试只验证「真实物理映射 + 世界变化经
   再观察证实」，不做性能断言、不依赖时序精度（轮询间隔为宽松常量）。
 

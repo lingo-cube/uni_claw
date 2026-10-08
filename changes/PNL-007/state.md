@@ -1,6 +1,6 @@
 # PNL-007 — Tool/Capability 概念边界与 Harness 工具暴露清单
 
-lifecycle_state: implement · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: working-tree
 
 ## Intent（WHAT/WHY）
 
@@ -100,3 +100,13 @@ Owner 验收四标准（2026-10-06）：定义描述清晰、管理层级清晰�
 - 2026-10-06 IMPLEMENT：ADR-0039 + tool-registry.yaml（2 buyer）+ 校验器
   （正负例验证）+ AGENTS.md（canonical surface / 真相表）+ CONTEXT.md Tool
   词条。待 REVIEW。
+
+## Review / Verify / Closure（2026-10-06）
+
+- REVIEW：Tool（Harness 暴露单元）、Capability（产品语义）与 skill（procedure）
+  的单向边界已在 ADR-0039、CONTEXT、AGENTS 和 registry 头注同步；本 Change 没有
+  把 Tool 注册进 Product CapabilityHub，也没有预造 Workbench 调用机制。
+- VERIFY：`python3 tools/validate-tool-registry.py` 正例 PASS；坏条目覆盖五类违规
+  并 FAILED，恢复后复验 PASS；四项清晰标准逐文件核对通过。
+- 2026-10-06 · IMPLEMENT → REVIEW → VERIFY → CLOSED · acceptance 1–3 全部有
+  可复验证据；后续 Runtime Host 调用适配单独落 PNL-008。

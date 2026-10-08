@@ -1,3 +1,5 @@
+using UniClaw.Host.Capability;
+
 namespace UniClaw.Host.SettingsCoverage;
 
 public sealed record CoverageSessionConfig(string TaskTitle, string Workspace, bool WorkspaceReuse, bool AutoCloseTurn);
@@ -63,7 +65,8 @@ public sealed record SettingsCoverageConfig(
     PopupClearanceConfig? Popup = null,
     SlowTriggerConfig? Slow = null,
     SettingsActionPolicy? ActionPolicy = null,
-    bool ActionPolicyRequired = false)
+    bool ActionPolicyRequired = false,
+    LanguageInspectionTaskRequest? LanguageInspection = null)
 {
     /// <summary>证据持久化（缺省全开；旧配置无该段时保持缺省）。</summary>
     public CoverageEvidenceOptions EvidenceSettings => Evidence ?? new CoverageEvidenceOptions();
@@ -73,6 +76,9 @@ public sealed record SettingsCoverageConfig(
 
     /// <summary>AGT-009：Slow 触发配置（缺省关闭——现有行为不变）。</summary>
     public SlowTriggerConfig SlowSettings => Slow ?? new SlowTriggerConfig();
+
+    /// <summary>CAP-013：可选语言检查任务要求；缺段 = 本任务不请求该能力。</summary>
+    public LanguageInspectionTaskRequest? LanguageInspectionRequest => LanguageInspection;
 
     public const string DefaultConfigRelativePath = ".dsh/profiles/settings-coverage.yaml";
     public const string ConfigPathEnvironmentVariable = "UNICLAW_SETTINGS_COVERAGE_CONFIG";
@@ -124,6 +130,7 @@ public sealed record SettingsCoverageConfig(
             Slow: ReadSlowOptions(document, path),
             ActionPolicy: ReadActionPolicy(document, path, out var actionPolicyRequired),
             ActionPolicyRequired: actionPolicyRequired,
+            LanguageInspection: ReadLanguageInspectionOptions(document, path),
             ScrollContainerDescriptor: RequireNamed(document, ["scrollContainerDescriptor"], path),
             BackDescriptor: RequireNamed(document, ["backDescriptor"], path));
     }
@@ -287,6 +294,34 @@ public sealed record SettingsCoverageConfig(
             MaxRequestsPerRun: maxRequests ?? 4,
             VisualEnabled: visualEnabled ?? false,
             PopupConsecutiveCycles: popupCycles ?? 2);
+    }
+
+    /// <summary>
+    /// CAP-013：语言检查由任务提出要求，不提供 Host enabled 开关。段缺失时
+    /// 不创建 binding；段存在却缺 expectedLanguage 时 fail closed，避免 agent
+    /// 或设备 locale 被迫猜测判定源。
+    /// </summary>
+    private static LanguageInspectionTaskRequest? ReadLanguageInspectionOptions(
+        YamlDocument document,
+        string path)
+    {
+        var required = document.OptionalBool(["languageInspection", "required"]);
+        var expectedLanguage = document.OptionalScalar(["languageInspection", "expectedLanguage"]);
+        var capabilityId = document.OptionalScalar(["languageInspection", "capabilityId"]);
+        var ignoreRoutes = document.OptionalList(["languageInspection", "ignoreRoutes"]);
+        if (required is null && expectedLanguage is null && capabilityId is null && ignoreRoutes is null)
+            return null;
+        if (expectedLanguage is null)
+            throw new InvalidOperationException(
+                $"config-missing:languageInspection.expectedLanguage [{path}]");
+        if (ignoreRoutes is { } routes && routes.Any(string.IsNullOrWhiteSpace))
+            throw new InvalidOperationException(
+                $"config-invalid:languageInspection.ignoreRoutes [{path}]");
+        return new LanguageInspectionTaskRequest(
+            Required: required ?? false,
+            ExpectedLanguage: expectedLanguage,
+            IgnoreRoutes: ignoreRoutes,
+            FixedCapabilityId: capabilityId);
     }
 
     private static string RequireNamed(YamlDocument document, string[] pathSegments, string path)

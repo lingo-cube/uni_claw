@@ -30,9 +30,9 @@
     "schemaVersion": 2,
     "expectationsDigest": "e70845d5e3000ddfb414741a304d86784719da988872676d98646580dfaaded5",
     "executionDigest": "b772211aad026e21a4459e2b36d08f926623011ad712704046bd2eb85c7e3e9a",
-    "runtimeSourceHash": "2efc7634515afae18a807171948a426017c634aad84d9ddf02077dd2d6ffefc1",
-    "certifiedByChange": "CAP-012",
-    "certifiedAt": "2026-10-06"
+    "runtimeSourceHash": "2e17cd89571b8e92c29329f3dadfbbe31df72b4541394121011de7f2df9b6237",
+    "certifiedByChange": "PRF-007",
+    "certifiedAt": "2026-10-08"
   },
   "security": {
     "sensitiveReview": "cleared"

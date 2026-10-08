@@ -1,6 +1,6 @@
 ---
 name: capability-component
-description: UniClaw capability component development discipline. Load before building or integrating ANY component that will be declared in a Capability Registry (perception, model management, effect provider, inspector, measurement, sink, fixture...), before declaring capabilities, or when auditing an existing capability's conformance. Enforces the ICapability inheritance ladder (L0-L3), protocol-per-capability with registry enforcement, buyer-first gating, executable instance registration, quality gates (single responsibility, cohesion, pluggability, health probe duty), lifecycle rules mapped to .NET disposal mechanics, and the repo's enforcement points (public-surface whitelist, closure tests, scenario recertification). HOW-only; canonical truth stays in the referenced docs.
+description: UniClaw capability component development discipline. Load before building or integrating ANY component that will be declared in a Capability Registry (perception, model management, effect provider, inspector, measurement, sink, fixture...), before declaring capabilities, or when auditing an existing capability's conformance. Enforces the ICapability inheritance ladder (L0-L3), protocol-per-capability with registry enforcement, buyer-first gating, the new-capability detail-grill gate (granularity/allowlist/expectation-source/violation-boundary/host-hook questions BEFORE implementation), executable instance registration, quality gates (single responsibility, cohesion, pluggability, health probe duty), lifecycle rules mapped to .NET disposal mechanics, and the repo's enforcement points (public-surface whitelist, closure tests, scenario recertification). HOW-only; canonical truth stays in the referenced docs.
 source: LOCAL_UNICLAW
 ---
 
@@ -8,9 +8,51 @@ source: LOCAL_UNICLAW
 
 ## 判断门（先过这关）
 
-- 组件**要进 Capability Registry**（被声明、被解析、有生命周期事实）→ 适用本 skill，继续。
-- 不进 Registry 的纯 Host 管线组件 → **不适用**；走 `codebase-design` 深模块纪律即可。
-- 不确定 → 回答买方五问（见第 1 步）；答不出"谁消费结果"就没有能力，只有代码。
+1. 组件**不进 Capability Registry**（纯 Host 管线组件）→ **不适用**本 skill；
+   走 `codebase-design` 深模块纪律即可。
+2. 组件**要进 Registry** → 先**分流**（所有者裁决点，不可自行判定）：
+
+   **路径 A【既有能力的延伸/替换实现】**：协议与词汇已冻结（如感知
+   realization 替换、模型管理换供货方）。直接从第 4 步（Implementation）
+   进入；R5 可替换性测试是核心验收；不得顺手改协议形状。
+
+   **路径 B【全新能力】**：不存在已冻结的协议/词汇。必须依次完成：
+   买方五问（第 1 步）→ **细节拷问门**（见下专节）→ 才允许进入第 2 步
+   （Definition）。未过拷问门的"实现完成"不算完成——语义假设缺陷的
+   返工成本远高于提问成本（CAP-012 教训，2026-10-06 所有者纠偏后立此门）。
+
+## 细节拷问门（路径 B 必经的常设机制）
+
+**时机**：买方五问之后、Definition（第 2 步）之前。任何领域语义设计决策
+不得由实现方自行拍板后"先做再问"。
+
+**发问协议**（组合 `grilling` skill 的轮次纪律）：
+
+- 把当前**前沿**（前置已定、现在就能问的问题）**一轮问全**：逐题编号、
+  附**推荐答案**及理由，然后**等所有者作答**；
+- 某个答案改变了决策树 → 重算前沿再问下一轮，不猜未听到的答案；
+- 事实问题（代码/文档里查得到）自己查，不问所有者。
+
+**五类必问**（每类至少一问；示例仅示形状，按能力域裁剪）：
+
+| 类 | 要问清什么 | 示例问题 |
+|---|---|---|
+| ①作用粒度 | 判定的最小可解释单位 | 菜单级 / 菜单项级 / 文本项级 / 可配置聚合？违例定位到哪一层？ |
+| ②豁免/白名单 | 已知合法例外怎么表达 | 要不要白名单？挂全局词条 / per-menu / per-item？词条还是模式？谁维护、入版本控制吗？ |
+| ③期望值来源 | 判定依据从哪来、冲突听谁的 | 配置声明 / 设备环境实测 / 逐目标声明？声明与实测不一致时以谁为准、差异要不要报？ |
+| ④违例处置 | 结果的权威边界 | 非权威 Finding 还是影响判定？阻断边界在哪？要进判定须立 Promotion 吗？ |
+| ⑤宿主集成点 | 在哪跑、何时跑 | 哪个 host？哪个生命周期钩位（同步 / post-commit）？本轮接线还是能力就绪集成另立 change？ |
+
+**按域裁剪**：从协议选择表（开发协议指南 §3）推导域特有问题补入前沿。
+例：感知类必问 capture/cycle 关联与新鲜度要求；模型管理类必问候选集与降级
+轨迹表达（CAP-006/007 先例）；检查类必问粒度与豁免（本门起源域）。
+
+**记录纪律**：每条裁决落 change state 的 **Decisions 表**（编号 + 日期 +
+所有者标识）；实现期发现**未问过的语义分叉** → 停下、回 RESOLVE 补问，
+不得就地拍板（uniflow A7 语义缺陷边的预防形式）。
+
+**完成判据**：前沿为空（所有领域语义问题都有所有者答案并落档）→ 才可进
+第 2 步 Definition；协议与词汇按裁决冻结，后续变更走 R6 版本纪律。
 
 ## 接口继承位势（严格顺序，不可跳层）
 
@@ -27,10 +69,16 @@ L3  realization / adapter              永不实现 L1！只经缝注入数据�
 健康探测是**可选能力面**（mixin）：`ICapabilityHealthCheckable.CheckHealth()`
 （拉式只读；外部可观测可用性的能力必须实现——R7）。
 
+运行剖面是**第三个可选能力面**：`ICapabilityProfileReporting.DescribeProfile()`
+→ `CapabilityProfileReport`（Summary / 生效配置 / 影响披露 / Limitations）。
+回答"我在什么配置下运行、缺了什么、对结果有什么影响"——缺配置类豁免的
+缺省行为是**照跑 + 披露**（D8 先例：不把缺词表放大成能力不可用）。
+
 ## 开发七步（每步带执法）
 
 1. **买方**：五问——谁消费/输入/输出/是否动主权威/失败策略（docs/capability-hub/
    customization-integration-development-protocol-v0.1.md §2）。无买方即停。
+   路径 B（全新能力）在五问后必须过**细节拷问门**（见专节）才可进第 2 步。
 2. **Definition**（Kernel）：L1 接口 + 协议常量 + L2 实现类。
    **执法**：`KernelRuntimeSurfaceWhitelistTests` 必须同 change 修订（公开面扩张
    = 显式声明，HOST-001 D8）。
@@ -99,9 +147,9 @@ L3  realization / adapter              永不实现 L1！只经缝注入数据�
 - 信任域注册：`docs/adr/0035-capability-management-hub-trust-scoped-registries.md`
 - 管理面骨架：`src/UniClaw.Kernel/Capability/CapabilityHub.cs` + `src/UniClaw.Kernel/Capability/README.md`
 - worked example：Model Management 声明与完备化（changes/CAP-006、CAP-007、CAP-008）、
-  感知实例化与健康聚合（changes/CAP-009）、**全新能力端到端**（changes/CAP-012
-  Language Inspection——本 skill 首次从零按七步实战，含 Runtime Integration
-  域独立注册表先例）
+  感知实例化与健康聚合（changes/CAP-009）、Language Inspection
+  （changes/CAP-012：Runtime Integration 域独立注册表先例；其初版跳过拷问门被
+  所有者纠偏重开——**细节拷问门的教学案例**，裁决记录见其 Decisions 表）
 
 ## 已知偏差（如实记录，勿默许扩散）
 
@@ -112,3 +160,21 @@ L3  realization / adapter              永不实现 L1！只经缝注入数据�
 - 感知协议负载词汇（SemanticObservationProposal / PerceptionAssessment）未实现
   ——uni.perception 的 L2（UniPerceptionCapability）当前实现双协议 marker +
   健康聚合；负载词汇由下一个感知买方驱动冻结。
+
+## 剖面消费（agent 表达模板，D9 裁决）
+
+剖面的消费面是 **uni agent**：能力只供结构化事实（run 落盘 `capability-profiles.json`
+为事实源）；表达边界与范围由 agent 用模板完成——事实归能力、表达归 agent，
+agent 不得编造事实层没有的语义。模板（agent 读到 profile 后按此向用户表达）：
+
+```text
+【能力】{Summary}
+【当前生效】逐条 EffectiveConfiguration（含"未加载/未配置"状态，照实说）
+【影响】逐条 ImpactDisclosures：在 {Condition} 下，{Impact}
+【边界】Limitations（已知不做的事）+ 依赖（Description.Dependencies）
+```
+
+要点：①"没配 X 会怎样"是用户最常问的问题——ImpactDisclosures 必须覆盖已知
+缺省项；②能力初期描述不可能详尽（所有者原话"不一定能在一开始就描写得很
+详细"）——模板引导 agent 从事实外推边界表述，但外推要标注"据配置推断"；
+③记忆可用，但结论以落盘事实源为准。

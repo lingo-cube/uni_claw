@@ -1,3 +1,5 @@
+using UniClaw.Kernel.Capability;
+
 namespace UniClaw.Kernel.Runtime;
 
 /// <summary>
@@ -38,6 +40,8 @@ public enum AgentDecisionPhase
 /// 非 Interface 冻结）。只携带 goal-level 决策所需摘要，不下发 canonical store
 /// 全量副本；CurrentWorldClaims 是 obligation 相关 subject 的只读投影。
 /// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
+/// AvailableCapabilities 只在本次 run 的首次 Agent 请求注入，供 Agent 形成
+/// task-scoped 选择；后续请求不重复发送。
 /// </summary>
 public sealed record AgentDecisionContext(
     string DecisionId,
@@ -53,7 +57,8 @@ public sealed record AgentDecisionContext(
     ScreenSummary? Screen = null,
     IReadOnlyList<ElementSummary>? Elements = null,
     ConsultationProgress? Progress = null,
-    ConsultationBudget? BudgetRemaining = null);
+    ConsultationBudget? BudgetRemaining = null,
+    IReadOnlyDictionary<string, CapabilityProfileReport>? AvailableCapabilities = null);
 
 /// <summary>
 /// obligation 的非权威摘要视图（P7 派生投影，只读）。

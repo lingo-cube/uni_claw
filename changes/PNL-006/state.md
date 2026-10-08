@@ -1,6 +1,6 @@
 # PNL-006 — 全链路单 run 测试报告（correlator + 双格式投影）
 
-lifecycle_state: implement · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: working-tree
 
 ## Intent（WHAT/WHY）
 
@@ -142,3 +142,14 @@ consultations / preflight / failure）关联成一份确定性报告：canonical
   属 P2 产品侧改动（新增 Out-of-Scope 延续项）。验证：golden CHECK-PASS /
   PASSED 13 / degraded 0·strict 2 / 异常 run 自动展开 + --requirement 流入①区
   均实测通过；report.json 20483B、report.md 8250B。
+
+## Review / Verify / Closure（2026-10-06）
+
+- REVIEW：实现保持只读 correlator + JSON 派生 Markdown 的边界；需求/达成漏斗只改
+  展示层，canonical JSON 语义未被诊断结论污染；P2 的 metadata 需求采集与 Runtime
+  finalize 接线仍明确留在 Out of Scope。
+- VERIFY：真实 run 生成与 `--check --expect-dir` 均 CHECK-PASS；空目录降级/strict
+  与损坏 journal 行为符合声明；Draft 202012 校验 0 errors；workspace schema
+  校验 PASS 13 schemas。
+- 2026-10-06 · IMPLEMENT → REVIEW → VERIFY → CLOSED · 所有五项 acceptance 均有
+  四元组证据，未发现实现缺陷或未授权产品侧改动。

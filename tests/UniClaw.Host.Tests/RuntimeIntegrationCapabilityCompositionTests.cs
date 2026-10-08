@@ -46,4 +46,28 @@ public sealed class RuntimeIntegrationCapabilityCompositionTests
                 Array.Empty<CapabilityProtocol>(), Array.Empty<CapabilityDependency>(), HealthStatus.Unknown),
             "test"));
     }
+
+    [Fact]
+    public void DescribeAvailableProfiles_ProjectsCurrentExecutableProfiles()
+    {
+        var registry = RuntimeIntegrationCapabilityComposition.RegisterLanguageInspector(
+            instance: new LanguageFormatInspector(allowlistTerms: new[] { "Wi-Fi" }));
+
+        var profiles = RuntimeIntegrationCapabilityComposition.DescribeAvailableProfiles(registry);
+
+        var profile = Assert.Single(profiles);
+        Assert.Equal(LanguageInspectionProtocol.CapabilityId, profile.Key);
+        Assert.Contains("1 词条", profile.Value.EffectiveConfiguration["allowlistTerms"]);
+    }
+
+    [Fact]
+    public void DescribeAvailableProfiles_DropsClosedCapabilities()
+    {
+        var registry = RuntimeIntegrationCapabilityComposition.RegisterLanguageInspector();
+        registry.Commit(LanguageInspectionProtocol.CapabilityId, CapabilityLifecycle.Ready, "test");
+        registry.Commit(LanguageInspectionProtocol.CapabilityId, CapabilityLifecycle.Draining, "test");
+        registry.Commit(LanguageInspectionProtocol.CapabilityId, CapabilityLifecycle.Closed, "test");
+
+        Assert.Empty(RuntimeIntegrationCapabilityComposition.DescribeAvailableProfiles(registry));
+    }
 }

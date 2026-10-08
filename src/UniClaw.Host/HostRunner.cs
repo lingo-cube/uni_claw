@@ -14,6 +14,7 @@ using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
+using UniClaw.Host.Capability;
 using UniClaw.Host.SettingsCoverage;
 
 namespace UniClaw.Host;
@@ -56,7 +57,12 @@ public sealed class HostRunner
         LaunchContext? Launch = null,
         SettingsActionPolicy? SettingsActionPolicy = null,
         // PER-019：UniPerception fetch 缝（null = slow 关闭；异步流水在 feed 内）。
-        UniPerceptionPipeline.Fetch? UniPerceptionFetch = null);
+        UniPerceptionPipeline.Fetch? UniPerceptionFetch = null,
+        // CAP-013：任务要求与可选 agent 选择；缺失 = 本次不加载语言检查。
+        LanguageInspectionTaskRequest? LanguageInspection = null,
+        LanguageInspectionSelection? LanguageInspectionSelection = null,
+        Func<LanguageInspectionSelection?>? LanguageInspectionSelectionProvider = null,
+        UniClaw.Kernel.Capability.CapabilityRegistry? RuntimeIntegrationCapabilities = null);
 
     public sealed record HostRunResult(
         string RunDir,
@@ -172,11 +178,56 @@ public sealed class HostRunner
             // UniPerception 晚到投影需要 kernel；闭包捕获后赋值，首周期前生效。
             if (settingsFeed is not null)
                 settingsFeed.KernelProvider = () => kernel;
+
+            LanguageInspectionPostCommit? languageInspection = null;
+            IReadOnlyList<ObservationProposal>? pendingInspectionProposals = null;
+            string? pendingInspectionCaptureId = null;
+            var capabilityProfilesInjected = false;
+            void TryBindLanguageInspection()
+            {
+                if (languageInspection is not null || options.LanguageInspection is null)
+                    return;
+                var request = options.LanguageInspection;
+                var selection = options.LanguageInspectionSelection
+                    ?? options.LanguageInspectionSelectionProvider?.Invoke();
+                if (selection is null && string.IsNullOrWhiteSpace(request.FixedCapabilityId))
+                    return;
+                var binding = LanguageInspectionBindingFactory.Create(
+                    options.RuntimeIntegrationCapabilities,
+                    kernel.RunId,
+                    request,
+                    selection);
+                if (binding is not null)
+                    languageInspection = new LanguageInspectionPostCommit(
+                        binding, Path.Combine(runDir, "language-findings.json"));
+            }
+            RunDriverInput? NextInputAfterCommit(ObservationDirective directive)
+            {
+                TryBindLanguageInspection();
+                if (languageInspection is not null && pendingInspectionProposals is not null)
+                {
+                    languageInspection.InspectAfterCommit(
+                        pendingInspectionProposals, pendingInspectionCaptureId);
+                    pendingInspectionProposals = null;
+                    pendingInspectionCaptureId = null;
+                }
+
+                var input = nextInput(directive);
+                if (input is RunDriverInput.Observation observation)
+                {
+                    pendingInspectionProposals = observation.Proposals;
+                    pendingInspectionCaptureId = observation.Proposals
+                        .Select(p => p.Provenance?.Hierarchy?.CaptureId)
+                        .FirstOrDefault(id => !string.IsNullOrWhiteSpace(id));
+                }
+                return input;
+            }
+
             var driver = new KernelRunDriver(
                 kernel, planPolicy,
                 new RunDriverInputs
                 {
-                    NextInput = nextInput,
+                    NextInput = NextInputAfterCommit,
                     ConsultAgent = context =>
                     {
                         var policy = options.SettingsActionPolicy;
@@ -188,8 +239,21 @@ public sealed class HostRunner
                                     + "\n\nSETTINGS ACTION POLICY (read-only; Runtime Guard is authoritative): "
                                     + policy.AgentProjection(),
                             };
+                        if (!capabilityProfilesInjected)
+                        {
+                            projected = projected with
+                            {
+                                AvailableCapabilities =
+                                    RuntimeIntegrationCapabilityComposition.DescribeAvailableProfiles(
+                                        options.RuntimeIntegrationCapabilities),
+                            };
+                            capabilityProfilesInjected = true;
+                        }
                         var consultationStarted = System.Diagnostics.Stopwatch.StartNew();
                         var decision = options.ConsultAgent(projected);
+                        // Agent task initialization is consumed before the
+                        // returned payload enters Kernel execution.
+                        TryBindLanguageInspection();
                         SettingsActionGuardResult? guardResult = null;
                         var guarded = policy is null
                             ? decision
@@ -245,6 +309,11 @@ public sealed class HostRunner
             if (options.Launch is { } supplied && !string.Equals(kernel.RunId, supplied.RunId, StringComparison.Ordinal))
                 throw new InvalidOperationException($"launch-run-mismatch: supplied Runtime RunId '{supplied.RunId}' does not match Kernel canonical RunId '{kernel.RunId}'");
 
+            if (options.LanguageInspection is not null)
+            {
+                TryBindLanguageInspection();
+            }
+
             driver.Activate();
             RunDriveResult drive = default!;
             for (var i = 0; i < 16; i++)
@@ -252,6 +321,17 @@ public sealed class HostRunner
                 drive = driver.Drive();
                 if (drive.Status is not RunDriveStatus.WaitingForInput)
                     break;
+            }
+
+            TryBindLanguageInspection();
+            if (options.LanguageInspection is { Required: true } && languageInspection is null)
+                throw new InvalidOperationException("language-inspection-required-capability-not-bound");
+            if (languageInspection is not null && pendingInspectionProposals is not null)
+            {
+                languageInspection.InspectAfterCommit(
+                    pendingInspectionProposals, pendingInspectionCaptureId);
+                pendingInspectionProposals = null;
+                pendingInspectionCaptureId = null;
             }
 
             // ---- 产物落盘 ---------------------------------------------------
@@ -293,6 +373,14 @@ public sealed class HostRunner
                     ? new { factsPolicy.PolicyRef, factsPolicy.Digest, factsPolicy.SourcePath }
                     : null,
                 policyGuard = policyGuardResults,
+                languageInspection = new
+                {
+                    requested = languageInspection is not null,
+                    file = languageInspection is null ? null : "language-findings.json",
+                    findings = languageInspection?.Findings.Count ?? 0,
+                    persistenceHealthy = languageInspection?.PersistenceHealthy ?? true,
+                    diagnostics = languageInspection?.PersistenceDiagnostics ?? Array.Empty<string>(),
+                },
             };
             var factsJson = JsonSerializer.Serialize(facts, JsonOptions);
             WriteText(runDir, "facts.json", factsJson);

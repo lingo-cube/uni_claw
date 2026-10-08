@@ -14,6 +14,7 @@ using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
+using UniClaw.Host.Capability;
 
 namespace UniClaw.Host.SettingsCoverage;
 
@@ -43,7 +44,12 @@ public sealed class SettingsCoverageRunner
         Func<string?>? CurrentCaptureId = null,
         IEffectDriver? EffectDriver = null,
         // PER-019：UniPerception fetch 缝（透传 feed 异步流水；null = slow 关闭）。
-        UniPerceptionPipeline.Fetch? SlowConsult = null);
+        UniPerceptionPipeline.Fetch? SlowConsult = null,
+        // CAP-013：任务要求与可选 agent 选择；缺失 = 本次不加载语言检查。
+        LanguageInspectionTaskRequest? LanguageInspection = null,
+        LanguageInspectionSelection? LanguageInspectionSelection = null,
+        Func<LanguageInspectionSelection?>? LanguageInspectionSelectionProvider = null,
+        UniClaw.Kernel.Capability.CapabilityRegistry? RuntimeIntegrationCapabilities = null);
 
     public sealed record StepArtifact(
         int Index,
@@ -151,7 +157,36 @@ public sealed class SettingsCoverageRunner
                 new RunModel(), new ControlLoop(planPolicy), assurance, effectBoundary, metrics);
 
             // ---- NextInput 包装缝：观察/回执交错记账 -----------------------
-            var interleave = new InterleaveBookkeeper(kernel, feedNext, currentCaptureId, ledger, journal);
+            LanguageInspectionPostCommit? languageInspection = null;
+            var capabilityProfilesInjected = false;
+            void TryBindLanguageInspection()
+            {
+                if (languageInspection is not null)
+                    return;
+                var selection = options.LanguageInspectionSelection
+                    ?? options.LanguageInspectionSelectionProvider?.Invoke();
+                var request = options.LanguageInspection ?? config.LanguageInspectionRequest;
+                if (request is null)
+                    return;
+                if (selection is null && string.IsNullOrWhiteSpace(request.FixedCapabilityId))
+                    return;
+                var binding = LanguageInspectionBindingFactory.Create(
+                    options.RuntimeIntegrationCapabilities,
+                    kernel.RunId,
+                    request,
+                    selection);
+                if (binding is not null)
+                    languageInspection = new LanguageInspectionPostCommit(
+                        binding, Path.Combine(runDir, "language-findings.json"));
+            }
+            var interleave = new InterleaveBookkeeper(
+                kernel,
+                feedNext,
+                currentCaptureId,
+                ledger,
+                journal,
+                TryBindLanguageInspection,
+                () => languageInspection);
             director.SyncBeforeSnapshot = interleave.SyncNow;
             // AGT-009：feed 的有界 Slow 咨询投影目标 = 当前 run kernel。
             if (liveFeed is not null)
@@ -161,7 +196,25 @@ public sealed class SettingsCoverageRunner
                 new RunDriverInputs
                 {
                     NextInput = interleave.WrappedNext,
-                    ConsultAgent = director.Consult,
+                    ConsultAgent = context =>
+                    {
+                        var projected = context;
+                        if (!capabilityProfilesInjected)
+                        {
+                            projected = projected with
+                            {
+                                AvailableCapabilities =
+                                    RuntimeIntegrationCapabilityComposition.DescribeAvailableProfiles(
+                                        options.RuntimeIntegrationCapabilities),
+                            };
+                            capabilityProfilesInjected = true;
+                        }
+                        var decision = director.Consult(projected);
+                        // Bind task initialization before the returned plan or
+                        // instruction payload reaches Kernel execution.
+                        TryBindLanguageInspection();
+                        return decision;
+                    },
                 });
 
             var admission = kernel.AdmitContract(new ExecutionContract(
@@ -189,6 +242,13 @@ public sealed class SettingsCoverageRunner
             if (!admission.Accepted)
                 throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");
 
+            var languageInspectionRequest =
+                options.LanguageInspection ?? config.LanguageInspectionRequest;
+            if (languageInspectionRequest is not null)
+            {
+                TryBindLanguageInspection();
+            }
+
             driver.Activate();
             RunDriveResult drive = default!;
             var driveCap = config.Bounds.MaxConsultRounds * 2 + 8;
@@ -199,6 +259,9 @@ public sealed class SettingsCoverageRunner
                     break;
             }
             interleave.FlushObservation();
+            TryBindLanguageInspection();
+            if (languageInspectionRequest is { Required: true } && languageInspection is null)
+                throw new InvalidOperationException("language-inspection-required-capability-not-bound");
             journal.Drain(director.AdoptedSteps);
 
             // ---- 产物落盘 ---------------------------------------------------
@@ -249,6 +312,14 @@ public sealed class SettingsCoverageRunner
                     guidance = report.FirstDivergence is null && drive.Status == RunDriveStatus.Completed
                         ? "运行完成；如需核对每一步，先看 coverage-steps.json，再用 DecisionId 对照 trace.json。"
                         : "先看 firstDivergence/reason，再用 DecisionId 对照 coverage-steps.json、trace.json 和 exec.journal。"
+                },
+                languageInspection = new
+                {
+                    requested = languageInspection is not null,
+                    file = languageInspection is null ? null : "language-findings.json",
+                    findings = languageInspection?.Findings.Count ?? 0,
+                    persistenceHealthy = languageInspection?.PersistenceHealthy ?? true,
+                    diagnostics = languageInspection?.PersistenceDiagnostics ?? Array.Empty<string>(),
                 },
                 actionPolicy = config.ActionPolicy is { } policy
                     ? new { policy.PolicyRef, policy.Digest, policy.SourcePath }
@@ -312,27 +383,36 @@ public sealed class SettingsCoverageRunner
         private readonly Func<string?> _currentCaptureId;
         private readonly SettingsCoverageLedger _ledger;
         private readonly CoverageStepJournal _journal;
+        private readonly Action _tryBindLanguageInspection;
+        private readonly Func<LanguageInspectionPostCommit?> _languageInspection;
         private string? _lastCycleRoute;
         private int _syncedReceipts;
         private bool _observedOnce;
         private bool _cycleRecorded;
+        private IReadOnlyList<ObservationProposal>? _pendingInspectionProposals;
+        private string? _pendingInspectionCaptureId;
 
         public InterleaveBookkeeper(
             UniKernel kernel,
             Func<ObservationDirective, RunDriverInput?> feedNext,
             Func<string?> currentCaptureId,
             SettingsCoverageLedger ledger,
-            CoverageStepJournal journal)
+            CoverageStepJournal journal,
+            Action tryBindLanguageInspection,
+            Func<LanguageInspectionPostCommit?> languageInspection)
         {
             _kernel = kernel;
             _feedNext = feedNext;
             _currentCaptureId = currentCaptureId;
             _ledger = ledger;
             _journal = journal;
+            _tryBindLanguageInspection = tryBindLanguageInspection;
+            _languageInspection = languageInspection;
         }
 
         public RunDriverInput? WrappedNext(ObservationDirective directive)
         {
+            InspectPendingAfterCommit();
             // (a) 上一周期已处理完毕：其 route + 当前 belief 的可见 occurrences
             // 入账本（occurrences 为该屏 grounded 景观）。
             RecordPendingObservation();
@@ -354,6 +434,11 @@ public sealed class SettingsCoverageRunner
             _lastCycleRoute = routeNow;
             _observedOnce = true;
             _cycleRecorded = false;
+            if (input is RunDriverInput.Observation observation)
+            {
+                _pendingInspectionProposals = observation.Proposals;
+                _pendingInspectionCaptureId = captureNow;
+            }
             return input;
         }
 
@@ -364,10 +449,23 @@ public sealed class SettingsCoverageRunner
         public void FlushObservation()
         {
             RecordPendingObservation();
+            InspectPendingAfterCommit();
             var receipts = _kernel.EffectReceipts;
             for (var i = _syncedReceipts; i < receipts.Count; i++)
                 _journal.Enqueue(receipts[i], _lastCycleRoute, null, null);
             _syncedReceipts = receipts.Count;
+        }
+
+        private void InspectPendingAfterCommit()
+        {
+            _tryBindLanguageInspection();
+            var inspection = _languageInspection();
+            if (inspection is null || _pendingInspectionProposals is null)
+                return;
+            inspection.InspectAfterCommit(
+                _pendingInspectionProposals, _pendingInspectionCaptureId);
+            _pendingInspectionProposals = null;
+            _pendingInspectionCaptureId = null;
         }
 
         private void RecordPendingObservation()

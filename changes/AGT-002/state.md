@@ -1,6 +1,6 @@
 # AGT-002 — DeepSeek Harness Realization
 
-lifecycle_state: verified (E2E slice: authenticated bridge + real-model evidence) · disposition: none · depth: decision-heavy · base: 534d0aef
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 534d0aef
 
 ## Status
 
@@ -186,3 +186,19 @@ verification:
   M3 swap-back reproduced session-capability-mismatch listing the 23 mcp__*
   tools, fixed build restored and re-verified accepted. Instance stopped after
   capture.
+
+## Closure（2026-10-06）
+
+Owner 指令要求按顺序收口剩余任务，AGT-002 作为第一项处理。既有 canonical
+3080 真实 E2E 证据（`evidence/agt-002-real-model-e2e.md` 与
+`evidence/agt-002-b1-restricted-session-fix.md`）保持有效；当前工作树复验未触及
+Agent.Dsh 实现或证据文件。
+
+| level | method | expected | actual | evidence |
+|---|---|---|---|---|
+| DETERMINISTIC | Agent.Dsh closure/conformance/lifecycle focused suite | 0 failures | PASS 75/75 | current test run |
+| DETERMINISTIC | full Agent.Dsh test project | 0 failures | PASS 154/154 | current test run |
+| ENVIRONMENT | canonical authenticated Product channel + real-model E2E | frozen handshake, decision round-trip, fail-closed timeout evidence | Existing evidence PASS; this closure does not restart the owner-managed live service | `evidence/agt-002-real-model-e2e.md`, `evidence/agt-002-b1-restricted-session-fix.md` |
+
+- 2026-10-06 · VERIFIED → CLOSED · evidence and deterministic regression gates rechecked;
+  owner-directed closure recorded. No runtime fallback or authority change introduced.

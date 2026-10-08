@@ -1,7 +1,9 @@
 using System.Text;
 using System.Text.Json;
 using UniClaw.Host;
+using UniClaw.Host.Capability;
 using UniClaw.Host.SettingsCoverage;
+using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception;
@@ -534,6 +536,94 @@ public sealed class SettingsCoverageScenarioTests
         Assert.Equal("bounded-stop:unknown-page", result.Consults[^1].Justification);
         // 零 dispatch：未知页上从未发出任何 effect。
         Assert.Empty(result.Steps);
+    }
+
+    [Fact]
+    public void FixedLanguageInspection_BindsAfterAdmission_AndPersistsPerCapture()
+    {
+        var world = new SimulatedSettingsWorld();
+        var assets = new LivePerception.LiveAssets(
+            "emulator-sim", "wifi-settings", "/nonexistent", "/nonexistent/python", "/nonexistent/cache");
+        var runRoot = Path.Combine(Path.GetTempPath(), $"settings-coverage-language-{Guid.NewGuid():N}");
+        var config = ConfigWith() with
+        {
+            LanguageInspection = new LanguageInspectionTaskRequest(
+                Required: true,
+                ExpectedLanguage: "en",
+                FixedCapabilityId: LanguageInspectionProtocol.CapabilityId),
+        };
+        try
+        {
+            var result = SettingsCoverageRunner.Run(runRoot, new SettingsCoverageRunner.Options(
+                DeviceId: "emulator-sim",
+                Live: assets,
+                Config: config,
+                UnderlyingConsult: ModelConsult,
+                FeedNext: world.Next,
+                CurrentCaptureId: () => world.CurrentCaptureId,
+                EffectDriver: new SimulatedEffectDriver(world),
+                RuntimeIntegrationCapabilities: RuntimeIntegrationCapabilityComposition
+                    .RegisterLanguageInspector()));
+
+            var findingsPath = Path.Combine(result.RunDir, "language-findings.json");
+            Assert.True(File.Exists(findingsPath));
+            using var findings = JsonDocument.Parse(File.ReadAllText(findingsPath));
+            Assert.True(findings.RootElement.GetProperty("findings").GetArrayLength() > 0);
+            using var facts = JsonDocument.Parse(File.ReadAllText(Path.Combine(result.RunDir, "facts.json")));
+            var language = facts.RootElement.GetProperty("languageInspection");
+            Assert.True(language.GetProperty("requested").GetBoolean());
+            Assert.Equal("language-findings.json", language.GetProperty("file").GetString());
+            Assert.True(language.GetProperty("findings").GetInt32() > 0);
+        }
+        finally
+        {
+            if (Directory.Exists(runRoot))
+                Directory.Delete(runRoot, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void AgentLanguageInspectionSelection_BindsBeforePayloadExecution()
+    {
+        var world = new SimulatedSettingsWorld();
+        var assets = new LivePerception.LiveAssets(
+            "emulator-sim", "wifi-settings", "/nonexistent", "/nonexistent/python", "/nonexistent/cache");
+        var runRoot = Path.Combine(Path.GetTempPath(), $"settings-coverage-language-agent-{Guid.NewGuid():N}");
+        var config = ConfigWith() with
+        {
+            LanguageInspection = new LanguageInspectionTaskRequest(
+                Required: true,
+                ExpectedLanguage: "en"),
+        };
+        LanguageInspectionSelection? selected = null;
+        AgentDecision? Consult(AgentDecisionContext context)
+        {
+            selected = new LanguageInspectionSelection(LanguageInspectionProtocol.CapabilityId, "en");
+            return ModelConsult(context);
+        }
+        try
+        {
+            var result = SettingsCoverageRunner.Run(runRoot, new SettingsCoverageRunner.Options(
+                DeviceId: "emulator-sim",
+                Live: assets,
+                Config: config,
+                UnderlyingConsult: Consult,
+                FeedNext: world.Next,
+                CurrentCaptureId: () => world.CurrentCaptureId,
+                EffectDriver: new SimulatedEffectDriver(world),
+                LanguageInspectionSelectionProvider: () => selected,
+                RuntimeIntegrationCapabilities: RuntimeIntegrationCapabilityComposition
+                    .RegisterLanguageInspector()));
+
+            Assert.True(File.Exists(Path.Combine(result.RunDir, "language-findings.json")));
+            using var facts = JsonDocument.Parse(File.ReadAllText(Path.Combine(result.RunDir, "facts.json")));
+            Assert.True(facts.RootElement.GetProperty("languageInspection").GetProperty("requested").GetBoolean());
+        }
+        finally
+        {
+            if (Directory.Exists(runRoot))
+                Directory.Delete(runRoot, recursive: true);
+        }
     }
 
     [Fact]
