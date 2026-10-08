@@ -175,7 +175,7 @@ public sealed class RuntimeToolConfigTests
     {
         var config = RuntimeToolConfig.LoadDefault();
         Assert.True(config.IsValid);
-        // 仓库落盘的默认配置（.dsh/profiles/tool-runtime.yaml）：run-dir / report。
+        // 仓库落盘的默认配置（product/tasks/tool-runtime.yaml）：run-dir / report。
         Assert.Equal(RuntimeToolOutputConfig.BaseRunDir, config.Base);
         Assert.Equal("report", config.Subdir);
     }

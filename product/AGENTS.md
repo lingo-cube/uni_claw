@@ -8,6 +8,7 @@
 | 子目录 | 内容 | owner |
 |---|---|---|
 | `profiles/` | UniAgent Profile（host-neutral 装配描述：身份/能力词汇/模型角色/工件引用/修订号） | 产品（change 评审） |
+| `tasks/` | 任务级 profile 声明：能力要求/参数/预算/终止/策略引用（ADR-0040；PRF-008 引入） | 产品（change 评审） |
 | `prompt/` | 静态产品 prompt manifest（PRF-002 后续片引入） | 产品 |
 | `policy/` | 危险动作等可机械校验的产品 policy 工件（PRF-004 引入） | Product/Kernel policy |
 | `knowledge/` | 规范知识目录（Memory 侧 buyer 出现后引入） | Memory System |

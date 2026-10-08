@@ -337,7 +337,7 @@ public sealed class RuntimeHttpServer
             var registry = Path.Combine(RepoRoot(), "tool-registry.yaml");
             if (!File.Exists(registry))
                 throw new InvalidOperationException($"tool-registry-missing: {registry}");
-            // PNL-010：产出路径配置来自本地 profile（.dsh/profiles/tool-runtime.yaml）。
+            // PNL-010：产出路径配置来自本地 profile（product/tasks/tool-runtime.yaml）。
             _toolHost = RuntimeToolHost.Load(registry, RuntimeToolConfig.LoadDefault());
         }
         return _toolHost;

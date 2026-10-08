@@ -1,13 +1,13 @@
 namespace UniClaw.Host.Capability;
 
 /// <summary>
-/// CAP-012 D2 — 全局术语白名单加载器（.dsh/profiles/language-inspection.yaml，
+/// CAP-012 D2 — 全局术语白名单加载器（product/tasks/language-inspection.yaml，
 /// 沿"单一运行时配置源"纪律：从环境变量或仓库根向上发现；缺文件 → 返回空表
 /// 并由调用方透传，能力侧照跑 + 披露影响，D8）。
 /// </summary>
 public static class LanguageInspectionAllowlist
 {
-    public const string DefaultConfigRelativePath = ".dsh/profiles/language-inspection.yaml";
+    public const string DefaultConfigRelativePath = "product/tasks/language-inspection.yaml";
     public const string ConfigPathEnvironmentVariable = "UNICLAW_LANGUAGE_INSPECTION_ALLOWLIST";
 
     /// <summary>加载词条（trim + 去空 + 大小写不敏感去重）；文件缺失返回空表。</summary>

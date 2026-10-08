@@ -18,7 +18,7 @@
 | `web/` | canonical Workspace 产品前端 | Query Core、controller、view、browser host | DSH 专属数据真相 |
 | `dsh/` | DSH 产品集成和插件 | DSH adapter、client bridge、发布装配 | 外部 Perception Provider |
 | `providers/` | 独立运行的外部能力实现 | Provider 进程、其运行依赖和 Provider tests | Product Owner、Kernel state |
-| `product/` | 产品声明面：版本化产品运行时装配工件 | UniAgent Profile（profiles/）、静态 prompt manifest（prompt/）、危险动作 policy（policy/）、规范知识目录（knowledge/） | 代码（→src/）、宿主绑定（provider/model/endpoint 只在 `.dsh/product/`）、Harness 语义、运行态（PRF-002/ADR-0041 增补） |
+| `product/` | 产品声明面：版本化产品运行时装配工件 | UniAgent Profile（profiles/）、任务级 profile（tasks/，ADR-0040）、静态 prompt manifest（prompt/）、危险动作 policy（policy/）、规范知识目录（knowledge/） | 代码（→src/）、宿主绑定（provider/model/endpoint 只在 `.dsh/product/`）、Harness 语义、运行态（PRF-002/ADR-0041 增补；PRF-008 增补 tasks/） |
 | `tools/` | 环境、生成、验证和开发工具 | setup、lint、manifest/schema validation、live checks | Product semantic authority |
 | `tests/` | 可执行测试代码 | unit、contract、integration、E2E harness | 静态 fixture 集合 |
 | `testsets/` | 测试数据与期望 | 图片、XML、期望语言、性能基线 | 运行时缓存、live evidence |

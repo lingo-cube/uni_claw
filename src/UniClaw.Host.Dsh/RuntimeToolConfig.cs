@@ -2,7 +2,7 @@ namespace UniClaw.Host.Dsh;
 
 /// <summary>
 /// PNL-010：Runtime Host 工具执行的本地配置（产出路径）。落点
-/// <c>.dsh/profiles/tool-runtime.yaml</c>（可用 UNICLAW_TOOL_RUNTIME_CONFIG
+/// <c>product/tasks/tool-runtime.yaml</c>（可用 UNICLAW_TOOL_RUNTIME_CONFIG
 /// 覆盖），与 uniagent-prod / settings-coverage profile 同款发现规则。
 /// 边界（ADR-0039）：调用形态的绑定细节属于 Host adapter，不进共享
 /// tool-registry；文件缺失 → 默认值（run-dir/report），存在但非法 →
@@ -25,7 +25,7 @@ public sealed record RuntimeToolOutputConfig(string Base, string Subdir)
 
 public static class RuntimeToolConfig
 {
-    public const string DefaultConfigRelativePath = ".dsh/profiles/tool-runtime.yaml";
+    public const string DefaultConfigRelativePath = "product/tasks/tool-runtime.yaml";
     public const string ConfigPathEnvironmentVariable = "UNICLAW_TOOL_RUNTIME_CONFIG";
 
     /// <summary>环境变量路径优先；默认文件不存在时返回默认配置。</summary>

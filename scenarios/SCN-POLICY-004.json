@@ -35,8 +35,8 @@
     "expectationsDigest": "5fc118241dc16870c7ab7655c6483647d1f9ee3b5c85a69ddd5e8641d7c7bec1",
     "executionDigest": "405f5f1abfb87ce9aa2ec307038a5943a99fbffc730d9069f9eb87dbe665cada",
     "runtimeSourceHash": "2e17cd89571b8e92c29329f3dadfbbe31df72b4541394121011de7f2df9b6237",
-    "certifiedByChange": "PRF-007",
-    "certifiedAt": "2026-10-08"
+    "certifiedByChange": "PRF-008",
+    "certifiedAt": "2026-10-09"
   },
   "security": {
     "sensitiveReview": "cleared",

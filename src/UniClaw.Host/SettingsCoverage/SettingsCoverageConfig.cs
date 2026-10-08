@@ -80,7 +80,7 @@ public sealed record SettingsCoverageConfig(
     /// <summary>CAP-013：可选语言检查任务要求；缺段 = 本任务不请求该能力。</summary>
     public LanguageInspectionTaskRequest? LanguageInspectionRequest => LanguageInspection;
 
-    public const string DefaultConfigRelativePath = ".dsh/profiles/settings-coverage.yaml";
+    public const string DefaultConfigRelativePath = "product/tasks/settings-coverage.yaml";
     public const string ConfigPathEnvironmentVariable = "UNICLAW_SETTINGS_COVERAGE_CONFIG";
 
     public static SettingsCoverageConfig LoadDefault()
@@ -167,12 +167,17 @@ public sealed record SettingsCoverageConfig(
 
     private static string ResolvePolicyPath(string configPath, string relativePath)
     {
+        // 锚定到链上最外层（仓库根）AGENTS.md：配置落 product/tasks/ 后，
+        // 中间的 product/AGENTS.md 不得截断（否则解析成 product/product/...）。
         var configDirectory = new DirectoryInfo(Path.GetDirectoryName(Path.GetFullPath(configPath))!);
+        DirectoryInfo? root = null;
         for (var directory = configDirectory; directory is not null; directory = directory.Parent)
         {
             if (File.Exists(Path.Combine(directory.FullName, "AGENTS.md")))
-                return Path.Combine(directory.FullName, relativePath);
+                root = directory;
         }
+        if (root is not null)
+            return Path.Combine(root.FullName, relativePath);
         return Path.GetFullPath(Path.Combine(configDirectory.FullName, relativePath));
     }
 
