@@ -1,6 +1,8 @@
 # design/ 索引（未裁决方案 · Authority: NONE）
 
 > 规则见 docs/README.md §1/§2/§3：草案裁决接受后必须迁入对应权威目录。
+> Status: DRAFT（梳理/调研产物，未授权实现）
+> Authority: `NONE`（分析产物，不是架构决策；与 ADR / baseline 冲突时以后者为准）
 
 | 文档 | 用途 | 状态 |
 |---|---|---|
@@ -24,3 +26,4 @@
 | `../capability-hub/customization-integration-development-protocol-v0.1.md` | Capability 定制化、协议选择、注册集成、Adapter 开发与验收流程（Capability Hub 管理入口） | FROZEN / PROTOCOL GUIDE v0.1（CAP-010 升格） |
 | `memory-system-component-declaration-v0.1.md` | Memory System 组件声明占位（给 UniAgent 提供记忆；零落地待 buyer；AGT-018） | CANDIDATE / DECLARATION |
 | `task-scoped-capability-binding-v0.1.md` | 任务级能力创建、绑定、隔离、取消与收尾；生产接口待实现 | DRAFT / ACCEPTED_AS_CHANGE_INPUT |
+| `uniagent-profile-realization-and-management-v0.1.md` | UniAgent Profile 落地设计：产品级 host-neutral profile + DSH 绑定分离（四层装配、17 项裁决闭合、切片 PRF-1a/1b/2/3/4/5、ADR-0041 计划） | DRAFT / GRILLING_DECIDED（待 change 执行） |

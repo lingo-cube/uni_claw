@@ -190,6 +190,45 @@ _Avoid_: bare confidence float、全局 source ranking、把缺失置信度当�
 **Text Semantic Perception**: Fast（YOLO + OCR）与 Slow Text 构成的组合感知能力：对外至少实现 Semantic Perception，并可在 Fast 投影具备元素观察输出时同时实现 UI Element Perception；Slow Text 依赖同一 capture/cycle 的定位与文本依据完成语义解释，不能作为独立 Product capability 注册。Slow Visual 可以独立并按能力实现一个或两个协议接口。
 _Avoid_: standalone Slow Text、把文本模型当作独立图像观察源、把 Fast 来源数组直接拼接
 
+**Language Inspection**: Runtime Integration 侧的只读诊断能力；对一个 capture
+的界面文字做格式检查并产出非权威 Finding。它在 canonical observation
+commit 之后消费有界文本投影，不阻塞主 Runtime，也不改变 Assurance、Effect
+或其他 Product authority。它按任务需求 task-scoped 加载：任务没有声明语言
+检查时不建立 binding、不运行检查，也不生成语言检查产物。
+能力先作为可选择项进入 Runtime Integration 能力集，由 `uni-agent` 根据任务
+要求选择；Host/runner 不得看到配置后自行替 agent 打开能力。
+任务配置只声明检查要求和参数，不提供 Host 侧 `enabled` 开关；必选要求没有
+形成 agent 选择的 binding 时，任务必须安全停下。可选要求未被选择则不运行、
+不生成语言检查产物。能力可以由任务直接写死，也可以由 agent 解析选择；任务
+已经写死时优先；未写死时由 agent 在下发任务的统一
+`AgentTaskEnvelope.task.initialization.capabilitySelection` 中注入，Host 校验后
+形成 task-scoped binding。`task.payload` 可以承载计划或指令；runner 只消费已
+形成的 binding，不自行按配置或 registry 重新选实例。
+_Avoid_: 语言检查结果等于 Product truth、语言检查参与动作授权、读取设备
+locale 代替任务声明、全局默认加载
+
+**Capability Selection**: `uni-agent` 从当前信任域已注册、可用的能力集中，
+依据任务要求选择本次要绑定的能力实例；选择结果才进入 task-scoped binding。
+能力注册、能力可用性和 agent 选择是三件事，不能把“已注册”当作“本次已启用”。
+_Avoid_: Host 隐式代选、配置文件存在就自动启用、全局单例能力
+
+**Declared Text / Rendered Text**: 两种不同的文字依据。Declared Text 是
+层级/XML/OCR 等来源直接声明的字段值；Rendered Text 只在有实际屏幕渲染或
+明确视觉/OCR 投影依据时使用。当前 Settings 接线把 `text`、`content-desc`
+和 `hint` 各作为独立的 Declared Text 项，不能把层级字段伪装成 Rendered
+Text。
+_Avoid_: XML text 等于像素渲染、把同一字段同时当成两种依据
+
+**Language Ignore Route**: 任务配置声明的精确页面 route；命中后跳过该
+capture 的语言检查，并在运行产物中披露跳过及其影响。默认列表为空，不能
+用模糊文本关键词代替 route 身份。
+_Avoid_: 全局静默忽略、关键词误匹配、把跳过当作 Pass
+
+**Unknown Language Finding**: 某个 capture 因没有可用文字、输入不完整或
+capture 关联不一致而无法判断时产生的 Finding。每个 capture 都保留一条
+Unknown，不能为了让报告看起来干净而静默丢弃；Unknown 仍是非权威诊断结果。
+_Avoid_: Unknown 折叠成 Pass、缺输入等于 Violation、只写日志不留产物
+
 **Evidence Record**: Evidence Ledger admission 通过后形成的不可变
 canonical 观察依据记录（EvidenceId + claim + kind + observation
 context + provenance）。
@@ -640,6 +679,21 @@ _Avoid_: deterministic fake、mock agent、lower-standard realization
 isolation、audit 与 operations evidence 证明生产就绪的完整 UniAgent Realization。
 _Avoid_: production-ready by designation、coding profile
 
+**UniAgent Profile**: 产品拥有的 host-neutral UniAgent realization 装配描述
+（身份、冻结能力词汇、模型角色必需性、产品工件引用与修订号）；它不含
+provider/model 名、服务端点或任何运行态，宿主 realization 只能消费它、
+不能定义它。
+_Avoid_: DSH profile、deployment profile、model selection config
+
+**DSH Realization Binding**: UniAgent Profile 在 DSH realization 上的映射
+文件（逻辑角色到 provider/model 的偏好序、服务端点），由 DSH adapter
+拥有；更换 provider 或端点不改变 UniAgent Profile。
+_Avoid_: product profile、UniAgent Profile、model-routing（开发 Harness 的）
+
+**Task Profile**: 单次任务对能力要求与参数、预算、终止条件和策略引用的
+声明（ADR-0040）；它只引用、不复制 UniAgent Profile 或策略工件的内容。
+_Avoid_: agent profile、realization binding、capability facts
+
 **Host Session**: Host Runtime 提供的 thread/session 承载体；它可保存
 realization-private state 并显式关联 Product Session，但不是 Product Session，
 也不取得任何 Product Authority。
@@ -690,6 +744,10 @@ fail-closed）。咨询时机与次数由 Kernel 独占（D1-D7 纪律）；Agen
 第二次咨询。
 _Avoid_: agent invocation（泛义）、chat round、turn（跨 realization 混用）、
 Agent 发起的询问
+
+`AgentDecisionContext.availableCapabilities` 只在一次 Run 的第一次 Consultation
+请求中由 Host 注入当前可用 Runtime Integration profile map；Agent 从 map key
+选择任务能力，后续请求沿用 task-scoped binding，不重复发送或重新选择。
 
 **Agent Strategy State**: UniAgent 侧允许持有的认知状态——Plan
 Hypothesis、被弃策略及原因、policy 耗尽史、语义假设、decision
