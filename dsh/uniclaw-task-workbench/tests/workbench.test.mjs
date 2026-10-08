@@ -266,7 +266,7 @@ test('launch: Runtime-owned run and Host binding are explicit and idempotent', a
   const controller = mockController()
   const runtime = { calls: [], async createRun(request) { runtime.calls.push(request); return { runId: 'run-runtime-1', productSessionId: 'product-session-1' } } }
   const { routes } = applyHost({ controller, registry: mockRegistry(), runtime })
-  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-1', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/wifi-state' }, idempotencyKey: 'idem-1', correlationId: 'corr-1', requestedAt: new Date().toISOString(), environmentIntent: { device: { id: 'emulator-5558', override: true, source: 'workspace-launch-form' } }, metadata: [] }
+  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-1', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/toggle-wifi-reuse' }, idempotencyKey: 'idem-1', correlationId: 'corr-1', requestedAt: new Date().toISOString(), environmentIntent: { device: { id: 'emulator-5558', override: true, source: 'workspace-launch-form' } }, metadata: [] }
   const first = await post(routes, '/api/uniclaw-task/tasks/launch', request)
   assert.equal(first.status, 200)
   const firstPayload = await first.json()
@@ -293,7 +293,7 @@ test('launch: Runtime-owned dshSessionId is reused without creating a second DSH
   const controller = mockController()
   const runtime = { async createRun() { return { runId: 'run-runtime-session', productSessionId: 'product-runtime-session', dshSessionId: 'dsh-runtime-session' } } }
   const { routes } = applyHost({ controller, registry: mockRegistry(), runtime })
-  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-runtime-session', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/wifi-state' }, idempotencyKey: 'idem-runtime-session', correlationId: 'corr-runtime-session', requestedAt: new Date().toISOString(), metadata: [] }
+  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-runtime-session', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/toggle-wifi-reuse' }, idempotencyKey: 'idem-runtime-session', correlationId: 'corr-runtime-session', requestedAt: new Date().toISOString(), metadata: [] }
   const response = await post(routes, '/api/uniclaw-task/tasks/launch', request)
   assert.equal(response.status, 200)
   const payload = await response.json()
@@ -308,7 +308,7 @@ test('launch: Runtime hostSessionRef is reused without requiring project resolut
   const controller = mockController()
   const runtime = { async createRun() { return { runId: 'run-runtime-host-ref', productSessionId: 'product-runtime-host-ref', hostSessionRef: { host: 'dsh', sessionId: 'dsh-host-ref' } } } }
   const { routes } = applyHost({ controller, registry: undefined, runtime })
-  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-runtime-host-ref', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/wifi-state' }, idempotencyKey: 'idem-runtime-host-ref', correlationId: 'corr-runtime-host-ref', requestedAt: new Date().toISOString(), metadata: [] }
+  const request = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-runtime-host-ref', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/toggle-wifi-reuse' }, idempotencyKey: 'idem-runtime-host-ref', correlationId: 'corr-runtime-host-ref', requestedAt: new Date().toISOString(), metadata: [] }
   const response = await post(routes, '/api/uniclaw-task/tasks/launch', request)
   assert.equal(response.status, 200)
   const payload = await response.json()
@@ -419,7 +419,7 @@ test('launch: partial retry reuses the Runtime run and binds the recovered Host 
 test('launch: metadata and logical refs fail closed before Runtime creation', async () => {
   const runtime = { calls: 0, async createRun() { runtime.calls += 1; return { runId: 'run-never-created' } } }
   const { routes } = applyHost({ controller: mockController(), registry: mockRegistry(), runtime })
-  const base = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-invalid', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/wifi-state' }, idempotencyKey: 'idem-invalid', correlationId: 'corr-invalid', requestedAt: new Date().toISOString(), metadata: [] }
+  const base = { schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1', launchRequestId: 'launch-request-invalid', projectRef: { id: 'project/android-settings' }, testSetRef: { id: 'testset/android-settings', version: 'default' }, taskRef: { id: 'task/android-settings/toggle-wifi-reuse' }, idempotencyKey: 'idem-invalid', correlationId: 'corr-invalid', requestedAt: new Date().toISOString(), metadata: [] }
   let response = await post(routes, '/api/uniclaw-task/tasks/launch', { ...base, metadata: [{ key: 'agentPreset', value: 'uniagent-prod', valueOrigin: 'observed', availability: 'present', source: 'test', authority: 'test' }] })
   assert.equal(response.status, 400)
   assert.equal((await response.json()).error.code, 'invalid-launch-request')
