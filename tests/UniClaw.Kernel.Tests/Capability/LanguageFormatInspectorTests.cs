@@ -150,6 +150,64 @@ public sealed class LanguageFormatInspectorTests
         Assert.Throws<ArgumentException>(() => registry.Register(wrongCategory, "test"));
     }
 
+    // ---- D1/D2/D7/D8：白名单剥离 + 运行剖面 ----
+
+    [Fact]
+    public void Inspect_AllowlistTerms_AreRemovedBeforeScriptJudgment()
+    {
+        var inspector = new LanguageFormatInspector(allowlistTerms: new[] { "WLAN", "Wi-Fi" });
+
+        // 白名单词与英文混排：剥离后纯英文 → Pass。
+        Assert.Equal(FindingDisposition.Pass,
+            inspector.Inspect(Request("en", items: ("o", "WLAN direct connect", null))).Disposition);
+        Assert.Equal(FindingDisposition.Pass,
+            inspector.Inspect(Request("en", items: ("o", "Wi-Fi calling", null))).Disposition);
+        // 非整词出现（子串嵌在更长词里）不豁免，交脚本判定。
+        Assert.Equal(FindingDisposition.Violation,
+            inspector.Inspect(Request("en", items: ("o", "WLANx 网络", null))).Disposition);
+        // 未配置白名单（D8 照跑）：跨语言名词被报违例——正是剖面要披露的影响。
+        var bare = new LanguageFormatInspector();
+        Assert.Equal(FindingDisposition.Violation,
+            bare.Inspect(Request("zh", items: ("o", "WLAN 设置", null))).Disposition);
+    }
+
+    [Fact]
+    public void DescribeProfile_ReportsEffectiveConfigImpactAndLimitations()
+    {
+        var withTerms = new LanguageFormatInspector(allowlistTerms: new[] { "WLAN", "Wi-Fi" });
+        var report = withTerms.DescribeProfile();
+
+        Assert.True(report.IsValid);
+        Assert.Contains("比对观察文本", report.Summary, StringComparison.Ordinal);
+        Assert.Equal("2 词条：WLAN, Wi-Fi", report.EffectiveConfiguration["allowlistTerms"]);
+        Assert.Empty(report.ImpactDisclosures);
+        Assert.Contains(report.Limitations, l => l.Contains("不支持的语言", StringComparison.Ordinal));
+
+        // D8：未配置白名单 → 照跑 + 披露影响。
+        var bare = new LanguageFormatInspector();
+        var bareReport = bare.DescribeProfile();
+        Assert.Equal("未加载（0 词条）", bareReport.EffectiveConfiguration["allowlistTerms"]);
+        var disclosure = Assert.Single(bareReport.ImpactDisclosures);
+        Assert.Equal("未配置全局术语白名单", disclosure.Condition);
+        Assert.Contains("会被报为违例", disclosure.Impact, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Constructor_RejectsBlankAllowlistEntries()
+    {
+        Assert.Throws<ArgumentException>(
+            () => new LanguageFormatInspector(allowlistTerms: new[] { "WLAN", " " }));
+    }
+
+    [Fact]
+    public void ProfileIsAgentConsumable_InterfaceFace()
+    {
+        ICapability capability = new LanguageFormatInspector(allowlistTerms: new[] { "WLAN" });
+        Assert.IsAssignableFrom<ICapabilityProfileReporting>(capability);
+        var viaFace = ((ICapabilityProfileReporting)capability).DescribeProfile();
+        Assert.True(viaFace.IsValid);
+    }
+
     // ---- R5 可替换性：同一 ILanguageInspector 消费闭包喂双实现 ----
 
     private sealed class AlwaysUnknownInspector : ILanguageInspector
@@ -163,6 +221,12 @@ public sealed class LanguageFormatInspectorTests
         public Finding Inspect(LanguageInspectorRequest request) => request.CreateFinding(
             "stub-unknown", "test.always-unknown-inspector",
             FindingDisposition.Unknown, CapabilityStatus.Unknown, "stub has no rule");
+
+        public CapabilityProfileReport DescribeProfile() => new(
+            "测试桩：无规则，恒 Unknown",
+            new Dictionary<string, string>(StringComparer.Ordinal),
+            Array.Empty<CapabilityImpactDisclosure>(),
+            new[] { "仅用于 R5 可替换性执法" });
     }
 
     [Fact]

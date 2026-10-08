@@ -59,8 +59,11 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Capability.CapabilityEnvelope",
             "UniClaw.Kernel.Capability.CapabilityEventKind",
             "UniClaw.Kernel.Capability.CapabilityHealthReport",
+            // CAP-012 D7/D9 增集（3）：运行剖面能力面（第三个 mixin）。
+            "UniClaw.Kernel.Capability.CapabilityImpactDisclosure",
             "UniClaw.Kernel.Capability.CapabilityLifecycle",
             "UniClaw.Kernel.Capability.CapabilityLifecycleFact",
+            "UniClaw.Kernel.Capability.CapabilityProfileReport",
             "UniClaw.Kernel.Capability.CapabilityProtocol",
             "UniClaw.Kernel.Capability.CapabilityRegistry",
             "UniClaw.Kernel.Capability.CapabilityRelationship",
@@ -77,6 +80,7 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Capability.ICapability",
             "UniClaw.Kernel.Capability.ICapabilityHealthCheckable",
             "UniClaw.Kernel.Capability.ICapabilityHub",
+            "UniClaw.Kernel.Capability.ICapabilityProfileReporting",
             // CAP-012 增集（3）：Language Inspection 能力组件（skill 首次全新实战）。
             "UniClaw.Kernel.Capability.ILanguageInspector",
             "UniClaw.Kernel.Capability.IModelManagement",

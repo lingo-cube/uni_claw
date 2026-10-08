@@ -1,4 +1,6 @@
+using UniClaw.Host.Capability;
 using UniClaw.Host.SettingsCoverage;
+using UniClaw.Kernel.Capability;
 using Xunit;
 
 namespace UniClaw.Host.Tests;
@@ -402,6 +404,51 @@ public sealed class SettingsCoverageConfigTests
         Assert.Equal(4, loaded.SlowSettings.MaxRequestsPerRun);
         Assert.False(loaded.SlowSettings.VisualEnabled);
         Assert.Equal(2, loaded.SlowSettings.PopupConsecutiveCycles);
+    }
+
+    [Fact]
+    public void LanguageInspection_AbsentSection_DoesNotRequestCapability()
+    {
+        var loaded = SettingsCoverageConfig.Load(WriteConfig(MinimalConfig()));
+
+        Assert.Null(loaded.LanguageInspectionRequest);
+    }
+
+    [Fact]
+    public void LanguageInspection_TaskCanFixCapabilityAndParameters()
+    {
+        var yaml = MinimalConfig() + """
+
+            languageInspection:
+              required: true
+              capabilityId: runtime.language-inspector
+              expectedLanguage: zh-CN
+              ignoreRoutes:
+                - android.settings|rk1:Wi-Fi|src=title|up=1
+            """;
+
+        var loaded = SettingsCoverageConfig.Load(WriteConfig(yaml));
+
+        Assert.NotNull(loaded.LanguageInspectionRequest);
+        Assert.True(loaded.LanguageInspectionRequest!.Required);
+        Assert.Equal(LanguageInspectionProtocol.CapabilityId,
+            loaded.LanguageInspectionRequest.FixedCapabilityId);
+        Assert.Equal("zh-CN", loaded.LanguageInspectionRequest.ExpectedLanguage);
+        Assert.Equal(
+            new[] { "android.settings|rk1:Wi-Fi|src=title|up=1" },
+            loaded.LanguageInspectionRequest.Routes);
+    }
+
+    [Fact]
+    public void LanguageInspection_MissingExpectedLanguage_FailsClosed()
+    {
+        var yaml = MinimalConfig() + """
+
+            languageInspection:
+              required: true
+            """;
+
+        AssertInvalid(yaml, "config-missing:languageInspection.expectedLanguage");
     }
 
     [Fact]

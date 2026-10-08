@@ -214,7 +214,14 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
       } else if (action === 'close-launch-composer') {
         controller.closeLaunchComposer();
       } else if (action === 'select-pane') {
-        controller.selectPane(target.getAttribute('data-pane-tab'));
+        const paneTab = target.getAttribute('data-pane-tab');
+        controller.selectPane(paneTab);
+        if (paneTab === 'tools' && app.getState().tools?.status === 'idle') void controller.loadTools();
+      } else if (action === 'generate-report') {
+        void controller.generateReport();
+      } else if (action === 'diagnose-task') {
+        // PNL-012：诊断入口（model-procedure）。结果只进 state.diagnosis。
+        void controller.diagnoseRun();
       } else if (action === 'select-trace-mode') {
         controller.selectTraceMode(target.getAttribute('data-trace-mode'));
       } else if (action === 'select-trace-source') {
@@ -240,6 +247,7 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
     container.addEventListener('input', (event) => {
       const target = event.target;
       if (target && target.matches && target.matches('[data-workspace-launch-requirement]')) controller.setLaunchRequirement(target.value);
+      if (target && target.matches && target.matches('[data-workspace-tools-run-dir]')) controller.setToolsRunDir(target.value);
       if (target && target.matches && target.matches('[data-workspace-launch-device]') && target.value) controller.setLaunchDeviceOverride(true, target.value);
     });
     container.addEventListener('change', (event) => {
@@ -431,6 +439,32 @@ class WorkspaceQueryCore {
     return { status: 'ready', data: result.data || {}, errors: [], ...this.#envelope(result) };
   }
 
+  // PNL-008 / ADR-0039：ToolInvoke 可选能力（与 TaskCommand 同款优雅降级）。
+  async listTools() {
+    const capability = this.capabilities.ToolInvoke;
+    if (!capability || typeof capability.listTools !== 'function') return { status: 'error', items: [], errors: [queryError('unavailable', '当前 Host 未提供工具调用能力', 'ToolInvoke')] };
+    let result;
+    try { result = await capability.listTools(); } catch (error) { return { status: 'error', items: [], errors: [queryError('unavailable', error instanceof Error ? error.message : '工具列表获取失败', 'ToolInvoke')] }; }
+    if (!result || result.ok === false) {
+      const error = result?.error || queryError('unavailable', '工具列表返回无效结果', 'ToolInvoke');
+      return { status: 'error', items: [], errors: [error], ...this.#envelope(result || {}) };
+    }
+    const items = Array.isArray(result.data?.tools) ? result.data.tools : [];
+    return { status: 'ready', items, errors: [], ...this.#envelope(result) };
+  }
+
+  async invokeTool(name, request = {}) {
+    const capability = this.capabilities.ToolInvoke;
+    if (!capability || typeof capability.invokeTool !== 'function') return { status: 'error', errors: [queryError('unavailable', '当前 Host 未提供工具调用能力', 'ToolInvoke')] };
+    let result;
+    try { result = await capability.invokeTool(name, request); } catch (error) { return { status: 'error', errors: [queryError('unavailable', error instanceof Error ? error.message : '工具调用失败', 'ToolInvoke')] }; }
+    if (!result || result.ok === false) {
+      const error = result?.error || queryError('unavailable', '工具调用返回无效结果', 'ToolInvoke');
+      return { status: 'error', errors: [error], ...this.#envelope(result || {}) };
+    }
+    return { status: 'ready', data: result.data || {}, errors: [], ...this.#envelope(result) };
+  }
+
   async resolveDetail(detailRef, request = {}) {
     if (!detailRef || typeof detailRef.refId !== 'string') {
       return { status: 'error', errors: [queryError('not-found', 'DetailRef is required', 'workspace')] };
@@ -586,12 +620,15 @@ function createWorkspaceController({ queryCore } = {}) {
   const state = {
     projects: idlePage('projects'),
     selection: { projectId: null, productSessionId: null },
-    ui: { activePane: 'trace', traceMode: 'combined', traceSource: 'all', detailReturnPane: 'trace', detailModalOpen: false, launchComposer: { open: false, projectId: null, requirement: '', deviceOverrideEnabled: false, deviceOverride: null, requirementDocument: null, documentError: null } },
+    ui: { activePane: 'trace', traceMode: 'combined', traceSource: 'all', detailReturnPane: 'trace', detailModalOpen: false, toolsRunDir: '', launchComposer: { open: false, projectId: null, requirement: '', deviceOverrideEnabled: false, deviceOverride: null, requirementDocument: null, documentError: null } },
     session: idleData('session'),
     timeline: idlePage('timeline'),
     traces: idlePage('traces'),
     evidence: idlePage('evidence'),
+    tools: idlePage('tools'),
     detail: idleData('detail'),
+    report: { status: 'idle', data: null, errors: [] },
+    diagnosis: { status: 'idle', data: null, errors: [] },
     launch: { status: 'idle', data: null, errors: [] }
   };
   const tokens = new Map();
@@ -678,6 +715,45 @@ function createWorkspaceController({ queryCore } = {}) {
   async function loadEvidence(productSessionId = selected()) {
     return readSelected('evidence', productSessionId, () => queryCore.getEvidence(productSessionId), applyPage);
   }
+  async function loadTools() {
+    if (state.tools.status === 'loading') return publish();
+    return action('tools', async (token) => {
+      setLoading('tools');
+      const result = await queryCore.listTools();
+      const items = result.ok === false ? [] : (result.items || []);
+      return applyPage('tools', { status: result.status || (result.errors?.length ? 'error' : 'ready'), items, errors: result.errors || [] }, token);
+    });
+  }
+  function setToolsRunDir(value) {
+    state.ui.toolsRunDir = typeof value === 'string' ? value : '';
+    return publish();
+  }
+  async function generateReport() {
+    const runDir = (state.ui.toolsRunDir || '').trim();
+    if (!runDir) return publish();
+    return action('report', async (token) => {
+      state.report = { status: 'loading', data: null, errors: [] };
+      publish();
+      const result = await queryCore.invokeTool('run-report', { runDir });
+      if (!current('report', token)) return publish();
+      state.report = { status: result.status || (result.errors?.length ? 'error' : 'ready'), data: result.data || null, errors: result.errors || [] };
+      return publish();
+    });
+  }
+  // PNL-012：run 诊断（model-procedure 工具）。read-only posture：结果只进
+  // state.diagnosis，不写任何 run 目录或 store；文本在展示层强制带非权威声明。
+  async function diagnoseRun() {
+    const runDir = (state.ui.toolsRunDir || '').trim();
+    if (!runDir) return publish();
+    return action('diagnosis', async (token) => {
+      state.diagnosis = { status: 'loading', data: null, errors: [] };
+      publish();
+      const result = await queryCore.invokeTool('run-diagnosis', { runDir });
+      if (!current('diagnosis', token)) return publish();
+      state.diagnosis = { status: result.status || (result.errors?.length ? 'error' : 'ready'), data: result.data || null, errors: result.errors || [] };
+      return publish();
+    });
+  }
   async function launchTask(request = {}) {
     if (typeof queryCore.launchTask !== 'function') {
       state.launch = { status: 'error', data: null, errors: [{ code: 'unavailable', message: '当前 Host 未提供任务发起能力', retryable: false, source: 'TaskCommand' }] };
@@ -733,7 +809,7 @@ function createWorkspaceController({ queryCore } = {}) {
     return applyData('detail', result, token);
   }
   function selectPane(pane) {
-    const allowed = ['trace', 'evidence', 'detail'];
+    const allowed = ['trace', 'evidence', 'tools', 'detail'];
     state.ui.activePane = allowed.includes(pane) ? pane : 'trace';
     if (pane === 'detail') state.ui.detailModalOpen = true;
     return publish();
@@ -774,6 +850,7 @@ function createWorkspaceController({ queryCore } = {}) {
   return Object.freeze({
     loadProjects, selectProject, selectTaskInstance, loadSession, loadTimeline,
     loadTraces, loadEvidence, launchTask, openLaunchComposer, setLaunchRequirement, setLaunchDeviceOverride, setLaunchDocument, setLaunchDocumentError, closeLaunchComposer, resolveDetail, inspectTrace, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
+    loadTools, setToolsRunDir, generateReport, diagnoseRun,
     getState: () => clone(state)
   });
 
@@ -822,6 +899,7 @@ function createWorkspaceViewModel(input, options = {}) {
   const session = state.session && state.session.session;
   const metadata = mergeMetadata(selectedTask, session);
   const notices = collectNotices(state, selectedTask);
+  const toolsState = page(state.tools || { status: 'idle', items: [], errors: [] });
 
   return {
     navigation: {
@@ -854,6 +932,17 @@ function createWorkspaceViewModel(input, options = {}) {
     conversationTimeline: timelinePane(state.timeline, session),
     tracePane: { ...groupedPane(state.traces, 'traces', (item) => item.source || 'unknown'), mode: state.ui && state.ui.traceMode === 'split' ? 'split' : 'combined', selectedSource: state.ui && state.ui.traceSource || 'all' },
     evidencePane: evidencePane(state.evidence),
+    toolsPane: {
+      status: toolsState.status,
+      items: toolsState.items,
+      errors: toolsState.errors,
+      runDir: state.ui && state.ui.toolsRunDir || '',
+      report: clone(state.report || { status: 'idle', data: null, errors: [] }),
+      // PNL-012：诊断入口可用性投影（tools 已加载 + 存在 implemented 的
+      // model-procedure 工具 + runDir 非空）；不可用时给 title 说明。
+      diagnosis: clone(state.diagnosis || { status: 'idle', data: null, errors: [] }),
+      ...diagnosisGate(toolsState, state.ui && state.ui.toolsRunDir)
+    },
     executionPane: executionPane((state.session && state.session.session) || null),
     metadataPane: { status: state.session && state.session.status || 'idle', items: metadata, claims: metadataClaims(selectedTask, session), ...launchProjection(selectedTask, session), errors: errorsOf(state.session) },
     launchComposer: {
@@ -1073,6 +1162,21 @@ function executionPane(session) {
   return { status: items.length > 0 ? 'ready' : 'empty', items };
 }
 
+// PNL-012：诊断入口门控投影。available 仅在 tools 已加载、存在 implemented 的
+// model-procedure 工具且 runDir 非空时为 true；否则 unavailableReason 说明原因。
+function diagnosisGate(toolsState, runDir) {
+  const items = Array.isArray(toolsState.items) ? toolsState.items : [];
+  const hasProcedureTool = items.some((tool) => tool && tool.status === 'implemented' && tool.invocation === 'model-procedure');
+  const hasRunDir = typeof runDir === 'string' && runDir.trim().length > 0;
+  const available = toolsState.status === 'ready' && hasProcedureTool && hasRunDir;
+  const unavailableReason = toolsState.status !== 'ready'
+    ? '工具清单未加载，无法确认诊断能力'
+    : !hasProcedureTool
+      ? '清单中没有已实现（implemented）的 model-procedure 诊断工具'
+      : !hasRunDir ? '请先在工具面板填写 Run 目录' : '';
+  return { diagnosisAvailable: available, diagnosisUnavailableReason: unavailableReason };
+}
+
 function evidencePane(value) {
   const pane = page(value);
   return {
@@ -1241,8 +1345,9 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
       <div class="workspace-pane-tabs" role="tablist" aria-label="任务信息标签页">
         ${renderTabButton('trace', 'Trace', activePane)}
         ${renderTabButton('evidence', 'Evidence', activePane)}
+        ${renderTabButton('tools', '工具', activePane)}
       </div>
-      <div class="workspace-diagnostics-slot"><span><strong>诊断入口</strong><small>Skill 接入后可分析当前任务</small></span><button type="button" class="workspace-diagnostics-action" data-workspace-action="diagnose-task" disabled aria-disabled="true">诊断当前任务</button></div>
+      <div class="workspace-diagnostics-slot"><span><strong>诊断入口</strong><small>Skill 接入后可分析当前任务</small></span><button type="button" class="workspace-diagnostics-action" data-workspace-action="diagnose-task"${vm.toolsPane.diagnosisAvailable ? '' : ' disabled aria-disabled="true"'} title="${text(vm.toolsPane.diagnosisAvailable ? '诊断当前任务（诊断输出：非权威观察，不构成 Runtime truth）' : vm.toolsPane.diagnosisUnavailableReason || '诊断当前任务不可用')}">诊断当前任务</button></div>
     </section>
     <section class="workspace-conversation" aria-labelledby="conversation-title"><h3 id="conversation-title">Uni-Agent 解决过程</h3><div class="workspace-conversation-shell">${renderTimeline(vm.conversationTimeline)}</div></section>
     <section class="workspace-inspector" aria-label="${text(options.panesLabel, '任务信息')}">
@@ -1250,6 +1355,7 @@ function renderWorkspaceHtml(viewModel = {}, options = {}) {
         <div class="workspace-tab-panels">
           ${renderTabPanel('trace', activePane, renderTracePane(vm.tracePane))}
           ${renderTabPanel('evidence', activePane, renderEvidencePane(vm.evidencePane))}
+          ${renderTabPanel('tools', activePane, renderToolsPane(vm.toolsPane))}
         </div>
       </div>
     </section>
@@ -1387,6 +1493,25 @@ function formatSpanDuration(item = {}) {
 
 function renderEvidencePane(pane = {}) {
   return `<section class="workspace-pane workspace-pane--evidence" data-pane="evidence"><h3>Evidence</h3>${(pane.items || []).map((item) => { const action = item.detailAction || {}; return `<article class="workspace-evidence-card" data-correlation-status="${escapeHtml(item.correlationStatus || '')}"><h4>${text(item.title, '未命名证据')}</h4><p>${text(item.source, '未知来源')}</p>${action.enabled && action.detailRef ? `<button type="button" class="workspace-detail-action" data-workspace-action="resolve-detail" data-detail-ref="${escapeHtml(action.detailRef.refId || action.detailRef)}">查看明细</button>` : `<button type="button" class="workspace-detail-action" disabled aria-disabled="true">${text(action.reason, '详情不可用')}</button>`}${item.error ? `<p class="workspace-error">${text(item.error.message || item.error.code)}</p>` : ''}</article>`; }).join('')}</section>`;
+}
+function renderToolsPane(pane = {}) {
+  const rows = (pane.items || []).map((tool) => `<tr><td><code>${text(tool.name)}</code></td><td>${text(tool.summary)}</td><td>${text(tool.invocation)}</td><td>${text(tool.posture)}</td><td>${status(tool.status)}</td></tr>`).join('');
+  const report = pane.report || {};
+  const result = report.data && report.data.result ? report.data.result : null;
+  const resultBlock = report.status === 'idle' ? '' : `<div class="workspace-tools-result"><strong>生成结果</strong>${report.errors && report.errors.length ? `<ul class="workspace-notice__list">${errorText(report.errors)}</ul>` : ''}${result ? `<p>exitCode=${text(result.exitCode)}${result.reportMd ? ` · <code>${text(result.reportMd)}</code>` : ''}${result.reportJson ? ` · <code>${text(result.reportJson)}</code>` : ''}</p>${result.stderrTail ? `<pre class="workspace-tools-stderr">${text(result.stderrTail)}</pre>` : ''}` : (report.status === 'loading' ? '<p>生成中…</p>' : '')}</div>`;
+  const diagnosisBlock = renderDiagnosisBlock(pane.diagnosis);
+  return `<section class="workspace-pane workspace-pane--tools" data-pane="tools"><h3>工具</h3><p class="workspace-tools-note">Harness 工具暴露清单（tool-registry.yaml / ADR-0039）。</p><table class="workspace-tools-table"><thead><tr><th>名称</th><th>说明</th><th>调用形态</th><th>姿态</th><th>状态</th></tr></thead><tbody>${rows || '<tr><td colspan="5">未加载</td></tr>'}</tbody></table><div class="workspace-tools-invoke"><label for="workspace-tools-run-dir">Run 目录（runs 根下的目录名）</label><input id="workspace-tools-run-dir" type="text" data-workspace-tools-run-dir value="${text(pane.runDir)}" placeholder="run-20261003-075727-844"><button type="button" class="workspace-launch-action" data-workspace-action="generate-report"${pane.runDir && pane.runDir.trim() && report.status !== 'loading' ? '' : ' disabled aria-disabled="true"'}>${report.status === 'loading' ? '生成中…' : '生成全链路报告'}</button></div>${resultBlock}${diagnosisBlock}</section>`;
+}
+
+// PNL-012：诊断结果区块（read-only：只展示；文本前强制显示非权威声明）。
+function renderDiagnosisBlock(diagnosis = {}) {
+  if (diagnosis.status === 'idle') return '';
+  const result = diagnosis.data && diagnosis.data.result ? diagnosis.data.result : null;
+  const errors = diagnosis.errors && diagnosis.errors.length ? `<ul class="workspace-notice__list">${errorText(diagnosis.errors)}</ul>` : '';
+  const body = result
+    ? `<p class="workspace-diagnosis-notice"><strong>诊断输出：非权威观察，不构成 Runtime truth</strong></p><p>model=<code>${text(result.model)}</code>${result.reportRef ? ` · report=<code>${text(result.reportRef)}</code>` : ''}</p><pre class="workspace-tools-stderr">${text(result.text)}</pre>`
+    : (diagnosis.status === 'loading' ? '<p>诊断中…</p>' : errors);
+  return `<div class="workspace-tools-result workspace-diagnosis-result"><strong>诊断结果</strong>${body}</div>`;
 }
 function renderMetadataPane(pane = {}) {
   const items = pane.items || {};
