@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using UniClaw.Agent.Profile;
 using UniClaw.Kernel.Runtime;
 
 namespace UniClaw.Agent.Dsh;
@@ -168,13 +169,23 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
                     request.RequestId, request.Generation, null, ReadErrorMessage(root));
             }
             AgentDecision? decision = null;
-            if (root.TryGetProperty("decision", out var decisionElement)
-                && decisionElement.ValueKind is JsonValueKind.Object or JsonValueKind.String)
+            AgentTaskInitialization? taskInitialization = null;
+            if (root.TryGetProperty("task", out var taskElement)
+                && taskElement.ValueKind == JsonValueKind.Object)
             {
-                decision = decisionElement.ValueKind == JsonValueKind.String
-                    ? JsonSerializer.Deserialize<AgentDecision>(decisionElement.GetString()!, _json)
-                    : JsonSerializer.Deserialize<AgentDecision>(decisionElement.GetRawText(), _json);
+                if (!taskElement.TryGetProperty("initialization", out var initializationElement)
+                    || initializationElement.ValueKind != JsonValueKind.Object
+                    || !taskElement.TryGetProperty("payload", out var payloadElement)
+                    || payloadElement.ValueKind is not (JsonValueKind.Object or JsonValueKind.String))
+                    throw new JsonException("task requires initialization and payload");
+                taskInitialization = initializationElement.Deserialize<AgentTaskInitialization>(_json)
+                    ?? throw new JsonException("task initialization is null");
+                decision = payloadElement.ValueKind == JsonValueKind.String
+                    ? JsonSerializer.Deserialize<AgentDecision>(payloadElement.GetString()!, _json)
+                    : JsonSerializer.Deserialize<AgentDecision>(payloadElement.GetRawText(), _json);
             }
+            if (root.TryGetProperty("capabilitySelection", out _))
+                throw new JsonException("top-level capabilitySelection is no longer accepted; use task.initialization");
             var errorMessage = ReadErrorMessage(root);
             if (root.TryGetProperty("diagnostics", out var diagnostics)
                 && diagnostics.ValueKind == JsonValueKind.Object
@@ -190,7 +201,7 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
                 root.GetProperty("requestId").GetString() ?? request.RequestId,
                 root.TryGetProperty("generation", out var generation) && generation.TryGetInt64(out var value)
                     ? value : request.Generation,
-                decision, errorMessage);
+                decision, errorMessage, taskInitialization);
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
         {

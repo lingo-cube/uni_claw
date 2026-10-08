@@ -1,5 +1,6 @@
 using UniClaw.Agent.Dsh;
 using UniClaw.Host;
+using UniClaw.Host.Capability;
 using UniClaw.Host.SettingsCoverage;
 using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Runtime;
@@ -94,6 +95,7 @@ if (string.IsNullOrWhiteSpace(device))
 DshAgentAdapter? dshAgent = null;
 DshOpenedDecisionChannel? dshChannel = null;
 DshOpenedHttpPeer? dshPeer = null;
+LanguageInspectionSelection? agentLanguageInspectionSelection = null;
 HostRunner.HostRunResult? result = null;
 UniClaw.Kernel.Capability.CapabilityRegistry? capabilityRegistry = null;
 // CAP-012：Runtime Integration 域独立注册表（ADR-0035 三域不共享注册状态）。
@@ -102,18 +104,21 @@ SettingsCoverageRunner.RunResult? coverageResult = null;
 var productSessionId = $"{(settingsCoverage ? "settings-coverage" : "settings-traversal")}-session-{Guid.NewGuid():N}";
 try
 {
-    var config = UniagentProdYaml.LoadDefault();
+    // PRF-002（ADR-0041）：产品 profile（host-neutral）与 DSH 绑定分轨加载。
+    var agentProfile = UniClaw.Agent.Profile.UniAgentProfileYaml.LoadDefault();
+    var bindings = UniagentDshBindingsYaml.LoadDefault();
     // CAP-006：模型管理声明为产品能力组件（Kernel 公开缝 ModelManagement）；
-    // 缺省 realization 借用 DSH——binding 从 DSH profile（modelSelection）
-    // 推导注入，决策/slow 模型一律经缝 resolve，不再直连 yaml。
-    var models = DshModelManagement.FromProfile(
-        config, Environment.GetEnvironmentVariable("UNICLAW_UNIAGENT_PROD_MODEL"));
+    // 缺省 realization 借用 DSH——binding 从 DSH 绑定（modelSelection）+ 产品
+    // modelRoles 声明推导注入，决策/slow 模型一律经缝 resolve，不再直连 yaml。
+    var models = DshModelManagement.FromBindings(
+        bindings, agentProfile,
+        Environment.GetEnvironmentVariable("UNICLAW_UNIAGENT_PROD_MODEL"));
     var model = DshModelManagement.ResolveDshModel(models, LogicalProfileId.AgentDecision);
     var slowTextModel = DshModelManagement.ResolveDshModel(models, LogicalProfileId.Text);
-    Console.WriteLine($"agent.provider={model.Provider} agent.model={model.Name} dsh.endpoint={config.Service.BaseUri} model.realization={DshModelManagement.RealizationName}");
+    Console.WriteLine($"agent.provider={model.Provider} agent.model={model.Name} dsh.endpoint={bindings.Service.BaseUri} model.realization={DshModelManagement.RealizationName}");
     // AGT-017：peer 提前创建，决策通道与 Slow 桥共享同一 attached 会话
     //（/slow 服务端要求 attached 且单飞行）。peer 构造零网络副作用。
-    dshPeer = new DshOpenedHttpPeer(config.Service, model: model);
+    dshPeer = new DshOpenedHttpPeer(bindings.Service, model: model);
     var slowBridge = new DshSlowConsult(
         (requestId, prompt, slowModel, imagePng, cancellationToken) =>
             dshPeer.ExecuteSlowAsync(requestId, prompt, slowModel, imagePng, cancellationToken),
@@ -171,7 +176,16 @@ try
             dshAgent = new DshAgentAdapter(dshChannel, productSessionId, context.RunId,
                 turnTimeout: TimeSpan.FromSeconds(200)); // PER-019: 高于服务端 180s 界
         }
-        return dshAgent.Consult(context);
+        var decision = dshAgent.Consult(context);
+        if (agentLanguageInspectionSelection is null
+            && dshAgent.TakeInitialTaskInitialization()?.CapabilitySelection is { } selection)
+        {
+            agentLanguageInspectionSelection = new LanguageInspectionSelection(
+                selection.CapabilityId,
+                selection.ExpectedLanguage ?? string.Empty,
+                selection.IgnoreRoutes);
+        }
+        return decision;
     }
 
     if (settingsCoverage)
@@ -194,7 +208,10 @@ try
             Config: coverageConfig,
             UnderlyingConsult: Consult,
             DshSessionIdAccessor: () => dshAgent?.DshSessionId,
-            SlowConsult: uniPerceptionFetch));
+            SlowConsult: uniPerceptionFetch,
+            LanguageInspection: coverageConfig.LanguageInspectionRequest,
+            LanguageInspectionSelectionProvider: () => agentLanguageInspectionSelection,
+            RuntimeIntegrationCapabilities: runtimeIntegrationRegistry));
     }
     else
     {
@@ -217,6 +234,9 @@ try
             TargetState = targetState ?? "checked",
             TargetSemanticDescriptor = targetDescriptor,
             UniPerceptionFetch = uniPerceptionFetch,
+            LanguageInspection = settingsPolicyConfig.LanguageInspectionRequest,
+            LanguageInspectionSelectionProvider = () => agentLanguageInspectionSelection,
+            RuntimeIntegrationCapabilities = runtimeIntegrationRegistry,
             Live = new LivePerception.LiveAssets(
                 device,
                 "wifi-settings",
@@ -254,6 +274,7 @@ if (coverageResult is not null)
     {
         try
         {
+            WriteCapabilityProfiles(capabilityFactsDir!, capabilityRegistry, runtimeIntegrationRegistry);
             System.IO.File.WriteAllText(
                 System.IO.Path.Combine(capabilityFactsDir, "capability-facts.json"),
                 System.Text.Json.JsonSerializer.Serialize(
@@ -296,6 +317,7 @@ if (capabilityRegistry is not null && result.RunDir is not null)
 {
     try
     {
+        WriteCapabilityProfiles(result.RunDir, capabilityRegistry, runtimeIntegrationRegistry);
         System.IO.File.WriteAllText(
             System.IO.Path.Combine(result.RunDir, "capability-facts.json"),
             System.Text.Json.JsonSerializer.Serialize(
@@ -313,6 +335,43 @@ if (capabilityRegistry is not null && result.RunDir is not null)
     }
 }
 return HostRunner.ExitCode(result.Status);
+
+static void WriteCapabilityProfiles(
+    string dir,
+    UniClaw.Kernel.Capability.CapabilityRegistry? product,
+    UniClaw.Kernel.Capability.CapabilityRegistry? runtimeIntegration)
+{
+    // CAP-012 D9：剖面事实源落盘（消费面=uni agent + skill 剖面消费模板）。
+    try
+    {
+        var profiles = new List<object>();
+        foreach (var registry in new[] { product, runtimeIntegration })
+        {
+            if (registry is null) continue;
+            foreach (var id in registry.Facts.Select(f => f.CapabilityId).Distinct(StringComparer.Ordinal))
+            {
+                if (registry.Resolve(id) is not UniClaw.Kernel.Capability.ICapabilityProfileReporting reporting)
+                    continue;
+                var report = reporting.DescribeProfile();
+                profiles.Add(new
+                {
+                    capabilityId = id,
+                    report.Summary,
+                    effectiveConfiguration = report.EffectiveConfiguration,
+                    impactDisclosures = report.ImpactDisclosures.Select(d => new { d.Condition, d.Impact }),
+                    report.Limitations,
+                });
+            }
+        }
+        System.IO.File.WriteAllText(
+            System.IO.Path.Combine(dir, "capability-profiles.json"),
+            System.Text.Json.JsonSerializer.Serialize(profiles));
+    }
+    catch (Exception profileError)
+    {
+        Console.Error.WriteLine($"capability-profiles write failed: {profileError.Message}");
+    }
+}
 
 static string RepoRoot()
 {

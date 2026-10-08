@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "uniagent.prompt/v1",
+  "promptRevision": 2,
+  "protocol": {
+    "protocolVersion": "uniclaw.agent.protocol.v1",
+    "schemaVersion": "uniclaw.agent.schema.v1",
+    "schemaHash": "4a5416a2bfbd89e45b95817881d27b5d0419fdc4fa74cb4f7aade5538506e0d1"
+  },
+  "segments": [
+    "01-identity.txt",
+    "02-output-discipline.txt",
+    "03-payload-shapes.txt"
+  ]
+}

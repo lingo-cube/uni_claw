@@ -1,5 +1,6 @@
 using System.Net;
 using UniClaw.Agent.Dsh;
+using UniClaw.Agent.Profile;
 using UniClaw.Kernel.Runtime;
 
 namespace UniClaw.Agent.Dsh.Tests;
@@ -76,7 +77,7 @@ public sealed class DshOpenedHttpPeerTests
         {
             receivedBody = request.Content!.ReadAsStringAsync().Result;
             return Task.FromResult(Json(HttpStatusCode.OK,
-                """{"requestId":"dsh-req-00000001","generation":3,"decision":{"kind":"noAction","decisionId":"decision-1","proposal":{"decisionId":"decision-1","justification":"already on"}},"diagnostics":{"source":"submit_decision"}}"""));
+                """{"requestId":"dsh-req-00000001","generation":3,"task":{"initialization":{},"payload":{"kind":"noAction","decisionId":"decision-1","proposal":{"decisionId":"decision-1","justification":"already on"}}},"diagnostics":{"source":"submit_decision"}}"""));
         });
         await using var peer = new DshOpenedHttpPeer(
             new DshServiceEndpoint(new Uri("http://127.0.0.1:3080/", UriKind.Absolute)),
@@ -90,6 +91,41 @@ public sealed class DshOpenedHttpPeerTests
         Assert.IsType<AgentDecision.NoAction>(response.Decision);
         Assert.Contains("decision-1", receivedBody, StringComparison.Ordinal);
         Assert.Contains("turnTimeoutMs", receivedBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Consult_DecodesInitialCapabilitySelection_OutsideDecision()
+    {
+        var handler = new ScriptedHandler((_, _) => Task.FromResult(Json(HttpStatusCode.OK,
+                """{"requestId":"dsh-req-00000001","generation":3,"task":{"initialization":{"capabilitySelection":{"capabilityId":"runtime.language-inspector","expectedLanguage":"en","ignoreRoutes":["route:ignored"]}},"payload":{"kind":"noAction","decisionId":"decision-1","proposal":{"decisionId":"decision-1","justification":"already on"}}}}""")));
+        await using var peer = new DshOpenedHttpPeer(
+            new DshServiceEndpoint(new Uri("http://127.0.0.1:3080/", UriKind.Absolute)),
+            credential: Credential(), handler: handler);
+
+        var response = await peer.ReceiveDecisionRequestAsync(new DecisionRequest(
+            "dsh-req-00000001", 3, "product-session-1", "run-1",
+            Context("decision-1")), CancellationToken.None);
+
+        Assert.Equal("runtime.language-inspector", response.TaskInitialization?.CapabilitySelection?.CapabilityId);
+        Assert.Equal("en", response.TaskInitialization?.CapabilitySelection?.ExpectedLanguage);
+        Assert.Equal(new[] { "route:ignored" }, response.TaskInitialization?.CapabilitySelection?.IgnoreRoutes);
+        Assert.IsType<AgentDecision.NoAction>(response.Decision);
+    }
+
+    [Fact]
+    public async Task Consult_RejectsTopLevelCapabilitySelection()
+    {
+        var handler = new ScriptedHandler((_, _) => Task.FromResult(Json(HttpStatusCode.OK,
+            """{"requestId":"dsh-req-00000001","generation":3,"capabilitySelection":{"capabilityId":"runtime.language-inspector"},"task":{"initialization":{},"payload":{"kind":"noAction","decisionId":"decision-1","proposal":{"decisionId":"decision-1","justification":"already on"}}}}""")));
+        await using var peer = new DshOpenedHttpPeer(
+            new DshServiceEndpoint(new Uri("http://127.0.0.1:3080/", UriKind.Absolute)),
+            credential: Credential(), handler: handler);
+
+        var response = await peer.ReceiveDecisionRequestAsync(new DecisionRequest(
+            "dsh-req-00000001", 3, "product-session-1", "run-1", Context("decision-1")), CancellationToken.None);
+
+        Assert.Null(response.Decision);
+        Assert.Contains("top-level capabilitySelection", response.Error, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -150,7 +186,7 @@ public sealed class DshOpenedHttpPeerTests
             attempts++;
             var body = attempts == 1
                 ? "{\"requestId\":\"dsh-req-capacity\",\"generation\":1,\"decision\":null,\"error\":\"Selected model is at capacity. Please try a different model.\"}"
-                : "{\"requestId\":\"dsh-req-capacity\",\"generation\":1,\"decision\":{\"kind\":\"noAction\",\"decisionId\":\"decision-capacity\",\"proposal\":{\"decisionId\":\"decision-capacity\",\"justification\":\"done\"}}}";
+                : "{\"requestId\":\"dsh-req-capacity\",\"generation\":1,\"task\":{\"initialization\":{},\"payload\":{\"kind\":\"noAction\",\"decisionId\":\"decision-capacity\",\"proposal\":{\"decisionId\":\"decision-capacity\",\"justification\":\"done\"}}}}";
             return Task.FromResult(Json(HttpStatusCode.OK, body));
         });
         await using var peer = new DshOpenedHttpPeer(

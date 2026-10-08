@@ -1,31 +1,37 @@
+using UniClaw.Agent.Profile;
 using UniClaw.Kernel.Capability;
 
 namespace UniClaw.Agent.Dsh;
 
 /// <summary>
-/// CAP-006 — Model Management 的缺省（借用 DSH）realization。从 DSH profile
-/// 配置（.dsh/profiles/uniagent-prod.yaml 的 modelSelection 块，经
-/// <see cref="UniagentProdYaml"/> 加载）推导产品 logical profile 的 binding
-/// 快照，注册进公开产品缝 <see cref="ModelManagement"/>。DSH 专有形状
-/// （<see cref="ModelConfiguration"/>）不越出 adapter；解析语义（fail-closed、
-/// 偏好序游走、fallback 规则）归产品缝所有。
+/// CAP-006 — Model Management 的缺省（借用 DSH）realization。PRF-002
+/// （ADR-0041）起吃双输入：host-neutral 产品声明
+/// （<see cref="UniAgentProfile"/>：模型角色必需性）+ DSH 绑定
+/// （<see cref="UniagentDshBindings"/>：CAP-007 modelSelection 与服务端点），
+/// 推导产品 logical profile 的 binding 快照，注册进公开产品缝
+/// <see cref="ModelManagement"/>。DSH 专有形状不出 adapter；解析语义
+/// （fail-closed、偏好序游走、fallback 规则）归产品缝所有。
 ///
-/// CAP-007 — 选择映射：
+/// CAP-007 选择映射（语义原样，值域校验升级为按产品声明核对）：
 /// <list type="bullet">
-/// <item><c>modelSelection.selected</c> = 缺省选择，服务所有未显式配置的 profile
-/// （缺省注册 agent.decision 与 slow.semantic.text；slow.semantic.visual 维持不
-/// 注册——诚实 NotConfigured，除非显式配置）。</item>
-/// <item><c>modelSelection.profiles.&lt;profile&gt;: key</c> = 该 profile 单选；
-/// 有序列表 = 偏好序（经 <see cref="ModelManagement.RegisterPreference"/> 注册，
-/// 首选在前）。</item>
-/// <item>未知 profile 名 / 引用未知 choice 一律 fail-closed。</item>
-/// <item>环境覆盖 UNICLAW_UNIAGENT_PROD_MODEL 只作用于 selected 派生的缺省
-/// binding——显式 per-profile 选择是更强决策，不被覆盖（D3 冻结）。</item>
+/// <item><c>modelSelection.selected</c> = 缺省选择，服务所有
+/// <c>required=true</c> 且无显式选择的角色（缺省注册 agent.decision 与
+/// slow.semantic.text；slow.semantic.visual 维持不注册——诚实
+/// NotConfigured，除非显式配置）。</item>
+/// <item><c>modelSelection.profiles.&lt;role&gt;: key</c> = 该角色单选；
+/// 有序列表 = 偏好序（经 <see cref="ModelManagement.RegisterPreference"/>
+/// 注册，首选在前）。role 必须是产品 profile 声明的角色——绑定引用产品
+/// 未声明的角色 fail-closed（防死配置）。</item>
+/// <item><c>required=true</c> 的角色装配后必须可解析，否则组合根拒启
+/// （Profile Boot fail，Q4）；未知 choice 引用一律 fail-closed。</item>
+/// <item>环境覆盖 UNICLAW_UNIAGENT_PROD_MODEL 只作用于 selected 派生的
+/// 缺省 binding——显式 per-role 选择是更强决策，不被覆盖（D3 冻结）。</item>
 /// </list>
 /// </summary>
 public static class DshModelManagement
 {
-    /// <summary>产品 logical profile 值域（供 fail-closed 校验与诊断）。</summary>
+    /// <summary>产品 logical profile 值域（诊断用；词汇源是
+    /// <see cref="LogicalProfileId"/> 静态属性）。</summary>
     public static readonly IReadOnlyList<LogicalProfileId> ProductProfiles = new[]
     {
         LogicalProfileId.AgentDecision,
@@ -36,38 +42,56 @@ public static class DshModelManagement
     /// <summary>与 Host 组合根声明一致的 realization 名。</summary>
     public const string RealizationName = "dsh-model-management";
 
-    /// <summary>从 DSH profile 配置构建产品缝（缺省 + per-profile 覆盖 + 偏好序）。
-    /// modelNameOverride 透传 UNICLAW_UNIAGENT_PROD_MODEL（只覆盖缺省 binding）。</summary>
-    public static ModelManagement FromProfile(
-        UniagentProdConfiguration configuration, string? modelNameOverride = null)
+    /// <summary>从「产品声明 + DSH 绑定」构建产品缝（required 缺省 +
+    /// per-role 覆盖 + 偏好序 + Q4 装配执法）。modelNameOverride 透传
+    /// UNICLAW_UNIAGENT_PROD_MODEL（只覆盖缺省 binding）。</summary>
+    public static ModelManagement FromBindings(
+        UniagentDshBindings bindings,
+        UniAgentProfile profile,
+        string? modelNameOverride = null)
     {
-        ArgumentNullException.ThrowIfNull(configuration);
-        var choices = configuration.Choices
+        ArgumentNullException.ThrowIfNull(bindings);
+        ArgumentNullException.ThrowIfNull(profile);
+        var choices = bindings.Choices
             ?? new Dictionary<string, ModelConfiguration>(StringComparer.Ordinal);
-        var explicitSelections = ValidateProfileSelections(configuration.ProfileSelections);
+        var declaredRoles = ValidateSelectionsAgainstDeclarations(
+            bindings.ProfileSelections, profile);
 
         var registry = new ModelManagement();
-        foreach (var profile in ProductProfiles)
+        foreach (var declaration in profile.ModelRoles)
         {
-            if (explicitSelections.TryGetValue(profile.Value, out var choiceKeys))
+            var role = new LogicalProfileId(declaration.Role);
+            if (declaredRoles.TryGetValue(role.Value, out var choiceKeys))
             {
-                registry.RegisterPreference(profile, choiceKeys
-                    .Select(key => Snapshot(profile, key, ResolveChoice(choices, key)))
+                registry.RegisterPreference(role, choiceKeys
+                    .Select(key => Snapshot(role, key, ResolveChoice(choices, key)))
                     .ToArray());
                 continue;
             }
 
-            // 缺省：selected 服务 agent.decision 与 slow.semantic.text（env 覆盖
-            // 只在此生效）；visual 缺省不注册。
-            if (profile != LogicalProfileId.AgentDecision && profile != LogicalProfileId.Text)
-                continue;
+            if (!declaration.Required)
+                continue; // optional 无显式选择 → 诚实 NotConfigured（现状 visual 语义）
+
+            // required 缺省：selected 服务（env 覆盖只在此生效）。
             var defaultName = string.IsNullOrWhiteSpace(modelNameOverride)
-                ? configuration.Model.Name
+                ? bindings.Model.Name
                 : modelNameOverride.Trim();
             registry.Register(new ModelBindingSnapshot(
-                profile, configuration.Model.Provider, defaultName,
-                ConfigId: $"uniagent-prod:{configuration.SelectedModelKey ?? "default"}",
+                role, bindings.Model.Provider, defaultName,
+                ConfigId: $"uniagent-prod:{bindings.SelectedModelKey ?? "default"}",
                 VariantId: RealizationName, Available: true, Experimental: false));
+        }
+
+        // Q4 装配执法：required 角色最终必须可解析，否则组合根拒启。
+        foreach (var declaration in profile.ModelRoles)
+        {
+            if (!declaration.Required)
+                continue;
+            var resolution = registry.Resolve(new LogicalProfileId(declaration.Role));
+            if (!resolution.IsResolved || resolution.Binding is null)
+                throw new InvalidOperationException(
+                    $"PROFILE_BOOT_FAILED: required model role '{declaration.Role}' has no usable "
+                    + $"DSH binding ({resolution.Diagnostic})");
         }
         return registry;
     }
@@ -91,28 +115,32 @@ public static class DshModelManagement
         return ToDshModel(resolution.Binding);
     }
 
-    private static Dictionary<string, IReadOnlyList<string>> ValidateProfileSelections(
-        IReadOnlyList<ModelProfileSelection>? selections)
+    /// <summary>CAP-007 选择条目校验：结构合法 + role 必须是产品 profile
+    /// 声明的角色（绑定不得引用产品未声明的角色）+ 无重复。</summary>
+    private static Dictionary<string, IReadOnlyList<string>> ValidateSelectionsAgainstDeclarations(
+        IReadOnlyList<ModelProfileSelection>? selections, UniAgentProfile profile)
     {
-        var byProfile = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+        var byRole = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
         if (selections is null)
-            return byProfile;
-        var knownProfiles = ProductProfiles.Select(profile => profile.Value).ToHashSet(StringComparer.Ordinal);
+            return byRole;
+        var declared = profile.ModelRoles
+            .Select(static role => role.Role)
+            .ToHashSet(StringComparer.Ordinal);
         foreach (var selection in selections)
         {
             if (selection is not { IsValid: true })
                 throw new InvalidOperationException(
                     "model-selection-invalid: malformed profile selection entry");
-            if (!knownProfiles.Contains(selection.Profile))
+            if (!declared.Contains(selection.Profile))
                 throw new InvalidOperationException(
-                    $"model-selection-invalid: unknown profile '{selection.Profile}' "
-                    + $"(valid: {string.Join(", ", ProductProfiles.Select(p => p.Value))})");
-            if (byProfile.ContainsKey(selection.Profile))
+                    $"model-selection-invalid: role '{selection.Profile}' is not declared by the "
+                    + $"product profile (declared: {string.Join(", ", declared.Order(StringComparer.Ordinal))})");
+            if (byRole.ContainsKey(selection.Profile))
                 throw new InvalidOperationException(
                     $"model-selection-invalid: duplicate profile '{selection.Profile}'");
-            byProfile[selection.Profile] = selection.ChoiceKeys;
+            byRole[selection.Profile] = selection.ChoiceKeys;
         }
-        return byProfile;
+        return byRole;
     }
 
     private static ModelConfiguration ResolveChoice(

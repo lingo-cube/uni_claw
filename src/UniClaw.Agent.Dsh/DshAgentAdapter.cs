@@ -29,6 +29,7 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
     private string? _activeDecisionId;
     private TurnState? _activeTurn;
     private Task? _lastAbortTask;
+    private AgentTaskInitialization? _initialTaskInitialization;
 
     private sealed class TurnState
     {
@@ -71,6 +72,17 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
     public IReadOnlyList<DshDiagnostic> Diagnostics
     {
         get { lock (_gate) return _diagnostics.ToArray(); }
+    }
+
+    /// <summary>取出首个任务初始化注入的一次性初始化信息。</summary>
+    public AgentTaskInitialization? TakeInitialTaskInitialization()
+    {
+        lock (_gate)
+        {
+            var initialization = _initialTaskInitialization;
+            _initialTaskInitialization = null;
+            return initialization;
+        }
     }
 
     /// <summary>Compatibility seam for the existing synchronous Product Host
@@ -386,6 +398,20 @@ public sealed class DshAgentAdapter : IDisposable, IAsyncDisposable
                     response.RequestId, response.Generation, returnedDecisionId));
                 RetireActiveLocked(request, "correlation-mismatch", "DecisionId mismatch");
                 return null;
+            }
+
+            if (response.TaskInitialization?.CapabilitySelection is not null)
+            {
+                if (_completedRequests.Count != 0 || _initialTaskInitialization?.CapabilitySelection is not null)
+                {
+                    AddDiagnosticLocked(new DshDiagnostic(
+                        "capability-selection-not-initial",
+                        "capability selection is accepted only in the first task initialization",
+                        response.RequestId, response.Generation, request.Context.DecisionId));
+                    RetireActiveLocked(request, "capability-selection-not-initial", "selection arrived after the initial response");
+                    return null;
+                }
+                _initialTaskInitialization = response.TaskInitialization;
             }
 
             _completedRequests.Add(request.RequestId);

@@ -7,7 +7,7 @@ import test from 'node:test'
 
 
 import assert from 'node:assert/strict'
-import { mkdtempSync, readFileSync } from 'node:fs'
+import { cpSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -17,6 +17,11 @@ const plugin = await import(join(PACKAGE_ROOT, 'src', 'index.js'))
 
 const SCHEMA_HASH = readFileSync(join(PACKAGE_ROOT, 'schema', 'schema-hash.txt'), 'utf8').trim()
 
+/** Minimal schema artifact shape consumed by the prompt loader. */
+function schemaArtifactFixture() {
+  return { schemaHash: SCHEMA_HASH }
+}
+
 /**
  * Writable root for the dedicated Product-session workspaces these tests make
  * the plugin create. The plugin defaults to `<DSH home>/uniagent-workspaces`;
@@ -24,8 +29,19 @@ const SCHEMA_HASH = readFileSync(join(PACKAGE_ROOT, 'schema', 'schema-hash.txt')
  */
 const TEST_WORKSPACE_ROOT = mkdtempSync(join(tmpdir(), 'uniclaw-ws-'))
 
-/** Apply the plugin in HOST mode (routes + tool) against a fresh mock. */
-function applyHost(harness) {
+function submitTask(tool, payload, capabilitySelection) {
+  return tool.execute({
+    task: {
+      initialization: capabilitySelection === undefined ? {} : { capabilitySelection },
+      payload,
+    },
+  })
+}
+
+/** Apply the plugin in HOST mode (routes + tool) against a fresh mock.
+ * extraConfig merges into the host-row config (e.g. promptMount for tests
+ * that assert the full per-turn prompt text). */
+function applyHost(harness, extraConfig = {}) {
   // The session-scoped mount publishes the tool definition the host-mode
   // handshake registers into the agent scope (B1). In the real deployment both
   // rows are mounted; do the same here so the flow is exercised end to end.
@@ -39,6 +55,7 @@ function applyHost(harness) {
     autoCloseTurn: false,
     sessionTitle: 'UniClaw test consultation',
     slowSessionTitle: 'UniClaw test slow consultation',
+    ...extraConfig,
   })
 }
 
@@ -60,12 +77,37 @@ function mockCtx({ visibleTools = ['submit_decision'], createdSession = 'session
         register(route) { routes.set(route.path, route) },
       },
     },
+    inject(names, callback) {
+      // cordis inject: services resolve as ctx properties; in tests the
+      // service is already available via ctx.get — surface it and invoke now.
+      for (const name of names) ctx[name] = ctx.get(name)
+      callback(ctx)
+      return () => {}
+    },
     on(event, handler) {
       if (!events.has(event)) events.set(event, [])
       events.get(event).push(handler)
     },
     get(key) {
       if (key === 'sessionController') return controller
+      // PRF-003: systemPrompt service mock — captures scoped-section
+      // registrations (the mount used by the preset row).
+      if (key === 'systemPrompt') return {
+        section(record) { controller.promptSections.push(record); return record },
+        getSectionOrder() { return 0 },
+        async assemble() {
+          return {
+            // One empty section exercises the render-drop filter.
+            sections: [
+              ...controller.promptSections.map(record => ({ name: record.name, text: 'non-empty' })),
+              { name: 'deployment:persona-prefix', text: '   ' },
+            ],
+            contexts: [{ name: 'probe-context' }],
+            tools: [{ name: 'submit_decision' }],
+            variables: { probeVar: 'x' },
+          }
+        },
+      }
       if (key === 'workspaceRegistry') return {
         async create(path, title) {
           controller.workspaceCreateCalls.push({ path, title })
@@ -82,6 +124,7 @@ function mockCtx({ visibleTools = ['submit_decision'], createdSession = 'session
     promptCalls: [],
     cancels: [],
     agentScopedRegistrations: [],
+    promptSections: [],
     async create(request) {
       controller.createCalls.push(request)
       sessionSeq += 1
@@ -182,8 +225,8 @@ test('apply registers five routes and the schema-derived tool', () => {
   }
   const tool = harness.ctx.tools.registered.find(t => t.name === 'submit_decision')
   assert.ok(tool)
-  assert.deepEqual([...tool.parameters.properties.kind.enum].sort(), ['act', 'defer', 'noAction', 'policy'])
-  assert.deepEqual(tool.parameters.required, ['kind', 'decisionId'])
+  assert.deepEqual([...tool.parameters.properties.task.properties.payload.properties.kind.enum].sort(), ['act', 'defer', 'noAction', 'policy'])
+  assert.deepEqual(tool.parameters.required, ['task'])
   assert.deepEqual(tool.output.render({}, { accepted: true, reason: 'captured' }), [
     { type: 'text', text: 'submit_decision accepted: captured' },
   ])
@@ -260,7 +303,7 @@ test('shared project and turn lifecycle follow explicit configuration', async ()
   })
   for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++)
     await new Promise(resolve => setTimeout(resolve, 5))
-  tool.execute({ kind: 'noAction', decisionId: 'decision-shared-1',
+  submitTask(tool, { kind: 'noAction', decisionId: 'decision-shared-1',
     proposal: { decisionId: 'decision-shared-1', justification: 'done' } })
   emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
   await consultPromise
@@ -372,7 +415,7 @@ test('B3: prose containing valid-looking JSON but no submit_decision → fail cl
 
 test('B3: consultation prompt binds effectClass to runtime allowedEffects', async () => {
   const harness = mockCtx()
-  applyHost(harness)
+  applyHost(harness, { promptMount: 'per-turn' })
   await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
   const consultPromise = call(harness.routes, '/api/uniclaw-agent/consult', {
     requestId: 'req-effect-token-1',
@@ -407,7 +450,7 @@ test('B3: consultation prompt binds effectClass to runtime allowedEffects', asyn
 
 test('B3: missing Product-required fields → schema-invalid, never completed', async () => {
   const harness = mockCtx()
-  applyHost(harness)
+  applyHost(harness, { promptMount: 'per-turn' })
   await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
   let settleConsult
   const consultPromise = new Promise(resolve => { settleConsult = resolve })
@@ -433,7 +476,7 @@ test('B3: missing Product-required fields → schema-invalid, never completed', 
   const tool = harness.ctx.tools.registered.find(t => t.name === 'submit_decision')
   // act without steps (targetRole/effectClass absent) — and NO semantic
   // completion may invent them.
-  tool.execute({
+  submitTask(tool, {
     kind: 'act',
     decisionId: 'decision-missing-1',
     proposal: { justification: 'go' },
@@ -447,7 +490,7 @@ test('B3: missing Product-required fields → schema-invalid, never completed', 
 
 test('B3: effect/target variant is NOT synthesized into steps (no semantic defaulting)', async () => {
   const harness = mockCtx()
-  applyHost(harness)
+  applyHost(harness, { promptMount: 'per-turn' })
   await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
   let settleConsult
   const consultPromise = new Promise(resolve => { settleConsult = resolve })
@@ -471,7 +514,7 @@ test('B3: effect/target variant is NOT synthesized into steps (no semantic defau
   }
   assert.equal(harness.controller.promptCalls.length, 1)
   const tool = harness.ctx.tools.registered.find(t => t.name === 'submit_decision')
-  tool.execute({
+  submitTask(tool, {
     kind: 'act',
     decisionId: 'decision-semvar-1',
     proposal: { effect: 'tap', target: { role: 'toggle' } },
@@ -484,7 +527,7 @@ test('B3: effect/target variant is NOT synthesized into steps (no semantic defau
 
 test('B3: representation normalization still accepts {item} wrapping and JSON strings', async () => {
   const harness = mockCtx()
-  applyHost(harness)
+  applyHost(harness, { promptMount: 'per-turn' })
   await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
   let settleConsult
   const consultPromise = new Promise(resolve => { settleConsult = resolve })
@@ -508,7 +551,7 @@ test('B3: representation normalization still accepts {item} wrapping and JSON st
   }
   assert.equal(harness.controller.promptCalls.length, 1)
   const tool = harness.ctx.tools.registered.find(t => t.name === 'submit_decision')
-  tool.execute({
+  submitTask(tool, {
     kind: 'act',
     decisionId: 'decision-repr-1',
     proposal: JSON.stringify({ decisionId: 'decision-repr-1', steps: { item: { targetRole: 'switch', effectClass: 'tap', desiredState: 'on' } } }),
@@ -516,7 +559,7 @@ test('B3: representation normalization still accepts {item} wrapping and JSON st
   emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
   const result = await consultPromise
   assert.equal(result.body.error ?? 'ok', 'ok', result.body.diagnostics?.message ?? '')
-  const steps = result.body.decision.proposal.steps
+  const steps = result.body.task.payload.proposal.steps
   assert.ok(Array.isArray(steps) && steps.length === 1)
   assert.equal(steps[0].targetRole, 'switch')
   assert.equal(steps[0].effectClass, 'tap')
@@ -578,15 +621,15 @@ test('B3: act, policy, noAction and defer are accepted with traceable identities
     assert.equal(harness.controller.promptCalls.length, index + 1)
     const payload = { ...entry, decisionId }
     if (entry.kind === 'act' || entry.kind === 'noAction') payload.proposal = { ...entry.proposal, decisionId }
-    const submitted = tool.execute(payload)
+    const submitted = submitTask(tool, payload)
     assert.equal(submitted.accepted, true, submitted.reason)
     emitTurnEnd(harness, harness.controller.promptCalls[index].sessionId)
     const result = await consultPromise
     assert.equal(result.body.error ?? null, null, result.body.diagnostics?.message ?? '')
     assert.equal(result.body.requestId, requestId)
     assert.equal(result.body.generation, index + 1)
-    assert.equal(result.body.decision.kind, entry.kind)
-    assert.equal(result.body.decision.decisionId, decisionId)
+    assert.equal(result.body.task.payload.kind, entry.kind)
+    assert.equal(result.body.task.payload.decisionId, decisionId)
     assert.equal(result.body.diagnostics.source, 'submit_decision')
     assert.equal(result.body.diagnostics.productRunId, 'run-four-kinds')
     assert.equal(result.body.diagnostics.decisionId, decisionId)
@@ -624,7 +667,7 @@ test('B3: bounded policy and defer fields reject invalid generated output', asyn
     })
     for (let i = 0; i < 50 && harness.controller.promptCalls.length <= index; i++)
       await new Promise(resolve => setTimeout(resolve, 5))
-    const submitted = tool.execute(invalid[index])
+    const submitted = submitTask(tool, invalid[index])
     assert.equal(submitted.accepted, false)
     assert.equal(submitted.reason, 'decision-schema-invalid')
     emitTurnEnd(harness, harness.controller.promptCalls[index].sessionId)
@@ -651,7 +694,7 @@ test('task session serializes consultations until the physical turn ends', async
   for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++)
     await new Promise(resolve => setTimeout(resolve, 5))
   const tool = harness.ctx.tools.registered.find(t => t.name === 'submit_decision')
-  tool.execute({
+  submitTask(tool, {
     kind: 'noAction',
     decisionId: 'decision-serial-1',
     proposal: { decisionId: 'decision-serial-1', justification: 'wait for turn boundary' },
@@ -670,7 +713,7 @@ test('task session serializes consultations until the physical turn ends', async
 
   emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
   const firstResult = await first
-  assert.equal(firstResult.body.decision.kind, 'noAction')
+  assert.equal(firstResult.body.task.payload.kind, 'noAction')
 })
 
 test('S1: detach releases the mapping; attach B then succeeds without restart', async () => {
@@ -726,7 +769,7 @@ test('S1: detach during in-flight turn drops the late decision', async () => {
 
   // The late model response arrives after the mapping was released.
   const tool = harness.ctx.tools.registered.find(t => t.name === 'submit_decision')
-  const late = tool.execute({ kind: 'noAction', decisionId: 'decision-detach-1', proposal: { justification: 'late' } })
+  const late = submitTask(tool, { kind: 'noAction', decisionId: 'decision-detach-1', proposal: { justification: 'late' } })
   assert.equal(late.accepted, false)
   assert.equal(late.reason, 'no-pending-consultation')
 })
@@ -755,14 +798,17 @@ test('PNL-001: ledger records attach, consult lifecycle and decision events', as
   })
   for (let i = 0; i < 50 && harness.controller.promptCalls.length < 1; i++)
     await new Promise(resolve => setTimeout(resolve, 5))
-  const submitted = tool.execute({
+  const submitted = submitTask(tool, {
     kind: 'noAction', decisionId: 'decision-pnl-1',
     proposal: { decisionId: 'decision-pnl-1', justification: 'nothing to do' },
-  })
+  }, { capabilityId: 'runtime.language-inspector', expectedLanguage: 'en' })
   assert.equal(submitted.accepted, true, submitted.reason)
   emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
   const result = await consultPromise
   assert.equal(result.body.error ?? null, null)
+  assert.equal(result.body.task.initialization.capabilitySelection.capabilityId, 'runtime.language-inspector')
+  assert.equal(result.body.task.initialization.capabilitySelection.expectedLanguage, 'en')
+  assert.equal(result.body.decision, undefined)
 
   const snap = plugin.panelSnapshot()
   assert.equal(snap.attached.productSessionId, 'product-pnl')
@@ -796,10 +842,10 @@ test('PNL-001: ledger records decision rejection and detach', async () => {
   })
   for (let i = 0; i < 50 && harness.controller.promptCalls.length < 1; i++)
     await new Promise(resolve => setTimeout(resolve, 5))
-  const wrong = tool.execute({ kind: 'noAction', decisionId: 'decision-WRONG', proposal: { decisionId: 'decision-WRONG', justification: 'x' } })
+  const wrong = submitTask(tool, { kind: 'noAction', decisionId: 'decision-WRONG', proposal: { decisionId: 'decision-WRONG', justification: 'x' } })
   assert.equal(wrong.accepted, false)
   assert.equal(plugin.panelSnapshot().events.some(e => e.kind === 'decision-rejected' && e.code === 'decision-id-mismatch'), true)
-  const recovered = tool.execute({ kind: 'noAction', decisionId: 'decision-pnl-expected', proposal: { decisionId: 'decision-pnl-expected', justification: 'x' } })
+  const recovered = submitTask(tool, { kind: 'noAction', decisionId: 'decision-pnl-expected', proposal: { decisionId: 'decision-pnl-expected', justification: 'x' } })
   assert.equal(recovered.accepted, true, recovered.reason)
   emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
   const badResult = await consultPromise
@@ -810,3 +856,136 @@ test('PNL-001: ledger records decision rejection and detach', async () => {
   assert.equal(snap.events.some(e => e.kind === 'detach' && e.hadAttachment === true), true)
   assert.equal(snap.inFlight.consult, false)
 })
+
+// ---- PRF-003: versioned product prompt manifest + scoped seam ----
+
+const PROMPT_DIR = join(PACKAGE_ROOT, 'prompt')
+const CANONICAL_PROMPT_DIR = join(PACKAGE_ROOT, '..', '..', 'product', 'prompt', 'uniagent-prod')
+
+test('PRF-003: package prompt artifact stays byte-identical with product/prompt canonical', () => {
+  const canonicalFiles = readdirSync(CANONICAL_PROMPT_DIR).sort()
+  const packageFiles = readdirSync(PROMPT_DIR).sort()
+  assert.deepEqual(packageFiles, canonicalFiles)
+  for (const name of canonicalFiles)
+    assert.ok(readFileSync(join(CANONICAL_PROMPT_DIR, name)).equals(readFileSync(join(PROMPT_DIR, name))),
+      `prompt artifact drift: ${name}`)
+})
+
+test('PRF-003: prompt artifact hash mismatch fails closed at load', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'uniclaw-prompt-drift-'))
+  for (const name of readdirSync(PROMPT_DIR)) cpSync(join(PROMPT_DIR, name), join(dir, name))
+  writeFileSync(join(dir, '01-identity.txt'), 'tampered identity\n')
+  assert.throws(() => plugin.loadPromptArtifactFor(dir, schemaArtifactFixture()), /prompt artifact hash mismatch/)
+})
+
+test('PRF-003: prompt manifest protocol coupling mismatch fails closed at load', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'uniclaw-prompt-coupling-'))
+  for (const name of readdirSync(PROMPT_DIR)) cpSync(join(PROMPT_DIR, name), join(dir, name))
+  const manifest = JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8'))
+  manifest.protocol.schemaHash = 'deadbeef'.repeat(8)
+  writeFileSync(join(dir, 'manifest.json'), JSON.stringify(manifest))
+  assert.throws(() => plugin.loadPromptArtifactFor(dir, schemaArtifactFixture()), /protocol coupling mismatch/)
+})
+
+test('PRF-003: preset mount registers the scoped product-prompt section; host mount does not', () => {
+  const preset = mockCtx()
+  plugin.apply(preset.ctx, { sessionScoped: true })
+  assert.equal(preset.controller.promptSections.length, 1)
+  const [section] = preset.controller.promptSections
+  assert.equal(section.name, 'uniagent-prod:product-prompt')
+  assert.equal(section.order, 100)
+  assert.equal(section.interpolate, false)
+  assert.match(section.text, /You are the UniAgent decision component/)
+  assert.match(section.text, /payload validates against the Product AgentDecision schema/)
+  assert.match(section.text, /effectClass.*runtime token/i)
+
+  const host = mockCtx()
+  plugin.apply(host.ctx, {})
+  assert.equal(host.controller.promptSections.length, 0)
+})
+
+test('PRF-003: section mount keeps per-turn content dynamic-only; consult-start carries promptRevision', async () => {
+  const harness = mockCtx()
+  applyHost(harness)
+  await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  const consultPromise = call(harness.routes, '/api/uniclaw-agent/consult', {
+    requestId: 'req-prompt-section-1',
+    generation: 1,
+    productSessionId: 'product-A',
+    productRunId: 'run-A',
+    dshSessionId: 'session-test-1-1',
+    turnTimeoutMs: 5000,
+    context: {
+      decisionId: 'decision-prompt-section-1',
+      runId: 'run-A',
+      phase: 'InitialPlanning',
+      allowedEffects: ['tap'],
+    },
+  })
+  for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++) {
+    await new Promise(resolve => setTimeout(resolve, 5))
+  }
+  const prompt = harness.controller.promptCalls[0].content[0].text
+  // Static discipline lives in the section, not the turn.
+  assert.doesNotMatch(prompt, /You are the UniAgent decision component/)
+  assert.doesNotMatch(prompt, /payload shape per kind/i)
+  // Per-turn lines remain.
+  assert.match(prompt, /current Product DecisionId is decision-prompt-section-1/)
+  assert.match(prompt, /Allowed effectClass tokens.*\["tap"\]/)
+  assert.match(prompt, /=== AgentDecisionContext \(JSON\) ===/)
+  emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
+  await consultPromise
+  const snap = plugin.panelSnapshot()
+  const start = snap.events.find(e => e.kind === 'consult-start')
+  // Revision tracks the manifest (dynamic read: future bumps don't break tests).
+  const manifestRevision = JSON.parse(readFileSync(join(PROMPT_DIR, 'manifest.json'), 'utf8')).promptRevision
+  assert.equal(start.promptRevision, manifestRevision)
+})
+
+test('PRF-003: per-turn fallback mounts the full static text in every turn', async () => {
+  const harness = mockCtx()
+  applyHost(harness, { promptMount: 'per-turn' })
+  await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  const consultPromise = call(harness.routes, '/api/uniclaw-agent/consult', {
+    requestId: 'req-prompt-perturn-1',
+    generation: 1,
+    productSessionId: 'product-A',
+    productRunId: 'run-A',
+    dshSessionId: 'session-test-1-1',
+    turnTimeoutMs: 5000,
+    context: { decisionId: 'decision-perturn-1', runId: 'run-A', phase: 'InitialPlanning' },
+  })
+  for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++) {
+    await new Promise(resolve => setTimeout(resolve, 5))
+  }
+  const prompt = harness.controller.promptCalls[0].content[0].text
+  assert.match(prompt, /You are the UniAgent decision component/)
+  assert.match(prompt, /current Product DecisionId is decision-perturn-1/)
+  emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
+  await consultPromise
+})
+
+test('PRF-004: preset mount records the isolation-probe inventory; host route exposes it read-only', async () => {
+  const harness = mockCtx()
+  applyHost(harness)
+  // preset-row assembly is async — wait for the recorded inventory.
+  for (let i = 0; i < 50 && plugin.panelSnapshot().promptProbe === null; i++) {
+    await new Promise(resolve => setTimeout(resolve, 5))
+  }
+  const probe = plugin.panelSnapshot().promptProbe
+  assert.ok(probe, 'probe should be recorded after preset mount')
+  assert.equal(probe.error, undefined)
+  assert.deepEqual(probe.sections, ['uniagent-prod:product-prompt'])
+  assert.deepEqual(probe.contexts, ['probe-context'])
+  assert.deepEqual(probe.tools, ['submit_decision'])
+  assert.deepEqual(probe.variables, ['probeVar'])
+
+  const route = harness.routes.get('/api/uniclaw-agent/prompt-probe')
+  assert.ok(route, 'probe route registered')
+  const response = await route.fetch(new Request('http://dsh.invalid/api/uniclaw-agent/prompt-probe'))
+  const body = await response.json()
+  assert.equal(body.recorded, true)
+  assert.deepEqual(body.sections, ['uniagent-prod:product-prompt'])
+  assert.equal(body.recordedAt, probe.recordedAt)
+})
+

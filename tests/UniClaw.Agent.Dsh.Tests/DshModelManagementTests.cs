@@ -1,4 +1,5 @@
 using UniClaw.Agent.Dsh;
+using UniClaw.Agent.Profile;
 using UniClaw.Kernel.Capability;
 using Xunit;
 
@@ -11,16 +12,28 @@ namespace UniClaw.Agent.Dsh.Tests;
 /// </summary>
 public sealed class DshModelManagementTests
 {
-    private static UniagentProdConfiguration Config(string provider = "zai-coding-cn", string name = "glm-5.3-flash") =>
-        UniagentProdConfiguration.Create(
+    private static UniagentDshBindings Bindings(string provider = "zai-coding-cn", string name = "glm-5.3-flash") =>
+        UniagentDshBindings.Create(
             new ModelConfiguration(provider, name),
             new DshServiceEndpoint(new Uri("http://127.0.0.1:3080")),
             selectedModelKey: "glm53Flash");
 
+    /// <summary>标准产品声明：agent.decision/slow.semantic.text 必需，
+    /// slow.semantic.visual 可选（与 product/profiles/uniagent-prod.yaml 同形）。</summary>
+    private static UniAgentProfile Profile() => new(
+        UniagentProdProfile.Current,
+        Revision: 1,
+        ModelRoles: new[]
+        {
+            new ModelRoleDeclaration(LogicalProfileId.AgentDecision.Value, Required: true),
+            new ModelRoleDeclaration(LogicalProfileId.Text.Value, Required: true),
+            new ModelRoleDeclaration(LogicalProfileId.Visual.Value, Required: false),
+        });
+
     [Fact]
-    public void FromProfile_RegistersDecisionAndSlowTextFromSelectedChoice()
+    public void FromBindings_RegistersRequiredRolesFromSelectedChoice()
     {
-        var models = DshModelManagement.FromProfile(Config());
+        var models = DshModelManagement.FromBindings(Bindings(), Profile());
 
         var decision = models.Resolve(LogicalProfileId.AgentDecision);
         var slowText = models.Resolve(LogicalProfileId.Text);
@@ -37,9 +50,9 @@ public sealed class DshModelManagementTests
     }
 
     [Fact]
-    public void FromProfile_ModelNameOverride_IsHonouredOnBothProfiles()
+    public void FromBindings_ModelNameOverride_IsHonouredOnRequiredRoles()
     {
-        var models = DshModelManagement.FromProfile(Config(name: "configured-name"),
+        var models = DshModelManagement.FromBindings(Bindings(name: "configured-name"), Profile(),
             modelNameOverride: "override-name");
 
         Assert.Equal("override-name", models.Resolve(LogicalProfileId.AgentDecision).Binding!.ModelId);
@@ -47,9 +60,9 @@ public sealed class DshModelManagementTests
     }
 
     [Fact]
-    public void FromProfile_VisualStaysUnregistered_HonestNotConfigured()
+    public void FromBindings_OptionalRoleWithoutSelection_StaysHonestNotConfigured()
     {
-        var models = DshModelManagement.FromProfile(Config());
+        var models = DshModelManagement.FromBindings(Bindings(), Profile());
 
         var visual = models.Resolve(LogicalProfileId.Visual);
 
@@ -91,9 +104,9 @@ public sealed class DshModelManagementTests
     };
 
     [Fact]
-    public void FromProfile_PerProfileSelection_OverridesDefaultWithPreferenceOrder()
+    public void FromBindings_PerRoleSelection_OverridesDefaultWithPreferenceOrder()
     {
-        var config = UniagentProdConfiguration.Create(
+        var bindings = UniagentDshBindings.Create(
             TestChoices["glm53Flash"],
             new DshServiceEndpoint(new Uri("http://127.0.0.1:3080")),
             selectedModelKey: "glm53Flash",
@@ -105,7 +118,7 @@ public sealed class DshModelManagementTests
                 new ModelProfileSelection(LogicalProfileId.Text.Value, new[] { "glm53Flash" }),
             });
 
-        var models = DshModelManagement.FromProfile(config);
+        var models = DshModelManagement.FromBindings(bindings, Profile());
 
         var decision = models.Resolve(LogicalProfileId.AgentDecision);
         Assert.True(decision.IsResolved);
@@ -126,9 +139,9 @@ public sealed class DshModelManagementTests
     }
 
     [Fact]
-    public void FromProfile_ModelOverride_AppliesOnlyToDefaultBindings()
+    public void FromBindings_ModelOverride_AppliesOnlyToDefaultRoles()
     {
-        var config = UniagentProdConfiguration.Create(
+        var bindings = UniagentDshBindings.Create(
             TestChoices["glm53Flash"],
             new DshServiceEndpoint(new Uri("http://127.0.0.1:3080")),
             selectedModelKey: "glm53Flash",
@@ -140,16 +153,16 @@ public sealed class DshModelManagementTests
                 new ModelProfileSelection(LogicalProfileId.AgentDecision.Value, new[] { "glm53Flash" }),
             });
 
-        var models = DshModelManagement.FromProfile(config, modelNameOverride: "override-name");
+        var models = DshModelManagement.FromBindings(bindings, Profile(), modelNameOverride: "override-name");
 
         Assert.Equal("glm-5.3-flash", models.Resolve(LogicalProfileId.AgentDecision).Binding!.ModelId);
         Assert.Equal("override-name", models.Resolve(LogicalProfileId.Text).Binding!.ModelId);
     }
 
     [Fact]
-    public void FromProfile_VisualExplicitChoice_RegistersVisualBinding()
+    public void FromBindings_VisualExplicitChoice_RegistersVisualBinding()
     {
-        var config = UniagentProdConfiguration.Create(
+        var bindings = UniagentDshBindings.Create(
             TestChoices["glm53Flash"],
             new DshServiceEndpoint(new Uri("http://127.0.0.1:3080")),
             selectedModelKey: "glm53Flash",
@@ -159,7 +172,7 @@ public sealed class DshModelManagementTests
                 new ModelProfileSelection(LogicalProfileId.Visual.Value, new[] { "visionModel" }),
             });
 
-        var models = DshModelManagement.FromProfile(config);
+        var models = DshModelManagement.FromBindings(bindings, Profile());
 
         var visual = models.Resolve(LogicalProfileId.Visual);
         Assert.True(visual.IsResolved);
@@ -168,31 +181,33 @@ public sealed class DshModelManagementTests
     }
 
     [Fact]
-    public void FromProfile_UnknownOrDuplicateProfile_FailsClosed()
+    public void FromBindings_UndeclaredOrDuplicateRole_FailsClosed()
     {
         var endpoint = new DshServiceEndpoint(new Uri("http://127.0.0.1:3080"));
-        var bogus = UniagentProdConfiguration.Create(
+        var bogus = UniagentDshBindings.Create(
             TestChoices["glm53Flash"], endpoint, "glm53Flash", TestChoices,
             new[] { new ModelProfileSelection("bogus.profile", new[] { "glm53Flash" }) });
         var unknownError = Assert.Throws<InvalidOperationException>(
-            () => DshModelManagement.FromProfile(bogus));
-        Assert.Contains("unknown profile 'bogus.profile'", unknownError.Message, StringComparison.Ordinal);
+            () => DshModelManagement.FromBindings(bogus, Profile()));
+        // PRF-002：绑定引用产品未声明的角色 = fail-closed（防死配置）。
+        Assert.Contains("not declared", unknownError.Message, StringComparison.Ordinal);
+        Assert.Contains("bogus.profile", unknownError.Message, StringComparison.Ordinal);
         Assert.Contains("slow.semantic.visual", unknownError.Message, StringComparison.Ordinal);
 
-        var duplicated = UniagentProdConfiguration.Create(
+        var duplicated = UniagentDshBindings.Create(
             TestChoices["glm53Flash"], endpoint, "glm53Flash", TestChoices,
             new[]
             {
                 new ModelProfileSelection(LogicalProfileId.Text.Value, new[] { "glm53Flash" }),
                 new ModelProfileSelection(LogicalProfileId.Text.Value, new[] { "deepseekFlash" }),
             });
-        Assert.Throws<InvalidOperationException>(() => DshModelManagement.FromProfile(duplicated));
+        Assert.Throws<InvalidOperationException>(() => DshModelManagement.FromBindings(duplicated, Profile()));
     }
 
     [Fact]
-    public void FromProfile_ExplicitChoiceWithoutChoicesMap_FailsClosed()
+    public void FromBindings_ExplicitChoiceWithoutChoicesMap_FailsClosed()
     {
-        var config = UniagentProdConfiguration.Create(
+        var bindings = UniagentDshBindings.Create(
             TestChoices["glm53Flash"],
             new DshServiceEndpoint(new Uri("http://127.0.0.1:3080")),
             selectedModelKey: "glm53Flash",
@@ -202,7 +217,7 @@ public sealed class DshModelManagementTests
                 new ModelProfileSelection(LogicalProfileId.Text.Value, new[] { "deepseekFlash" }),
             });
 
-        Assert.Throws<InvalidOperationException>(() => DshModelManagement.FromProfile(config));
+        Assert.Throws<InvalidOperationException>(() => DshModelManagement.FromBindings(bindings, Profile()));
     }
 
     private static string WriteFixture(string modelSelectionProfiles)
@@ -212,10 +227,6 @@ public sealed class DshModelManagementTests
             modelSelectionProfiles.Split('\n').Select(line => "  " + line.TrimEnd()));
         var path = Path.Combine(Path.GetTempPath(), "uniclaw-model-mgmt-" + Guid.NewGuid().ToString("N") + ".yaml");
         File.WriteAllText(path, $"""
-            profileId: uniagent-prod
-            profileVersion: "1"
-            capabilities:
-              - submit_decision
             service:
               baseUrl: http://127.0.0.1:3080
             modelSelection:
@@ -247,14 +258,14 @@ public sealed class DshModelManagementTests
             """);
         try
         {
-            var config = UniagentProdYaml.Load(path);
+            var bindings = UniagentDshBindingsYaml.Load(path);
 
-            Assert.Equal(3, config.Choices!.Count);
+            Assert.Equal(3, bindings.Choices!.Count);
             Assert.Equal(new ModelConfiguration("opencode-go", "deepseek-flash"),
-                config.Choices["deepseekFlash"]);
-            Assert.Equal(2, config.ProfileSelections!.Count);
+                bindings.Choices["deepseekFlash"]);
+            Assert.Equal(2, bindings.ProfileSelections!.Count);
 
-            var models = DshModelManagement.FromProfile(config);
+            var models = DshModelManagement.FromBindings(bindings, Profile());
             var decision = models.Resolve(LogicalProfileId.AgentDecision);
             Assert.Equal("deepseek-flash", decision.Binding!.ModelId);
             Assert.True(models.ApplyHealth(
@@ -278,7 +289,7 @@ public sealed class DshModelManagementTests
             """);
         try
         {
-            var error = Assert.Throws<InvalidOperationException>(() => UniagentProdYaml.Load(path));
+            var error = Assert.Throws<InvalidOperationException>(() => UniagentDshBindingsYaml.Load(path));
             Assert.Contains("unknown choice 'noSuchChoice'", error.Message, StringComparison.Ordinal);
         }
         finally
@@ -297,7 +308,7 @@ public sealed class DshModelManagementTests
             """);
         try
         {
-            Assert.Throws<InvalidOperationException>(() => UniagentProdYaml.Load(path));
+            Assert.Throws<InvalidOperationException>(() => UniagentDshBindingsYaml.Load(path));
         }
         finally
         {
@@ -316,7 +327,7 @@ public sealed class DshModelManagementTests
                 ? $"{binding.ProviderId}/{binding.ModelId}"
                 : "unavailable";
 
-        var dsh = DshModelManagement.FromProfile(Config());
+        var dsh = DshModelManagement.FromBindings(Bindings(), Profile());
         var replay = new ModelManagement(new[]
         {
             new ModelBindingSnapshot(LogicalProfileId.AgentDecision, "replay", "slow-replay"),

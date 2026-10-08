@@ -1,0 +1,26 @@
+# DSH realization binding for uniagent-prod（ADR-0041）——provider/model
+# 偏好序与服务端点。产品定义（host-neutral UniAgent Profile）在
+# product/profiles/uniagent-prod.yaml；本文件只做 DSH 映射，换 provider/
+# model/endpoint 不改产品 profile。
+service:
+  # CAP-012 D9 实战环境修正：专线按 test-emulator.md 注册为 3081（3080 为残留
+  # 旧插件实例，schema-hash 1fb4… 与当前产品 4a54… 不匹配，握手 fail-closed）。
+  baseUrl: http://127.0.0.1:3081
+
+# CAP-007 语义原样（自 .dsh/profiles/uniagent-prod.yaml 整块迁移，PRF-002）：
+# selected=缺省选择；choices=目录；profiles.<role>=per-profile 单选/偏好序。
+modelSelection:
+  # 2026-10-06 所有者指令：默认模型改 DeepSeek deepseek-flash（旧默认 glm53Flash）
+  selected: deepseekFlash
+  choices:
+    free:
+      provider: opencode-go
+      name: space-bunny-free
+    deepseekFlash:
+      # 2026-10-06 所有者指令：供应商 DeepSeek 官方（deepseek-official 路由，
+      # api.deepseek.com 直连不走代理；凭据 DEEPSEEK_API_KEY 于实例凭据库）
+      provider: deepseek-official
+      name: deepseek-flash
+    glm53Flash:
+      provider: zai-coding-cn
+      name: glm-5.3-flash

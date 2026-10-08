@@ -24,6 +24,8 @@ __pycache__/
 
 # Host tool artifacts (not repo content)
 .codex-artifacts/
+# PRF-005: runtime initialization envelopes (run artifacts; review copies via evidence select)
+src/UniClaw.Host.Dsh/runs/
 show-me-*.html
 
 # ScreenParser v2 weights — deliberately not in git (README: download prerequisite)

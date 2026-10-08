@@ -46,7 +46,14 @@ public sealed record DecisionChannelResponse(
     string RequestId,
     long Generation,
     AgentDecision? Decision,
-    string? Error = null);
+    string? Error = null,
+    AgentTaskInitialization? TaskInitialization = null)
+{
+    /// <summary>Transport-neutral task view for existing callers.</summary>
+    public AgentTaskEnvelope? Task => Decision is null
+        ? null
+        : new(TaskInitialization ?? new AgentTaskInitialization(), Decision);
+}
 
 public sealed record DshSlowResponse(string RequestId, string? Text, string? Error, string? Diagnostic = null);
 

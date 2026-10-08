@@ -48,10 +48,20 @@ RuntimeOutcome envelope 出（Kernel `Outcome/`）。除此之外零依赖。
 | `Evaluation/GoalSatisfaction.cs` | satisfaction 维度（GEV-004 D2） |
 | `Evaluation/CriterionResult.cs` | criterion 级三值判定 Met/Unmet/Indeterminate（D5） |
 | `Evaluation/EvaluationDisposition.cs` | 处置维度（D2/D6） |
+| `Profile/UniagentProdProfile.cs` | uniagent-prod 编译身份（loader 交叉核对基准） |
+| `Profile/ProductProtocolVersions.cs` | 产品协议常量（PRF-001/ADR-0041 自 adapter 上移） |
+| `Profile/CapabilityManifest.cs` | 冻结能力清单与 manifest hash（handshake 权威） |
+| `Profile/ProductCapabilities.cs` | 命名能力词汇与禁用名单 |
+| `Profile/ProductProfile.cs` | 产品 realization profile 身份（不含 provider/model） |
+| `Profile/UniAgentProfile.cs` | host-neutral profile 加载结果（身份+模型角色声明，PRF-002） |
+| `Profile/UniAgentProfileYaml.cs` | 产品 profile loader（身份漂移/角色值域 fail-closed，PRF-002） |
+| `Profile/ProfileYamlDocument.cs` | 产品侧共享 YAML 子集解析器（双 loader 共用，PRF-002） |
 
-`../UniClaw.Agent.Dsh/` 是 DSH realization/adapter（profile/yaml/模型
-解析），**不进本维度归属表**（L3 不混入 L2 索引，同 Capability↔
-Perception 模式）。
+`../UniClaw.Agent.Dsh/` 是 DSH realization/adapter（绑定 loader/模型
+解析/transport），**不进本维度归属表**（L3 不混入 L2 索引，同
+Capability↔Perception 模式）。PRF-001（ADR-0041）后 adapter 引用本
+程序集消费产品身份（Agent.Dsh → Agent 单向）；产品身份类型归本维度，
+transport/绑定类型仍归 adapter。
 
 ## 记忆
 

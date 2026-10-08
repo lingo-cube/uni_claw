@@ -1,0 +1,35 @@
+# UniAgent Profile — uniagent-prod realization（host-neutral 产品定义）
+# ADR-0041：本文件不含 provider/model 名与服务端点（那是 .dsh/product/
+# uniagent-prod-bindings.yaml 的职责）；loader 对编译身份 fail-closed 交叉核对。
+schemaVersion: "uniagent.profile/v1"
+profileId: uniagent-prod
+profileVersion: "1"
+# 装配修订号：每次可审计内容变更 +1；PRF-005 起按 Product Session 钉扎执法。
+profileRevision: 2
+identity:
+  name: UniAgent
+  description: UniClaw Product Runtime 的认知 realization
+# 冻结产品工具词汇（编译 CapabilityManifest.ProductHeadless 交叉核对）。
+capabilities:
+  - submit_decision
+# 模型角色声明（Q4）：key 必须是编译 LogicalProfileId 值域，未知即 fail-closed。
+# required=true：组合根装配时必须有可解析绑定，否则拒启（Profile Boot fail）。
+# required=false：无显式绑定时诚实 NotConfigured（现状 slow.semantic.visual 语义）。
+# 产品工件装配引用（PRF-005/ADR-0041）：路径相对仓库根；loader fail-closed
+# 校验存在 + hash 匹配（promptManifest 目录 digest 与
+# tools/prompt-manifest-hash.py 同规则；safetyPolicy 为文件字节 sha256）。
+# 工件内容变更 → 重算 hash + 刷新本块 + profileRevision+1。
+assembly:
+  promptManifest:
+    path: product/prompt/uniagent-prod
+    hash: 0de246343fec2754364bdaed3692c563ef7452f8f18c48268b90cebd3317ba65
+  safetyPolicy:
+    path: product/policy/android-settings-forbidden-actions.json
+    hash: 4cfc6bc43cb8498f555145cd891c95e801bedde7aedc6e3561d84a8e1a5fdf36
+modelRoles:
+  agent.decision:
+    required: true
+  slow.semantic.text:
+    required: true
+  slow.semantic.visual:
+    required: false

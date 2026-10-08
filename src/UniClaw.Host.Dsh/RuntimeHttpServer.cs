@@ -28,15 +28,18 @@ public sealed class RuntimeHttpServer
     private readonly WebApplication _app;
     private readonly string _runsRoot;
     private readonly string _device;
-    private readonly UniagentProdConfiguration _config;
+    private readonly UniClaw.Agent.Profile.UniAgentProfile _agentProfile;
+    private readonly UniagentDshBindings _bindings;
     private readonly RuntimeRunStore _store;
 
-    private RuntimeHttpServer(WebApplication app, string runsRoot, string device, UniagentProdConfiguration config)
+    private RuntimeHttpServer(WebApplication app, string runsRoot, string device,
+        UniClaw.Agent.Profile.UniAgentProfile agentProfile, UniagentDshBindings bindings)
     {
         _app = app;
         _runsRoot = runsRoot;
         _device = device;
-        _config = config;
+        _agentProfile = agentProfile;
+        _bindings = bindings;
         _store = new RuntimeRunStore(Path.Combine(runsRoot, ".runtime-runs"));
     }
 
@@ -49,8 +52,10 @@ public sealed class RuntimeHttpServer
             options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
         });
         var app = builder.Build();
-        var config = UniagentProdYaml.LoadDefault();
-        var server = new RuntimeHttpServer(app, runsRoot, device, config);
+        // PRF-002（ADR-0041）：产品 profile 与 DSH 绑定分轨加载。
+        var agentProfile = UniClaw.Agent.Profile.UniAgentProfileYaml.LoadDefault();
+        var bindings = UniagentDshBindingsYaml.LoadDefault();
+        var server = new RuntimeHttpServer(app, runsRoot, device, agentProfile, bindings);
         app.MapGet("/api/uniclaw-runtime/health", () => Results.Ok(new { ok = true, service = "uniclaw-runtime" }));
         app.MapPost("/api/uniclaw-runtime/runs", server.StartRunAsync);
         app.MapGet("/api/uniclaw-runtime/runs", server.ListRunsAsync);
@@ -107,11 +112,15 @@ public sealed class RuntimeHttpServer
         // CAP-006：runtime-http 面同样经产品 ModelManagement 缝 resolve
         //（缺省 realization 借用 DSH；不直连 yaml）。
         var model = DshModelManagement.ResolveDshModel(
-            DshModelManagement.FromProfile(
-                _config, Environment.GetEnvironmentVariable("UNICLAW_UNIAGENT_PROD_MODEL")),
+            DshModelManagement.FromBindings(
+                _bindings, _agentProfile,
+                Environment.GetEnvironmentVariable("UNICLAW_UNIAGENT_PROD_MODEL")),
             LogicalProfileId.AgentDecision);
+        // PRF-005（Q13）：会话首个 run 落初始化审计 envelope（装配可重建）。
+        InitializationEnvelope.Write(_runsRoot, run.ProductSessionId, run.RunId,
+            _agentProfile, _bindings, model);
         var device = RequestedDevice(request.EnvironmentIntent) ?? _device;
-        var peer = new DshOpenedHttpPeer(_config.Service, model: model);
+        var peer = new DshOpenedHttpPeer(_bindings.Service, model: model);
         var channel = new DshOpenedDecisionChannel(peer, attachTimeout: TimeSpan.FromSeconds(30));
         DecisionChannelAttachment attachment;
         try
@@ -549,7 +558,7 @@ public sealed class RuntimeHttpServer
             ["workspace"] = taskSet,
             ["device"] = device,
             ["productModel"] = model,
-            ["dshEndpoint"] = _config.Service.BaseUri?.ToString(),
+            ["dshEndpoint"] = _bindings.Service.BaseUri?.ToString(),
             ["real"] = true,
             ["status"] = status,
             ["outcome"] = outcome,

@@ -36,6 +36,7 @@ public sealed class SourceReadmeOwnershipTests
         ("src/UniClaw.Agent", "src/UniClaw.Agent/README.md"),
         ("src/UniClaw.Agent/Goal", "src/UniClaw.Agent/README.md"),
         ("src/UniClaw.Agent/Evaluation", "src/UniClaw.Agent/README.md"),
+        ("src/UniClaw.Agent/Profile", "src/UniClaw.Agent/README.md"),
         ("src/UniClaw.Agent.Dsh", "src/UniClaw.Agent.Dsh/README.md"),
         ("src/UniClaw.Host", "src/UniClaw.Host/README.md"),
         ("src/UniClaw.Host/Capability", "src/UniClaw.Host/README.md"),

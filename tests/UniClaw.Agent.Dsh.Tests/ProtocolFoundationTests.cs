@@ -1,8 +1,10 @@
 using System.Text.Json;
 using System.IO;
 using UniClaw.Agent.Dsh;
+using UniClaw.Agent.Profile;
 using UniClaw.Agent.Dsh.Tests.Fixtures;
 using UniClaw.Kernel.Runtime;
+using UniClaw.Kernel.Capability;
 
 namespace UniClaw.Agent.Dsh.Tests;
 
@@ -86,6 +88,38 @@ public sealed class ProtocolFoundationTests
     }
 
     [Fact]
+    public async Task TaskInitializationCapabilitySelection_IsOneShot()
+    {
+        var calls = 0;
+        await using var adapter = new DshAgentAdapter(
+            DecisionChannelFixture.Open(request =>
+            {
+                calls++;
+                var decision = new AgentDecision.NoAction(new AgentNoActionProposal(
+                    request.Context.DecisionId, "inspect-only"));
+                return new DecisionChannelResponse(
+                    request.RequestId,
+                    request.Generation,
+                    decision,
+                    TaskInitialization: new AgentTaskInitialization(
+                        new CapabilitySelectionPayload("runtime.language-inspector", "en")));
+            }),
+            "product-session-selection", "run-selection");
+
+        var first = await adapter.ConsultAsync(Context("selection-1", "run-selection"));
+        var selection = adapter.TakeInitialTaskInitialization()?.CapabilitySelection;
+        var second = await adapter.ConsultAsync(Context("selection-2", "run-selection"));
+
+        Assert.NotNull(first);
+        Assert.Equal("runtime.language-inspector", selection?.CapabilityId);
+        Assert.Null(adapter.TakeInitialTaskInitialization());
+        Assert.Null(second);
+        Assert.Contains(adapter.Diagnostics,
+            diagnostic => diagnostic.Code == "capability-selection-not-initial");
+        Assert.Equal(2, calls);
+    }
+
+    [Fact]
     public void Handshake_Rejects_Version_Hash_And_Capability_Mismatch()
     {
         var expected = ProductHandshake.CreateRequest("session-1", "run-1");
@@ -161,6 +195,20 @@ public sealed class ProtocolFoundationTests
         Assert.Equal("string", state.GetProperty("type").GetString());
         Assert.DoesNotContain("state", elementSummary.GetProperty("required")
             .EnumerateArray().Select(value => value.GetString()));
+    }
+
+    [Fact]
+    public void Generated_Schema_Exposes_PerCall_AvailableCapabilities()
+    {
+        using var document = JsonDocument.Parse(ProductProtocolSchema.Current.Json);
+        var context = document.RootElement.GetProperty("$defs").GetProperty("AgentDecisionContext");
+        var available = context.GetProperty("properties").GetProperty("availableCapabilities");
+
+        Assert.Equal("object", available.GetProperty("type").GetString());
+        Assert.Equal("CapabilityProfileReport",
+            available.GetProperty("additionalProperties").GetProperty("$ref").GetString()!.Split('/').Last());
+        Assert.DoesNotContain("availableCapabilities",
+            context.GetProperty("required").EnumerateArray().Select(value => value.GetString()));
     }
 
     [Fact]

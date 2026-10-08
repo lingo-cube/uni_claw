@@ -1,5 +1,6 @@
 using System.Text.Json;
 using UniClaw.Agent.Dsh;
+using UniClaw.Agent.Profile;
 using UniClaw.Kernel.Runtime;
 
 namespace UniClaw.Agent.Dsh.Tests;

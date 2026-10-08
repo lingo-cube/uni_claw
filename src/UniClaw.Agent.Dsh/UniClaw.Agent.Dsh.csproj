@@ -9,6 +9,7 @@
     <Description>AGT-002 headless DSH Product UniAgent realization adapter.</Description>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\UniClaw.Agent\UniClaw.Agent.csproj" />
     <ProjectReference Include="..\UniClaw.Kernel\UniClaw.Kernel.csproj" />
   </ItemGroup>
 </Project>

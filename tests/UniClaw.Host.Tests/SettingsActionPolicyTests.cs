@@ -62,7 +62,7 @@ public sealed class SettingsActionPolicyTests
     {
         var nfcPolicy = new SettingsActionPolicy(
             SettingsActionPolicy.SupportedSchemaVersion,
-            "fixture/android-settings/decoy-target-policy", true,
+            "fixture/android-settings/decoy-target-policy", 1, true,
             new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "observe", "scroll", "navigate", "back" },
             new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "toggle:NFC" },
             new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "toggle-non-target", "destructive", "unknown-action" },
@@ -270,5 +270,86 @@ public sealed class SettingsActionPolicyTests
         Assert.Null(guarded);
         Assert.Equal(SettingsActionGuardVerdict.Reject, result!.Verdict);
         Assert.Contains("multi-act", result.Reason);
+    }
+
+    // ---- PRF-005（ADR-0041）：policy 升格产品声明面 + 消费方加载点执法 ----
+
+    [Fact]
+    public void Canonical_Policy_Loads_From_Product_Policy_Surface()
+    {
+        var policy = Policy();
+
+        Assert.Equal(1, policy.SafetyPolicyRevision);
+        Assert.Equal("product/android-settings/forbidden-actions", policy.PolicyRef);
+        Assert.Contains("product/policy/android-settings-forbidden-actions.json",
+            policy.SourcePath, StringComparison.Ordinal);
+        Assert.Contains("safetyPolicyRevision=1", policy.AgentProjection(), StringComparison.Ordinal);
+        Assert.All(SettingsActionPolicy.RequiredForbiddenFloor,
+            @class => Assert.Contains(@class, policy.ForbiddenActionClasses));
+    }
+
+    private static string WritePolicyFixture(string json)
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"product-policy-{Guid.NewGuid():N}.json");
+        File.WriteAllText(path, json);
+        return path;
+    }
+
+    [Fact]
+    public void Policy_Without_Revision_Fails_Closed()
+    {
+        var path = WritePolicyFixture("""
+            {
+              "schemaVersion": "android-settings-action-policy.v1",
+              "policyRef": "product/android-settings/forbidden-actions",
+              "generatedBeforeFirstConsultation": true,
+              "safeActionClasses": ["observe", "scroll", "navigate", "back"],
+              "targetedActionClasses": ["toggle:Wi-Fi"],
+              "forbiddenActionClasses": ["toggle-non-target", "destructive", "account-removal", "credential-change", "developer-debug", "permission-grant", "unknown-action"],
+              "forbiddenTargetPatterns": ["factory reset"],
+              "unknownTargetDisposition": "reject"
+            }
+            """);
+        try
+        {
+            var error = Assert.Throws<InvalidOperationException>(() => SettingsActionPolicy.Load(path));
+            Assert.Contains("PROFILE_CONTRACT_NOT_READY", error.Message);
+            Assert.Contains("safetyPolicyRevision", error.Message);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Policy_Missing_Safety_Floor_Fails_Closed()
+    {
+        // 危险类别词汇被缩小（缺 credential-change 与 permission-grant）→ 拒载。
+        var path = WritePolicyFixture("""
+            {
+              "schemaVersion": "android-settings-action-policy.v1",
+              "policyRef": "product/android-settings/forbidden-actions",
+              "safetyPolicyRevision": 2,
+              "generatedBeforeFirstConsultation": true,
+              "safeActionClasses": ["observe", "scroll", "navigate", "back"],
+              "targetedActionClasses": ["toggle:Wi-Fi"],
+              "forbiddenActionClasses": ["toggle-non-target", "destructive", "account-removal", "developer-debug", "unknown-action"],
+              "forbiddenTargetPatterns": ["factory reset"],
+              "unknownTargetDisposition": "reject"
+            }
+            """);
+        try
+        {
+            var error = Assert.Throws<InvalidOperationException>(() => SettingsActionPolicy.Load(path));
+            Assert.Contains("PROFILE_CONTRACT_NOT_READY", error.Message);
+            Assert.Contains("credential-change", error.Message);
+            Assert.Contains("permission-grant", error.Message);
+            Assert.Contains("safety floor", error.Message);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 }

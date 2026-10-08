@@ -1,3 +1,5 @@
+using UniClaw.Agent.Profile;
+
 namespace UniClaw.Agent.Dsh;
 
 public sealed record HandshakeValidation(bool Accepted, string? FailureReason)

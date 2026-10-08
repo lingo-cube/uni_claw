@@ -32,7 +32,7 @@
       "displayName": "Traverse the Settings menu with a precomputed safe-action policy",
       "fixtureRefs": [
         "fixture/android-settings/settings-root",
-        "fixture/android-settings/forbidden-action-policy"
+        "product/android-settings/forbidden-actions"
       ],
       "acceptanceRefs": [
         "acceptance/android-settings/safe-traversal-no-forbidden-effect"
@@ -73,7 +73,7 @@
       "description": "Wi-Fi target switch is observable with a declared desired state"
     },
     {
-      "fixtureRef": "fixture/android-settings/forbidden-action-policy",
+      "fixtureRef": "product/android-settings/forbidden-actions",
       "kind": "safety-policy",
       "description": "Safe and forbidden action classes are generated before traversal"
     },

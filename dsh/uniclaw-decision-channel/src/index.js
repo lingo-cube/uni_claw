@@ -248,7 +248,7 @@ function validateCompletionAnchors(decision, errors) {
   }
 }
 
-/** Derive the submit_decision tool parameter map from the artifact itself. */
+/** Derive the common Agent task envelope parameter map from the artifact. */
 function toolParametersFromSchema(artifact) {
   const decision = deref(artifact.schema, artifact.schema.$defs.AgentDecision)
   const branches = decision.oneOf ?? []
@@ -262,7 +262,7 @@ function toolParametersFromSchema(artifact) {
     if (resolved.properties?.spec !== undefined) requiresSpec = true
     if (resolved.properties?.proposal !== undefined) requiresProposal = true
   }
-  const properties = {
+  const payloadProperties = {
     kind: {
       type: 'string',
       enum: kinds,
@@ -276,7 +276,36 @@ function toolParametersFromSchema(artifact) {
       ? { spec: { type: 'object', additionalProperties: true, description: 'defer ObserveSpec {subject, maxRounds} (exact Product schema shape).' } }
       : {}),
   }
-  return { type: 'object', properties, required: ['kind', 'decisionId'], additionalProperties: false }
+  const capabilitySelection = {
+    type: 'object',
+    description: 'Optional task capability selection; allowed only in the first task initialization.',
+    properties: {
+      capabilityId: { type: 'string', description: 'Registered capability id.' },
+      expectedLanguage: { type: 'string' },
+      ignoreRoutes: { type: 'array', items: { type: 'string' } },
+    },
+    required: ['capabilityId'],
+    additionalProperties: false,
+  }
+  return {
+    type: 'object',
+    properties: {
+      task: {
+        type: 'object',
+        properties: {
+          initialization: {
+            type: 'object', properties: { capabilitySelection }, additionalProperties: false,
+          },
+          payload: {
+            type: 'object', properties: payloadProperties,
+            required: ['kind', 'decisionId'], additionalProperties: false,
+          },
+        },
+        required: ['initialization', 'payload'], additionalProperties: false,
+      },
+    },
+    required: ['task'], additionalProperties: false,
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -313,6 +342,7 @@ export function panelSnapshot() {
       consult: state.pending !== null,
       slow: state.slowPending !== null,
     },
+    promptProbe: state.promptProbe,
     events: ledger.slice(),
   }
 }
@@ -324,6 +354,12 @@ const state = {
   slowPending: null, // { requestId, sessionId, resolve, timer, text }
   sessionTool: null, // tool definition published by the session-scoped mount (B1)
   sessionToolDisposer: null, // live agent-scope registration for the attached session
+  initialCapabilitySelectionSettled: false,
+  // PRF-004 — isolation probe: names (never text) of the prompt inputs this
+  // product preset scope assembles, recorded once at preset-mount time by the
+  // session-scoped row and exposed read-only by the host row for mechanical
+  // audit. null = not recorded yet; { error } = assembly failed.
+  promptProbe: null,
 }
 
 function json(status, value) {
@@ -368,61 +404,83 @@ async function sessionToolCatalog(ctx, sessionId) {
 }
 
 /** Consultation prompt built from the context + artifact identity. */
-function consultationPrompt(request, artifact) {
+// PRF-003 — product prompt manifest artifact: versioned static segments
+// (identity / output discipline / payload shapes) loaded once at boot from the
+// package copy (kept byte-identical with the canonical product/prompt/ source
+// by the sync test). Fail-closed gates: artifact hash and protocol-schema
+// coupling — a schema bump without a manifest bump refuses to load (Q10).
+const PROMPT_TOKENS = ['protocolVersion', 'schemaVersion', 'schemaHash']
+
+// PRF-003 — exported for the deterministic failure tests (hash/coupling).
+export function loadPromptArtifactFor(root, schemaArtifact) {
+  return loadPromptArtifactAt(root, schemaArtifact)
+}
+
+function loadPromptArtifact(schemaArtifact) {
+  return loadPromptArtifactAt(join(PACKAGE_ROOT, 'prompt'), schemaArtifact)
+}
+
+function loadPromptArtifactAt(root, schemaArtifact) {
+  const manifest = JSON.parse(readFileSync(join(root, 'manifest.json'), 'utf8'))
+  if (manifest.schemaVersion !== 'uniagent.prompt/v1')
+    throw new Error(`uniclaw-decision-channel: unsupported prompt manifest schemaVersion ${manifest.schemaVersion}`)
+  if (manifest.protocol?.protocolVersion !== PROTOCOL_VERSION
+    || manifest.protocol?.schemaVersion !== SCHEMA_VERSION
+    || manifest.protocol?.schemaHash !== schemaArtifact.schemaHash)
+    throw new Error(
+      'uniclaw-decision-channel: prompt manifest protocol coupling mismatch '
+      + `(manifest ${manifest.protocol?.protocolVersion}/${manifest.protocol?.schemaVersion}/`
+      + `${manifest.protocol?.schemaHash?.slice(0, 12)}… != loaded ${PROTOCOL_VERSION}/${SCHEMA_VERSION}/`
+      + `${schemaArtifact.schemaHash.slice(0, 12)}…); bump the manifest and promptRevision with the schema change`)
+  const digest = createHash('sha256')
+  digest.update(readFileSync(join(root, 'manifest.json')))
+  const segments = []
+  for (const name of manifest.segments ?? []) {
+    const raw = readFileSync(join(root, name))
+    digest.update(raw)
+    let text = raw.toString('utf8')
+    for (const token of PROMPT_TOKENS)
+      text = text.replaceAll(`{{${token}}}`, { protocolVersion: PROTOCOL_VERSION, schemaVersion: SCHEMA_VERSION, schemaHash: schemaArtifact.schemaHash }[token])
+    if (/\{\{[a-z][a-z0-9_]*\}\}/.test(text))
+      throw new Error(`uniclaw-decision-channel: unknown {{token}} left in prompt segment ${name}`)
+    segments.push(text.trimEnd())
+  }
+  if (segments.length === 0)
+    throw new Error('uniclaw-decision-channel: prompt manifest has no segments')
+  const computed = digest.digest('hex')
+  const recorded = readFileSync(join(root, 'prompt-hash.txt'), 'utf8').trim()
+  if (computed !== recorded)
+    throw new Error(
+      `uniclaw-decision-channel: prompt artifact hash mismatch (file ${computed.slice(0, 12)}… != prompt-hash.txt ${recorded.slice(0, 12)}…); `
+      + 'regenerate via tools/prompt-manifest-hash.py and bump promptRevision')
+  return {
+    revision: manifest.promptRevision,
+    segments,
+    staticText: segments.join('\n\n'),
+  }
+}
+
+function consultationPrompt(request, artifact, promptArtifact, promptMount) {
   const allowedEffects = Array.isArray(request.context?.allowedEffects)
     ? request.context.allowedEffects
     : []
   const allowedEffectsInstruction = allowedEffects.length > 0
     ? `Allowed effectClass tokens for this decision (copy exactly, case-sensitive): ${JSON.stringify(allowedEffects)}.`
     : 'The exact effectClass tokens are the values in context.allowedEffects; copy one of those values.'
-  return [
-    'You are the UniAgent decision component of the UniClaw Product runtime.',
+  // PRF-003: static identity / output discipline / payload shapes live in the
+  // versioned prompt artifact. In section mount they ride the session system
+  // prompt (registered by the preset row); in per-turn fallback they lead the
+  // turn content. Only genuinely per-turn lines remain here.
+  const dynamic = [
     `This is the CURRENT consultation turn. The current Product DecisionId is ${request.context.decisionId}.`,
     'Ignore decisionIds from all previous turns in this task session; they are historical and must not be reused.',
-    'Answer this consultation by calling the submit_decision tool exactly once,',
-    'with a payload that validates against the Product AgentDecision schema',
-    `(protocol ${PROTOCOL_VERSION}, schema ${SCHEMA_VERSION}, schemaHash ${artifact.schemaHash}).`,
-    '',
-    'Payload shape per kind (exact field names; every proposal ALSO carries',
-    'decisionId — the same value as the top-level decisionId):',
-    '- act:      proposal {decisionId, steps[] = {targetRole, targetDescriptor?, effectClass, desiredState?}, justification?}',
-    '- noAction: proposal {decisionId, justification, completion? {basis, checklist[]}}',
-    '- defer:    spec {subject?, maxRounds}  (maxRounds: integer >= 1)',
-    '- policy:   proposal {policyId, match[], template {targetRole, targetDescriptor?, effectClass, desiredState?}, termination[], guards[], maxApplications, justification?}',
-    '  predicates: {kind:"ClaimEquals",subject,value} | {kind:"ClaimInSet",subject,values[]}',
-    '',
-    'CRITICAL: proposal/spec are JSON OBJECTS (never strings); lists are JSON',
-    'arrays. decisionId MUST equal context.decisionId. Choose the semantically',
-    'correct kind for the context. Respond with the tool call only — no prose.',
-    'For noAction completion, checklist must contain one or more exact trace anchors',
-    '(use step:N.M for a completed decision N and zero-based step M; dispatch:ID / obs:ID',
-    'are allowed only when those exact ids are present in the context; never invent ids);',
-    'do not put explanatory prose in checklist items. If the mandatory objective is',
-    'already satisfied by the current observation and you cannot name exact anchors,',
-    'omit completion entirely; the current typed evidence is the traceable proof.',
-    'For act/policy targets, copy targetDescriptor exactly from the selected',
-    'element text/semantic descriptor. Do not prefix it with text=, append',
-    'bounds, coordinates, or invent a composite locator; grounding owns those.',
-    'desiredState is only the typed switch state: checked, unchecked, partial,',
-    'on, off, enabled, disabled, true, or false. Omit desiredState for a',
-    'navigation or ordinary click target; a navigation target may disappear',
-    'after the tap and is verified by the fresh route observation.',
-    'If the selected element is a switch/checkable control, or the task target',
-    'is a toggle, desiredState is mandatory. Never represent a switch tap as an',
-    'ordinary navigation click with desiredState omitted; the Host will reject it.',
-    '',
-    '`effectClass` is a runtime token, not a policy semantic label. It MUST be',
-    'copied exactly from context.allowedEffects. Never emit `navigate`, `back`,',
-    '`scroll`, or `observe` as effectClass unless that exact token is present in',
-    'allowedEffects. For Android Settings, use `tap` to select a visible',
-    'clickable navigation item or the Navigate up control; use `swipe-up` only',
-    'to scroll when it is present in allowedEffects. The Host maps those runtime',
-    'tokens to the policy meanings navigate, back, and scroll.',
     allowedEffectsInstruction,
     '',
     '=== AgentDecisionContext (JSON) ===',
     JSON.stringify(request.context, null, 2),
-  ].join('\n')
+  ]
+  if (promptMount !== 'section' && promptArtifact) return [promptArtifact.staticText, '', ...dynamic].join('\n')
+  return dynamic.join('\n')
 }
 
 export function apply(ctx, config) {
@@ -458,6 +516,16 @@ export function apply(ctx, config) {
   const workspaceKey = configuredString('workspaceKey', workspaceTitle)
   const workspaceReuse = configuredBoolean('workspaceReuse', false)
   const autoCloseTurn = configuredBoolean('autoCloseTurn', false)
+  // PRF-003: versioned static prompt artifact + mount mode. 'section' (default):
+  // the preset row registers the static text as a scoped system-prompt section
+  // and each turn carries only the dynamic lines. 'per-turn': fallback that
+  // prepends the static text to every turn (set it on BOTH rows to avoid a
+  // duplicated section + per-turn copy).
+  const promptMount = configuredString('promptMount', 'section')
+  if (promptMount !== 'section' && promptMount !== 'per-turn')
+    throw new Error(`uniclaw-decision-channel: config.promptMount must be 'section' or 'per-turn' (got '${promptMount}')`)
+  const promptArtifact = loadPromptArtifact(artifact)
+  log(`product prompt manifest loaded (revision ${promptArtifact.revision}, mount ${promptMount})`)
   // Root for the Product sessions' dedicated workspaces. Overridable so an
   // operator (or a test) can place them outside the default DSH home.
   const workspaceRoot = config !== null && typeof config === 'object'
@@ -473,8 +541,8 @@ export function apply(ctx, config) {
   const submitDecisionTool = {
     name: 'submit_decision',
     description:
-      'Submit one UniAgent decision (Product AgentDecision JSON for the current consultation). ' +
-      'This is the only approved Product output; decisionId must equal the context decisionId.',
+      'Submit one Agent task envelope (initialization plus Product AgentDecision payload). ' +
+      'This is the only approved Product output; task.payload.decisionId must equal the context decisionId.',
     parameters: toolParametersFromSchema(artifact),
     output: {
       schema: {
@@ -496,21 +564,54 @@ export function apply(ctx, config) {
       const pending = state.pending
       if (pending === null) return { accepted: false, reason: 'no-pending-consultation' }
       if (pending.captured !== null) return { accepted: false, reason: 'decision-already-captured' }
-      if (typeof args.decisionId !== 'string' || args.decisionId !== pending.decisionId) {
-        const received = typeof args.decisionId === 'string' ? args.decisionId : '<missing>'
+      const task = args?.task
+      const initialization = task?.initialization
+      const payload = task?.payload
+      const receivedDecisionId = payload?.decisionId
+      if (typeof receivedDecisionId !== 'string' || receivedDecisionId !== pending.decisionId) {
+        const received = typeof receivedDecisionId === 'string' ? receivedDecisionId : '<missing>'
         pending.lastError = { code: 'decision-id-mismatch', message: `expected ${pending.decisionId}; received ${received}` }
       } else {
+        // A corrected tool call may recover the same consultation after a
+        // previous correlation or schema rejection.
+        pending.lastError = null
+        if (task === null || typeof task !== 'object' || Array.isArray(task)
+          || initialization === null || typeof initialization !== 'object' || Array.isArray(initialization)
+          || payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+          pending.lastError = { code: 'task-envelope-invalid', message: 'task requires initialization and payload objects' }
+        }
+        const selection = initialization?.capabilitySelection
+        if (selection !== undefined) {
+          if (selection === null || typeof selection !== 'object' || Array.isArray(selection)
+            || typeof selection.capabilityId !== 'string' || selection.capabilityId.trim().length === 0
+            || (selection.expectedLanguage !== undefined && typeof selection.expectedLanguage !== 'string')
+            || (selection.ignoreRoutes !== undefined
+              && (!Array.isArray(selection.ignoreRoutes)
+                || selection.ignoreRoutes.some(route => typeof route !== 'string' || route.trim().length === 0)))) {
+            pending.lastError = { code: 'capability-selection-invalid', message: 'capabilitySelection shape is invalid' }
+          } else if (state.initialCapabilitySelectionSettled) {
+            pending.lastError = { code: 'capability-selection-not-initial', message: 'capabilitySelection is accepted only in the first task initialization' }
+          }
+        }
+        const decisionArgs = payload
         // B3: representation normalization only, then schema-driven validation.
-        const normalized = normalizeToSchema(args, artifact.schema.$defs.AgentDecision, artifact.schema)
+        const normalized = normalizeToSchema(decisionArgs, artifact.schema.$defs.AgentDecision, artifact.schema)
         const errors = []
-        validateToSchema(normalized, artifact.schema.$defs.AgentDecision, artifact.schema, 'decision', errors)
-        if (errors.length === 0) validateCompletionAnchors(normalized, errors)
-        if (errors.length === 0) {
-          pending.captured = { ok: true, decision: normalized }
+        if (pending.lastError === null) {
+          validateToSchema(normalized, artifact.schema.$defs.AgentDecision, artifact.schema, 'decision', errors)
+          if (errors.length === 0) validateCompletionAnchors(normalized, errors)
+        }
+        if (errors.length === 0 && pending.lastError === null) {
+          pending.captured = {
+            ok: true,
+            task: { initialization: selection === undefined ? {} : { capabilitySelection: selection }, payload: normalized },
+          }
+          if (selection !== undefined) state.initialCapabilitySelectionSettled = true
           recordEvent('decision-captured', {
             requestId: pending.requestId, decisionId: pending.decisionId, decisionKind: normalized.kind,
+            capabilitySelection: selection?.capabilityId ?? null,
           })
-        } else {
+        } else if (pending.lastError === null) {
           pending.lastError = { code: 'decision-schema-invalid', message: errors.slice(0, 4).join('; ') }
           recordEvent('decision-rejected', {
             requestId: pending.requestId, decisionId: pending.decisionId, code: 'decision-schema-invalid',
@@ -633,12 +734,82 @@ export function apply(ctx, config) {
     ctx.tools.guard((exec) => (exec.name === 'submit_decision'
       ? undefined
       : `uniagent-prod: tool "${exec.name}" is not in the frozen capability manifest [submit_decision]`))
-    log(`session-scoped submit_decision published for agent-scope registration (schemaHash ${artifact.schemaHash.slice(0, 12)}…)`)
+
+    // PRF-003 / Q11(a): mount the static product prompt as a scoped
+    // system-prompt section of this preset (sessions joining uniagent-prod
+    // inherit it; dev/harness sections stay in other scopes). Live probe
+    // finding (PRF-004): registration must go through ctx.inject(...) — the
+    // scoped-service pattern the MCP client uses for server instructions;
+    // a bare ctx.get('systemPrompt').section() does not reach the
+    // preset-scope assembly.
+    if (promptMount !== 'per-turn') {
+      ctx.inject(['systemPrompt'], (inner) => {
+      const systemPrompt = inner.systemPrompt
+      if (typeof systemPrompt.section !== 'function')
+        throw new Error(
+          "uniagent-decision-channel: promptMount 'section' requires the systemPrompt service "
+          + 'in the preset scope; fix the mount or set config.promptMount to per-turn')
+      systemPrompt.section({
+        name: 'uniagent-prod:product-prompt',
+        order: 100,
+        interpolate: false,
+        text: promptArtifact.staticText,
+      })
+
+      })
+    }
+    // PRF-004 — isolation probe (independent of prompt mount mode): assemble
+    // this preset scope's prompt inputs once at mount and record the
+    // inventory (names only) for the host-row read-only route. This is the
+    // mechanical evidence for "the product session sees only product prompt
+    // inputs" — never trust it, probe it.
+    ctx.inject(['systemPrompt'], (inner) => {
+      const systemPrompt = inner.systemPrompt
+      if (typeof systemPrompt.assemble !== 'function') return
+      systemPrompt.assemble({}).then(
+        (assembly) => {
+          state.promptProbe = {
+            recordedAt: new Date().toISOString(),
+            // Render drops empty sections; list only sections that carry
+            // text, so the inventory reflects what the model can receive.
+            sections: (assembly.sections ?? [])
+              .filter(s => typeof s.text === 'string' && s.text.trim().length > 0)
+              .map(s => s.name),
+            contexts: (assembly.contexts ?? []).map(c => c.name),
+            tools: (assembly.tools ?? []).map(t => t.name),
+            variables: Object.keys(assembly.variables ?? {}).sort(),
+          }
+          log(`prompt probe recorded: sections=[${state.promptProbe.sections.join(', ')}] contexts=[${state.promptProbe.contexts.join(', ')}] tools=${state.promptProbe.tools.length}`)
+        },
+        (error) => {
+          state.promptProbe = { error: String(error?.message ?? error) }
+          log(`prompt probe FAILED: ${state.promptProbe.error}`)
+        })
+    })
+
+    log(`session-scoped submit_decision published for agent-scope registration (schemaHash ${artifact.schemaHash.slice(0, 12)}…, promptRevision ${promptArtifact.revision})`)
     return
   }
   // Host mode: register the global fallback tool (non-preset sessions). The
   // restricted session replaces this by registering into the agent scope.
   ctx.tools.register(submitDecisionTool)
+  ctx.connection.fetch.register({
+    path: '/api/uniclaw-agent/prompt-probe',
+    methods: ['GET'],
+    requestBody: 'buffered',
+    fetch: async () => {
+      // PRF-004: read-only isolation-probe inventory (names only; no prompt
+      // text leaves this route). absent = the session-scoped preset row has
+      // not recorded yet (assembly pending or preset not mounted).
+      if (state.promptProbe === null)
+        return json(200, { recorded: false })
+      if (state.promptProbe.error !== undefined)
+        return json(200, { recorded: true, error: state.promptProbe.error })
+      const { recordedAt, sections, contexts, tools, variables } = state.promptProbe
+      return json(200, { recorded: true, recordedAt, sections, contexts, tools, variables })
+    },
+  })
+
   ctx.connection.fetch.register({
     path: '/api/uniclaw-agent/handshake',
     methods: ['POST'],
@@ -774,6 +945,8 @@ export function apply(ctx, config) {
         }
       }
 
+      if (state.attached === null || state.attached.productRunId !== productRunId)
+        state.initialCapabilitySelectionSettled = false
       state.attached = { productSessionId, productRunId, dshSessionId }
       recordEvent('attach', { productSessionId, productRunId, dshSessionId })
       log('handshake accepted', { productSessionId, productRunId, dshSessionId })
@@ -940,6 +1113,7 @@ export function apply(ctx, config) {
       recordEvent('consult-start', {
         requestId: body.requestId, decisionId: context.decisionId,
         dshSessionId: attached.dshSessionId,
+        promptRevision: promptArtifact.revision,
       })
       pending.timer = setTimeout(() => {
         if (state.pending === pending && pending.captured === null) {
@@ -959,7 +1133,7 @@ export function apply(ctx, config) {
             model: body.model.model,
           })
         }
-        const content = [{ type: 'text', text: consultationPrompt(body, artifact) }]
+        const content = [{ type: 'text', text: consultationPrompt(body, artifact, promptArtifact, promptMount) }]
         if (body.image !== null && typeof body.image === 'object'
           && body.image.mediaType === 'image/png' && typeof body.image.data === 'string'
           && body.image.data.length > 0) {
@@ -1018,10 +1192,10 @@ export function apply(ctx, config) {
           diagnostics: { ...captured.error, durationMs },
         })
       }
-      log('consult captured', { requestId: body.requestId, kind: captured.decision.kind, durationMs })
+      log('consult captured', { requestId: body.requestId, kind: captured.task.payload.kind, durationMs })
       recordEvent('consult-complete', {
-        requestId: body.requestId, decisionId: captured.decision.decisionId,
-        decisionKind: captured.decision.kind, durationMs,
+        requestId: body.requestId, decisionId: captured.task.payload.decisionId,
+        decisionKind: captured.task.payload.kind, durationMs,
       })
       const decisionDiagnostics = {
         durationMs,
@@ -1029,15 +1203,15 @@ export function apply(ctx, config) {
         schemaHash: artifact.schemaHash,
         productSessionId: attached.productSessionId,
         productRunId: attached.productRunId,
-        decisionId: captured.decision.decisionId,
-        ...(captured.decision.kind === 'policy'
-          ? { policyId: captured.decision.proposal.policyId }
+        decisionId: captured.task.payload.decisionId,
+        ...(captured.task.payload.kind === 'policy'
+          ? { policyId: captured.task.payload.proposal.policyId }
           : {}),
       }
       return json(200, {
         requestId: body.requestId,
         generation: typeof body.generation === 'number' ? body.generation : 0,
-        decision: captured.decision,
+        task: captured.task,
         diagnostics: decisionDiagnostics,
       })
     },

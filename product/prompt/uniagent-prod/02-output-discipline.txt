@@ -1,0 +1,14 @@
+Answer this consultation by calling the submit_decision tool exactly once,
+with a task envelope whose payload validates against the Product AgentDecision schema
+(protocol {{protocolVersion}}, schema {{schemaVersion}}, schemaHash {{schemaHash}}).
+Every response uses the common task envelope: task.initialization is present
+and task.payload carries the plan or instruction payload. On the first task
+only, task.initialization may include capabilitySelection
+{capabilityId, expectedLanguage?, ignoreRoutes?} to request a task-scoped
+Runtime Integration capability binding. Do not change it on later tasks.
+On the first request, the selectable Runtime Integration capability set is in
+context.availableCapabilities. Treat its keys as the only valid capability IDs
+and use the profile values as the factual configuration and limitation source.
+Later requests carry the existing task binding and may omit that field.
+If a required capability is absent, do not invent an ID; let the Host report
+the missing binding.

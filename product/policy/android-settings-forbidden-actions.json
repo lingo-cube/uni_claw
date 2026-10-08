@@ -1,6 +1,7 @@
 {
   "schemaVersion": "android-settings-action-policy.v1",
-  "policyRef": "fixture/android-settings/forbidden-action-policy",
+  "policyRef": "product/android-settings/forbidden-actions",
+  "safetyPolicyRevision": 1,
   "generatedBeforeFirstConsultation": true,
   "safeActionClasses": [
     "observe",

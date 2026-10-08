@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using UniClaw.Agent.Profile;
 using UniClaw.Kernel.Runtime;
 
 namespace UniClaw.Agent.Dsh;
@@ -28,6 +29,8 @@ public static class ProductProtocolSchemaGenerator
         typeof(PolicyGuard), typeof(ClaimSummary), typeof(AgentObligationView),
         typeof(ElementSummary), typeof(ScreenSummary), typeof(ConsultationProgress),
         typeof(ConsultationBudget), typeof(CompletionEvidence), typeof(PolicyProgressState),
+        typeof(CapabilitySelectionPayload), typeof(AgentTaskInitialization),
+        typeof(AgentTaskEnvelope),
     };
 
     public static ProductProtocolSchema Generate()
@@ -51,8 +54,11 @@ public static class ProductProtocolSchemaGenerator
                 ["submit_decision"] = new JsonObject
                 {
                     ["type"] = "object",
-                    ["properties"] = new JsonObject { ["decision"] = Ref(typeof(AgentDecision)) },
-                    ["required"] = new JsonArray("decision"),
+                    ["properties"] = new JsonObject
+                    {
+                        ["task"] = Ref(typeof(AgentTaskEnvelope)),
+                    },
+                    ["required"] = new JsonArray("task"),
                     ["additionalProperties"] = false,
                 },
             },

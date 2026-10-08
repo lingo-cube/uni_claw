@@ -1,4 +1,5 @@
 using UniClaw.Agent.Dsh;
+using UniClaw.Agent.Profile;
 
 namespace UniClaw.Agent.Dsh.Tests;
 
@@ -89,30 +90,38 @@ public sealed class ObserverProjectionTests
     }
 
     [Fact]
-    public void Runtime_Configuration_Loads_From_Single_Source_And_Switches_Models()
+    public void Runtime_Configuration_Loads_From_Product_Profile_And_Dsh_Bindings()
     {
-        // F2: provider/model/baseUrl come from .dsh/profiles/uniagent-prod.yaml
-        // (the single runtime config source); no hardcoded catalog is consulted.
-        var configuration = UniagentProdYaml.LoadDefault();
-
-        // 2026-10-06 所有者指令（63804f7a + 直连增量）：默认模型改
-        // deepseek-flash（供应商 DeepSeek 官方 deepseek-official 直连路由；
-        // 旧默认 glm53Flash）。CAP-007/008 附带同步：该断言追踪并行会话的
-        // yaml 中间态，最终归属其 change。
-        Assert.Equal("deepseekFlash", configuration.SelectedModelKey);
-        Assert.Equal(new ModelConfiguration("deepseek-official", "deepseek-flash"), configuration.Model);
-        Assert.Equal("http://127.0.0.1:3080/", configuration.Service.BaseUri.ToString());
-        Assert.Equal(UniagentProdProfile.ProfileId, configuration.Profile.ProfileId);
+        // PRF-002（ADR-0041）：host-neutral 产品 profile 与 DSH 绑定分轨。
+        // 产品侧：身份/角色声明，无 provider/model/endpoint。
+        var profile = UniClaw.Agent.Profile.UniAgentProfileYaml.LoadDefault();
+        Assert.Equal(UniagentProdProfile.ProfileId, profile.Identity.ProfileId);
         Assert.Equal(CapabilityManifest.ProductHeadless.ManifestHash,
-            configuration.Profile.Capabilities.ManifestHash);
+            profile.Identity.Capabilities.ManifestHash);
+        Assert.Equal(
+            new[]
+            {
+                new UniClaw.Agent.Profile.ModelRoleDeclaration("agent.decision", Required: true),
+                new UniClaw.Agent.Profile.ModelRoleDeclaration("slow.semantic.text", Required: true),
+                new UniClaw.Agent.Profile.ModelRoleDeclaration("slow.semantic.visual", Required: false),
+            },
+            profile.ModelRoles);
+
+        // DSH 侧：provider/model/baseUrl 只在绑定文件（CAP-007 语义）。
+        // 2026-10-06 所有者指令：默认模型 deepseek-flash（deepseek-official
+        // 直连）；CAP-012 D9：专线按 docs/agents/test-emulator.md 注册 3081。
+        var bindings = UniagentDshBindingsYaml.LoadDefault();
+        Assert.Equal("deepseekFlash", bindings.SelectedModelKey);
+        Assert.Equal(new ModelConfiguration("deepseek-official", "deepseek-flash"), bindings.Model);
+        Assert.Equal("http://127.0.0.1:3081/", bindings.Service.BaseUri.ToString());
     }
 
     [Fact]
-    public void Runtime_Configuration_Fails_Closed_On_Profile_Drift()
+    public void Product_Profile_Fails_Closed_On_Identity_Drift()
     {
         var root = FindRepositoryRoot();
         var original = File.ReadAllText(Path.Combine(root,
-            UniagentProdYaml.DefaultConfigRelativePath));
+            UniClaw.Agent.Profile.UniAgentProfileYaml.DefaultConfigRelativePath));
         var drifted = original.Replace("profileVersion: \"1\"", "profileVersion: \"2\"");
         Assert.NotEqual(original, drifted);
 
@@ -120,7 +129,8 @@ public sealed class ObserverProjectionTests
         File.WriteAllText(temporary, drifted);
         try
         {
-            Assert.Throws<InvalidOperationException>(() => UniagentProdYaml.Load(temporary));
+            Assert.Throws<InvalidOperationException>(
+                () => UniClaw.Agent.Profile.UniAgentProfileYaml.Load(temporary));
         }
         finally
         {
@@ -129,17 +139,19 @@ public sealed class ObserverProjectionTests
     }
 
     [Fact]
-    public void Explicit_Configuration_Keeps_Profile_Identity_Across_Model_Switch()
+    public void Explicit_Bindings_Keep_Profile_Identity_Across_Model_Switch()
     {
-        var free = UniagentProdConfiguration.Create(
+        // PRF-002：换 provider/model（绑定层）不触碰产品身份（profile 层）。
+        var profile = UniClaw.Agent.Profile.UniAgentProfileYaml.LoadDefault();
+        var free = UniagentDshBindings.Create(
             new ModelConfiguration("opencode-go", "space-bunny-free"), TestEndpoint, "free");
-        var deepSeek = UniagentProdConfiguration.Create(
+        var deepSeek = UniagentDshBindings.Create(
             new ModelConfiguration("opencode-go", "deepseek-flash"), TestEndpoint, "deepseekFlash");
 
-        Assert.Equal(free.Profile, deepSeek.Profile);
+        Assert.Equal(profile.Identity, UniClaw.Agent.Profile.UniAgentProfileYaml.LoadDefault().Identity);
         Assert.NotEqual(free.Model, deepSeek.Model);
         Assert.Equal(CapabilityManifest.ProductHeadless.ManifestHash,
-            free.Profile.Capabilities.ManifestHash);
+            profile.Identity.Capabilities.ManifestHash);
     }
 
     [Fact]

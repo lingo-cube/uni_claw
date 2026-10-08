@@ -47,4 +47,14 @@ slow:
   popupConsecutiveCycles: 2
 actionPolicy:
   required: true
-  path: testsets/android-settings/forbidden-action-policy.json
+  # PRF-005：canonical 副本升格产品声明面（product/AGENTS.md；ADR-0041）。
+  path: product/policy/android-settings-forbidden-actions.json
+
+# CAP-012 D1/D3：语言检查任务启用（英文 UI 判定；Internet 页是 SSID 列表——
+# 任意语言用户串，按所有者裁决设为忽略区）。
+languageInspection:
+  required: true
+  capabilityId: runtime.language-inspector
+  expectedLanguage: en
+  ignoreRoutes:
+    - "rk1:Internet|src=title|up=1"

@@ -9,10 +9,14 @@ namespace UniClaw.Host.SettingsCoverage;
 /// AGT-013：Settings profile 在首次咨询前提供的只读动作策略。
 /// 策略不是模型提示词，也不是 EffectBoundary 的替代品；它是 Host 将
 /// profile contract 投影给 Agent 并在 dispatch 前做语义 guard 的输入。
+/// PRF-005（ADR-0041）：canonical 副本迁 product/policy/（产品声明面，
+/// 有 owner、有版本）；本 loader 在消费方加载点 fail-closed——分类底线
+/// 缺失、缺 safetyPolicyRevision、默认拒绝缺失一律拒载（Q14 裁决）。
 /// </summary>
 public sealed record SettingsActionPolicy(
     string SchemaVersion,
     string PolicyRef,
+    int SafetyPolicyRevision,
     bool GeneratedBeforeFirstConsultation,
     IReadOnlySet<string> SafeActionClasses,
     IReadOnlySet<string> TargetedActionClasses,
@@ -24,6 +28,16 @@ public sealed record SettingsActionPolicy(
 {
     public const string SupportedSchemaVersion = "android-settings-action-policy.v1";
     public const string RejectUnknown = "reject";
+
+    /// <summary>PRF-005：危险动作分类底线（Q14「分类完备」的机械定义）——
+    /// 任何合法 policy 的 forbidden 集必须完整包含这些类别；缺失即拒载，
+    /// 不允许策略作者无意或故意缩小危险面。</summary>
+    public static readonly IReadOnlySet<string> RequiredForbiddenFloor =
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "destructive", "account-removal", "credential-change",
+            "developer-debug", "permission-grant", "unknown-action",
+        };
 
     /// <summary>AGT-015：traversal 目标必须与策略声明的 targeted toggle 绑定。
     /// 返回 null 表示一致；否则返回冲突原因（含声明面），供运行入口在任何
@@ -51,7 +65,7 @@ public sealed record SettingsActionPolicy(
             .ToList();
 
     public string AgentProjection() =>
-        $"policyRef={PolicyRef}; policyDigest={Digest}; "
+        $"policyRef={PolicyRef}; safetyPolicyRevision={SafetyPolicyRevision}; policyDigest={Digest}; "
         + $"safe=[{string.Join(",", SafeActionClasses.OrderBy(x => x, StringComparer.Ordinal))}]; "
         + $"targeted=[{string.Join(",", TargetedActionClasses.OrderBy(x => x, StringComparer.Ordinal))}]; "
         + $"forbidden=[{string.Join(",", ForbiddenActionClasses.OrderBy(x => x, StringComparer.Ordinal))}]; "
@@ -81,6 +95,12 @@ public sealed record SettingsActionPolicy(
             if (!string.Equals(schema, SupportedSchemaVersion, StringComparison.Ordinal))
                 throw NotReady($"unsupported policy schema: {schema}");
             var policyRef = RequiredString(root, "policyRef", path);
+            // PRF-005：policy 必须携带可审计修订号（正整数）。
+            if (!root.TryGetProperty("safetyPolicyRevision", out var revisionValue)
+                || revisionValue.ValueKind != JsonValueKind.Number
+                || !revisionValue.TryGetInt32(out var revision)
+                || revision < 1)
+                throw NotReady($"safetyPolicyRevision must be a positive integer [{path}]");
             var generated = root.TryGetProperty("generatedBeforeFirstConsultation", out var generatedValue)
                 && generatedValue.ValueKind == JsonValueKind.True;
             if (!generated)
@@ -101,11 +121,21 @@ public sealed record SettingsActionPolicy(
                 || safe.Intersect(forbidden, StringComparer.OrdinalIgnoreCase).Any()
                 || targeted.Intersect(forbidden, StringComparer.OrdinalIgnoreCase).Any())
                 throw NotReady("action sets must be disjoint");
+            // PRF-005：分类底线执法——危险类别词汇缺失 = 拒载。
+            var forbiddenSet = new HashSet<string>(forbidden, StringComparer.OrdinalIgnoreCase);
+            var missingFloor = RequiredForbiddenFloor
+                .Where(@class => !forbiddenSet.Contains(@class))
+                .Order(StringComparer.Ordinal).ToArray();
+            if (missingFloor.Length > 0)
+                throw NotReady("forbiddenActionClasses is missing required safety floor: "
+                    + $"[{string.Join(", ", missingFloor)}]; a policy must not narrow the "
+                    + $"danger taxonomy [{string.Join(", ", RequiredForbiddenFloor.Order(StringComparer.Ordinal))}]");
 
             var canonical = string.Join("\n", new[]
             {
                 schema,
                 policyRef,
+                revision.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 string.Join("|", safe.OrderBy(x => x, StringComparer.Ordinal)),
                 string.Join("|", targeted.OrderBy(x => x, StringComparer.Ordinal)),
                 string.Join("|", forbidden.OrderBy(x => x, StringComparer.Ordinal)),
@@ -114,7 +144,7 @@ public sealed record SettingsActionPolicy(
             });
             var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical))).ToLowerInvariant();
             return new SettingsActionPolicy(
-                schema, policyRef, generated,
+                schema, policyRef, revision, generated,
                 new HashSet<string>(safe, StringComparer.OrdinalIgnoreCase),
                 new HashSet<string>(targeted, StringComparer.OrdinalIgnoreCase),
                 new HashSet<string>(forbidden, StringComparer.OrdinalIgnoreCase),

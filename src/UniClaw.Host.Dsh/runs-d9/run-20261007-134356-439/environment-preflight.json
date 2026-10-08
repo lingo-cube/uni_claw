@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "uniclaw.environment-preflight.v1",
+  "visionServiceWarmup": {
+    "duration": "00:00:01.5577938",
+    "succeeded": true,
+    "error": null
+  },
+  "formalFlowStartedAfterPreflight": true
+}

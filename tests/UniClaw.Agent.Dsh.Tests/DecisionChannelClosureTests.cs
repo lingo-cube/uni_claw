@@ -53,8 +53,11 @@ public sealed class DecisionChannelClosureTests
             .DistinctBy(assembly => assembly.FullName)
             .ToArray();
 
+        // PRF-001（ADR-0041）：adapter 引用 UniClaw.Agent 消费产品身份类型
+        // （UniagentProdProfile/CapabilityManifest 族自本程序集上移）；
+        // 引用方向 Agent.Dsh → Agent 单向，Agent 不引用 adapter。
         Assert.Equal<string>(
-            new[] { "UniClaw.Agent.Dsh", "UniClaw.Core", "UniClaw.Kernel" },
+            new[] { "UniClaw.Agent", "UniClaw.Agent.Dsh", "UniClaw.Core", "UniClaw.Kernel" },
             closure.Select(project => Path.GetFileNameWithoutExtension(project.AssemblyPath))
                 .OrderBy(name => name, StringComparer.Ordinal)
                 .ToArray());

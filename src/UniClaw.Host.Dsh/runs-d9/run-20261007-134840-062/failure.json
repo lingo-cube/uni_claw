@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-failure.v1",
+  "runDir": "runs-d9/run-20261007-134840-062",
+  "errorType": "System.InvalidOperationException",
+  "message": "language-inspection-required-capability-not-bound",
+  "guidance": "\u5148\u770B message\uFF1B\u518D\u68C0\u67E5 environment-preflight.json\u3001exec.journal\u3001trace.json\u3001settings-trace.json \u548C coverage-report.json\uFF08\u82E5\u5B58\u5728\uFF09\u3002"
+}

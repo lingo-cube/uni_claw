@@ -26,6 +26,7 @@ UniClaw Product 的 DSH 决策通道。它创建任务级 DSH session，并把�
 | `sessionTitle` | 任务级 Product 对话标题 | `UniClaw Product Consultation` |
 | `slowSessionTitle` | 临时 Slow 对话标题 | `${sessionTitle} · Slow` |
 | `autoCloseTurn` | 成功提交后是否主动 cancel 当前物理 DSH turn | `false` |
+| `promptMount` | 静态产品 prompt 的挂载方式（PRF-003）：`section`=preset 行注册 scoped system-prompt section，每轮只带动态内容；`per-turn`=每轮携带全部静态文本（回退通道，宿主两行都要设，避免 section+每轮重复） | `section` |
 
 标题和键字段必须是非空字符串，布尔字段必须是布尔值。插件通过 `workspaceRegistry.create` 和
 `sessionController.rename` 写入 DSH 的正式持久化服务，不直接改 storage 文件。
@@ -33,6 +34,13 @@ UniClaw Product 的 DSH 决策通道。它创建任务级 DSH session，并把�
 DSH 的 registry 幂等复用，多个测试 task 共用同一个项目；每个 task 仍创建自己的
 Product session，并用 `sessionTitle` 命名。`autoCloseTurn` 默认关闭，避免共享
 服务被 Product task 主动回收；只有显式设为 `true` 才会在工具提交后调用 cancel。
+
+静态产品 prompt（身份/输出纪律/payload 形状）不再写在 `consultationPrompt()`
+里：canonical 工件在仓库 `product/prompt/uniagent-prod/`（manifest.json 声明
+`promptRevision` 与协议 schema 耦合哈希），包内 `prompt/` 副本必须与其逐字节
+一致（同步测试执法）；改 prompt 必须经 `python3 tools/prompt-manifest-hash.py
+product/prompt/uniagent-prod` 重算哈希并递增 `promptRevision`，schema 变更
+未同步 bump manifest 会在插件加载时 fail-closed。
 
 修改 profile patch 后，需要重新启动专用测试服务才会生效：
 
