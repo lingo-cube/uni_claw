@@ -10,6 +10,11 @@
 set -euo pipefail
 
 PORT="${DSH_TEST_PORT:-3081}"
+# DSH_TEST_PROFILE (PRF-004 D1a): boot with a named profile instead of the
+# default one — e.g. DSH_TEST_PROFILE=uniclaw-product uses the product-only
+# profile (~/.dsh/profiles/uniclaw-product, no development surface). The
+# default (unset) keeps whatever profile the CLI resolves today.
+PROFILE="${DSH_TEST_PROFILE:-}"
 DK_HARNESS_DIR="${DSH_HARNESS_DIR:-/Users/fran/Documents/Code/dk-harness}"
 NODE_BIN="${DSH_NODE_BIN:-node}"
 CLI="${DSH_CLI:-$DK_HARNESS_DIR/apps/cli/lib/bin.js}"
@@ -34,6 +39,14 @@ if command -v lsof >/dev/null 2>&1 && lsof -nP -iTCP:"$PORT" -sTCP:LISTEN 2>/dev
 fi
 
 echo "Starting dedicated DSH test service on http://127.0.0.1:$PORT/"
+if [ -n "$PROFILE" ]; then
+  echo "Profile: $PROFILE (product-only isolation, PRF-004 D1a)"
+  echo "Run E2E with: UNICLAW_DSH_E2E_BASE=http://127.0.0.1:$PORT/"
+  if [ -n "${UNICLAW_RUNTIME_BASE_URL:-}" ]; then
+    echo "Runtime launch transport: $UNICLAW_RUNTIME_BASE_URL"
+  fi
+  exec "$NODE_BIN" "$CLI" "$PROFILE" --no-open --port "$PORT"
+fi
 echo "Run E2E with: UNICLAW_DSH_E2E_BASE=http://127.0.0.1:$PORT/"
 if [ -n "${UNICLAW_RUNTIME_BASE_URL:-}" ]; then
   echo "Runtime launch transport: $UNICLAW_RUNTIME_BASE_URL"
