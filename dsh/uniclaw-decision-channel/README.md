@@ -27,6 +27,7 @@ UniClaw Product 的 DSH 决策通道。它创建任务级 DSH session，并把�
 | `slowSessionTitle` | 临时 Slow 对话标题 | `${sessionTitle} · Slow` |
 | `autoCloseTurn` | 成功提交后是否主动 cancel 当前物理 DSH turn | `false` |
 | `promptMount` | 静态产品 prompt 的挂载方式（PRF-003）：`section`=preset 行注册 scoped system-prompt section，每轮只带动态内容；`per-turn`=每轮携带全部静态文本（回退通道，宿主两行都要设，避免 section+每轮重复） | `section` |
+| `skillArtifact` | boot 时加载的 package-relative Product Skill 目录或 `{path,name,revision,sha256}` 快照；校验通过后只挂载一次 scoped section，运行中不热切换 | `skill/android-automotive-ui-testing` |
 
 标题和键字段必须是非空字符串，布尔字段必须是布尔值。插件通过 `workspaceRegistry.create` 和
 `sessionController.rename` 写入 DSH 的正式持久化服务，不直接改 storage 文件。
@@ -41,6 +42,14 @@ Product session，并用 `sessionTitle` 命名。`autoCloseTurn` 默认关闭，
 一致（同步测试执法）；改 prompt 必须经 `python3 tools/prompt-manifest-hash.py
 product/prompt/uniagent-prod` 重算哈希并递增 `promptRevision`，schema 变更
 未同步 bump manifest 会在插件加载时 fail-closed。
+
+领域 Skill 的 canonical 工件在仓库 `product/skills/android-automotive-ui-testing/`，
+包内副本必须逐字节同步。启动时校验 `schemaVersion`、可读 name、revision、
+guidance、references 和 SHA-256，并以 `uniagent-prod:skill:<name>` 注册一次 scoped
+section；`per-turn` 回退模式会把同一 guidance 与静态 Product Prompt 一起放入每轮内容。
+Skill 只提供观察、规划、受控执行、验证和证据指导，不授予额外 Capability、Effect 或
+Memory 权限。Profile allowlist 和 Runtime initialization envelope 会记录其
+name、revision、sha256。
 
 修改 profile patch 后，需要重新启动专用测试服务才会生效：
 

@@ -33,6 +33,14 @@ public sealed class ProfileYamlDocument
             var key = content[..separator].Trim();
             var value = content[(separator + 1)..].Trim();
             var map = stack[^1].Map;
+            if (map.ContainsKey(key))
+                throw new InvalidOperationException($"config-syntax:duplicate-key:{key}:{rawLine}");
+
+            if (value == "[]")
+            {
+                map[key] = Array.Empty<string>();
+                continue;
+            }
 
             if (value.Length is not 0)
             {

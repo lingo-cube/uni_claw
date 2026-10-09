@@ -91,7 +91,113 @@ public static class UniAgentProfileYaml
             UniagentProdProfile.Current,
             revision,
             ReadModelRoles(document, path),
-            ReadAssembly(document, path));
+            ReadAssembly(document, path),
+            ReadAllowedSkillRefs(document, path));
+    }
+
+    private static IReadOnlyList<SkillReference> ReadAllowedSkillRefs(
+        ProfileYamlDocument document, string profilePath)
+    {
+        var node = document.TryWalk(new[] { "allowedSkillRefs" });
+        if (node is null)
+            return Array.Empty<SkillReference>();
+        if (node is not Dictionary<string, object> entries || entries.Count == 0)
+            throw new InvalidOperationException($"config-invalid:allowedSkillRefs ({profilePath}): non-empty mapping required");
+
+        var repoRoot = ResolveRepoRoot();
+        var result = new List<SkillReference>(entries.Count);
+        foreach (var (name, value) in entries)
+        {
+            if (string.IsNullOrWhiteSpace(name) || value is not Dictionary<string, object> entry)
+                throw new InvalidOperationException($"config-invalid:allowedSkillRefs.{name} ({profilePath})");
+            var revisionText = RequireEntryScalar(entry, "revision", $"allowedSkillRefs.{name}", profilePath);
+            if (!int.TryParse(revisionText, out var revision) || revision < 1)
+                throw new InvalidOperationException($"config-invalid:allowedSkillRefs.{name}.revision ({profilePath}): positive integer required");
+            var skillPath = RequireEntryScalar(entry, "path", $"allowedSkillRefs.{name}", profilePath);
+            var sha256 = RequireEntryScalar(entry, "sha256", $"allowedSkillRefs.{name}", profilePath).ToLowerInvariant();
+            if (sha256.Length != 64 || !sha256.All(Uri.IsHexDigit))
+                throw new InvalidOperationException($"config-invalid:allowedSkillRefs.{name}.sha256 ({profilePath}): 64-hex hash required");
+            EnsureSafeRelativePath(skillPath, $"allowedSkillRefs.{name}.path", profilePath);
+            var reference = new SkillReference(name, revision, skillPath, sha256);
+            VerifySkill(reference, repoRoot, profilePath);
+            result.Add(reference);
+        }
+        return result;
+    }
+
+    private static string RequireEntryScalar(
+        Dictionary<string, object> entry, string key, string field, string profilePath)
+    {
+        if (!entry.TryGetValue(key, out var value) || value is not string text || string.IsNullOrWhiteSpace(text))
+            throw new InvalidOperationException($"config-missing:{field}.{key} ({profilePath})");
+        return text;
+    }
+
+    private static void VerifySkill(SkillReference reference, string repoRoot, string profilePath)
+    {
+        var directory = ResolveWithinRoot(repoRoot, reference.Path, $"allowedSkillRefs.{reference.Name}.path", profilePath);
+        var manifestPath = Path.Combine(directory, "manifest.yaml");
+        if (!File.Exists(manifestPath))
+            throw new InvalidOperationException($"skill-not-found:allowedSkillRefs.{reference.Name} ({profilePath})");
+
+        var manifest = ProfileYamlDocument.Parse(File.ReadAllLines(manifestPath));
+        var schema = manifest.RequireScalar(new[] { "schemaVersion" });
+        if (!string.Equals(schema, "uniagent.skill/v1", StringComparison.Ordinal))
+            throw new InvalidOperationException($"skill-invalid:{reference.Name}.schema ({profilePath})");
+        var manifestName = manifest.RequireScalar(new[] { "name" });
+        if (!string.Equals(manifestName, reference.Name, StringComparison.Ordinal))
+            throw new InvalidOperationException($"skill-name-mismatch:{reference.Name}!={manifestName} ({profilePath})");
+        var manifestRevisionText = manifest.RequireScalar(new[] { "revision" });
+        if (!int.TryParse(manifestRevisionText, out var manifestRevision) || manifestRevision < 1
+            || manifestRevision != reference.Revision)
+            throw new InvalidOperationException($"skill-revision-mismatch:{reference.Name} ({profilePath})");
+
+        var guidance = manifest.RequireScalar(new[] { "guidance" });
+        EnsureSafeRelativePath(guidance, $"skill.{reference.Name}.guidance", profilePath);
+        if (!string.Equals(guidance, "guidance.md", StringComparison.Ordinal))
+            throw new InvalidOperationException($"skill-guidance-mismatch:{reference.Name} ({profilePath})");
+        var guidancePath = ResolveWithinRoot(directory, guidance, $"skill.{reference.Name}.guidance", profilePath);
+        if (!File.Exists(guidancePath))
+            throw new InvalidOperationException($"skill-guidance-not-found:{reference.Name} ({profilePath})");
+
+        var referencePaths = manifest.TryWalk(new[] { "references" }) switch
+        {
+            null or "" => Array.Empty<string>(),
+            string[] values => values,
+            _ => throw new InvalidOperationException($"skill-invalid:{reference.Name}.references ({profilePath})")
+        };
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        using var stream = new MemoryStream();
+        stream.Write(File.ReadAllBytes(manifestPath));
+        stream.Write(File.ReadAllBytes(guidancePath));
+        foreach (var relative in referencePaths)
+        {
+            if (string.IsNullOrWhiteSpace(relative) || !seen.Add(relative))
+                throw new InvalidOperationException($"skill-invalid:{reference.Name}.references duplicate/empty ({profilePath})");
+            var referenceFile = ResolveWithinRoot(directory, relative, $"skill.{reference.Name}.references", profilePath);
+            if (!File.Exists(referenceFile))
+                throw new InvalidOperationException($"skill-reference-not-found:{reference.Name}:{relative} ({profilePath})");
+            stream.Write(File.ReadAllBytes(referenceFile));
+        }
+        var computed = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(stream.ToArray())).ToLowerInvariant();
+        if (!string.Equals(computed, reference.Sha256, StringComparison.Ordinal))
+            throw new InvalidOperationException($"skill-hash-mismatch:{reference.Name} ({profilePath})");
+    }
+
+    private static void EnsureSafeRelativePath(string path, string field, string profilePath)
+    {
+        if (Path.IsPathRooted(path) || path.Contains('\\') || path.Split('/').Any(static part => part is "" or "." or ".."))
+            throw new InvalidOperationException($"config-invalid:{field}: path must be repository-relative ({profilePath})");
+    }
+
+    private static string ResolveWithinRoot(string root, string relative, string field, string profilePath)
+    {
+        EnsureSafeRelativePath(relative, field, profilePath);
+        var fullRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var full = Path.GetFullPath(Path.Combine(root, relative));
+        if (!full.StartsWith(fullRoot, StringComparison.Ordinal))
+            throw new InvalidOperationException($"config-invalid:{field}: path escapes root ({profilePath})");
+        return full;
     }
 
     /// <summary>assembly（PRF-005）：产品工件引用，路径相对仓库根。一旦

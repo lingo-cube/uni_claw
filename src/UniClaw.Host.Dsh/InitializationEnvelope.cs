@@ -53,6 +53,22 @@ public static class InitializationEnvelope
             },
             ["dshEndpoint"] = bindings.Service.BaseUri.ToString(),
         };
+        var skills = agentProfile.AllowedSkillRefs?
+            .OrderBy(static reference => reference.Name, StringComparer.Ordinal)
+            .ToArray() ?? Array.Empty<SkillReference>();
+        if (skills.Length > 1)
+            throw new InvalidOperationException(
+                "initialization-envelope: multiple allowed Product Skills require an explicit primary selection");
+        var skill = skills.SingleOrDefault();
+        if (skill is not null)
+        {
+            node["skill"] = new JsonObject
+            {
+                ["name"] = skill.Name,
+                ["revision"] = skill.Revision,
+                ["sha256"] = skill.Sha256,
+            };
+        }
         File.WriteAllText(envelopePath, node.ToJsonString(new JsonSerializerOptions
         {
             WriteIndented = true,

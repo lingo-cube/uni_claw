@@ -9,6 +9,10 @@ public sealed record ModelRoleDeclaration(string Role, bool Required);
 /// 内容指纹；loader 在装配时 fail-closed 校验（存在 + hash 匹配）。</summary>
 public sealed record AssemblyReference(string Path, string Hash);
 
+/// <summary>Product Skill allowlist entry. The readable name is the stable
+/// product vocabulary; revision and hash pin the boot artifact.</summary>
+public sealed record SkillReference(string Name, int Revision, string Path, string Sha256);
+
 /// <summary>profile 的产品工件装配引用：静态 prompt manifest 与安全 policy。
 /// 每个成员可选；一旦声明即执法。</summary>
 public sealed record ProfileAssembly(
@@ -22,4 +26,5 @@ public sealed record UniAgentProfile(
     ProductProfile Identity,
     int Revision,
     IReadOnlyList<ModelRoleDeclaration> ModelRoles,
-    ProfileAssembly? Assembly = null);
+    ProfileAssembly? Assembly = null,
+    IReadOnlyList<SkillReference>? AllowedSkillRefs = null);

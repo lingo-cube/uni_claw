@@ -26,6 +26,11 @@ assembly:
   safetyPolicy:
     path: product/policy/android-settings-forbidden-actions.json
     hash: 4cfc6bc43cb8498f555145cd891c95e801bedde7aedc6e3561d84a8e1a5fdf36
+allowedSkillRefs:
+  android-automotive-ui-testing:
+    revision: 1
+    path: product/skills/android-automotive-ui-testing
+    sha256: dbdc56401cbd018dffae221a85472dec57c17ace48af8f119abc37fa0cee4f29
 modelRoles:
   agent.decision:
     required: true

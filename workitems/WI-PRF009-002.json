@@ -1,0 +1,67 @@
+{
+  "id": "WI-PRF009-002",
+  "objective": "复用现有 Product Prompt scoped section 缝，在 DSH session 启动时挂载一次经过 hash 校验的领域 Skill guidance，并把 Skill 身份写入首个 Session 初始化 envelope。",
+  "scope": {
+    "write": [
+      "dsh/uniclaw-decision-channel/skill/android-automotive-ui-testing/manifest.yaml",
+      "dsh/uniclaw-decision-channel/skill/android-automotive-ui-testing/guidance.md",
+      "dsh/uniclaw-decision-channel/skill/android-automotive-ui-testing/skill-hash.txt",
+      "dsh/uniclaw-decision-channel/src/index.js",
+      "dsh/uniclaw-decision-channel/tests/plugin.test.mjs",
+      "dsh/uniclaw-decision-channel/README.md",
+      "src/UniClaw.Host.Dsh/InitializationEnvelope.cs",
+      "tests/UniClaw.Host.Dsh.Tests/InitializationEnvelopeTests.cs"
+    ],
+    "read_hints": [
+      "plans/2026-10-10-prf-009-product-skill-assembly.md",
+      "changes/PRF-009/state.md",
+      "dsh/uniclaw-decision-channel/prompt/manifest.json",
+      "dsh/uniclaw-decision-channel/src/index.js",
+      "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs",
+      "src/UniClaw.Agent/Profile/UniAgentProfile.cs"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "DSH adapter 只负责把 boot-pinned Skill 文本作为独立 scoped Product Prompt section 传递；Host envelope 负责审计 Profile 实际装配的 Skill 引用。",
+    "core_points": [
+      "默认加载 package-relative skill/android-automotive-ui-testing；skillArtifact 配置只在启动时解析，运行中不热切换。",
+      "section 名为 uniagent-prod:skill:<name>，只注册一次；每轮 consultation 只带动态 AgentDecisionContext。",
+      "manifest/guidance/reference hash 与 canonical product/skills 副本逐字节一致，漂移 fail-closed。",
+      "InitializationEnvelope 增加 skill{name,revision,sha256}，first-run-wins 语义与现有字段一致。",
+      "不改 protocol schema、AgentTaskInitialization、Kernel projection 或 capabilitySelection。"
+    ]
+  },
+  "anchors": [
+    {"path": "dsh/uniclaw-decision-channel/src/index.js", "symbol": "loadPromptArtifactAt"},
+    {"path": "dsh/uniclaw-decision-channel/src/index.js", "symbol": "systemPrompt.section"},
+    {"path": "src/UniClaw.Host.Dsh/InitializationEnvelope.cs", "symbol": "Write"}
+  ],
+  "contract_refs": [
+    "changes/PRF-009/state.md",
+    "plans/2026-10-10-prf-009-product-skill-assembly.md",
+    "docs/adr/0041-uniagent-profile-product-definition-and-dsh-binding-separation.md"
+  ],
+  "acceptance": [
+    "node --test dsh/uniclaw-decision-channel/tests/plugin.test.mjs 通过；新增用例证明合法 Skill section 只出现一次、每轮动态 prompt 不重复 guidance、section 名与 revision/hash 可观测。",
+    "插件对缺失 manifest/guidance、未知字段/路径、hash mismatch、name/revision 不符和非法 skillArtifact fail-closed。",
+    "canonical product/skills 与 package skill 副本的同步/hash 测试通过。",
+    "InitializationEnvelope 首个 run 写入 skill.name、skill.revision、skill.sha256；同 session 第二个 run 不覆盖。",
+    "method=`dotnet test tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj --no-restore` expected=既有 envelope/Host 测试与新增 Skill snapshot 测试全部通过 actual=Worker 填写 evidence=测试输出。",
+    "method=`node --check dsh/uniclaw-decision-channel/src/index.js` expected=通过 actual=Worker 填写 evidence=命令输出。"
+  ],
+  "forbidden": [
+    "不得修改 schemas/agt-002/product-protocol.schema.json、src/UniClaw.Kernel/、src/UniClaw.Agent/Profile/ 或 task profile/Task Catalog。",
+    "不得把 Skill guidance 拼进 AgentDecisionContext、AgentDecision union 或 capabilitySelection。",
+    "不得从 .agents/skills、AGENTS.md 或 Harness prompt 读取内容，不得将开发 Skill 泄漏到 Product section。",
+    "不得写 scope.write 之外的路径，也不得回滚其他 Worker 或用户的未提交修改。"
+  ],
+  "frozen_decisions": [
+    "PRF-009 decisions 3-6",
+    "existing Product Prompt scoped section is the integration seam",
+    "Session/Run snapshot is first-run-wins and boot-pinned"
+  ],
+  "dependencies": ["WI-PRF009-001"],
+  "status": "done",
+  "required_skills": ["codebase-design", "tdd"],
+  "required_capability": "implementation"
+}

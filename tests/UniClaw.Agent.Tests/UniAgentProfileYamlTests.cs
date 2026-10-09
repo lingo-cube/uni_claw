@@ -147,6 +147,68 @@ public sealed class UniAgentProfileYamlTests
     }
 
     [Fact]
+    public void Repo_Profile_Loads_Allowed_Domain_Skill()
+    {
+        var profile = UniAgentProfileYaml.LoadDefault();
+
+        var skill = Assert.Single(profile.AllowedSkillRefs!);
+        Assert.Equal("android-automotive-ui-testing", skill.Name);
+        Assert.Equal(1, skill.Revision);
+        Assert.Equal("product/skills/android-automotive-ui-testing", skill.Path);
+        Assert.Equal(64, skill.Sha256.Length);
+    }
+
+    [Fact]
+    public void Skill_Path_Traversal_Fails_Closed()
+    {
+        var path = WriteFixture(ValidProfile.Replace(
+            "profileRevision: 1",
+            "profileRevision: 1\nallowedSkillRefs:\n  android-automotive-ui-testing:\n    revision: 1\n    path: ../outside\n    sha256: " + new string('a', 64)));
+        try
+        {
+            var error = Assert.Throws<InvalidOperationException>(() => UniAgentProfileYaml.Load(path));
+            Assert.Contains("path", error.Message, StringComparison.Ordinal);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Skill_Hash_Drift_Fails_Closed()
+    {
+        var path = WriteFixture(ValidProfile.Replace(
+            "profileRevision: 1",
+            "profileRevision: 1\nallowedSkillRefs:\n  android-automotive-ui-testing:\n    revision: 1\n    path: product/skills/android-automotive-ui-testing\n    sha256: " + new string('a', 64)));
+        try
+        {
+            var error = Assert.Throws<InvalidOperationException>(() => UniAgentProfileYaml.Load(path));
+            Assert.Contains("skill-hash-mismatch", error.Message, StringComparison.Ordinal);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Duplicate_Profile_Keys_Fail_Closed()
+    {
+        var path = WriteFixture(ValidProfile.Replace(
+            "profileRevision: 1",
+            "profileRevision: 1\nprofileRevision: 2"));
+        try
+        {
+            Assert.Throws<InvalidOperationException>(() => UniAgentProfileYaml.Load(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
     public void Assembly_With_Tampered_Prompt_Hash_Fails_Closed()
     {
         var path = WriteFixture(ValidProfile

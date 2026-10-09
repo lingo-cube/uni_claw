@@ -1,0 +1,67 @@
+{
+  "id": "WI-PRF009-001",
+  "objective": "新增首个领域级 Product Skill 工件，并让 UniAgent Profile 以可读 name、revision、path、sha256 的 allowlist 对其进行 fail-closed 装配校验。",
+  "scope": {
+    "write": [
+      "product/skills/android-automotive-ui-testing/manifest.yaml",
+      "product/skills/android-automotive-ui-testing/guidance.md",
+      "product/AGENTS.md",
+      "product/profiles/uniagent-prod.yaml",
+      "src/UniClaw.Agent/Profile/UniAgentProfile.cs",
+      "src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs",
+      "src/UniClaw.Agent/Profile/ProfileYamlDocument.cs",
+      "tests/UniClaw.Agent.Tests/UniAgentProfileYamlTests.cs"
+    ],
+    "read_hints": [
+      "plans/2026-10-10-prf-009-product-skill-assembly.md",
+      "changes/PRF-009/state.md",
+      "src/UniClaw.Agent/Profile/ProfileYamlDocument.cs",
+      "product/prompt/uniagent-prod/manifest.json",
+      "tools/prompt-manifest-hash.py",
+      "CONTEXT.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Skill 是 Product 侧的领域 SOP，指导观察、规划、受控执行、验证和证据；Profile 只负责允许哪些 Skill 进入装配并校验不可漂移的 artifact 身份。",
+    "core_points": [
+      "Skill 粒度固定为 android-automotive-ui-testing，不拆 Settings、Wi-Fi、车型、OEM 或页面。",
+      "manifest 使用 schemaVersion=uniagent.skill/v1，guidance 字段必须指向 guidance.md。",
+      "artifact hash 由 manifest.yaml、guidance.md 和 manifest references 顺序字节拼接计算。",
+      "allowedSkillRefs 使用映射键作为可读 name；每项必须有 revision、path、sha256。",
+      "未知/重复 name、路径越界、revision 非正整数、manifest 漂移或 hash 不匹配必须拒载。"
+    ]
+  },
+  "anchors": [
+    {"path": "src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs", "symbol": "ReadAssembly"},
+    {"path": "src/UniClaw.Agent/Profile/ProfileYamlDocument.cs", "symbol": "Parse"},
+    {"path": "product/profiles/uniagent-prod.yaml", "symbol": "assembly"}
+  ],
+  "contract_refs": [
+    "changes/PRF-009/state.md",
+    "plans/2026-10-10-prf-009-product-skill-assembly.md",
+    "docs/adr/0041-uniagent-profile-product-definition-and-dsh-binding-separation.md"
+  ],
+  "acceptance": [
+    "Skill manifest/guidance 可被发现，product/AGENTS.md 声明 product/skills 为产品工件面；内容只描述车机 Android UI 自动化测试的通用 SOP，不含具体页面、车型、OEM、坐标或 provider/model/endpoint。",
+    "合法 profile 加载出一个 SkillReference，name=android-automotive-ui-testing、revision=1，路径与 sha256 与 artifact 重算值一致。",
+    "loader 对未知或重复 Skill name、缺字段、revision 非正整数、路径越界、manifest name/revision 漂移、reference 缺失和 sha256 不匹配全部 fail-closed。",
+    "artifact hash 测试使用独立临时目录证明 manifest/guidance/reference 任一字节变化都会拒载。",
+    "method=`dotnet test tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj --no-restore` expected=既有 Profile/Agent 测试与新增 Skill loader 测试全部通过 actual=Worker 填写 evidence=测试输出。",
+    "method=`git diff --check` expected=无空白错误 actual=Worker 填写 evidence=命令输出。"
+  ],
+  "forbidden": [
+    "不得修改 src/UniClaw.Kernel/、src/UniClaw.Host.Dsh/、dsh/、schemas/agt-002/ 或 AgentTaskInitialization。",
+    "不得把 Skill 变成 Task、Capability、Memory 或 Effect authority，也不得添加 provider/model/endpoint。",
+    "不得修改现有 prompt manifest、safety policy 或 protocol hash；不要删除 product/tasks/*.yaml。",
+    "不得写 scope.write 之外的路径，也不得回滚其他 Worker 或用户的未提交修改。"
+  ],
+  "frozen_decisions": [
+    "PRF-009 decisions 1-6",
+    "Profile owns allowedSkillRefs; Task Profile remains the sole task contract",
+    "Skill name is readable and stable; no opaque standalone skillId in this slice"
+  ],
+  "dependencies": [],
+  "status": "done",
+  "required_skills": ["domain-modeling", "tdd"],
+  "required_capability": "implementation"
+}

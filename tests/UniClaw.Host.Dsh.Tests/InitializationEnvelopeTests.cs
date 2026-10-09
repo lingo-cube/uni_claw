@@ -36,11 +36,14 @@ public sealed class InitializationEnvelopeTests
             var root = document.RootElement;
             Assert.Equal("session-A", root.GetProperty("productSessionId").GetString());
             Assert.Equal("run-1", root.GetProperty("firstRunId").GetString());
-            // 五要素齐备：profile/协议/工件修订 + 模型路由。
+            // 五要素齐备：profile/协议/工件修订 + Skill 快照 + 模型路由。
             Assert.Equal(2, root.GetProperty("runtimeProfileRevision").GetInt32());
             Assert.Equal(64, root.GetProperty("protocolSchemaHash").GetString()!.Length);
             Assert.Equal(2, root.GetProperty("productPromptRevision").GetInt32());
             Assert.Equal(1, root.GetProperty("safetyPolicyRevision").GetInt32());
+            Assert.Equal("android-automotive-ui-testing", root.GetProperty("skill").GetProperty("name").GetString());
+            Assert.Equal(1, root.GetProperty("skill").GetProperty("revision").GetInt32());
+            Assert.Equal(64, root.GetProperty("skill").GetProperty("sha256").GetString()!.Length);
             Assert.Equal("deepseek-official", root.GetProperty("modelRoute").GetProperty("provider").GetString());
             Assert.Equal("deepseek-flash", root.GetProperty("modelRoute").GetProperty("model").GetString());
         }
@@ -68,6 +71,34 @@ public sealed class InitializationEnvelopeTests
             using var document = JsonDocument.Parse(
                 File.ReadAllText(Path.Combine(runsRoot, "session-B", "initialization.json")));
             Assert.Equal("run-1", document.RootElement.GetProperty("firstRunId").GetString());
+            Assert.Equal("android-automotive-ui-testing", document.RootElement.GetProperty("skill").GetProperty("name").GetString());
+        }
+        finally
+        {
+            Directory.Delete(runsRoot, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Multiple_Allowed_Skills_Fail_Closed_Without_A_Primary_Selection()
+    {
+        var runsRoot = Directory.CreateTempSubdirectory("prf009-envelope-ambiguous-").FullName;
+        try
+        {
+            var profile = Profile();
+            var skill = Assert.Single(profile.AllowedSkillRefs!);
+            var ambiguous = profile with
+            {
+                AllowedSkillRefs = new[]
+                {
+                    skill,
+                    skill with { Name = "another-domain-skill", Path = skill.Path },
+                },
+            };
+            var error = Assert.Throws<InvalidOperationException>(() => InitializationEnvelope.Write(
+                runsRoot, "session-ambiguous", "run-1", ambiguous, Bindings(),
+                new ModelConfiguration("deepseek-official", "deepseek-flash")));
+            Assert.Contains("multiple allowed Product Skills", error.Message, StringComparison.Ordinal);
         }
         finally
         {

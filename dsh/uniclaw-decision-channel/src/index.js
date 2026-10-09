@@ -45,7 +45,7 @@
 import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { homedir } from 'node:os'
 import { createRequire } from 'node:module'
 
@@ -69,6 +69,9 @@ export const inject = ['tools', 'connection', 'sessionController', 'agents', 'wo
 const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 const SCHEMA_PATH = join(PACKAGE_ROOT, 'schema', 'product-protocol.schema.json')
 const SCHEMA_HASH_PATH = join(PACKAGE_ROOT, 'schema', 'schema-hash.txt')
+const DEFAULT_SKILL_PATH = 'skill/android-automotive-ui-testing'
+const DEFAULT_SKILL_NAME = 'android-automotive-ui-testing'
+const DEFAULT_SKILL_REVISION = 1
 
 function loadSchemaArtifact() {
   const schema = JSON.parse(readFileSync(SCHEMA_PATH, 'utf8'))
@@ -80,6 +83,90 @@ function loadSchemaArtifact() {
     .update(JSON.stringify(sortKeysDeep(schema)))
     .digest('hex')
   return { schema, schemaHash, localHash }
+}
+
+// PRF-009: Product Skill is a package-relative, boot-pinned static artifact.
+// It is deliberately loaded independently from the Product Prompt so the
+// guidance cannot be silently re-read or appended to every consultation.
+export function loadSkillArtifactFor(packageRoot, expected = {}) {
+  const relative = typeof expected.path === 'string' && expected.path.trim().length > 0
+    ? expected.path.trim() : DEFAULT_SKILL_PATH
+  if (relative.startsWith('/') || relative.includes('\\')
+      || relative.split('/').some(part => part === '' || part === '.' || part === '..'))
+    throw new Error(`uniclaw-decision-channel: skill artifact path must be package-relative (got '${relative}')`)
+  const packageBase = resolve(packageRoot)
+  const root = resolve(packageBase, relative)
+  const packagePrefix = packageBase.endsWith('/') ? packageBase : `${packageBase}/`
+  if (!root.startsWith(packagePrefix))
+    throw new Error(`uniclaw-decision-channel: skill artifact path escapes package root (got '${relative}')`)
+  const manifestPath = join(root, 'manifest.yaml')
+  const guidancePath = join(root, 'guidance.md')
+  const hashPath = join(root, 'skill-hash.txt')
+  let manifest
+  try {
+    manifest = readFileSync(manifestPath, 'utf8')
+  } catch {
+    throw new Error(`uniclaw-decision-channel: skill manifest missing (${relative})`)
+  }
+  const scalar = (key) => {
+    const match = manifest.match(new RegExp(`^${key}:\\s*["']?([^"'\\n]+?)["']?\\s*$`, 'm'))
+    return match?.[1]?.trim() ?? null
+  }
+  const name = scalar('name')
+  const schemaVersion = scalar('schemaVersion')
+  const revisionText = scalar('revision')
+  const guidanceName = scalar('guidance')
+  if (schemaVersion !== 'uniagent.skill/v1')
+    throw new Error(`uniclaw-decision-channel: unsupported skill schemaVersion (${schemaVersion ?? 'missing'})`)
+  if (name === null || !/^[a-z][a-z0-9-]{1,63}$/.test(name))
+    throw new Error('uniclaw-decision-channel: skill manifest has invalid name')
+  if (name !== (expected.name ?? DEFAULT_SKILL_NAME))
+    throw new Error(`uniclaw-decision-channel: skill name mismatch (${name})`)
+  const revision = Number(revisionText)
+  if (!Number.isInteger(revision) || revision < 1 || revision !== (expected.revision ?? DEFAULT_SKILL_REVISION))
+    throw new Error(`uniclaw-decision-channel: skill revision mismatch (${revisionText ?? 'missing'})`)
+  if (guidanceName !== 'guidance.md')
+    throw new Error(`uniclaw-decision-channel: skill guidance must be guidance.md (got '${guidanceName ?? 'missing'}')`)
+  const referenceBlock = manifest.match(/^references:\s*\n((?:\s+-\s+[^\n]+\n?)*)/m)?.[1] ?? ''
+  const references = [...referenceBlock.matchAll(/^\s+-\s+(.+)\s*$/gm)].map(match => match[1].trim())
+  const seenReferences = new Set()
+  for (const reference of references) {
+    if (!reference || reference.startsWith('/') || reference.includes('\\')
+        || reference.split('/').some(part => part === '' || part === '.' || part === '..')
+        || !seenReferences.add(reference))
+      throw new Error(`uniclaw-decision-channel: skill reference path is invalid (${reference})`)
+  }
+  let guidance
+  let manifestBytes
+  let guidanceBytes
+  let recorded
+  try {
+    manifestBytes = readFileSync(manifestPath)
+    guidanceBytes = readFileSync(guidancePath)
+    recorded = readFileSync(hashPath, 'utf8').trim().toLowerCase()
+  } catch {
+    throw new Error(`uniclaw-decision-channel: skill artifact is incomplete (${relative})`)
+  }
+  if (!/^[0-9a-f]{64}$/.test(recorded))
+    throw new Error(`uniclaw-decision-channel: skill hash record is invalid (${relative})`)
+  const referenceBytes = references.map(reference => {
+    try { return readFileSync(join(root, reference)) } catch {
+      throw new Error(`uniclaw-decision-channel: skill reference missing (${reference})`)
+    }
+  })
+  const computed = createHash('sha256').update(Buffer.concat([manifestBytes, guidanceBytes, ...referenceBytes])).digest('hex')
+  if (computed !== recorded || (expected.sha256 && expected.sha256.toLowerCase() !== computed))
+    throw new Error(`uniclaw-decision-channel: skill artifact hash mismatch (${relative})`)
+  guidance = guidanceBytes.toString('utf8').trimEnd()
+  if (guidance.length === 0)
+    throw new Error(`uniclaw-decision-channel: skill guidance is empty (${relative})`)
+  return { name, revision, sha256: computed, path: relative, guidance }
+}
+
+function loadSkillArtifact(config) {
+  const raw = config !== null && typeof config === 'object' ? config.skillArtifact : undefined
+  const expected = typeof raw === 'string' ? { path: raw } : (raw && typeof raw === 'object' ? raw : {})
+  return loadSkillArtifactFor(PACKAGE_ROOT, expected)
 }
 
 function sortKeysDeep(value) {
@@ -460,7 +547,7 @@ function loadPromptArtifactAt(root, schemaArtifact) {
   }
 }
 
-function consultationPrompt(request, artifact, promptArtifact, promptMount) {
+function consultationPrompt(request, artifact, promptArtifact, skillArtifact, promptMount) {
   const allowedEffects = Array.isArray(request.context?.allowedEffects)
     ? request.context.allowedEffects
     : []
@@ -479,7 +566,8 @@ function consultationPrompt(request, artifact, promptArtifact, promptMount) {
     '=== AgentDecisionContext (JSON) ===',
     JSON.stringify(request.context, null, 2),
   ]
-  if (promptMount !== 'section' && promptArtifact) return [promptArtifact.staticText, '', ...dynamic].join('\n')
+  if (promptMount !== 'section' && promptArtifact && skillArtifact)
+    return [promptArtifact.staticText, '', skillArtifact.guidance, '', ...dynamic].join('\n')
   return dynamic.join('\n')
 }
 
@@ -525,7 +613,8 @@ export function apply(ctx, config) {
   if (promptMount !== 'section' && promptMount !== 'per-turn')
     throw new Error(`uniclaw-decision-channel: config.promptMount must be 'section' or 'per-turn' (got '${promptMount}')`)
   const promptArtifact = loadPromptArtifact(artifact)
-  log(`product prompt manifest loaded (revision ${promptArtifact.revision}, mount ${promptMount})`)
+  const skillArtifact = loadSkillArtifact(config)
+  log(`product prompt manifest loaded (revision ${promptArtifact.revision}, mount ${promptMount}); skill ${skillArtifact.name}@${skillArtifact.revision} loaded`)
   // Root for the Product sessions' dedicated workspaces. Overridable so an
   // operator (or a test) can place them outside the default DSH home.
   const workspaceRoot = config !== null && typeof config === 'object'
@@ -755,6 +844,12 @@ export function apply(ctx, config) {
         interpolate: false,
         text: promptArtifact.staticText,
       })
+      systemPrompt.section({
+        name: `uniagent-prod:skill:${skillArtifact.name}`,
+        order: 110,
+        interpolate: false,
+        text: skillArtifact.guidance,
+      })
 
       })
     }
@@ -787,7 +882,7 @@ export function apply(ctx, config) {
         })
     })
 
-    log(`session-scoped submit_decision published for agent-scope registration (schemaHash ${artifact.schemaHash.slice(0, 12)}…, promptRevision ${promptArtifact.revision})`)
+    log(`session-scoped submit_decision published for agent-scope registration (schemaHash ${artifact.schemaHash.slice(0, 12)}…, promptRevision ${promptArtifact.revision}, skill ${skillArtifact.name}@${skillArtifact.revision})`)
     return
   }
   // Host mode: register the global fallback tool (non-preset sessions). The
@@ -1133,7 +1228,7 @@ export function apply(ctx, config) {
             model: body.model.model,
           })
         }
-        const content = [{ type: 'text', text: consultationPrompt(body, artifact, promptArtifact, promptMount) }]
+        const content = [{ type: 'text', text: consultationPrompt(body, artifact, promptArtifact, skillArtifact, promptMount) }]
         if (body.image !== null && typeof body.image === 'object'
           && body.image.mediaType === 'image/png' && typeof body.image.data === 'string'
           && body.image.data.length > 0) {

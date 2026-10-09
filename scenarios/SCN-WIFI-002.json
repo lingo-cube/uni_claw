@@ -29,9 +29,9 @@
     "schemaVersion": 2,
     "expectationsDigest": "e9f7b914e94096aeb03ac500921303d1b00e70239184a124664cdd00d71f341e",
     "executionDigest": "0f1f21449f1f460ae9f58efffcc826c7f600aba4a1a2ba226c80a65ed8b6e654",
-    "runtimeSourceHash": "2e17cd89571b8e92c29329f3dadfbbe31df72b4541394121011de7f2df9b6237",
-    "certifiedByChange": "PRF-008",
-    "certifiedAt": "2026-10-09"
+    "runtimeSourceHash": "afdab4459d6ea7f45f6602a9d934868d3305dc0e497519c922406e5b2909ddb4",
+    "certifiedByChange": "PRF-009",
+    "certifiedAt": "2026-10-10"
   },
   "security": {
     "sensitiveReview": "cleared"

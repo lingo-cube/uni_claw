@@ -1,0 +1,7 @@
+schemaVersion: "uniagent.skill/v1"
+name: android-automotive-ui-testing
+displayName: Android Automotive UI 自动化测试
+revision: 1
+description: 面向车机 Android UI 自动化测试的观察、规划、受控执行、验证与证据 SOP。
+guidance: guidance.md
+references:

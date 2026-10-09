@@ -7,7 +7,7 @@ import test from 'node:test'
 
 
 import assert from 'node:assert/strict'
-import { cpSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -16,6 +16,8 @@ const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 const plugin = await import(join(PACKAGE_ROOT, 'src', 'index.js'))
 
 const SCHEMA_HASH = readFileSync(join(PACKAGE_ROOT, 'schema', 'schema-hash.txt'), 'utf8').trim()
+const SKILL_DIR = join(PACKAGE_ROOT, 'skill', 'android-automotive-ui-testing')
+const CANONICAL_SKILL_DIR = join(PACKAGE_ROOT, '..', '..', 'product', 'skills', 'android-automotive-ui-testing')
 
 /** Minimal schema artifact shape consumed by the prompt loader. */
 function schemaArtifactFixture() {
@@ -878,6 +880,48 @@ test('PRF-003: prompt artifact hash mismatch fails closed at load', () => {
   assert.throws(() => plugin.loadPromptArtifactFor(dir, schemaArtifactFixture()), /prompt artifact hash mismatch/)
 })
 
+test('PRF-009: package skill artifact stays byte-identical with product canonical', () => {
+  for (const name of ['manifest.yaml', 'guidance.md'])
+    assert.ok(readFileSync(join(CANONICAL_SKILL_DIR, name)).equals(readFileSync(join(SKILL_DIR, name))),
+      `skill artifact drift: ${name}`)
+  const artifact = plugin.loadSkillArtifactFor(PACKAGE_ROOT)
+  assert.equal(artifact.name, 'android-automotive-ui-testing')
+  assert.equal(artifact.revision, 1)
+  assert.equal(artifact.sha256, readFileSync(join(CANONICAL_SKILL_DIR, '..', '..', 'profiles', 'uniagent-prod.yaml'), 'utf8').match(/sha256: ([0-9a-f]{64})/)?.[1])
+})
+
+test('PRF-009: skill path/name/revision/hash drift fails closed at boot', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'uniclaw-skill-drift-'))
+  const skillDir = join(dir, 'skill', 'android-automotive-ui-testing')
+  mkdirSync(skillDir, { recursive: true })
+  for (const name of ['manifest.yaml', 'guidance.md', 'skill-hash.txt'])
+    cpSync(join(SKILL_DIR, name), join(skillDir, name))
+  assert.throws(() => plugin.loadSkillArtifactFor(PACKAGE_ROOT, { path: '../escape' }), /package-relative/)
+  assert.throws(() => plugin.loadSkillArtifactFor(dir, { name: 'wrong-name' }), /name mismatch/)
+  writeFileSync(join(skillDir, 'guidance.md'), 'tampered\n')
+  assert.throws(() => plugin.loadSkillArtifactFor(dir), /hash mismatch/)
+})
+
+test('PRF-009: per-turn fallback carries Skill guidance with the static prompt', async () => {
+  const harness = mockCtx()
+  const sessionMount = mockCtx()
+  plugin.apply(sessionMount.ctx, { sessionScoped: true, promptMount: 'per-turn' })
+  plugin.apply(harness.ctx, { workspaceRoot: TEST_WORKSPACE_ROOT, promptMount: 'per-turn' })
+  await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  const consultPromise = call(harness.routes, '/api/uniclaw-agent/consult', {
+    requestId: 'req-skill-perturn-1', generation: 1,
+    productSessionId: 'product-A', productRunId: 'run-A', dshSessionId: 'session-test-1-1',
+    turnTimeoutMs: 5000,
+    context: { decisionId: 'decision-skill-perturn-1', runId: 'run-A', phase: 'InitialPlanning' },
+  })
+  for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++)
+    await new Promise(resolve => setTimeout(resolve, 5))
+  const prompt = harness.controller.promptCalls[0].content[0].text
+  assert.match(prompt, /有目的的探索/)
+  emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
+  await consultPromise
+})
+
 test('PRF-003: prompt manifest protocol coupling mismatch fails closed at load', () => {
   const dir = mkdtempSync(join(tmpdir(), 'uniclaw-prompt-coupling-'))
   for (const name of readdirSync(PROMPT_DIR)) cpSync(join(PROMPT_DIR, name), join(dir, name))
@@ -890,14 +934,17 @@ test('PRF-003: prompt manifest protocol coupling mismatch fails closed at load',
 test('PRF-003: preset mount registers the scoped product-prompt section; host mount does not', () => {
   const preset = mockCtx()
   plugin.apply(preset.ctx, { sessionScoped: true })
-  assert.equal(preset.controller.promptSections.length, 1)
-  const [section] = preset.controller.promptSections
+  assert.equal(preset.controller.promptSections.length, 2)
+  const [section, skillSection] = preset.controller.promptSections
   assert.equal(section.name, 'uniagent-prod:product-prompt')
   assert.equal(section.order, 100)
   assert.equal(section.interpolate, false)
   assert.match(section.text, /You are the UniAgent decision component/)
   assert.match(section.text, /payload validates against the Product AgentDecision schema/)
   assert.match(section.text, /effectClass.*runtime token/i)
+  assert.equal(skillSection.name, 'uniagent-prod:skill:android-automotive-ui-testing')
+  assert.equal(skillSection.order, 110)
+  assert.match(skillSection.text, /有目的的探索/)
 
   const host = mockCtx()
   plugin.apply(host.ctx, {})
@@ -975,7 +1022,7 @@ test('PRF-004: preset mount records the isolation-probe inventory; host route ex
   const probe = plugin.panelSnapshot().promptProbe
   assert.ok(probe, 'probe should be recorded after preset mount')
   assert.equal(probe.error, undefined)
-  assert.deepEqual(probe.sections, ['uniagent-prod:product-prompt'])
+  assert.deepEqual(probe.sections, ['uniagent-prod:product-prompt', 'uniagent-prod:skill:android-automotive-ui-testing'])
   assert.deepEqual(probe.contexts, ['probe-context'])
   assert.deepEqual(probe.tools, ['submit_decision'])
   assert.deepEqual(probe.variables, ['probeVar'])
@@ -985,7 +1032,7 @@ test('PRF-004: preset mount records the isolation-probe inventory; host route ex
   const response = await route.fetch(new Request('http://dsh.invalid/api/uniclaw-agent/prompt-probe'))
   const body = await response.json()
   assert.equal(body.recorded, true)
-  assert.deepEqual(body.sections, ['uniagent-prod:product-prompt'])
+  assert.deepEqual(body.sections, ['uniagent-prod:product-prompt', 'uniagent-prod:skill:android-automotive-ui-testing'])
   assert.equal(body.recordedAt, probe.recordedAt)
 })
 
