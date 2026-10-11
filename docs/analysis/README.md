@@ -22,3 +22,4 @@
 | `agt-002-b1-fix-instruction.md` | AGT-002 B1 工具面泄漏修复指令（据上篇起草） | CANDIDATE |
 | `fast-perception-strategy-seam-fate.md` | IFastPerceptionStrategy 去留裁决材料：牵连面盘点 + 三路线成本（PER-021） | COMPLETE / EVIDENCE-BACKED |
 | `sim-006-first-baseline-matrix.md` | SIM-006 首批 8 场景+组件契约双轴基线矩阵（A1 交付物） | COMPLETE / EVIDENCE-BACKED |
+| `uniclaw-architecture-protocol-overall-review-2026-10-11.md` | UniClaw 产品架构、层级轴、概念、Owner/Authority、P1–P26 与外围 O1–O12 协议审阅底稿 | REVIEW_IN_PROGRESS / ARCHITECTURE_AND_PROTOCOL_DIRECTION_ACCEPTED |

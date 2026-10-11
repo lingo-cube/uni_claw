@@ -1,16 +1,16 @@
-# UniClaw Target Product Architecture Baseline — L0–L3
+# UniClaw Target Product Architecture Baseline — Product T0–T3
 
 > DocumentType: `TARGET_PRODUCT_ARCHITECTURE_BASELINE_V0_1`
 >
-> Status: `CANDIDATE_FOR_ADOPTION / L0-L3_CLOSED`
+> Status: `ADOPTED / PRODUCT-T0-T3-CLOSED`
 >
-> Authority: `NONE`
+> Authority: `PRODUCT_ARCHITECTURE_BASELINE`
 >
 > Version: `v0.1`
 >
-> Date: `2026-09-05`
+> Date: `2026-10-11`
 >
-> Scope: `UniClaw Product Architecture / L0–L3`
+> Scope: `UniClaw Product Architecture / Product T0–T3 + Semantic Lifecycle`
 >
 > Cardinality: `1 Session / 1 Primary Goal / 1 Primary Run`
 >
@@ -22,9 +22,32 @@
 
 本文只定义 UniClaw 未来 Target Product Architecture：系统是什么、各层承担什么职责、谁拥有 canonical state、谁拥有哪一类判断权威，以及哪些边界在实现替换后仍必须成立。
 
-本文不解释任何既有系统，也不规定迁移过程。
+本文不解释任何既有系统，也不规定实现迁移过程。Product T0–T3 是当前产品
+拓扑的唯一公共层级名称；Goal、Contract、Run、Evidence、WorldBelief、Outcome
+和 Evaluation 由独立的 Product Semantic Lifecycle 与 Evidence/Belief flow 描述。
 
-# Part I — Product 定位与 L0
+旧 Product L0–L3 只保留为历史引用和迁移映射，不再作为当前架构名称。本文路径
+暂时保持稳定，以避免历史 Change、ADR 和工具引用失效。
+
+## 0.1 Product 拓扑与语义轴
+
+```text
+Product T0  系统边界与外部参与者：UniClaw、User、Host、Device/Environment
+Product T1  UniAgent、Uni Kernel、Capability Plane、Memory System
+Product T2  Evidence Ledger、World Model、Run Model、Control Loop、Assurance、
+             Effect Boundary
+Product T3  责任域内部模型、协议实现和 realization 模块
+
+Semantic Lifecycle  Product Session → Goal → Contract → Run → Outcome → Evaluation
+Evidence/Belief Flow  Observation → Evidence Record → WorldBelief → Intent
+                      → Effect → Verification
+```
+
+拓扑层号只表达结构位置，不推断 Owner、Authority、生命周期或协议状态。Capability
+使用 `C*`，Decision 使用 `G*`，Profile 使用 `A*`，Harness evidence 使用 `E*`，
+协议边使用 `P*`；裸 L0–L4 不表示 Product 架构位置。
+
+# Part I — Product 定位与 Product Semantic Lifecycle
 
 ## 1. Product 定位
 
@@ -58,7 +81,11 @@ Session 是 Product correlation root。它关联 Goal、Contract、Run、Evidenc
 
 以下语义保留，不属于当前范围：多 Primary Goal、多 Primary Run、并行 Run、terminal 后 continuation、跨 Session world identity 和多执行内核协作。
 
-## 3. L0 一等概念
+## 3. Product Semantic Lifecycle 与执行边界锚点
+
+本节保留 Goal、Contract、Run、Evidence、WorldBelief、Outcome 和 Evaluation
+的产品语义定义，并给出 UniAgent 与 Uni Kernel 的边界锚点。它们不是 Product
+T0/T1 的层级清单；Product T0–T3 的拓扑清单见 Part II–III。
 
 ### 3.1 UniAgent
 
@@ -149,7 +176,7 @@ UniAgent 交给 Uni Kernel 的稳定执行语义边界。它定义 objective、s
 
 **Definition**
 
-Primary Run 的 aggregate execution boundary。它组合六个 L2 责任域，维持现实执行闭环，并向外发出 immutable Runtime Outcome。
+Primary Run 的 aggregate execution boundary。它组合六个 Product T2 责任域，维持现实执行闭环，并向外发出 immutable Runtime Outcome。
 
 **Owner / Authority**
 
@@ -158,7 +185,7 @@ Uni Kernel 不作为六类 canonical state 或 judgment 的模糊兜底 Owner。
 Uni Kernel 唯一拥有：
 
 - execution boundary integrity；
-- L2 之间的合法协作边界；
+- Product T2 之间的合法协作边界；
 - 保证所有 external effects exclusively pass through Effect Boundary；
 - terminal Runtime Outcome emission boundary。
 
@@ -259,7 +286,7 @@ UniAgent 唯一拥有 Goal Evaluation Authority。
 - 可得到 `Satisfied / Partially Satisfied / Unsatisfied / Needs Follow-up` 等评价；
 - 不修改 WorldBelief、Run State、Outcome Proof 或 Runtime Outcome。
 
-## 4. L0 顶层关系
+## 4. Product Semantic Lifecycle Relations
 
 ```text
 User
@@ -295,19 +322,19 @@ UniAgent
   → evaluates Primary Goal satisfaction
 ```
 
-# Part II — L1 Product Architecture
+# Part II — Product Topology T1
 
-## 5. L1 canonical structure
+## 5. Product T1 canonical structure
 
 ```text
-L1
+Product T1
 ├── UniAgent
 ├── Uni Kernel
 ├── Capability Plane
 └── Memory System
 ```
 
-L1 名称是 Target Product Architecture 的 canonical terms。逻辑组件不要求一一对应进程、程序集或部署单元。
+Product T1 名称是 Target Product Architecture 的 canonical terms。逻辑组件不要求一一对应进程、程序集或部署单元。
 
 ## 6. UniAgent
 
@@ -321,10 +348,10 @@ Uni Kernel 是 aggregate execution boundary，不是共享 mutable context，也
 
 它必须：
 
-- 保证六个 L2 Owner 互不重叠；
+- 保证六个 Product T2 Owner 互不重叠；
 - 保证 control intent、assurance judgment 和 effect delivery 分离；
-- 保证跨 L2 只传 typed immutable values、references 或 commands；
-- 保证外部 capability 不能旁路 L2 authority；
+- 保证跨 Product T2 只传 typed immutable values、references 或 commands；
+- 保证外部 capability 不能旁路 Product T2 authority；
 - 保证 terminal 后不存在绕过 Effect Boundary 的 effect path，并由 Effect Boundary 关闭 external effect delivery；
 - 只从 canonical Outcome State 发出 Runtime Outcome。
 
@@ -384,12 +411,12 @@ Historical EvidenceRef
 
 **Memory may influence hypothesis and observation strategy; Memory does not establish current reality by itself.**
 
-# Part III — Uni Kernel L2–L3
+# Part III — Uni Kernel Product T2–T3
 
-## 10. L2 canonical structure
+## 10. Product T2 canonical structure
 
 ```text
-L2
+Product T2
 ├── Evidence Ledger
 ├── World Model
 ├── Run Model
@@ -398,7 +425,7 @@ L2
 └── Effect Boundary
 ```
 
-| L2 | Canonical ownership | Sole Authority | 不拥有 |
+| Product T2 | Canonical ownership | Sole Authority | 不拥有 |
 |---|---|---|---|
 | Evidence Ledger | Evidence Record、EvidenceId、Provenance、Temporal/Causal references、Admission Record | Evidence Admission Authority | Reality、Belief relevance/weight、claim sufficiency、intent、Effect/Outcome Proof |
 | World Model | Current WorldBelief、World Graph、Container Graph projection、World State、Slice、Reconciliation | Belief/Reconciliation Authority | Goal、Run progress、intent、Assurance Judgment |
@@ -442,7 +469,7 @@ Evidence Ledger 明确不得判断：
 - claim sufficiency；
 - Effect Proof、Completion Proof、Failure Proof 或 Safe-Stop / Escalation Proof。
 
-### 11.2 L3
+### 11.2 Product T3
 
 ```text
 Evidence Ledger
@@ -536,7 +563,7 @@ World Model owns belief, not intent
 
 Reconciliation 只能依据 accepted Evidence 更新 Belief。Plan、Tactical Hypothesis、Goal、expectation 或 desired outcome 不得修改 observation interpretation。
 
-### 12.2 L3
+### 12.2 Product T3
 
 ```text
 World Model
@@ -593,7 +620,7 @@ Slice 必须声明 source revision 与 scope，不得回写 WorldBelief，不得
 
 Run Model 记录 canonical Run State，不产生 Control Intent，不判断 Effect 或 Outcome Proof，不拥有 WorldBelief，也不保存 action-local assurance state。
 
-### 13.2 L3
+### 13.2 Product T3
 
 ```text
 Run Model
@@ -666,7 +693,7 @@ Control Loop 不拥有：
 - canonical target binding；
 - external effect delivery。
 
-### 14.2 L3
+### 14.2 Product T3
 
 ```text
 Control Loop
@@ -744,7 +771,7 @@ Assurance = Assurance Judgment Authority
 
 Assurance 不拥有 Tactical Hypothesis、Run State、WorldBelief、canonical binding 或 mechanical dispatch。
 
-### 15.2 L3
+### 15.2 Product T3
 
 ```text
 Assurance
@@ -831,7 +858,7 @@ Effect Boundary
 
 它不拥有 strategy、replan、recovery、admissibility judgment、Effect Verification 或 Outcome Proof。
 
-### 16.2 L3
+### 16.2 Product T3
 
 ```text
 Effect Boundary
@@ -937,9 +964,9 @@ Driver 不得自行 retry、recover、replan 或改变 strategy。
 
 1. 每个 canonical mutable state 在任一时刻只有一个 Owner。
 2. 每个 authority class 只有一个 Authority。
-3. Uni Kernel 是 aggregate execution boundary，不是 L2 ownership 的兜底。
+3. Uni Kernel 是 aggregate execution boundary，不是 Product T2 ownership 的兜底。
 4. Uni Kernel owns boundary integrity；Effect Boundary alone owns canonical external effect delivery。
-5. 跨 L2 边界只传 immutable value、reference、proposal、judgment 或 command。
+5. 跨 Product T2 边界只传 immutable value、reference、proposal、judgment 或 command。
 6. Capability strength、confidence 或 deployment location 不改变 Authority。
 7. Memory may influence hypothesis and observation strategy；Memory does not establish current reality by itself。
 
@@ -989,7 +1016,7 @@ Driver 不得自行 retry、recover、replan 或改变 strategy。
 
 ## 21. Replaceability Contract
 
-任何 L1 或 L2 实现都可以被替换，前提是替换前后同时保持：
+任何 Product T1 或 Product T2 实现都可以被替换，前提是替换前后同时保持：
 
 - canonical term 与语义；
 - Sole Owner；
@@ -1005,9 +1032,9 @@ Driver 不得自行 retry、recover、replan 或改变 strategy。
 
 替换 Provider、模型、算法或设备 adapter，只能改变 capability quality、cost、latency 或 coverage，不能改变 Evidence、Belief、Control、Assurance、Binding、Run State 或 Goal Evaluation 的 ownership。
 
-### 21.2 L2 realization replaceability
+### 21.2 Product T2 realization replaceability
 
-L2 可以合并部署或拆分实现，但：
+Product T2 可以合并部署或拆分实现，但：
 
 - 合并部署不得合并 Owner 或 Authority；
 - 拆分实现不得复制 canonical state；
@@ -1040,25 +1067,25 @@ Memory storage、index、retrieval 或 retention policy 可以替换，但 Memor
 
 ```text
 Product Architecture Baseline v0.1
-Status: CANDIDATE_FOR_ADOPTION
-L0-L3: CLOSED
+Status: ADOPTED / PRODUCT-T0-T3-CLOSED
+Product T0–T3: CLOSED
 ```
 
-自本版本起，不再继续修改 L0–L3 横向结构。后续只允许：
+自本版本起，不再继续修改 Product T0–T3 横向结构。后续只允许：
 
 1. Scenario pressure test；
 2. Legacy → Target mapping；
 3. Migration design；
 4. L4 详细设计。
 
-只有真实 Scenario Evidence 能够证明现有 Owner、Authority 或 Boundary 无法成立时，才允许重新打开相应 L0–L3 语义。实现偏好、旧结构、Provider 限制、命名便利或局部测试失败都不足以重新打开基线。
+只有真实 Scenario Evidence 能够证明现有 Owner、Authority 或 Boundary 无法成立时，才允许重新打开相应 Product T0–T3 语义。实现偏好、旧结构、Provider 限制、命名便利或局部测试失败都不足以重新打开基线。
 
 ## 24. Narrow Amendment v0.1.1 — Legal Activation、Internal Run Driver 与最小安全语义
 
 > 修订依据：ADR-0019 / ADR-0022 + RFS-001 Human 授权（2026-09-13）。
 > 性质：narrow amendment——只新增 ADR-0019 明确留给后续闭合（Deferred ⑰）的
 > 最小 lifecycle / authority / 安全不变量语义，及 Phase 1 tracer 依赖项；
-> 不重开 §23 已关闭的 L0–L3 横向结构，不锁定类名、字段、namespace、
+> 不重开 §23 已关闭的 Product T0–T3 横向结构，不锁定类名、字段、namespace、
 > transport、storage 或 Interface 形状。各项的 epistemic 分类与理由见
 > `changes/RFS-001/state.md`（D1–D17）。
 
@@ -1215,14 +1242,14 @@ accepted Contract View
 47. untrusted content 不得改写 Goal / Contract / Offer / Grant / 系统约束（§24.7）
 ```
 
-本节不修改 §17–§20 既有条目，不锁定任何实现名称；与冻结协议（P1–P23）的
-衔接见 Inter-Component Protocol Baseline 同日 narrow amendment。
+本节不修改 §17–§20 既有条目，不锁定任何实现名称；与协议基线 P1–P26 的
+衔接见 Inter-Component Protocol Baseline 的 ARCH-ALIGN-001 amendment。
 
 ## 25. Narrow Amendment v0.1.2 — §3.1 UniAgent 定位措辞（系统的大脑）
 
 > 修订依据：所有者裁决（2026-10-07，AGT-018 定义审核）+ ARCH-DOC-021。
 > 性质：narrow amendment——仅修正 §3.1 Definition 的定位措辞；Owner /
-> Authority / Boundary / Lifecycle 零变化，不重开 §23 已关闭的 L0-L3
+> Authority / Boundary / Lifecycle 零变化，不重开 §23 已关闭的 Product T0–T3
 > 横向结构。
 
 原措辞「面向用户的完整智能主体」与所有者意图不符：UniAgent 是**整个

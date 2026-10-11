@@ -1,8 +1,8 @@
-# UniAgent 代码索引（L1 · 系统的大脑）
+# UniAgent 代码索引（Product T1 · 系统的大脑）
 
-UniAgent 是**整个系统的大脑**（cognition core）——所有者裁决 2026-10-07。
-基线 §3.1 的「面向用户的完整智能主体」是表述偏差，待基线措辞修订收口
-（见文末已知偏差）；本 README 以所有者裁决为准，L0 权威结构不变。
+UniAgent 是**整个系统的大脑**（cognition core）——所有者裁决 2026-10-07，
+并已在基线 §3.1 收口。本 README 以 Product T0–T3 基线和所有者裁决为准。
+旧 Product L0–L3 只保留为历史引用，不再作为当前架构名称。
 
 ## Sole Owner（基线 §3.1/§6，权威不改述）
 
@@ -40,7 +40,7 @@ RuntimeOutcome envelope 出（Kernel `Outcome/`）。除此之外零依赖。
 
 | 文件 | 职责 |
 |---|---|
-| `UniAgent.cs` | L1 peer 本体（§3.1/§3.9；ADR-0008 独立程序集） |
+| `UniAgent.cs` | Product T1 peer 本体（§3.1/§3.9；ADR-0008 独立程序集） |
 | `Goal/PrimaryGoal.cs` | 用户希望现实世界达到的结果（§3.2；GEV-004 最小落地） |
 | `Goal/GoalCriterion.cs` | 结构性 satisfaction 判据（GEV-004） |
 | `Goal/GoalEvaluationContext.cs` | §3.9 第三输入（user supervisory input） |
@@ -65,7 +65,7 @@ transport/绑定类型仍归 adapter。
 
 ## 记忆
 
-UniAgent 的记忆由 Memory System 组件提供（L1 · §9）：管理常用规则与
+UniAgent 的记忆由 Memory System 组件提供（Product T1 · §9）：管理常用规则与
 常用知识。当前为声明占位（零落地），见
 `docs/design/memory-system-component-declaration-v0.1.md`。
 
@@ -82,5 +82,5 @@ goal/策略/contract/evaluation 语义与 tool 词汇进本目录；宿主特有
 
 ## 指向
 
-- 基线 §3.1/§3.2/§3.9/§6/§9；ADR-0008（独立程序集）、ADR-0022（dual
+- 基线 §3.1/§3.2/§3.9/§6/§9；Product T1 是当前组件拓扑位置，ADR-0008（独立程序集）、ADR-0022（dual
   realizations）、ADR-0038（tool=exposure）；GEV-004 谱系。

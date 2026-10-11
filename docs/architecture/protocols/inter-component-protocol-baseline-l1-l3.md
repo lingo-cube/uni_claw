@@ -1,6 +1,8 @@
 # Inter-Component Protocol Baseline（L1–L3）v0.1
 
-> 状态：PROTOCOL grill 定稿（2026-09-09，四轮问答）。
+> 状态：ARCHITECTURE_ALIGNED / PROTOCOL_REVIEW_IN_PROGRESS（2026-10-11）。
+> P1–P23 的既有语义继续作为基线；P1/P24/P25 的边界已按 ARCH-ALIGN-001
+> 修订，尚未宣称所有实现和跨进程语义完成。
 > 证据源：E2B-001 / C2E-002 / OUT-003 / GEV-004 四个 CLOSED vertical
 > slice + Target Architecture v0.1（`docs/architecture/product-architecture-baseline-l0-l3.md`）。
 > 本文档是 inter-component 协议的 canonical 落点。`docs/architecture/`
@@ -11,6 +13,13 @@
 > Deferred ⑯/⑰ 与 Scenario 15；不重开其他协议语义。
 > 2026-09-13 narrow amendment（RFS-001）：新增通则 12/13 与 P24/P25/P26，
 > Deferred ⑯/⑰/② 注记；不重开 P1–P23 语义（见 §7）。
+> 2026-10-11 architecture alignment amendment（ARCH-ALIGN-001）：Product
+> architecture 已改用 T0–T3 + semantic lifecycle；P1/P24/P25 的职责、
+> neutral identity 和 activation 幂等规则已接受，字段实现与跨进程恢复仍按
+> known gap/deferred 记录。本次不伪造完整协议实现。
+> P1–P26 与 O1–O12 的 Owner/输入输出/失败/重复/恢复/实现状态完整审阅矩阵，
+> 见 `docs/analysis/uniclaw-architecture-protocol-overall-review-2026-10-11.md` 的
+> §13.3 与 §15.1；该矩阵是审阅索引，不另设第二份协议权威。
 
 ## 0. 定位与读法
 
@@ -80,7 +89,7 @@
 ## 1. Protocol Map
 
 ```text
-UniAgent(L1) ──P1 Contract Proposal──▶ Run Model
+UniAgent ──P1 Execution Contract admission──▶ Run Model
 Capability Plane（外部观察 / post-action effect flow 观察 acquisition） ──P2 Observation Ingress(kind=Observation)──▶ Evidence Ledger
 Effect Boundary ──P2 AttemptReport──▶ Evidence Ledger
 Evidence Ledger ──P3 Accepted Evidence Record──▶ World Model（+P12 只读查询──▶ Assurance）
@@ -113,16 +122,19 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
 
 ## 2. 逐边协议
 
-### P1 Contract Proposal（UniAgent → Run Model）
+### P1 Execution Contract Admission（UniAgent → Run Model）
 
 - **Producer**：contract author——canonical 唯一合法作者 = UniAgent；
   切片由测试脚本代演（协议锁"谁可以"，不锁谁构造了载体）。
 - **Consumer**：Run Model（唯一 admission 面）。
 - **Meaning**：作者对一次 Run 的执行要约：objective / scope / effect
-  约束 / proof 要求 / 可选 run-level obligations。只是 proposal，不建
-  立任何 canonical state。
+  约束 / proof 要求 / 可选 run-level obligations。未被接受的 proposal 不建立
+  canonical state；admission 成功后建立 accepted Contract View 和对应 Run
+  记录，但仍不启动、恢复或推进 Run。
 - **Minimal Payload**：version；objective；scope；effect 约束
-  （allowed + forbidden）；proof criteria；可选结构化 obligations。
+  （allowed + forbidden）；proof criteria；可选结构化 obligations；在产品语义
+  生命周期中关联 taskInstanceId、productSessionId、contract reference 的中性
+  identity。
 - **Validity**：proposal 无生命周期；同 version 重复 admit 幂等复用；
   accepted version 不就地改写；不同 version 取代语义 deferred ②。
 - **Authority**：Run Model 是 admission authority（作者不是）；接受后
@@ -137,9 +149,9 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
   启动、恢复或推进 Run，也不产生 Effect。Host retry 不构成 lifecycle command；
   accepted View → legal Primary Run activation 属独立 Deferred ⑰。
 - **Reference Realization**：`ExecutionContract` / `ContractAdmission`。
-- **Status**：P1 proposal/admission verified（作者面为 canonical 声明 +
-  代演注记）；ADR-0019 只锁合法激活后的 driver，不扩张 P1；activation seam
-  尚未设计（Deferred ⑰）。
+- **Status**：P1 proposal/admission 的进程内语义 verified；canonical UniAgent
+  producer 的跨边 admission、完整 Task/Session identity 仍是 known gap；ADR-0019
+  只锁合法激活后的 driver，不扩张 P1；activation 由 P24 独立负责。
 
 ### P2 Observation Ingress（观察生产者 → Evidence Ledger）
 
@@ -152,13 +164,14 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
   对一次 dispatch attempt 的投递报告。皆为 proposal，不是 Evidence
   Record。
 - **Minimal Payload**：semantic kind（已验证二成员，不声明
-  exhaustive）；claim 内容；provenance（producer 身份、CaptureTime、
+  exhaustive）；claim 内容；单独的 origin 语义（与 producer 身份和
+  ObservationContext 分开）；provenance（producer 身份、CaptureTime、
   scope、lineage）。AttemptReport **必须可关联到具体 dispatch
   attempt**（correlation 语义必锁，形式自由）。自产 post-action
   Observation 的 **origin 语义 = post-action effect flow 的自产观察**
   （区别于外部 provider 声明）是协议不变量（MaterialEffect 判定
-  load-bearing）；实际观察 producer 记入 provenance；origin 编码
-  （如 `effect.boundary` 命名空间）属 realization。
+  load-bearing）；实际观察 producer 仍记入 provenance，origin 的具体值域
+  属 realization/真实 buyer 约束。
 - **Validity**：无（proposal）；admission 决定。
 - **Authority**：Ledger admission authority；kind 表达语义差异，来源 /
   触发差异只入 provenance。
@@ -172,7 +185,8 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
 - **Status**：verified（ING-006，2026-09-09：显式 kind + ObservationContext
   落地 `ObservationProposal` / `EvidenceRecord`；kind / context recognized
   fail-closed；relevance kind-aware；`attempt.*` subject 降级为描述性
-  provenance）。
+  provenance）；origin 语义已冻结，但当前类型仍缺独立 origin 字段，属于
+  known gap，不能把 Context/Producer 的现有组合当作完整实现。
 - **Terminology note**：与 baseline §11.2 "Observation Record" 的一词
   两义已由 ING-006 rename（`ObservationProposal`）消除——2026-09-09
   模型挑战裁决执行完毕，baseline 不动。
@@ -283,19 +297,21 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
 
 - **Producer**：Run Model（记录面）。
 - **Consumer**：Assurance（满足判定输入）。
-- **Meaning**：run-level proof obligations 的当前状态；满足判定由
-  Assurance 执行、Run Model 只记录——两个产物、两个 owner。
+- **Meaning**：run-level proof obligations 的定义视图——这次 Run 要证明哪些
+  项目。满足判定由 Assurance 另行计算并输出状态投影；P7 不拥有验收结论。
 - **Minimal Payload**：obligation identity / kind / subject / required
-  value / mandatory；满足状态记录（Assurance 判定产出回填）。
+  value / mandatory。满足状态属于 Assurance 的独立 projection，不回写成 P7
+  的第二套 canonical authority。
 - **Validity**：随 discharge / typed transition 演进。
 - **Authority**：Run Model records，Assurance judges。
 - **Forbidden Use**：action-local requirements（target freshness /
   one-step precondition / admissibility / grounding validity）永不进入。
 - **Absence/Failure**：contract 无结构化 obligations → 占位不可判定
   obligations（显式诚实，不伪装可满足）。
-- **Reference Realization**：`ProofObligationState` / `RunObligation` /
-  `ObligationStatus`。
-- **Status**：verified。
+- **Reference Realization**：`ProofObligationState` / `RunObligation`；
+  `ObligationStatus` 属 Assurance projection。
+- **Status**：定义视图 verified；定义与状态分离已冻结，跨边 transport 仍按
+  in-process realization 记录。
 
 ### P8 Control Intent（Control Loop → Assurance / Effect Boundary）
 
@@ -318,7 +334,8 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
   校验失败，fail-closed）。
 - **Reference Realization**：`ControlIntent` / `ControlLoop.IsIssued`
   （引用同一性 = realization）。
-- **Status**：verified（词汇 non-exhaustive 注记）。
+- **Status**：进程内 issuance/ownership verified（词汇 non-exhaustive 注记）；
+  跨 Host 的 authority token 暂不设计，等真实 buyer 出现再开协议变更。
 
 ### P9 Candidate Binding（Grounding Provider → Effect Boundary）
 
@@ -717,12 +734,10 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
   requirement（主）；entity-scoped verification（次）。普通 revision
   advance 后的 fresh re-ground 不是本边 continuity 模式的 buyer
   （P-UW-27 默认路径原则）。
-- **Status**：target 锁定（ADR-0014 / UIW-002，2026-09-08）；无当前
-  实现——实现随 UIW-002 vertical slices 另立 change。producer ② 入口已落地
-  （ESO-001：accepted contract 的 entity-scoped obligation → standing demand；
-  fulfillment 判定 = ESO-002，blocked by CDS-001 state 载荷）。
-  fulfillment 判定已落地（ESO-002：owner-derived tri-state fact →
-  JudgeOutcome；deferred ⑭ 全闭）。
+- **Status**：World Model continuity seam、EntityScopedObligation producer 和
+  fulfillment 判定已有代码与测试（verified，进程内 realization）；本段旧的
+  “无当前实现”状态陈旧，外部 Effect Boundary physical path 与跨边 transport
+  仍是 known deviation/gap，不能据此宣称完整 P23 已闭合。
 
 ## 3. Deferred Protocol Questions
 
@@ -834,23 +849,28 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
 
 ### 7.2 新边
 
-#### P24 Legal Run Activation（activation submitter → Uni Kernel internal run driver）
+#### P24 Legal Run Activation（Runtime activation path → Uni Kernel internal run driver）
 
-- **Producer**：activation submitter——Product Host composition root（产品面）；
-  Phase 1 Simulation Host 是合法替换提交者。唯一 Producer 的完整定义 =
-  Deferred ⑰（R1），本边只锁 consumer 面与幂等语义。
+- **Producer**：UniClaw Runtime 的合法 activation path；Host composition root 或
+  Simulation Host 只能作为 adapter 代提交，不取得 Product activation authority。
+  Runtime 先完成 Task Instance/Product Session 与 accepted Contract View 的绑定，
+  再提交 P24。跨 Host 的唯一 Producer、持久 ownership 与完整 R1 仍需继续闭合。
 - **Consumer**：Uni Kernel internal run driver（唯一 activation 消费面；
   Kernel 持 activation latch，无新 Authority class）。
 - **Meaning**：请求把 accepted Contract View 激活为一个 self-driven
   Primary Run；不是 per-cycle 指令。
-- **Minimal Payload**（语义类别）：目标 contract generation 关联。
-- **Validity / Idempotency**：幂等 latch；重复提交返回同一 Run 关联；terminal
-  后提交零副作用。
+- **Minimal Payload**（语义类别）：acceptedContractViewRef +
+  contractGeneration；可关联 taskInstanceId、productSessionId、contract reference
+  version。不得携带 dshSessionId 或 Host transcript id。
+- **Validity / Idempotency**：同一启动钥匙最多建立一个 Product Session/Primary
+  Run binding；重复或并发后到请求返回同一结果；同一钥匙但契约内容不同则拒绝；
+  terminal 后只返回终态、零新动作。
 - **Forbidden Use**：不得携带 cycle 指令、expected owner state、Effect 载荷
   或 WorldBelief 注入；不得成为第二 driver；无 accepted View 时 fail closed。
 - **Absence/Failure**：无 accepted Contract View → 拒绝（零 Run 副作用）。
-- **Status**：HUMAN_SELECTED（RFS-001）；最小 concrete realization 随 Phase 1
-  tracer；完整 R1（identity/correlation/并发/恢复）保持 Deferred ⑰。
+- **Status**：activation seam 与同 Kernel 的 mechanical latch 已有 realization；
+  acceptedContractViewRef/contractGeneration 的持久 identity、跨请求并发、跨进程
+  recovery 仍是 known gap/deferred ⑰，不能把单进程 latch 当作完整 P24。
 
 #### P25 Agent Decision Consultation（Uni Kernel internal driver → UniAgent realization，外部 seam）
 
@@ -858,15 +878,19 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   boundary 调用，不逐 cycle）。
 - **Consumer**：UniAgent realization（Codex/DSH realization，或走同一 seam
   的 deterministic 测试 double）。
-- **Meaning**：携带有界 Decision Context 请求 goal-level 语义决策；UniAgent
-  返回 advisory proposal（action proposal / no-action）或显式 no-response。
+- **Meaning**：只在 Primary Run 已启动后的 decision boundary 携带有界 Decision
+  Context 请求一次具体 advisory decision；UniAgent 返回 action proposal /
+  no-action 或显式 no-response。P25 不创建、修改或替换 Execution Contract /
+  Contract View。
   proposal 属 Plan Hypothesis 层输入，Control 仍独占 Tactical Hypothesis 与
   Control Intent（baseline §24.2）。
-- **Minimal Payload**（语义类别）：correlation id（往返必配）+ 有界上下文
-  （contract 关联、objective、capability 面、当前相关 world 状态、pending
-  obligations）；返回侧为 proposal + 同 correlation id。
-- **Ordering**：只在 decision boundary；次数受 boundary 约束；duplicate /
-  late 调用对调用方是违规（测试 double 必须可断言）。
+- **Minimal Payload**（语义类别）：runId、productSessionId、Contract View
+  reference、consultation correlation id（往返必配）+ 有界上下文（objective、
+  capability 面、当前相关 world 状态、pending obligations）；返回侧为 proposal
+  + 同 correlation id。不得携带 dshSessionId。
+- **Ordering**：只在 decision boundary；每个 boundary 最多一次。同一 boundary
+  的重试沿用同一 consultation correlation 并返回同一结果；不同 boundary 可以
+  再次咨询。没有 boundary 的 duplicate / late 调用对调用方是违规。
 - **Idempotency / Failure**：no-response、invalid、correlation 失配、越权
   proposal → fail closed（零新 Effect，Run 保持合法非终态或按 contract
   safe-stop）。
@@ -876,8 +900,11 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   校验因当前缺少 owning model，明确延后 Phase 6，不得将 Phase 1 的最小检查表述
   为完整授权校验。Kernel 不重判语义。
 - **Absence/Failure**：seam 不可用 → fail closed，不猜测。
-- **Status**：HUMAN_SELECTED 外部语义；Decision Context / Decision Package
-  载荷 = TRACER_HYPOTHESIS（H14，roadmap Phase 6）。
+- **Status**：外部语义已 HUMAN_SELECTED；当前 seam/fail-closed correlation
+  realization 已有测试，但 productSessionId、Contract View reference 和
+  per-boundary idempotency 尚未完整落地。Decision Context / Decision Package 的
+  完整 scope/capability/risk/budget 校验仍是 TRACER_HYPOTHESIS（H14，roadmap
+  Phase 6）。
 
 > Phase 1 realization may represent the advisory action as an ordered `Steps`
 > list bounded to at most 16 steps. This is a tracer safety bound, not a frozen

@@ -12,7 +12,8 @@ controlled, and the product's canonical Evidence/Belief domain language.
 ### Workflow control
 
 **UniFlow**: The single development workflow control plane — owns WHEN and
-WHAT NEXT across a task's lifecycle.
+WHAT NEXT across a development task's lifecycle. It does not define or
+control the product UniAgent's Profile, Agent Skill, or Memory semantics.
 _Avoid_: pipeline, process framework, orchestration skill
 
 **Semantic Gate**: One of four readiness checkpoints (Explore Resolution,
@@ -108,9 +109,38 @@ Target Architecture v0.1 的产品域语言（已由 E2B-001 / C2E-002 在
 **Evidence**（完成证明工件）区分：产品域的观察依据一律称
 **Evidence Record**。组件名（Evidence Ledger / World Model / Run Model /
 Control Loop / Assurance / Effect Boundary / Capability Plane / Memory
-System）以 baseline §8-§10 为准，不另立词条。
+System）以 Product T0–T3 baseline §8-§10 为准，不另立词条。
 
-**Uni Kernel**: 六个 L2 的 aggregate execution boundary 与唯一 Runtime
+**Product Topology**: 产品组件的唯一公共拓扑轴，使用命名空间
+`Product T0–T3`：T0 是系统边界与外部参与者，T1 是 UniAgent、Uni Kernel、
+Capability Plane、Memory System，T2 是 Uni Kernel 六个责任域，T3 是责任域
+内部模型、协议实现和 realization 模块。拓扑层号只表达结构位置，不推断
+Owner、Authority、生命周期或协议状态。
+_Avoid_: 裸 Product L0/L1/L2/L3、把层号当作 Owner、把语义对象当作组件
+
+**Product Semantic Lifecycle**: 独立于 Product Topology 的产品语义轴：
+`Product Session → Primary Goal → Execution Contract → Primary Run →
+Outcome State / Runtime Outcome → Goal Evaluation`。Evidence Record、
+WorldBelief Revision、Control Intent、Canonical Binding、Effect 和 Outcome
+Proof 沿 Evidence/Belief/Control/Effect flow 关联；它们不占用 Product T0/T1
+组件位置。
+_Avoid_: 用 T0/T1 表示 Goal、Run 或 Outcome、从层号推断 authority
+
+**Product Architecture Baseline**: 当前产品拓扑与语义生命周期的唯一权威，
+落在 `docs/architecture/product-architecture-baseline-l0-l3.md`（路径暂时
+保持稳定），状态为 `ADOPTED / PRODUCT-T0-T3-CLOSED`，元数据 Authority 为
+`PRODUCT_ARCHITECTURE_BASELINE`。旧 Product L0–L3 只可作为历史引用或迁移映射；
+设计稿、实现状态、局部协议和未提交词汇不能覆盖该权威。
+_Avoid_: CANDIDATE_FOR_ADOPTION、Authority:NONE、把代码存在当作架构接受
+
+**Protocol Status**: 协议边的事实状态枚举：`verified`（有可复现证据）、
+`known gap`（边界已知但缺实现/证据）、`known deviation`（实现有意偏离且已记录）、
+`placeholder`（仅有语义占位）、`deferred`（等待真实 buyer 或后续裁决）、
+`not applicable`（对当前范围不适用）。代码存在、文档描述或测试通过都不能单独
+升级协议状态。
+_Avoid_: implemented 即 verified、把 deferred 当作已闭合、用空 DTO 伪造协议
+
+**Uni Kernel**: 六个 Product T2 的 aggregate execution boundary 与唯一 Runtime
 Outcome emission 点；不拥有任何 canonical domain truth（WorldBelief /
 Run State / Assurance judgment / target binding），允许拥有组合与生命
 周期协调状态（composition / lifecycle coordination / emission latch）。
@@ -127,10 +157,10 @@ Core、不经 Kernel（CORE-016 先例）；第二个需要运行时机制的非
 _Avoid_: 通用运行时（无买家的泛化声明）、god runtime（第二套总
 Owner）、把 Core 记录层当运行时机制来源
 
-**Capability Plane**: 承载可替换 typed capability 的 Product L1 架构面；能力可以接收有界输入并产生 raw artifact、typed proposal、candidate binding 或 mechanical receipt，但不拥有 canonical Evidence、WorldBelief、Run State、Control、Assurance、Effect 或 terminal authority。
+**Capability Plane**: 承载可替换 typed capability 的 Product T1 架构面；能力可以接收有界输入并产生 raw artifact、typed proposal、candidate binding 或 mechanical receipt，但不拥有 canonical Evidence、WorldBelief、Run State、Control、Assurance、Effect 或 terminal authority。
 _Avoid_: Capability Integration Plane、插件总线、第二套 Product Owner
 
-**Capability Management Role**: 管理 Capability Plane 能力注册、分类、协议、作用域、健康和生命周期的架构角色；它是装配与分发语义，不是新的 L2 或 canonical state owner。
+**Capability Management Role**: 管理 Capability Plane 能力注册、分类、协议、作用域、健康和生命周期的架构角色；它是装配与分发语义，不是新的 Product T2 或 canonical state owner。
 _Avoid_: god hub、authority hub、万能回调中心
 
 **Capability Hub**: Capability Management Role 在一个信任域中的 realization。Product Runtime、Runtime Integration 和 Development Harness 各有独立注册域与 Composition Root，只共享 Host-neutral lifecycle fact 和 correlation 词汇，不共享可变注册状态或权限。
@@ -170,7 +200,7 @@ _Avoid_: Hub 推断事件、Trace truth、可变上下文
 raw artifact 派生 `ObservationProposal` 的 typed capability；跨 owner 的观察
 输出只经 P2 出面，不拥有 Evidence admission、WorldBelief、identity、control、
 assurance 或 binding authority。
-_Avoid_: L1/L2 Owner、canonical authority、直连 World Model
+_Avoid_: Product T1/T2 Owner、canonical authority、直连 World Model
 
 **Fast / Slow Perception**: Perception Capability Plane 中的两种能力层级；Fast
 与 Slow 都是可被 Perception pipeline 集成和编排的 capability，具体模型、provider
@@ -231,7 +261,7 @@ _Avoid_: Unknown 折叠成 Pass、缺输入等于 Violation、只写日志不留
 
 **Evidence Record**: Evidence Ledger admission 通过后形成的不可变
 canonical 观察依据记录（EvidenceId + claim + kind + observation
-context + provenance）。
+context + origin + provenance）。
 _Avoid_: raw artifact、producer claim、数据、observation
 
 **Perception Acquisition**: Capability Plane 观察侧的采集能力——从设备或
@@ -242,8 +272,9 @@ realization 细节，不是域概念。
 _Avoid_: 直连 World Model、解释像素、第二套 observation 语义
 
 **Observation**: 对世界状态的观察声明（ingress 输入候选，admission
-之前，不是 canonical 记录）；semantic kind。来源与触发时机（external /
-post-action / 自产）属 provenance，不构成 kind 差异。
+之前，不是 canonical 记录）；semantic kind。来源与触发时机不构成 kind
+差异；producer 身份属于 provenance，观察属于外部观察还是动作后的 effect
+flow 观察由独立 origin 语义表达。
 _Avoid_: raw event、self observation、post-action kind、canonical record
 
 **AttemptReport**: 对一次 dispatch attempt 的投递报告（ingress semantic
@@ -256,6 +287,12 @@ PostActionEffectFlow）；表达「为什么 / 在哪个流程被观察」，不
 （ProducerIdentity），也不表达真实性（Deferred ⑦）。是 MaterialEffect
 fulfillment policy 的判定输入。
 _Avoid_: origin、producer identity、trigger、source
+
+**Observation Origin**: Observation 的来源语义，至少区分 external
+observation 与 post-action effect-flow observation；它与 ProducerIdentity、
+Observation Context 分开。MaterialEffect fulfillment 必须能读取 origin；
+当前类型尚未提供独立字段，仍是协议已定、实现 known gap。
+_Avoid_: producer name、context alias、truth judgment
 
 **Admission**: Evidence Ledger 对输入是否具备成为 canonical Evidence
 Record 条件的结构性判定（integrity/provenance/来源/时间/scope/lineage），
@@ -282,6 +319,14 @@ _Avoid_: world state（整体义）、cache、snapshot
 （subject → claim + evidence 溯源），随 revision 一起产生，无独立
 current-truth 生命周期。
 _Avoid_: parallel truth、belief cache
+
+**Core**: Product T3 的跨域 typed immutable record/projection surface；它承载
+跨领域共享的语义形状和 owner 引用，不拥有 Product canonical state、Runtime
+authority、独立生命周期或新的 Product T2。需要运行时闭环的领域仍由自己的
+Runtime/Kernel owner 持有；不需要运行时机制的 realization 可以经明确缝直接投影
+到 Core。Core 的 record/projection 可替换，但不能反向生成 UI identity 或覆盖
+Evidence、WorldBelief、Run State、Assurance、Binding、Outcome 的 authority。
+_Avoid_: Product T1 组件、Product T2 Owner、共享 mutable hub、第二 Runtime、Core truth
 
 **Evidence Basis**: 一个 WorldBelief revision 的全部 Evidence Record
 引用集合。
@@ -448,14 +493,16 @@ _Avoid_: identity key、fingerprint、composite hash、selector
 
 ### Control & Effect（C2E-002 落地）
 
-**Execution Contract**: UniAgent 交给 Uni Kernel 的稳定执行语义边界，
-描述 objective / scope / effect constraints / proof criteria / 可选
-run-level obligations。accepted version 不就地改写；显式新 version 的
-supersession / replacement 语义尚未锁定。
+**Execution Contract**: UniAgent 根据 Task 与 Product Session context 交给
+Uni Kernel 的稳定执行语义边界，描述 objective / scope / effect constraints /
+proof criteria / 可选 run-level obligations。它把用户任务细化成 Kernel 可以接收、
+执行和验证的约束；accepted version 不就地改写，显式新 version 的 supersession /
+replacement 语义尚未锁定。
 _Avoid_: task list、plan、SLA
 
-**Execution Contract View**: Run Model 在 contract 被接受时建立的
-immutable canonical view；同 version 重复 admit 幂等复用同一实例。
+**Execution Contract View**: Run Model 在 Execution Contract 被接受时建立的
+immutable canonical view；Kernel 以此作为当前 Run 的契约输入。同 version 重复
+admit 幂等复用同一实例。
 _Avoid_: contract copy、session config
 
 **Run State**: Run Model 拥有的 canonical 执行状态聚合（Contract View +
@@ -479,6 +526,8 @@ binding，也不是 authorization。act-intent 的 target hint 可为语义
 descriptor 序列化（如 "role:descriptor"）——hint ≠ binding ≠ UI
 targeting；CONTEXT Avoid 的描述字符串约束作用于 binding 通道（UI
 通道恒绑 OccurrenceRef，UIW-004）。
+当前 issuance ownership 只在进程内验证；跨 Host 的 authority token 等真实买方
+出现后再单独定义。
 _Avoid_: command、action、instruction
 
 **Tactical Hypothesis**: Control Loop 内部的 disposable 假设，不是事实、
@@ -604,13 +653,24 @@ _Avoid_: element handle（persistent 义）、selector、坐标元组（无 fram
 
 **Proof Obligation**: contract/run-level 证明要求（objective / material
 effect / completion / failure / safe-stop / escalation 六类）。Run Model
-只记录；满足判定由 Assurance 执行。action-local requirements（target
+只保存 obligation definition；满足判定由 Assurance 计算并输出状态投影。
+action-local requirements（target
 freshness / one-step precondition / admissibility / grounding validity）
 属 Assurance 短生命周期 judgment，永不进入 Run State。
 _Avoid_: task、checklist、acceptance criteria
 
+**Obligation Definition View**: P7 中由 Run Model 提供的“要证明什么”视图，
+包含 obligation identity、kind、subject、required value 和 mandatory 等定义；
+不包含 Assurance 的当前结论。
+_Avoid_: pass/fail、proof result、assurance judgment
+
+**Obligation Status Projection**: Assurance 根据 Evidence、WorldBelief 和
+相关视图计算的“现在满足了吗”投影；不反向成为 P7 的第二个 canonical authority，
+也不改写 obligation definition。
+_Avoid_: requirement definition、Run Model authority、terminal Outcome Proof
+
 **Obligation Fulfillment**: 单条 Proof Obligation 的 evidence-backed 满足
-状态（Assurance 判定产出，Run Model 记录）：current WorldBelief 内存在
+状态（Assurance 判定产出）：current WorldBelief 内存在
 accepted Evidence 支持的 subject=value claim（backing EvidenceId ∈
 basis）。MaterialEffect 需要足够的 **Verified Effect** evidence——当前
 fulfillment policy：accepted Observation 且 ObservationContext =
@@ -659,9 +719,14 @@ _Avoid_: UniAgent step driver、Host-driven Kernel、agent turn = run cycle
 accepted Contract View generation 下至多一个 Primary Run，重复激活零副作用。
 _Avoid_: contract admission（同义化）、run creation、start command（泛义）
 
+**Activation Key**: 一份具体已接受执行契约版本的启动 identity，由
+`acceptedContractViewRef + contractGeneration` 共同标识；同一 key 至多关联一个
+Product Session / Primary Run，重复请求返回已有关联且不重放动作。
+_Avoid_: 单独的版本数字、launchRequestId、runId（作为启动去重来源）
+
 ### UniAgent & Goal Evaluation（GEV-004 定稿）
 
-**UniAgent**: 面向用户的 L1 监督主体（Uni Kernel 之外的 L1 peer）；
+**UniAgent**: Product T1 中、Uni Kernel 之外的监督主体；
 拥有 Primary Goal 与 Goal Evaluation，不拥有 WorldBelief、Run State、
 Assurance Judgment、target binding 或 effect delivery。
 _Avoid_: 壳/shell、orchestrator、supervisor（泛称）
@@ -680,24 +745,109 @@ isolation、audit 与 operations evidence 证明生产就绪的完整 UniAgent R
 _Avoid_: production-ready by designation、coding profile
 
 **UniAgent Profile**: 产品拥有的 host-neutral UniAgent realization 装配描述
-（身份、冻结能力词汇、模型角色必需性、产品工件引用与修订号）；它不含
-provider/model 名、服务端点或任何运行态，宿主 realization 只能消费它、
-不能定义它。
+（身份、能力声明、职责边界、整体规划姿态、Skill 使用约束、冻结能力词汇、
+模型角色必需性、产品工件引用与修订号）；它不含 provider/model 名、服务端点
+或任何运行态，也不授予新的 Effect authority。宿主 realization 只能消费它、
+不能定义它。这里的职责是产品责任与预期输出边界，不是开发流程控制权。
 _Avoid_: DSH profile、deployment profile、model selection config
+
+**Product Agent Skill**: UniAgent 可消费的、有边界的 SOP；告诉 Agent 何时进入
+某个方向、应采用什么思路和经过什么处理流程，可声明输入、输出形态、验证方式
+以及失败/升级边界，但不必规定每个具体动作。具体做法由 Agent 结合任务与当前
+Evidence 决定。它不拥有 Product Goal、Run State、Effect authority，也不创建
+第二套开发流程；开发 Harness 的 vendored skill 与它是不同语义面。
+_Avoid_: workflow、lifecycle controller、tool implementation、persona prompt
+
+Product Skill 的公开命名采用 `name`、`displayName`、`description` 三层：
+`name` 是与目录一致的稳定可读 slug（小写字母、数字、短横线），用于 Profile
+绑定；`displayName` 面向人和 UI；`description` 面向发现与触发判断。Profile
+通过 `allowedSkillRefs` 引用 `name`、revision、path 与 sha256；当前不引入独立
+的 opaque `skillId`。跨来源注册表或远程 Skill 出现时，再增加 URI/namespace
+身份，不改变本地 Skill 的可读名称。
+
+当前 Product Skill 包采用 `manifest.yaml + guidance.md + references/`；
+`.agents/skills` 仍是开发 Harness 的独立语义面。一个任务第一阶段最多选择一个
+`primary planning skill`，辅助 Skill 只能提供参考，不能改变规划或权限边界；
+候选冲突时进入澄清、降级或 defer。Skill 通过 `memoryPolicy` 声明 Memory
+Recall 的触发条件，但 Recall 必须显式发起，且返回内容只能作为 prior、hypothesis
+或 historical reference。Skill 可以声明 direction/execution/precise 三档规划
+切换条件与 bounded exploration 要求，但执行约束仍由现有 AgentDecision Kernel
+和 AgentPlanProposal 负责，不新增第二套计划类型或权限模型。
+
+Product Skill 的最小接入缝是现有 Product Prompt/DSH consultation assembly：
+Skill manifest 与 guidance 由 Profile allowlist 管理，在 Session/Run 初始化时
+解析、校验并固定，作为 scoped static prompt section 参与模型上下文；每轮仍只
+追加 Kernel 从 immutable `ExecutionContractView` 投影出的 `AgentDecisionContext`
+和可选 Memory Recall。Skill 不进入 `ExecutionContractView`、`AgentDecision` union
+或当前封闭的 `AgentTaskInitialization`；后者继续只承载一次 Runtime Integration
+capability selection。初始化审计 envelope 记录 Skill 的 name、revision、sha256，
+运行中不热切换。
+
+首批 Product Skill 采用领域级粒度，聚焦车机 Android 自动化测试（Android
+automotive UI automation testing），不按单一设置页面、车型、控件或测试用例
+拆分 Skill。具体任务、设备/车型、当前界面、测试目标和策略差异由持久化 Task
+引用的 Task Profile、DeviceProfile、Runtime Context、当前 Evidence 及后续
+references/strategy 承载；
+只有当领域边界、规划方式或权限/验证要求确实不同，才新增独立 Skill。
+首个候选 Skill 名称为 `android-automotive-ui-testing`，displayName 为“车机
+Android UI 自动化测试”。其范围包括 typed UI observation、grounding、bounded
+exploration/planning、受控 Effect、post-action verification、evidence 与安全
+停止/重规划；不包含具体页面/控件/车型/OEM、固定 AVD、任务预算、provider/model/
+endpoint 或 Effect authority。`automotive` 是适用领域标签，不等于当前已有真实
+AAOS/OEM 生产证据；Settings 只作为当前 buyer 的首个任务覆盖面。
+Product Skill 不拥有、不创建也不持久化 Task；持久化 Task/Task Profile 通过
+`TaskRef` 由 Host/Task Catalog 管理，Task Launch Seam 负责引用它并建立
+TaskInstance、Run、Product Session 与 Host Session 的关系。Task 可以引用领域
+Skill，但 Skill 不反向持有 Task 清单；`product/tasks/` 中的现有文件继续按各自
+专用 loader 的静态配置或临时声明来源理解，不作为通用 Task Catalog。
+当前 `TaskRef` 是 Launch 的逻辑引用；现有 Runtime 持久化的是 Run/事件投影，
+DSH Task Workbench 另有 TaskDefinition/TaskInstance JSON repository。仓库已有
+任务 profile 与 ExecutionContract 的接线，但尚没有统一的 Host-owned Task
+Catalog schema/resolver。因此首版只落 Product Skill manifest 与 Profile allowlist，
+不假设已经存在通用 Task→Skill 解析；待 Catalog buyer 和接口确定后，再把 Skill
+引用写入持久化 Task 或其 profile，并在 launch-resolved snapshot 中冻结。
+当前已有的 `dsh/uniclaw-task-workbench` 提供 TaskRepository JSON 持久化和
+Task definition/instance HTTP 路由，可视为现阶段 Host/DSH adapter 对该 seam 的
+具体实现；它不改变 `product/tasks/` 不是 Task database 的边界，也不让 DSH 取得
+Product Runtime、Run 或 Effect authority。
+TaskDefinition 与 Task Profile 仍是两个层次：当前 TaskRepository 的
+TaskDefinition 只有任务身份/标题/需求/项目/状态等持久字段，尚未承载
+profileRef、profileRevision 或完整能力/预算/终止契约。目标设计应把 Task Profile
+作为持久化 Task/Catalog 的任务级契约或版本引用，不能把 `product/tasks/*.yaml`
+直接当成它的 canonical store。
+
+**Adaptive Planning**: Product Agent 根据目标清晰度、当前 Evidence、边界确定性
+和动作可验证性，在方向计划、执行计划与精确指令之间切换的规划姿态。首次执行
+允许先进入 bounded exploration：每一步都必须有探索目的、停止条件、观察结果和
+计划更新依据，探索不能绕过 Capability/Effect authority 或把暂时假设升级为事实。
+_Avoid_: always-precise instruction、unbounded exploration、exploration as authority
 
 **DSH Realization Binding**: UniAgent Profile 在 DSH realization 上的映射
 文件（逻辑角色到 provider/model 的偏好序、服务端点），由 DSH adapter
 拥有；更换 provider 或端点不改变 UniAgent Profile。
 _Avoid_: product profile、UniAgent Profile、model-routing（开发 Harness 的）
 
-**Task Profile**: 单次任务对能力要求与参数、预算、终止条件和策略引用的
-声明（ADR-0040）；它只引用、不复制 UniAgent Profile 或策略工件的内容。
-_Avoid_: agent profile、realization binding、capability facts
+**Task Profile**: 单次任务的执行契约声明，包含能力要求、参数、预算、终止条件、
+证明/证据和策略引用（ADR-0040）；它只引用、不复制 UniAgent Profile 或策略工件
+的内容。当前仓库已有 `product/tasks/*.yaml` 形式的产品任务 profile，Host loader
+会把其中的 bounds/objective/termination/evidence/policy 编译进 Kernel 的
+`ExecutionContract`，因此不能再设计第二套 Task Contract。它与持久化
+`TaskDefinition` 是不同层次：前者是任务执行契约，后者是任务身份/需求/状态及其
+实例关联。Task Profile 是否最终内嵌或引用于 Host/Task Catalog 的持久化 Task，
+待 Catalog seam 的 buyer 决定；`TaskRef` 进入 Task Launch，`TaskInstanceId` 是
+执行实例关联，不是 Task 定义本身。
+_Avoid_: agent profile、realization binding、capability facts、product/tasks as task database
 
 **Host Session**: Host Runtime 提供的 thread/session 承载体；它可保存
 realization-private state 并显式关联 Product Session，但不是 Product Session，
 也不取得任何 Product Authority。
 _Avoid_: Product Session、Primary Run、canonical session
+
+**Host Session Identity Mapping**: 产品/Harness 跨边界只使用
+`productSessionId`、`taskInstanceId`、`runId` 和 `hostSessionRef` 等中性字段。
+`dshSessionId` 是 DSH adapter 内部 alias；映射必须记录 `source`、`authority` 和
+`valueOrigin`，不能把 DSH alias 外泄为 Product identity 或 Runtime correlation。
+_Avoid_: dshSessionId 作为公共 identity、sessionId 猜测、Host alias 取得 Product authority
 
 **UniAgent Conformance Surface**: 多个 UniAgent Realization 共享的 Host-neutral
 可观察 Interface，由 canonical inputs/records、lifecycle、failure 与 evidence
@@ -736,11 +886,14 @@ _Avoid_: satisfaction 成员、follow-up mechanism、action item
 context）的 opaque 契约；当前仅允许 Empty，不携带业务语义。
 _Avoid_: user profile、session state、config
 
-**Consultation**: Kernel 在语义 decision boundary（T1-T6 触发点）经外部
-seam 向 UniAgent 发起的一次同步请求-回答：输入 = 有界
-AgentDecisionContext，输出 = 恰一个 AgentDecision（或 null = no-response
-fail-closed）。咨询时机与次数由 Kernel 独占（D1-D7 纪律）；Agent 只回答，
-永不发起。Host realization 内部的 turn/step 结构是回答的产生方式，不是
+**Consultation**: 只发生在 Primary Run 已经启动后的语义 decision boundary
+（T1-T6 触发点），由 Kernel 经外部 seam 向 UniAgent 发起一次同步请求-回答：
+输入 = 有界 AgentDecisionContext，输出 = 恰一个 AgentDecision（或 null =
+no-response fail-closed）。P1 只负责提交/审核 Execution Contract，P24 只负责
+启动已接受的 Contract View，P25 只负责运行中的边界咨询：每个 decision boundary
+最多一次，同一边界重试复用同一结果，不同边界可以再次咨询；P25 不创建、修改或
+替换 Contract/Contract View。咨询时机与次数由 Kernel 独占（D1-D7 纪律）；Agent
+只回答，永不发起。Host realization 内部的 turn/step 结构是回答的产生方式，不是
 第二次咨询。
 _Avoid_: agent invocation（泛义）、chat round、turn（跨 realization 混用）、
 Agent 发起的询问
@@ -765,9 +918,19 @@ execution log
 项目归类、状态；不承载执行过程。同一 Task 可被实例化多次。
 _Avoid_: WorkItem（委派契约）、ticket、Product Session、plan
 
-**Task Instance**: 任务的一次执行实例；身份即 Product Session
-（productSessionId）。对话、trace、诊断过程都属于实例，不属于 Task。
-_Avoid_: task run（与 Primary Run 混淆）、subagent、execution
+**Product Session**: 一次产品执行的 correlation root；由 UniClaw Runtime 根据
+Task 创建并分配自己的 `productSessionId`，发生在 Primary Run 之前。它承载 UniAgent
+根据 Task 与 Session context 形成 Contract 的过程，之后再关联 Primary Run、Outcome
+与 Goal Evaluation。Task Launch 只提交 Task 引用并读取 Runtime binding；Host 只铸造
+`hostSessionRef`；UniAgent 只消费和监督。
+它与 Task Instance、Primary Run、Host Session 是四个不同概念；当前范围可以是一对一，
+但必须由显式 Binding 关联，不能从目录、transcript 或 Host session 推导。
+_Avoid_: Task Instance、Primary Run、Host Session、shared mutable context
+
+**Task Instance**: UniClaw Runtime 根据 Task 定义创建的一次执行实例，拥有自己的
+`taskInstanceId`，并在创建时与一个 Product Session 建立显式关联。当前范围可以一对一，
+但两者不能共享语义 identity。对话、trace、诊断过程属于实例投影，不属于 Task 定义。
+_Avoid_: productSessionId 同义化、task run（与 Primary Run 混淆）、subagent
 
 **Task Discovery Authority**: 只有 Product Runtime 或 Task Repository 对
 TaskInstance/ProductSession identity 做确认；仅有 Host session、transcript 或
@@ -779,7 +942,7 @@ Product Session 的对话、Trace、Evidence 和 Metadata 投影，允许按来�
 但不拥有停止、重试、批准、任务编辑或任何 Product Runtime Authority。Workspace
 可以把一个 Product Session 映射到一个 primary Host Session；Host Session 的
 生命周期和 transcript 仍属于 Host realization。
-_Avoid_: control plane、Product Runtime、DSH workspace（Host 承载称呼）
+_Avoid_: control plane、Product Runtime、DSH workspace（Host 承载称呼）、identity authority
 
 **Workspace Query Core**: Workspace 的 Host-neutral 查询、关联、规范化和读模型
 投影核心；它只消费 `projectRef`、`testSetRef`、`taskRef`、`fixtureRef` 等逻辑引用，
@@ -816,10 +979,22 @@ _Avoid_: Workspace database、Host session store、second source of truth
 **Catalog Revision**: 测试集内容、任务定义、fixture 关系或验收条件的一组可定位版本；它跟随测试目录内容变化，不跟随前端样式、查询实现或整个应用版本变化。当前本地来源使用用户可读的 `default`，历史可重现性由 source revision 或 Host 版本补充。
 _Avoid_: app version、UI version、directory mtime、runId
 
-**Run-Session Binding**: UniClaw Runtime 产生 canonical `runId`，并将一次 Primary Run 与对应 Product Session 及其 primary Host Session 建立显式关联；Host Session 不是 Run identity，目录名和 artifact 文件名也不能推导或替代 `runId`。
+**Run-Session Binding**: UniClaw Runtime 在已有 Product Session 上创建 canonical
+`runId`，并将一次 Primary Run 与该 Session 及其 primary Host Session 建立显式关联；
+Host Session 不是 Run identity，目录名、artifact 文件名、transcript 或 Host session
+都不能推导或替代 `runId`。Task Instance 与 Product Session 的关联由 Runtime 创建时
+记录。
 _Avoid_: session-as-run、directory-as-run、traceId-as-run
 
-**Task Launch Seam**: 发起任务的显式接口；它先接收带元信息的 launch request，再分阶段协调 Task/Test Set 资产引用、Task Instance、Runtime 产生的 Run/Product Session、Host Session 以及本地存储 namespace 的创建和绑定。每个阶段都留下带来源和权威的可查询记录，查询接口只读取这些关系。
+**Task Launch Seam**: 发起任务的显式接口；它先接收带元信息的 launch request，再把
+Task/Test Set 资产引用交给 Runtime。Runtime 负责创建 Task Instance、Product Session
+并返回 binding，UniAgent 随后根据 Task/Session context 形成更细的 Contract，Kernel
+再创建 Primary Run，Host 创建 Host Session。Launch 不自行铸造 Product identity；
+创建请求不得传入或覆盖 taskInstanceId/productSessionId；只有恢复/查询已有 binding
+时，Runtime 才能按启动钥匙查回它们。当前 Workbench 仍存在本地 instanceId 与
+Runtime taskInstanceId 两套编号，属于待实现的 known deviation；旧
+`/tasks/instantiate` 的 `psi-*` 继续作为兼容路径单独理解。每个阶段都留下带
+来源和权威的可查询记录，查询接口只读取这些关系。
 _Avoid_: 页面直接创建目录、查询接口隐式创建运行、文件名驱动关联、一次性伪造完整元信息
 
 **Launch Metadata**: 任务发起和创建过程中的分阶段元信息集合；每个字段都要标明来源类别：`configured`（测试集、manifest、Host 或 launch config 提供）、`generated`（authority 在创建过程中生成的 ID、时间和绑定）、`observed`（设备、Runtime、Host 实际观察）、`derived`（由已有关联记录计算出的展示值）。这些类别不能互相冒充，且都要带 source、authority、availability；需要时间语义时再带 observedAt。
