@@ -8,14 +8,18 @@ namespace UniClaw.Kernel.Evidence;
 /// id，支撑幂等去重；ING-006 D5：Kind / ObservationContext / relevant
 /// provenance 的语义变化不得复用同一 id）。
 /// append-oriented：可被后续记录 supersede / 降权，内容不可就地改写。
-/// kind 与 ObservationContext 随记录携带（协议 P3）。
+/// kind 与 ObservationContext 随记录携带（协议 P3）；Origin（ADR-0048 /
+/// PROTOCOL-FIX-001）为账本从 Context 机械推导的 canonical 来源性质
+/// （External | PostActionSelf），自报不参与——origin = f(Context)，故
+/// EvidenceId 不追加独立 origin 输入（值域独立扩展时须同步纳入并迁移）。
 /// </summary>
 public sealed record EvidenceRecord(
     string EvidenceId,
     ObservationClaim Claim,
     IngressKind Kind,
     ObservationContext Context,
-    Provenance Provenance)
+    Provenance Provenance,
+    ObservationOrigin Origin = ObservationOrigin.External)
 {
     /// <summary>Immediate derived parents, empty for direct source evidence.</summary>
     public IReadOnlyList<string> DerivedFromEvidenceIds { get; init; } = Array.Empty<string>();

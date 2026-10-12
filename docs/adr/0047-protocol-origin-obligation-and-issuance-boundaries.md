@@ -39,7 +39,9 @@ Control Loop 签发。这个实现边界继续有效。
 
 ## Known gaps
 
-- P2/P3 类型和持久记录尚未加入独立 origin 字段。
+- ~~P2/P3 类型和持久记录尚未加入独立 origin 字段~~（已落地：PROTOCOL-FIX-001 /
+  ADR-0048——`ObservationOrigin` 封闭二值，canonical 值由账本从 Context 机械
+  推导，自报仅诊断；MaterialEffect 门槛要求推导的 PostActionSelf）。
 - P7 的跨边 transport 与持久化投影仍是现有 in-process 范围。
 - P8 没有跨 Host issuance 证据；这不是当前 Product Runtime 的已承诺能力。
 

@@ -352,11 +352,16 @@ public sealed class RuntimeAssurance
         // ING-006：MaterialEffect fulfillment policy 从 producer-prefix 判断
         // 迁移为 accepted Observation + explicit PostActionEffectFlow context
         // （D7；原以 producer 前缀粗略收窄的语义职责改由 context 字段承担，
-        // ProducerIdentity 不参与判定；真实性核验属 Deferred ⑦）
+        // ProducerIdentity 不参与判定；真实性核验属 Deferred ⑦）。
+        // PROTOCOL-FIX-001 / S5（ADR-0048）：MaterialEffect 必须由**机械推导的**
+        // PostActionSelf origin 支撑（账本从 Context 推导；自报不参与）——
+        // Context 自述不再单独充分；受 P22 prior 影响的关联连续性不得作为
+        // 唯一依据（D6 立法），对照物必须是显式期望断言（S2 随后续切片补强）。
         bool ContextMatches(string evidenceId) =>
             obligation.Kind != RunObligationKind.MaterialEffect
             || (canonical.TryGetValue(evidenceId, out var record)
                 && record.Kind == IngressKind.Observation
-                && record.Context == ObservationContext.PostActionEffectFlow);
+                && record.Context == ObservationContext.PostActionEffectFlow
+                && record.Origin == ObservationOrigin.PostActionSelf);
     }
 }

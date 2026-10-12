@@ -1273,7 +1273,8 @@ public sealed class KernelRunDriver
                 Evidence.ObservationContext.PostActionEffectFlow,
                 new Evidence.Provenance(producer, DateTimeOffset.UtcNow,
                     $"scope:{obligation.Subject}",
-                    new[] { "completion-evidence", evidence.Basis })));
+                    new[] { "completion-evidence", evidence.Basis }),
+                Origin: Evidence.ObservationOrigin.PostActionSelf)); // 诊断自报（ADR-0048）
         }
     }
 

@@ -70,9 +70,16 @@ public sealed class EvidenceLedger
             var id = ComputeEvidenceId(observation);
             if (!_canonicalRecords.TryGetValue(id, out var record))
             {
+                // PROTOCOL-FIX-001 / ADR-0048：canonical origin 由 Context 机械
+                // 推导（判定权单一收口于 admission）；producer 自报
+                // （observation.Origin）仅诊断，被有意忽略。推导不出按保守方向
+                // 归 External；禁止时间邻近推导（通则 8）。
+                var derivedOrigin = observation.Context == ObservationContext.PostActionEffectFlow
+                    ? ObservationOrigin.PostActionSelf
+                    : ObservationOrigin.External;
                 record = new EvidenceRecord(
                     id, observation.Claim!, observation.Kind, observation.Context,
-                    observation.Provenance!)
+                    observation.Provenance!, derivedOrigin)
                 {
                     DerivedFromEvidenceIds = observation.DerivedFromEvidenceIds,
                     TransitiveEvidenceBasis = observation.TransitiveEvidenceBasis,

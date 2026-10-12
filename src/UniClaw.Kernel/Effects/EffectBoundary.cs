@@ -281,7 +281,8 @@ public sealed class EffectBoundary
                 Producer: "effect.boundary",
                 CaptureTime: receipt.DispatchedAt,
                 Scope: $"scope:attempt.{receipt.TargetSubject}",
-                TransformationLineage: new[] { $"dispatch:{receipt.ReceiptId}" }));
+                TransformationLineage: new[] { $"dispatch:{receipt.ReceiptId}" }),
+            Origin: ObservationOrigin.PostActionSelf); // 诊断自报（ADR-0048；canonical 值由账本推导）
     }
 
     /// <summary>

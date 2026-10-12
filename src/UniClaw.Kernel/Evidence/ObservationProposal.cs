@@ -38,12 +38,15 @@ public enum ObservationContext
 /// Terminology note）。这是 admission 的 proposal，不是 canonical
 /// Evidence Record。Provenance 为 null 或字段不完整 → admission
 /// fail-closed。
+/// Origin（PROTOCOL-FIX-001 / ADR-0048）：生产者自报，**仅诊断**——canonical
+/// origin 由账本从 Context 机械推导，自报不参与判定、不进入 EvidenceId。
 /// </summary>
 public sealed record ObservationProposal(
     ObservationClaim Claim,
     IngressKind Kind,
     ObservationContext Context,
-    Provenance? Provenance)
+    Provenance? Provenance,
+    ObservationOrigin Origin = ObservationOrigin.External)
 {
     /// <summary>
     /// Immediate source EvidenceIds consumed by a derived proposal. Empty means
