@@ -1,10 +1,10 @@
 # UniClaw.Agent.Dsh 代码索引 — UniAgent 的 DSH Realization Adapter
 
-UniAgent（L1 · 系统的大脑）的 **DSH realization**（ADR-0022：codex 与
+UniAgent（Product T1 · 系统的大脑）的 **DSH realization**（ADR-0022：codex 与
 DSH 是 dual full realizations）：模型 binding 注入、决策通道传输、
 协议编解码。语义权威在 `../UniClaw.Agent/`（产品语义层）与 Kernel；
 本目录只做宿主映射——**替换 realization 整体可换，产品层零改动**
-（AGT-018 定义的维度边界：L3 不进 UniAgent 归属表）。
+（AGT-018 定义的维度边界：Product T3 不进 UniAgent 归属表）。
 
 ## 代码归属
 

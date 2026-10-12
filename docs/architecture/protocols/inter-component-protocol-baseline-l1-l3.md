@@ -16,7 +16,10 @@
 > 2026-10-11 architecture alignment amendment（ARCH-ALIGN-001）：Product
 > architecture 已改用 T0–T3 + semantic lifecycle；P1/P24/P25 的职责、
 > neutral identity 和 activation 幂等规则已接受，字段实现与跨进程恢复仍按
-> known gap/deferred 记录。本次不伪造完整协议实现。
+> known gap/deferred 记录；同一修订还冻结了 P2/P3 的 observation origin
+> 语义、拆分了 P7 obligation 定义/状态、限定了 P8 issuance 范围，并自纠了
+> P23 的陈旧状态（ADR-0047；范围补注见 ARCH-DOC-023）。本次不伪造完整
+> 协议实现。
 > P1–P26 与 O1–O12 的 Owner/输入输出/失败/重复/恢复/实现状态完整审阅矩阵，
 > 见 `docs/analysis/uniclaw-architecture-protocol-overall-review-2026-10-11.md` 的
 > §13.3 与 §15.1；该矩阵是审阅索引，不另设第二份协议权威。
@@ -185,8 +188,10 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
 - **Status**：verified（ING-006，2026-09-09：显式 kind + ObservationContext
   落地 `ObservationProposal` / `EvidenceRecord`；kind / context recognized
   fail-closed；relevance kind-aware；`attempt.*` subject 降级为描述性
-  provenance）；origin 语义已冻结，但当前类型仍缺独立 origin 字段，属于
-  known gap，不能把 Context/Producer 的现有组合当作完整实现。
+  provenance）；origin 语义已冻结（ADR-0047），独立字段与机械推导已落地
+  （PROTOCOL-FIX-001 / ADR-0048：canonical origin 由账本从 Context 推导，
+  自报仅诊断；admission 单点收口）；producer 自报的核验（anti-spoofing）
+  仍属 Deferred ⑦。
 - **Terminology note**：与 baseline §11.2 "Observation Record" 的一词
   两义已由 ING-006 rename（`ObservationProposal`）消除——2026-09-09
   模型挑战裁决执行完毕，baseline 不动。
@@ -210,7 +215,9 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
 - **Absence/Failure**：无 record = 未被 admit，不存在"未知的 record"。
 - **Reference Realization**：`EvidenceRecord` / `EvidenceLedger.Admit`。
 - **Status**：verified（ING-006：kind + ObservationContext 随记录携带；
-  Evidence identity 覆盖全部 canonical semantic content）。
+  Evidence identity 覆盖全部 canonical semantic content）；origin 随 record
+  携带（推导制，ADR-0048 / PROTOCOL-FIX-001——origin = f(Context)，故
+  EvidenceId 不追加独立输入；值域独立扩展时须纳入并迁移 golden）。
 
 ### P4 Slice（World Model → Control Loop）
 
@@ -310,8 +317,8 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
   obligations（显式诚实，不伪装可满足）。
 - **Reference Realization**：`ProofObligationState` / `RunObligation`；
   `ObligationStatus` 属 Assurance projection。
-- **Status**：定义视图 verified；定义与状态分离已冻结，跨边 transport 仍按
-  in-process realization 记录。
+- **Status**：定义视图 verified；定义与状态分离已冻结（ADR-0047），跨边
+  transport 仍按 in-process realization 记录。
 
 ### P8 Control Intent（Control Loop → Assurance / Effect Boundary）
 
@@ -334,8 +341,9 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
   校验失败，fail-closed）。
 - **Reference Realization**：`ControlIntent` / `ControlLoop.IsIssued`
   （引用同一性 = realization）。
-- **Status**：进程内 issuance/ownership verified（词汇 non-exhaustive 注记）；
-  跨 Host 的 authority token 暂不设计，等真实 buyer 出现再开协议变更。
+- **Status**：进程内 issuance/ownership verified（词汇 non-exhaustive 注记；
+  ADR-0047）；跨 Host 的 authority token 暂不设计，等真实 buyer 出现再开
+  协议变更。
 
 ### P9 Candidate Binding（Grounding Provider → Effect Boundary）
 

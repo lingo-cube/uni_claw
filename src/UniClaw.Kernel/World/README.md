@@ -1,4 +1,4 @@
-# World Model 代码索引（L2 · 基线 §12）
+# World Model 代码索引（Product T2 · 基线 §12）
 
 Sole **Belief / Reconciliation Authority**：Current WorldBelief、World
 Graph、Reconciliation。不拥有 Goal、Run progress、intent 或 Assurance

@@ -288,11 +288,15 @@ PostActionEffectFlow）；表达「为什么 / 在哪个流程被观察」，不
 fulfillment policy 的判定输入。
 _Avoid_: origin、producer identity、trigger、source
 
-**Observation Origin**: Observation 的来源语义，至少区分 external
+**Observation Origin**: Observation 的来源语义，封闭二值：external
 observation 与 post-action effect-flow observation；它与 ProducerIdentity、
-Observation Context 分开。MaterialEffect fulfillment 必须能读取 origin；
-当前类型尚未提供独立字段，仍是协议已定、实现 known gap。
-_Avoid_: producer name、context alias、truth judgment
+Observation Context 分开。MaterialEffect fulfillment 必须能读取 origin。
+判定权（2026-10-12 grill 裁决）：由**显式 attempt 关联的机械推导**持有——
+存在精确 attempt correlation 才判 post-action，否则判 external；**禁止以
+时间邻近作推导依据**（时间相邻 ≠ 因果）；producer 自报仅作诊断，不参与
+判定。已落地（PROTOCOL-FIX-001）：`ObservationOrigin` 封闭二值，账本在
+admission 从 Context 单点推导 canonical 值；producer 自报核验仍 Deferred ⑦。
+_Avoid_: producer name、context alias、truth judgment、时间启发式
 
 **Admission**: Evidence Ledger 对输入是否具备成为 canonical Evidence
 Record 条件的结构性判定（integrity/provenance/来源/时间/scope/lineage），
@@ -405,7 +409,8 @@ Perception / Vector / VLM 只能提供 association evidence，不建立 identity
 truth。
 _Avoid_: detection id、track id、OCR identity、observation identity
 
-**ContainerGraph**: baseline「World Graph」的 L4 内部 realization：
+**ContainerGraph**: baseline「World Graph」的 L4（UIWorld 域命名空间，非
+Product 层号）内部 realization：
 revision-bound、evidence-backed 的世界实体间关系 belief（Contains /
 Overlays 是 graph relation，即使生命周期很短）；与 WorldState（单实体
 intrinsic / contextual state claims）按 semantic kind 分界，不按变化频率
@@ -505,6 +510,13 @@ immutable canonical view；Kernel 以此作为当前 Run 的契约输入。同 v
 admit 幂等复用同一实例。
 _Avoid_: contract copy、session config
 
+**Budget Grant（预算续授）**: 决策边界上的运行额度续授（步数/轮次同机制）：
+UniAgent 按实际情况提案、policy 以绝对硬顶封顶并共同决定；触发阈值与硬顶同源
+于 policy；经 P25 咨询通道（终问可携带），不是 contract mutation，不作 canonical
+Run State transition；admission 记录初始额度来源（configured/default）。
+（ADR-0050；实现经 PROTOCOL-FIX）
+_Avoid_: contract revision、无限续授、policy 自续、Run State 膨胀
+
 **Run State**: Run Model 拥有的 canonical 执行状态聚合（Contract View +
 Objective + Proof Obligation + Progress + terminal **Outcome State**）；
 只经 typed legal transition 更新，不含 action-local assurance
@@ -547,6 +559,14 @@ _Avoid_: validation result、gate check、permission
 EffectReceipt / producer 自述直接建立。是 MaterialEffect obligation
 fulfillment 的判定输入。
 _Avoid_: effect confirmation、dispatch result、receipt、producer 自述
+
+**Expected Effect（预期效果）**: 验证动作效果的对照物——authoring/意图侧
+的期望规格，分两族：状态型期望（目标应处于何态）与变化型期望（应发生
+何种改变，如内容变化而路由不变）。是 PostActionEffectVerification 的
+判定输入；不是 canonical effect 语义、不是 Effect Receipt，也不同于
+Desired-State（后者是 pre-dispatch 跳过判定，本词是 post-action 验证
+对照）。（2026-10-12 grill 裁决；实现 known gap——现以特设布尔代偿）
+_Avoid_: effect 语义本身、receipt、desired-state（混用）、硬编码验证开关
 
 **Candidate Binding**: Grounding Provider 产出的候选目标绑定；只流向
 Effect Boundary 认定路径，不进入 Assurance 输入，未经认定不具任何

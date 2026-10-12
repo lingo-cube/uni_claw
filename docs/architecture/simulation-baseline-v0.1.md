@@ -9,6 +9,8 @@
 >
 > Date: 2026-09-22 · 谱系：SIM-001 → SCN-001 → SCN-002 → 本基线
 > 审阅：R1 两轮共 20 项（12 + 8），全部处置见附录
+> 2026-10-12 术语对齐（ARCH-DOC-023）：正文 "L2" 改指产品基线 Product T2
+> 责任域（ADR-0042）；零语义变更，约束 C1–C9 原文不动。
 
 ---
 
@@ -17,7 +19,7 @@
 仿真是**独立的仿真测试基础设施**——按职能定位，不依附于任何文档。
 
 核心契约：**装配同一 Product Runtime + 确定性 double**（§24.8 双 Host 对称）。
-六个 L2（Evidence Ledger / World Model / Run Model / Control Loop /
+六个 Product T2 责任域（Evidence Ledger / World Model / Run Model / Control Loop /
 Assurance / Effect Boundary）是真件，不是 mock——只替换外部缝。
 
 ## 2. 目的（十条愿景，2026-09-22 所有者确认）
@@ -41,7 +43,7 @@ Assurance / Effect Boundary）是真件，不是 mock——只替换外部缝。
 C1  同一 Runtime 原则（分层）：
     整装仿真（end-to-end 场景）：装配真件，只替换外部缝
     （Capability doubles / VirtualClock / 种子化 Random）。
-    组件隔离测试：允许经 L2 typed seam 替换相邻组件的 double，
+    组件隔离测试：允许经 Product T2 typed seam 替换相邻组件的 double，
     但替换物必须实现该 seam 的完整契约，且不得产生仿真专用分支。
     两种模式下，被测组件本身永远是真件。
     组件隔离测试的结论以相邻 double 的 seam 行为保真度为条件；

@@ -1076,7 +1076,8 @@ Product T0–T3: CLOSED
 1. Scenario pressure test；
 2. Legacy → Target mapping；
 3. Migration design；
-4. L4 详细设计。
+4. UIWorld L4 域协议详细设计（`uworld-protocol-baseline-l4.md`；L4 为该域
+   命名空间，非 Product 层号）。
 
 只有真实 Scenario Evidence 能够证明现有 Owner、Authority 或 Boundary 无法成立时，才允许重新打开相应 Product T0–T3 语义。实现偏好、旧结构、Provider 限制、命名便利或局部测试失败都不足以重新打开基线。
 

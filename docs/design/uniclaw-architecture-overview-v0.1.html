@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UniClaw 架构总览 · 一页看懂</title>
+<style>
+  :root{
+    --ink:#1a2233; --sub:#5a6478; --line:#d7dce6; --bg:#f5f7fa; --card:#ffffff;
+    --blue:#2563eb; --blue-bg:#eaf1fe; --orange:#ea580c; --orange-bg:#fef0e6;
+    --purple:#7c3aed; --purple-bg:#f3ecfe; --green:#059669; --green-bg:#e7f6f0;
+    --gold:#b45309; --gold-bg:#fdf6e3; --red:#dc2626;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;color:var(--ink);background:var(--bg);line-height:1.65;padding:0 0 60px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  header{background:linear-gradient(135deg,#0f1b33 0%,#1d3557 60%,#2c5282 100%);color:#fff;padding:44px 0 36px;margin-bottom:32px}
+  header .wrap{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+  h1{font-size:30px;letter-spacing:.5px}
+  h1 small{display:block;font-size:14px;font-weight:400;opacity:.75;margin-top:6px;letter-spacing:2px}
+  .pitch{font-size:16px;max-width:640px;opacity:.94}
+  .pitch b{color:#ffd166}
+  .badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .badge{font-size:12px;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:3px 12px;opacity:.9}
+  h2{font-size:21px;margin:44px 0 6px;display:flex;align-items:center;gap:10px}
+  h2 .lv{font-size:12px;font-weight:700;color:#fff;background:var(--ink);border-radius:6px;padding:2px 10px;letter-spacing:1px}
+  .lead{color:var(--sub);font-size:14px;margin-bottom:16px}
+  section{margin-bottom:8px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;box-shadow:0 1px 3px rgba(16,24,40,.05)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+  .kicker{font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--sub);text-transform:uppercase;margin-bottom:8px}
+  /* ---------- L1 上下文 ---------- */
+  .ctx{display:grid;grid-template-columns:170px 1fr 200px;gap:14px;align-items:stretch}
+  @media(max-width:900px){.ctx{grid-template-columns:1fr}}
+  .actor{border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px;justify-content:center;text-align:center}
+  .actor .ic{font-size:34px}
+  .actor .nm{font-weight:700}
+  .actor .ds{font-size:12px;color:var(--sub)}
+  .sysmap{position:relative;background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:18px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+  .sysrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .organ{border-radius:10px;padding:12px 10px;text-align:center;border:1.5px solid}
+  .organ .nm{font-weight:800;font-size:15px}
+  .organ .en{font-size:11px;opacity:.75}
+  .organ .ds{font-size:12px;color:var(--sub);margin-top:4px}
+  .o-brain{border-color:var(--purple);background:var(--purple-bg)}
+  .o-core{border-color:var(--ink);background:#eef1f6}
+  .o-hand{border-color:var(--blue);background:var(--blue-bg)}
+  .o-mem{border-color:#94a3b8;background:#f1f5f9;border-style:dashed}
+  .hosts{display:flex;gap:8px;justify-content:center;font-size:12px;color:var(--sub);margin-top:2px}
+  .hosts span{background:#fff;border:1px dashed var(--line);border-radius:999px;padding:2px 10px}
+  /* ---------- 生命周期 ---------- */
+  .life{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;margin-top:6px}
+  .stage{position:relative;flex:1;min-width:150px;padding:14px 12px 12px;border-top:3px solid var(--ink);background:#fff;border-left:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .stage:first-child{border-left:2px solid var(--ink);border-radius:10px 0 0 10px}
+  .stage:last-child{border-right:2px solid var(--ink);border-radius:0 10px 10px 0}
+  .stage .no{font-size:11px;color:#fff;background:var(--ink);border-radius:4px;padding:1px 7px;display:inline-block;margin-bottom:6px}
+  .stage .nm{font-weight:800;font-size:15px}
+  .stage .ow{font-size:12px;color:var(--sub);margin-top:3px}
+  .stage.t-run{border-top-color:var(--orange)}
+  .stage.t-out{border-top-color:var(--green)}
+  .runcycle{margin-top:10px;border:1.5px dashed var(--orange);border-radius:10px;padding:10px 14px;background:var(--orange-bg);font-size:13px}
+  /* ---------- 优势卡 ---------- */
+  .adv{border-top:4px solid var(--green);border-radius:12px;background:#fff;border:1px solid var(--line);border-top:4px solid var(--green);padding:16px 18px}
+  .adv .pain{font-size:13px;color:var(--red);font-weight:700;margin-bottom:6px}
+  .adv .ans{font-size:14px;margin-bottom:6px}
+  .adv .where{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:8px}
+  .adv .where b{color:var(--blue)}
+  /* ---------- 表 ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+  th{background:var(--ink);color:#fff;text-align:left;padding:8px 10px;font-weight:600}
+  td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:nth-child(even) td{background:#fafbfd}
+  code{font-family:Consolas,Menlo,monospace;font-size:12px;background:#eef1f6;border-radius:4px;padding:1px 5px}
+  .mono{font-family:Consolas,Menlo,monospace}
+  footer{margin-top:48px;color:var(--sub);font-size:12px;border-top:1px solid var(--line);padding-top:14px}
+  @media print{
+    body{background:#fff;padding:0}
+    .card{box-shadow:none;break-inside:avoid}
+    header{background:#1d3557 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <h1>UniClaw 架构总览<small>UNICLAW · TARGET ARCHITECTURE v0.1 · 一页看懂</small></h1>
+      <div class="pitch">一个<b>「眼见为实」</b>的智能执行系统：不猜界面——<b>先取证、再判断、后动手、动手必验证</b>。
+      每一步都留下可追溯的证据链；完成要有证明，不确定就诚实说不确定。</div>
+      <div class="badge-row">
+        <span class="badge">证据驱动</span><span class="badge">三权分立</span><span class="badge">失败即关门 fail-closed</span>
+        <span class="badge">动作后必验证</span><span class="badge">完成需证明</span><span class="badge">能力可换·权威不变</span><span class="badge">能力集·可扩展·可替换·可管理</span>
+      </div>
+    </div>
+    <div style="font-size:12px;opacity:.75;text-align:right">
+      受众分层（借 C4 模型思路）：<br>① 上下文 → 产品/客户<br>② 五大件+循环 → 全员<br>③ 执行核内部 → 工程师<br>④ 流程/生命周期/优势 → 按需取用
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ================= L1 ================= -->
+<section>
+  <h2><span class="lv">① 上下文</span>系统是什么（给产品经理的 30 秒）</h2>
+  <p class="lead">用户只说「要什么」；UniClaw 自己看、自己想、自己动手、自己验伤、自己交报告。</p>
+  <div class="card ctx">
+    <div class="actor" style="background:var(--gold-bg)">
+      <div class="ic">👤</div><div class="nm">用户</div>
+      <div class="ds">提出目标<br>「把设置菜单全测一遍」</div>
+    </div>
+    <div class="sysmap">
+      <div style="text-align:center;font-weight:800;font-size:16px">UniClaw 系统</div>
+      <div class="sysrow">
+        <div class="organ o-brain"><div class="nm">🧠 大脑</div><div class="en">UniAgent</div><div class="ds">理解目标 · 定契约 · 评价结果</div></div>
+        <div class="organ o-core"><div class="nm">⚙️ 执行核</div><div class="en">Uni Kernel</div><div class="ds">六域分工的执行闭环 · 自驱推进</div></div>
+        <div class="organ o-hand"><div class="nm">🔌 能力面</div><div class="en">Capability Plane</div><div class="ds">可扩展·可替换·可管理的类型化能力集</div></div>
+      </div>
+      <div class="sysrow" style="grid-template-columns:1fr 1fr">
+        <div class="organ o-mem"><div class="nm">🗂 记忆</div><div class="en">Memory System</div><div class="ds">设计冻结·实现占位；recall 只当先验不当现实（循环见⑨）</div></div>
+        <div class="organ o-mem"><div class="nm">🧪 仿真线</div><div class="en">Codex 宿主</div><div class="ds">同一套真件·确定性回放测试</div></div>
+      </div>
+      <div class="hosts"><span>产品线宿主：DSH（DeepSeek Harness）</span><span>双宿主装配同一 Runtime 工件</span></div>
+    </div>
+    <div class="actor" style="background:var(--blue-bg)">
+      <div class="ic">📱</div><div class="nm">设备环境</div>
+      <div class="ds">Android 车机<br>ego-browser<br>（会变、不可全信）</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= L2 ================= -->
+<section>
+  <h2><span class="lv">② 五大件</span>两条大循环：认识世界 × 改变世界</h2>
+  <p class="lead">系统的全部工作 = 蓝色「看清楚」循环 + 橙色「做并验证」循环，周而复始直到交卷。</p>
+  <div class="card" style="overflow-x:auto">
+    <svg viewBox="0 0 1080 420" width="100%" min-width="760" font-family="inherit">
+      <defs>
+        <marker id="ab" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#2563eb"/></marker>
+        <marker id="ao" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#ea580c"/></marker>
+        <marker id="ag" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#059669"/></marker>
+      </defs>
+      <!-- 设备 -->
+      <rect x="20" y="150" width="130" height="120" rx="14" fill="#eaf1fe" stroke="#2563eb" stroke-width="2"/>
+      <text x="85" y="195" text-anchor="middle" font-size="26">📱</text>
+      <text x="85" y="222" text-anchor="middle" font-size="14" font-weight="700">设备 / 屏幕</text>
+      <text x="85" y="240" text-anchor="middle" font-size="11" fill="#5a6478">真实世界·持续变化</text>
+      <!-- Capability Plane -->
+      <rect x="220" y="60" width="220" height="300" rx="14" fill="#eaf1fe" stroke="#2563eb" stroke-width="2"/>
+      <text x="330" y="92" text-anchor="middle" font-size="15" font-weight="800">🔌 能力面 Capability Plane</text>
+      <text x="330" y="112" text-anchor="middle" font-size="11" fill="#5a6478">能力集：可扩展·可替换·可管理 · 产出只是提案</text>
+      <text x="245" y="150" font-size="12">• 观察侧（眼）：截屏 · 感知</text>
+      <text x="262" y="168" font-size="11.5" fill="#5a6478">YOLO+OCR(快) / 语义模型(慢) / UI层级</text>
+      <text x="262" y="186" font-size="11.5" fill="#5a6478">+ 定位候选（grounding）</text>
+      <text x="245" y="212" font-size="12">• 行动侧（手）：adb · 浏览器原生驱动</text>
+      <text x="245" y="236" font-size="12">• 支撑侧：模型管理 · 语言检查</text>
+      <text x="245" y="260" font-size="12">• 产出四类：工件 / 提案 / 候选 / 回执</text>
+      <text x="245" y="280" font-size="11.5" fill="#5a6478">• 管理：注册 · 信任域 · 健康 · 生命周期</text>
+      <text x="245" y="300" font-size="11" fill="#7c3aed">不拥有任何「真相」：</text>
+      <text x="245" y="316" font-size="11" fill="#7c3aed">只提案，不裁决</text>
+      <!-- 执行核 -->
+      <rect x="510" y="30" width="380" height="360" rx="16" fill="#eef1f6" stroke="#1a2233" stroke-width="2.5"/>
+      <text x="700" y="62" text-anchor="middle" font-size="16" font-weight="800">⚙️ 执行核 Uni Kernel</text>
+      <text x="700" y="82" text-anchor="middle" font-size="11" fill="#5a6478">六域分工 · 每域唯一权威 · 自驱推进（内部见 ③）</text>
+      <!-- 六域小格 -->
+      <g font-size="12">
+        <rect x="535" y="100" width="105" height="58" rx="8" fill="#fff" stroke="#d7dce6"/><text x="587" y="124" text-anchor="middle" font-weight="700">证据账本</text><text x="587" y="142" text-anchor="middle" fill="#5a6478" font-size="10.5">Evidence Ledger</text>
+        <rect x="650" y="100" width="105" height="58" rx="8" fill="#fff" stroke="#d7dce6"/><text x="702" y="124" text-anchor="middle" font-weight="700">世界模型</text><text x="702" y="142" text-anchor="middle" fill="#5a6478" font-size="10.5">World Model</text>
+        <rect x="765" y="100" width="105" height="58" rx="8" fill="#fff" stroke="#d7dce6"/><text x="817" y="124" text-anchor="middle" font-weight="700">运行模型</text><text x="817" y="142" text-anchor="middle" fill="#5a6478" font-size="10.5">Run Model</text>
+        <rect x="535" y="170" width="105" height="58" rx="8" fill="#fff" stroke="#d7dce6"/><text x="587" y="194" text-anchor="middle" font-weight="700">控制环</text><text x="587" y="212" text-anchor="middle" fill="#5a6478" font-size="10.5">Control Loop</text>
+        <rect x="650" y="170" width="105" height="58" rx="8" fill="#fff" stroke="#d7dce6"/><text x="702" y="194" text-anchor="middle" font-weight="700">安检</text><text x="702" y="212" text-anchor="middle" fill="#5a6478" font-size="10.5">Assurance</text>
+        <rect x="765" y="170" width="105" height="58" rx="8" fill="#fff" stroke="#d7dce6"/><text x="817" y="194" text-anchor="middle" font-weight="700">效果边界</text><text x="817" y="212" text-anchor="middle" fill="#5a6478" font-size="10.5">Effect Boundary</text>
+      </g>
+      <text x="700" y="262" text-anchor="middle" font-size="12" fill="#7c3aed" font-weight="700">想(Control) · 裁(Assurance) · 干(Effect) —— 三权分立</text>
+      <text x="700" y="284" text-anchor="middle" font-size="11" fill="#5a6478">跨域只传不可变数据；外部效果 100% 走 Effect Boundary</text>
+      <text x="700" y="306" text-anchor="middle" font-size="11" fill="#5a6478">终局后关闭投递闸门（僵尸运行不可能）</text>
+      <text x="700" y="336" text-anchor="middle" font-size="11" fill="#059669" font-weight="700">唯一出口：Runtime Outcome（一次性·不可改）</text>
+      <rect x="575" y="348" width="250" height="26" rx="13" fill="#e7f6f0" stroke="#059669"/><text x="700" y="366" text-anchor="middle" font-size="11.5" fill="#059669" font-weight="700">📋 Runtime Outcome 交卷信封</text>
+      <!-- 大脑 -->
+      <rect x="950" y="80" width="110" height="150" rx="14" fill="#f3ecfe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="1005" y="120" text-anchor="middle" font-size="24">🧠</text>
+      <text x="1005" y="146" text-anchor="middle" font-size="13.5" font-weight="800">大脑</text>
+      <text x="1005" y="163" text-anchor="middle" font-size="11" fill="#5a6478">UniAgent</text>
+      <text x="1005" y="182" text-anchor="middle" font-size="10.5" fill="#5a6478">只在语义决策点被咨询</text>
+      <text x="1005" y="197" text-anchor="middle" font-size="10.5" fill="#5a6478">不逐步遥控</text>
+      <!-- 用户 -->
+      <rect x="950" y="280" width="110" height="90" rx="14" fill="#fdf6e3" stroke="#b45309" stroke-width="2"/>
+      <text x="1005" y="318" text-anchor="middle" font-size="22">👤</text>
+      <text x="1005" y="342" text-anchor="middle" font-size="13" font-weight="800">用户</text>
+      <text x="1005" y="358" text-anchor="middle" font-size="10.5" fill="#5a6478">收结果·收评价报告</text>
+      <!-- 蓝色证据流 -->
+      <path d="M 118 160 C 180 120 190 120 218 130" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
+      <path d="M 330 60 C 380 18 480 18 528 60" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
+      <text x="425" y="26" text-anchor="middle" font-size="12" fill="#2563eb" font-weight="700">观察提案 Observation</text>
+      <text x="425" y="42" text-anchor="middle" font-size="10.5" fill="#2563eb">（截屏解析结果）</text>
+      <path d="M 535 129 C 480 92 420 100 372 140" fill="none" stroke="#2563eb" stroke-width="0" />
+      <!-- 橙色效果流 -->
+      <path d="M 890 150 C 920 190 910 240 862 250" fill="none" stroke="#ea580c" stroke-width="0"/>
+      <path d="M 758 226 C 700 300 500 330 445 330" fill="none" stroke="#ea580c" stroke-width="2.5" marker-end="url(#ao)"/>
+      <text x="600" y="322" text-anchor="middle" font-size="12" fill="#ea580c" font-weight="700">已授权指令 Dispatch</text>
+      <path d="M 330 360 C 240 352 150 320 118 276" fill="none" stroke="#ea580c" stroke-width="2.5" marker-end="url(#ao)"/>
+      <text x="200" y="345" text-anchor="middle" font-size="10.5" fill="#ea580c">点击/滑动 落到真实屏幕</text>
+      <!-- 验证回流 -->
+      <path d="M 150 150 C 300 55 700 40 900 80 C 950 92 955 120 892 128" fill="none" stroke="#059669" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ag)"/>
+      <text x="520" y="66" text-anchor="middle" font-size="11.5" fill="#059669" font-weight="700">验证回流：动作后必须重新观察 → 确认真的变了（回执 ≠ 效果）</text>
+      <!-- 咨询 -->
+      <path d="M 892 105 C 925 100 930 105 948 108" fill="none" stroke="#7c3aed" stroke-width="2" marker-end="url(#ag)"/>
+      <path d="M 948 128 C 925 130 920 125 894 122" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#ag)"/>
+      <text x="920" y="92" text-anchor="middle" font-size="10.5" fill="#7c3aed">决策咨询</text>
+      <!-- outcome -->
+      <path d="M 828 361 C 900 380 960 370 1000 372" fill="none" stroke="#059669" stroke-width="2.5" marker-end="url(#ag)"/>
+      <text x="915" y="392" text-anchor="middle" font-size="10.5" fill="#059669">交卷</text>
+    </svg>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;margin-top:8px">
+      <span><b style="color:#2563eb">━➤ 蓝色·证据流</b>：设备 → 感官 → 证据账本 → 世界模型</span>
+      <span><b style="color:#ea580c">━➤ 橙色·效果流</b>：控制环 → 绑定 → 安检 → 闸门 → 驱动 → 设备</span>
+      <span><b style="color:#059669">╌➤ 绿色·验证流</b>：动手后重新观察，验证通过才允许下一个动作</span>
+      <span><b style="color:#7c3aed">╌➤ 紫色·咨询流</b>：执行核只在拿不准的语义决策点问大脑</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= L3 ================= -->
+<section>
+  <h2><span class="lv">③ 执行核内部</span>六域分工 + 三条固定流水线（给工程师）</h2>
+  <p class="lead">六域各持唯一权威、互不越界；三条流水线次序冻结、不可合并——这是全部正确性的来源。</p>
+  <div class="card">
+    <table>
+      <tr><th style="width:110px">责任域</th><th style="width:190px">唯一权威（别人都不许碰）</th><th>它不做的事（同样重要）</th><th style="width:190px">生活化类比</th></tr>
+      <tr><td><b>证据账本</b><br>Evidence Ledger</td><td>证据准入：记录是否完整、来源是否可溯</td><td>不判断真假、不判断相关性、不判断够不够用</td><td>证据管理员：只管登记合格，不管断案</td></tr>
+      <tr><td><b>世界模型</b><br>World Model</td><td>世界观版本：屏幕上有什么、状态如何（随证据演进）</td><td>不拥有目标、不做计划、不接受「期望」改写观察</td><td>测绘员：画地图，不指挥行军</td></tr>
+      <tr><td><b>运行模型</b><br>Run Model</td><td>运行状态：契约、进度、义务、终局记录</td><td>不判断证明成立与否（只记录安检的结论）</td><td>考务处：发卷、计时、归档成绩</td></tr>
+      <tr><td><b>控制环</b><br>Control Loop</td><td>意图签发：下一步观察/行动/恢复的唯一出处</td><td>不能直接动手、不能自证安全</td><td>提出动议的议员</td></tr>
+      <tr><td><b>安检</b><br>Assurance</td><td>裁决：可不可做、够不够新、安不安全、效果真没真、完成成立否</td><td>不签发意图、不执行动作</td><td>法官+质检章</td></tr>
+      <tr><td><b>效果边界</b><br>Effect Boundary</td><td>目标绑定与执行：所有对现实的动作唯一出口</td><td>不做策略、不重试、不扩权</td><td>法警：只执行判决书，判多一点也不行</td></tr>
+    </table>
+    <div class="grid3" style="margin-top:16px">
+      <div class="card" style="border-left:4px solid var(--blue)">
+        <div class="kicker" style="color:var(--blue)">流水线 A · 观察（认识世界）</div>
+        <div class="mono" style="font-size:12.5px">admission(准入)<br>&nbsp;&nbsp;→ relevance(相关吗)<br>&nbsp;&nbsp;&nbsp;&nbsp;→ reconciliation(并入世界观新版本)</div>
+        <div style="font-size:12px;color:var(--sub);margin-top:6px">冲突不覆盖：两种说法并存记录</div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--orange)">
+        <div class="kicker" style="color:var(--orange)">流水线 B · 行动（改变世界）</div>
+        <div class="mono" style="font-size:12.5px">intent(想) → bind(锁定目标)<br>&nbsp;&nbsp;→ judge(裁决) → gate(放行)<br>&nbsp;&nbsp;&nbsp;&nbsp;→ dispatch(执行) → receipt(回执)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ 回流(留痕)</div>
+        <div style="font-size:12px;color:var(--sub);margin-top:6px">裁决被拒 ≠ 目标失效；放行前先登记执行台账</div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--green)">
+        <div class="kicker" style="color:var(--green)">流水线 C · 终局（交卷）</div>
+        <div class="mono" style="font-size:12.5px">proof(证明成立)<br>&nbsp;&nbsp;→ terminal(终局记录·冻结)<br>&nbsp;&nbsp;&nbsp;&nbsp;→ outcome(一次性交卷信封)</div>
+        <div style="font-size:12px;color:var(--sub);margin-top:6px">交卷后投递闸门永久关闭</div>
+      </div>
+    </div>
+    <div class="kicker" style="margin-top:18px">为什么这样设计 —— 组件级优势（天真做法 vs 我们的设计）</div>
+    <div class="grid2" style="font-size:13px">
+      <div>🧠 <b>大脑 UniAgent</b>：天真=模型全包(想+干+自评)｜设计=认知与执行分离，评价只读不回写｜买到：<b>换模型不动执行纪律</b></div>
+      <div>⚙️ <b>执行核 Uni Kernel</b>：天真=多处入口都能动车｜设计=一切效果过闸门+唯一交卷口+终局关门｜买到：<b>查一处=查全部；僵尸运行不存在</b></div>
+      <div>📚 <b>证据账本</b>：天真=感知输出直接当事实｜设计=准入只查合格、append-only｜买到：<b>反幻觉第一道结构闸</b></div>
+      <div>🗺 <b>世界模型</b>：天真=新数据覆盖旧「真相」｜设计=版本化+冲突并存｜买到：<b>过期可判定；不丢反例</b></div>
+      <div>📋 <b>运行模型</b>：天真=执行者自报进度｜设计=义务清单+记录判定分离+终局冻结｜买到：<b>完成=核对表，非话术</b></div>
+      <div>🎮 <b>控制环</b>：天真=LLM 计划当状态｜设计=战术假设可废弃+恢复重入闭环｜买到：<b>世界变了计划立刻让位；禁盲重试</b></div>
+      <div>⚖️ <b>安检</b>：天真=执行前自查｜设计=独立裁决+三件套+消费相对新鲜度｜买到：<b>授权精确可审计；拒绝≠失效</b></div>
+      <div>🚪 <b>效果边界</b>：天真=拿到坐标就点｜设计=绑定钉版本+闸门只执法+台账先行｜买到：<b>点的永远是裁决过的；崩溃可对账</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 流程 ================= -->
+<section>
+  <h2><span class="lv">④ 流程</span>一次点击的完整旅程（十条铁律顺口溜）</h2>
+  <div class="card">
+    <ol style="padding-left:22px;font-size:14px;display:grid;grid-template-columns:1fr 1fr;gap:6px 28px">
+      <li><b>截图</b>：从设备拿新鲜画面（原始像素）</li>
+      <li><b>感知</b>：快通道 YOLO+OCR、慢通道大模型、层级 XML，产出「观察提案」</li>
+      <li><b>准入</b>：证据账本登记——来源/时间/范围齐全才收</li>
+      <li><b>并入世界观</b>：世界模型出新版本（旧版本只读留档）</li>
+      <li><b>拿主意</b>：控制环在契约范围内签发意图（想点哪个）</li>
+      <li><b>锁定目标</b>：效果边界把「想点的那个」绑定到当前世界版本的具体控件</li>
+      <li><b>安检裁决</b>：够不够新？在允许清单内吗？有冲突吗？——三关全过才授权</li>
+      <li><b>放行执行</b>：闸门只执法不重判；驱动落到真实屏幕坐标/原生键</li>
+      <li><b>回看验证</b>：必须重新观察确认世界真的变了——回执≠效果</li>
+      <li><b>交卷</b>：义务全部有证据支撑 → 终局证明 → 一次性结果信封 → 大脑评价</li>
+    </ol>
+    <div style="margin-top:12px;padding:10px 14px;background:var(--gold-bg);border-radius:10px;font-size:13px">
+      ⚠️ <b>串行验证屏障</b>：上一个动作验证清偿之前，<b>绝不发出下一个现实动作</b>。批量点击、盲目重试、拿回执当成功——都被结构禁止。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 生命周期 ================= -->
+<section>
+  <h2><span class="lv">⑤ 生命周期</span>从用户开口到盖棺定论</h2>
+  <p class="lead">六个阶段各归其主；Run 内部循环任意次，但终局只有一次、不可复活。</p>
+  <div class="card">
+    <div class="life">
+      <div class="stage"><span class="no">1</span><div class="nm">会话 Session</div><div class="ow">关联根：一切的唯一索引</div></div>
+      <div class="stage"><span class="no">2</span><div class="nm">目标 Goal</div><div class="ow">大脑拥有：用户要的结果</div></div>
+      <div class="stage"><span class="no">3</span><div class="nm">契约 Contract</div><div class="ow">范围·红线·验收标准（版本化）</div></div>
+      <div class="stage t-run"><span class="no">4</span><div class="nm">执行 Run</div><div class="ow">合法激活后内核自驱</div></div>
+      <div class="stage t-out"><span class="no">5</span><div class="nm">结果 Outcome</div><div class="ow">一次性信封·附证据清单</div></div>
+      <div class="stage t-out"><span class="no">6</span><div class="nm">评价 Evaluation</div><div class="ow">大脑打分·不回改事实</div></div>
+    </div>
+    <div class="runcycle">🔁 <b>Run 内部</b>：观察→决策→行动→验证 循环 N 次（次数不限，基数不变：1 会话 : 1 目标 : 1 运行）<br>
+    ⛔ <b>终局后</b>：投递闸门关闭——迟到的事件、回调、绑定一律拒绝，「僵尸运行」结构上不可能</div>
+  </div>
+</section>
+
+<!-- ================= 优势 ================= -->
+<section>
+  <h2><span class="lv">⑥ 设计优势</span>六大卖点：客户问什么，指哪张卡</h2>
+  <p class="lead">左列是所有「裸 Agent」的通病，右列是本架构的结构性答案——不是靠提示词约束，是靠结构保证。</p>
+  <div class="grid3">
+    <div class="adv"><div class="pain">😰 "AI 说点完了，真的点了吗？"</div>
+      <div class="ans"><b>动作后必验证</b>：每次操作后强制重新观察，回执≠效果、尝试≠成功。</div>
+      <div class="where">图上位置：<b>绿色验证回流线</b>（②）· 流水线 A/B 闭环（③）</div></div>
+    <div class="adv"><div class="pain">😰 "模型幻觉当成屏幕真相怎么办？"</div>
+      <div class="ans"><b>三层分离</b>：证据≠世界观≠现实。世界观只随合格证据演进，冲突并存不覆盖。</div>
+      <div class="where">图上位置：<b>证据账本+世界模型</b>两域（③）</div></div>
+    <div class="adv"><div class="pain">😰 "谁来拦住危险/越权操作？"</div>
+      <div class="ans"><b>三权分立</b>：想(控制环)、裁(安检)、干(效果边界)分属三域；不确定=拒绝，fail-closed。</div>
+      <div class="where">图上位置：<b>流水线 B 的 judge→gate</b>（③）</div></div>
+    <div class="adv"><div class="pain">😰 "怎么证明任务真完成了？"</div>
+      <div class="ans"><b>完成需证明</b>：四分类终局（成功/失败/安全停/升级）；证据不足=诚实未知，绝不装。</div>
+      <div class="where">图上位置：<b>流水线 C + 生命周期 5/6</b>（③⑤）</div></div>
+    <div class="adv"><div class="pain">😰 "换模型/换设备要重写系统？"</div>
+      <div class="ans"><b>能力集可运营</b>：可扩展（协议缝+注册入集，不改核心）、可替换（仿真⇄真件、模型互换）、可管理（注册·健康·生命周期）；六域权威链不变。</div>
+      <div class="where">图上位置：<b>Capability Plane 大蓝框</b>（②）</div></div>
+    <div class="adv"><div class="pain">😰 "这种系统怎么测试？"</div>
+      <div class="ans"><b>同一套真件可仿真</b>：录制→封存→确定性回放，两次运行逐字节一致；仿真不掺产品路径。</div>
+      <div class="where">图上位置：<b>Codex 仿真线</b>（①）· 双宿主对称</div></div>
+  </div>
+</section>
+
+<!-- ================= 上电 ================= -->
+<section>
+  <h2><span class="lv">⑦ 上电</span>新工程师第一天地图（架构 ↔ 代码）</h2>
+  <div class="card">
+    <table>
+      <tr><th>图上组件</th><th>代码落点</th><th>代表类型</th><th>一句话</th></tr>
+      <tr><td>执行核（六域+组合）</td><td><code>src/UniClaw.Kernel/</code></td><td><code>UniKernel.cs</code>（879 行）</td><td>三条流水线的组合序，全部秘密在此</td></tr>
+      <tr><td>自驱驱动器</td><td><code>Kernel/Runtime/</code></td><td><code>KernelRunDriver.cs</code></td><td>Activate() / Drive()：合法激活后自己跑</td></tr>
+      <tr><td>证据账本</td><td><code>Kernel/Evidence/</code></td><td><code>EvidenceLedger</code></td><td>admission 只查完整性溯源</td></tr>
+      <tr><td>世界模型（UI 域）</td><td><code>Kernel/World/</code> + <code>UiRealization/</code></td><td><code>WorldModel</code> <code>Slice</code></td><td>世界观版本 + 只读投影</td></tr>
+      <tr><td>运行模型</td><td><code>Kernel/Run/</code> + <code>Outcome/</code></td><td><code>RunModel</code> <code>RuntimeOutcome</code></td><td>契约视图·义务·终局</td></tr>
+      <tr><td>控制环 / 安检</td><td><code>Kernel/Control/</code> · <code>Assurance/</code></td><td><code>ControlLoop</code> <code>RuntimeAssurance</code></td><td>签发意图 / 三关裁决</td></tr>
+      <tr><td>效果边界</td><td><code>Kernel/Effects/</code></td><td><code>EffectBoundary</code> <code>FileExecutionJournal</code></td><td>绑定·闸门·驱动·台账</td></tr>
+      <tr><td>能力面·观察侧（快/慢/层级）</td><td><code>Kernel/Perception/</code></td><td><code>FastPerception</code> <code>SlowConsultation</code></td><td>C# 零像素解释，全走契约</td></tr>
+      <tr><td>感知 Provider（Python）</td><td><code>platforms/perception/</code></td><td>YOLO+OCR fusion 服务</td><td>跨进程 UDS/TCP，黑盒可换</td></tr>
+      <tr><td>大脑 + DSH 适配</td><td><code>src/UniClaw.Agent(.Dsh)/</code></td><td><code>UniAgent</code> <code>IDecisionChannel</code></td><td>目标/评价 + 决策通道</td></tr>
+      <tr><td>产品宿主</td><td><code>src/UniClaw.Host(.Dsh)/</code></td><td><code>HostRunner</code> <code>RuntimeHttpServer</code></td><td>组合根 + HTTP 入口</td></tr>
+    </table>
+    <div style="margin-top:12px;font-size:13.5px">
+      📖 <b>打开 IDE 先读三个文件</b>：<code>UniKernel.cs</code>（pipeline 组合序）→ <code>Runtime/KernelRunDriver.cs</code>（自驱循环）→ <code>Effects/EffectBoundary.cs</code>（闸门/台账/降级）；
+      协议地图一页看全 26 条边：<code>docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md</code> §1。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 术语 ================= -->
+<section>
+  <h2><span class="lv">⑧ 术语</span>十个小词典（开会不掉线）</h2>
+  <div class="card grid2" style="font-size:13.5px">
+    <div><b>Observation 观察提案</b>：感知产出的「我看到了这些」原始申报，登记合格才叫证据。</div>
+    <div><b>Evidence 证据</b>：登记在册、可引用、带来源的依据记录。只回答「依据什么」，不回答「是不是真的」。</div>
+    <div><b>WorldBelief 世界观</b>：系统当前对屏幕的判断，版本化演进，冲突并存。</div>
+    <div><b>Intent 意图</b>：控制环签发的「想做什么」，不是命令、更不是授权。</div>
+    <div><b>Binding 绑定</b>：把「想点的那个」钉到当前世界观版本的具体控件上。</div>
+    <div><b>Judgment 裁决</b>：安检对（意图+绑定+世界观版本）三件套的一次性判断。</div>
+    <div><b>Receipt 回执</b>：指令送达的留痕——只证明「发了」，不证明「成了」。</div>
+    <div><b>Verified Effect 已验证效果</b>：动作后重新观察证实世界真的变了。</div>
+    <div><b>Outcome Proof 终局证明</b>：义务是否有足够证据支撑的最终判定（成功/失败/安全停/升级）。</div>
+    <div><b>fail-closed 失败即关门</b>：任何不确定一律安全拒绝，绝不「先试试」。</div>
+  </div>
+</section>
+
+<!-- ================= 演进引擎 ================= -->
+<section>
+  <h2><span class="lv">⑨ 演进引擎</span>三个自我优化循环：越跑越强</h2>
+  <p class="lead">UniAgent 本身是五层可插拔装配（Profile→Skills→Prompt→宿主绑定→Realization）；三条回流让系统随使用变强——自我驱动程度递减、落地程度递增。</p>
+  <div class="card">
+    <div class="grid3">
+      <div class="card" style="border-left:4px solid var(--purple)">
+        <div class="kicker" style="color:var(--purple)">① 经验循环 · 设计冻结/实现占位</div>
+        <div style="font-size:13px">交卷信封+评价 ─▶ Memory 持久化 ─▶ 下次 Run 召回当<b>先验/假设/观察策略参考</b></div>
+        <div style="font-size:12px;color:var(--sub);margin-top:6px">边界：recall 永不单独建立当前判断——记忆变聪明，污染不了现实</div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--green)">
+        <div class="kicker" style="color:var(--green)">② 测试资产循环 · 已落地</div>
+        <div style="font-size:13px">运行 Trace ─封存▶ 场景库 ─▶ 确定性回放回归（digest 一致）</div>
+        <div style="font-size:12px;color:var(--sub);margin-top:6px">跑得越多回归网越密——<b>运行本身在生成测试资产</b></div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--gold)">
+        <div class="kicker" style="color:var(--gold)">③ 配置演进循环 · 已落地</div>
+        <div style="font-size:13px">Profile/Skill/Prompt 版本化+hash ─▶ C1–C11 conformance 验收 ─▶ 生效</div>
+        <div style="font-size:12px;color:var(--sub);margin-top:6px">换模型/调提示词/升 SOP 都有验收门——<b>优化不失控</b></div>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding:12px 16px;background:var(--purple-bg);border-radius:10px;font-size:13px">
+      🧠 <b>UniAgent 五层可插拔装配</b>（与能力面四层装配对偶）：① Profile 产品身份（不含模型名）→ ② Skills 领域 SOP（hash 锚定）→ ③ Prompt 纪律（hash 锚定）→ ④ 宿主绑定（模型/端点只在宿主侧）→ ⑤ Realization（Codex 仿真 / DSH 产品，整体可换）。
+      双 realization 差分对比 + conformance 场景 = <b>宿主无关、语义不漂移</b>的可优化体系。
+    </div>
+  </div>
+</section>
+
+<footer class="wrap">
+  依据（权威真相源）：<code>docs/architecture/product-architecture-baseline-l0-l3.md</code>（Product T0–T3，ADOPTED）·
+  <code>docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md</code>（P1–P26）·
+  <code>docs/architecture/uworld-protocol-baseline-l4.md</code>（UI 域细化）。<br>
+  本页是传播/培训用概览（Authority: NONE），与基线冲突时以基线为准 · 受众分层借鉴 C4 模型（Context/Container/Component/Dynamic）· 生成于 2026-10-12。
+</footer>
+
+</div>
+</body>
+</html>

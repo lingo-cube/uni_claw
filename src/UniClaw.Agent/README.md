@@ -58,7 +58,7 @@ RuntimeOutcome envelope 出（Kernel `Outcome/`）。除此之外零依赖。
 | `Profile/ProfileYamlDocument.cs` | 产品侧共享 YAML 子集解析器（双 loader 共用，PRF-002） |
 
 `../UniClaw.Agent.Dsh/` 是 DSH realization/adapter（绑定 loader/模型
-解析/transport），**不进本维度归属表**（L3 不混入 L2 索引，同
+解析/transport），**不进本维度归属表**（Product T3 不混入 Product T2 索引，同
 Capability↔Perception 模式）。PRF-001（ADR-0041）后 adapter 引用本
 程序集消费产品身份（Agent.Dsh → Agent 单向）；产品身份类型归本维度，
 transport/绑定类型仍归 adapter。

@@ -1,8 +1,8 @@
-# Runtime 代码索引 — Uni Kernel 驱动面（L1 本体 · 基线 §7/§24）
+# Runtime 代码索引 — Uni Kernel 驱动面（Product T1 本体 · 基线 §7/§24）
 
-`UniKernel` 的**驱动面**：六个 L2 责任域的组装与推进循环。它不是第七
-个 L2——不拥有任何 L2 authority，只保证它们的组合纪律（§7：互不重叠、
-intent/judgment/delivery 分离、跨 L2 只传 typed immutable、capability
+`UniKernel` 的**驱动面**：六个 Product T2 责任域的组装与推进循环。它不是第七
+个 Product T2——不拥有任何 Product T2 authority，只保证它们的组合纪律（§7：互不重叠、
+intent/judgment/delivery 分离、跨 Product T2 只传 typed immutable、capability
 不旁路、terminal 后无旁路 effect path、outcome 只从 canonical Outcome
 State 发出）。
 
@@ -23,7 +23,7 @@ State 发出）。
 
 ## 变更规则
 
-驱动循环、L2 组装顺序、决策/咨询缝词汇进本目录；新增公开类型必须
+驱动循环、Product T2 组装顺序、决策/咨询缝词汇进本目录；新增公开类型必须
 同 change 修订白名单测试；决策语义的所有权仍在 UniAgent（L1），本目录
 只持有缝的 Kernel 侧形状。
 

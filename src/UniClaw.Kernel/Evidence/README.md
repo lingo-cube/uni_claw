@@ -1,4 +1,4 @@
-# Evidence Ledger 代码索引（L2 · 基线 §11）
+# Evidence Ledger 代码索引（Product T2 · 基线 §11）
 
 Sole **Evidence Admission Authority**：把 Provider 产生的 raw artifact /
 typed output 规范化为可引用的 canonical Evidence Record。不判断
@@ -11,7 +11,8 @@ current-world truth、relevance、weight 或任何 Proof（权威表见基线 §
 | `EvidenceLedger.cs` | admission 权威本体（P2 唯一 ingress；record supersession/invalidation） |
 | `EvidenceRecord.cs` | canonical record 语义与不变量 |
 | `AdmissionRecord.cs` | admission 留痕（integrity/provenance/scope/lineage 校验记录） |
-| `ObservationProposal.cs` | 观察提案（producer → P2 的输入形状） |
+| `ObservationProposal.cs` | 观察提案（producer → P2 的输入形状；Origin 自报仅诊断） |
+| `ObservationOrigin.cs` | 来源性质封闭二值（External \| PostActionSelf，ADR-0048；canonical 值由账本从 Context 机械推导） |
 | `Provenance.cs` | 来源、capture time、transformation lineage |
 | `SharedSubjects.cs` | 共享 subject 层（PER-009 D7 / ADR-0027：跨 producer 共用 claim key） |
 

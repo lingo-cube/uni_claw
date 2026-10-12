@@ -113,6 +113,11 @@ Slice
 
 ## 2.1 Terminology Mapping（UWM-009 ↔ L0–L3 / P1–P23）
 
+> 2026-10-12 ARCH-DOC-023 注：本表及全文的 `L2`/`L3` 为历史 Product 层号，
+> 按 ADR-0042 分别对应现行产品基线的 **Product T2**（Kernel 责任域）与
+> **Product T3**（realization 模块）；本文的 `L4` 是 UIWorld 域命名空间，
+> 不是 Product 层号。
+
 | UWM-009 术语 | 对应 canonical 概念 | 归属 |
 |---|---|---|
 | UIWorld | World Model（L2 role）的 L4 realization | baseline §10/§12 |

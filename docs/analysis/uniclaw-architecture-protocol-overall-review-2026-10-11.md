@@ -1,9 +1,9 @@
 # UniClaw 架构与协议整体审阅（2026-10-11）
 
-> Status: `REVIEW_IN_PROGRESS / ARCHITECTURE_DIRECTION_ACCEPTED`
+> Status: `COMPLETE / DELIVERED-BY-ARCH-ALIGN-001`
 > Authority: `NONE`
 > Scope: 当前 `uni-harness` 工作树中的 Product Architecture、Kernel、Agent、Capability、Core、Host/Realization、Workspace、Harness 与协议资料。
-> 说明：本文是审阅底稿，不取代产品架构权威；本轮已接受方向由 `changes/ARCH-ALIGN-001` 与 ADR-0042 固化，协议仍待下一轮审阅。
+> 说明：本文是审阅底稿，不取代产品架构权威；已接受方向由 `changes/ARCH-ALIGN-001` 与 ADR-0042–0047 固化。协议主链与外围审阅矩阵（§13/§15）已随后续轮次补齐并随该 Change 一并交付（2026-10-12 收口）；开放项以 §13.3/§15.1 各行状态为准，处置归属见 §14.2 与 §15 末尾划分。
 
 ## 1. 审阅目标
 

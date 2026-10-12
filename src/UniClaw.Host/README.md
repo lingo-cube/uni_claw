@@ -1,6 +1,6 @@
 # UniClaw.Host 代码索引 — 组合根（Composition Root）
 
-Product Host 的组合根：装配 Kernel 六个 L2 责任域与 Capability Plane、
+Product Host 的组合根：装配 Kernel 六个 Product T2 责任域与 Capability Plane、
 注册能力实例（ADR-0035 三域组合根分立）、接线观察 feed 与覆盖遍历。
 **不含业务语义**——判断/权威/循环归 Kernel（HOST-001 spec 先例）。
 

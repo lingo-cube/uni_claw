@@ -1,4 +1,4 @@
-# Run Model 代码索引（L2 · 基线 §13）
+# Run Model 代码索引（Product T2 · 基线 §13）
 
 Sole **Canonical Run State Recording Authority**：Execution Contract
 View、Objective State、Proof Obligation State、Progress State、Outcome

@@ -27,3 +27,9 @@
 | `memory-system-component-declaration-v0.1.md` | Memory System 组件声明占位（给 UniAgent 提供记忆；零落地待 buyer；AGT-018） | CANDIDATE / DECLARATION |
 | `task-scoped-capability-binding-v0.1.md` | 任务级能力创建、绑定、隔离、取消与收尾；生产接口待实现 | DRAFT / ACCEPTED_AS_CHANGE_INPUT |
 | `uniagent-profile-realization-and-management-v0.1.md` | UniAgent Profile 落地设计：产品级 host-neutral profile + DSH 绑定分离（四层装配、17 项裁决闭合、切片 PRF-1a/1b/2/3/4/5、ADR-0041 计划） | DRAFT / GRILLING_DECIDED（待 change 执行） |
+| `uniclaw-architecture-overview-v0.1.html` | 架构总览信息图（培训/产品介绍用；受众分层借鉴 C4 模型：上下文→五大件→六域→流程→生命周期→优势→上电地图） | DRAFT / PRESENTATION（Authority: NONE，与基线冲突以基线为准） |
+| `uniclaw-architecture-overview-presentation-v0.1.md` | 架构总览讲演底稿（面向业界开发者与潜在客户：定位/失败模式/三公理/架构/点击旅程/生命周期/工程可信度/QA 底稿） | DRAFT / PRESENTATION-DRAFT（Authority: NONE，与基线冲突以基线为准） |
+| `component-interface-and-data-protocol-lockdown-plan-v0.1.md` | 组件接口与数据协议锁定计划：三层锁定含义（语义/形状/字节）、接口盘点（六域/组合缝/驱动面/wire）、快照执法机制、四阶段执行与承重审阅清单 | DRAFT / PROPOSAL（待 Owner 裁决四点后立 change） |
+| `protocol-completeness-formal-audit-v0.1.md` | 协议完备性形式审计：生命周期/流程全走查，Safety/Liveness/Reachability/Consistency 数学检查 + 认识论/政体哲学审计；九项发现 + 附录A 字段级落实清单（缺/多字段逐接口）+ 附录B 流程字段链二次走查 + 附录C grill 裁决记录（11 题全裁决） | DRAFT / FORMAL-AUDIT（裁决已固化 ADR-0048/0049/0050；实施待 PROTOCOL-FIX） |
+| `protocol-fix-001-proposal.md` | PROTOCOL-FIX 修复包提案：六切片实施计划（Origin 字段族/期望载荷/预算两层顶+续授/locator 收窄/渗透立法/机械搭车），含验收与锁定计划衔接 | DRAFT / PROPOSAL（待 Owner 批准开工，立 changes/PROTOCOL-FIX-001） |
+| `protocol-workflow-model-v0.1.html` | 交互式协议工作流模型：27 步全链（任务→契约→运行→交卷），点击节点查看该步字段传递与修复标记（＋新增/✖移除/chg变更），可按修复点/不动/轨道过滤 | DRAFT / INTERACTIVE-MODEL（Authority: NONE；字段为读码实测） |

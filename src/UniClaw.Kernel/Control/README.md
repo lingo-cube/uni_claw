@@ -1,4 +1,4 @@
-# Control Loop 代码索引（L2 · 基线 §14）
+# Control Loop 代码索引（Product T2 · 基线 §14）
 
 Sole **Control Intent Authority**：Control State、Tactical Hypothesis、
 Observation Control、Traversal Control、Recovery/Reorientation。不拥有
@@ -10,7 +10,7 @@ WorldBelief、Run progress truth、Assurance Judgment 或 effect delivery
 | 文件 | 职责 |
 |---|---|
 | `ControlLoop.cs` | control intent 权威本体（不变量 21） |
-| `ControlIntent.cs` | intent 的 typed 形状（跨 L2 只传 immutable command） |
+| `ControlIntent.cs` | intent 的 typed 形状（跨 Product T2 只传 immutable command） |
 | `ControlPolicy.cs` | 控制策略词汇 |
 | `TacticalHypothesis.cs` | 战术假设（reorientation/recovery 的输入） |
 | `DescriptorTargetPolicy.cs` | 目标规格（CTL-001 D1）：authoring 侧「对什么 affordance 施加什么」的表达 |

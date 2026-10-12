@@ -1,4 +1,4 @@
-# Assurance 代码索引（L2 · 基线 §15）
+# Assurance 代码索引（Product T2 · 基线 §15）
 
 Sole **Runtime Assurance Judgment Authority（含 Outcome Proof
 Authority）**：Action Admissibility、Preconditions/Freshness、Safety/

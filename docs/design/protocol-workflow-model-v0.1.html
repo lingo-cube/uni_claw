@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UniClaw 协议工作流模型 · 27 步全链（可点击查字段 + 必填标注）</title>
+<style>
+  :root{
+    --ink:#1a2233; --sub:#5a6478; --line:#d7dce6; --bg:#f5f7fa; --card:#fff;
+    --blue:#2563eb; --blue-bg:#eaf1fe; --gray:#64748b; --gray-bg:#eef1f5;
+    --red:#dc2626; --red-bg:#fdeaea; --gold:#b45309; --gold-bg:#fdf6e3;
+    --green:#059669; --purple:#7c3aed;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;color:var(--ink);background:var(--bg);line-height:1.6}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 20px 80px}
+  header{background:linear-gradient(135deg,#0f1b33,#1d3557);color:#fff;padding:28px 0 24px;margin-bottom:20px}
+  h1{font-size:24px}
+  h1 small{display:block;font-size:13px;font-weight:400;opacity:.75;margin-top:4px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-top:12px;align-items:center}
+  .chip-dot{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .filters{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}
+  .fbtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 14px;font-size:13px;cursor:pointer;color:var(--sub)}
+  .fbtn.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .group{margin:22px 0 8px;display:flex;align-items:baseline;gap:10px}
+  .group .gname{font-size:16px;font-weight:800}
+  .group .gdesc{font-size:12px;color:var(--sub)}
+  .lane{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+  .node{border:1.5px solid var(--line);border-radius:10px;background:var(--card);padding:9px 12px;cursor:pointer;min-width:150px;max-width:230px;flex:1;transition:box-shadow .15s,transform .15s;position:relative}
+  .node:hover{box-shadow:0 3px 10px rgba(16,24,40,.14);transform:translateY(-1px)}
+  .node.sel{outline:2.5px solid var(--blue);outline-offset:1px}
+  .node .no{font-size:11px;color:#fff;border-radius:4px;padding:0 6px;display:inline-block;margin-right:6px}
+  .node .nm{font-size:13.5px;font-weight:700}
+  .node .edge{font-size:11px;color:var(--sub);margin-top:2px}
+  .node .badge{position:absolute;top:-9px;right:8px;font-size:10.5px;font-weight:800;color:#fff;border-radius:999px;padding:1px 8px}
+  .n-fix{border-color:var(--red);background:var(--red-bg)} .n-fix .no{background:var(--red)} .b-fix{background:var(--red)}
+  .n-keep{border-color:var(--line);background:var(--card)} .n-keep .no{background:var(--gray)} .b-keep{background:var(--gray)}
+  .n-track{border-color:var(--blue);border-style:dashed;background:var(--blue-bg)} .n-track .no{background:var(--blue)} .b-track{background:var(--blue)}
+  .arrow{align-self:center;color:#94a3b8;font-size:16px;padding:0 2px}
+  .overlay{position:fixed;inset:0;background:rgba(15,27,51,.35);display:none;z-index:40}
+  .overlay.open{display:block}
+  .panel{position:fixed;top:0;right:0;height:100%;width:min(560px,94vw);background:#fff;z-index:50;box-shadow:-6px 0 24px rgba(16,24,40,.18);transform:translateX(105%);transition:transform .22s;display:flex;flex-direction:column}
+  .panel.open{transform:translateX(0)}
+  .phead{padding:16px 20px 12px;border-bottom:1px solid var(--line);background:#fbfcfe}
+  .phead .t{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .phead .sub{font-size:12.5px;color:var(--sub);margin-top:4px}
+  .pbody{padding:14px 20px 40px;overflow-y:auto}
+  .close{position:absolute;top:12px;right:14px;border:none;background:none;font-size:20px;cursor:pointer;color:var(--sub)}
+  h4.sec{font-size:12px;letter-spacing:1.5px;color:var(--sub);margin:16px 0 6px;font-weight:700}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{background:#eef1f6;text-align:left;padding:6px 8px;font-weight:700}
+  td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  code{font-family:Consolas,Menlo,monospace;font-size:11.5px;background:#eef1f6;border-radius:3px;padding:1px 5px;word-break:break-all}
+  .tag{display:inline-block;font-size:10.5px;font-weight:800;border-radius:3px;padding:0 6px;margin-left:6px;color:#fff;vertical-align:1px}
+  .t-add{background:var(--green)} .t-del{background:var(--red)} .t-chg{background:var(--gold)}
+  .rq{display:inline-block;font-size:10.5px;font-weight:800;border-radius:3px;padding:0 6px;margin-left:6px;vertical-align:1px}
+  .rq-must{background:var(--ink);color:#fff} .rq-opt{background:#fff;color:var(--sub);border:1px solid var(--line)}
+  .rq-adm{background:var(--purple);color:#fff} .rq-sys{background:var(--blue);color:#fff}
+  .fixbox{margin-top:14px;border-left:4px solid var(--red);background:var(--red-bg);border-radius:8px;padding:10px 14px;font-size:13px}
+  .trackbox{margin-top:14px;border-left:4px solid var(--blue);background:var(--blue-bg);border-radius:8px;padding:10px 14px;font-size:13px}
+  .keepbox{margin-top:14px;border-left:4px solid var(--gray);background:var(--gray-bg);border-radius:8px;padding:10px 14px;font-size:13px}
+  .reqlegend{margin-top:8px;font-size:11.5px;color:var(--sub)}
+  footer{margin-top:40px;color:var(--sub);font-size:12px;border-top:1px solid var(--line);padding-top:12px}
+  .count{font-size:12px;color:var(--sub);margin-left:auto}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>UniClaw 协议工作流模型 · 27 步全链<small>任务 → 契约 → 运行 → 交卷 · 点击节点查看该步全部字段、必填标注与修复落点（PROTOCOL-FIX 前）</small></h1>
+  <div class="legend">
+    <span><span class="chip-dot" style="background:var(--red)"></span>修复点（S1–S5）</span>
+    <span><span class="chip-dot" style="background:var(--gray)"></span>不动（已验证语义）</span>
+    <span><span class="chip-dot" style="background:var(--blue);border-radius:0"></span>既有轨道</span>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="filters">
+    <button class="fbtn active" data-f="all">全部 27 步</button>
+    <button class="fbtn" data-f="fix">只看修复点（8）</button>
+    <button class="fbtn" data-f="keep">不动的（14）</button>
+    <button class="fbtn" data-f="track">既有轨道（5）</button>
+  </div>
+</div></header>
+
+<div class="wrap" id="flow"></div>
+
+<div class="overlay" id="overlay"></div>
+<aside class="panel" id="panel">
+  <button class="close" id="closeBtn">✕</button>
+  <div class="phead"><div class="t" id="pTitle"></div><div class="sub" id="pSub"></div></div>
+  <div class="pbody" id="pBody"></div>
+</aside>
+
+<footer><div class="wrap">
+  依据：协议基线 P1–P26 · ADR-0044/0045/0046/0048/0049/0050 · 形式审计（附录 A/C）· 字段与必填性为 C# record 签名读码实测（2026-10-12）。
+  必填标注：<b style="color:var(--ink)">必</b>=构造必填 · <b style="color:var(--sub)">选</b>=带默认值/可空 · <b style="color:var(--purple)">准</b>=类型可空但准入要求非空 · <b style="color:var(--blue)">系</b>=系统生成留痕。
+  本页为交互式评审模型（Authority: NONE），冲突以基线为准。
+</div></footer>
+
+<script>
+// req: '必' constructor-required | '选' optional/defaulted | '准' nullable-but-admission-required | '系' system-generated
+const F = (n,t,d,req)=>({n,t,d,req:req||'选'});
+const STEPS = [
+ // ---------- 前奏 ----------
+ {g:'pre',no:'0a',nm:'任务定义',edge:'Task Catalog（无编号边）',dir:'Host / product/tasks → Runtime',st:'track',
+  fields:[F('task yaml','product/tasks/*.yaml','settings-coverage / language-inspection / tool-runtime：步数与咨询上限、capability 声明、预检要求','必'),F('catalog 身份','catalog + 版本','ADR-0032：目录归 Host 所有，Workspace 只读投影','必')],
+  note:'任务模板不是一次执行。'},
+ {g:'pre',no:'0b',nm:'任务发起',edge:'O1 · task-launch wire',dir:'调用方 → Runtime HTTP',st:'track',
+  fields:[F('taskRef（逻辑任务引用）','schema 字段','不含物理路径/绝对路径（schema 拒收）','必'),F('idempotencyKey','schema 字段','幂等键；重复提交复用 binding','必'),F('declaredConfig','schema 字段','声明式配置','选'),F('launchId','ack 字段','Task Instance 尚未生成时可先只返回 launchId','系'),F('stageRecords[]','launch-stage-record.v1','阶段记录：valueOrigin ∈ {configured,generated,observed,derived} + availability 分离','系'),F('⚠️ 两套实例号','known deviation','Workbench 本地 instanceId vs Runtime taskInstanceId；psi-* 为兼容路径','—')],
+  note:'wire 面是全仓锁得最好的契约之一（additionalProperties:false + validator + 正反例）。身份统一走 O1 实现 Change。'},
+ {g:'pre',no:'0c',nm:'Task Instance 创建',edge:'O2 · Runtime 铸造',dir:'Runtime 内部',st:'track',
+  fields:[F('taskInstanceId','string','Runtime 唯一铸造；调用方不得传入或覆盖（ADR-0045）','系'),F('⚠️ 阶段混合','known gap','HTTP 创建路径把 Session/Run/Contract admission 混在一个阶段，无独立可观察步骤','—')],
+  note:'目标态：Task → Instance → Session 三阶段可观察（ARCH-ALIGN-001 外围矩阵登记）。'},
+ {g:'pre',no:'0d',nm:'Product Session 分配',edge:'Runtime 铸造 + 显式 Binding',dir:'Runtime 内部',st:'track',
+  fields:[F('productSessionId','string','Goal/Contract/Run/Outcome/Evaluation 的关联根；建立 ≠ 开始执行','系'),F('Task Launch Binding','binding','Task Instance ↔ Product Session（显式、带来源）；同次提交重试复用','系'),F('hostSessionRef','string','Host 只铸自己的；dshSessionId 降为 adapter 内部 alias','系')],
+  note:'任务结束再执行 → 新 Instance/Session/Run。'},
+ {g:'pre',no:'0e',nm:'契约 Authoring',edge:'UniAgent 形成（P1 上游）',dir:'UniAgent ← Task + Session context',st:'track',
+  fields:[F('Task + Session context','输入','UniAgent 读取后细化','必'),F('Execution Contract 候选','输出','objective / scope / effect 红线 / proof 要求 / 预算','必'),F('⚠️ HostRunner 代造','known deviation','真实 UniAgent authoring 未接线（Goal→Contract derivation = Deferred ⑫）','—')],
+  note:'目标态：UniAgent 是唯一合法作者（P1 只收它的要约）；当前代造走 O3 实现 Change。'},
+ // ---------- 契约与激活 ----------
+ {g:'contract',no:'1',nm:'P1 契约提交',edge:'P1 · Execution Contract Admission',dir:'UniAgent → Run Model',st:'fix',fixTag:'S3',
+  fields:[F('Version','string','显式版本；同 version 重复 admit 幂等','必'),F('Objective','string','目标','必'),F('Scope','IReadOnlySet?','范围','选'),F('AllowedEffects / ForbiddenEffects','IReadOnlySet?','effect 红线','选'),F('ProofCriteria','list?','证明要求（缺省派生不可判定占位义务）','选'),F('Obligations','list? = null','run-level 义务规格','选'),F('MaxConsultations','int? = null','缺省 View 解析为 16','选'),F('MaxTotalSteps','int? = null','缺省 View 解析为 256','选'),F('valueOrigin','＋ S3 新增','admission 留痕 ∈ {configured, default}——"沉默缺省"变"有账的缺省"','系'),F('身份三件套','🔵 轨道','taskInstanceId / productSessionId / contractRef（ADR-0046，不并入本包）','—')],
+  fix:'S3：预算保持可空，但 admission 记 valueOrigin；配合两层顶（契约=初始额度，policy=硬顶）。'},
+ {g:'contract',no:'2',nm:'P24 合法激活',edge:'P24 · Legal Run Activation',dir:'activation path → Kernel driver',st:'keep',
+  fields:[F('acceptedContractViewRef + contractGeneration','启动钥匙','同 key 至多一个 Run；重复/并发返回同一关联','必'),F('activation latch','Kernel 内部','一次性幂等；admission ≠ 激活','系')],
+  note:'跨进程持久身份/并发/恢复 = Deferred ⑰（🔵 轨道）。'},
+ // ---------- 观察 ----------
+ {g:'observe',no:'3',nm:'观察致动',edge:'（无编号边 · D5）',dir:'driver/Control → 感知采集',st:'keep',
+  fields:[F('编排','driver realization','何时/以何 scope 观察目前藏在驱动实现里','—'),F('P27 候选','登记项','观察指令边等感知策略 buyer','—')],
+  note:'协议图只建模了认知回流，没建模感知指向本身（审计 D5）。'},
+ {g:'observe',no:'4',nm:'P2 观察回流',edge:'P2 · Observation Ingress',dir:'producer → Evidence Ledger',st:'fix',fixTag:'S1',
+  fields:[F('Claim','(Subject, Value)','观察声明','必'),F('Kind','enum','Observation | AttemptReport（封闭二成员）','必'),F('Context','enum','External | PostActionEffectFlow（流程上下文）','必'),F('Provenance','record?','类型可空，但 null/不完整 → admission fail-closed：实效必填','准'),F('DerivedFromEvidenceIds','init = 空','空 = 直接源观察；父引用由账本校验','选'),F('TransitiveEvidenceBasis','init = 空','账本重算并拒绝不匹配','选'),F('FusionRule / FusionVersion','string?','派生（融合）证据携带','选'),F('Origin','＋ S1 新增','External | PostActionSelf——机械推导总有产出：精确 attempt 关联→PostActionSelf，否则 External；禁时间启发式；自报仅诊断','必')],
+  fix:'S1：新增 Origin（一石三鸟：闭 ADR-0047 gap + D6 判定输入 + E5 前提显式化）。'},
+ {g:'observe',no:'5',nm:'P3 证据入库',edge:'P3 · Accepted Evidence Record',dir:'Ledger → World Model',st:'fix',fixTag:'S1',
+  fields:[F('EvidenceId','内容哈希','相同 canonical 语义 → 同 id（幂等去重）','必'),F('Claim / Kind / Context','同 P2','随记录携带','必'),F('Provenance','record','入库后非空（admission 已过）','必'),F('DerivedFrom / TransitiveBasis / Fusion 元数据','同 P2','派生字段','选'),F('Origin 入 canonical 输入','chg S1','origin 语义变化不得复用同一 id（ING-006 D5 同律）','必')],
+  fix:'S1：origin 入 EvidenceId canonical 输入。'},
+ // ---------- 决策 ----------
+ {g:'decide',no:'6',nm:'P25 咨询 + 续授',edge:'P25 · Agent Decision Consultation',dir:'Kernel driver ⇄ UniAgent',st:'fix',fixTag:'S3',
+  fields:[F('DecisionId / 关联号','string','每 decision boundary 最多一次；同边界重试复用结果','必'),F('决策上下文','composite','含 BudgetRemaining——agent 打包前知道自己还剩多少','必'),F('续授窗口标记','＋ S3 新增','driver 检查剩余 ≤ policy 阈值 → 本次咨询标记可谈续授','选'),F('续授提案','＋ S3 新增','UniAgent 给续授量（正常推进未走完→该续就续；也可不续）','选'),F('HardCap 校验','＋ S3 新增','policy 校验 已授+提案 ≤ 硬顶；终问（轮次耗尽最后一次询问）可携带续授——防"有步数没机会开口"','系')],
+  fix:'S3：续授走 P25（不新增边）；步数/轮次同机制各硬顶；轻记账（decision 留痕，不进 Run State）；崩溃恢复随 ⑰。'},
+ // ---------- 行动链 ----------
+ {g:'act',no:'7',nm:'P8 意图',edge:'P8 · Control Intent',dir:'Control Loop → Assurance / EB',st:'keep',
+  fields:[F('IntentId','string','唯一意图标识','必'),F('Kind','enum','Observe | Act | Recovery','必'),F('EffectClass','string?','act 意图的效果类（hint ≠ binding）','选'),F('TargetSubject','string?','目标提示','选'),F('BasisRevisionId','string','依据的世界观版本（currentness 判定输入）','必')],
+  note:'唯一意图权威；issuance 归属进程内验证（跨主机 token 等 buyer）。'},
+ {g:'act',no:'8',nm:'P23 定位查询',edge:'P23 · GroundingSeam（经 P11 GroundingView）',dir:'Kernel → World Model',st:'keep',
+  fields:[F('ResolveCurrent','模式','TargetDescriptor → CurrentCandidateSetResult（Unique/None/Multiple/Unavailable）','必'),F('ResolveContinuity','模式','ContinuityResolutionOutcome + DemandHandle（幂等键）','必')],
+  note:'单缝双模；投影相对事实（NoCandidate ≠ KnownAbsent ≠ Ended）。'},
+ {g:'act',no:'9',nm:'P9 候选绑定',edge:'P9 · Candidate Binding',dir:'Grounding Provider → EB',st:'keep',
+  fields:[F('TargetSubject / TargetValue','string','字符串通道（UI 工厂置 null! 压制）','必'),F('SourceRevisionId','string','候选依据版本','必'),F('IsAmbiguous','bool = false','歧义声明','选'),F('UiTarget','record?','UI 通道：OccurrenceId + SourceRevisionId + LogicalItemId?（仅溯源）——UI 通道必带','选')],
+  note:'候选 ≠ canonical（不变量 24）。'},
+ {g:'act',no:'10',nm:'P10 正式绑定',edge:'P10 · Canonical Binding',dir:'EB → Assurance',st:'fix',fixTag:'S4',
+  fields:[F('BindingId / IntentId','string','绑定身份 + 意图关联','必'),F('EffectClass','string','效果语义','必'),F('TargetSubject / TargetValue','string','沿载（UI 通道为 occurrence id 字符串）','必'),F('RevisionId / RevisionNumber','anchor','钉死世界观版本（currency 派生失效）','必'),F('TargetOccurrenceId','string?','UI 通道恒绑 occurrence','选'),F('OwningContainerId / LogicalItemId','string?','容器与连续性溯源','选'),F('TargetLocator / TargetNative / TargetSpace','✖ S4 移除','投递材料不该进绑定载荷——安检从不读；Core 投影改从 DeliveryTarget 取（消费面已查清：全仓两处）','—')],
+  fix:'S4：撕掉 locator 三字段；P14 成为 locator 唯一来源。'},
+ {g:'act',no:'11',nm:'P13 裁决',edge:'P13 · Assurance Judgment',dir:'Assurance → Gate',st:'keep',
+  fields:[F('IntentId + BindingId + RevisionId','三元组','correlation key，任一变即重裁','必'),F('IsAdmissible','bool','可否做','必'),F('Checks','list','逐项留痕','必'),F('RejectionReason','string?','拒绝首因','选'),F('Freshness','FreshnessJudgment','消费相对充分性三态——拒绝 ≠ 绑定失效','必')],
+  note:'Gate 只执法不重判；拒绝可观察有 reason。'},
+ {g:'act',no:'12',nm:'闸门 + 台账',edge:'Effect Gate + Reliable Execution Source',dir:'EB 内部',st:'keep',
+  fields:[F('GateDecision','(Allowed, Reason)','只执行或拒绝既有授权','必'),F('journal 登记','append-only','binding/judgment/请求/执行端/准入摘要——先登记后执行，提交失败零 driver 调用','系'),F('未决发现','Pending Attempt','无 ID 发现未决；LinkRetry / LinkCompensation 关联','系')],
+  note:'崩溃后可对账，绝不盲补发。'},
+ {g:'act',no:'13',nm:'P14 派工单',edge:'P14 · Dispatch Request',dir:'EB → driver',st:'keep',
+  fields:[F('DeliveryTarget','record','OccurrenceReference（仅溯源，永不参与执行）+ Spatial? + Native? + Space?','必'),F('EffectClass','string','来自绑定','必'),F('Parameters','string?','当前沿载字符串；typed family = 未来 buyer','选'),F('RevisionId','anchor','绑定依据版本','必')],
+  note:'S4 之后这里是 locator 的唯一来源；driver 固定消费自身支持集，不挑选不 fallback。'},
+ {g:'act',no:'14',nm:'P15 投递结果',edge:'P15 · Dispatch Result',dir:'driver → EB',st:'keep',
+  fields:[F('Outcome','enum 三态','DeliveryCompleted | DeliveryFailed | UnknownOutcome（认知状态，非成因）','必'),F('Report','string','provider 报告（描述性 provenance）','必'),F('CompletedAt','datetime','下游确认时间','必'),F('Reason','string? = null','成因诊断（不锁词汇）：timeout-killed / device-offline / …','选')],
+  note:'UnknownOutcome 唯一合法后继 = 重新观察，永不盲补发。'},
+ {g:'act',no:'15',nm:'回执回流',edge:'P2 · AttemptReport',dir:'EB → Evidence Ledger',st:'fix',fixTag:'S1',
+  fields:[F('ReceiptId / IntentId / BindingId','string','attempt 关联','必'),F('TargetSubject / RevisionId / RevisionNumber','anchor','目标与版本留痕','必'),F('Outcome / Report / DispatchedAt','同 P15','','必'),F('Reason','string? = null','成因诊断','选'),F('Origin','＋ S1 新增','回流侧统一携带：经 receipt↔observation 精确关联推导为 PostActionSelf；AttemptReport 永不满足 MaterialEffect（不变量不变）','必')],
+  fix:'S1：回流侧 origin 与 P2/P3 同源闭合。'},
+ // ---------- 验证屏障 ----------
+ {g:'verify',no:'16',nm:'验证输入',edge:'Kernel 编排 → Assurance',dir:'Kernel → Assurance',st:'fix',fixTag:'S2',
+  fields:[F('TargetSpec','record','目标规格（含状态断言）','必'),F('Slice','record','当前 scoped 只读投影','必'),F('ProcessedObservations','list<KernelResult>','本轮 P2/P3 处理结果','必'),F('TargetDisappearedAfterRouteChange','bool = false','特设','选'),F('PriorRoute / CurrentRoute / ScrollContentChanged','✖ S2 迁移','滚动期望三硬编码布尔 → 迁移为 RouteStable ∧ ContentChanged 实例后删除','—'),F('ExpectedEffect','＋ S2 新增','两族封闭谓词：StateBecomes(subject,value) 状态型；ContentChanged / RouteStable 变化型——验证的显式对照物；修复后无期望载荷 = RED','必')],
+  fix:'S2：期望载荷独立成字段（ADR-0049）；新增 effect 类型不再硬编码期望。'},
+ {g:'verify',no:'17',nm:'MaterialEffect 判定',edge:'Assurance 内部（S5 立法点）',dir:'Assurance',st:'fix',fixTag:'S5',
+  fields:[F('判定输入','Evidence + ExpectedEffect + Origin','（S1+S2 交付后齐备）','必'),F('立法','＋ S5 新增','受 P22 prior 影响的关联连续性不得作为 MaterialEffect 唯一依据——对照物必须是显式期望谓词 + origin 输入','系')],
+  fix:'S5：明文规则 + 锚定测试（仅身份连续、无谓词对照的验证 = 拒绝）。'},
+ // ---------- 终局 ----------
+ {g:'terminal',no:'18',nm:'P7 义务定义',edge:'P7 · Obligation Definition View',dir:'Run Model → Assurance',st:'keep',
+  fields:[F('义务定义','identity/kind/subject/required value/mandatory','只表达"要证明什么"；满足状态是 Assurance 的独立投影','必')],
+  note:'定义/状态分离已冻结（ADR-0047）。'},
+ {g:'terminal',no:'19',nm:'P16 终局证明',edge:'P16 · Outcome Proof',dir:'Assurance → Run Model',st:'keep',
+  fields:[F('Classification','四分类','Completion | Failure | SafeStop | Escalation（证据不足 = 无 proof，不伪装）','必'),F('obligation statuses + evidence refs','list','支撑清单','必'),F('unresolved uncertainty + reason','','诚实边界','必')],
+  note:'预算耗尽终局在 S3 生效后到的是 policy 铁顶（非静默缺省）。'},
+ {g:'terminal',no:'20',nm:'P17 终局记录',edge:'P17 · Terminal Outcome State',dir:'Run Model → Kernel',st:'keep',
+  fields:[F('OutcomeState','快照','exact-prior single-winner；至多一次；terminal 后冻结不可复活','必')],
+  note:''},
+ {g:'terminal',no:'21',nm:'P18 交卷信封',edge:'P18 · Runtime Outcome',dir:'Kernel → UniAgent',st:'keep',
+  fields:[F('RunId / OutcomeProofId','string','运行与证明引用','必'),F('Classification','四分类','','必'),F('Obligations','list<status>','义务结算','必'),F('Basis/Effect/Situation EvidenceIds','set','证据引用三层','必'),F('UnresolvedUncertainty + Reason','','解释性元数据（productSessionId 🔵 走 ⑨ 轨道）','必')],
+  note:'exactly once；发出后投递闸门永久关闭。'},
+ {g:'terminal',no:'22',nm:'P19 评价',edge:'P19 · Goal Evaluation',dir:'UniAgent → user/session',st:'keep',
+  fields:[F('EvaluationId','确定性派生','Goal+Run+Proof 幂等','必'),F('Satisfaction × Disposition','枚举','Satisfied/Partial/Unsatisfied × Final/NeedsFollowUp；Undetermined ⇒ NeedsFollowUp','必')],
+  note:'只评不改——不回写任何执行事实。'},
+];
+
+const GROUPS = {
+  pre:{name:'前奏 · 任务 → 契约',desc:'外围 O 边（ADR-0044/0045）——wire 已锁，身份与顺序偏差走既有轨道'},
+  contract:{name:'契约与激活',desc:'P1 → P24'},
+  observe:{name:'观察 · 认识世界',desc:'P2 → P3（S1 主战场）'},
+  decide:{name:'决策 · 问大脑',desc:'P25 + 续授新语义（S3）'},
+  act:{name:'行动链 · 改变世界',desc:'P8 → P15'},
+  verify:{name:'验证屏障',desc:'动手后必重新观察（S2/S5）'},
+  terminal:{name:'终局 · 交卷',desc:'P7 → P16 → P17 → P18 → P19'},
+};
+
+const flowEl = document.getElementById('flow');
+const groupsOrder = ['pre','contract','observe','decide','act','verify','terminal'];
+const REQ_LABEL = {'必':'必填','选':'可选','准':'准入必填','系':'系统生成','—':'—'};
+function render(filter){
+  flowEl.innerHTML='';
+  let shown=0;
+  groupsOrder.forEach(gk=>{
+    const steps = STEPS.filter(s=>s.g===gk && (filter==='all'||s.st===filter));
+    if(!steps.length) return;
+    const g = GROUPS[gk];
+    const sec = document.createElement('section');
+    sec.innerHTML = `<div class="group"><span class="gname">${g.name}</span><span class="gdesc">${g.desc}</span></div>`;
+    const lane = document.createElement('div'); lane.className='lane';
+    steps.forEach((s,i)=>{
+      if(i>0){const a=document.createElement('div');a.className='arrow';a.textContent='➜';lane.appendChild(a);}
+      const n=document.createElement('div'); n.className=`node n-${s.st}`; n.dataset.no=s.no;
+      n.innerHTML=`<span class="badge b-${s.st}">${s.fixTag || (s.st==='fix'?'FIX':s.st==='track'?'轨道':'不动')}</span>
+        <span class="no">${s.no}</span><span class="nm">${s.nm}</span><div class="edge">${s.edge}</div>`;
+      n.onclick=()=>openPanel(s,n);
+      lane.appendChild(n); shown++;
+    });
+    sec.appendChild(lane); flowEl.appendChild(sec);
+  });
+  document.getElementById('count').textContent=`显示 ${shown} 步`;
+}
+function deltaTag(f){ if(f.n.includes('＋'))return '<span class="tag t-add">新增</span>'; if(f.n.includes('✖'))return '<span class="tag t-del">移除</span>'; if(f.n.includes('chg'))return '<span class="tag t-chg">变更</span>'; return ''; }
+function reqTag(f){ const m={'必':'rq-must','选':'rq-opt','准':'rq-adm','系':'rq-sys','—':'rq-opt'}; return `<span class="rq ${m[f.req]||'rq-opt'}" title="${REQ_LABEL[f.req]||''}">${f.req}</span>`; }
+function openPanel(s,node){
+  document.querySelectorAll('.node.sel').forEach(x=>x.classList.remove('sel'));
+  node.classList.add('sel');
+  document.getElementById('pTitle').innerHTML=`<span class="node" style="cursor:default;padding:2px 8px"><span class="no" style="background:${s.st==='fix'?'var(--red)':s.st==='track'?'var(--blue)':'var(--gray)'}">${s.no}</span></span> ${s.nm}`;
+  document.getElementById('pSub').innerHTML=`${s.edge} &nbsp;·&nbsp; ${s.dir}`;
+  let h = `<h4 class="sec">字段传递（全部字段 · 必填标注 · 修复标记）</h4>
+  <div class="reqlegend"><span class="rq rq-must">必</span> 构造必填 · <span class="rq rq-opt">选</span> 带默认/可空 · <span class="rq rq-adm">准</span> 类型可空但准入要求非空 · <span class="rq rq-sys">系</span> 系统生成留痕</div>
+  <table style="margin-top:6px"><tr><th style="width:36%">字段</th><th style="width:22%">必填</th><th style="width:20%">类型/形状</th><th>说明</th></tr>`;
+  s.fields.forEach(f=>{ h+=`<tr><td><code>${f.n}</code>${deltaTag(f)}</td><td>${reqTag(f)} <span style="font-size:11px;color:var(--sub)">${REQ_LABEL[f.req]||''}</span></td><td>${f.t}</td><td>${f.d}</td></tr>`; });
+  h+=`</table>`;
+  if(s.fix) h+=`<div class="fixbox"><b>修复（${s.fixTag}）</b>：${s.fix}</div>`;
+  else if(s.st==='track') h+=`<div class="trackbox"><b>既有轨道</b>：${s.note||'走 ADR-0044/0045/0046 与 O 系列实现 Change，不并入 PROTOCOL-FIX。'}</div>`;
+  else if(s.note) h+=`<div class="keepbox"><b>说明</b>：${s.note}</div>`;
+  document.getElementById('pBody').innerHTML=h;
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closePanel(){
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  document.querySelectorAll('.node.sel').forEach(x=>x.classList.remove('sel'));
+}
+document.getElementById('overlay').onclick=closePanel;
+document.getElementById('closeBtn').onclick=closePanel;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePanel(); });
+document.querySelectorAll('.fbtn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); render(b.dataset.f);
+});
+render('all');
+</script>
+</body>
+</html>

@@ -26,7 +26,7 @@
 侧事实（admitted evidence、container segment、DeriveSlice、WorldState
 claim、accepted contract、CanonicalBinding、EffectReceipt）投影为
 UniClaw.Core 候选语义记录。UI 专用字段保留在 Kernel；本缝只投影当前
-实际需要的最小语义。跨 L2 只传 typed immutable values 的纪律（§7）同样
+实际需要的最小语义。跨 Product T2 只传 typed immutable values 的纪律（§7）同样
 约束本缝。
 
 ## 变更规则

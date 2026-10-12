@@ -1,4 +1,4 @@
-# Effect Boundary 代码索引（L2 · 基线 §16）
+# Effect Boundary 代码索引（Product T2 · 基线 §16）
 
 Sole **Canonical Binding Authority 与 Effect Delivery Authority**：
 bounded target binding、Effect Gate、Dispatch、Effect Receipt、canonical
