@@ -1,0 +1,64 @@
+{
+  "id": "WI-PM001-002",
+  "objective": "PROTOCOL-MACHINE-001 Slice 2：补齐 object_machines 四台（binding/judgment/attempt/contract-view）+ 边登记全量（P1-P26 全部 + O 系 wire 边 + G 系缺边，前奏步骤进表）+ 归属执法三件（无主 schema RED / 悬空 ref RED / 组件词汇封闭），使边表成为完整归属表。",
+  "scope": {
+    "write": [
+      "schemas/protocol/state-machine.yaml（machines 增 object 四台；edges 全量登记）",
+      "tools/gen-protocol-machine.py（元校验扩展：object 机形状/组件词汇/悬空 ref）",
+      "tests/UniClaw.Kernel.Tests/Protocol/**（生成 JSON 消费 + schema join 测试）",
+      "changes/PROTOCOL-MACHINE-001/state.md（status log + verification）"
+    ],
+    "read_hints": [
+      "changes/PROTOCOL-MACHINE-001/state.md（D1-D12 + R1/R2 唯一规格；D1 ②定义四台对象机，D7 三条执法）",
+      "docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md（P1-P26 语义权威 + title_anchor 来源；§2/§7.2）",
+      "schemas/workspace/*.json（$id 清单——wire 边 payload_ref 目标）",
+      "src/UniClaw.Kernel/Effects/TargetBinding.cs（binding/judgment 状态事实）、src/UniClaw.Kernel/Effects/EffectDispatch.cs（attempt 状态）、src/UniClaw.Kernel/Run/RunModel.cs（contract view：admitted/activated/frozen + Deferred ⑰ 悬挂）",
+      "tools/gen-protocol-machine.py 既有实现（Slice 1；扩展不重写）"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "四台对象机照 D1 ②：binding candidate→canonical→consumed/derived-invalid（+rejected 出口）；judgment 冻结语义；attempt CommittedPending→Dispatched→Completed/UnknownOutcome；contract-view admitted→activated/frozen，admitted 悬挂（Deferred ⑰，R1 修正后唯一预期悬挂）。边登记全量：P1-P26 逐条（placeholder 边如 P19-P21 标 status: track）、O 系 wire 边（O1 task-launch 等，payload_ref type: schema 指向 schemas/workspace $id）、G 系缺边（kind: gap，如 D5 观察指向）。",
+    "core_points": [
+      "D7 归属执法三件：①schemas/workspace 每个 $id 被 ≥1 条边引用（无主 = RED）②payload_ref 可解析（record 反射 / schema 文件存在且 $id 匹配）③from/to 出自封闭组件词汇",
+      "D11：kind: edge|gap 判别符，gap 不进转移合法性只进渲染审计；status 封闭 keep|fix|track；fix_ref 必须解析到存在的 change id",
+      "D9 分栏同样适用于对象机：状态是节点，拒绝原因/观察是边属性",
+      "对象机转移同样遵守 D10 环二分（如有环）",
+      "每台机 initial/terminal 声明齐备——Slice 3 图审计的输入"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Kernel/Effects/TargetBinding.cs"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/EffectDispatch.cs"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/RunModel.cs",
+      "symbol": "ExecutionContractView 生命周期"
+    }
+  ],
+  "contract_refs": [
+    "changes/PROTOCOL-MACHINE-001/state.md（D1-D12 + R1/R2）"
+  ],
+  "acceptance": [
+    "A1 object_machines 四台就位：节点/转移/initial/terminal 声明齐备，状态集与代码事实一致（binding 含 rejected 出口、attempt 含 UnknownOutcome、contract-view 含 frozen）",
+    "A2 边登记全量：P1-P26 逐条登记（无遗漏——以基线标题锚枚举为准）；O 系 wire 边覆盖 schemas/workspace 现有 $id 的真实生产/消费对；G 系至少登记 D5 观察指向；前奏步骤（任务定义/发起/Instance/Session/契约 authoring）以 O/G 条目进表",
+    "A3 归属执法三件全绿并带负向自证：①无主 schema RED（临时注释一条边引用 → 测试失败）②悬空 ref RED（record 反射失败路径/schema $id 不匹配路径）③组件词汇封闭（未声明组件名 → 元校验退出非零）",
+    "A4 元校验扩展：object 机形状校验、fix_ref 解析到存在的 changes/<id>/state.md 或 ADR 文件、gap 不携带转移表形状",
+    "A5 dotnet build 0 错误；dotnet test tests/UniClaw.Kernel.Tests 全量绿（当前基线 877）；python3 tools/gen-protocol-machine.py --check 退出 0",
+    "A6 state.md 更新 status log（worker=glm-5.3-flash）+ verification 四元组填实；生成产物确定性保持（两次生成字节一致）"
+  ],
+  "forbidden": [
+    "不做图算法审计（Slice 3：可达性/悬挂/终止性/断锚解析）",
+    "不做文档 fragment/STEPS/每域卡片（Slice 4）",
+    "不改 C# 生产代码（本切片仍只产 YAML/python/测试；白名单预期无新增）",
+    "不复制基线语义正文（D5 只引用）；不改基线/ADR",
+    "不 git commit/push；越界需求停下报告 BLOCKED"
+  ],
+  "frozen_decisions": [
+    "changes/PROTOCOL-MACHINE-001/state.md D1-D12 + R1/R2"
+  ],
+  "status": "done",
+  "required_capability": "implementation"
+}

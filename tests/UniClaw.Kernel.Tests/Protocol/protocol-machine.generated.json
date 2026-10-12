@@ -1,6 +1,207 @@
 {
   "edges": [
     {
+      "from": "control-loop",
+      "id": "G1",
+      "kind": "gap",
+      "payloadRef": null,
+      "status": "track",
+      "titleAnchor": "观察致动（无编号边 · 审计 D5；交互模型步骤 3）",
+      "to": "capability-plane"
+    },
+    {
+      "from": "user-session",
+      "id": "G2",
+      "kind": "gap",
+      "payloadRef": null,
+      "status": "track",
+      "titleAnchor": "任务定义（交互模型前奏 0a：Task Catalog，无编号边）",
+      "to": "uni-kernel"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "G3",
+      "kind": "gap",
+      "payloadRef": null,
+      "status": "track",
+      "titleAnchor": "Task Instance 创建（交互模型前奏 0c：Runtime 铸造，无独立协议边）",
+      "to": "uni-kernel"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "G4",
+      "kind": "gap",
+      "payloadRef": null,
+      "status": "track",
+      "titleAnchor": "Product Session 分配（交互模型前奏 0d：Runtime 铸造 + 显式 Binding，无编号边）",
+      "to": "uni-kernel"
+    },
+    {
+      "from": "uni-agent",
+      "id": "G5",
+      "kind": "gap",
+      "payloadRef": null,
+      "status": "track",
+      "titleAnchor": "契约 Authoring（交互模型前奏 0e：UniAgent 形成，P1 上游，无编号边）",
+      "to": "run-model"
+    },
+    {
+      "from": "user-session",
+      "id": "O1",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/task-launch-request/v1",
+        "type": "schema"
+      },
+      "status": "track",
+      "titleAnchor": "O1 · task-launch-request（调用方 → Runtime HTTP；交互模型前奏 0b）",
+      "to": "uni-kernel"
+    },
+    {
+      "from": "user-session",
+      "id": "O10",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/capability/v1",
+        "type": "schema"
+      },
+      "status": "keep",
+      "titleAnchor": "O10 · capability（五类只读 capability 请求/响应公共封套）",
+      "to": "uni-kernel"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "O11",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/query-error/v1",
+        "type": "schema"
+      },
+      "status": "keep",
+      "titleAnchor": "O11 · query-error（结构化查询错误，不返回裸字符串）",
+      "to": "user-session"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "O12",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/record-envelope/v1",
+        "type": "schema"
+      },
+      "status": "keep",
+      "titleAnchor": "O12 · record-envelope（跨来源记录公共封套）",
+      "to": "user-session"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "O13",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/local-storage-namespace/v1",
+        "type": "schema"
+      },
+      "status": "keep",
+      "titleAnchor": "O13 · local-storage-namespace（不透明逻辑 namespace 引用）",
+      "to": "user-session"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "O2",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/task-launch-ack/v1",
+        "type": "schema"
+      },
+      "status": "track",
+      "titleAnchor": "O2 · task-launch-ack（Runtime 铸造；交互模型前奏 0b/0c）",
+      "to": "user-session"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "O3",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/launch-stage-record/v1",
+        "type": "schema"
+      },
+      "status": "track",
+      "titleAnchor": "O3 · launch-stage-record（阶段记录：valueOrigin + availability 分离）",
+      "to": "user-session"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "O4",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/runtime-run-event/v1",
+        "type": "schema"
+      },
+      "status": "keep",
+      "titleAnchor": "O4 · runtime-run-event（source-native 事件流：DSH / Kernel / 设备 / Runtime）",
+      "to": "user-session"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "O5",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/runtime-run-projection/v1",
+        "type": "schema"
+      },
+      "status": "keep",
+      "titleAnchor": "O5 · runtime-run-projection（Runtime Run 查询投影，唯一 authority：Runtime Host）",
+      "to": "user-session"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "O6",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/runtime-run-response/v1",
+        "type": "schema"
+      },
+      "status": "keep",
+      "titleAnchor": "O6 · runtime-run-response（单 Run 查询响应）",
+      "to": "user-session"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "O7",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/runtime-run-events-response/v1",
+        "type": "schema"
+      },
+      "status": "keep",
+      "titleAnchor": "O7 · runtime-run-events-response（事件列表响应，nextCursor 分页）",
+      "to": "user-session"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "O8",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/runtime-run-list-response/v1",
+        "type": "schema"
+      },
+      "status": "keep",
+      "titleAnchor": "O8 · runtime-run-list-response（Run 列表摘要投影）",
+      "to": "user-session"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "O9",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "https://uniclaw.dev/schemas/workspace/run-report/v1",
+        "type": "schema"
+      },
+      "status": "keep",
+      "titleAnchor": "O9 · run-report（全链路单 run 报告只读投影，PNL-006）",
+      "to": "user-session"
+    },
+    {
       "from": "uni-agent",
       "id": "P1",
       "kind": "edge",
@@ -11,6 +212,54 @@
       "status": "keep",
       "titleAnchor": "### P1 Execution Contract Admission（UniAgent → Run Model）",
       "to": "run-model"
+    },
+    {
+      "from": "effect-boundary",
+      "id": "P10",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Effects.CanonicalBinding",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P10 Canonical Binding（Effect Boundary → Assurance）",
+      "to": "assurance"
+    },
+    {
+      "from": "world-model",
+      "id": "P11",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.World.ActionAssuranceView",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P11 Current WorldBelief View（World Model → Assurance / Effect Boundary）",
+      "to": "assurance"
+    },
+    {
+      "from": "evidence-ledger",
+      "id": "P12",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Evidence.EvidenceRecord",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P12 Canonical Records Lookup（Evidence Ledger → Assurance）",
+      "to": "assurance"
+    },
+    {
+      "from": "assurance",
+      "id": "P13",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Assurance.AssuranceJudgment",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P13 Assurance Judgment（Assurance → Effect Boundary）",
+      "to": "effect-boundary"
     },
     {
       "from": "effect-boundary",
@@ -49,6 +298,18 @@
       "to": "run-model"
     },
     {
+      "from": "run-model",
+      "id": "P17",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Run.OutcomeState",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P17 Terminal Outcome State（Run Model → Uni Kernel）",
+      "to": "uni-kernel"
+    },
+    {
       "from": "uni-kernel",
       "id": "P18",
       "kind": "edge",
@@ -59,6 +320,69 @@
       "status": "keep",
       "titleAnchor": "### P18 Runtime Outcome（Uni Kernel → UniAgent）",
       "to": "uni-agent"
+    },
+    {
+      "from": "uni-agent",
+      "id": "P19",
+      "kind": "edge",
+      "payloadRef": null,
+      "status": "track",
+      "titleAnchor": "### P19 Goal Evaluation（UniAgent → user/session，未来）",
+      "to": "user-session"
+    },
+    {
+      "from": "capability-plane",
+      "id": "P2",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Evidence.ObservationProposal",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P2 Observation Ingress（观察生产者 → Evidence Ledger）",
+      "to": "evidence-ledger"
+    },
+    {
+      "from": "uni-agent",
+      "id": "P20",
+      "kind": "edge",
+      "payloadRef": null,
+      "status": "track",
+      "titleAnchor": "### P20 Memory Persist（placeholder，→ Memory System）",
+      "to": "memory-system"
+    },
+    {
+      "from": "memory-system",
+      "id": "P21",
+      "kind": "edge",
+      "payloadRef": null,
+      "status": "track",
+      "titleAnchor": "### P21 Memory Recall（placeholder，Memory System → Agent / Control / World Model）",
+      "to": "control-loop"
+    },
+    {
+      "from": "effect-boundary",
+      "id": "P22",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.World.TransitionContext",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P22 Runtime Transition Context（Runtime Effect Flow → World Model）",
+      "to": "world-model"
+    },
+    {
+      "from": "effect-boundary",
+      "id": "P23",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.World.UiRealization.CurrentGroundingView",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P23 Continuity Request Seam（Effect / Obligation path ↔ World Model）",
+      "to": "world-model"
     },
     {
       "from": "uni-agent",
@@ -83,13 +407,335 @@
       "status": "keep",
       "titleAnchor": "#### P25 Agent Decision Consultation（Uni Kernel internal driver → UniAgent realization，外部 seam）",
       "to": "uni-agent"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "P26",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Trace.RunTraceArtifact",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "#### P26 Sealed Trace → ScenarioStimulus（测试 / 治理侧，非产品内边）",
+      "to": "simulation-host"
+    },
+    {
+      "from": "evidence-ledger",
+      "id": "P3",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Evidence.EvidenceRecord",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P3 Accepted Evidence Record（Evidence Ledger → World Model）",
+      "to": "world-model"
+    },
+    {
+      "from": "world-model",
+      "id": "P4",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.World.Slice",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P4 Slice（World Model → Control Loop）",
+      "to": "control-loop"
+    },
+    {
+      "from": "run-model",
+      "id": "P5",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Run.RunState",
+        "type": "record"
+      },
+      "status": "track",
+      "titleAnchor": "### P5 Run Snapshot（Run Model → Control Loop）",
+      "to": "control-loop"
+    },
+    {
+      "from": "run-model",
+      "id": "P6",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Run.ExecutionContractView",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P6 Execution Contract View（Run Model → Control Loop / Assurance）",
+      "to": "control-loop"
+    },
+    {
+      "from": "run-model",
+      "id": "P7",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Run.ProofObligationState",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P7 Obligation View（Run Model → Assurance）",
+      "to": "assurance"
+    },
+    {
+      "from": "control-loop",
+      "id": "P8",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Control.ControlIntent",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P8 Control Intent（Control Loop → Assurance / Effect Boundary）",
+      "to": "assurance"
+    },
+    {
+      "from": "capability-plane",
+      "id": "P9",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Effects.CandidateBinding",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P9 Candidate Binding（Grounding Provider → Effect Boundary）",
+      "to": "effect-boundary"
     }
   ],
   "machines": {
+    "attempt": {
+      "absorbing": [
+        "completed",
+        "failed",
+        "unknown-outcome"
+      ],
+      "hangWhitelist": [],
+      "initial": "committed-pending",
+      "nodes": [
+        "committed-pending",
+        "completed",
+        "dispatched",
+        "failed",
+        "unknown-outcome"
+      ],
+      "terminalNodes": [
+        "completed",
+        "failed",
+        "unknown-outcome"
+      ],
+      "transitions": [
+        {
+          "await": null,
+          "emits": [],
+          "from": "committed-pending",
+          "guard": "EB lowering 产出 DeliveryTarget（locator 唯一载体）；capability 对授权态零感知",
+          "id": "A-T01",
+          "measure": null,
+          "to": "dispatched",
+          "trigger": {
+            "edge": "P14",
+            "event": "dispatch-sent"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "dispatched",
+          "guard": "outcome = DeliveryCompleted——下游确认投递（≠ Effect ≠ Verified Effect，不变量 33/34）",
+          "id": "A-T02",
+          "measure": null,
+          "to": "completed",
+          "trigger": {
+            "edge": "P15",
+            "event": "delivery-completed"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "dispatched",
+          "guard": "outcome = DeliveryFailed——下游确定拒绝 / 传输确定否定，effect 未送达",
+          "id": "A-T03",
+          "measure": null,
+          "to": "failed",
+          "trigger": {
+            "edge": "P15",
+            "event": "delivery-failed"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "dispatched",
+          "guard": "outcome = UnknownOutcome——effect 可能已发生；唯一合法后继 = re-observe，NEVER blind redispatch（DSE-001 invariant）",
+          "id": "A-T04",
+          "measure": null,
+          "to": "unknown-outcome",
+          "trigger": {
+            "edge": "P15",
+            "event": "outcome-unknown"
+          }
+        }
+      ]
+    },
+    "binding": {
+      "absorbing": [
+        "consumed",
+        "derived-invalid",
+        "rejected"
+      ],
+      "hangWhitelist": [],
+      "initial": "candidate",
+      "nodes": [
+        "candidate",
+        "canonical",
+        "consumed",
+        "derived-invalid",
+        "rejected"
+      ],
+      "terminalNodes": [
+        "consumed",
+        "derived-invalid",
+        "rejected"
+      ],
+      "transitions": [
+        {
+          "await": null,
+          "emits": [],
+          "from": "candidate",
+          "guard": "revision current ∧ 无歧义 ∧ target 存在于 current WorldBelief（否则走 B-T02；不变量 24：candidate 无 dispatch 权威）",
+          "id": "B-T01",
+          "measure": null,
+          "to": "canonical",
+          "trigger": {
+            "edge": "P10",
+            "event": "binding-canonicalized"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "candidate",
+          "guard": "认定拒绝（BindingDecision.RejectionReason）；短路于 Judge 之前——无 CanonicalBinding、无 AssuranceJudgment（P9 Absence）",
+          "id": "B-T02",
+          "measure": null,
+          "to": "rejected",
+          "trigger": {
+            "edge": null,
+            "event": "binding-rejected"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "canonical",
+          "guard": "judgment（P13）通过 ∧ Gate 允许；同 binding 单次消费（P10 Forbidden：dispatch 后不得二次 dispatch）",
+          "id": "B-T03",
+          "measure": null,
+          "to": "consumed",
+          "trigger": {
+            "edge": "P14",
+            "event": "dispatch-issued"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "canonical",
+          "guard": "派生失效——依据 revision 不再 current（validity ≠ authorization，P10 Validity）",
+          "id": "B-T04",
+          "measure": null,
+          "to": "derived-invalid",
+          "trigger": {
+            "edge": null,
+            "event": "revision-superseded"
+          }
+        }
+      ]
+    },
+    "contract-view": {
+      "absorbing": [
+        "frozen"
+      ],
+      "hangWhitelist": [
+        "admitted"
+      ],
+      "initial": "admitted",
+      "nodes": [
+        "activated",
+        "admitted",
+        "frozen"
+      ],
+      "terminalNodes": [
+        "frozen"
+      ],
+      "transitions": [
+        {
+          "await": null,
+          "emits": [],
+          "from": "activated",
+          "guard": "terminal Outcome State 已记录（P17）→ View 冻结：immutable，late evidence / receipt 不得改写",
+          "id": "CV-T01",
+          "measure": null,
+          "to": "frozen",
+          "trigger": {
+            "edge": null,
+            "event": "run-terminal-freeze"
+          }
+        }
+      ]
+    },
+    "judgment": {
+      "absorbing": [
+        "consumed"
+      ],
+      "hangWhitelist": [],
+      "initial": "pending",
+      "nodes": [
+        "consumed",
+        "issued",
+        "pending"
+      ],
+      "terminalNodes": [
+        "consumed"
+      ],
+      "transitions": [
+        {
+          "await": null,
+          "emits": [],
+          "from": "pending",
+          "guard": "针对三元组 (IntentId + BindingId + RevisionId)；immutable（冻结语义）——issued 后不可改写",
+          "id": "J-T01",
+          "measure": null,
+          "to": "issued",
+          "trigger": {
+            "edge": "P13",
+            "event": "assurance-judgment-issued"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "issued",
+          "guard": "Gate 只执法不重判（不变量 26）；三元组任一成员或 freshness 改变 → 本判定不可复用，须重新 P13",
+          "id": "J-T02",
+          "measure": null,
+          "to": "consumed",
+          "trigger": {
+            "edge": null,
+            "event": "judgment-consumed"
+          }
+        }
+      ]
+    },
     "run": {
       "absorbing": [
         "closed"
       ],
+      "hangWhitelist": [],
       "initial": "created",
       "nodes": [
         "acting",

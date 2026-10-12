@@ -1,0 +1,58 @@
+{
+  "id": "WI-PM001-003",
+  "objective": "PROTOCOL-MACHINE-001 Slice 3：图算法审计落地——可达性（DFS）、每机悬挂白名单精确匹配、终止性（进展环良基测度/静默环白名单二分审计）、断锚解析（title_anchor 对基线 + fix_ref 对 change/ADR），全部进 gen-protocol-machine.py --check 并带负向自证。",
+  "scope": {
+    "write": [
+      "tools/gen-protocol-machine.py（图审计子命令/阶段扩展）",
+      "schemas/protocol/state-machine.yaml（仅当审计发现真缺陷时的最小修正——语义修正必须 --change 重生成）",
+      "tests/UniClaw.Kernel.Tests/Protocol/**（仅当需要 C# 侧钉扎；预期 python 侧为主）",
+      "changes/PROTOCOL-MACHINE-001/state.md（status log + verification）"
+    ],
+    "read_hints": [
+      "changes/PROTOCOL-MACHINE-001/state.md（D10 环二分、D12、A4 修订版、R1 悬挂归属）",
+      "schemas/protocol/state-machine.yaml（5 机/28 转移/44 边现状）",
+      "docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md（title_anchor 解析目标）"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "--check 从「新鲜度」升级为「新鲜度+图审计」：①可达性——每机从 initial DFS，不可达节点 = RED；②悬挂——出度 0 且非 terminal = RED，白名单每机精确匹配：run={}、contract-view={admitted}（Deferred ⑰，R1 修正后唯一）、binding/judgment/attempt={}；③终止性——进展环必须携带 measure 且测度词汇封闭，await:external 环白名单放行但不得携带 measure（伪装进展 = RED）；④断锚——每条 title_anchor 在基线文件中逐字存在、fix_ref 解析到 changes/<id>/state.md 或 docs/adr/ 文件，断链 = RED。",
+    "core_points": [
+      "审计输出可读：悬挂清单/环分类/测度标注自动产出（A4 要求的机械产出物）",
+      "负向自证：造一个不可达节点/一个无测度进展环/一个断锚 → 各自 RED 一次 → 还原恢复",
+      "确定性保持：--check 不写文件、无时间戳；审计是纯函数",
+      "发现 YAML 真缺陷（如漏测度标注）允许最小修正——语义 diff 走 --change PROTOCOL-MACHINE-001"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "tools/gen-protocol-machine.py"
+    },
+    {
+      "path": "schemas/protocol/state-machine.yaml",
+      "symbol": "hang_whitelist"
+    }
+  ],
+  "contract_refs": [
+    "changes/PROTOCOL-MACHINE-001/state.md（D10/D12/A4/R1）"
+  ],
+  "acceptance": [
+    "A1 可达性：每机全节点从 initial 可达（DFS 证明），不可达 = RED + 负向自证",
+    "A2 悬挂白名单精确匹配：run={} / contract-view={admitted} / 其余机={}；白名单外悬挂 = RED；白名单内条目实际悬挂缺席 = RED（白名单失真即抓）；负向自证双向",
+    "A3 终止性：进展环全带 measure（词汇封闭）且 await 环不带 measure；违规任一 = RED + 负向自证",
+    "A4 断锚解析：44 条边的 title_anchor 逐条在基线存在；fix_ref 全部解析；断链 = RED + 负向自证",
+    "A5 python3 tools/gen-protocol-machine.py --check 退出 0（全审计过）；dotnet test tests/UniClaw.Kernel.Tests 全量绿（当前基线 882）；dotnet build 0 错误",
+    "A6 审计产出物：--check 输出（或 --audit-report 模式落 evidence-friendly 文本）含悬挂清单、环分类表、测度标注汇总——A4 验收的机械产出留痕",
+    "A7 state.md 更新 status log（worker=glm-5.3-flash）+ verification 四元组填实"
+  ],
+  "forbidden": [
+    "不做文档 fragment/STEPS/每域卡片（Slice 4）",
+    "不改 C# 生产代码；不改基线/ADR",
+    "审计发现 YAML 缺陷只做最小语义修正并 --change 重生成；不做顺带重构",
+    "不 git commit/push；越界停下报告 BLOCKED"
+  ],
+  "frozen_decisions": [
+    "changes/PROTOCOL-MACHINE-001/state.md D1-D12 + R1/R2"
+  ],
+  "status": "done",
+  "required_capability": "implementation"
+}

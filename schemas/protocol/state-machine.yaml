@@ -193,6 +193,145 @@ machines:
         emits:
           - AgentDecisionFailed
 
+  # ---- D1②：对象生命周期机（Slice 2）----
+  # 状态 = 生命周期主干节点；拒绝原因 / 派生失效等是转移边属性（D9 分栏
+  # 同样适用于对象机），不设平行状态。
+  binding:
+    title: Target Binding 生命周期机（candidate → canonical → consumed / derived-invalid + rejected 出口；事实：Effects/TargetBinding.cs；P9/P10）
+    initial: candidate
+    terminal_nodes: [consumed, derived-invalid, rejected]
+    absorbing: [consumed, derived-invalid, rejected]
+    nodes:
+      - candidate
+      - canonical
+      - consumed
+      - derived-invalid
+      - rejected
+    transitions:
+      - id: B-T01
+        from: candidate
+        to: canonical
+        trigger:
+          edge: P10
+          event: binding-canonicalized
+        guard: revision current ∧ 无歧义 ∧ target 存在于 current WorldBelief（否则走 B-T02；不变量 24：candidate 无 dispatch 权威）
+        emits: []
+      - id: B-T02
+        from: candidate
+        to: rejected
+        trigger:
+          event: binding-rejected
+        # D9：拒绝原因是边属性，不是状态——NoCandidate / StaleRevision /
+        # Ambiguous / UnknownTarget（BindingRejectionReason 实证四态）。
+        guard: 认定拒绝（BindingDecision.RejectionReason）；短路于 Judge 之前——无 CanonicalBinding、无 AssuranceJudgment（P9 Absence）
+        emits: []
+      - id: B-T03
+        from: canonical
+        to: consumed
+        trigger:
+          edge: P14
+          event: dispatch-issued
+        guard: judgment（P13）通过 ∧ Gate 允许；同 binding 单次消费（P10 Forbidden：dispatch 后不得二次 dispatch）
+        emits: []
+      - id: B-T04
+        from: canonical
+        to: derived-invalid
+        trigger:
+          event: revision-superseded
+        # 派生失效无 event 无边（D8）：binding 依据 revision 不再 current
+        # 即失效，复用 Slice 模式。
+        guard: 派生失效——依据 revision 不再 current（validity ≠ authorization，P10 Validity）
+        emits: []
+  judgment:
+    title: Assurance Judgment 生命周期机（pending → issued → consumed；issued 后冻结——immutable、单 act 作用域；事实：Assurance/AssuranceJudgment.cs；P13）
+    initial: pending
+    terminal_nodes: [consumed]
+    absorbing: [consumed]
+    nodes:
+      - pending
+      - issued
+      - consumed
+    transitions:
+      - id: J-T01
+        from: pending
+        to: issued
+        trigger:
+          edge: P13
+          event: assurance-judgment-issued
+        guard: 针对三元组 (IntentId + BindingId + RevisionId)；immutable（冻结语义）——issued 后不可改写
+        emits: []
+      - id: J-T02
+        from: issued
+        to: consumed
+        trigger:
+          event: judgment-consumed
+        guard: Gate 只执法不重判（不变量 26）；三元组任一成员或 freshness 改变 → 本判定不可复用，须重新 P13
+        emits: []
+  attempt:
+    title: Dispatch Attempt 生命周期机（CommittedPending → Dispatched → Completed / Failed / UnknownOutcome；三态 outcome 实证：DispatchOutcome；事实：Effects/EffectDispatch.cs；P14/P15）
+    initial: committed-pending
+    terminal_nodes: [completed, failed, unknown-outcome]
+    absorbing: [completed, failed, unknown-outcome]
+    nodes:
+      - committed-pending
+      - dispatched
+      - completed
+      - failed
+      - unknown-outcome
+    transitions:
+      - id: A-T01
+        from: committed-pending
+        to: dispatched
+        trigger:
+          edge: P14
+          event: dispatch-sent
+        guard: EB lowering 产出 DeliveryTarget（locator 唯一载体）；capability 对授权态零感知
+        emits: []
+      - id: A-T02
+        from: dispatched
+        to: completed
+        trigger:
+          edge: P15
+          event: delivery-completed
+        guard: outcome = DeliveryCompleted——下游确认投递（≠ Effect ≠ Verified Effect，不变量 33/34）
+        emits: []
+      - id: A-T03
+        from: dispatched
+        to: failed
+        trigger:
+          edge: P15
+          event: delivery-failed
+        guard: outcome = DeliveryFailed——下游确定拒绝 / 传输确定否定，effect 未送达
+        emits: []
+      - id: A-T04
+        from: dispatched
+        to: unknown-outcome
+        trigger:
+          edge: P15
+          event: outcome-unknown
+        guard: outcome = UnknownOutcome——effect 可能已发生；唯一合法后继 = re-observe，NEVER blind redispatch（DSE-001 invariant）
+        emits: []
+  contract-view:
+    title: Execution Contract View 生命周期机（admitted → activated / frozen；事实：Run/ExecutionContractView.cs + RunModel.AdmitContract；P6/P17）
+    initial: admitted
+    terminal_nodes: [frozen]
+    absorbing: [frozen]
+    # R1：admitted-never-activated 悬挂归属本机——activation seam Deferred ⑰
+    # 未闭合，v1 不画 admitted 出边；Slice 3 悬挂审计按本白名单放行。
+    hang_whitelist: [admitted]
+    nodes:
+      - admitted
+      - activated
+      - frozen
+    transitions:
+      - id: CV-T01
+        from: activated
+        to: frozen
+        trigger:
+          event: run-terminal-freeze
+        guard: terminal Outcome State 已记录（P17）→ View 冻结：immutable，late evidence / receipt 不得改写
+        emits: []
+
 # ---- 协议边登记（D11：kind/status 封闭词汇；id 命名空间 P##/O##/G##）----
 # Slice 1 只登记 run 机转移引用的边；object 机边（Slice 2）/ 图审计（Slice 3）
 # / 文档出口（Slice 4）不在本文件，缺sections 即缺席，不留 stub。
@@ -260,3 +399,328 @@ edges:
     payload_ref:
       type: record
       name: UniClaw.Kernel.Runtime.AgentDecision
+  - id: P2
+    kind: edge
+    status: keep
+    title_anchor: "### P2 Observation Ingress（观察生产者 → Evidence Ledger）"
+    from: capability-plane
+    to: evidence-ledger
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Evidence.ObservationProposal
+  - id: P3
+    kind: edge
+    status: keep
+    title_anchor: "### P3 Accepted Evidence Record（Evidence Ledger → World Model）"
+    from: evidence-ledger
+    to: world-model
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Evidence.EvidenceRecord
+  - id: P4
+    kind: edge
+    status: keep
+    title_anchor: "### P4 Slice（World Model → Control Loop）"
+    from: world-model
+    to: control-loop
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.World.Slice
+  - id: P5
+    kind: edge
+    status: track
+    title_anchor: "### P5 Run Snapshot（Run Model → Control Loop）"
+    from: run-model
+    to: control-loop
+    # deferred（no-current-buyer，EXP-008）：RunState 已退出 Control 签名，
+    # 边暂无真实 buyer——record 引用指向前聚合类型，buyer 出现再恢复。
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Run.RunState
+  - id: P6
+    kind: edge
+    status: keep
+    title_anchor: "### P6 Execution Contract View（Run Model → Control Loop / Assurance）"
+    from: run-model
+    to: control-loop
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Run.ExecutionContractView
+  - id: P7
+    kind: edge
+    status: keep
+    title_anchor: "### P7 Obligation View（Run Model → Assurance）"
+    from: run-model
+    to: assurance
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Run.ProofObligationState
+  - id: P8
+    kind: edge
+    status: keep
+    title_anchor: "### P8 Control Intent（Control Loop → Assurance / Effect Boundary）"
+    from: control-loop
+    to: assurance
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Control.ControlIntent
+  - id: P9
+    kind: edge
+    status: keep
+    title_anchor: "### P9 Candidate Binding（Grounding Provider → Effect Boundary）"
+    from: capability-plane
+    to: effect-boundary
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Effects.CandidateBinding
+  - id: P10
+    kind: edge
+    status: keep
+    title_anchor: "### P10 Canonical Binding（Effect Boundary → Assurance）"
+    from: effect-boundary
+    to: assurance
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Effects.CanonicalBinding
+  - id: P11
+    kind: edge
+    status: keep
+    title_anchor: "### P11 Current WorldBelief View（World Model → Assurance / Effect Boundary）"
+    from: world-model
+    to: assurance
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.World.ActionAssuranceView
+  - id: P12
+    kind: edge
+    status: keep
+    title_anchor: "### P12 Canonical Records Lookup（Evidence Ledger → Assurance）"
+    from: evidence-ledger
+    to: assurance
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Evidence.EvidenceRecord
+  - id: P13
+    kind: edge
+    status: keep
+    title_anchor: "### P13 Assurance Judgment（Assurance → Effect Boundary）"
+    from: assurance
+    to: effect-boundary
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Assurance.AssuranceJudgment
+  - id: P17
+    kind: edge
+    status: keep
+    title_anchor: "### P17 Terminal Outcome State（Run Model → Uni Kernel）"
+    from: run-model
+    to: uni-kernel
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Run.OutcomeState
+  - id: P19
+    kind: edge
+    status: track
+    title_anchor: "### P19 Goal Evaluation（UniAgent → user/session，未来）"
+    from: uni-agent
+    to: user-session
+    # consumer 面为未来占位；realization（UniClaw.Agent.Evaluation）在 Kernel
+    # 测试面之外——payload_ref 待跨组件 buyer 出现再登记。
+  - id: P20
+    kind: edge
+    status: track
+    title_anchor: "### P20 Memory Persist（placeholder，→ Memory System）"
+    from: uni-agent
+    to: memory-system
+    # placeholder（Deferred ⑩）：may-persist 对象清单与载荷形状未定。
+  - id: P21
+    kind: edge
+    status: track
+    title_anchor: "### P21 Memory Recall（placeholder，Memory System → Agent / Control / World Model）"
+    from: memory-system
+    to: control-loop
+    # placeholder（Deferred ⑩）：non-evidentiary 约束在基线，载荷未定。
+  - id: P22
+    kind: edge
+    status: keep
+    title_anchor: "### P22 Runtime Transition Context（Runtime Effect Flow → World Model）"
+    from: effect-boundary
+    to: world-model
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.World.TransitionContext
+  - id: P23
+    kind: edge
+    status: keep
+    title_anchor: "### P23 Continuity Request Seam（Effect / Obligation path ↔ World Model）"
+    from: effect-boundary
+    to: world-model
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.World.UiRealization.CurrentGroundingView
+  - id: P26
+    kind: edge
+    status: keep
+    title_anchor: "#### P26 Sealed Trace → ScenarioStimulus（测试 / 治理侧，非产品内边）"
+    from: uni-kernel
+    to: simulation-host
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Trace.RunTraceArtifact
+  # ---- O 系：wire·宿主边（schemas/workspace $id 为双方契约；D5/D7）----
+  - id: O1
+    kind: edge
+    status: track
+    title_anchor: "O1 · task-launch-request（调用方 → Runtime HTTP；交互模型前奏 0b）"
+    from: user-session
+    to: uni-kernel
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/task-launch-request/v1
+  - id: O2
+    kind: edge
+    status: track
+    title_anchor: "O2 · task-launch-ack（Runtime 铸造；交互模型前奏 0b/0c）"
+    from: uni-kernel
+    to: user-session
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/task-launch-ack/v1
+  - id: O3
+    kind: edge
+    status: track
+    title_anchor: "O3 · launch-stage-record（阶段记录：valueOrigin + availability 分离）"
+    from: uni-kernel
+    to: user-session
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/launch-stage-record/v1
+  - id: O4
+    kind: edge
+    status: keep
+    title_anchor: "O4 · runtime-run-event（source-native 事件流：DSH / Kernel / 设备 / Runtime）"
+    from: uni-kernel
+    to: user-session
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/runtime-run-event/v1
+  - id: O5
+    kind: edge
+    status: keep
+    title_anchor: "O5 · runtime-run-projection（Runtime Run 查询投影，唯一 authority：Runtime Host）"
+    from: uni-kernel
+    to: user-session
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/runtime-run-projection/v1
+  - id: O6
+    kind: edge
+    status: keep
+    title_anchor: "O6 · runtime-run-response（单 Run 查询响应）"
+    from: uni-kernel
+    to: user-session
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/runtime-run-response/v1
+  - id: O7
+    kind: edge
+    status: keep
+    title_anchor: "O7 · runtime-run-events-response（事件列表响应，nextCursor 分页）"
+    from: uni-kernel
+    to: user-session
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/runtime-run-events-response/v1
+  - id: O8
+    kind: edge
+    status: keep
+    title_anchor: "O8 · runtime-run-list-response（Run 列表摘要投影）"
+    from: uni-kernel
+    to: user-session
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/runtime-run-list-response/v1
+  - id: O9
+    kind: edge
+    status: keep
+    title_anchor: "O9 · run-report（全链路单 run 报告只读投影，PNL-006）"
+    from: uni-kernel
+    to: user-session
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/run-report/v1
+  - id: O10
+    kind: edge
+    status: keep
+    title_anchor: "O10 · capability（五类只读 capability 请求/响应公共封套）"
+    from: user-session
+    to: uni-kernel
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/capability/v1
+  - id: O11
+    kind: edge
+    status: keep
+    title_anchor: "O11 · query-error（结构化查询错误，不返回裸字符串）"
+    from: uni-kernel
+    to: user-session
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/query-error/v1
+  - id: O12
+    kind: edge
+    status: keep
+    title_anchor: "O12 · record-envelope（跨来源记录公共封套）"
+    from: uni-kernel
+    to: user-session
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/record-envelope/v1
+  - id: O13
+    kind: edge
+    status: keep
+    title_anchor: "O13 · local-storage-namespace（不透明逻辑 namespace 引用）"
+    from: uni-kernel
+    to: user-session
+    payload_ref:
+      type: schema
+      name: https://uniclaw.dev/schemas/workspace/local-storage-namespace/v1
+  # ---- G 系：known gap = 缺边的显式登记（只进渲染与审计，永不进转移合法性）----
+  - id: G1
+    kind: gap
+    status: track
+    title_anchor: "观察致动（无编号边 · 审计 D5；交互模型步骤 3）"
+    from: control-loop
+    to: capability-plane
+    # 协议图只建模认知回流（P2），未建模感知指向本身：何时 / 以何 scope
+    # 观察目前藏在 driver realization 里；观察指令边等感知策略 buyer。
+  - id: G2
+    kind: gap
+    status: track
+    title_anchor: "任务定义（交互模型前奏 0a：Task Catalog，无编号边）"
+    from: user-session
+    to: uni-kernel
+    # Host 侧任务模板目录（ADR-0032），Workspace 只读投影；无跨组件协议边。
+  - id: G3
+    kind: gap
+    status: track
+    title_anchor: "Task Instance 创建（交互模型前奏 0c：Runtime 铸造，无独立协议边）"
+    from: uni-kernel
+    to: uni-kernel
+    # known gap：HTTP 创建路径把 Session/Run/Contract admission 混在一个
+    # 阶段；目标态 Task → Instance → Session 三阶段可观察（ARCH-ALIGN-001）。
+  - id: G4
+    kind: gap
+    status: track
+    title_anchor: "Product Session 分配（交互模型前奏 0d：Runtime 铸造 + 显式 Binding，无编号边）"
+    from: uni-kernel
+    to: uni-kernel
+    # productSessionId 关联根 + Task Launch Binding；当前随 O1/O2 同阶段实现。
+  - id: G5
+    kind: gap
+    status: track
+    title_anchor: "契约 Authoring（交互模型前奏 0e：UniAgent 形成，P1 上游，无编号边）"
+    from: uni-agent
+    to: run-model
+    # known deviation：真实 UniAgent authoring 未接线（Goal→Contract
+    # derivation = Deferred ⑫），当前 HostRunner 代演。

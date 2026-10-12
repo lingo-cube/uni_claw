@@ -98,8 +98,8 @@ verification:
   level: DETERMINISTIC
   method: "生成器幂等运行 + 对齐审计表 + 转移合法性/漂移检测测试（运行待网络）+ 图算法检查脚本"
   expected: "A1-A7 全过；每机悬挂白名单精确匹配：run={}; contract-view={admitted}（Deferred ⑰）"
-  actual: "Slice 1 完成：YAML 就位（run 机 10 节点 / 17 转移 / 7 边；WaitingForInput=observing 自环 await: external；进展环 measure 齐）；生成出口 b 幂等可复现；C# 牙三件就位含负向自证；验证四元组全绿。三机全量对齐审计 / 图检查 / STEPS / 卡片属 Slice 2-4。"
-  evidence: "① dotnet build UniClaw.Kernel.slnx → 0 错误；② dotnet test tests/UniClaw.Kernel.Tests → 877 通过 / 0 失败（基线 872 + 新增 5 ProtocolMachineTests）；③ python3 tools/gen-protocol-machine.py --check → 退出 0；④ 负向自证：手改 generated.json 后 --check 退出 1、无 --change 写手退出 1、--change 重写后恢复退出 0。"
+  actual: "Slice 3 完成：--check 升级为「新鲜度+图审计」，审计为纯函数（不写文件、无时间戳）。①可达性 DFS：每机从 initial（∪ hang_whitelist 接缝入口）出发，白名单为空的机不可达 = RED；非空白名单机 = seam-pending，不可达下游进报告待接缝闭合（语义裁决见 R3）。②悬挂白名单每机精确匹配：期望表 run={} / binding={} / judgment={} / attempt={} / contract-view={admitted}（Deferred ⑰ 唯一），声明≠期望 = RED、白名单条目实际不悬挂（失真）= RED、白名单外悬挂 = RED，双向执法。③终止性环二分（D10）：初等环全枚举，进展环必带测度（词汇封闭）否则 RED；await:external 静默环携测度（伪装进展）= RED。run 机实证 5 进展环（defer-rounds/steps/rounds/cap-remaining×2）+ 1 静默环（R-T10）。④断锚按命名空间分流：P## 逐字 grep 协议基线（26/26）、G## 逐字/锚头命中交互模型 HTML（5/5）、O## 锚头 slug 逐字等于 payload schema $id（D5/D7：wire 边 canonical 锚=双方契约）——发现 O1/O2/O10 三条 YAML 锚漂移，最小修正为 $id 逐字形并 --change 重生成。--audit-report 产出 evidence-friendly 审计报告（锚解析汇总/每机可达性/悬挂清单/环分类表/测度标注汇总）。Slice 1+2 完成项不重复；Slice 4 未动。"
+  evidence: "① python3 tools/gen-protocol-machine.py --check → 退出 0（5 机/28 转移/44 边，全审计过）；② --audit-report：anchors 44/44、run 机 reachability 10/10、环分类 5 progress + 1 silent 全部带测度标注；③ 负向自证五条各 RED 一次（exit 1）并还原恢复（YAML 字节一致、--check 恢复 0）：不可达非悬挂节点 ghost → 'unreachable nodes from initial (DFS): [ghost]'；删 contract-view 白名单 → admitted 白名单外悬挂 RED；白名单加 activated → 精确匹配失配 + '白名单失真 [activated]' 双 FAIL；删 R-T09 measure:rounds → 'progress cycle without a well-founded measure: R-T04/R-T05/R-T07/R-T09'；改 P1 锚 → 'title_anchor does not resolve in inter-component-protocol-baseline-l1-l3.md'；④ dotnet build UniClaw.Kernel.slnx → 0 错误；⑤ dotnet test tests/UniClaw.Kernel.Tests → 882 通过 / 0 失败（基线保持）；⑥ 语义修正后 --change PROTOCOL-MACHINE-001 重生成 + 连续 --check 通过（产物无时间戳，两次生成字节一致）。"
 ```
 
 ## Status log
@@ -138,3 +138,43 @@ verification:
   上不应携带；移至 R-T09（verifying→observing 回环，评估不足继续循环），
   --change 重生成后全绿。RunDriveStatus 13 成员（WorkItem 误书 15）按
   实证钉扎。Slice 1 验收闭合。
+- 2026-10-12 · IMPLEMENT Slice 2（worker=glm-5.3-flash） · object_machines 四台
+  + 边登记全量 + 归属执法三件：YAML 增 binding/judgment/attempt/contract-view
+  四台（D9 分栏——拒绝原因/派生失效是边属性不设状态；contract-view 悬挂
+  admitted 按 R1 入 hang_whitelist）；edges 7→44（P1-P26 逐条按基线标题锚、
+  placeholder 边 P5/P19/P21 标 track、O1-O13 payload_ref type: schema 直指
+  schemas/workspace 全部 $id、G1-G5 缺边含 D5 观察指向）；生成器元校验扩展
+  （D7 ①无主 schema RED ②schema $id 可解析/record 形状 ③词汇封闭已有 +
+  object 机形状：terminal_nodes 必填/吸收态无出边/非白名单节点必须有出路 +
+  fix_ref 解析到 changes/<id>/state.md 或 ADR + gap 不进转移合法性）；C# 牙③
+  改造为 record|schema 双类解析（纯函数化，负向自证内存变异不动磁盘产物）
+  + 牙④三件（object 机形状/code facts 钉扎/gap 纪律）。裁决记录：P26 组件
+  词汇新增 simulation-host（测试/治理侧，非产品内边）；P19-P21 realization
+  在 Kernel 测试面之外或 Deferred ⑩，payload_ref 缺席仅允许 status: track。
+- 2026-10-12 · IMPLEMENT Slice 3（worker=glm-5.3-flash） · 图审计落地：--check
+  升级为「新鲜度+图审计」，新增 --audit-report（evidence-friendly 报告：锚
+  解析汇总/每机可达性/悬挂清单/环分类表/测度标注汇总）。审计器四件：①可达
+  DFS（roots = initial ∪ hang_whitelist 接缝入口；空白名单机不可达 = RED，
+  非空白名单机 seam-pending 只报告）；②悬挂白名单每机精确匹配（期望表内置
+  生成器：run/binding/judgment/attempt={}、contract-view={admitted}；声明≠
+  期望 / 白名单失真（条目不悬挂）/ 白名单外悬挂三向 RED）；③终止性初等环
+  全枚举二分（进展环无测度 = RED、静默环携测度 = 伪装进展 RED；run 机实证
+  5 progress + 1 silent）；④断锚按命名空间分流：P## 基线逐字、G## HTML
+  逐字/锚头、O## 锚头 slug == payload schema $id。YAML 缺陷修正两处语义：
+  R3 可达性 seam-pending 裁决（contract-view 的 activated/frozen 因 Deferred
+  ⑰ 接缝未闭合而结构性不可达——严 DFS 与悬挂白名单互斥，裁决空白名单机
+  严执法、非空白名单机报告不 RED，提请 Leader 复核）；O1/O2/O10 锚漂移
+  最小修正（'task-launch wire'→'task-launch-request'、'task-launch ack /
+  Runtime 铸造'→'task-launch-ack'、'capability envelope'→'capability'），
+  --change 重生成。验证：--check 0；负向自证五条各 RED 后还原全恢复；
+  build 0 错误；dotnet test 882/882 绿。Slice 4 未动；未 commit。
+- 2026-10-12 · REVIEW→VERIFY（Leader，Slice 2+3） · 独立复核：882/882 全绿、
+  --check 图审计过（44 锚/悬挂白名单精确匹配/环二分）、13 schema↔13 引用
+  对拍、事故后完整性验尸通过（726 行/44 边/无残留）。裁决 R4（批准 worker
+  R3）：contract-view 不画 admitted→activated 出边——代码事实是
+  RunModel/ExecutionContractView 无 activated/frozen 状态跟踪（激活闩在
+  run 机 driver；P17 冻结由 record 不可变性执法），D1 ② 的 activated/frozen
+  属协议已声明、view 工件未实现；非空白名单机的 seam-pending 容忍合法，
+  审计报告持续可见，⑰ 闭合时收紧。D6 增补：O 系 wire 边 title_anchor =
+  payload schema $id 逐字形（双方契约即 canonical 锚）。A1 措辞按"与代码
+  事实一致"理解，contract-view 部分实现状态在审计报告可见。
