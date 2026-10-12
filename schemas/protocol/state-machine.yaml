@@ -1,0 +1,262 @@
+# PROTOCOL-MACHINE-001 — 协议状态机单源（Slice 1：Run 生命周期机全量）。
+#
+# 地位（D5）：本文件只承载结构——状态 / 转移 / 边挂载 / 良基测度标注；
+# 约束语义一律留在协议基线与 ADR，本文只按 D6 三类 ref 引用（基线标题锚 /
+# ADR 编号 / payload record 直指 C# 类型）。本文不是第二状态权威。
+#
+# D9 分栏：机器节点 = 生命周期主干；RunDriveStatus 枚举值只出现在转移边的
+# emits 栏，作为观察投影（枚举自注「观察聚合，不新增 canonical state」）。
+#
+# D10 环二分：进展环必须携带 measure ∈ {steps, rounds, defer-rounds,
+# cap-remaining}；合法等待外部的静默环必须标 await: external、不得携带
+# measure、不得伪装进展。WaitingForInput 不设节点（observing 自环表达）。
+#
+# 消费方式：手改本文件后必须运行
+#   python3 tools/gen-protocol-machine.py --change <致因 change id>
+# 纯再生成免 --change；手改生成产物会被 --check 漂移检测抓出。
+version: 1
+
+machines:
+  run:
+    title: Run 生命周期机（全局一台；语义权威：inter-component-protocol-baseline-l1-l3 §7.2 P24/P25、ADR-0019）
+    initial: created
+    terminal_nodes: [terminal, closed]
+    absorbing: [closed]
+    # D9：WaitingForInput / RunDriveStatus 其余 12 值均不是节点。
+    nodes:
+      - created
+      - admitted
+      - activated
+      - observing
+      - deciding
+      - acting
+      - verifying
+      - recovering
+      - terminal
+      - closed
+    transitions:
+      # ---- 前奏：created → admitted → activated（P1 / P24）----
+      - id: R-T01
+        from: created
+        to: admitted
+        trigger:
+          edge: P1
+          event: contract-admitted
+        guard: proposal valid（同 version 重复 admit 幂等复用；基线 P1 Validity）
+        emits: []
+      - id: R-T02
+        from: admitted
+        to: activated
+        trigger:
+          edge: P24
+          event: legal-activation
+        guard: accepted Contract View 存在且 activation latch 未持有（幂等；基线 P24 / ADR-0019 §12）
+        emits:
+          # 观察投影：Drive 在合法激活之前调用 → fail closed（guard 拒绝面）。
+          - NotActivated
+      - id: R-T03
+        from: activated
+        to: observing
+        trigger:
+          event: initial-observation
+        guard: activation latch 已由本 driver 持有
+        emits: []
+      # ---- cycle：observing ⇄ deciding ⇄ acting ⇄ verifying（+recovering）----
+      - id: R-T04
+        from: observing
+        to: deciding
+        trigger:
+          edge: P25
+          event: decision-consultation
+        guard: 观察已入 belief（每 Run 决策咨询一次；恢复时从当前 phase 继续）
+        emits:
+          # 观察投影：stimulus 消费纪律拒绝（context 失配 / unknown input）。
+          - UnexpectedInput
+      - id: R-T05
+        from: deciding
+        to: acting
+        trigger:
+          event: decision-adopted
+        guard: proposal 通过校验（V4/V6）+ lease 绑定；拒绝则 fail closed
+        emits: []
+      # Defer 链：每轮消耗 1 拉取 + 1 再咨询，配额有界（M1/T6 终问）。
+      - id: R-T06
+        from: deciding
+        to: deciding
+        trigger:
+          event: defer-round
+        guard: defer 配额未耗尽；耗尽后下一轮以 DeferRoundsExhausted 相位终问
+        measure: defer-rounds
+        emits: []
+      - id: R-T07
+        from: acting
+        to: verifying
+        trigger:
+          edge: P15
+          event: dispatch-result-observed
+        guard: dispatch 已发出（P14）且下游确认时序门可查
+        emits: []
+      # 串行验证屏障（不变量 43）：StepVerify 未消费 post-action 证据前
+      # 绝不回到 StepAct——良基测度 = 已派发步计数（预算执法）。
+      - id: R-T08
+        from: verifying
+        to: acting
+        trigger:
+          event: verification-passed
+        guard: post-action Evidence 已 accepted 且 reconciliation/verification 清偿
+        measure: steps
+        emits: []
+      - id: R-T09
+        from: verifying
+        to: observing
+        trigger:
+          event: round-complete
+        guard: 当前步链完成，回到观察（每轮必有进展：≥1 步派发或计划项消费）；terminal 评估证据不足 → 同边投影 TerminalNotProven（保持非终态，继续循环，不猜测）
+        measure: rounds
+        emits:
+          - TerminalNotProven
+      # 合法等待外部输入：静默环（D10）。WaitingForInput 不是节点——
+      # 它是本自环返回时的观察投影；零新 Effect，再次 Drive() 从断点恢复。
+      - id: R-T10
+        from: observing
+        to: observing
+        trigger:
+          event: await-external-input
+        guard: 初始观察未消费或 post-action evidence 待外部输入；零新 Effect
+        await: external
+        emits:
+          - WaitingForInput
+          - AwaitingCompletionAdjudication
+      # ---- 恢复屏障（可恢复，非终态）：失败来源相位显式记录 ----
+      - id: R-T11
+        from: acting
+        to: recovering
+        trigger:
+          event: act-chain-failed
+        guard: grounding/gate/delivery 失败——禁止 blind redispatch；cancel 到达但契约未声明 SafeStop obligation → fail closed（非终态）
+        emits:
+          - GroundingFailed
+          - GateRejected
+          - UnconfirmedDelivery
+          - CancelledWithoutSafeStopPath
+      - id: R-T12
+        from: verifying
+        to: recovering
+        trigger:
+          event: verification-failed
+        guard: post-action Evidence/Reconciliation/Assurance 未清偿——禁止下一 Effect
+        emits:
+          - VerificationFailed
+      # 聚焦复查有界上限（PER-009 FocusRetryCap）：恢复重试消耗 cap 测度。
+      - id: R-T13
+        from: recovering
+        to: acting
+        trigger:
+          event: recovery-retry
+        guard: 恢复重试预算未耗尽；超限诚实失败
+        measure: cap-remaining
+        emits: []
+      - id: R-T14
+        from: recovering
+        to: terminal
+        trigger:
+          event: recovery-exhausted
+        guard: 恢复预算耗尽——诚实终局，不猜测
+        emits: []
+      # ---- terminal（四分类，TerminalClassification 实证）→ closed 吸收 ----
+      - id: R-T15
+        from: terminal
+        to: closed
+        trigger:
+          edge: P18
+          event: runtime-outcome-emitted
+        guard: terminal 评估证据充分（P16/P17）；分类 ∈ {Completion, Failure, SafeStop, Escalation}
+        emits:
+          # 观察投影：Drive 在已 terminal 的 Run 上调用（幂等，零副作用）。
+          - AlreadyTerminal
+      # ---- terminal 进入转移（多源汇聚；RunDriveStatus 投影挂各进入边）----
+      - id: R-T16
+        from: verifying
+        to: terminal
+        trigger:
+          edge: P16
+          event: outcome-proof-evaluated
+        guard: 完成证明充分 → Completion（证据不足不进 terminal，见 R-T09 的 TerminalNotProven 投影）
+        emits:
+          - Completed
+      - id: R-T17
+        from: deciding
+        to: terminal
+        trigger:
+          event: decision-failed-closed
+        guard: P25 no-response / correlation 失配 / 越权 proposal / 重复采纳被驳回——fail closed
+        emits:
+          - AgentDecisionFailed
+
+# ---- 协议边登记（D11：kind/status 封闭词汇；id 命名空间 P##/O##/G##）----
+# Slice 1 只登记 run 机转移引用的边；object 机边（Slice 2）/ 图审计（Slice 3）
+# / 文档出口（Slice 4）不在本文件，缺sections 即缺席，不留 stub。
+edges:
+  - id: P1
+    kind: edge
+    status: keep
+    title_anchor: "### P1 Execution Contract Admission（UniAgent → Run Model）"
+    from: uni-agent
+    to: run-model
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Run.ExecutionContract
+  - id: P14
+    kind: edge
+    status: keep
+    title_anchor: "### P14 Dispatch Request（Effect Boundary → Capability Plane）"
+    from: effect-boundary
+    to: capability-plane
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Effects.DispatchRequest
+  - id: P15
+    kind: edge
+    status: keep
+    title_anchor: "### P15 Dispatch Result（Capability Plane → Effect Boundary）"
+    from: capability-plane
+    to: effect-boundary
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Effects.DispatchResult
+  - id: P16
+    kind: edge
+    status: keep
+    title_anchor: "### P16 Outcome Proof（Assurance → Run Model）"
+    from: assurance
+    to: run-model
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Assurance.OutcomeProof
+  - id: P18
+    kind: edge
+    status: keep
+    title_anchor: "### P18 Runtime Outcome（Uni Kernel → UniAgent）"
+    from: uni-kernel
+    to: uni-agent
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Outcome.RuntimeOutcome
+  - id: P24
+    kind: edge
+    status: keep
+    title_anchor: "#### P24 Legal Run Activation（Runtime activation path → Uni Kernel internal run driver）"
+    from: uni-agent
+    to: uni-kernel
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Runtime.ActivationResult
+  - id: P25
+    kind: edge
+    status: keep
+    title_anchor: "#### P25 Agent Decision Consultation（Uni Kernel internal driver → UniAgent realization，外部 seam）"
+    from: uni-kernel
+    to: uni-agent
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.Runtime.AgentDecision

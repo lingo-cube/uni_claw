@@ -1,0 +1,359 @@
+{
+  "edges": [
+    {
+      "from": "uni-agent",
+      "id": "P1",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Run.ExecutionContract",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P1 Execution Contract Admission（UniAgent → Run Model）",
+      "to": "run-model"
+    },
+    {
+      "from": "effect-boundary",
+      "id": "P14",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Effects.DispatchRequest",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P14 Dispatch Request（Effect Boundary → Capability Plane）",
+      "to": "capability-plane"
+    },
+    {
+      "from": "capability-plane",
+      "id": "P15",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Effects.DispatchResult",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P15 Dispatch Result（Capability Plane → Effect Boundary）",
+      "to": "effect-boundary"
+    },
+    {
+      "from": "assurance",
+      "id": "P16",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Assurance.OutcomeProof",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P16 Outcome Proof（Assurance → Run Model）",
+      "to": "run-model"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "P18",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Outcome.RuntimeOutcome",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P18 Runtime Outcome（Uni Kernel → UniAgent）",
+      "to": "uni-agent"
+    },
+    {
+      "from": "uni-agent",
+      "id": "P24",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Runtime.ActivationResult",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "#### P24 Legal Run Activation（Runtime activation path → Uni Kernel internal run driver）",
+      "to": "uni-kernel"
+    },
+    {
+      "from": "uni-kernel",
+      "id": "P25",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.Runtime.AgentDecision",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "#### P25 Agent Decision Consultation（Uni Kernel internal driver → UniAgent realization，外部 seam）",
+      "to": "uni-agent"
+    }
+  ],
+  "machines": {
+    "run": {
+      "absorbing": [
+        "closed"
+      ],
+      "initial": "created",
+      "nodes": [
+        "acting",
+        "activated",
+        "admitted",
+        "closed",
+        "created",
+        "deciding",
+        "observing",
+        "recovering",
+        "terminal",
+        "verifying"
+      ],
+      "terminalNodes": [
+        "terminal",
+        "closed"
+      ],
+      "transitions": [
+        {
+          "await": null,
+          "emits": [],
+          "from": "created",
+          "guard": "proposal valid（同 version 重复 admit 幂等复用；基线 P1 Validity）",
+          "id": "R-T01",
+          "measure": null,
+          "to": "admitted",
+          "trigger": {
+            "edge": "P1",
+            "event": "contract-admitted"
+          }
+        },
+        {
+          "await": null,
+          "emits": [
+            "NotActivated"
+          ],
+          "from": "admitted",
+          "guard": "accepted Contract View 存在且 activation latch 未持有（幂等；基线 P24 / ADR-0019 §12）",
+          "id": "R-T02",
+          "measure": null,
+          "to": "activated",
+          "trigger": {
+            "edge": "P24",
+            "event": "legal-activation"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "activated",
+          "guard": "activation latch 已由本 driver 持有",
+          "id": "R-T03",
+          "measure": null,
+          "to": "observing",
+          "trigger": {
+            "edge": null,
+            "event": "initial-observation"
+          }
+        },
+        {
+          "await": null,
+          "emits": [
+            "UnexpectedInput"
+          ],
+          "from": "observing",
+          "guard": "观察已入 belief（每 Run 决策咨询一次；恢复时从当前 phase 继续）",
+          "id": "R-T04",
+          "measure": null,
+          "to": "deciding",
+          "trigger": {
+            "edge": "P25",
+            "event": "decision-consultation"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "deciding",
+          "guard": "proposal 通过校验（V4/V6）+ lease 绑定；拒绝则 fail closed",
+          "id": "R-T05",
+          "measure": null,
+          "to": "acting",
+          "trigger": {
+            "edge": null,
+            "event": "decision-adopted"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "deciding",
+          "guard": "defer 配额未耗尽；耗尽后下一轮以 DeferRoundsExhausted 相位终问",
+          "id": "R-T06",
+          "measure": "defer-rounds",
+          "to": "deciding",
+          "trigger": {
+            "edge": null,
+            "event": "defer-round"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "acting",
+          "guard": "dispatch 已发出（P14）且下游确认时序门可查",
+          "id": "R-T07",
+          "measure": null,
+          "to": "verifying",
+          "trigger": {
+            "edge": "P15",
+            "event": "dispatch-result-observed"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "verifying",
+          "guard": "post-action Evidence 已 accepted 且 reconciliation/verification 清偿",
+          "id": "R-T08",
+          "measure": "steps",
+          "to": "acting",
+          "trigger": {
+            "edge": null,
+            "event": "verification-passed"
+          }
+        },
+        {
+          "await": null,
+          "emits": [
+            "TerminalNotProven"
+          ],
+          "from": "verifying",
+          "guard": "当前步链完成，回到观察（每轮必有进展：≥1 步派发或计划项消费）；terminal 评估证据不足 → 同边投影 TerminalNotProven（保持非终态，继续循环，不猜测）",
+          "id": "R-T09",
+          "measure": "rounds",
+          "to": "observing",
+          "trigger": {
+            "edge": null,
+            "event": "round-complete"
+          }
+        },
+        {
+          "await": "external",
+          "emits": [
+            "AwaitingCompletionAdjudication",
+            "WaitingForInput"
+          ],
+          "from": "observing",
+          "guard": "初始观察未消费或 post-action evidence 待外部输入；零新 Effect",
+          "id": "R-T10",
+          "measure": null,
+          "to": "observing",
+          "trigger": {
+            "edge": null,
+            "event": "await-external-input"
+          }
+        },
+        {
+          "await": null,
+          "emits": [
+            "CancelledWithoutSafeStopPath",
+            "GateRejected",
+            "GroundingFailed",
+            "UnconfirmedDelivery"
+          ],
+          "from": "acting",
+          "guard": "grounding/gate/delivery 失败——禁止 blind redispatch；cancel 到达但契约未声明 SafeStop obligation → fail closed（非终态）",
+          "id": "R-T11",
+          "measure": null,
+          "to": "recovering",
+          "trigger": {
+            "edge": null,
+            "event": "act-chain-failed"
+          }
+        },
+        {
+          "await": null,
+          "emits": [
+            "VerificationFailed"
+          ],
+          "from": "verifying",
+          "guard": "post-action Evidence/Reconciliation/Assurance 未清偿——禁止下一 Effect",
+          "id": "R-T12",
+          "measure": null,
+          "to": "recovering",
+          "trigger": {
+            "edge": null,
+            "event": "verification-failed"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "recovering",
+          "guard": "恢复重试预算未耗尽；超限诚实失败",
+          "id": "R-T13",
+          "measure": "cap-remaining",
+          "to": "acting",
+          "trigger": {
+            "edge": null,
+            "event": "recovery-retry"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "recovering",
+          "guard": "恢复预算耗尽——诚实终局，不猜测",
+          "id": "R-T14",
+          "measure": null,
+          "to": "terminal",
+          "trigger": {
+            "edge": null,
+            "event": "recovery-exhausted"
+          }
+        },
+        {
+          "await": null,
+          "emits": [
+            "AlreadyTerminal"
+          ],
+          "from": "terminal",
+          "guard": "terminal 评估证据充分（P16/P17）；分类 ∈ {Completion, Failure, SafeStop, Escalation}",
+          "id": "R-T15",
+          "measure": null,
+          "to": "closed",
+          "trigger": {
+            "edge": "P18",
+            "event": "runtime-outcome-emitted"
+          }
+        },
+        {
+          "await": null,
+          "emits": [
+            "Completed"
+          ],
+          "from": "verifying",
+          "guard": "完成证明充分 → Completion（证据不足不进 terminal，见 R-T09 的 TerminalNotProven 投影）",
+          "id": "R-T16",
+          "measure": null,
+          "to": "terminal",
+          "trigger": {
+            "edge": "P16",
+            "event": "outcome-proof-evaluated"
+          }
+        },
+        {
+          "await": null,
+          "emits": [
+            "AgentDecisionFailed"
+          ],
+          "from": "deciding",
+          "guard": "P25 no-response / correlation 失配 / 越权 proposal / 重复采纳被驳回——fail closed",
+          "id": "R-T17",
+          "measure": null,
+          "to": "terminal",
+          "trigger": {
+            "edge": null,
+            "event": "decision-failed-closed"
+          }
+        }
+      ]
+    }
+  },
+  "source": "schemas/protocol/state-machine.yaml",
+  "version": 1
+}

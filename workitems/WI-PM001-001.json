@@ -1,0 +1,66 @@
+{
+  "id": "WI-PM001-001",
+  "objective": "PROTOCOL-MACHINE-001 Slice 1：落地状态机单源骨架——schemas/protocol/state-machine.yaml（version 1，Run 生命周期机全量）+ 生成器 tools/gen-protocol-machine.py（元校验/确定性生成/--check 漂移检测/--change 搭乘执法）+ C# 执法牙三件（枚举同步/转移合法性含负向自证/payload record 反射），让协议图第一次有单点载体和默认门禁牙齿。",
+  "scope": {
+    "write": [
+      "schemas/protocol/state-machine.yaml（新建：version 头 + run_machine 全量 + run 机转移所引用的 edges 条目）",
+      "tools/gen-protocol-machine.py（新建生成器）",
+      "tests/UniClaw.Kernel.Tests/Protocol/**（新测试类 + protocol-machine.generated.json 生成产物）",
+      "changes/PROTOCOL-MACHINE-001/state.md（status log + verification）"
+    ],
+    "read_hints": [
+      "changes/PROTOCOL-MACHINE-001/state.md（D1-D12 全部决策 + R1/R2 修订，唯一规格）",
+      "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs（RunDriveStatus 15 值 + Drive 控制流 = 转移事实）",
+      "src/UniClaw.Kernel/Run/RunObligation.cs:68（TerminalClassification 四值，D10 实证）",
+      "docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md（基线 = 语义权威，YAML 只引用不复制）",
+      "tools/validate-model-bindings.py + tools/scenario_certify.py（python 工具先例：PyYAML、--change 搭乘、确定性输出）",
+      "tests/UniClaw.Simulation.Tests/ScenarioCertificationTests.cs:15（RepoRoot() 定位先例）"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Run 机节点 = 生命周期主干（created→admitted→[P24]→activated→cycle{observing⇄deciding⇄acting⇄verifying}+recovering→terminal(4)→closed）；RunDriveStatus 15 值是边上 emit 的观察投影（D9 分栏，YAML 不是第二状态权威）；WaitingForInput = observing 自环 + await:external 静默环（D10）；进展环必须标良基测度（steps/rounds/defer-rounds/cap-remaining），静默环不得伪装进展。",
+    "core_points": [
+      "D5：YAML 只承载结构（状态/转移/边挂载/测度），语义留基线+ADR；进程内载荷不造 JSON，payload_ref 用 type: record 直指 C# 类型名",
+      "D6：三类 ref——schema $id / 基线标题锚（### P25 级）/ ADR 编号；--check 断锚 RED",
+      "D9/D10：节点与 emits 分栏；环二分（进展环标测度 / await:external 静默环白名单）",
+      "D12：牙在 C#（读生成 JSON：枚举同步/合法性/反射），python 只做生成与新鲜度 --check；写手检测语义 diff 强制 --change（C8 同款）；产物不落时间戳",
+      "terminal 四值实证 = TerminalClassification{Completion,Failure,SafeStop,Escalation}（RunObligation.cs:68）"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+      "symbol": "RunDriveStatus/Drive"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/RunObligation.cs",
+      "symbol": "TerminalClassification"
+    },
+    {
+      "path": "tools/scenario_certify.py",
+      "symbol": "--change 搭乘先例"
+    }
+  ],
+  "contract_refs": [
+    "changes/PROTOCOL-MACHINE-001/state.md（D1-D12 + R1/R2，唯一规格）"
+  ],
+  "acceptance": [
+    "A1 state-machine.yaml 就位：version: 1；run_machine 节点集按 D9/D10（WaitingForInput 不设节点，recovering 设节点）；每转移带 trigger/guard/emits；进展环全带 measure，WaitingForInput 自环标 await: external；15 个 RunDriveStatus 值全部出现在 ≥1 条边的 emits（枚举同步测试双向：YAML emits ⊆ 枚举成员 ∧ 枚举成员 ⊆ emits）",
+    "A2 生成器：PyYAML 解析 + 元校验（kind/status/measure/await 词汇封闭、必填键缺失即退出非零）；生成 protocol-machine.generated.json 确定性可复现（两次生成字节一致；排序稳定；无时间戳）；--check 模式 byte-diff 漂移检测；写手模式在产物将变化且未传 --change 时拒绝（C8 同款）",
+    "A3 C# 牙三件（读生成 JSON，RepoRoot() 定位先例）：①枚举同步双向；②转移合法性（声明转移表驱动 + 已知非法对负向自证：closed→acting、admitted 未经 P24 直接 cycle 均须 RED 路径自证）；③edges 中 type: record 的 payload_ref 反射存在",
+    "A4 dotnet build 0 错误；dotnet test tests/UniClaw.Kernel.Tests 全量绿（当前基线 872）；python3 tools/gen-protocol-machine.py --check 退出 0",
+    "A5 state.md 更新 status log（注明 worker=glm-5.3-flash）+ verification 四元组填实",
+    "A6 新增公共类型若有，同步 KernelRuntimeSurfaceWhitelistTests 白名单（预期纯测试面无需，但守规则）"
+  ],
+  "forbidden": [
+    "不做 object_machines（Slice 2）、不做图算法检查/悬挂审计（Slice 3）、不做文档 fragment/STEPS 注入/每域卡片（Slice 4）——YAML 里不留 stub 条目，sections 缺席即可",
+    "不复制基线语义正文进 YAML（D5：只引用）；不改协议基线/ADR（权威不动）",
+    "不新增任何 C# 生产代码（本切片只产 YAML/python/测试/生成 JSON）",
+    "不 git commit/push（Leader 复核后统一提交）；越界需求停下报告 BLOCKED"
+  ],
+  "frozen_decisions": [
+    "changes/PROTOCOL-MACHINE-001/state.md D1-D12 + R1/R2"
+  ],
+  "status": "done",
+  "required_capability": "implementation"
+}
