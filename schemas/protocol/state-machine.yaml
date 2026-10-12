@@ -724,3 +724,703 @@ edges:
     to: run-model
     # known deviation：真实 UniAgent authoring 未接线（Goal→Contract
     # derivation = Deferred ⑫），当前 HostRunner 代演。
+
+# ---- 交互模型（Slice 4 第四数据面）：HTML 27 步全量转录（A1/A5） ----
+# 地位：渲染数据单源——docs/design/protocol-workflow-steps.generated.js 由本段
+# 生成（<script src> 加载，file:// 可用）；HTML 手写 STEPS 副本已删除。
+# 字段注记 mark 词汇：必=构造必填 / 选=带默认值或可空 / 准=类型可空但准入
+# 要求非空 / 系=系统生成留痕 / —=不适用。st：keep=不动 / fix=修复点（S1–S5）
+# / track=既有轨道。edge_ref 指向本文件 edges 登记（无编号边允许缺席）。
+interaction_model:
+  steps:
+    # ---- 前奏 ----
+    - group: pre
+      "no": "0a"
+      name: 任务定义
+      edge: "Task Catalog（无编号边）"
+      edge_ref: G2
+      dir: Host / product/tasks → Runtime
+      st: track
+      fields:
+        - name: task yaml
+          type: product/tasks/*.yaml
+          desc: settings-coverage / language-inspection / tool-runtime：步数与咨询上限、capability 声明、预检要求
+          mark: 必
+        - name: catalog 身份
+          type: catalog + 版本
+          desc: ADR-0032：目录归 Host 所有，Workspace 只读投影
+          mark: 必
+      note: 任务模板不是一次执行。
+    - group: pre
+      "no": "0b"
+      name: 任务发起
+      edge: "O1 · task-launch wire"
+      edge_ref: O1
+      dir: 调用方 → Runtime HTTP
+      st: track
+      fields:
+        - name: taskRef（逻辑任务引用）
+          type: schema 字段
+          desc: 不含物理路径/绝对路径（schema 拒收）
+          mark: 必
+        - name: idempotencyKey
+          type: schema 字段
+          desc: 幂等键；重复提交复用 binding
+          mark: 必
+        - name: declaredConfig
+          type: schema 字段
+          desc: 声明式配置
+          mark: 选
+        - name: launchId
+          type: ack 字段
+          desc: Task Instance 尚未生成时可先只返回 launchId
+          mark: 系
+        - name: stageRecords[]
+          type: launch-stage-record.v1
+          desc: 阶段记录：valueOrigin ∈ {configured,generated,observed,derived} + availability 分离
+          mark: 系
+        - name: "⚠️ 两套实例号"
+          type: known deviation
+          desc: Workbench 本地 instanceId vs Runtime taskInstanceId；psi-* 为兼容路径
+          mark: —
+      note: wire 面是全仓锁得最好的契约之一（additionalProperties:false + validator + 正反例）。身份统一走 O1 实现 Change。
+    - group: pre
+      "no": "0c"
+      name: Task Instance 创建
+      edge: "O2 · Runtime 铸造"
+      edge_ref: O2
+      dir: Runtime 内部
+      st: track
+      fields:
+        - name: taskInstanceId
+          type: string
+          desc: Runtime 唯一铸造；调用方不得传入或覆盖（ADR-0045）
+          mark: 系
+        - name: "⚠️ 阶段混合"
+          type: known gap
+          desc: HTTP 创建路径把 Session/Run/Contract admission 混在一个阶段，无独立可观察步骤
+          mark: —
+      note: 目标态：Task → Instance → Session 三阶段可观察（ARCH-ALIGN-001 外围矩阵登记）。
+    - group: pre
+      "no": "0d"
+      name: Product Session 分配
+      edge: Runtime 铸造 + 显式 Binding
+      edge_ref: G4
+      dir: Runtime 内部
+      st: track
+      fields:
+        - name: productSessionId
+          type: string
+          desc: Goal/Contract/Run/Outcome/Evaluation 的关联根；建立 ≠ 开始执行
+          mark: 系
+        - name: Task Launch Binding
+          type: binding
+          desc: Task Instance ↔ Product Session（显式、带来源）；同次提交重试复用
+          mark: 系
+        - name: hostSessionRef
+          type: string
+          desc: Host 只铸自己的；dshSessionId 降为 adapter 内部 alias
+          mark: 系
+      note: 任务结束再执行 → 新 Instance/Session/Run。
+    - group: pre
+      "no": "0e"
+      name: 契约 Authoring
+      edge: UniAgent 形成（P1 上游）
+      edge_ref: G5
+      dir: UniAgent ← Task + Session context
+      st: track
+      fields:
+        - name: Task + Session context
+          type: 输入
+          desc: UniAgent 读取后细化
+          mark: 必
+        - name: Execution Contract 候选
+          type: 输出
+          desc: objective / scope / effect 红线 / proof 要求 / 预算
+          mark: 必
+        - name: "⚠️ HostRunner 代造"
+          type: known deviation
+          desc: 真实 UniAgent authoring 未接线（Goal→Contract derivation = Deferred ⑫）
+          mark: —
+      note: 目标态：UniAgent 是唯一合法作者（P1 只收它的要约）；当前代造走 O3 实现 Change。
+    # ---- 契约与激活 ----
+    - group: contract
+      "no": "1"
+      name: P1 契约提交
+      edge: "P1 · Execution Contract Admission"
+      edge_ref: P1
+      dir: UniAgent → Run Model
+      st: fix
+      fixTag: S3
+      fix_ref: PROTOCOL-FIX-003
+      fix: S3：预算保持可空，但 admission 记 valueOrigin；配合两层顶（契约=初始额度，policy=硬顶）。
+      fields:
+        - name: Version
+          type: string
+          desc: 显式版本；同 version 重复 admit 幂等
+          mark: 必
+        - name: Objective
+          type: string
+          desc: 目标
+          mark: 必
+        - name: Scope
+          type: IReadOnlySet?
+          desc: 范围
+          mark: 选
+        - name: AllowedEffects / ForbiddenEffects
+          type: IReadOnlySet?
+          desc: effect 红线
+          mark: 选
+        - name: ProofCriteria
+          type: list?
+          desc: 证明要求（缺省派生不可判定占位义务）
+          mark: 选
+        - name: Obligations
+          type: list? = null
+          desc: run-level 义务规格
+          mark: 选
+        - name: MaxConsultations
+          type: int? = null
+          desc: 缺省 View 解析为 16
+          mark: 选
+        - name: MaxTotalSteps
+          type: int? = null
+          desc: 缺省 View 解析为 256
+          mark: 选
+        - name: valueOrigin
+          type: "＋ S3 新增"
+          desc: admission 留痕 ∈ {configured, default}——"沉默缺省"变"有账的缺省"
+          mark: 系
+        - name: 身份三件套
+          type: "🔵 轨道"
+          desc: taskInstanceId / productSessionId / contractRef（ADR-0046，不并入本包）
+          mark: —
+    - group: contract
+      "no": "2"
+      name: P24 合法激活
+      edge: "P24 · Legal Run Activation"
+      edge_ref: P24
+      dir: activation path → Kernel driver
+      st: keep
+      fields:
+        - name: acceptedContractViewRef + contractGeneration
+          type: 启动钥匙
+          desc: 同 key 至多一个 Run；重复/并发返回同一关联
+          mark: 必
+        - name: activation latch
+          type: Kernel 内部
+          desc: 一次性幂等；admission ≠ 激活
+          mark: 系
+      note: 跨进程持久身份/并发/恢复 = Deferred ⑰（🔵 轨道）。
+    # ---- 观察 ----
+    - group: observe
+      "no": "3"
+      name: 观察致动
+      edge: （无编号边 · D5）
+      edge_ref: G1
+      dir: driver/Control → 感知采集
+      st: keep
+      fields:
+        - name: 编排
+          type: driver realization
+          desc: 何时/以何 scope 观察目前藏在驱动实现里
+          mark: —
+        - name: P27 候选
+          type: 登记项
+          desc: 观察指令边等感知策略 buyer
+          mark: —
+      note: 协议图只建模了认知回流，没建模感知指向本身（审计 D5）。
+    - group: observe
+      "no": "4"
+      name: P2 观察回流
+      edge: "P2 · Observation Ingress"
+      edge_ref: P2
+      dir: producer → Evidence Ledger
+      st: fix
+      fixTag: S1
+      fix_ref: PROTOCOL-FIX-001
+      fix: S1：新增 Origin（一石三鸟：闭 ADR-0047 gap + D6 判定输入 + E5 前提显式化）。
+      fields:
+        - name: Claim
+          type: (Subject, Value)
+          desc: 观察声明
+          mark: 必
+        - name: Kind
+          type: enum
+          desc: Observation | AttemptReport（封闭二成员）
+          mark: 必
+        - name: Context
+          type: enum
+          desc: External | PostActionEffectFlow（流程上下文）
+          mark: 必
+        - name: Provenance
+          type: record?
+          desc: 类型可空，但 null/不完整 → admission fail-closed：实效必填
+          mark: 准
+        - name: DerivedFromEvidenceIds
+          type: init = 空
+          desc: 空 = 直接源观察；父引用由账本校验
+          mark: 选
+        - name: TransitiveEvidenceBasis
+          type: init = 空
+          desc: 账本重算并拒绝不匹配
+          mark: 选
+        - name: FusionRule / FusionVersion
+          type: string?
+          desc: 派生（融合）证据携带
+          mark: 选
+        - name: Origin
+          type: "＋ S1 新增"
+          desc: External | PostActionSelf——机械推导总有产出：精确 attempt 关联→PostActionSelf，否则 External；禁时间启发式；自报仅诊断
+          mark: 必
+    - group: observe
+      "no": "5"
+      name: P3 证据入库
+      edge: "P3 · Accepted Evidence Record"
+      edge_ref: P3
+      dir: Ledger → World Model
+      st: fix
+      fixTag: S1
+      fix_ref: PROTOCOL-FIX-001
+      fix: S1：origin 入 EvidenceId canonical 输入。
+      fields:
+        - name: EvidenceId
+          type: 内容哈希
+          desc: 相同 canonical 语义 → 同 id（幂等去重）
+          mark: 必
+        - name: Claim / Kind / Context
+          type: 同 P2
+          desc: 随记录携带
+          mark: 必
+        - name: Provenance
+          type: record
+          desc: 入库后非空（admission 已过）
+          mark: 必
+        - name: DerivedFrom / TransitiveBasis / Fusion 元数据
+          type: 同 P2
+          desc: 派生字段
+          mark: 选
+        - name: Origin 入 canonical 输入
+          type: chg S1
+          desc: origin 语义变化不得复用同一 id（ING-006 D5 同律）
+          mark: 必
+    # ---- 决策 ----
+    - group: decide
+      "no": "6"
+      name: P25 咨询 + 续授
+      edge: "P25 · Agent Decision Consultation"
+      edge_ref: P25
+      dir: Kernel driver ⇄ UniAgent
+      st: fix
+      fixTag: S3
+      fix_ref: PROTOCOL-FIX-003
+      fix: S3：续授走 P25（不新增边）；步数/轮次同机制各硬顶；轻记账（decision 留痕，不进 Run State）；崩溃恢复随 ⑰。
+      fields:
+        - name: DecisionId / 关联号
+          type: string
+          desc: 每 decision boundary 最多一次；同边界重试复用结果
+          mark: 必
+        - name: 决策上下文
+          type: composite
+          desc: 含 BudgetRemaining——agent 打包前知道自己还剩多少
+          mark: 必
+        - name: 续授窗口标记
+          type: "＋ S3 新增"
+          desc: driver 检查剩余 ≤ policy 阈值 → 本次咨询标记可谈续授
+          mark: 选
+        - name: 续授提案
+          type: "＋ S3 新增"
+          desc: UniAgent 给续授量（正常推进未走完→该续就续；也可不续）
+          mark: 选
+        - name: HardCap 校验
+          type: "＋ S3 新增"
+          desc: policy 校验 已授+提案 ≤ 硬顶；终问（轮次耗尽最后一次询问）可携带续授——防"有步数没机会开口"
+          mark: 系
+    # ---- 行动链 ----
+    - group: act
+      "no": "7"
+      name: P8 意图
+      edge: "P8 · Control Intent"
+      edge_ref: P8
+      dir: Control Loop → Assurance / EB
+      st: keep
+      fields:
+        - name: IntentId
+          type: string
+          desc: 唯一意图标识
+          mark: 必
+        - name: Kind
+          type: enum
+          desc: Observe | Act | Recovery
+          mark: 必
+        - name: EffectClass
+          type: string?
+          desc: act 意图的效果类（hint ≠ binding）
+          mark: 选
+        - name: TargetSubject
+          type: string?
+          desc: 目标提示
+          mark: 选
+        - name: BasisRevisionId
+          type: string
+          desc: 依据的世界观版本（currentness 判定输入）
+          mark: 必
+      note: 唯一意图权威；issuance 归属进程内验证（跨主机 token 等 buyer）。
+    - group: act
+      "no": "8"
+      name: P23 定位查询
+      edge: P23 · GroundingSeam（经 P11 GroundingView）
+      edge_ref: P23
+      dir: Kernel → World Model
+      st: keep
+      fields:
+        - name: ResolveCurrent
+          type: 模式
+          desc: TargetDescriptor → CurrentCandidateSetResult（Unique/None/Multiple/Unavailable）
+          mark: 必
+        - name: ResolveContinuity
+          type: 模式
+          desc: ContinuityResolutionOutcome + DemandHandle（幂等键）
+          mark: 必
+      note: 单缝双模；投影相对事实（NoCandidate ≠ KnownAbsent ≠ Ended）。
+    - group: act
+      "no": "9"
+      name: P9 候选绑定
+      edge: "P9 · Candidate Binding"
+      edge_ref: P9
+      dir: Grounding Provider → EB
+      st: keep
+      fields:
+        - name: TargetSubject / TargetValue
+          type: string
+          desc: 字符串通道（UI 工厂置 null! 压制）
+          mark: 必
+        - name: SourceRevisionId
+          type: string
+          desc: 候选依据版本
+          mark: 必
+        - name: IsAmbiguous
+          type: bool = false
+          desc: 歧义声明
+          mark: 选
+        - name: UiTarget
+          type: record?
+          desc: UI 通道：OccurrenceId + SourceRevisionId + LogicalItemId?（仅溯源）——UI 通道必带
+          mark: 选
+      note: 候选 ≠ canonical（不变量 24）。
+    - group: act
+      "no": "10"
+      name: P10 正式绑定
+      edge: "P10 · Canonical Binding"
+      edge_ref: P10
+      dir: EB → Assurance
+      st: fix
+      fixTag: S4
+      fix_ref: PROTOCOL-FIX-004
+      fix: S4：撕掉 locator 三字段；P14 成为 locator 唯一来源。
+      fields:
+        - name: BindingId / IntentId
+          type: string
+          desc: 绑定身份 + 意图关联
+          mark: 必
+        - name: EffectClass
+          type: string
+          desc: 效果语义
+          mark: 必
+        - name: TargetSubject / TargetValue
+          type: string
+          desc: 沿载（UI 通道为 occurrence id 字符串）
+          mark: 必
+        - name: RevisionId / RevisionNumber
+          type: anchor
+          desc: 钉死世界观版本（currency 派生失效）
+          mark: 必
+        - name: TargetOccurrenceId
+          type: string?
+          desc: UI 通道恒绑 occurrence
+          mark: 选
+        - name: OwningContainerId / LogicalItemId
+          type: string?
+          desc: 容器与连续性溯源
+          mark: 选
+        - name: TargetLocator / TargetNative / TargetSpace
+          type: "✖ S4 移除"
+          desc: 投递材料不该进绑定载荷——安检从不读；Core 投影改从 DeliveryTarget 取（消费面已查清：全仓两处）
+          mark: —
+    - group: act
+      "no": "11"
+      name: P13 裁决
+      edge: "P13 · Assurance Judgment"
+      edge_ref: P13
+      dir: Assurance → Gate
+      st: keep
+      fields:
+        - name: IntentId + BindingId + RevisionId
+          type: 三元组
+          desc: correlation key，任一变即重裁
+          mark: 必
+        - name: IsAdmissible
+          type: bool
+          desc: 可否做
+          mark: 必
+        - name: Checks
+          type: list
+          desc: 逐项留痕
+          mark: 必
+        - name: RejectionReason
+          type: string?
+          desc: 拒绝首因
+          mark: 选
+        - name: Freshness
+          type: FreshnessJudgment
+          desc: 消费相对充分性三态——拒绝 ≠ 绑定失效
+          mark: 必
+      note: Gate 只执法不重判；拒绝可观察有 reason。
+    - group: act
+      "no": "12"
+      name: 闸门 + 台账
+      edge: Effect Gate + Reliable Execution Source
+      dir: EB 内部
+      st: keep
+      fields:
+        - name: GateDecision
+          type: (Allowed, Reason)
+          desc: 只执行或拒绝既有授权
+          mark: 必
+        - name: journal 登记
+          type: append-only
+          desc: binding/judgment/请求/执行端/准入摘要——先登记后执行，提交失败零 driver 调用
+          mark: 系
+        - name: 未决发现
+          type: Pending Attempt
+          desc: 无 ID 发现未决；LinkRetry / LinkCompensation 关联
+          mark: 系
+      note: 崩溃后可对账，绝不盲补发。
+    - group: act
+      "no": "13"
+      name: P14 派工单
+      edge: "P14 · Dispatch Request"
+      edge_ref: P14
+      dir: EB → driver
+      st: keep
+      fields:
+        - name: DeliveryTarget
+          type: record
+          desc: OccurrenceReference（仅溯源，永不参与执行）+ Spatial? + Native? + Space?
+          mark: 必
+        - name: EffectClass
+          type: string
+          desc: 来自绑定
+          mark: 必
+        - name: Parameters
+          type: string?
+          desc: 当前沿载字符串；typed family = 未来 buyer
+          mark: 选
+        - name: RevisionId
+          type: anchor
+          desc: 绑定依据版本
+          mark: 必
+      note: S4 之后这里是 locator 的唯一来源；driver 固定消费自身支持集，不挑选不 fallback。
+    - group: act
+      "no": "14"
+      name: P15 投递结果
+      edge: "P15 · Dispatch Result"
+      edge_ref: P15
+      dir: driver → EB
+      st: keep
+      fields:
+        - name: Outcome
+          type: enum 三态
+          desc: DeliveryCompleted | DeliveryFailed | UnknownOutcome（认知状态，非成因）
+          mark: 必
+        - name: Report
+          type: string
+          desc: provider 报告（描述性 provenance）
+          mark: 必
+        - name: CompletedAt
+          type: datetime
+          desc: 下游确认时间
+          mark: 必
+        - name: Reason
+          type: string? = null
+          desc: 成因诊断（不锁词汇）：timeout-killed / device-offline / …
+          mark: 选
+      note: UnknownOutcome 唯一合法后继 = 重新观察，永不盲补发。
+    - group: act
+      "no": "15"
+      name: 回执回流
+      edge: P2 · AttemptReport
+      edge_ref: P2
+      dir: EB → Evidence Ledger
+      st: fix
+      fixTag: S1
+      fix_ref: PROTOCOL-FIX-001
+      fix: S1：回流侧 origin 与 P2/P3 同源闭合。
+      fields:
+        - name: ReceiptId / IntentId / BindingId
+          type: string
+          desc: attempt 关联
+          mark: 必
+        - name: TargetSubject / RevisionId / RevisionNumber
+          type: anchor
+          desc: 目标与版本留痕
+          mark: 必
+        - name: Outcome / Report / DispatchedAt
+          type: 同 P15
+          desc: ""
+          mark: 必
+        - name: Reason
+          type: string? = null
+          desc: 成因诊断
+          mark: 选
+        - name: Origin
+          type: "＋ S1 新增"
+          desc: 回流侧统一携带：经 receipt↔observation 精确关联推导为 PostActionSelf；AttemptReport 永不满足 MaterialEffect（不变量不变）
+          mark: 必
+    # ---- 验证屏障 ----
+    - group: verify
+      "no": "16"
+      name: 验证输入
+      edge: Kernel 编排 → Assurance
+      dir: Kernel → Assurance
+      st: fix
+      fixTag: S2
+      fix_ref: PROTOCOL-FIX-002
+      fix: S2：期望载荷独立成字段（ADR-0049）；新增 effect 类型不再硬编码期望。
+      fields:
+        - name: TargetSpec
+          type: record
+          desc: 目标规格（含状态断言）
+          mark: 必
+        - name: Slice
+          type: record
+          desc: 当前 scoped 只读投影
+          mark: 必
+        - name: ProcessedObservations
+          type: list<KernelResult>
+          desc: 本轮 P2/P3 处理结果
+          mark: 必
+        - name: TargetDisappearedAfterRouteChange
+          type: bool = false
+          desc: 特设
+          mark: 选
+        - name: PriorRoute / CurrentRoute / ScrollContentChanged
+          type: "✖ S2 迁移"
+          desc: 滚动期望三硬编码布尔 → 迁移为 RouteStable ∧ ContentChanged 实例后删除
+          mark: —
+        - name: ExpectedEffect
+          type: "＋ S2 新增"
+          desc: 两族封闭谓词：StateBecomes(subject,value) 状态型；ContentChanged / RouteStable 变化型——验证的显式对照物；修复后无期望载荷 = RED
+          mark: 必
+    - group: verify
+      "no": "17"
+      name: MaterialEffect 判定
+      edge: Assurance 内部（S5 立法点）
+      dir: Assurance
+      st: fix
+      fixTag: S5
+      fix_ref: PROTOCOL-FIX-001
+      fix: S5：明文规则 + 锚定测试（仅身份连续、无谓词对照的验证 = 拒绝）。
+      fields:
+        - name: 判定输入
+          type: Evidence + ExpectedEffect + Origin
+          desc: （S1+S2 交付后齐备）
+          mark: 必
+        - name: 立法
+          type: "＋ S5 新增"
+          desc: 受 P22 prior 影响的关联连续性不得作为 MaterialEffect 唯一依据——对照物必须是显式期望谓词 + origin 输入
+          mark: 系
+    # ---- 终局 ----
+    - group: terminal
+      "no": "18"
+      name: P7 义务定义
+      edge: "P7 · Obligation Definition View"
+      edge_ref: P7
+      dir: Run Model → Assurance
+      st: keep
+      fields:
+        - name: 义务定义
+          type: identity/kind/subject/required value/mandatory
+          desc: 只表达"要证明什么"；满足状态是 Assurance 的独立投影
+          mark: 必
+      note: 定义/状态分离已冻结（ADR-0047）。
+    - group: terminal
+      "no": "19"
+      name: P16 终局证明
+      edge: "P16 · Outcome Proof"
+      edge_ref: P16
+      dir: Assurance → Run Model
+      st: keep
+      fields:
+        - name: Classification
+          type: 四分类
+          desc: Completion | Failure | SafeStop | Escalation（证据不足 = 无 proof，不伪装）
+          mark: 必
+        - name: obligation statuses + evidence refs
+          type: list
+          desc: 支撑清单
+          mark: 必
+        - name: unresolved uncertainty + reason
+          type: ""
+          desc: 诚实边界
+          mark: 必
+      note: 预算耗尽终局在 S3 生效后到的是 policy 铁顶（非静默缺省）。
+    - group: terminal
+      "no": "20"
+      name: P17 终局记录
+      edge: "P17 · Terminal Outcome State"
+      edge_ref: P17
+      dir: Run Model → Kernel
+      st: keep
+      fields:
+        - name: OutcomeState
+          type: 快照
+          desc: exact-prior single-winner；至多一次；terminal 后冻结不可复活
+          mark: 必
+      note: ""
+    - group: terminal
+      "no": "21"
+      name: P18 交卷信封
+      edge: "P18 · Runtime Outcome"
+      edge_ref: P18
+      dir: Kernel → UniAgent
+      st: keep
+      fields:
+        - name: RunId / OutcomeProofId
+          type: string
+          desc: 运行与证明引用
+          mark: 必
+        - name: Classification
+          type: 四分类
+          desc: ""
+          mark: 必
+        - name: Obligations
+          type: list<status>
+          desc: 义务结算
+          mark: 必
+        - name: Basis/Effect/Situation EvidenceIds
+          type: set
+          desc: 证据引用三层
+          mark: 必
+        - name: UnresolvedUncertainty + Reason
+          type: ""
+          desc: 解释性元数据（productSessionId 🔵 走 ⑨ 轨道）
+          mark: 必
+      note: exactly once；发出后投递闸门永久关闭。
+    - group: terminal
+      "no": "22"
+      name: P19 评价
+      edge: "P19 · Goal Evaluation"
+      edge_ref: P19
+      dir: UniAgent → user/session
+      st: keep
+      fields:
+        - name: EvaluationId
+          type: 确定性派生
+          desc: Goal+Run+Proof 幂等
+          mark: 必
+        - name: Satisfaction × Disposition
+          type: 枚举
+          desc: Satisfied/Partial/Unsatisfied × Final/NeedsFollowUp；Undetermined ⇒ NeedsFollowUp
+          mark: 必
+      note: 只评不改——不回写任何执行事实。

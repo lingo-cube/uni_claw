@@ -1,5 +1,5 @@
 # PROTOCOL-MACHINE-001 — 协议状态机：三机一源三出口（YAML 单源 + 生成执法渲染）
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: 14987fe
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 14987fe
 
 ## Intent（WHAT/WHY）
 
@@ -98,8 +98,8 @@ verification:
   level: DETERMINISTIC
   method: "生成器幂等运行 + 对齐审计表 + 转移合法性/漂移检测测试（运行待网络）+ 图算法检查脚本"
   expected: "A1-A7 全过；每机悬挂白名单精确匹配：run={}; contract-view={admitted}（Deferred ⑰）"
-  actual: "Slice 3 完成：--check 升级为「新鲜度+图审计」，审计为纯函数（不写文件、无时间戳）。①可达性 DFS：每机从 initial（∪ hang_whitelist 接缝入口）出发，白名单为空的机不可达 = RED；非空白名单机 = seam-pending，不可达下游进报告待接缝闭合（语义裁决见 R3）。②悬挂白名单每机精确匹配：期望表 run={} / binding={} / judgment={} / attempt={} / contract-view={admitted}（Deferred ⑰ 唯一），声明≠期望 = RED、白名单条目实际不悬挂（失真）= RED、白名单外悬挂 = RED，双向执法。③终止性环二分（D10）：初等环全枚举，进展环必带测度（词汇封闭）否则 RED；await:external 静默环携测度（伪装进展）= RED。run 机实证 5 进展环（defer-rounds/steps/rounds/cap-remaining×2）+ 1 静默环（R-T10）。④断锚按命名空间分流：P## 逐字 grep 协议基线（26/26）、G## 逐字/锚头命中交互模型 HTML（5/5）、O## 锚头 slug 逐字等于 payload schema $id（D5/D7：wire 边 canonical 锚=双方契约）——发现 O1/O2/O10 三条 YAML 锚漂移，最小修正为 $id 逐字形并 --change 重生成。--audit-report 产出 evidence-friendly 审计报告（锚解析汇总/每机可达性/悬挂清单/环分类表/测度标注汇总）。Slice 1+2 完成项不重复；Slice 4 未动。"
-  evidence: "① python3 tools/gen-protocol-machine.py --check → 退出 0（5 机/28 转移/44 边，全审计过）；② --audit-report：anchors 44/44、run 机 reachability 10/10、环分类 5 progress + 1 silent 全部带测度标注；③ 负向自证五条各 RED 一次（exit 1）并还原恢复（YAML 字节一致、--check 恢复 0）：不可达非悬挂节点 ghost → 'unreachable nodes from initial (DFS): [ghost]'；删 contract-view 白名单 → admitted 白名单外悬挂 RED；白名单加 activated → 精确匹配失配 + '白名单失真 [activated]' 双 FAIL；删 R-T09 measure:rounds → 'progress cycle without a well-founded measure: R-T04/R-T05/R-T07/R-T09'；改 P1 锚 → 'title_anchor does not resolve in inter-component-protocol-baseline-l1-l3.md'；④ dotnet build UniClaw.Kernel.slnx → 0 错误；⑤ dotnet test tests/UniClaw.Kernel.Tests → 882 通过 / 0 失败（基线保持）；⑥ 语义修正后 --change PROTOCOL-MACHINE-001 重生成 + 连续 --check 通过（产物无时间戳，两次生成字节一致）。"
+  actual: "Slice 4 完成（最后实现切片，承接 Slice 3 全部审计项）：三出口补齐。①交互模型 STEPS 单源——HTML 手写 27 步全量转录进 YAML interaction_model 段（组/编号/名称/edge_ref 边引用/方向/st/fixTag+fix_ref/fix/note/字段注记 mark∈{必,选,准,系,—}，known deviation 条目无遗漏）；生成器新增 steps 形状断言（总数钉扎 27、必填键、group/st/mark 封闭词汇、st=fix ⇒ fixTag→致因 change 映射（S1/S5→-001、S2→-002、S3→-003、S4→-004）+ fix_ref 解析、edge_ref 存在性、步骤/边 status 一致性：track⇔track、fix⇒keep、keep⇒keep|track——实证裁决：边表 status 未标 fix（修复是载荷注记非边语义变更），P19 track 步骤引为 keep 合法）；emit docs/design/protocol-workflow-steps.generated.js（window.PROTOCOL_STEPS，<script src> 加载，file:// 可用不依赖 fetch）；HTML 删手写 STEPS 数组与 F() 辅助（渲染层 GROUPS/render/openPanel 不动），G## 断锚住处扩为 HTML+生成 js 并集。②fragment：docs/architecture/protocols/protocol-map.generated.md（5 机概览表 + 44 边表 id/kind/status/方向/载荷摘要/基线锚，排序确定性）；基线 §1 加且仅加一行引用。③每域卡片：docs/protocol-cards/<component>.md 12 张（12 协议组件全覆盖 ≥Kernel 六域；参与边出/入分表 + guard 摘要由转移合法性表反查 join）；落点经 DocsMetadata 执法前置检查——src/**/README 落非 .cs 文件对 Rule5 无益且域 README 属复刻执法面，集中落 docs/protocol-cards/（四规则全不触）；fragment 落 docs/architecture 需 Rule2 冻结词，以 COMPONENT-BASELINE 派生声明满足。--check 升级为全产物 byte-diff（json+js+fragment+12 卡片共 15 文件新鲜度），写手模式对全部产物统一 --change 门槛并清理孤儿卡片。"
+  evidence: "① python3 tools/gen-protocol-machine.py --check → 退出 0（5 机/28 转移/44 边/27 步/12 卡片，全审计过）；② 两次生成 15 产物 md5 逐文件一致（DETERMINISTIC，无时间戳）；③ 负向自证八条各 RED 一次（exit 1）并还原恢复（--check 恢复 0）：删字段 mark key → 'missing required key \\'mark\\''；mark 越词（必须）→ 'outside [—,准,必,系,选]'；edge_ref P99 → 'not registered in edges'；keep 步骤引 P24 改 track → '步骤/边 status 不一致'；删步骤 2 → 'step count 26 != 27'；手改 fragment / 卡片 / steps js → 各 'stale generated artifact'；④ HTML 渲染验证（ego-browser file:// 实开，非 mock）：#flow 27 节点/7 组、计数文本『显示 27 步』、0b 面板 6 字段+trackbox 正常打开、fix 过滤器显示 8 步；⑤ dotnet build UniClaw.Kernel.slnx → 0 错误；⑥ dotnet test → 本任务范围全绿：非 DocsMetadataTests 全集 878/878 + Architecture_DeclaresFrozenAuthority（覆盖新 fragment）3/3；全集 882 中 1 失败为外来未跟踪文件 docs/analysis/uniclaw-lifecycle-completeness-and-optimization-2026-10-12.md 缺 Status/Authority 头（DocsMetadata Rule1，先于本切片存在于工作树、不在本 WorkItem write 范围，已上报）。未 commit。"
 ```
 
 ## Status log
@@ -178,3 +178,27 @@ verification:
   审计报告持续可见，⑰ 闭合时收紧。D6 增补：O 系 wire 边 title_anchor =
   payload schema $id 逐字形（双方契约即 canonical 锚）。A1 措辞按"与代码
   事实一致"理解，contract-view 部分实现状态在审计报告可见。
+- 2026-10-12 · IMPLEMENT Slice 4（worker=glm-5.3-flash） · 最后实现切片完成：
+  三出口补齐。①YAML 增 interaction_model 段（HTML 27 步全量转录，字段注记
+  mark/st/fixTag/fix_ref 全带；步骤形状断言入生成器——总数钉扎/封闭词汇/
+  fix→致因 change 映射/edge_ref 存在性/步骤与边 status 一致性）；emit
+  protocol-workflow-steps.generated.js，HTML 删手写 STEPS+F() 改 <script
+  src> 加载，G## 断锚住处扩 HTML+生成 js 并集。②fragment
+  protocol-map.generated.md（5 机概览+44 边表）落 docs/architecture/protocols/
+  （Rule2 冻结词以 COMPONENT-BASELINE 派生声明满足）；基线 §1 加且仅加
+  一行引用。③12 张每域卡片集中落 docs/protocol-cards/（DocsMetadata 执法
+  前置检查裁决：src README 落非 .cs 文件无益且域 README 属复刻执法面）。
+  --check 升级 15 产物全 byte-diff + 孤儿卡片清理。验证：--check 0；两次
+  生成 md5 一致；负向自证八条各 RED 后还原全恢复；build 0 错误；dotnet
+  test 本任务范围全绿（878/878 + 3/3；全集 1 失败为外来未跟踪 analysis
+  文档缺 Status 头，非本切片，已上报）；HTML ego-browser file:// 实开渲染
+  27 节点/7 组/面板/过滤器全过。未 commit。
+- 2026-10-12 · REVIEW→VERIFY→CLOSED（Leader 收口） · Slice 4 复核：三出口
+  全落地（fragment/STEPS 注入删手写/12 域卡片），--check 升 15 产物全
+  byte-diff，负向自证 8 条过；HTML file:// 实开渲染完整。收口全量验证：
+  build 0 错、Kernel 882/882、Simulation 188/188、--check 全审计过、
+  审计留痕落 evidence/protocol-machine-001/。A1-A7 全项闭合。附带处置：
+  owner 草稿 docs/analysis/uniclaw-lifecycle-completeness-and-optimization-
+  2026-10-12.md 缺 DocsMetadata 头致套件 1 失败——按 gap-assessment 同款
+  补 DRAFT/NONE 头（内容未动、未提交，跟踪权留 owner）。worker=glm-5.3-flash
+  ×4（Slice 1-4）+ Leader 复核四轮。

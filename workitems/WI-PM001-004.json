@@ -1,0 +1,63 @@
+{
+  "id": "WI-PM001-004",
+  "objective": "PROTOCOL-MACHINE-001 Slice 4（最后实现切片）：生成器三出口补齐——①协议图文档 fragment（独立文件 + 基线一行引用）；②交互模型 STEPS 由 YAML 生成注入（27 步含字段注记全量搬入单源，删 HTML 手写副本）；③每域协议卡片（≥Kernel 六域，边表按组件过滤），全部纳入 --check 漂移检测。",
+  "scope": {
+    "write": [
+      "schemas/protocol/state-machine.yaml（新增 steps/interaction_model 段——从 HTML 手写 STEPS 全量转录）",
+      "tools/gen-protocol-machine.py（三出口扩展 + steps 形状断言）",
+      "docs/architecture/protocols/protocol-map.generated.md（生成产物）",
+      "docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md（仅加一行 fragment 引用）",
+      "docs/design/protocol-workflow-steps.generated.js（生成产物）+ docs/design/protocol-workflow-model-v0.1.html（删手写 STEPS、改 script src、渲染层适配）",
+      "每域协议卡片产物（落点见 semantic_brief，先查 DocsMetadata 执法再定）",
+      "changes/PROTOCOL-MACHINE-001/state.md（status log + verification）"
+    ],
+    "read_hints": [
+      "changes/PROTOCOL-MACHINE-001/state.md（D2 单向生成、D6/D8、A5/A7）",
+      "docs/design/protocol-workflow-model-v0.1.html:102 起（手写 STEPS 27 步——转录源；F() 渲染辅助保留）",
+      "evidence/arch-doc-023/（DocsMetadata/README 登记复刻执法——卡片落点前置检查）",
+      "schemas/protocol/state-machine.yaml（44 边现状——卡片与 fragment 的数据源）"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "STEPS 转录：HTML 手写 27 步（pre/contract/observe/decide/act 组）连同字段注记（label/source/note/mark∈{必,选,系,—}）与 st∈{keep,fix,track}+fixTag 全量入 YAML steps 段；生成器校验步骤键完整 + mark/status 词汇封闭 + 步骤引用的边 id 存在于 edges，emit protocol-workflow-steps.generated.js（HTML 以 <script src> 加载，file:// 可用，不依赖 fetch）；HTML 手写 STEPS 数组删除。fragment：协议图 markdown 独立生成文件，基线加一行引用（唯一允许的基线改动）。卡片：边表按组件过滤生成（该域参与边/方向/载荷/guard 摘要/基线锚），落点先查 DocsMetadata 执法——若在域目录落文件或改 README 会破复刻检查，则集中落 docs/protocol-cards/ 并由 --check 保证与边表同步。",
+    "core_points": [
+      "D2 单向生成：一切产物手改即被 --check 抓（fragment/js/卡片全部纳入 byte-diff）",
+      "D8：卡片是派生视图，权威在边表；≥Kernel 六域（Evidence/Effects/Run/Runtime/Assurance/Core 等）",
+      "步骤 status 与所引用边的 status 一致性校验（st:'fix'+fixTag ↔ edge status+fix_ref）",
+      "产物不落时间戳，确定性生成保持（两次生成字节一致）",
+      "STEPS 数据形状断言：少 key/错 mark = 生成期 RED（HTML 渲染静默坏页面必须被上游拦住）"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "docs/design/protocol-workflow-model-v0.1.html",
+      "symbol": "STEPS/F()"
+    },
+    {
+      "path": "tools/gen-protocol-machine.py"
+    }
+  ],
+  "contract_refs": [
+    "changes/PROTOCOL-MACHINE-001/state.md（D2/D6/D8/A5/A7）"
+  ],
+  "acceptance": [
+    "A1 steps 段全量转录：27 步无遗漏（组/编号/名称/边引用/方向/状态/字段注记/备注），HTML 手写 STEPS 删除后页面经 <script src> 加载生成数据仍完整渲染",
+    "A2 形状断言：步骤缺 key / mark 越词 / 引用不存在的边 id / 步骤 status 与边 status 不一致 → 生成期非零退出；各负向自证一次",
+    "A3 fragment 就位：protocol-map.generated.md 含五机概览 + 44 边表（id/方向/payload/status/锚），基线加且仅加一行引用；手改 fragment 被 --check 抓（负向自证）",
+    "A4 卡片就位：≥Kernel 六域各一张（参与边/方向/载荷/guard 摘要/锚），落点合规（DocsMetadata 执法不破）；手改卡片被 --check 抓（负向自证）",
+    "A5 --check 覆盖全部新产物（fragment/js/卡片 byte-diff）；两次生成字节一致；退出 0",
+    "A6 dotnet build 0 错误；dotnet test tests/UniClaw.Kernel.Tests 全量绿（当前基线 882）；HTML 删改后无残留死代码（F/渲染函数仍被使用或一并清理）",
+    "A7 state.md 更新 status log（worker=glm-5.3-flash）+ verification 四元组填实"
+  ],
+  "forbidden": [
+    "不改 C# 生产代码；基线只允许加一行 fragment 引用",
+    "不重开 D1-D12/R1-R4 已裁决事项",
+    "卡片/fragment 不得引入边表之外的协议事实（纯派生）",
+    "不 git commit/push；越界停下报告 BLOCKED"
+  ],
+  "frozen_decisions": [
+    "changes/PROTOCOL-MACHINE-001/state.md D1-D12 + R1-R4"
+  ],
+  "status": "done",
+  "required_capability": "implementation"
+}

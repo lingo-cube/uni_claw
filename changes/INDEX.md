@@ -2,8 +2,8 @@
 
 > 派生索引：列出所有 lifecycle_state ≠ closed 的 change。
 > 再生：`python3 tools/gen-open-changes.py`（GATE-001 P-E′；一致性执法二期）。
-> 统计：185 changes · 1 open。
+> 统计：186 changes · 1 open。
 
 | change | lifecycle_state | disposition | depth | title |
 |---|---|---|---|---|
-| PROTOCOL-MACHINE-001 | persisted | none | decision-heavy | PROTOCOL-MACHINE-001 — 协议状态机：三机一源三出口（YAML 单源 + 生成执法渲染） |
+| ARCH-DOC-024 | persisted | none | standard | ARCH-DOC-024 — 组件分级与工程化管理审查及 P0/P1/P2 优化建议 |

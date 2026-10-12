@@ -6,10 +6,13 @@ sanctioned writer of the generated enforcement artifact consumed by the C#
 teeth (tests/UniClaw.Kernel.Tests/Protocol/protocol-machine.generated.json).
 
 Discipline (D12, aligned with the C8 writer protocol):
-  --check            freshness (regenerate + byte-compare, no writes) PLUS the
-                     Slice 3 graph audit: reachability DFS, per-machine hang
-                     whitelist exact match, termination cycle bisection,
-                     anchor resolution. Non-zero exit on drift or violation.
+  --check            freshness (regenerate + byte-compare, no writes) over ALL
+                     generated artifacts (C# teeth json + interaction-model
+                     steps js + protocol map fragment + per-domain protocol
+                     cards) PLUS the Slice 3 graph audit: reachability DFS,
+                     per-machine hang whitelist exact match, termination cycle
+                     bisection, anchor resolution. Non-zero exit on drift or
+                     violation.
   --audit-report     print the evidence-friendly audit report (hang lists,
                      cycle classification, measure annotations) and exit.
   (writer mode)      regenerate and write. If the artifact would change and no
@@ -43,6 +46,11 @@ ARTIFACT = (
     ROOT / "tests" / "UniClaw.Kernel.Tests" / "Protocol"
     / "protocol-machine.generated.json"
 )
+STEPS_JS = ROOT / "docs" / "design" / "protocol-workflow-steps.generated.js"
+PROTOCOL_MAP = (
+    ROOT / "docs" / "architecture" / "protocols" / "protocol-map.generated.md"
+)
+CARDS_DIR = ROOT / "docs" / "protocol-cards"
 
 VERSION = 1
 MEASURES = {"steps", "rounds", "defer-rounds", "cap-remaining"}
@@ -69,6 +77,21 @@ EXPECTED_HANG_WHITELIST: dict[str, set[str]] = {
     "judgment": set(),
     "attempt": set(),
     "contract-view": {"admitted"},  # Deferred ⑰（activation seam 未闭合）
+}
+
+# Slice 4：交互模型（HTML 27 步）单源。步骤是渲染数据：组/编号/边引用/
+# 方向/状态/字段注记全量在此，HTML 手写副本已删除（A5）。
+STEP_GROUPS = {"pre", "contract", "observe", "decide", "act", "verify", "terminal"}
+STEP_STATUSES = {"keep", "fix", "track"}
+FIELD_MARKS = {"必", "选", "准", "系", "—"}
+EXPECTED_STEP_COUNT = 27
+# st:'fix' 的 fixTag → 致因 change（与 fix_ref 同一解析执法：断链 = RED）。
+FIXTAG_CHANGE = {
+    "S1": "PROTOCOL-FIX-001",
+    "S5": "PROTOCOL-FIX-001",
+    "S2": "PROTOCOL-FIX-002",
+    "S3": "PROTOCOL-FIX-003",
+    "S4": "PROTOCOL-FIX-004",
 }
 
 
@@ -189,6 +212,10 @@ def audit_graph(doc: dict) -> tuple[list[str], list[str]]:
         target = anchor_target(eid)
         try:
             haystack = target.read_text(encoding="utf-8")
+            # G 锚的步骤名在 Slice 4 后迁居生成 js（STEPS 单源），锚住处
+            # = HTML 页面 + 生成 steps 数据两者并集。
+            if eid.startswith("G") and STEPS_JS.exists():
+                haystack += STEPS_JS.read_text(encoding="utf-8")
         except OSError as exc:
             reasons.append(f"edges.{eid}: anchor target unreadable "
                            f"{target.name}: {exc}")
@@ -467,7 +494,239 @@ def validate(doc: dict) -> list[str]:
         if hanging:
             reasons.append(f"{name}: nodes without outgoing transition (not terminal, "
                            f"not in hang_whitelist): {sorted(hanging)}")
+
+    reasons.extend(validate_steps(doc, edge_ids))
     return reasons
+
+
+def validate_steps(doc: dict, edge_ids: set[str]) -> list[str]:
+    """Slice 4：交互模型 steps 段形状断言（渲染静默坏页面必须被上游拦住）。
+
+    执法面：步骤总数钉扎（27，A1 全量转录）；必填键缺失 = RED；
+    mark / st / group 越封闭词汇 = RED；st='fix' 必带 fixTag 且 fix_ref
+    解析到致因 change；步骤引用的边 id 必须存在于 edges，且步骤 status
+    与所引用边 status 一致（track⇔track、fix⇒keep、keep⇒keep|track）。"""
+    reasons: list[str] = []
+    im = doc.get("interaction_model")
+    if not isinstance(im, dict) or not isinstance(im.get("steps"), list) \
+            or not im["steps"]:
+        reasons.append("interaction_model: must be a mapping with a non-empty "
+                       "'steps' list")
+        return reasons
+
+    steps = im["steps"]
+    if len(steps) != EXPECTED_STEP_COUNT:
+        reasons.append(f"interaction_model: step count {len(steps)} != "
+                       f"{EXPECTED_STEP_COUNT} (27 步全量转录，A1)")
+    for i, s in enumerate(steps):
+        where = f"steps[{i}]"
+        if not isinstance(s, dict):
+            reasons.append(f"{where}: must be a mapping")
+            continue
+        label = s.get("no") or s.get("name") or i
+        where = f"steps[{label}]"
+        for key in ("group", "no", "name", "edge", "st", "fields"):
+            if key not in s or s[key] in (None, "", []):
+                reasons.append(f"{where}: missing required key {key!r}")
+        if s.get("group") not in STEP_GROUPS:
+            reasons.append(f"{where}: group {s.get('group')!r} outside "
+                           f"{sorted(STEP_GROUPS)}")
+        st = s.get("st")
+        if st not in STEP_STATUSES:
+            reasons.append(f"{where}: st {st!r} outside {sorted(STEP_STATUSES)}")
+        # fix 家族键只允许 st='fix' 携带；fix 必须落到致因 change。
+        fix_keys = [k for k in ("fixTag", "fix", "fix_ref") if k in s]
+        if st == "fix":
+            if not fix_keys:
+                reasons.append(f"{where}: st='fix' requires fixTag + fix + fix_ref")
+            else:
+                tag = s.get("fixTag")
+                expected_change = FIXTAG_CHANGE.get(tag)
+                if expected_change is None:
+                    reasons.append(f"{where}: fixTag {tag!r} not in "
+                                   f"{sorted(FIXTAG_CHANGE)}")
+                elif s.get("fix_ref") != expected_change:
+                    reasons.append(f"{where}: fix_ref {s.get('fix_ref')!r} != "
+                                   f"fixTag {tag!r} causal change "
+                                   f"{expected_change!r}")
+                elif not fix_ref_exists(s["fix_ref"]):
+                    reasons.append(f"{where}: fix_ref {s['fix_ref']!r} does not "
+                                   "resolve to changes/<id>/state.md or an ADR")
+        elif fix_keys:
+            reasons.append(f"{where}: fix-family keys {fix_keys} only valid "
+                           "with st='fix'")
+        # 边引用存在性 + 步骤/边 status 一致性。
+        ref = s.get("edge_ref")
+        if ref is not None:
+            if ref not in edge_ids:
+                reasons.append(f"{where}: edge_ref {ref!r} not registered in edges")
+            else:
+                edge_status = next(e["status"] for e in doc["edges"] if e["id"] == ref)
+                if st == "track" and edge_status != "track":
+                    reasons.append(f"{where}: st='track' cites {ref} with "
+                                   f"status={edge_status!r} (步骤/边 status 不一致)")
+                elif st == "fix" and edge_status != "keep":
+                    reasons.append(f"{where}: st='fix' cites {ref} with "
+                                   f"status={edge_status!r} (步骤/边 status 不一致)")
+                elif st == "keep" and edge_status not in ("keep", "track"):
+                    reasons.append(f"{where}: st='keep' cites {ref} with "
+                                   f"status={edge_status!r} (步骤/边 status 不一致)")
+        elif "edge_ref" in s:
+            reasons.append(f"{where}: edge_ref present but empty")
+        fields = s.get("fields")
+        if isinstance(fields, list):
+            for j, f in enumerate(fields):
+                if not isinstance(f, dict):
+                    reasons.append(f"{where}.fields[{j}]: must be a mapping")
+                    continue
+                for key in ("name", "type", "desc", "mark"):
+                    if key not in f:
+                        reasons.append(f"{where}.fields[{j}]: missing required "
+                                       f"key {key!r}")
+                if f.get("mark") not in FIELD_MARKS:
+                    reasons.append(f"{where}.fields[{j}]: mark "
+                                   f"{f.get('mark')!r} outside {sorted(FIELD_MARKS)}")
+    return reasons
+
+
+# ---- Slice 4：三出口（fragment / steps js / 每域卡片）——纯派生，无时间戳 ----
+
+def edge_sort_key(edge_id: str):
+    return (edge_id[0], int(edge_id[1:]))
+
+
+def payload_summary(edge: dict) -> str:
+    pref = edge.get("payload_ref") or {}
+    if not pref:
+        return "—"
+    if pref.get("type") == "schema":
+        return f"schema {str(pref['name']).rstrip('/').rsplit('/', 1)[-1]}"
+    return f"record {pref['name']}"
+
+
+def edge_guards(doc: dict, edge_ids: set[str]) -> dict[str, list[str]]:
+    """转移合法性表反查：每条被引用边的 guard 摘要（机.转移 → guard）。"""
+    out: dict[str, list[str]] = {}
+    for name in sorted(doc.get("machines") or {}):
+        for t in doc["machines"][name].get("transitions") or []:
+            ref = (t.get("trigger") or {}).get("edge")
+            if ref in edge_ids:
+                out.setdefault(ref, []).append(f"{name}.{t['id']}: {t.get('guard', '')}")
+    return out
+
+
+def render_protocol_map(doc: dict) -> str:
+    lines = [
+        "# Protocol Map（生成产物）",
+        "",
+        "> 派生自 `schemas/protocol/state-machine.yaml`（PROTOCOL-MACHINE-001 单源）。",
+        "> 本文件是生成产物，手改会被 `--check` 漂移检测抓出；协议语义权威是",
+        "> COMPONENT-BASELINE 文档 `inter-component-protocol-baseline-l1-l3.md`，",
+        "> 本视图不引入边表之外的协议事实。",
+        "",
+        "## 机器概览（5 台）",
+        "",
+        "| 机 | initial | 节点数 | 转移数 | 终态 | 悬挂白名单 |",
+        "|---|---|---|---|---|---|",
+    ]
+    machines = doc.get("machines") or {}
+    for name in sorted(machines):
+        m = machines[name]
+        lines.append(
+            f"| {name} | {m['initial']} | {len(m.get('nodes') or [])} "
+            f"| {len(m.get('transitions') or [])} "
+            f"| {', '.join(sorted(m.get('terminal_nodes') or []))} "
+            f"| {', '.join(sorted(m.get('hang_whitelist') or [])) or '∅'} |")
+    edges = sorted(doc.get("edges") or [], key=lambda e: edge_sort_key(e["id"]))
+    lines += [
+        "",
+        f"## 协议边表（{len(edges)} 条；P## 协议边 / O## wire·宿主边 / G## known gap）",
+        "",
+        "| id | kind | status | 方向 | 载荷 | 基线锚 |",
+        "|---|---|---|---|---|---|",
+    ]
+    for e in edges:
+        anchor = str(e.get("title_anchor") or "").replace("|", "\\|")
+        lines.append(
+            f"| {e['id']} | {e['kind']} | {e['status']} "
+            f"| {e['from']} → {e['to']} | {payload_summary(e)} | {anchor} |")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def render_steps_js(doc: dict) -> str:
+    """HTML 交互模型渲染数据（<script src> 加载，file:// 可用，不依赖 fetch）。
+
+    键形与页面渲染层契约（g/no/nm/edge/dir/st/fixTag/fix/note/fields[n/t/d/req]）。"""
+    steps = []
+    for s in (doc.get("interaction_model") or {}).get("steps") or []:
+        steps.append({
+            "g": s["group"],
+            "no": s["no"],
+            "nm": s["name"],
+            "edge": s["edge"],
+            "dir": s.get("dir", ""),
+            "st": s["st"],
+            **({"fixTag": s["fixTag"]} if "fixTag" in s else {}),
+            **({"fix": s["fix"]} if "fix" in s else {}),
+            **({"note": s["note"]} if s.get("note") else {}),
+            "fields": [
+                {"n": f["name"], "t": f["type"], "d": f["desc"], "req": f["mark"]}
+                for f in s.get("fields") or []
+            ],
+        })
+    header = ("// 生成产物（PROTOCOL-MACHINE-001 单源："
+              "schemas/protocol/state-machine.yaml interaction_model 段）。\n"
+              "// 手改会被 tools/gen-protocol-machine.py --check 漂移检测抓出。\n")
+    return header + "window.PROTOCOL_STEPS = " + json.dumps(
+        steps, ensure_ascii=False, indent=1) + ";\n"
+
+
+def render_cards(doc: dict) -> dict[str, str]:
+    """每域协议卡片（D8 第四出口）：边表按组件过滤的派生视图。"""
+    edges = {e["id"]: e for e in doc.get("edges") or []}
+    guards = edge_guards(doc, set(edges))
+    by_component: dict[str, list[str]] = {}
+    for eid in sorted(edges, key=edge_sort_key):
+        e = edges[eid]
+        by_component.setdefault(e["from"], []).append(eid)
+        if e["to"] != e["from"]:
+            by_component.setdefault(e["to"], []).append(eid)
+    cards: dict[str, str] = {}
+    for comp in sorted(by_component):
+        incoming = [i for i in by_component[comp] if edges[i]["to"] == comp]
+        outgoing = [i for i in by_component[comp] if edges[i]["from"] == comp]
+        lines = [
+            f"# 协议卡片 · {comp}（生成产物）",
+            "",
+            "> 派生自 `schemas/protocol/state-machine.yaml` 边表（PROTOCOL-MACHINE-001",
+            "> D8 第四出口，纯派生视图——权威不搬家）；手改会被 `--check` 抓出。",
+            "",
+        ]
+        for title, ids, direction in (
+                ("出边（本组件 → 对端）", outgoing, True),
+                ("入边（对端 → 本组件）", incoming, False)):
+            if not ids:
+                continue
+            lines += [f"## {title}", "",
+                      "| id | kind | status | 方向 | 载荷 | 基线锚 |", "|---|---|---|---|---|---|"]
+            for eid in ids:
+                e = edges[eid]
+                arrow = f"{e['from']} → {e['to']}"
+                anchor = str(e.get("title_anchor") or "").replace("|", "\\|")
+                lines.append(f"| {eid} | {e['kind']} | {e['status']} | {arrow} "
+                             f"| {payload_summary(e)} | {anchor} |")
+            lines.append("")
+        related_guards = [(eid, guards[eid]) for eid in by_component[comp]
+                          if eid in guards]
+        if related_guards:
+            lines += ["## 转移合法性 guard 摘要（引用本组件参与边的转移）", ""]
+            for eid, entries in related_guards:
+                lines.append(f"- **{eid}**")
+                lines.extend(f"  - {entry}" for entry in entries)
+            lines.append("")
+        cards[f"{comp}.md"] = "\n".join(lines)
+    return cards
 
 
 def render(doc: dict) -> str:
@@ -546,33 +805,53 @@ def main() -> int:
         return 1 if audit_reasons else 0
 
     generated = render(doc).encode("utf-8")
-    existing = ARTIFACT.read_bytes() if ARTIFACT.exists() else None
+    steps_js = render_steps_js(doc).encode("utf-8")
+    protocol_map = render_protocol_map(doc).encode("utf-8")
+    cards = {name: body.encode("utf-8")
+             for name, body in render_cards(doc).items()}
+
+    targets: list[tuple[Path, bytes]] = [(ARTIFACT, generated),
+                                         (STEPS_JS, steps_js),
+                                         (PROTOCOL_MAP, protocol_map)]
+    targets += [(CARDS_DIR / name, body) for name, body in cards.items()]
+
+    def current(path: Path) -> bytes | None:
+        return path.read_bytes() if path.exists() else None
 
     if args.check:
         if audit_reasons:
             return fail(audit_reasons)
-        if existing is None:
-            print(f"FAIL: artifact missing: {ARTIFACT}", file=sys.stderr)
-            return 1
-        if existing != generated:
-            print("FAIL: protocol-machine.generated.json is stale — rerun "
-                  "tools/gen-protocol-machine.py --change <causal-id>", file=sys.stderr)
+        stale = [path for path, body in targets if current(path) != body]
+        if stale:
+            for path in stale:
+                print(f"FAIL: stale generated artifact: {path.relative_to(ROOT)} — "
+                      "rerun tools/gen-protocol-machine.py --change <causal-id>",
+                      file=sys.stderr)
             return 1
         print(f"OK: protocol machine fresh ({len(doc['machines'])} machines, "
               f"{sum(len(m['transitions']) for m in doc['machines'].values())} transitions, "
-              f"{len(doc.get('edges') or [])} edges) — graph audit passed: "
+              f"{len(doc.get('edges') or [])} edges, "
+              f"{len((doc.get('interaction_model') or {}).get('steps') or [])} steps, "
+              f"{len(cards)} domain cards) — graph audit passed: "
               "reachability, hang whitelist exact match, cycle bisection, "
               "anchors (details: --audit-report)")
         return 0
 
-    if existing != generated and not args.change:
+    drifted = [path for path, body in targets if current(path) != body]
+    if drifted and not args.change:
         print("FAIL: source semantic diff detected — writing requires "
               "--change <causal change id> (C8 protocol)", file=sys.stderr)
         return 1
 
-    ARTIFACT.parent.mkdir(parents=True, exist_ok=True)
-    ARTIFACT.write_bytes(generated)
-    print(f"OK: wrote {ARTIFACT.relative_to(ROOT)}"
+    for path, body in targets:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(body)
+    stale_cards = [p for p in sorted(CARDS_DIR.glob("*.md"))
+                   if (CARDS_DIR / p.name) not in {path for path, _ in targets}]
+    for p in stale_cards:
+        p.unlink()
+    print(f"OK: wrote {len(targets)} generated artifact(s) "
+          f"(json + steps js + protocol map + {len(cards)} cards)"
           + (f" (change {args.change})" if args.change else " (pure regeneration)"))
     return 0
 

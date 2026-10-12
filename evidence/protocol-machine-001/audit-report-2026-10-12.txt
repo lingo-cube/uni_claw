@@ -1,0 +1,28 @@
+== graph audit ==
+anchors: 44/44 resolved (P## → inter-component-protocol-baseline-l1-l3.md; O## → payload schema $id; G## → protocol-workflow-model-v0.1.html)
+-- machine attempt (5 nodes, 4 transitions) --
+reachability: 5/5 reachable (roots: initial + hang_whitelist seam entries)
+hang: {}; whitelist {}
+termination: 0 progress cycle(s), 0 silent cycle(s); measures/awaits: {}
+-- machine binding (5 nodes, 4 transitions) --
+reachability: 5/5 reachable (roots: initial + hang_whitelist seam entries)
+hang: {}; whitelist {}
+termination: 0 progress cycle(s), 0 silent cycle(s); measures/awaits: {}
+-- machine contract-view (3 nodes, 1 transitions) --
+reachability: 1/3 reachable (roots: initial + hang_whitelist seam entries); UNREACHABLE ['activated', 'frozen']; seam-pending machine (non-empty hang_whitelist) — unreachable downstream tolerated, pending seam closure
+hang: ['admitted']; whitelist ['admitted']
+termination: 0 progress cycle(s), 0 silent cycle(s); measures/awaits: {}
+-- machine judgment (3 nodes, 2 transitions) --
+reachability: 3/3 reachable (roots: initial + hang_whitelist seam entries)
+hang: {}; whitelist {}
+termination: 0 progress cycle(s), 0 silent cycle(s); measures/awaits: {}
+-- machine run (10 nodes, 17 transitions) --
+reachability: 10/10 reachable (roots: initial + hang_whitelist seam entries)
+hang: {}; whitelist {}
+cycle [progress, measure ['steps']]: acting -> verifying -> acting (R-T07, R-T08)
+cycle [progress, measure ['rounds']]: acting -> verifying -> observing -> deciding -> acting (R-T04, R-T05, R-T07, R-T09)
+cycle [progress, measure ['cap-remaining']]: acting -> verifying -> recovering -> acting (R-T07, R-T12, R-T13)
+cycle [progress, measure ['cap-remaining']]: acting -> recovering -> acting (R-T11, R-T13)
+cycle [progress, measure ['defer-rounds']]: deciding -> deciding (R-T06)
+cycle [silent/await]: observing -> observing (R-T10)
+termination: 5 progress cycle(s), 1 silent cycle(s); measures/awaits: ['R-T06:defer-rounds', 'R-T08:steps', 'R-T09:rounds', 'R-T10:await:external', 'R-T13:cap-remaining']

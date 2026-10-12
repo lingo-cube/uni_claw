@@ -91,6 +91,8 @@
 
 ## 1. Protocol Map
 
+机器可读单源与生成视图（PROTOCOL-MACHINE-001）：`schemas/protocol/state-machine.yaml`；协议图 fragment 见同目录 `protocol-map.generated.md`（生成产物，手改无效）。
+
 ```text
 UniAgent ──P1 Execution Contract admission──▶ Run Model
 Capability Plane（外部观察 / post-action effect flow 观察 acquisition） ──P2 Observation Ingress(kind=Observation)──▶ Evidence Ledger
