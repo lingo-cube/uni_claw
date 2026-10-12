@@ -137,7 +137,8 @@ public static class CoreSemanticProjection
         CoreId basisSliceId,
         CoreId targetSegmentId,
         string currentRevisionId,
-        GateDecision? gate = null)
+        GateDecision? gate = null,
+        DeliveryTarget? target = null)
     {
         ArgumentNullException.ThrowIfNull(binding);
         var disposition =
@@ -146,7 +147,7 @@ public static class CoreSemanticProjection
                 : binding.RevisionId != currentRevisionId
                     ? BindingDisposition.Stale
                     : BindingDisposition.Canonical;
-        var (locatorKind, locatorKey) = ProjectLocator(binding);
+        var (locatorKind, locatorKey) = ProjectLocator(target);
         return new TargetBinding(
             new CoreId(binding.BindingId),
             targetSegmentId,
@@ -156,10 +157,14 @@ public static class CoreSemanticProjection
             disposition);
     }
 
-    private static (string Kind, string Key) ProjectLocator(CanonicalBinding binding) =>
-        binding.TargetNative is { } native
+    // PROTOCOL-FIX-004 S4（D2/D3）：delivery record 从 delivery material
+    // （DeliveryTarget）投影——locator 唯一载体；输出与迁移前
+    // binding.Target* 源字节等价（同输入对照，锚定于
+    // CanonicalBindingLocatorNarrowingTests / CoreProjectionSeamTests）。
+    private static (string Kind, string Key) ProjectLocator(DeliveryTarget? target) =>
+        target?.Native is { } native
             ? (native.Kind, native.Value)
-            : binding.TargetLocator is { } spatial
+            : target?.Spatial is { } spatial
                 ? ($"spatial:{spatial.SpatialFrameId}",
                     string.Create(
                         CultureInfo.InvariantCulture,

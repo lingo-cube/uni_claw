@@ -485,38 +485,47 @@ public sealed class UniKernel
         var targetWasUniqueBeforeDispatch = preActionBelief?.Occurrences is { } priorOccurrences
             && priorOccurrences.Count(o => MatchesTarget(o.Role, o.SemanticDescriptor, target)) == 1;
         var currentTargetCount = slice.Occurrences.Count(o => MatchesTarget(o, target));
-        var priorRoute = preActionBelief?.WorldState.TryGetValue(
-            ProductAssociationStrategy.ScreenRouteSubject, out var priorRouteClaim) == true
-            ? priorRouteClaim.Value
+        var routeBefore = preActionBelief?.WorldState.TryGetValue(
+            ProductAssociationStrategy.ScreenRouteSubject, out var routeBeforeClaim) == true
+            ? routeBeforeClaim.Value
             : null;
-        var currentRoute = _world.Current?.WorldState.TryGetValue(
-            ProductAssociationStrategy.ScreenRouteSubject, out var currentRouteClaim) == true
-            ? currentRouteClaim.Value
+        var routeAfter = _world.Current?.WorldState.TryGetValue(
+            ProductAssociationStrategy.ScreenRouteSubject, out var routeAfterClaim) == true
+            ? routeAfterClaim.Value
             : null;
-        var routeChanged = priorRoute is not null && currentRoute is not null
-            && !string.Equals(priorRoute, currentRoute, StringComparison.Ordinal);
+        var routeChanged = routeBefore is not null && routeAfter is not null
+            && !string.Equals(routeBefore, routeAfter, StringComparison.Ordinal);
         var navigationTransition = targetWasUniqueBeforeDispatch
             && currentTargetCount == 0
             && routeChanged;
-        // AGT-005：滚动内容变化 = pre-dispatch 与当前可见 occurrence
+        // PROTOCOL-FIX-002（ADR-0049）：期望谓词由 effect 类机械实例化（滚动
+        // 三布尔的等价迁移）——swipe = RouteStable ∧ ContentChanged；其余
+        // visual-path 步骤 = 目标可观察在位（navigation transition 由验证
+        // 侧豁免）。期望（authoring 侧）与观测证据分离：变化型求值所需的
+        // pre/post 派生事实收敛进 ChangeEvidence。
+        var isSwipe = global::UniClaw.Kernel.Effects.AdbEffectDriver.IsSwipeEffect(
+            target.EffectClass.ToLowerInvariant());
+        var expected = isSwipe
+            ? ExpectedEffect.OfChanges(
+                ChangePredicate.RouteStable, ChangePredicate.ContentChanged)
+            : ExpectedEffect.OfState(target.Role, "present");
+        // 滚动内容变化 = pre-dispatch 与当前可见 occurrence
         // (role, descriptor) 集合不对称（滚动露出新条目/收起旧条目均算）；
         // 集合对称的滚动 = 未生效，由 Assurance fail closed。
-        bool? scrollContentChanged = null;
-        if (global::UniClaw.Kernel.Effects.AdbEffectDriver.IsSwipeEffect(target.EffectClass.ToLowerInvariant())
-            && preActionBelief?.Occurrences is { } beforeOccurrences)
+        bool? visibleContentChanged = null;
+        if (isSwipe && preActionBelief?.Occurrences is { } beforeOccurrences)
         {
             var before = beforeOccurrences
                 .Select(o => (o.Role, o.SemanticDescriptor)).ToHashSet();
             var after = slice.Occurrences
                 .Select(o => (o.Role, o.SemanticDescriptor)).ToHashSet();
-            scrollContentChanged = !before.SetEquals(after);
+            visibleContentChanged = !before.SetEquals(after);
         }
         return Assurance.VerifyPostActionEffect(
             new PostActionEffectVerificationInput(target, slice, processedObservations,
+                expected,
                 TargetDisappearedAfterRouteChange: navigationTransition,
-                PriorRoute: priorRoute,
-                CurrentRoute: currentRoute,
-                ScrollContentChanged: scrollContentChanged));
+                Change: new ChangeEvidence(routeBefore, routeAfter, visibleContentChanged)));
     }
 
     private static bool MatchesTarget(OccurrenceFact occurrence, TargetSpec target) =>

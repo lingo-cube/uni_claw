@@ -12,11 +12,18 @@ namespace UniClaw.Kernel.Tests.Assurance;
 /// AGT-005 — swipe（滚动）步骤的 post-action 验证语义：
 /// 通过 = 动作前目标唯一 ∧ 路由未变 ∧ 可见内容变化。
 /// 路由变化（滚动误触导航）与内容未变（滚动未生效）都 fail closed。
+/// PROTOCOL-FIX-002（ADR-0049）：期望 = RouteStable ∧ ContentChanged 显式
+/// 谓词实例；本档各场景即「三布尔 → 期望载荷」等价迁移锚定测试（A2）——
+/// 场景与判定断言与迁移前一致。
 /// </summary>
 public sealed class ScrollVerificationTests
 {
     private static readonly TargetSpec SwipeTarget =
         new("scrollable", "com.android.settings:id/main_content", "swipe-up");
+
+    /// <summary>滚动期望 = RouteStable ∧ ContentChanged（ADR-0049 迁移实例）。</summary>
+    private static readonly ExpectedEffect ScrollExpectation =
+        ExpectedEffect.OfChanges(ChangePredicate.RouteStable, ChangePredicate.ContentChanged);
 
     private static RuntimeAssurance NewAssurance() => new(
         new ProductFreshnessEvaluator(() => DateTimeOffset.UtcNow, TimeSpan.FromMinutes(5)));
@@ -55,9 +62,11 @@ public sealed class ScrollVerificationTests
         var assurance = NewAssurance();
         var judgment = assurance.VerifyPostActionEffect(new PostActionEffectVerificationInput(
             SwipeTarget, EmptySlice("rev-2"), AcceptedObservation(),
-            PriorRoute: "android.settings|route:Settings",
-            CurrentRoute: "android.settings|route:Settings",
-            ScrollContentChanged: true));
+            ScrollExpectation,
+            Change: new ChangeEvidence(
+                "android.settings|route:Settings",
+                "android.settings|route:Settings",
+                VisibleContentChanged: true)));
 
         Assert.True(judgment.IsVerified, judgment.RejectionReason);
         Assert.Contains(judgment.Checks, c => c.Name == "post-action-route-unchanged" && c.Passed);
@@ -70,9 +79,11 @@ public sealed class ScrollVerificationTests
         var assurance = NewAssurance();
         var judgment = assurance.VerifyPostActionEffect(new PostActionEffectVerificationInput(
             SwipeTarget, EmptySlice("rev-2"), AcceptedObservation(),
-            PriorRoute: "android.settings|route:Settings",
-            CurrentRoute: "android.settings|route:Internet",
-            ScrollContentChanged: true));
+            ScrollExpectation,
+            Change: new ChangeEvidence(
+                "android.settings|route:Settings",
+                "android.settings|route:Internet",
+                VisibleContentChanged: true)));
 
         Assert.False(judgment.IsVerified);
         Assert.Equal("post-action-route-unchanged", judgment.RejectionReason);
@@ -84,9 +95,11 @@ public sealed class ScrollVerificationTests
         var assurance = NewAssurance();
         var judgment = assurance.VerifyPostActionEffect(new PostActionEffectVerificationInput(
             SwipeTarget, EmptySlice("rev-2"), AcceptedObservation(),
-            PriorRoute: "android.settings|route:Settings",
-            CurrentRoute: "android.settings|route:Settings",
-            ScrollContentChanged: false));
+            ScrollExpectation,
+            Change: new ChangeEvidence(
+                "android.settings|route:Settings",
+                "android.settings|route:Settings",
+                VisibleContentChanged: false)));
 
         Assert.False(judgment.IsVerified);
         Assert.Equal("post-action-content-transition", judgment.RejectionReason);
@@ -98,9 +111,11 @@ public sealed class ScrollVerificationTests
         var assurance = NewAssurance();
         var judgment = assurance.VerifyPostActionEffect(new PostActionEffectVerificationInput(
             SwipeTarget, EmptySlice("rev-2"), AcceptedObservation(),
-            PriorRoute: null,
-            CurrentRoute: "android.settings|route:Settings",
-            ScrollContentChanged: true));
+            ScrollExpectation,
+            Change: new ChangeEvidence(
+                null,
+                "android.settings|route:Settings",
+                VisibleContentChanged: true)));
 
         Assert.False(judgment.IsVerified);
         Assert.Equal("post-action-route-unchanged", judgment.RejectionReason);
@@ -112,9 +127,11 @@ public sealed class ScrollVerificationTests
         var assurance = NewAssurance();
         var judgment = assurance.VerifyPostActionEffect(new PostActionEffectVerificationInput(
             SwipeTarget, EmptySlice("rev-2"), AcceptedObservation(),
-            PriorRoute: "android.settings|route:Settings",
-            CurrentRoute: "android.settings|route:Settings",
-            ScrollContentChanged: null));
+            ScrollExpectation,
+            Change: new ChangeEvidence(
+                "android.settings|route:Settings",
+                "android.settings|route:Settings",
+                VisibleContentChanged: null)));
 
         Assert.False(judgment.IsVerified);
         Assert.Equal("post-action-content-transition", judgment.RejectionReason);
@@ -136,7 +153,8 @@ public sealed class ScrollVerificationTests
             },
             new Dictionary<string, string>());
         var judgment = assurance.VerifyPostActionEffect(new PostActionEffectVerificationInput(
-            tapTarget, tapSlice, AcceptedObservation()));
+            tapTarget, tapSlice, AcceptedObservation(),
+            ExpectedEffect.OfState("ui.element", "present")));
 
         Assert.True(judgment.IsVerified, judgment.RejectionReason);
         Assert.DoesNotContain(judgment.Checks, c => c.Name.StartsWith("post-action-route-", StringComparison.Ordinal)

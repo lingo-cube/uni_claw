@@ -95,18 +95,23 @@ public sealed class RuntimeAssurance
         };
         if (input.TargetDisappearedAfterRouteChange)
             checks.Add(new AssuranceCheck("post-action-navigation-transition", true));
-        // AGT-005：swipe 步骤的专属验证语义——滚动改变可见内容而不改变页面。
-        // 路由变化（滚动误触导航/滚动中页面跳转）或内容未变（滚动到底/
-        // 未生效）都 fail closed；通过 = PriorRoute==CurrentRoute ∧ 内容集变化。
-        if (Effects.AdbEffectDriver.IsSwipeEffect(input.Target.EffectClass.ToLowerInvariant()))
-        {
+        // PROTOCOL-FIX-002 / ADR-0049：判定对照物 = 显式期望谓词求值（非
+        // 身份连续、非 effect-class 硬编码）。RouteStable：路由证据两侧均在
+        // 场且相等；ContentChanged：可见内容集变化证据为 true；StateBecomes：
+        // 目标应处于何态（"present" = 可观察在位，navigation transition 合法
+        // 移除目标时豁免）。证据缺席不判满足（fail closed）。
+        if (input.Expected.Changes.Contains(ChangePredicate.RouteStable))
             checks.Add(new AssuranceCheck("post-action-route-unchanged",
-                input.PriorRoute is not null
-                && input.CurrentRoute is not null
-                && string.Equals(input.PriorRoute, input.CurrentRoute, StringComparison.Ordinal)));
+                input.Change is { } change
+                && change.RouteBefore is not null
+                && change.RouteAfter is not null
+                && string.Equals(change.RouteBefore, change.RouteAfter, StringComparison.Ordinal)));
+        if (input.Expected.Changes.Contains(ChangePredicate.ContentChanged))
             checks.Add(new AssuranceCheck("post-action-content-transition",
-                input.ScrollContentChanged == true));
-        }
+                input.Change?.VisibleContentChanged == true));
+        if (input.Expected.States.Count > 0)
+            checks.Add(new AssuranceCheck("post-action-expected-state",
+                input.Expected.States.All(s => ExpectedStateSatisfied(s, input))));
         var failed = checks.FirstOrDefault(c => !c.Passed)?.Name;
         var rejection = failed == "post-action-desired-state-satisfied"
             ? "post-action-desired-state-not-satisfied"
@@ -119,6 +124,41 @@ public sealed class RuntimeAssurance
             rejection);
         _postActionVerifications.Add(judgment);
         return judgment;
+    }
+
+    /// <summary>
+    /// 状态型期望谓词求值（PROTOCOL-FIX-002 / ADR-0049）。subject = 验证目标
+    /// role 时：occurrence presentation state 经 <see cref="CheckedSemantics"/>
+    /// 严格映射后与期望值比较（映射不出 = Unknown，不判满足，fail closed）；
+    /// 保留字 "present" = 可观察在位（恰一匹配 occurrence；navigation
+    /// transition 合法移除目标时由导航证明豁免）；其余 subject → Slice
+    /// ScopedClaims 的 claim value 严格相等。
+    /// </summary>
+    private static bool ExpectedStateSatisfied(
+        StateBecomes expectation,
+        PostActionEffectVerificationInput input)
+    {
+        if (expectation.Value == "present")
+        {
+            if (input.TargetDisappearedAfterRouteChange)
+                return true;
+            return input.Slice.Occurrences.Count(o =>
+                o.Role == expectation.Subject
+                && (input.Target.SemanticDescriptor is null
+                    || o.SemanticDescriptor == input.Target.SemanticDescriptor)) == 1;
+        }
+
+        if (expectation.Subject == input.Target.Role)
+        {
+            return CheckedSemantics.FromPresentation(
+                input.Slice.Occurrences.FirstOrDefault(
+                    o => o.Role == expectation.Subject)?.State) is { } observed
+                && Enum.TryParse<CheckedState>(expectation.Value, out var expected)
+                && observed == expected;
+        }
+
+        return input.Slice.ScopedClaims.TryGetValue(expectation.Subject, out var claim)
+            && claim == expectation.Value;
     }
 
     /// <summary>

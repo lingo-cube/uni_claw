@@ -234,7 +234,7 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.Equal(1, host.EffectDeliveries);
         var binding = host.EffectBoundaryCore.BindingLog.Single(b => b.Canonical is not null).Canonical!;
         Assert.NotNull(binding.TargetOccurrenceId);
-        Assert.Equal(CenterY(network), Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
+        Assert.Equal(CenterY(network), Math.Round(host.DeliveredRequests.Single().Target.Spatial!.CenterY, 6, MidpointRounding.AwayFromZero));
 
         // Runtime 面零 fast/slow 泄漏：全部 admitted evidence 的 producer 同一
         Assert.All(host.LedgerCore.CanonicalRecords.Values.Where(r => r.Kind == IngressKind.Observation),
@@ -419,8 +419,8 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.False(staleView.HasTargetOccurrence);
 
         // 两步各自落真实目标（中心 y 与真值一致）
-        Assert.Equal(CenterY(colors), Math.Round(canonicals[0].TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
-        Assert.Equal(CenterY(contrast), Math.Round(canonicals[1].TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
+        Assert.Equal(CenterY(colors), Math.Round(host.DeliveredRequests[0].Target.Spatial!.CenterY, 6, MidpointRounding.AwayFromZero));
+        Assert.Equal(CenterY(contrast), Math.Round(host.DeliveredRequests[1].Target.Spatial!.CenterY, 6, MidpointRounding.AwayFromZero));
         Assert.Equal(2, host.EffectDeliveries);
     }
 
@@ -630,7 +630,7 @@ public sealed class AsyncPerceptionScenarioTests
         // 动作只来自 capture B 流：恰一 effect、接地 Colors 真实行
         Assert.Equal(1, host.EffectDeliveries);
         var binding = host.EffectBoundaryCore.BindingLog.Single(b => b.Canonical is not null).Canonical!;
-        Assert.Equal(CenterY(colors), Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
+        Assert.Equal(CenterY(colors), Math.Round(host.DeliveredRequests.Single().Target.Spatial!.CenterY, 6, MidpointRounding.AwayFromZero));
     }
 
     // =====================================================================
@@ -723,7 +723,7 @@ public sealed class AsyncPerceptionScenarioTests
         {
             Assert.Equal(1, host.EffectDeliveries);
             var binding = host.EffectBoundaryCore.BindingLog.Single(b => b.Canonical is not null).Canonical!;
-            Assert.Equal(CenterY(colors), Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
+            Assert.Equal(CenterY(colors), Math.Round(host.DeliveredRequests.Single().Target.Spatial!.CenterY, 6, MidpointRounding.AwayFromZero));
         }
     }
 
@@ -822,7 +822,7 @@ public sealed class AsyncPerceptionScenarioTests
         {
             Assert.Equal(1, host.EffectDeliveries);
             var binding = host.EffectBoundaryCore.BindingLog.Single(b => b.Canonical is not null).Canonical!;
-            Assert.Equal(CenterY(colors), Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
+            Assert.Equal(CenterY(colors), Math.Round(host.DeliveredRequests.Single().Target.Spatial!.CenterY, 6, MidpointRounding.AwayFromZero));
             Assert.Equal("static_title",
                 host.KernelCore.CurrentBelief!.WorldState[TruthTypingSubject(colorHeader)].Value);
         }
@@ -1115,7 +1115,7 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.Equal(CurrentCandidateSetResultKind.UniqueCandidate, resolution.Result);
         Assert.Equal(1, host.EffectDeliveries);
         var binding = host.EffectBoundaryCore.BindingLog.Single(b => b.Canonical is not null).Canonical!;
-        Assert.Equal(CenterY(colors), Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
+        Assert.Equal(CenterY(colors), Math.Round(host.DeliveredRequests.Single().Target.Spatial!.CenterY, 6, MidpointRounding.AwayFromZero));
 
         // 目标含糊（role-only）：多义 → 零点击（seam 面断言；in-run 见 S8b）
         Assert.Equal(
@@ -1272,7 +1272,7 @@ public sealed class AsyncPerceptionScenarioTests
         Assert.Equal(1, host.EffectDeliveries);
         // 不变量 2：请求 Colors 只接地真实菜单行
         var binding = host.EffectBoundaryCore.BindingLog.Single(b => b.Canonical is not null).Canonical!;
-        Assert.Equal(CenterY(colors), Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
+        Assert.Equal(CenterY(colors), Math.Round(host.DeliveredRequests.Single().Target.Spatial!.CenterY, 6, MidpointRounding.AwayFromZero));
         // 不变量 3：含糊零点击——最终 belief（纠正稳定）role-only 仍多义
         //（Colors 与 Color contrast 两条真值行）
         Assert.Equal(

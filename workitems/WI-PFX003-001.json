@@ -1,0 +1,74 @@
+{
+  "id": "WI-PFX003-001",
+  "objective": "实施 PROTOCOL-FIX-003（ADR-0050 落地）：预算从 View 缺省承重改为 policy 硬顶的结构保证——两层顶（契约初始额度 + policy HardCap）与 P25 通道续授（大脑提议、规则封顶、轻记账），liveness 保证：无限续授请求必被 HardCap 拒绝并达诚实终局。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Kernel/Run/ExecutionContract.cs（仅 admission 留痕 valueOrigin + View 沿载字段；契约不可变性不动）",
+      "src/UniClaw.Kernel/Runtime/PolicyRuntime.cs / PolicyProtocol.cs（AgentPlanPolicy 窄修订：HardCap + RenewalThreshold 参数面）",
+      "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs（续授窗口检查 + 终问携带）",
+      "src/UniClaw.Kernel/Runtime/AgentDecision.cs（续授提案载荷扩展）",
+      "tests/UniClaw.Kernel.Tests/**（liveness/幂等/留痕锚定测试）",
+      "changes/PROTOCOL-FIX-003/state.md（status log + verification actual）",
+      "docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md（P1/P25 窄注记）"
+    ],
+    "read_hints": [
+      "changes/PROTOCOL-FIX-003/state.md（Intent/Decisions/Acceptance 唯一规格，grill 裁决 Q1/Q7-Q11 全量映射）",
+      "docs/adr/0050-budget-grant-via-consultation-with-policy-hard-cap.md",
+      "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs（决策边界 + BudgetRemaining 既有上下文）"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "终止测度从 View 缺省承重变为 policy 硬顶的结构保证：契约预算=初始额度（admission 记 valueOrigin ∈ {configured, default}），policy 声明步数/轮次各自独立 HardCap；driver 进决策边界检查剩余 ≤ RenewalThreshold → 标记续授窗口；UniAgent 提案续授量，policy 校验已授+提案 ≤ HardCap；DeferRoundsExhausted 终问可携带续授提案；轻记账（driver 消耗态 + decision 留痕 + trace），不进 canonical Run State。",
+    "core_points": [
+      "D1 两层顶：契约预算=初始额度，policy HardCap 有限且步数/轮次各自独立",
+      "D2 触发在规则侧（driver 决策边界检查阈值窗口）",
+      "D3 决定在大脑侧（提案量）+ policy 校验封顶；终问可携带续授（防有步数没轮次开口的死锁角）",
+      "D4 轻记账不进 canonical Run State（不变量 36 精神）；拒续/触顶 → 既有 budget-exhausted 诚实终局",
+      "D5 AgentPlanPolicy FROZEN v0.3.1 的参数面扩展属窄修订，随本 change"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Kernel/Run/ExecutionContract.cs"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+      "symbol": "决策边界/BudgetRemaining"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/AgentDecision.cs"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/PolicyRuntime.cs",
+      "symbol": "AgentPlanPolicy"
+    }
+  ],
+  "contract_refs": [
+    "docs/adr/0050-budget-grant-via-consultation-with-policy-hard-cap.md",
+    "changes/PROTOCOL-FIX-003/state.md"
+  ],
+  "acceptance": [
+    "A1 admission 产出预算 valueOrigin ∈ {configured, default}；View 沿载（同内容 View 字节不变——锚定测试）",
+    "A2 阈值窗口正确开启/关闭（剩余 ≤ RenewalThreshold 标记、续授后关闭）；DeferRoundsExhausted 终问可携带续授提案（锚定测试）",
+    "A3 liveness 锚定：agent 无限请求续授 → 全部被 HardCap 拒绝 → 必达 budget-exhausted 诚实终局（测试证明有界终止）",
+    "A4 续授全程 P25 留痕（决策 id、量、依据）；契约 View 零变化（锚定测试）",
+    "A5 步数/轮次同机制、各自硬顶；无 policy（缺省路径）行为与现状完全一致（回归锚定）",
+    "A6 dotnet build 0 错误 + dotnet test tests/UniClaw.Kernel.Tests 全量绿（当前基线 866 通过）；新测试就位且通过；新增公共类型同步 KernelRuntimeSurfaceWhitelistTests 白名单",
+    "A7 changes/PROTOCOL-FIX-003/state.md 更新 status log（注明 worker=glm-5.3-flash）+ verification 四元组填实"
+  ],
+  "forbidden": [
+    "不动契约不可变语义（续授不是 contract mutation）",
+    "记账不进 canonical Run State（不变量 36）",
+    "不做崩溃后额度恢复（随 ⑰，超范围）",
+    "不动 S1/S2/S4 已落地内容（ObservationOrigin、ExpectedEffect、CanonicalBinding 形状）",
+    "禁止时间启发式；不做无关重构",
+    "不跑 tools/scenario_certify.py（重封由 Leader 统一执行）；UniClaw.Simulation.Tests 的 ScenarioCertificationTests 失败是已知封印问题，不属你的修复范围",
+    "不 git commit / push（Leader 复核后统一提交）"
+  ],
+  "frozen_decisions": [
+    "changes/PROTOCOL-FIX-003/state.md D1-D5",
+    "docs/adr/0050 全文"
+  ],
+  "status": "done",
+  "required_capability": "implementation"
+}

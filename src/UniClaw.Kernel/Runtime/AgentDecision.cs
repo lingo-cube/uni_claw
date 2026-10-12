@@ -58,7 +58,9 @@ public sealed record AgentDecisionContext(
     IReadOnlyList<ElementSummary>? Elements = null,
     ConsultationProgress? Progress = null,
     ConsultationBudget? BudgetRemaining = null,
-    IReadOnlyDictionary<string, CapabilityProfileReport>? AvailableCapabilities = null);
+    IReadOnlyDictionary<string, CapabilityProfileReport>? AvailableCapabilities = null,
+    // PROTOCOL-FIX-003（ADR-0050）：续授窗口投影；null = policy 未配置续授。
+    RenewalWindow? RenewalWindow = null);
 
 /// <summary>
 /// obligation 的非权威摘要视图（P7 派生投影，只读）。
@@ -82,7 +84,9 @@ public sealed record AgentObligationView(
 public sealed record AgentActionProposal(
     string DecisionId,
     IReadOnlyList<AgentActionStep> Steps,
-    string? Justification);
+    string? Justification,
+    // PROTOCOL-FIX-003（ADR-0050 D3）：续授提案（窗口开启时可附；规则侧封顶）。
+    BudgetRenewalRequest? Renewal = null);
 
 /// <summary>
 /// proposal 中的单个有序步骤（RFS-001 D21/D22）。每步携带完整的目标表达
@@ -103,7 +107,9 @@ public sealed record AgentActionStep(
 public sealed record AgentNoActionProposal(
     string DecisionId,
     string Justification,
-    CompletionEvidence? Completion = null);
+    CompletionEvidence? Completion = null,
+    // PROTOCOL-FIX-003（ADR-0050 D3）：续授提案（窗口开启时可附；规则侧封顶）。
+    BudgetRenewalRequest? Renewal = null);
 
 /// <summary>
 /// UniAgent 决策返回的封闭 union；seam 返回 null = 显式 no-response。
@@ -120,7 +126,12 @@ public abstract record AgentDecision
     /// （终局收口裁决：每次 consultation response 都回带同号——Act/NoAction/
     /// Defer 同律 D2「防串话」；真实 UniAgent/HTTP transport 依赖该稳定关联）。
     /// </summary>
-    public sealed record Defer(string DecisionId, ObserveSpec Spec) : AgentDecision;
+    public sealed record Defer(
+        string DecisionId,
+        ObserveSpec Spec,
+        // PROTOCOL-FIX-003（ADR-0050 D3）：续授提案——DeferRoundsExhausted
+        // 终问可携带（闭合"有步数没轮次开口"死锁角；规则侧校验封顶）。
+        BudgetRenewalRequest? Renewal = null) : AgentDecision;
 
     /// <summary>
     /// RUN-005 Slice A（FROZEN v0.3 §2）：L2 policy proposal——Agent 给规则，

@@ -45,3 +45,17 @@ ChangePredicate(封闭起步词汇)：        变化型：应发生何种改变
 
 - 谓词词汇表首版（StateBecomes / ContentChanged / RouteStable）随 PROTOCOL-FIX
   切片落地；布尔迁移需同步锚定测试。
+
+## 实现注记（PROTOCOL-FIX-002，2026-10-12）
+
+- D3"无期望载荷 = RED"对无 DesiredState 的 visual-path 步骤（tap/click）产生
+  必然推论：此类步骤无既有谓词可实例化，引入保留字值 `StateBecomes(role,
+  "present")` = 目标可观察在位（恰一匹配 occurrence；navigation transition
+  合法移除目标时经 `post-action-navigation-transition` 证明豁免）。谓词
+  **类别**仍封闭（本 ADR §1 锁类别不锁 exhaustive），`present` 是
+  StateBecomes 值域内的保留字而非第三族谓词；值域扩展走协议变更复核。
+- 变化型谓词的观测事实（pre/post 路由、可见内容集不对称）收敛为 internal
+  `ChangeEvidence`（期望与观测分离）；期望载荷不进 P14，消费面 =
+  RuntimeAssurance 谓词求值。
+- typed 路径（DesiredState ≠ null）不经 Input 组装，对照物仍是 DesiredState
+  （既有语义未动，PROTOCOL-FIX-002 范围外）。

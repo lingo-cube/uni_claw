@@ -198,9 +198,9 @@ public sealed class AsyncPerceptionRealizationTests
                 MenuRowCount: belief.Occurrences!.Count(o => o.Role == "menu.row"),
                 SubtitleRowCount: belief.Occurrences!.Count(o => o.Role == "menu.subtitle"),
                 EffectCount: host.EffectDeliveries,
-                EffectTargetCenterY: binding is null
+                EffectTargetCenterY: host.DeliveredRequests.Count == 0
                     ? null
-                    : (double?)Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
+                    : (double?)Math.Round(host.DeliveredRequests.Single().Target.Spatial!.CenterY, 6, MidpointRounding.AwayFromZero));
         }
 
         var conclusions = inspectHosts.ToDictionary(kv => kv.Key, kv => Normalize(kv.Value));
@@ -216,7 +216,7 @@ public sealed class AsyncPerceptionRealizationTests
             Assert.Equal(1, actHost.EffectDeliveries);
             var binding = actHost.EffectBoundaryCore.BindingLog
                 .Single(b => b.Canonical is not null).Canonical!;
-            Assert.Equal(expectedCenterY, Math.Round(binding.TargetLocator!.CenterY, 6, MidpointRounding.AwayFromZero));
+            Assert.Equal(expectedCenterY, Math.Round(actHost.DeliveredRequests.Single().Target.Spatial!.CenterY, 6, MidpointRounding.AwayFromZero));
         }
 
         // 规范化结论：纠正性 realization（Fast→Slow / Slow-only / one-shot）

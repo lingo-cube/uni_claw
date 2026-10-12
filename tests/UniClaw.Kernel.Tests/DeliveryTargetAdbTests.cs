@@ -46,6 +46,19 @@ public sealed class DeliveryTargetAdbTests
             new[] { new ProposedOccurrence(owner, "button", "reset_button") };
     }
 
+    /// <summary>PROTOCOL-FIX-004 S4：捕获 DispatchRequest 的透传装饰（观察
+    /// DeliveryTarget——locator 唯一载体；不做任何语义改写）。</summary>
+    private sealed class CapturingEffectDriver(IEffectDriver inner) : IEffectDriver
+    {
+        public List<DispatchRequest> Requests { get; } = new();
+
+        public DispatchResult Deliver(DispatchRequest request)
+        {
+            Requests.Add(request);
+            return inner.Deliver(request);
+        }
+    }
+
     private static string ProbeContainerId() =>
         "ctr-" + new EvidenceLedger()
             .Admit(UIWorldDoubles.Observation(SeedValue, UIWorldDoubles.T0))
@@ -89,7 +102,7 @@ public sealed class DeliveryTargetAdbTests
     public void E1_RealCorpusBoundsFlowToExactAdbTapCommand()
     {
         var owner = ProbeContainerId();
-        var driver = new AdbEffectDriver(RealW, RealH, () => FixedTime);
+        var driver = new CapturingEffectDriver(new AdbEffectDriver(RealW, RealH, () => FixedTime));
         var (kernel, effects) = NewKernel(new LocatedObservationStrategy(owner, RealLocator()), driver);
         Prime(kernel);
 
@@ -98,10 +111,10 @@ public sealed class DeliveryTargetAdbTests
         // center = ((48+1032)/2, (140+188)/2) = (540, 164) —— 真实投影
         Assert.Equal(DispatchOutcome.DeliveryCompleted, receipt.Outcome);
         Assert.Equal("adb shell input tap 540 164", receipt.Report);
-        // binding 携带了 locator（EB 出地址）；reference 仅溯源
-        Assert.NotNull(effects.BindingLog.Single().Canonical!.TargetLocator);
-        Assert.Equal("device-viewport", receipt.TargetSubject == null ? null
-            : effects.BindingLog.Single().Canonical!.TargetLocator!.SpatialFrameId);
+        // PROTOCOL-FIX-004 S4：locator 唯一载体 = DeliveryTarget（EB lowering
+        // 从 BindingView 取）；reference 仅溯源
+        var target = Assert.Single(driver.Requests).Target;
+        Assert.Equal("device-viewport", target.Spatial!.SpatialFrameId);
     }
 
     // ---- E2 规则 A：构造级拒绝 -------------------------------------------

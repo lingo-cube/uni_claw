@@ -57,7 +57,10 @@ public sealed record CandidateBinding(
 /// UIW-004 尾部可选字段：UI 通道 canonical 的目标 = TargetOccurrenceId
 /// （TargetSubject 沿载 occurrence id 字符串供 attempt 留痕约定）；
 /// LogicalItemId 为 provenance；OwningContainerId 尽力而为（view 无该
-/// fact 时 null）。字符串通道三者恒 null。
+/// fact 时 null）。字符串通道三者恒 null。PROTOCOL-FIX-004 S4：执行坐标
+/// （locator 三元组）不进绑定载荷（P10 收件人是 Assurance，裁决不需要
+/// 执行坐标）——lowering 时由 Effect Boundary 从 BindingView 取，
+/// DeliveryTarget 是 locator 唯一载体（D3 五层名词链归位）。
 /// </summary>
 public sealed record CanonicalBinding(
     string BindingId,
@@ -69,10 +72,7 @@ public sealed record CanonicalBinding(
     int RevisionNumber,
     string? TargetOccurrenceId = null,
     string? OwningContainerId = null,
-    string? LogicalItemId = null,
-    SpatialLocator? TargetLocator = null,
-    NativeLocator? TargetNative = null,
-    UniClaw.Kernel.Perception.CoordinateSpace? TargetSpace = null);
+    string? LogicalItemId = null);
 
 /// <summary>Binding 判定：Canonical 或 Rejected（D8）。</summary>
 public sealed record BindingDecision(CanonicalBinding? Canonical, BindingRejectionReason? RejectionReason);

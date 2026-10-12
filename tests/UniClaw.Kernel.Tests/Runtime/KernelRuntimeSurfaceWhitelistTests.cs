@@ -40,7 +40,11 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.ActResult",
             "UniClaw.Kernel.Assurance.AssuranceCheck",
             "UniClaw.Kernel.Assurance.AssuranceJudgment",
+            // PROTOCOL-FIX-002 增集（3，ADR-0049 D8）：post-action 验证
+            // 期望载荷两族封闭谓词的 Host 消费面。
+            "UniClaw.Kernel.Assurance.ChangePredicate",
             "UniClaw.Kernel.Assurance.ConsumptionRequirement",
+            "UniClaw.Kernel.Assurance.ExpectedEffect",
             "UniClaw.Kernel.Assurance.FreshnessEvaluationInput",
             "UniClaw.Kernel.Assurance.FreshnessJudgment",
             "UniClaw.Kernel.Assurance.FreshnessSufficiency",
@@ -49,6 +53,7 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Assurance.PostActionEffectVerification",
             "UniClaw.Kernel.Assurance.ProductFreshnessEvaluator",
             "UniClaw.Kernel.Assurance.RuntimeAssurance",
+            "UniClaw.Kernel.Assurance.StateBecomes",
             "UniClaw.Kernel.Capability.ArtifactMeasurementBinding",
             "UniClaw.Kernel.Capability.ArtifactReference",
             "UniClaw.Kernel.Capability.AssociationDisposition",
@@ -167,6 +172,7 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Evidence.IngressKind",
             "UniClaw.Kernel.Evidence.ObservationClaim",
             "UniClaw.Kernel.Evidence.ObservationContext",
+            "UniClaw.Kernel.Evidence.ObservationOrigin",
             "UniClaw.Kernel.Evidence.ObservationProposal",
             "UniClaw.Kernel.Evidence.Provenance",
             "UniClaw.Kernel.Evidence.SharedSubjects",
@@ -259,6 +265,8 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Perception.VisionServiceTransport",
             "UniClaw.Kernel.Perception.VisionServiceTransport+LoopbackTcp",
             "UniClaw.Kernel.Perception.VisionServiceTransport+UnixDomainSocket",
+            // PROTOCOL-FIX-003 增集（1，ADR-0050 Q1:B）：契约预算来源留痕词汇。
+            "UniClaw.Kernel.Run.BudgetValueOrigin",
             "UniClaw.Kernel.Run.ContractAdmission",
             "UniClaw.Kernel.Run.ContractCheck",
             "UniClaw.Kernel.Run.ExecutionContract",
@@ -289,6 +297,10 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.AgentObligationView",
             "UniClaw.Kernel.Runtime.AgentPlanPolicy",
             "UniClaw.Kernel.Runtime.AgentPlanProposal",
+            // PROTOCOL-FIX-003 增集（3，ADR-0050 D3/§3）：P25 续授提案载荷、
+            // 续授窗口投影与轻记账留痕（driver 只读审计投影）。
+            "UniClaw.Kernel.Runtime.BudgetRenewalRecord",
+            "UniClaw.Kernel.Runtime.BudgetRenewalRequest",
             "UniClaw.Kernel.Runtime.ClaimSummary",
             "UniClaw.Kernel.Runtime.CompletionEvidence",
             "UniClaw.Kernel.Runtime.ConsultationBudget",
@@ -318,6 +330,8 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.PolicyProgressState",
             "UniClaw.Kernel.Runtime.PolicyProposal",
             "UniClaw.Kernel.Runtime.PolicyTruth",
+            // PROTOCOL-FIX-003 增集：续授窗口投影（决策上下文携带面）。
+            "UniClaw.Kernel.Runtime.RenewalWindow",
             "UniClaw.Kernel.Runtime.RunDriveResult",
             "UniClaw.Kernel.Runtime.RunDriveStatus",
             "UniClaw.Kernel.Runtime.RunDriverInput",

@@ -524,23 +524,18 @@ public sealed class CoreProjectionSeamTests
     [Fact]
     public void LocatorMaterial_ProjectsToOpaqueKindKey_ReferenceIdentityNeverPosesAsLocator()
     {
-        var native = new CanonicalBinding(
-            "bind-n", "intent-n", "tap", "occ-n", "v", "rev-1", 1,
-            TargetOccurrenceId: "occ-n",
-            TargetNative: NativeLocator.BrowserNode("node-42"));
-        var spatial = new CanonicalBinding(
-            "bind-s", "intent-s", "tap", "occ-s", "v", "rev-1", 1,
-            TargetOccurrenceId: "occ-s",
-            TargetLocator: new SpatialLocator(0.1, 0.2, 0.3, 0.4, "device-viewport"));
-        var bare = new CanonicalBinding(
-            "bind-b", "intent-b", "tap", "occ-b", "v", "rev-1", 1, TargetOccurrenceId: "occ-b");
-
+        // PROTOCOL-FIX-004 S4：delivery record 从 delivery material（DeliveryTarget）
+        // 投影——locator 唯一载体归位；字面量锚与迁移前 binding.Target* 源字节等价。
         var nativeBinding = CoreSemanticProjection.ProjectTargetBinding(
-            native, new CoreId("slice:x"), new CoreId("seg:x"), "rev-1");
+            new CanonicalBinding("bind-n", "intent-n", "tap", "occ-n", "v", "rev-1", 1, TargetOccurrenceId: "occ-n"), new CoreId("slice:x"), new CoreId("seg:x"), "rev-1",
+            target: new DeliveryTarget("occ-n", Native: NativeLocator.BrowserNode("node-42")));
         var spatialBinding = CoreSemanticProjection.ProjectTargetBinding(
-            spatial, new CoreId("slice:x"), new CoreId("seg:x"), "rev-1");
+            new CanonicalBinding("bind-s", "intent-s", "tap", "occ-s", "v", "rev-1", 1, TargetOccurrenceId: "occ-s"), new CoreId("slice:x"), new CoreId("seg:x"), "rev-1",
+            target: new DeliveryTarget("occ-s",
+                Spatial: new SpatialLocator(0.1, 0.2, 0.3, 0.4, "device-viewport")));
         var bareBinding = CoreSemanticProjection.ProjectTargetBinding(
-            bare, new CoreId("slice:x"), new CoreId("seg:x"), "rev-1");
+            new CanonicalBinding("bind-b", "intent-b", "tap", "occ-b", "v", "rev-1", 1, TargetOccurrenceId: "occ-b"), new CoreId("slice:x"), new CoreId("seg:x"), "rev-1",
+            target: new DeliveryTarget("occ-b"));
 
         Assert.Equal("browser.backend-node-id", nativeBinding.LocatorKind);
         Assert.Equal("node-42", nativeBinding.LocatorKey);

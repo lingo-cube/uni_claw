@@ -152,6 +152,11 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
   启动、恢复或推进 Run，也不产生 Effect。Host retry 不构成 lifecycle command；
   accepted View → legal Primary Run activation 属独立 Deferred ⑰。
 - **Reference Realization**：`ExecutionContract` / `ContractAdmission`。
+- **Budget Origin（ADR-0050，PROTOCOL-FIX-003）**：admission 确定性记录预算
+  来源 valueOrigin ∈ {configured, default}，作为 Contract View 沿载留痕字段
+  （同内容 View 不变）。契约预算 = 初始额度（起跑分配），不是终止测度——
+  终止性由 policy HardCap 结构保证；续授走 P25 通道，不构成 contract
+  mutation（契约不可变原则不破）。
 - **Status**：P1 proposal/admission 的进程内语义 verified；canonical UniAgent
   producer 的跨边 admission、完整 Task/Session identity 仍是 known gap；ADR-0019
   只锁合法激活后的 driver，不扩张 P1；activation 由 P24 独立负责。
@@ -400,6 +405,12 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
   optional ContinuityAdjudicationRef——UWM-009 §41）。LogicalItem 永不
   直接承载 effect（P-UW-33）；UI 字符串寻址退役，不得作为 typed
   resolution 失败后的 fallback；非 UI 字符串通道暂留（去留 = deferred ⑮）。
+- **PROTOCOL-FIX-004 修订（2026-10-12，形式审计附录 A.2）**：P10 载荷
+  不含执行坐标（locator 三元组不入绑定载荷——收件人是 Assurance，裁决
+  不需要执行坐标）；executor locator 由 Effect Boundary 在 lowering 时
+  从 BindingView（P11 消费面）取，`DeliveryTarget`（P14）是 locator
+  唯一载体（五层名词链归位：TargetDescriptor→Occurrence→Binding→
+  DeliveryTarget→DispatchRequest）。
 
 ### P11 Current WorldBelief View（World Model → Assurance / Effect Boundary）
 
@@ -908,6 +919,14 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   校验因当前缺少 owning model，明确延后 Phase 6，不得将 Phase 1 的最小检查表述
   为完整授权校验。Kernel 不重判语义。
 - **Absence/Failure**：seam 不可用 → fail closed，不猜测。
+- **Budget Renewal（ADR-0050，PROTOCOL-FIX-003）**：policy 配置 HardCap /
+  RenewalThreshold 时，driver 进决策边界检查剩余额度 ≤ 阈值（步数/轮次各自
+  独立）→ 本次咨询上下文携带续授窗口标记；UniAgent 可在 Act / NoAction /
+  Defer（含 DeferRoundsExhausted 终问——闭合"有步数没轮次开口"死锁角）附
+  续授提案；规则侧校验 已授 + 提案 ≤ HardCap，拒续仅留痕、按无续授继续
+  （拒续/触顶 → 既有 budget-exhausted 诚实终局）。轻记账 = driver 消耗态 +
+  每笔续授 P25 留痕（决策 id、量、依据、授/拒）+ 审计投影；不进 canonical
+  Run State（不变量 36 精神），不是 contract mutation，不新增协议边。
 - **Status**：外部语义已 HUMAN_SELECTED；当前 seam/fail-closed correlation
   realization 已有测试，但 productSessionId、Contract View reference 和
   per-boundary idempotency 尚未完整落地。Decision Context / Decision Package 的

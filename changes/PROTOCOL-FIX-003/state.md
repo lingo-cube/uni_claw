@@ -1,5 +1,5 @@
 # PROTOCOL-FIX-003 — S3 预算两层顶 + 续授（ADR-0050 落地）
-lifecycle_state: persisted · disposition: none · depth: standard · base: 14987fe
+lifecycle_state: closed · disposition: none · depth: standard · base: 14987fe
 
 ## Intent（WHAT/WHY）
 
@@ -43,13 +43,31 @@ S1/S2/S4 内容。
 ```yaml
 verification:
   level: DETERMINISTIC
-  method: "dotnet build（离线）+ liveness/幂等/留痕锚定测试（运行待网络）+ grep 探针"
+  method: "dotnet build（全仓）+ dotnet test tests/UniClaw.Kernel.Tests 全量 + liveness/幂等/留痕锚定测试"
   expected: "0 错误；A1-A5 探针/测试全过"
-  actual: "待开工"
-  evidence: "待开工"
+  actual: "dotnet build 0 错误；dotnet test 872/872 通过（基线 866 + 新增 6：A1 origin 1 / A2 窗口 1 / D3 终问 1 / A3 liveness 1 / A5 缺省 1 / A4 View 不变 1）；白名单同步通过"
+  evidence: "tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverBudgetRenewalTests.cs（A1-A5 锚定）；KernelRuntimeSurfaceWhitelistTests（+BudgetValueOrigin/BudgetRenewalRequest/BudgetRenewalRecord/RenewalWindow）；docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md P1/P25 注记"
 ```
 
 ## Status log
 
 - 2026-10-12 · OPENED（PERSIST） · Owner 批准开档；grill 裁决 Q1/Q7-Q11
   全量映射入 Decisions；体量最大，建议独立排期。
+- 2026-10-12 · IMPLEMENT/VERIFY（S3 落地） · worker=glm-5.3-flash ·
+  ADR-0050 D1-D5 全量实现：Run 侧 `BudgetValueOrigin`（View 沿载，
+  RunModel admission 确定性派生）；policy 参数面 `AgentPlanPolicy`
+  HardCap×2 + RenewalThreshold×2（全缺省 = 通道关闭，A5 回归锚定）；
+  P25 续授载荷 `BudgetRenewalRequest`（Act/NoAction/Defer 可附，
+  DeferRoundsExhausted 终问可携带闭合死锁角）+ 上下文 `RenewalWindow`
+  投影；driver 续授窗口重算（进决策边界时）、规则侧封顶校验
+  （已授+提案 ≤ HardCap，拒续仅留痕按无续授继续）、轻记账
+  `BudgetRenewalRecord` 留账 + `RenewalsGranted` 只读审计投影——
+  不进 canonical Run State，契约 View 零变化。liveness：HardCap 有限
+  ⇒ 授出有界 ⇒ 必达 consult-budget-exhausted 诚实终局（A3 测试证明）。
+  协议基线 P1/P25 窄注记已落。 forbidden 未触碰；未 commit。
+- 2026-10-12 · REVIEW→VERIFY→CLOSED（Leader） · 独立复跑 dotnet test Kernel
+  872/872 零回归；diff 复核：两层顶（View valueOrigin 留痕 + HardCap 结构
+  保证）、窗口重算进决策边界、ValidateRenewal 封顶、终问携带已授续授闭合
+  死锁角、轻记账不进 canonical Run State——D1-D5 逐条对位，A1-A5 锚定在
+  KernelRunDriverBudgetRenewalTests。trace 接线缺口（driver 不持 IRunTrace）
+  如 worker 所报留后续切片。

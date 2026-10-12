@@ -79,13 +79,19 @@ public sealed class RunModel
 
         if (View is null)
         {
-            // RUN-004 D8（F5）：null→默认解析后值进 View（合同预算声明通道）
+            // RUN-004 D8（F5）：null→默认解析后值进 View（合同预算声明通道）。
+            // PROTOCOL-FIX-003（ADR-0050 Q1:B）：预算来源留痕——显式声明 =
+            // configured（初始额度承诺），缺省 = default。契约预算只是初始
+            // 额度，终止测度由 policy HardCap 结构保证（续授见 P25 通道）。
             var consultations = contract.MaxConsultations ?? DefaultMaxConsultations;
             var totalSteps = contract.MaxTotalSteps ?? DefaultMaxTotalSteps;
+            var valueOrigin = contract.MaxConsultations.HasValue || contract.MaxTotalSteps.HasValue
+                ? BudgetValueOrigin.Configured
+                : BudgetValueOrigin.Default;
             View = new ExecutionContractView(
                 contract.Version, contract.Objective,
                 contract.Scope!, contract.AllowedEffects!, contract.ForbiddenEffects!,
-                contract.ProofCriteria!, consultations, totalSteps);
+                contract.ProofCriteria!, consultations, totalSteps, valueOrigin);
             RunId = string.IsNullOrWhiteSpace(runIdOverride)
                 ? MintRunId(contract, consultations, totalSteps)
                 : runIdOverride.Trim();

@@ -1,6 +1,20 @@
 namespace UniClaw.Kernel.Run;
 
 /// <summary>
+/// PROTOCOL-FIX-003（ADR-0050 Q1:B）— 契约预算来源留痕：configured = 作者
+/// 显式声明（初始额度承诺）；default = 缺省解析（null≡默认）。View 沿载，
+/// admission 时确定性派生，不参与幂等签名比较（由两预算解析值决定）。
+/// </summary>
+public enum BudgetValueOrigin
+{
+    /// <summary>作者显式声明的初始额度。</summary>
+    Configured,
+
+    /// <summary>null → 缺省解析（16 / 256）。</summary>
+    Default,
+}
+
+/// <summary>
 /// 已接受 contract version 的 immutable canonical view（Target §13.2）。
 /// 对当前 Run immutable；同 version 重复 admit 复用同一实例，不产生新 View
 /// （验收 9）。
@@ -13,4 +27,5 @@ public sealed record ExecutionContractView(
     IReadOnlySet<string> ForbiddenEffects,
     IReadOnlyList<string> ProofCriteria,
     int MaxConsultations = 16,
-    int MaxTotalSteps = 256);
+    int MaxTotalSteps = 256,
+    BudgetValueOrigin BudgetValueOrigin = BudgetValueOrigin.Default);

@@ -1,6 +1,6 @@
 # PNL-010 — 工具产出路径可配置 + 本地 profile 落盘
 
-lifecycle_state: implement · disposition: none · depth: minimal · base: working-tree
+lifecycle_state: closed · disposition: none · depth: minimal · base: working-tree
 
 ## Intent（WHAT/WHY）
 
@@ -80,3 +80,9 @@ tool-runtime.yaml`，与 uniagent-prod / settings-coverage profile 同款发现�
 ## Status
 
 - 2026-10-07 IMPLEMENT：配置类 + 仓库 profile + Host 接线 + 端点透出 + 7 用例。待 REVIEW。
+
+- 2026-10-12 · REVIEW → VERIFY → CLOSED（Leader） · A1 复验：实现已提交
+  （fb8ae1ab）；profile 后经 PRF-008 搬迁至 product/tasks/tool-runtime.yaml
+  （语义零变，ADR-0040），loader 路径已同步。今日重跑：
+  dotnet test UniClaw.Host.Dsh.Tests → 33/33 绿（含本 change 7 用例）。
+  验收与实况一致，关闭。

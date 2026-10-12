@@ -102,12 +102,10 @@ public sealed class EffectBoundary
                     // OwningContainerId 尽力而为：BindingView 不携带 container
                     // fact（owner-side 溯源），无据不取 → null
                     OwningContainerId: null,
-                    LogicalItemId: uiTarget.LogicalItemId,
-                    // DSE-002/003：executable target anchors（owner fact 从 view
-                    // 携带；occurrence 无 locator → null，规则 B 判定归 driver）
-                    TargetLocator: view.TargetOccurrenceLocator,
-                    TargetSpace: view.TargetOccurrenceSpace,
-                    TargetNative: view.TargetOccurrenceNative))
+                    LogicalItemId: uiTarget.LogicalItemId))
+                    // PROTOCOL-FIX-004 S4：locator 不再固化进绑定载荷；
+                    // Dispatch lowering 时从本 view 取（D3：DeliveryTarget
+                    // 是 locator 唯一载体）
             : Decide(
                 stale: candidate.SourceRevisionId != view.RevisionId,
                 ambiguous: candidate.IsAmbiguous,
@@ -217,7 +215,7 @@ public sealed class EffectBoundary
             committedAttemptId = commit.AttemptId;
         }
 
-        var result = _driver.Deliver(ToDispatchRequest(binding));
+        var result = _driver.Deliver(ToDispatchRequest(binding, view));
         var receipt = new EffectReceipt(
             $"receipt-{binding.BindingId}-{_receipts.Count + 1}",
             binding.IntentId, binding.BindingId, binding.TargetSubject,
@@ -254,13 +252,15 @@ public sealed class EffectBoundary
     /// re-observe → re-ground → 新 binding → 新 DispatchRequest——driver
     /// 永不 fallback 猜测。UI 通道 = occurrence ref + locator；字符串通道
     /// （Deferred ⑮）locatorless 包装（executable 判定归 driver 规则 B）。
+    /// PROTOCOL-FIX-004 S4：locator 从 BindingView 取（构造处本就持有
+    /// view.TargetOccurrence*），不再读 binding——绑定载荷去执行材料。
     /// </summary>
-    private static DispatchRequest ToDispatchRequest(CanonicalBinding binding) => new(
+    private static DispatchRequest ToDispatchRequest(CanonicalBinding binding, BindingView view) => new(
         Target: new DeliveryTarget(
             OccurrenceReference: binding.TargetOccurrenceId ?? binding.TargetSubject,
-            Spatial: binding.TargetLocator,
-            Native: binding.TargetNative,
-            Space: binding.TargetSpace),
+            Spatial: view.TargetOccurrenceLocator,
+            Native: view.TargetOccurrenceNative,
+            Space: view.TargetOccurrenceSpace),
         EffectClass: binding.EffectClass,
         Parameters: binding.TargetValue,
         RevisionId: binding.RevisionId);

@@ -1,0 +1,63 @@
+{
+  "id": "WI-PFX002-001",
+  "objective": "实施 PROTOCOL-FIX-002（ADR-0049）：post-action 验证输入携带显式期望载荷 ExpectedEffect（两族封闭谓词），删除滚动三布尔并做等价迁移，使 S5 MaterialEffect 门槛对照物从身份连续升级为谓词求值。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Kernel/Assurance/PostActionEffectVerification.cs",
+      "src/UniClaw.Kernel/**（仅验证输入构造点：UniKernel / Runtime/KernelRunDriver 中 PostActionEffectVerificationInput 的组装处）",
+      "tests/UniClaw.Kernel.Tests/**（新增锚定测试 + 受影响的既有滚动场景测试迁移）",
+      "changes/PROTOCOL-FIX-002/state.md（status log + verification actual）"
+    ],
+    "read_hints": [
+      "changes/PROTOCOL-FIX-002/state.md（Intent/Scope/Decisions/Acceptance 唯一规格）",
+      "docs/adr/0049-expected-effect-payload-for-post-action-verification.md",
+      "src/UniClaw.Kernel/Assurance/RuntimeAssurance.cs（S5 门槛已落 -001；A4 联动点）",
+      "docs/architecture/inter-component-protocol-baseline-l1-l3.md（P 段协议边）"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "验证的对照物成为显式载荷：PostActionEffectVerificationInput 增加必填 ExpectedEffect（StateBecomes 状态型 / ContentChanged·RouteStable 变化型两族封闭谓词）；滚动三布尔（PriorRoute/CurrentRoute/ScrollContentChanged）迁移为 RouteStable ∧ ContentChanged 实例后删除。",
+    "core_points": [
+      "期望载荷挂验证输入侧（authoring/意图投影），不进 CanonicalBinding、不进 ExecutionContract、不进 P14",
+      "谓词词汇封闭起步：StateBecomes(subject,value) 与 ChangePredicate ∈ {ContentChanged, RouteStable}；扩展走协议变更",
+      "滚动迁移 = RouteStable ∧ ContentChanged 复合；既有滚动验证场景 digest 前后一致（A2）",
+      "无期望载荷的验证输入 = RED（编译期必填 + 测试双保险，A3）",
+      "MaterialEffect 判定对照物 = 谓词求值，非身份连续（A4，与 -001 S5 门槛联动）"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Kernel/Assurance/PostActionEffectVerification.cs"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+      "symbol": "PostActionEffectVerificationInput 组装"
+    }
+  ],
+  "contract_refs": [
+    "docs/adr/0049-expected-effect-payload-for-post-action-verification.md",
+    "changes/PROTOCOL-FIX-002/state.md"
+  ],
+  "acceptance": [
+    "A1 Input 携带必填 ExpectedEffect；StateBecomes / ChangePredicate{ContentChanged,RouteStable} 谓词类型就位（含公开面白名单登记，参照 -001 核对教训：新增公共类型必须同步 KernelRuntimeSurfaceWhitelistTests）",
+    "A2 滚动三布尔零残留（grep 探针）；既有滚动验证场景语义等价迁移（锚定测试：迁移前后判定结果一致；如工程存在 digest/golden 机制则 digest 一致）",
+    "A3 无期望载荷构造 = 编译失败（必填构造参数）；空谓词集实例 = 测试 RED（运行期拒绝）",
+    "A4 MaterialEffect 门槛与期望谓词联动：判定对照物为谓词求值结果，非身份连续（锚定测试覆盖通过/不通过两路）",
+    "A5 dotnet build 0 错误 + dotnet test tests/UniClaw.Kernel.Tests 全量绿（当前基线 853 通过）；新测试就位且通过",
+    "A6 changes/PROTOCOL-FIX-002/state.md 更新 status log + verification 四元组（method/expected/actual/evidence）"
+  ],
+  "forbidden": [
+    "不动 MaterialEffect 判定门槛本身以外的 S5 语义（-001 已落地部分不重开）",
+    "不把期望载荷放进 CanonicalBinding / ExecutionContract / P14（D1）",
+    "不扩展谓词词汇表超出封闭两族（扩展走协议变更，本 change 不做）",
+    "不动 PROTOCOL-FIX-003/004 的范围文件（ExecutionContract/TargetBinding/CoreSemanticProjection）",
+    "禁止时间启发式推导；不做无关重构",
+    "不 git commit / push（Leader 复核后统一提交）"
+  ],
+  "frozen_decisions": [
+    "changes/PROTOCOL-FIX-002/state.md D1-D3",
+    "docs/adr/0049 全文"
+  ],
+  "status": "done",
+  "required_capability": "implementation"
+}

@@ -1,5 +1,5 @@
 # PROTOCOL-FIX-004 — S4 P10 locator 曝射收窄（CanonicalBinding 去执行材料）
-lifecycle_state: persisted · disposition: none · depth: standard · base: 14987fe
+lifecycle_state: closed · disposition: none · depth: standard · base: 14987fe
 
 ## Intent（WHAT/WHY）
 
@@ -41,13 +41,42 @@ Out：P14 `DeliveryTarget` 形状（不变，且成为 locator 唯一来源）�
 ```yaml
 verification:
   level: DETERMINISTIC
-  method: "dotnet build（离线）+ 字节等价/场景 digest 锚定测试（运行待网络）+ grep 探针"
+  method: "dotnet build（离线）+ 字节等价/场景 digest 锚定测试 + grep 探针"
   expected: "0 错误；三字段零残留；投影字节等价"
-  actual: "待开工"
-  evidence: "待开工"
+  actual: "slnx 全量 build 0 错误；三字段零残留（全仓 src+tests 生产面 grep
+    探针零命中，仅锚定测试自引用）；Core 投影改 DeliveryTarget 源后输出
+    字节等价（字面量锚逐项相等：browser.backend-node-id/node-42/
+    spatial:device-viewport/0.1000,0.2000,0.3000,0.4000/none）；lowering
+    行为零变化（DeliveryTargetAdbTests E1 adb 命令串不变 + 新增
+    view→DeliveryTarget 逐项同源断言）"
+  evidence: "dotnet build UniClaw.Kernel.slnx → 0 错误；dotnet test
+    tests/UniClaw.Kernel.Tests → 866 通过 / 0 失败（新增锚定
+    CanonicalBindingLocatorNarrowingTests 3 测试：形状快照 A1 / 字节等价
+    A2 / lowering+DeliveryTarget 唯一载体 A3-A4）；
+    tests/UniClaw.Simulation.Tests 188 中 186 通过（2 失败为
+    ScenarioCertificationTests 认证封印哈希——Kernel 源码变更后需 reseal，
+    属独立封印流程，非本 change 范围）"
 ```
 
 ## Status log
 
 - 2026-10-12 · OPENED（PERSIST） · Owner 批准开档；消费面证据已在审计
   附录 A.2 固化；最小切片，可与 -002 并行。
+- 2026-10-12 · S4 IMPLEMENTED/VERIFIED · worker=glm-5.3-flash ·
+  CanonicalBinding 移除 TargetLocator/TargetNative/TargetSpace（D1 直接
+  收窄）；EffectBoundary.ToDispatchRequest 改签名携 BindingView、locator
+  从 view.TargetOccurrence* 取；CoreSemanticProjection.ProjectTargetBinding
+  增 DeliveryTarget? target 参数、ProjectLocator 改从 target 投影（D2 字节
+  等价锚定）；DeliveryTarget 为 locator 唯一载体（D3）。测试同步：
+  新增 CanonicalBindingLocatorNarrowingTests（形状快照/字节等价/lowering
+  锚定）；DeliveryTargetAdbTests E1 改经 CapturingEffectDriver 观察
+  DeliveryTarget；CoreProjectionSeamTests LocatorMaterial 改 target: 入参；
+  Simulation.Tests 断言迁移至 DeliveredRequests（DeterministicEffectDriver
+  增捕获）。协议基线 P10 增 PROTOCOL-FIX-004 修订注记。白名单无形状变化
+  （类型面），未改。未 commit/push。新发现：ScenarioCertificationTests 2 失败
+  = 认证封印哈希需 reseal（源码变更后固有，超出本 change 范围，移交 Owner）。
+- 2026-10-12 · REVIEW→VERIFY→CLOSED（Leader） · 独立复跑 dotnet test Kernel
+  866/866（当时点）；diff 复核：三字段零残留、lowering 从 view 取、Core 投影
+  改自 DeliveryTarget 且字节等价锚定、Simulation 断言迁移不改语义——D1-D3
+  逐条对位。封印失败如 worker 所报，已由 Leader 统一 reseal 吸收（本 change
+  为源哈希变更致因之一）。

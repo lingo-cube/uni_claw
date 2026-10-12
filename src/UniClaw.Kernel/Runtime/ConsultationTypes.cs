@@ -54,6 +54,43 @@ public sealed record PolicyProgressState(
 /// <summary>剩余预算（SR-102/049）。</summary>
 public sealed record ConsultationBudget(int RoundsRemaining, int StepsRemaining);
 
+/// <summary>
+/// PROTOCOL-FIX-003（ADR-0050 D3）— P25 续授提案（大脑侧提议的续授量）。
+/// 语义：请为本 Run 追加的步数/轮次额度；规则侧校验 已授 + 提案 ≤ HardCap，
+/// 拒绝不构成决定失败（留痕后按无续授继续）。
+/// </summary>
+public sealed record BudgetRenewalRequest(
+    int AdditionalSteps,
+    int AdditionalRounds,
+    string? Justification = null);
+
+/// <summary>
+/// PROTOCOL-FIX-003（ADR-0050 §2）— 续授窗口投影（决策上下文携带）：
+/// 窗口是否开启 + 硬顶/已授/阈值（大脑据以形成提案）。null（上下文缺省）=
+/// policy 未配置续授，通道整体关闭。
+/// </summary>
+public sealed record RenewalWindow(
+    bool Open,
+    int HardCapSteps,
+    int HardCapRounds,
+    int GrantedSteps,
+    int GrantedRounds,
+    int ThresholdSteps,
+    int ThresholdRounds);
+
+/// <summary>
+/// PROTOCOL-FIX-003（ADR-0050 §3 轻记账）— 续授留痕（P25 决策 id、量、
+/// 依据 + 授/拒结果）。driver ephemeral 记账（不进 canonical Run State，
+/// 不变量 36 精神）；只读审计投影。
+/// </summary>
+public sealed record BudgetRenewalRecord(
+    string DecisionId,
+    int AdditionalSteps,
+    int AdditionalRounds,
+    string? Justification,
+    bool Granted,
+    string? RejectionReason);
+
 /// <summary>完成自证载荷（裁决⑧：核验后信 + 人为终极裁定）。</summary>
 public sealed record CompletionEvidence(
     string Basis,

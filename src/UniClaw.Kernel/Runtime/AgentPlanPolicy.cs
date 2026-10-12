@@ -15,6 +15,23 @@ public sealed class AgentPlanPolicy : IControlPolicy
 {
     private DescriptorTargetPolicy? _adopted;
 
+    // ---- PROTOCOL-FIX-003（ADR-0050 D1/D5，FROZEN v0.3.1 参数面窄修订）：
+    //      预算两层顶——契约预算 = 初始额度，本 policy 声明的 HardCap =
+    //      续授不可突破的天花板（步数/轮次各自独立）。缺省（全 null）=
+    //      续授通道整体关闭，行为与既有完全一致（A5 回归锚定）。
+
+    /// <summary>续授不可突破的步数硬顶（有限）；null = 步数维度不可续授。</summary>
+    public int? HardCapTotalSteps { get; init; }
+
+    /// <summary>续授不可突破的轮次硬顶（有限）；null = 轮次维度不可续授。</summary>
+    public int? HardCapConsultations { get; init; }
+
+    /// <summary>续授窗口阈值：步数剩余 ≤ 该值时窗口开启（默认 0 = 不开窗）。</summary>
+    public int RenewalThresholdSteps { get; init; }
+
+    /// <summary>续授窗口阈值：轮次剩余 ≤ 该值时窗口开启（默认 0 = 不开窗）。</summary>
+    public int RenewalThresholdRounds { get; init; }
+
     /// <summary>当前已采纳 specs（观察面；null = 尚未采纳）。</summary>
     public IReadOnlyList<TargetSpec>? Adopted { get; private set; }
 

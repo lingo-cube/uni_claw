@@ -1,6 +1,6 @@
 # PNL-011 — P2 挂接：finalize 产物三件套（metadata 投影 + runtime 事件导出 + 自动报告）
 
-lifecycle_state: implement · disposition: none · depth: standard · base: working-tree
+lifecycle_state: closed · disposition: none · depth: standard · base: working-tree
 
 ## Intent（WHAT/WHY）
 
@@ -90,3 +90,8 @@ PNL-006 记录的 P2 缺口：报告靠手动 CLI 生成、需求原文不落盘
 
 - 2026-10-07 IMPLEMENT：finalize 三件套 + 生成器/ schema 升级 + 回归判据
   （见 evidence/pnl-006/README.md）。待 REVIEW。
+
+- 2026-10-12 · REVIEW → VERIFY → CLOSED（Leader） · A1 复验：实现已提交
+  （7096dc2a），后继 PNL-012 依赖 finalize 三件套已落地。今日重跑：
+  dotnet test UniClaw.Host.Dsh.Tests → 33/33；python3
+  tools/validate-workspace-schemas.py → PASSED 13。验收 1-4 声明与实况一致，关闭。

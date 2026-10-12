@@ -189,6 +189,22 @@ public sealed class KernelRunDriver
     /// <summary>上一次咨询的失败上下文（E2/E3 捕获点原文，M2 不净化）。</summary>
     private string? _pendingFailureReason;
 
+    // ---- PROTOCOL-FIX-003（ADR-0050）：预算续授轻记账（driver ephemeral——
+    //      不持久化、不进 canonical Run State（不变量 36 精神）、非 authority；
+    //      拒续/触顶 → 既有 budget-exhausted 诚实终局）----
+
+    /// <summary>已授出的续授步数（追加到契约初始额度之上的部分）。</summary>
+    private int _grantedRenewalSteps;
+
+    /// <summary>已授出的续授轮次。</summary>
+    private int _grantedRenewalRounds;
+
+    /// <summary>当前咨询的续授窗口开关（每次咨询进入决策边界时重算）。</summary>
+    private bool _renewalWindowOpen;
+
+    /// <summary>续授留痕账本（授/拒均记；只读审计投影经 RenewalsGranted）。</summary>
+    private readonly List<BudgetRenewalRecord> _renewalLedger = new();
+
     /// <summary>失败来源相位（E2=StepRejected / E3=VerificationFailed；2026-09-23：
     /// 由控制流在捕获点显式记录，PhaseForCurrent 直读——不再从世界状态反推）。</summary>
     private AgentDecisionPhase? _pendingFailurePhase;
@@ -324,6 +340,9 @@ public sealed class KernelRunDriver
                                 RunDriveStatus.AgentDecisionFailed,
                                 "consult-budget-exhausted", null, _kernel.EffectReceipts.Count);
 
+                        // D2：本次咨询的续授窗口（进入决策边界时重算；续授后
+                        // 剩余额度回升 → 下次咨询窗口自然关闭）。
+                        _renewalWindowOpen = IsRenewalWindowOpen(budget);
                         var consulted = ConsultAgentV2(view);
                         _adoptedDecision = consulted.Value;
                         _consultRejection = consulted.Rejection;
@@ -347,6 +366,9 @@ public sealed class KernelRunDriver
                             var v4 = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
                             if (v4 is not null)
                                 return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, v4, null, 0);
+
+                            // PROTOCOL-FIX-003 D3：NoAction 可携带续授提案
+                            ProcessRenewal(no.Proposal.Renewal);
 
                             // 采纳：当前回答成为下一轮对照；Defer 链终结
                             _lastAnswer = _adoptedDecision;
@@ -384,9 +406,27 @@ public sealed class KernelRunDriver
                             if (v5 is not null)
                                 return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, v5, null, 0);
 
-                            // T6 终问（配额已尽）：仍 Defer → 确定性终局（不再拉取/咨询）
+                            // PROTOCOL-FIX-003 D3：Defer 可携带续授提案（规则侧
+                            // 封顶；拒续仅留痕、按无续授继续）。
+                            var renewalGranted = ProcessRenewal(defer.Renewal);
+
+                            // T6 终问（配额已尽）：仍 Defer → 确定性终局（不再
+                            // 拉取/咨询）；但终问携带**已获授**续授时闭合死锁角
+                            //（ADR-0050）：轮次续上 → Defer 链重新有界继续。
                             if (_deferExhaustedPending)
                             {
+                                if (renewalGranted)
+                                {
+                                    _deferExhaustedPending = false;
+                                    _deferRoundsUsed = 0;
+                                    _lastAnswer = _adoptedDecision;
+                                    _adoptedDecision = null;
+                                    var granted = PullObservations(
+                                        ObservationContext.External, "defer-observation");
+                                    if (granted.Stop is not null)
+                                        return granted.Stop;
+                                    continue;
+                                }
                                 _adoptedDecision = null;
                                 return new RunDriveResult(
                                     RunDriveStatus.TerminalNotProven,
@@ -420,6 +460,8 @@ public sealed class KernelRunDriver
                             var rejection = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
                             if (rejection is not null)
                                 return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, rejection, null, 0);
+                            // PROTOCOL-FIX-003 D3：Act 可携带续授提案（规则侧封顶）
+                            ProcessRenewal(act.Proposal.Renewal);
                             _lastAnswer = _adoptedDecision;
                             _deferRoundsUsed = 0;
                             _deferExhaustedPending = false;
@@ -947,10 +989,94 @@ public sealed class KernelRunDriver
         RunDriveResult? Stop,
         IReadOnlyList<KernelResult> ProcessedObservations);
 
-    /// <summary>当前预算快照（§2.1）。</summary>
+    /// <summary>
+    /// 当前预算快照（§2.1）。PROTOCOL-FIX-003：契约预算 = 初始额度，已授续授
+    /// 追加其上（两层顶——续授不可突破 policy HardCap，由 ValidateRenewal 封顶）。
+    /// </summary>
     private ConsultationBudget CurrentBudget(ExecutionContractView view) => new(
-        RoundsRemaining: view.MaxConsultations - _consultCounter,
-        StepsRemaining: view.MaxTotalSteps - _stepsDispatched);
+        RoundsRemaining: view.MaxConsultations + _grantedRenewalRounds - _consultCounter,
+        StepsRemaining: view.MaxTotalSteps + _grantedRenewalSteps - _stepsDispatched);
+
+    /// <summary>续授通道是否配置（任一维度有 HardCap 即开通道；全 null = 关闭，缺省路径）。</summary>
+    private bool RenewalConfigured =>
+        _plan.HardCapTotalSteps is not null || _plan.HardCapConsultations is not null;
+
+    /// <summary>
+    /// D2 触发（规则侧）：进决策边界时检查 剩余 ≤ 阈值（阈值与硬顶同源于
+    /// policy；步数/轮次各自独立、只有配置了硬顶的维度参与）。
+    /// </summary>
+    private bool IsRenewalWindowOpen(ConsultationBudget budget) =>
+        RenewalConfigured
+        && ((_plan.HardCapTotalSteps is not null
+                && budget.StepsRemaining <= _plan.RenewalThresholdSteps)
+            || (_plan.HardCapConsultations is not null
+                && budget.RoundsRemaining <= _plan.RenewalThresholdRounds));
+
+    /// <summary>续授窗口投影（上下文携带；未配置续授 → null，缺省路径不变）。</summary>
+    private RenewalWindow? RenewalWindowViewFor() =>
+        !RenewalConfigured
+            ? null
+            : new RenewalWindow(
+                Open: _renewalWindowOpen,
+                HardCapSteps: _plan.HardCapTotalSteps ?? 0,
+                HardCapRounds: _plan.HardCapConsultations ?? 0,
+                GrantedSteps: _grantedRenewalSteps,
+                GrantedRounds: _grantedRenewalRounds,
+                ThresholdSteps: _plan.RenewalThresholdSteps,
+                ThresholdRounds: _plan.RenewalThresholdRounds);
+
+    /// <summary>
+    /// D3 校验（规则侧）：窗口开启 + 已授 + 提案 ≤ HardCap（各维独立；null
+    /// 硬顶维度不可续）。返回 null = 可授；非 null = 拒绝原因（M2 词汇，kebab）。
+    /// 拒绝不构成决定失败——留痕后按无续授继续（拒续 → 既有 budget-exhausted
+    /// 诚实终局，D4）。
+    /// </summary>
+    private string? ValidateRenewal(BudgetRenewalRequest renewal)
+    {
+        if (!RenewalConfigured)
+            return "renewal:no-policy-hardcap";
+        if (!_renewalWindowOpen)
+            return "renewal:window-closed";
+        if (renewal.AdditionalSteps < 0 || renewal.AdditionalRounds < 0
+            || (renewal.AdditionalSteps == 0 && renewal.AdditionalRounds == 0))
+            return "renewal:invalid-request";
+        if (renewal.AdditionalSteps > 0
+            && (_plan.HardCapTotalSteps is null
+                || _grantedRenewalSteps + renewal.AdditionalSteps > _plan.HardCapTotalSteps))
+            return "renewal:hardcap-exceeded:steps";
+        if (renewal.AdditionalRounds > 0
+            && (_plan.HardCapConsultations is null
+                || _grantedRenewalRounds + renewal.AdditionalRounds > _plan.HardCapConsultations))
+            return "renewal:hardcap-exceeded:rounds";
+        return null;
+    }
+
+    /// <summary>
+    /// D3/D4：处理决定携带的续授提案——可授则记入轻记账（已授额度生效）并返
+    /// 回 true，拒绝则仅留痕、按无续授继续（返回 false）。全程 P25 留痕
+    ///（决策 id、量、依据、结果）。
+    /// </summary>
+    private bool ProcessRenewal(BudgetRenewalRequest? renewal)
+    {
+        if (renewal is null)
+            return false;
+        var rejection = ValidateRenewal(renewal);
+        if (rejection is null)
+        {
+            _grantedRenewalSteps += renewal.AdditionalSteps;
+            _grantedRenewalRounds += renewal.AdditionalRounds;
+        }
+        _renewalLedger.Add(new BudgetRenewalRecord(
+            DecisionIdForRun(_consultCounter),
+            renewal.AdditionalSteps, renewal.AdditionalRounds,
+            renewal.Justification,
+            Granted: rejection is null,
+            RejectionReason: rejection));
+        return rejection is null;
+    }
+
+    /// <summary>续授审计投影（只读；A4 锚定面）。</summary>
+    public IReadOnlyList<BudgetRenewalRecord> RenewalsGranted => _renewalLedger.ToArray();
 
     /// <summary>
     /// PER-014 R3：任一 mandatory obligation 已满足——走 typed 权威判定路径
@@ -1016,7 +1142,8 @@ public sealed class KernelRunDriver
             Progress: new ConsultationProgress(
                 _consultCounter, _stepsDispatched, _completedSteps.Count,
                 PolicyState: _pendingPolicyOutcome?.Summary),
-            BudgetRemaining: CurrentBudget(view));
+            BudgetRemaining: CurrentBudget(view),
+            RenewalWindow: RenewalWindowViewFor());
 
         var decision = _inputs.ConsultAgent(context);
         if (decision is null)

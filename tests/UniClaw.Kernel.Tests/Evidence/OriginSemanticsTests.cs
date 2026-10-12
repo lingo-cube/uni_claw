@@ -12,9 +12,14 @@ namespace UniClaw.Kernel.Tests.Evidence;
 /// </summary>
 public sealed class OriginSemanticsTests
 {
+    // CaptureTime 固定：EvidenceId 是内容哈希（含 CaptureTime），断言
+    // "同内容 → 同 id"必须排除时间漂移（UtcNow 两次调用毫秒差即翻 id）。
+    private static readonly DateTimeOffset FixedCaptureTime =
+        new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
     private static Provenance ValidProvenance(string producer = "test.producer") => new(
         Producer: producer,
-        CaptureTime: DateTimeOffset.UtcNow,
+        CaptureTime: FixedCaptureTime,
         Scope: "scope:test",
         TransformationLineage: new[] { "test:direct" });
 

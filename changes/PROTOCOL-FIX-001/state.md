@@ -1,5 +1,5 @@
 # PROTOCOL-FIX-001 — S1 Origin 字段族 + S5 渗透立法（grill 裁决落地首切片）
-lifecycle_state: persisted · disposition: none · depth: standard · base: 14987fe
+lifecycle_state: closed · disposition: none · depth: standard · base: 14987fe
 
 ## Intent（WHAT/WHY）
 
@@ -52,7 +52,7 @@ verification:
   level: DETERMINISTIC
   method: "dotnet build UniClaw.Kernel（离线，APPDATA/NUGET_PACKAGES 重定向绕沙箱）；grep 探针（Origin 推导/自报/S5 门槛/登记）；DocsMetadata + README 登记复刻；新 xunit 锚定测试（编译随测试工程，运行待网络）"
   expected: "Kernel 编译零错；探针全中；双复刻 PASS；测试文件就位"
-  actual: "dotnet build 0 错误（527 警告均为既有 XML 注释类，与本次无关）；ObservationOrigin 落 6 个 Kernel 文件；S5 门槛 RuntimeAssurance:365；诊断自报 2 产出缝（EB ExportAttemptEvidence / Driver DischargeCompletion）；DocsMetadata 复刻 ALL PASS；README 登记复刻 168 文件 0 违规（新增 ObservationOrigin.cs 已登记 Evidence/README）。xunit（含 OriginSemanticsTests）运行待网络恢复，为事后核对项"
+  actual: "dotnet build 0 错误（527 警告均为既有 XML 注释类，与本次无关）；ObservationOrigin 落 6 个 Kernel 文件；S5 门槛 RuntimeAssurance:365；诊断自报 2 产出缝（EB ExportAttemptEvidence / Driver DischargeCompletion）；DocsMetadata 复刻 ALL PASS；README 登记复刻 168 文件 0 违规（新增 ObservationOrigin.cs 已登记 Evidence/README）。2026-10-12 网络恢复后补跑：OriginSemantics 4/4 + 全量 Kernel 853/853 全绿（核对发现两处并已修复：①测试 ValidProvenance 用 UtcNow 致 id 幂等断言非确定性——固定 CaptureTime；②公开面冻结白名单漏登 ObservationOrigin——补登记）"
   evidence: "编译输出与探针见本 status log；evidence/arch-doc-023/ 复刻脚本复用；tests/UniClaw.Kernel.Tests/Evidence/OriginSemanticsTests.cs"
 ```
 
@@ -76,3 +76,12 @@ verification:
   + 账本推导 + S5 门槛 + 双产出缝自报）+ 测试 + 四处文档同步（协议基线
   P2/P3 Status、ADR-0047 gaps 销项、ADR-0048 实现注记、CONTEXT 词条）。
   离线编译 0 错误；探针/双复刻全过；xunit 运行待网络（事后核对项）。
+- 2026-10-12 · VERIFY 事后核对（Leader） · 网络恢复补跑：OriginSemantics
+  4/4、全量 Kernel 853/853 全绿。核对修复两处：①OriginSemanticsTests
+  ValidProvenance 以 UtcNow 为 CaptureTime，id 幂等断言被时间漂移打穿
+  （非实现缺陷：ComputeEvidenceId 输入不含 Origin，符合 R2）——固定
+  CaptureTime；②公开面冻结白名单漏登 ObservationOrigin（A1 遗漏同步）——
+  补登记。实现语义零改动；-001 验收全项闭合。
+
+- 2026-10-12 · CLOSED（Leader） · 事后核对完成（OriginSemantics 4/4、全量
+  Kernel 853/853 全绿、两处核对修复落盘）；A1-A6 全项闭合，无阻塞决策。

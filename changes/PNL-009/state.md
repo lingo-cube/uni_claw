@@ -1,6 +1,6 @@
 # PNL-009 — Workbench 工具面板（消费 ToolInvoke：清单 + run-report 调用）
 
-lifecycle_state: implement · disposition: none · depth: standard · base: working-tree
+lifecycle_state: closed · disposition: none · depth: standard · base: working-tree
 
 ## Intent（WHAT/WHY）
 
@@ -91,3 +91,8 @@ PNL-008 已在 Runtime Host 侧落地工具投影与调用端点，但 Workbench
 ## Status
 
 - 2026-10-06 IMPLEMENT：Web 五层接线 + 4 用例 + bundle 重建。待 REVIEW。
+
+- 2026-10-12 · REVIEW → VERIFY → CLOSED（Leader） · A1 复验：实现已提交
+  （eb250b9b），scope 五层接线与提交一一对应；后继 PNL-012 依赖本面板已落地。
+  今日重跑：web/uniclaw-workspace npm test → fail 0（含 dual-entry 契约）。
+  验收 1-4 声明与实况一致，无未授权改动，关闭。

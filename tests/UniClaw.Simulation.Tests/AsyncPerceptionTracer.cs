@@ -541,6 +541,14 @@ internal sealed class AsyncPerceptionHost
     /// concrete-typed EffectDriver 属性与 DeliveryCount probe 已删除。
     /// </summary>
     internal int EffectDeliveries => KernelCore.EffectReceipts.Count;
+
+    private readonly DeterministicEffectDriver? _effectDriver;
+
+    /// <summary>PROTOCOL-FIX-004 S4：观察面——delivery record（DeliveryTarget，
+    /// locator 唯一载体）。非 concrete 组合面暴露：仅本测试 host 的观察 probe。</summary>
+    internal IReadOnlyList<UniClaw.Kernel.Effects.DispatchRequest> DeliveredRequests =>
+        _effectDriver?.Requests ?? Array.Empty<UniClaw.Kernel.Effects.DispatchRequest>();
+
     internal AsyncObservationFeed Feed { get; }
     internal VirtualClock Clock { get; }
     internal RuntimeStageMetrics Metrics { get; }
@@ -569,6 +577,7 @@ internal sealed class AsyncPerceptionHost
         // SIM-004（ABS-002）：计数面 = 产品 facts（receipts）；driver 保持
         // concrete 构造（组合根自选，本地变量）——组合面不再暴露 concrete。
         var effectDriver = new DeterministicEffectDriver(scenario.T0);
+        _effectDriver = effectDriver;
         EffectBoundaryCore = new EffectBoundary(effectDriver);
         Metrics = new RuntimeStageMetrics();
         Plan = new AgentPlanPolicy();
