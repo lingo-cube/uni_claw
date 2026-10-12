@@ -202,3 +202,9 @@ verification:
   2026-10-12.md 缺 DocsMetadata 头致套件 1 失败——按 gap-assessment 同款
   补 DRAFT/NONE 头（内容未动、未提交，跟踪权留 owner）。worker=glm-5.3-flash
   ×4（Slice 1-4）+ Leader 复核四轮。
+- 2026-10-12 · CLOSED 后备注（Owner 指示按推荐记录） · 两项遗留指针：
+  ①步骤↔边 status 一致性规则（track⇔track、fix⇒keep、keep⇒keep|track）
+  当前为生成器实现层约定（gen-protocol-machine.py steps 断言）；升格进
+  D6 引用协议属窄修订，触发条件=出现第三类 status 或规则被真实案例违背，
+  不预造。②ARCH-DOC-024（组件分级与 P0/P1/P2 优化建议）裁决在 Owner
+  队列，与本 change 无依赖关系。
