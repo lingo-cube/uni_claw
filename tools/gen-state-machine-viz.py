@@ -21,6 +21,23 @@ LABELS = {
 }
 def lab(n): return LABELS.get(n, n)
 
+# 阶段分类（流程图泳道）与节点归属（呈现层；语义权威在基线 §10 权威表）
+PHASES = { "run": [
+  ("前奏 · 契约与激活", ["created","admitted","activated"]),
+  ("执行循环 · 认识与改变世界", ["observing","deciding","acting","verifying","recovering"]),
+  ("终局 · 交卷与关闭", ["terminal","closed"]),
+]}
+MACHINE_OWNER = {
+  "run":"Uni Kernel 编排（各阶段归属见节点）","binding":"Effect Boundary（P10 唯一权威）",
+  "judgment":"Assurance（裁决权威）","attempt":"Effect Boundary / 可靠执行源","contract_view":"Run Model（契约视图权威）",
+}
+STATE_OWNER = {
+  "created":"UniAgent（作者）→ Run Model（审查）","admitted":"Run Model","activated":"Uni Kernel（latch）",
+  "observing":"Evidence Ledger → World Model","deciding":"Control Loop（咨询 UniAgent）",
+  "acting":"Effect Boundary","verifying":"Assurance","recovering":"Control Loop",
+  "terminal":"Run Model（冻结）","closed":"Uni Kernel（emission）·Effect Boundary（关闭投递）",
+}
+
 def edge_fields():
     """第三出口产物（protocol-workflow-steps.generated.js）→ 边号→字段表 连接。"""
     f = ROOT / "docs" / "design" / "protocol-workflow-steps.generated.js"
@@ -59,7 +76,8 @@ TPL = """<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
 h1{font-size:21px}h1 small{display:block;font-size:12px;color:var(--sub);font-weight:400;margin-top:3px}
 .mk{margin:16px 0 6px;font-weight:800;font-size:15px}.mk span{font-weight:400;font-size:12px;color:var(--sub)}
 .lane{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.nd{border:1.5px solid var(--line);border-radius:10px;background:#fff;padding:8px 13px;cursor:pointer;font-size:13.5px;font-weight:700;transition:.15s;position:relative}
+.nd{border:1.5px solid var(--line);border-radius:10px;background:#fff;padding:8px 13px;cursor:pointer;font-size:13.5px;font-weight:700;transition:.15s;position:relative;min-width:120px;text-align:center}
+.nd .ow{font-size:10.5px;color:var(--sub);font-weight:400;margin-top:2px}
 .nd:hover{box-shadow:0 3px 10px rgba(16,24,40,.15);transform:translateY(-1px)}.nd.sel{outline:2.5px solid var(--blue)}
 .nd.initial{border-color:var(--blue);background:#eaf1fe}.nd.initial::after{content:"◉";color:var(--blue);margin-left:5px}
 .nd.terminal{border-color:var(--green);background:#e7f6f0}.nd.terminal::after{content:"▣";color:var(--green);margin-left:5px}
@@ -79,15 +97,17 @@ footer{margin-top:22px;color:var(--sub);font-size:12px;border-top:1px solid var(
 <div class="ov" id="ov"></div><aside class="pn" id="pn"><button class="cl" id="cl">✕</button><div class="ph"><div class="t" id="pt"></div><div class="s" id="ps"></div></div><div class="pb" id="pbd"></div></aside>
 <footer>生成器 tools/gen-state-machine-viz.py（PROTOCOL-MACHINE-002）· 语义权威：协议基线与 ADR</footer>
 <script>
-const M = %%DATA%%; const LABELS = %%LABELS%%; const EF = %%EDGEFIELDS%%;
+const M = %%DATA%%; const PHASES = %%PHASES%%; const LABELS = %%LABELS%%; const EF = %%EDGEFIELDS%%; const MACHINE_OWNER = %%MOWNER%%; const STATE_OWNER = %%SOWNER%%;
 const flow = document.getElementById('flow');
 M.forEach((m,mi)=>{ const sec=document.createElement('div');
- sec.innerHTML=`<div class="mk">${m.title} <span>· ${m.nodes.length} 状态 · ${m.transitions.length} 转移 · ◉初始 ▣终局 ⛔吸收</span></div>`;
- const lane=document.createElement('div');lane.className='lane';
- m.nodes.forEach((n,i)=>{ if(i>0){const a=document.createElement('div');a.className='ar';a.textContent='➜';lane.appendChild(a);}
-  const cls=m.absorbing.includes(n)?'absorbing':(m.terminal.includes(n)?'terminal':(n===m.initial?'initial':''));
-  const d=document.createElement('div');d.className='nd '+cls;d.textContent=LABELS[n]||n;d.title=n;d.onclick=()=>openP(mi,n,d);lane.appendChild(d);});
- sec.appendChild(lane);flow.appendChild(sec);});
+ sec.innerHTML=`<div class="mk">${m.title} <span>· ◉初始 ▣终局 ⛔吸收 · 归属：${MACHINE_OWNER[m.key]||''}</span></div>`;
+ const groups=PHASES[m.key]||[("",m.nodes)];
+ groups.forEach(([gname,gs])=>{ if(gname){const gh=document.createElement('div');gh.style.cssText='font-size:12.5px;color:var(--sub);font-weight:700;margin:10px 0 4px';gh.textContent='▎'+gname;sec.appendChild(gh);}
+  const lane=document.createElement('div');lane.className='lane';
+  gs.forEach(n=>{ const cls=m.absorbing.includes(n)?'absorbing':(m.terminal.includes(n)?'terminal':(n===m.initial?'initial':''));
+  const d=document.createElement('div');d.className='nd '+cls;d.innerHTML=`${LABELS[n]||n}<div class="ow">${STATE_OWNER[n]||MACHINE_OWNER[m.key]||''}</div>`;d.title=n;d.onclick=()=>openP(mi,n,d);lane.appendChild(d);});
+  sec.appendChild(lane);});
+ flow.appendChild(sec);});
 function trow(t,dir){ const trig=(t.edge?`<span class="m me">${t.edge}</span>`:'')+` ${t.event}`;
  const ex=t.emits.map(e=>`emit:${e}`).join(' · ')+(t.measure?` · <span class="m mm">measure:${t.measure}</span>`:'')+(t.await?` · <span class="m ma">await:${t.await}</span>`:'');
  const other=dir==='out'?t.to:t.from;
@@ -114,5 +134,5 @@ if __name__ == "__main__":
     labels = json.dumps(LABELS, ensure_ascii=False)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(TPL.replace("%%DATA%%", data).replace("%%LABELS%%", labels)
-                      .replace("%%EDGEFIELDS%%", json.dumps(edge_fields(), ensure_ascii=False)), encoding="utf-8")
+                      .replace("%%EDGEFIELDS%%", json.dumps(edge_fields(), ensure_ascii=False)).replace("%%PHASES%%", json.dumps(PHASES, ensure_ascii=False)).replace("%%MOWNER%%", json.dumps(MACHINE_OWNER, ensure_ascii=False)).replace("%%SOWNER%%", json.dumps(STATE_OWNER, ensure_ascii=False)), encoding="utf-8")
     print(f"written: {OUT}")
