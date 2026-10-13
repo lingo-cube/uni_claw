@@ -31,6 +31,8 @@ public sealed class RuntimeHttpServer
     private readonly UniClaw.Agent.Profile.UniAgentProfile _agentProfile;
     private readonly UniagentDshBindings _bindings;
     private readonly RuntimeRunStore _store;
+    private readonly TaskInstanceStore _taskStore;
+    private readonly ProductSessionStore _sessionStore;
 
     private RuntimeHttpServer(WebApplication app, string runsRoot, string device,
         UniClaw.Agent.Profile.UniAgentProfile agentProfile, UniagentDshBindings bindings)
@@ -41,6 +43,11 @@ public sealed class RuntimeHttpServer
         _agentProfile = agentProfile;
         _bindings = bindings;
         _store = new RuntimeRunStore(Path.Combine(runsRoot, ".runtime-runs"));
+        // RUNTIME-IDENTITY-001：身份铸造走独立 Store（ADR-0044/0045），
+        // 不再混入 RuntimeRunStore 的一次性创建。
+        var dataDir = Path.Combine(runsRoot, ".identity");
+        _taskStore = new TaskInstanceStore(Path.Combine(dataDir, "task-instances.jsonl"));
+        _sessionStore = new ProductSessionStore(Path.Combine(dataDir, "product-sessions.jsonl"));
     }
 
     public static RuntimeHttpServer Create(string[] args, string runsRoot, string device)
@@ -57,6 +64,12 @@ public sealed class RuntimeHttpServer
         var bindings = UniagentDshBindingsYaml.LoadDefault();
         var server = new RuntimeHttpServer(app, runsRoot, device, agentProfile, bindings);
         app.MapGet("/api/uniclaw-runtime/health", () => Results.Ok(new { ok = true, service = "uniclaw-runtime" }));
+        // RUNTIME-IDENTITY-001（ADR-0045 分阶段创建）：
+        // Step 1：POST /tasks → TaskInstanceStore 铸造 taskInstanceId
+        // Step 2：POST /sessions → ProductSessionStore 铸造 productSessionId
+        // Step 3：POST /runs（既有）→ 消费上面两步铸造的 ID
+        app.MapPost("/api/uniclaw-runtime/tasks", server.CreateTaskInstanceAsync);
+        app.MapPost("/api/uniclaw-runtime/sessions", server.CreateProductSessionAsync);
         app.MapPost("/api/uniclaw-runtime/runs", server.StartRunAsync);
         app.MapGet("/api/uniclaw-runtime/runs", server.ListRunsAsync);
         app.MapGet("/api/uniclaw-runtime/runs/{runId}", server.GetRunAsync);
@@ -80,6 +93,47 @@ public sealed class RuntimeHttpServer
     {
         await _app.StartAsync(cancellationToken);
         await _app.WaitForShutdownAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// RUNTIME-IDENTITY-001 · ADR-0045 Step 1：Runtime 铸造 taskInstanceId。
+    /// 调用方不传 ID；同 idempotencyKey 重入返回已有实例。
+    /// </summary>
+    private Task<IResult> CreateTaskInstanceAsync(JsonElement? body, CancellationToken ct)
+    {
+        string taskRef, idempotencyKey;
+        if (body is { ValueKind: JsonValueKind.Object } json)
+        {
+            taskRef = json.TryGetProperty("taskRef", out var tr) && tr.ValueKind == JsonValueKind.String ? tr.GetString() ?? "" : "";
+            idempotencyKey = json.TryGetProperty("idempotencyKey", out var ik) && ik.ValueKind == JsonValueKind.String ? ik.GetString() ?? "" : "";
+        }
+        else { taskRef = ""; idempotencyKey = ""; }
+        if (string.IsNullOrWhiteSpace(taskRef) || string.IsNullOrWhiteSpace(idempotencyKey))
+            return Task.FromResult<IResult>(Error(400, "invalid-request", "taskRef and idempotencyKey are required", retryable: false));
+        var record = _taskStore.Create(taskRef, idempotencyKey);
+        return Task.FromResult<IResult>(Results.Ok(new { ok = true, taskInstanceId = record.TaskInstanceId, taskRef = record.TaskRef, productSessionId = record.ProductSessionId }));
+    }
+
+    /// <summary>
+    /// RUNTIME-IDENTITY-001 · ADR-0045 Step 2：Runtime 铸造 productSessionId。
+    /// 输入 taskInstanceId（来自 Step 1）；同 taskInstance 重入返回已有 session（1:1）。
+    /// </summary>
+    private Task<IResult> CreateProductSessionAsync(JsonElement? body, CancellationToken ct)
+    {
+        string taskInstanceId;
+        if (body is { ValueKind: JsonValueKind.Object } json
+            && json.TryGetProperty("taskInstanceId", out var ti) && ti.ValueKind == JsonValueKind.String)
+            taskInstanceId = ti.GetString() ?? "";
+        else taskInstanceId = "";
+        if (string.IsNullOrWhiteSpace(taskInstanceId))
+            return Task.FromResult<IResult>(Error(400, "invalid-request", "taskInstanceId is required", retryable: false));
+        var taskRecord = _taskStore.Get(taskInstanceId);
+        if (taskRecord is null)
+            return Task.FromResult<IResult>(Error(404, "task-instance-not-found", $"TaskInstance {taskInstanceId} does not exist", retryable: false));
+        var session = _sessionStore.Create(taskInstanceId);
+        // 回写 binding（幂等）
+        _taskStore.BindSession(taskInstanceId, session.ProductSessionId);
+        return Task.FromResult<IResult>(Results.Ok(new { ok = true, productSessionId = session.ProductSessionId, taskInstanceId = taskInstanceId, runId = session.RunId }));
     }
 
     private async Task<IResult> StartRunAsync(LaunchRequest? request, CancellationToken cancellationToken)
