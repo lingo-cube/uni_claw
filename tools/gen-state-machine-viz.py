@@ -10,6 +10,17 @@ OUT = ROOT / "docs" / "design" / "state-machine-viz-v0.1.html"
 
 def lst(v): return [] if v in (None, "") else (v if isinstance(v, list) else [v])
 
+# 呈现层中文标签（仅可视化；单源不承载展示词汇，未映射自动回退原名）
+LABELS = {
+ "created":"创建契约候选","admitted":"契约已准入","activated":"运行已激活",
+ "observing":"观察中","deciding":"决策中","acting":"行动中","verifying":"验证中",
+ "recovering":"恢复中","terminal":"终局","closed":"已关闭",
+ "candidate":"候选绑定","canonical":"正式绑定","consumed":"已消费","derived-invalid":"派生失效",
+ "CommittedPending":"已登记未投递","CommitUnknown":"提交未知","Dispatched":"已投递",
+ "UnknownOutcome":"结果未知","Completed":"已完成","formed":"已裁决","frozen":"已冻结",
+}
+def lab(n): return LABELS.get(n, n)
+
 def load():
     doc = yaml.safe_load(SRC.read_text(encoding="utf-8"))
     ms = []
@@ -53,14 +64,14 @@ footer{margin-top:22px;color:var(--sub);font-size:12px;border-top:1px solid var(
 <div class="ov" id="ov"></div><aside class="pn" id="pn"><button class="cl" id="cl">✕</button><div class="ph"><div class="t" id="pt"></div><div class="s" id="ps"></div></div><div class="pb" id="pbd"></div></aside>
 <footer>生成器 tools/gen-state-machine-viz.py（PROTOCOL-MACHINE-002）· 语义权威：协议基线与 ADR</footer>
 <script>
-const M = %%DATA%%;
+const M = %%DATA%%; const LABELS = %%LABELS%%;
 const flow = document.getElementById('flow');
 M.forEach((m,mi)=>{ const sec=document.createElement('div');
  sec.innerHTML=`<div class="mk">${m.title} <span>· ${m.nodes.length} 状态 · ${m.transitions.length} 转移 · ◉初始 ▣终局 ⛔吸收</span></div>`;
  const lane=document.createElement('div');lane.className='lane';
  m.nodes.forEach((n,i)=>{ if(i>0){const a=document.createElement('div');a.className='ar';a.textContent='➜';lane.appendChild(a);}
   const cls=m.absorbing.includes(n)?'absorbing':(m.terminal.includes(n)?'terminal':(n===m.initial?'initial':''));
-  const d=document.createElement('div');d.className='nd '+cls;d.textContent=n;d.onclick=()=>openP(mi,n,d);lane.appendChild(d);});
+  const d=document.createElement('div');d.className='nd '+cls;d.textContent=LABELS[n]||n;d.title=n;d.onclick=()=>openP(mi,n,d);lane.appendChild(d);});
  sec.appendChild(lane);flow.appendChild(sec);});
 function trow(t,dir){ const trig=(t.edge?`<span class="m me">${t.edge}</span>`:'')+` ${t.event}`;
  const ex=t.emits.map(e=>`emit:${e}`).join(' · ')+(t.measure?` · <span class="m mm">measure:${t.measure}</span>`:'')+(t.await?` · <span class="m ma">await:${t.await}</span>`:'');
@@ -69,7 +80,7 @@ function trow(t,dir){ const trig=(t.edge?`<span class="m me">${t.edge}</span>`:'
 function openP(mi,node,el){ document.querySelectorAll('.nd.sel').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');
  const m=M[mi]; const outs=m.transitions.filter(t=>t.from===node), ins=m.transitions.filter(t=>t.to===node);
  const badges=[node===m.initial?'◉ 初始':'',m.absorbing.includes(node)?'⛔ 吸收（不可逆）':(m.terminal.includes(node)?'▣ 终局':'')].filter(Boolean).join(' · ');
- document.getElementById('pt').innerHTML=`${node} <span style="font-size:12px;color:var(--sub)">${badges}</span>`;
+ document.getElementById('pt').innerHTML=`${LABELS[node]||node} <code style="font-size:11px">${node}</code> <span style="font-size:12px;color:var(--sub)">${badges}</span>`;
  document.getElementById('ps').textContent=m.title;
  let h=`<h4>入转移（${ins.length}）</h4>`; h+=ins.length?'<table><tr><th>id</th><th>方向</th><th>触发</th><th>guard</th><th>标注</th></tr>'+ins.map(t=>trow(t,'in')).join("")+'</table>':'<div class="bd">无入转移（'+(node===m.initial?'初始态':'悬挂点——见形式审计 D4')+'）</div>';
  h+=`<h4>出转移（${outs.length}）</h4>`; h+=outs.length?'<table><tr><th>id</th><th>方向</th><th>触发</th><th>guard</th><th>标注</th></tr>'+outs.map(t=>trow(t,"out")).join("")+'</table>':'<div class="bd">无出转移'+(m.absorbing.includes(node)?'（吸收态：结构性终点）':'（悬挂点）')+'</div>';
@@ -82,6 +93,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeP()});
 
 if __name__ == "__main__":
     data = json.dumps(load(), ensure_ascii=False)
+    labels = json.dumps(LABELS, ensure_ascii=False)
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(TPL.replace("%%DATA%%", data), encoding="utf-8")
+    OUT.write_text(TPL.replace("%%DATA%%", data).replace("%%LABELS%%", labels), encoding="utf-8")
     print(f"written: {OUT}")
