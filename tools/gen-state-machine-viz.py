@@ -21,6 +21,21 @@ LABELS = {
 }
 def lab(n): return LABELS.get(n, n)
 
+def edge_fields():
+    """第三出口产物（protocol-workflow-steps.generated.js）→ 边号→字段表 连接。"""
+    f = ROOT / "docs" / "design" / "protocol-workflow-steps.generated.js"
+    try:
+        import re, json as _j
+        raw = f.read_text(encoding="utf-8")
+        arr = _j.loads(raw[raw.index("=") + 1:].strip().rstrip(";"))
+        out = {}
+        for s in arr:
+            m = re.match(r"(P\d+)", s.get("edge", "") or "")
+            if m and s.get("fields"): out.setdefault(m.group(1), s["fields"])
+        return out
+    except Exception:
+        return {}
+
 def load():
     doc = yaml.safe_load(SRC.read_text(encoding="utf-8"))
     ms = []
@@ -64,7 +79,7 @@ footer{margin-top:22px;color:var(--sub);font-size:12px;border-top:1px solid var(
 <div class="ov" id="ov"></div><aside class="pn" id="pn"><button class="cl" id="cl">✕</button><div class="ph"><div class="t" id="pt"></div><div class="s" id="ps"></div></div><div class="pb" id="pbd"></div></aside>
 <footer>生成器 tools/gen-state-machine-viz.py（PROTOCOL-MACHINE-002）· 语义权威：协议基线与 ADR</footer>
 <script>
-const M = %%DATA%%; const LABELS = %%LABELS%%;
+const M = %%DATA%%; const LABELS = %%LABELS%%; const EF = %%EDGEFIELDS%%;
 const flow = document.getElementById('flow');
 M.forEach((m,mi)=>{ const sec=document.createElement('div');
  sec.innerHTML=`<div class="mk">${m.title} <span>· ${m.nodes.length} 状态 · ${m.transitions.length} 转移 · ◉初始 ▣终局 ⛔吸收</span></div>`;
@@ -85,6 +100,9 @@ function openP(mi,node,el){ document.querySelectorAll('.nd.sel').forEach(x=>x.cl
  let h=`<h4>入转移（${ins.length}）</h4>`; h+=ins.length?'<table><tr><th>id</th><th>方向</th><th>触发</th><th>guard</th><th>标注</th></tr>'+ins.map(t=>trow(t,'in')).join("")+'</table>':'<div class="bd">无入转移（'+(node===m.initial?'初始态':'悬挂点——见形式审计 D4')+'）</div>';
  h+=`<h4>出转移（${outs.length}）</h4>`; h+=outs.length?'<table><tr><th>id</th><th>方向</th><th>触发</th><th>guard</th><th>标注</th></tr>'+outs.map(t=>trow(t,"out")).join("")+'</table>':'<div class="bd">无出转移'+(m.absorbing.includes(node)?'（吸收态：结构性终点）':'（悬挂点）')+'</div>';
  h+=`<div class="bd">协议边引用：${[...new Set([...ins,...outs].map(t=>t.edge).filter(Boolean))].join('、')||'—'}</div>`;
+ const edges=[...new Set([...ins,...outs].map(t=>t.edge).filter(Boolean))];
+ for(const e of edges){ const fs=EF[e]||[];
+  h+=`<h4>字段（${e}）</h4>`+(fs.length?'<table><tr><th>字段</th><th>必填</th><th>类型</th><th>说明</th></tr>'+fs.map(x=>`<tr><td><code>${x.n}</code></td><td>${x.req||''}</td><td>${x.t||''}</td><td>${x.d||''}</td></tr>`).join("")+'</table>':'<div class="bd">字段注记未登记（见 27 步工作流模型）</div>'); }
  document.getElementById('pbd').innerHTML=h; document.getElementById('pn').classList.add('open');document.getElementById('ov').classList.add('open');}
 function closeP(){document.getElementById('pn').classList.remove('open');document.getElementById('ov').classList.remove('open');document.querySelectorAll('.nd.sel').forEach(x=>x.classList.remove('sel'));}
 document.getElementById('ov').onclick=closeP;document.getElementById('cl').onclick=closeP;
@@ -95,5 +113,6 @@ if __name__ == "__main__":
     data = json.dumps(load(), ensure_ascii=False)
     labels = json.dumps(LABELS, ensure_ascii=False)
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(TPL.replace("%%DATA%%", data).replace("%%LABELS%%", labels), encoding="utf-8")
+    OUT.write_text(TPL.replace("%%DATA%%", data).replace("%%LABELS%%", labels)
+                      .replace("%%EDGEFIELDS%%", json.dumps(edge_fields(), ensure_ascii=False)), encoding="utf-8")
     print(f"written: {OUT}")
