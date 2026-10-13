@@ -152,9 +152,18 @@ public sealed class RuntimeHttpServer
         if (existing is not null)
             return Results.Accepted($"/api/uniclaw-runtime/runs/{existing.RunId}", Response(existing, idempotent: true));
 
+        // RUNTIME-IDENTITY-001：Runtime 铸造身份（ADR-0044/0045）——
+        // 不再消费 caller-supplied ProductSessionId/TaskInstanceId；
+        // 从 Store 幂等铸造，与 ADR-0046 的启动钥匙语义一致。
+        var taskRefLabel = JsonLabel(request.TaskRef, "label") ?? JsonLabel(request.TaskRef, "id") ?? "unknown";
+        var taskInstance = _taskStore.Create(taskRefLabel, idempotency);
+        var productSession = _sessionStore.Create(taskInstance.TaskInstanceId);
+        _taskStore.BindSession(taskInstance.TaskInstanceId, productSession.ProductSessionId);
+        _sessionStore.BindRun(productSession.ProductSessionId, $"run-pending-{launchId}");
+
         var run = _store.Create(new RuntimeRunStore.CreateRequest(
-            request.ProductSessionId,
-            request.TaskInstanceId,
+            productSession.ProductSessionId,
+            taskInstance.TaskInstanceId,
             launchId,
             idempotency,
             correlation,
@@ -207,7 +216,10 @@ public sealed class RuntimeHttpServer
             "dsh-host",
             "DSH session attached",
             p => p with { HostSessionRef = new RuntimeRunStore.HostSessionRef("dsh", attachment.DshSessionId) });
-        var launch = new HostRunner.LaunchContext(running.RunId, running.ProductSessionId, launchId, idempotency, correlation);
+        var launch = new HostRunner.LaunchContext(running.RunId, running.ProductSessionId,
+            launchId, idempotency, correlation,
+            TaskInstanceId: taskInstance.TaskInstanceId,
+            ContractRef: $"contract-{running.RunId}");
         var agent = new DshAgentAdapter(channel, running.ProductSessionId, running.RunId, turnTimeout: TimeSpan.FromSeconds(110));
         // PNL-011：需求原文经 taskRef（web launch 流把 requirement 放在 taskRef.label）
         // 进入 run 目录 metadata 投影，报告①区从此有真相，不再依赖 --requirement。

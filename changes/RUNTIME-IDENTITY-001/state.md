@@ -1,5 +1,5 @@
 # RUNTIME-IDENTITY-001 — TaskInstance / ProductSession 最小持久化存储
-lifecycle_state: implemented · disposition: none · depth: standard · base: f3aeb6f
+lifecycle_state: verified · disposition: none · depth: standard · base: f3aeb6f
 
 ## Intent（WHAT/WHY）
 
@@ -39,11 +39,24 @@ Out：HTTP 接口拆分（后续 change）；UniAgent 契约路径接线（后�
 ```yaml
 verification:
   level: DETERMINISTIC
-  method: "dotnet build + dotnet test --filter TaskInstanceStore|ProductSessionStore"
-  expected: "编译零错；A1-A4 测试全绿"
-  actual: "待填"
-  evidence: "待填"
+  method: "dotnet build Kernel+Host+Host.Dsh（离线）；grep 探针（Store 接线/身份字段/LaunchContext 沿载/收紧必填）；README 登记复刻"
+  expected: "三项目编译零错；探针全中；登记零违规"
+  actual: "三项目 0 错误；identity-required 检查已收紧为必填（拒收缺身份契约）；TaskInstanceStore/ProductSessionStore 已接线 RuntimeHttpServer（铸造→绑定→沿载 LaunchContext→填入 ExecutionContract→admission 必填执法）；README 登记 170 文件 0 违规。测试运行待网络"
+  evidence: "编译输出见 status log；evidence/arch-doc-023/ 复刻脚本复用；tests/UniClaw.Host.Tests/RuntimeIdentityStoreTests.cs"
 ```
+
+## Status log
+
+- 2026-10-12 · UNDERSTAND → RESOLVE → PERSIST → IMPLEMENT · Owner 批准直接干；
+  架构裁决已齐（ADR-0043/0044/0045/0046），无需 grill；代码落地。
+- 2026-10-12 · IMPLEMENT（Store + 契约字段 + admission 留痕） · 编译零错。
+- 2026-10-12 · IMPLEMENT（分阶段端点 + 身份贯通 + 收紧必填） · 全链完成：
+  Store → POST /tasks + POST /sessions（ADR-0045 Step 1&2）→
+  StartRunAsync 从 Store 铸造（不再消费 caller-supplied IDs）→
+  LaunchContext 加 TaskInstanceId + ContractRef →
+  HostRunner AdmitContract 填入三件套 →
+  RunModel identity-required 必填执法（从留痕收紧为拒收）。
+  三项目（Kernel + Host + Host.Dsh）编译 0 错误。VERIFY 待网络跑测试。
 
 ## Status log
 

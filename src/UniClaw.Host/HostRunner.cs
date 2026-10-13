@@ -39,7 +39,9 @@ public sealed class HostRunner
         string ProductSessionId,
         string LaunchId,
         string IdempotencyKey,
-        string CorrelationId);
+        string CorrelationId,
+        string? TaskInstanceId = null,
+        string? ContractRef = null);
 
     public sealed record HostOptions(
         string? DeviceId = null,
@@ -276,25 +278,19 @@ public sealed class HostRunner
                 });
 
             // ---- 单次 run ---------------------------------------------------
+            // RUNTIME-IDENTITY-001：身份三件套从 LaunchContext 沿载入契约
+            //（上游 RuntimeHttpServer 经 Store 铸造；不传 = 上游未接线，留空）。
             var admission = kernel.AdmitContract(new ExecutionContract(
                 Version: "v0",
                 Objective: options.SettingsTraversal
                     ? $"Confirm the {options.TargetSemanticDescriptor} switch state in Android Settings and leave it {options.TargetState}. Choose every next control only from the current semantic hierarchy; navigate as needed to reach the {options.TargetSemanticDescriptor} control, and never toggle it when the observed state is already {options.TargetState}."
                     : "flip-switch",
                 Scope: scope,
-                // AGT-016 裁决对齐（所有者 2026-10-06：滚动时机由 agent 自行判断）：
-                // 与预评审策略资产对齐——scroll 为 safe class、guard 有 swipe-up→scroll
-                // 映射、driver 支持 swipe-up；授权面三处一致，滚动时机交由模型判断。
                 AllowedEffects: new HashSet<string> { "tap", "swipe-up" },
                 ProofCriteria: new[] { "switch-state-checked" },
                 ForbiddenEffects: options.SettingsActionPolicy is { } policy
                     ? new HashSet<string>(policy.ForbiddenActionClasses, StringComparer.OrdinalIgnoreCase)
                     : new HashSet<string>(StringComparer.Ordinal),
-                // 显式义务（PER-014 R3 typed 迁移）：role-scoped semantic
-                // checked requirement——Subject 不再是 legacy state subject，
-                // RequiredValue 为 typed checked 词汇（checked/unchecked）；
-                // 满足判定经 RuntimeAssurance → R1 SemanticCheckedResolver
-                // 缝（CheckedState 相等；Unknown/Unsupported ≠ satisfied）。
                 Obligations: new[]
                 {
                     new RunObligation(
@@ -303,7 +299,10 @@ public sealed class HostRunner
                         RequiredValue: options.TargetState, Mandatory: true,
                         EntityScope: new TargetDescriptor(
                             "switch", options.SettingsTraversal ? options.TargetSemanticDescriptor : null)),
-                }), options.Launch?.RunId);
+                },
+                TaskInstanceId: options.Launch?.TaskInstanceId,
+                ProductSessionId: options.Launch?.ProductSessionId,
+                ContractRef: options.Launch?.ContractRef), options.Launch?.RunId);
             if (!admission.Accepted)
                 throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");
             if (options.Launch is { } supplied && !string.Equals(kernel.RunId, supplied.RunId, StringComparison.Ordinal))
