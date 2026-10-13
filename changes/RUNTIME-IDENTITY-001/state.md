@@ -5,15 +5,17 @@ lifecycle_state: implemented · disposition: none · depth: standard · base: f3
 
 ADR-0044/0045/0046 已冻结身份架构，但 Runtime 侧没有独立铸造和持久化
 TaskInstance / ProductSession 的存储——当前 RuntimeRunStore 把所有东西混在
-内存里，HTTP 一个请求全建。本 change 建最小 append-only 文件存储，为后续
-分阶段 HTTP 和 UniAgent 契约生成提供上游 identity 来源。
+内存里，HTTP 一个请求全建。本 change 建最小 append-only 文件存储 + 契约
+身份字段 + admission 留痕。
 
 ## Scope / Out of Scope
 
-In：`src/UniClaw.Host/Runtime/TaskInstanceStore.cs`（新）、
-`src/UniClaw.Host/Runtime/ProductSessionStore.cs`（新）、单元测试。
+In：`TaskInstanceStore.cs`（新）、`ProductSessionStore.cs`（新）、
+`ExecutionContract` + `ExecutionContractView` 加三件套字段（可选默认 null）、
+`RunModel.AdmitContract` 加 identity-trace 留痕检查（可选起步、不拒收）、
+单元测试、README 登记。
 Out：HTTP 接口拆分（后续 change）；UniAgent 契约路径接线（后续 change）；
-ExecutionContract 加字段（后续 change）；Workbench instanceId 统一（后续 change）。
+收紧必填（等上游接线后）；Workbench instanceId 统一（后续 change）。
 
 ## Decisions
 

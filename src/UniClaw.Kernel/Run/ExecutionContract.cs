@@ -15,6 +15,9 @@ public sealed record ContractAdmission(bool Accepted, IReadOnlyList<ContractChec
 /// Obligations：可选的 run-level 证明义务规格（OUT-003，D2）；为 null 时
 /// Run Model 从 ProofCriteria 派生不可判定的占位 obligation（C2E 既有
 /// contract 形状零改动）。
+/// 身份三件套（RUNTIME-IDENTITY-001，ADR-0046）：可选起步、admission
+/// 留痕 presence——上游 Store/Adapter 接线后收紧为必填（同预算 valueOrigin
+/// 的宽松→收紧先例）。
 /// </summary>
 public sealed record ExecutionContract(
     string Version,
@@ -25,4 +28,7 @@ public sealed record ExecutionContract(
     IReadOnlyList<string>? ProofCriteria,
     IReadOnlyList<RunObligation>? Obligations = null,
     int? MaxConsultations = null,
-    int? MaxTotalSteps = null);
+    int? MaxTotalSteps = null,
+    string? TaskInstanceId = null,
+    string? ProductSessionId = null,
+    string? ContractRef = null);

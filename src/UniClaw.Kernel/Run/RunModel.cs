@@ -72,6 +72,14 @@ public sealed class RunModel
                     && contract.Obligations.All(o => !string.IsNullOrWhiteSpace(o.ObligationId)
                         && !string.IsNullOrWhiteSpace(o.Subject)
                         && !string.IsNullOrWhiteSpace(o.RequiredValue)))),
+            // RUNTIME-IDENTITY-001（ADR-0046）：身份三件套 presence 留痕——
+            // 可选起步（上游 Store/Adapter 未接线前不拒收），接线后收紧必填。
+            // 检查名 "identity-trace" 表达"记录是否携带身份"而非"身份是否合法"
+            // （后者需要 Runtime 铸造 authority 的跨边核验，当前范围外）。
+            new("identity-trace",
+                !string.IsNullOrWhiteSpace(contract.TaskInstanceId)
+                && !string.IsNullOrWhiteSpace(contract.ProductSessionId)
+                && !string.IsNullOrWhiteSpace(contract.ContractRef)),
         };
 
         if (!checks.All(c => c.Passed))
@@ -91,7 +99,8 @@ public sealed class RunModel
             View = new ExecutionContractView(
                 contract.Version, contract.Objective,
                 contract.Scope!, contract.AllowedEffects!, contract.ForbiddenEffects!,
-                contract.ProofCriteria!, consultations, totalSteps, valueOrigin);
+                contract.ProofCriteria!, consultations, totalSteps, valueOrigin,
+                contract.TaskInstanceId, contract.ProductSessionId, contract.ContractRef);
             RunId = string.IsNullOrWhiteSpace(runIdOverride)
                 ? MintRunId(contract, consultations, totalSteps)
                 : runIdOverride.Trim();

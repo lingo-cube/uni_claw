@@ -28,4 +28,7 @@ public sealed record ExecutionContractView(
     IReadOnlyList<string> ProofCriteria,
     int MaxConsultations = 16,
     int MaxTotalSteps = 256,
-    BudgetValueOrigin BudgetValueOrigin = BudgetValueOrigin.Default);
+    BudgetValueOrigin BudgetValueOrigin = BudgetValueOrigin.Default,
+    string? TaskInstanceId = null,
+    string? ProductSessionId = null,
+    string? ContractRef = null);
