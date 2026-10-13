@@ -32,6 +32,8 @@ Product Host 的组合根：装配 Kernel 六个 Product T2 责任域与 Capabil
 | 文件 | 职责 |
 |---|---|
 | `RuntimeRunStore.cs` | RuntimeRun 快照与 append-only 事件的持久化缝（ADR-0036 投影消费） |
+| `TaskInstanceStore.cs` | taskInstanceId 铸造与 append-only 持久化（RUNTIME-IDENTITY-001，ADR-0044/0045） |
+| `ProductSessionStore.cs` | productSessionId 铸造与 append-only 持久化（RUNTIME-IDENTITY-001，ADR-0044/0045） |
 
 ### SettingsCoverage/ — 覆盖遍历总成
 
