@@ -22,10 +22,11 @@ verification:
   level: DETERMINISTIC
   method: "Host Director unknown-route tests + popup classifier tests + full solution test"
   expected: "Agent is consulted for unknown route; unsafe response is rejected; namespaced popup is present"
-  actual: "unknown-route Director tests, namespaced popup classifier tests, and full solution 1540-test run pass"
-  evidence: "tests/UniClaw.Host.Tests/SettingsCoverageDirectorPlanTests.cs; tests/UniClaw.Host.Tests/SettingsPopupClassifierTests.cs"
+  actual: "unknown-route Director tests, namespaced popup classifier tests, full solution 1540-test run, and two registered-emulator runs pass the targeted behavior: Agent requests appear for unknown-route Defer and popup obstacle Clear/CANCEL"
+  evidence: "tests/UniClaw.Host.Tests/SettingsCoverageDirectorPlanTests.cs; tests/UniClaw.Host.Tests/SettingsPopupClassifierTests.cs; evidence/settings-coverage-004/live-fix-summary.json"
 ```
 
 ## Status log
 - 2026-10-15 · UNDERSTAND → RESOLVE → PERSIST · 根据 leader-pass8 request/trace 与最后截图定位两个 Host seam。
 - 2026-10-15 · PERSIST → IMPLEMENT → VERIFY · unknown-route consultation now calls Agent and accepts only correlated Defer; Settings namespaced popup IDs classify present; focused tests pass.
+- 2026-10-15 · VERIFY · registered emulator confirmed unknown-route Agent requests and popup obstacle Agent directives; traversal run was intentionally stopped after the targeted branch evidence was captured.

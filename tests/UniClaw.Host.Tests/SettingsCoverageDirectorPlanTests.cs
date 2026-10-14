@@ -230,4 +230,20 @@ public sealed class SettingsCoverageDirectorPlanTests
         Assert.Equal("unknown-route-agent-response-rejected",
             director.ConsultLog.Single().DeviationReason);
     }
+
+    [Fact]
+    public void PopupObstacle_PrecedesUnknownRouteDefer()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(SettingsCoverageDirector.UnknownRouteIdentity,
+            new[] { ("ui.element", (string?)"CANCEL") });
+        ledger.RecordPopupState("present");
+        var director = new SettingsCoverageDirector(
+            _ => Act("CANCEL"), ledger, Config());
+
+        var decision = director.Consult(Context());
+
+        Assert.IsType<AgentDecision.Act>(decision);
+        Assert.Equal("obstacle", Assert.Single(director.ConsultLog).DirectiveKind);
+    }
 }

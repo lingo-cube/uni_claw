@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-004.live-summary.v1",
+  "device": "registered p26_pixel API 35 emulator-5556",
+  "decisionBridge": "leader-file",
+  "runs": [
+    {
+      "run": "live-fix",
+      "result": "TerminalNotProven",
+      "evidence": "unknown-route Agent requests decision-d24d3d1dc90d-7 and -8; settings-trace cycles 7-9 popup=present"
+    },
+    {
+      "run": "live-fix2",
+      "result": "targeted branch captured; manually stopped",
+      "evidence": "Agent directives include Clear the popup overlay by tapping '<CANCEL>' at decisions -7, -9, -11 and later"
+    }
+  ],
+  "limitations": [
+    "live-fix2 was stopped after proving popup obstacle routing; it is not a full traversal result",
+    "raw screenshots and XML remain in the local run directories and are not committed"
+  ]
+}

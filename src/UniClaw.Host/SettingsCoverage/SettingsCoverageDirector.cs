@@ -150,7 +150,8 @@ public sealed class SettingsCoverageDirector
             && !snapshot.Visible.Contains(_config.ScrollContainerDescriptor)
             && !_config.TargetPages.Any(snapshot.Visible.Contains)
             && !_ledger.DynamicRootFrontier(_config).Any(snapshot.Visible.Contains);
-        if (snapshot.CurrentRoute is not null
+        if (snapshot.PopupState != "present"
+            && snapshot.CurrentRoute is not null
             && snapshot.CurrentRoute == UnknownRouteIdentity
             && (snapshot.StepsVerified == 0 || unknownRouteNeedsResample))
         {
