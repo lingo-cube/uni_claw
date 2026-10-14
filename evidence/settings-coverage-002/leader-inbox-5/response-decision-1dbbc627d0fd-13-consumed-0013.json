@@ -1,0 +1,8 @@
+{
+  "kind": "noAction",
+  "decisionId": "decision-1dbbc627d0fd-13",
+  "proposal": {
+    "decisionId": "decision-1dbbc627d0fd-13",
+    "justification": "No further safe explicit first-level action available; allow Host bounded disposition."
+  }
+}

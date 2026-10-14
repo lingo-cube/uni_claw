@@ -39,7 +39,7 @@ public sealed record CoverageSnapshot(
     string? CurrentRoute,
     int StepsVerified,
     string? NextDirective,
-    string? NextDirectiveKind,              // "enter"|"scroll"|"back"|"re-enter"|"obstacle"|null
+    string? NextDirectiveKind,              // "enter"|"scroll"|"back"|"re-enter"|"nested-enter"|"obstacle"|null
     string? PopupState = null,              // AGT-009：最新弹窗分类声明（present/absent/null=无声明）
     IReadOnlyList<string>? VisibleDescriptors = null) // AGT-009：最新观察的可见 descriptor（清障目标发现）
 {
@@ -210,6 +210,7 @@ public sealed class SettingsCoverageLedger
         var backVerified = 0;
         var enteredPages = new Dictionary<string, List<EnteredEntry>>(StringComparer.Ordinal);
         var secondLevelRoutes = new HashSet<string>(StringComparer.Ordinal);
+        var nestedEntered = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var (sequence, route, occurrences) in _observations)
         {
@@ -245,6 +246,20 @@ public sealed class SettingsCoverageLedger
                 && IsRoot(config, step.RouteAfter))
             {
                 backVerified++;
+            }
+
+            if (config.DeepTraversalSettings.Enabled
+                && step.RouteBefore is not null
+                && step.RouteAfter is not null
+                && !IsRoot(config, step.RouteBefore)
+                && !IsRoot(config, step.RouteAfter))
+            {
+                var parent = RoutePage(step.RouteBefore);
+                var key = NestedKey(parent, descriptor);
+                if (parent is not null && descriptor is not null
+                    && AllowedNested(config, parent, descriptor)
+                    && key is not null)
+                    nestedEntered.Add(key);
             }
         }
 
@@ -302,6 +317,17 @@ public sealed class SettingsCoverageLedger
             Covered: config.Coverage.RepeatedEntries == 0 || repeatedDescriptors.Count >= config.Coverage.RepeatedEntries,
             Evidence: repeatedDescriptors.Count > 0 ? string.Join(";", repeatedDescriptors) : null));
 
+        if (config.DeepTraversalSettings.Enabled)
+        {
+            var nestedTargets = NestedTargets(config);
+            var expected = nestedTargets.Sum(pair => pair.Value.Count);
+            items.Add(new(
+                Requirement: "nested-pages",
+                Detail: $"entered {nestedEntered.Count}/{expected} explicit nested entries",
+                Covered: nestedEntered.Count >= expected,
+                Evidence: nestedEntered.Count > 0 ? string.Join(";", nestedEntered) : null));
+        }
+
         return (items, backVerified, enteredPages, scrollCandidates, _lastVerifiedScrollSequence, rootSeen, secondLevelRoutes.ToList());
     }
 
@@ -312,15 +338,28 @@ public sealed class SettingsCoverageLedger
         bool repeatedSatisfied,
         string? currentRoute)
     {
-        // 离开根页时恒先返回（既是 back-navigation 覆盖项的来源，也是
-        // 继续遍历的前提——进入/滚动指令只在根页可 grounding）。
-        if (currentRoute is not null && !IsRoot(config, currentRoute))
-            return ($"Return to the Settings root page by tapping '<{config.BackDescriptor}>'", "back");
-
         var enteredPages = EnteredPagesSnapshot(config);
         var visible = CurrentVisibleDescriptors();
         if (visible is null)
             return (null, null); // 尚无根页观察：等待，不指挥
+
+        // 深度遍历只接受配置中显式声明的 parent > child；未知 UI 不会被提升为目标。
+        if (config.DeepTraversalSettings.Enabled && currentRoute is not null && !IsRoot(config, currentRoute))
+        {
+            var currentPage = RoutePage(currentRoute);
+            var nestedParents = NestedTargets(config);
+            if (currentPage is not null && nestedParents.ContainsKey(currentPage)
+                && nestedParents[currentPage].Any(child => !NestedWasEntered(config, currentPage, child)))
+            {
+                var child = nestedParents[currentPage].First(child => !NestedWasEntered(config, currentPage, child));
+                if (visible.Contains(child))
+                    return ($"Enter the nested Settings entry '<{child}>' by tapping it.", "nested-enter");
+            }
+        }
+
+        // 离开根页时返回；nested 页面同样 fail closed 地只允许配置的 back。
+        if (currentRoute is not null && !IsRoot(config, currentRoute))
+            return ($"Return to the Settings root page by tapping '<{config.BackDescriptor}>'", "back");
 
         // 只指挥当前可见的目标（不可见目标经滚动露出后再指挥）。
         var firstNotEntered = config.TargetPages
@@ -355,7 +394,75 @@ public sealed class SettingsCoverageLedger
                 return ($"Enter '<{firstEntered}>' again to verify repeated entry.", "re-enter");
         }
 
+        if (config.DeepTraversalSettings.Enabled)
+        {
+            var pendingParent = NestedTargets(config)
+                .FirstOrDefault(pair => pair.Value.Any(child => !NestedWasEntered(config, pair.Key, child))
+                    && visible.Contains(pair.Key));
+            if (!string.IsNullOrWhiteSpace(pendingParent.Key))
+                return ($"Re-enter the Settings page '<{pendingParent.Key}>' to inspect explicit nested entries.", "re-enter");
+        }
+
         return (null, null);
+    }
+
+    private bool NestedWasEntered(SettingsCoverageConfig config, string parent, string child)
+    {
+        foreach (var (_, step) in _steps)
+        {
+            if (!step.Verified || !IsTapOrClick(step.EffectClass)
+                || step.TargetDescriptor != child || step.RouteBefore is null || step.RouteAfter is null
+                || IsRoot(config, step.RouteBefore) || IsRoot(config, step.RouteAfter))
+                continue;
+            if (RoutePage(step.RouteBefore) == parent)
+                return true;
+        }
+        return false;
+    }
+
+    private static Dictionary<string, List<string>> NestedTargets(SettingsCoverageConfig config)
+    {
+        var map = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        foreach (var raw in config.DeepTraversalSettings.Entries)
+        {
+            var separator = raw.IndexOf('>');
+            if (separator < 0)
+                separator = raw.IndexOf("::", StringComparison.Ordinal);
+            var width = raw.Contains("::", StringComparison.Ordinal) ? 2 : 1;
+            if (separator <= 0 || separator + width >= raw.Length)
+                continue;
+            var parent = raw[..separator].Trim();
+            var child = raw[(separator + width)..].Trim();
+            if (parent.Length == 0 || child.Length == 0)
+                continue;
+            if (!map.TryGetValue(parent, out var children))
+                map[parent] = children = new List<string>();
+            if (config.DeepTraversalSettings.MaxEntriesPerPage <= 0
+                || children.Count < config.DeepTraversalSettings.MaxEntriesPerPage)
+                children.Add(child);
+        }
+        return map;
+    }
+
+    private static bool AllowedNested(SettingsCoverageConfig config, string parent, string child) =>
+        NestedTargets(config).TryGetValue(parent, out var children) && children.Contains(child, StringComparer.Ordinal);
+
+    private static string? NestedKey(string? parent, string? child) =>
+        parent is null || child is null ? null : $"{parent}>{child}";
+
+    private static string? RoutePage(string route)
+    {
+        const string marker = "|route:";
+        var index = route.IndexOf(marker, StringComparison.Ordinal);
+        if (index >= 0)
+            return route[(index + marker.Length)..];
+        const string routeKeyMarker = "|rk1:";
+        index = route.IndexOf(routeKeyMarker, StringComparison.Ordinal);
+        if (index < 0)
+            return null;
+        var start = index + routeKeyMarker.Length;
+        var end = route.IndexOf('|', start);
+        return (end < 0 ? route[start..] : route[start..end]).Trim();
     }
 
     /// <summary>AGT-011 §5：框架按钮 rid（android:id/button1|2|…，AlertDialog
@@ -384,6 +491,8 @@ public sealed class SettingsCoverageLedger
                     || descriptor == config.BackDescriptor // AGT-006 补：返回键不是遍历入口
                     || IsFrameworkButtonRid(nativeRid) // AGT-011 §5：对话框按钮不是遍历入口
                     || config.TargetPages.Contains(descriptor, StringComparer.Ordinal)
+                    || (config.Coverage.ExplicitScrollCandidates.Count > 0
+                        && !config.Coverage.ExplicitScrollCandidates.Contains(descriptor, StringComparer.Ordinal))
                     || scrollCandidates.Contains(descriptor))
                     continue;
                 scrollCandidates.Add(descriptor);
@@ -492,7 +601,7 @@ public sealed class SettingsCoverageLedger
         {
             "scroll" => step.EffectClass is "swipe-up" or "swipe-down",
             "back" => IsTapOrClick(step.EffectClass) && step.TargetDescriptor == config.BackDescriptor,
-            "enter" or "re-enter" => IsTapOrClick(step.EffectClass) && step.TargetDescriptor == descriptor,
+            "enter" or "re-enter" or "nested-enter" => IsTapOrClick(step.EffectClass) && step.TargetDescriptor == descriptor,
             _ => true,
         };
     }

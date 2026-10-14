@@ -16,6 +16,8 @@ using UniClaw.Host.Dsh;
 //   --runs <dir>          产物根目录（默认 runs）
 //   --target <state>      目标态（Settings traversal 默认 checked）
 //   --target-descriptor   目标控件语义名（默认 Wi-Fi）
+//   --decision-inbox <dir> 测试专用 leader-file 决策桥（不连接 DSH 决策通道）
+//   --advisory-direct      认知测试直连决策，不注入 coverage directive（Host guard 仍执行）
 //   --runtime-http        启动 DSH Host 的 Runtime HTTP launch surface
 //   --runtime-port <p>    Runtime HTTP 监听端口（默认 5080）
 
@@ -27,6 +29,8 @@ var settingsTraversal = false;
 var settingsCoverage = false;
 var runtimeHttp = false;
 var runtimePort = 5080;
+string? decisionInbox = null;
+var advisoryDirect = false;
 
 for (var i = 0; i < args.Length; i++)
 {
@@ -58,6 +62,12 @@ for (var i = 0; i < args.Length; i++)
             break;
         case "--target-descriptor":
             targetDescriptor = args[++i];
+            break;
+        case "--decision-inbox":
+            decisionInbox = args[++i];
+            break;
+        case "--advisory-direct":
+            advisoryDirect = true;
             break;
         default:
             Console.Error.WriteLine($"未知参数：{args[i]}");
@@ -95,6 +105,7 @@ if (string.IsNullOrWhiteSpace(device))
 DshAgentAdapter? dshAgent = null;
 DshOpenedDecisionChannel? dshChannel = null;
 DshOpenedHttpPeer? dshPeer = null;
+FileDecisionConsult? fileDecisionConsult = null;
 LanguageInspectionSelection? agentLanguageInspectionSelection = null;
 HostRunner.HostRunResult? result = null;
 UniClaw.Kernel.Capability.CapabilityRegistry? capabilityRegistry = null;
@@ -104,6 +115,8 @@ SettingsCoverageRunner.RunResult? coverageResult = null;
 var productSessionId = $"{(settingsCoverage ? "settings-coverage" : "settings-traversal")}-session-{Guid.NewGuid():N}";
 try
 {
+    if (!string.IsNullOrWhiteSpace(decisionInbox))
+        fileDecisionConsult = new FileDecisionConsult(decisionInbox);
     // PRF-002（ADR-0041）：产品 profile（host-neutral）与 DSH 绑定分轨加载。
     var agentProfile = UniClaw.Agent.Profile.UniAgentProfileYaml.LoadDefault();
     var bindings = UniagentDshBindingsYaml.LoadDefault();
@@ -170,6 +183,19 @@ try
 
     AgentDecision? Consult(AgentDecisionContext context)
     {
+        if (fileDecisionConsult is not null)
+        {
+            var fileDecision = fileDecisionConsult.Consult(context);
+            if (agentLanguageInspectionSelection is null
+                && fileDecisionConsult.LastTaskInitialization?.CapabilitySelection is { } fileSelection)
+            {
+                agentLanguageInspectionSelection = new LanguageInspectionSelection(
+                    fileSelection.CapabilityId,
+                    fileSelection.ExpectedLanguage ?? string.Empty,
+                    fileSelection.IgnoreRoutes);
+            }
+            return fileDecision;
+        }
         if (dshAgent is null)
         {
             dshChannel = new DshOpenedDecisionChannel(dshPeer, attachTimeout: TimeSpan.FromSeconds(30));
@@ -211,7 +237,8 @@ try
             SlowConsult: uniPerceptionFetch,
             LanguageInspection: coverageConfig.LanguageInspectionRequest,
             LanguageInspectionSelectionProvider: () => agentLanguageInspectionSelection,
-            RuntimeIntegrationCapabilities: runtimeIntegrationRegistry));
+            RuntimeIntegrationCapabilities: runtimeIntegrationRegistry,
+            UseCoverageDirector: !advisoryDirect));
     }
     else
     {

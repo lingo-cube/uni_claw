@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-facts.v2",
+  "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/settings-coverage-002/run-20261014-170357-465",
+  "status": "AgentDecisionFailed",
+  "reason": "no-response",
+  "outcome": null,
+  "delivered": 0,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0.14285714285714285,
+  "stepSuccessRate": 1,
+  "uncovered": [
+    "first-level-all-visible",
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "back-navigation",
+    "repeated-entry",
+    "nested-pages"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": null,
+  "diagnostics": {
+    "firstDivergence": null,
+    "terminalJustification": null,
+    "nextFiles": [
+      "facts.json",
+      "consult-bridge.json",
+      "environment-preflight.json",
+      "coverage-report.json",
+      "coverage-steps.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B firstDivergence/reason\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 coverage-steps.json\u3001trace.json \u548C exec.journal\u3002"
+  },
+  "languageInspection": {
+    "requested": true,
+    "file": "language-findings.json",
+    "findings": 3,
+    "persistenceHealthy": true,
+    "diagnostics": []
+  },
+  "consultMode": "advisory-direct",
+  "actionPolicy": {
+    "policyRef": "product/android-settings/forbidden-actions",
+    "digest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/product/policy/android-settings-forbidden-actions.json"
+  },
+  "evidenceDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/settings-coverage-002/run-20261014-170357-465/evidence",
+  "evidenceFiles": 6,
+  "journalBytes": 3070,
+  "consults": [
+    {
+      "decisionId": "decision-1dbbc627d0fd-1",
+      "phase": "InitialPlanning",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Enter planned first-level target Network \u0026 internet",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-2",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Explore explicit nested entry Network \u0026 internet\u003EInternet",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-3",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": null,
+      "deviationReason": "policy-guard:unknown-action:target switch is visible; choose typed desiredState before another navigation",
+      "attempts": 1,
+      "justification": null,
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "REJECT"
+    }
+  ],
+  "steps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-8e5e9d1f708e-3-1"
+    },
+    {
+      "decision": 2,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-b73e87056c99-3-2"
+    }
+  ]
+}

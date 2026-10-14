@@ -1,0 +1,2228 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-consult-bridge.v1",
+  "mode": "advisory-direct",
+  "exchanges": [
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-1",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 0,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/settings_homepage_container",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Search settings",
+            "bounds": "0.0389,0.2979,0.9611,0.3693",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/main_content_scrollable_container",
+            "bounds": "0,0.3911,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Network \u0026 internet",
+            "bounds": "0,0.3911,1,0.5115",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Connected devices",
+            "bounds": "0,0.5115,1,0.6318",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Apps",
+            "bounds": "0,0.6318,1,0.7521",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Notifications",
+            "bounds": "0,0.7521,1,0.8724",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Battery",
+            "bounds": "0,0.8724,1,0.9344",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 1,
+          "stepsDispatched": 0,
+          "stepsVerified": 0,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 89,
+          "stepsRemaining": 72
+        },
+        "availableCapabilities": {
+          "runtime.language-inspector": {
+            "summary": "\u6BD4\u5BF9\u89C2\u5BDF\u6587\u672C\u662F\u5426\u7B26\u5408\u671F\u671B\u8BED\u8A00\u7684\u4E66\u5199\u683C\u5F0F\uFF08Unicode \u811A\u672C\u7EA7\uFF0Cen=Latin / zh=Han\uFF09",
+            "effectiveConfiguration": {
+              "allowlistTerms": "8 \u8BCD\u6761\uFF1AWLAN, Wi-Fi, Bluetooth, GPS, NFC, USB, SIM, VPN",
+              "granularity": "\u6587\u672C\u9879\u7EA7\u539F\u5B50\u5224\u5B9A\uFF08\u83DC\u5355\u7EA7\u5FFD\u7565\u533A\u7531\u5BBF\u4E3B\u4EFB\u52A1\u4FA7\u58F0\u660E\uFF0C\u89C1\u63A5\u7EBF change\uFF09"
+            },
+            "impactDisclosures": [],
+            "limitations": [
+              "\u811A\u672C\u7EA7\u5224\u5B9A\uFF1A\u5B57\u6BCD\u987B\u5C5E\u671F\u671B\u811A\u672C\uFF0C\u6570\u5B57/\u6807\u70B9/\u7A7A\u767D\u4E2D\u7ACB",
+              "\u4E0D\u652F\u6301\u7684\u8BED\u8A00\uFF08en/zh \u4E4B\u5916\uFF09\u8BDA\u5B9E Unknown\uFF0C\u4E0D\u731C",
+              "\u767D\u540D\u5355\u4E3A\u8BCD\u6761\u7EA7\u6574\u8BCD\u79FB\u9664\uFF0C\u4E0D\u505A\u6A21\u5F0F\u5339\u914D"
+            ],
+            "isValid": true
+          }
+        },
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-1"
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Enter planned first-level target Network \u0026 internet",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Network \u0026 internet",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "Enter planned first-level target Network \u0026 internet",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Network \u0026 internet",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-2",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Internet|src=title|up=1",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/content_parent",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Navigate up",
+            "bounds": "0,0.0568,0.1361,0.1333",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/recycler_view",
+            "bounds": "0,0.3016,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Internet",
+            "bounds": "0,0.3016,1,0.4089",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "SIMs",
+            "bounds": "0,0.4089,1,0.5161",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Airplane mode",
+            "bounds": "0,0.5161,1,0.5969",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "switch",
+            "text": "Airplane mode",
+            "bounds": "0.8343,0.5234,0.9611,0.5891",
+            "clickable": true,
+            "checkable": true,
+            "enabled": true,
+            "epistemic": 0,
+            "state": "unchecked"
+          },
+          {
+            "role": "ui.element",
+            "text": "Hotspot \u0026 tethering",
+            "bounds": "0,0.5969,1,0.7042",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Data Saver",
+            "bounds": "0,0.7042,1,0.8115",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "VPN",
+            "bounds": "0,0.8115,1,0.9188",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Private DNS",
+            "bounds": "0,0.9188,1,0.9344",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 2,
+          "stepsDispatched": 1,
+          "stepsVerified": 1,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 88,
+          "stepsRemaining": 71
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-2"
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Return to parent/root after inspected page",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "Return to parent/root after inspected page",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-3",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/settings_homepage_container",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Search settings",
+            "bounds": "0.0389,0.2979,0.9611,0.3693",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/main_content_scrollable_container",
+            "bounds": "0,0.3911,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Network \u0026 internet",
+            "bounds": "0,0.3911,1,0.5115",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Connected devices",
+            "bounds": "0,0.5115,1,0.6318",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Apps",
+            "bounds": "0,0.6318,1,0.7521",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Notifications",
+            "bounds": "0,0.7521,1,0.8724",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Battery",
+            "bounds": "0,0.8724,1,0.9344",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 3,
+          "stepsDispatched": 2,
+          "stepsVerified": 2,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 87,
+          "stepsRemaining": 70
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-3"
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Enter planned first-level target Connected devices",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Connected devices",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "Enter planned first-level target Connected devices",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Connected devices",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-4",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Pair new device|src=title|up=1",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/content_parent",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Navigate up",
+            "bounds": "0,0.0568,0.1361,0.1333",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/recycler_view",
+            "bounds": "0,0.3016,1,0.7604",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Pair new device",
+            "bounds": "0,0.3016,1,0.3823",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "See all",
+            "bounds": "0,0.4526,1,0.5333",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Connection preferences",
+            "bounds": "0,0.5333,1,0.6406",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 4,
+          "stepsDispatched": 3,
+          "stepsVerified": 3,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 86,
+          "stepsRemaining": 69
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-4"
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Return to parent/root after inspected page",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "Return to parent/root after inspected page",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-5",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/settings_homepage_container",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Search settings",
+            "bounds": "0.0389,0.2979,0.9611,0.3693",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/main_content_scrollable_container",
+            "bounds": "0,0.3911,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Network \u0026 internet",
+            "bounds": "0,0.3911,1,0.5115",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Connected devices",
+            "bounds": "0,0.5115,1,0.6318",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Apps",
+            "bounds": "0,0.6318,1,0.7521",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Notifications",
+            "bounds": "0,0.7521,1,0.8724",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Battery",
+            "bounds": "0,0.8724,1,0.9344",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 5,
+          "stepsDispatched": 4,
+          "stepsVerified": 4,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 85,
+          "stepsRemaining": 68
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-5"
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Enter planned first-level target Apps",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Apps",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "Enter planned first-level target Apps",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Apps",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-6",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen.route": {
+            "value": "android.settings|rk1:All apps|src=title|up=1",
+            "disposition": "revised",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/content_parent",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Navigate up",
+            "bounds": "0,0.0568,0.1361,0.1333",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "All apps",
+            "bounds": "0,0.3016,1,0.4089",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Default apps",
+            "bounds": "0,0.4089,1,0.5161",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Unused apps",
+            "bounds": "0,0.5161,1,0.6234",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Special app access",
+            "bounds": "0,0.6234,1,0.7042",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 6,
+          "stepsDispatched": 5,
+          "stepsVerified": 5,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 84,
+          "stepsRemaining": 67
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-6"
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Return to parent/root after inspected page",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "Return to parent/root after inspected page",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-7",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/settings_homepage_container",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Search settings",
+            "bounds": "0.0389,0.2979,0.9611,0.3693",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/main_content_scrollable_container",
+            "bounds": "0,0.3911,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Network \u0026 internet",
+            "bounds": "0,0.3911,1,0.5115",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Connected devices",
+            "bounds": "0,0.5115,1,0.6318",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Apps",
+            "bounds": "0,0.6318,1,0.7521",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Notifications",
+            "bounds": "0,0.7521,1,0.8724",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Battery",
+            "bounds": "0,0.8724,1,0.9344",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 7,
+          "stepsDispatched": 6,
+          "stepsVerified": 6,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 83,
+          "stepsRemaining": 66
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-7"
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Enter planned first-level target Notifications",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Notifications",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "Enter planned first-level target Notifications",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Notifications",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-8",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Manage|src=title|up=1",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/content_parent",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Navigate up",
+            "bounds": "0,0.0568,0.1361,0.1333",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/recycler_view",
+            "bounds": "0,0.3016,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "App notifications",
+            "bounds": "0,0.3719,1,0.4792",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Notification history",
+            "bounds": "0,0.4792,1,0.5865",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Conversations",
+            "bounds": "0,0.6568,1,0.7641",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Bubbles",
+            "bounds": "0,0.7641,1,0.8714",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 8,
+          "stepsDispatched": 7,
+          "stepsVerified": 7,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 82,
+          "stepsRemaining": 65
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-8"
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Return to parent/root after inspected page",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "Return to parent/root after inspected page",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-9",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/settings_homepage_container",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Search settings",
+            "bounds": "0.0389,0.2979,0.9611,0.3693",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/main_content_scrollable_container",
+            "bounds": "0,0.3911,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Network \u0026 internet",
+            "bounds": "0,0.3911,1,0.5115",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Connected devices",
+            "bounds": "0,0.5115,1,0.6318",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Apps",
+            "bounds": "0,0.6318,1,0.7521",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Notifications",
+            "bounds": "0,0.7521,1,0.8724",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Battery",
+            "bounds": "0,0.8724,1,0.9344",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 9,
+          "stepsDispatched": 8,
+          "stepsVerified": 8,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 81,
+          "stepsRemaining": 64
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-9"
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Enter planned first-level target Battery",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Battery",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "Enter planned first-level target Battery",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Battery",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-10",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Battery usage|src=title|up=1",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/content_parent",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Navigate up",
+            "bounds": "0,0.0568,0.1361,0.1333",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Battery usage",
+            "bounds": "0,0.5021,1,0.6094",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Battery Saver",
+            "bounds": "0,0.6094,1,0.7167",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Battery Manager",
+            "bounds": "0,0.7167,1,0.824",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Battery percentage",
+            "bounds": "0,0.824,1,0.9313",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "switch",
+            "text": "Battery percentage",
+            "bounds": "0.8343,0.8448,0.9611,0.9104",
+            "clickable": true,
+            "checkable": true,
+            "enabled": true,
+            "epistemic": 0,
+            "state": "unchecked"
+          }
+        ],
+        "progress": {
+          "roundsUsed": 10,
+          "stepsDispatched": 9,
+          "stepsVerified": 9,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 80,
+          "stepsRemaining": 63
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-10"
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Return to parent/root after inspected page",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "Return to parent/root after inspected page",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-11",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/settings_homepage_container",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Search settings",
+            "bounds": "0.0389,0.2979,0.9611,0.3693",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/main_content_scrollable_container",
+            "bounds": "0,0.3911,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Network \u0026 internet",
+            "bounds": "0,0.3911,1,0.5115",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Connected devices",
+            "bounds": "0,0.5115,1,0.6318",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Apps",
+            "bounds": "0,0.6318,1,0.7521",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Notifications",
+            "bounds": "0,0.7521,1,0.8724",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Battery",
+            "bounds": "0,0.8724,1,0.9344",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 11,
+          "stepsDispatched": 10,
+          "stepsVerified": 10,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 79,
+          "stepsRemaining": 62
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-11"
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Enter explicit verified scroll candidate Search settings",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Search settings",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "Enter explicit verified scroll candidate Search settings",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Search settings",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-12",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen.route": {
+            "value": "android.settings",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.overlay.popup": {
+            "value": "present",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "ui.element",
+            "text": "Navigate up",
+            "bounds": "0.0194,0.0677,0.1556,0.1333",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Search\u2026",
+            "bounds": "0.175,0.0755,0.8639,0.125",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "More options",
+            "bounds": "0.8833,0.0677,0.9806,0.1333",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 12,
+          "stepsDispatched": 11,
+          "stepsVerified": 11,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 78,
+          "stepsRemaining": 61
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-12"
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Return to parent/root after inspected page",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "Return to parent/root after inspected page",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ]
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-1dbbc627d0fd-13",
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-cc4849e8e9fc": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-cc4849e8e9fc",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-cc4849e8e9fc",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/settings_homepage_container",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Search settings",
+            "bounds": "0.0389,0.2979,0.9611,0.3693",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/main_content_scrollable_container",
+            "bounds": "0,0.3911,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Network \u0026 internet",
+            "bounds": "0,0.3911,1,0.5115",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Connected devices",
+            "bounds": "0,0.5115,1,0.6318",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Apps",
+            "bounds": "0,0.6318,1,0.7521",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Notifications",
+            "bounds": "0,0.7521,1,0.8724",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Battery",
+            "bounds": "0,0.8724,1,0.9344",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 13,
+          "stepsDispatched": 12,
+          "stepsVerified": 12,
+          "policyState": null
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 77,
+          "stepsRemaining": 60
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd:boundary-13"
+      },
+      "decision": {
+        "kind": "noAction",
+        "justification": "No further safe explicit first-level action available; allow Host bounded disposition.",
+        "steps": []
+      },
+      "effectiveDecision": {
+        "kind": "noAction",
+        "justification": "No further safe explicit first-level action available; allow Host bounded disposition.",
+        "steps": []
+      }
+    }
+  ]
+}

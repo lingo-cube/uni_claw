@@ -1,0 +1,248 @@
+{
+  "schemaVersion": "uniclaw.language-findings.v1",
+  "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+  "bindingId": "language-inspection-binding-e6104469f766cac1",
+  "capabilityId": "runtime.language-inspector",
+  "capabilityVersion": "1.0.0",
+  "expectedLanguage": "en",
+  "ignoreRoutes": [
+    "rk1:Internet|src=title|up=1"
+  ],
+  "findings": [
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-31e36b44592e4c0182864042ecaf9bda",
+        "observationCycleId": "settings-cycle-001",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "12 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-be8bae1470604eed9d01a1a8fdd6d2a1",
+        "observationCycleId": "settings-cycle-002",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "15 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-703889f4a9594631967be0c4cbd1c989",
+        "observationCycleId": "settings-cycle-003",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "12 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-559d06a2696a45bc97e8ae1efd76bba2",
+        "observationCycleId": "settings-cycle-004",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "8 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-c347ba949ef943d38fc5a684d9c0dfb8",
+        "observationCycleId": "settings-cycle-005",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "12 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-c036480782d94089b871c6badbd168d5",
+        "observationCycleId": "settings-cycle-006",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "9 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-1abbf8937fc34413a814ddd546bf05a8",
+        "observationCycleId": "settings-cycle-007",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "12 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-4010ad97a61542488a6e961bca80d4ff",
+        "observationCycleId": "settings-cycle-008",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "14 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-bf2dfa6d7ba84756a5a1cba0a78f8ade",
+        "observationCycleId": "settings-cycle-009",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "12 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-f764e219cf1746ddb16a22aa09c8f807",
+        "observationCycleId": "settings-cycle-010",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "13 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-053b4551404a43eb89ca98f1f6bf381b",
+        "observationCycleId": "settings-cycle-011",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "12 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-026863d77f114094b5a83588d9e534d2",
+        "observationCycleId": "settings-cycle-012",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "3 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-e6d8ba0d8c6c488fa192c3c002d41e38",
+        "observationCycleId": "settings-cycle-013",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "12 text item(s) conform to the expected language format \u0027en\u0027"
+    }
+  ],
+  "duplicateCaptures": {}
+}

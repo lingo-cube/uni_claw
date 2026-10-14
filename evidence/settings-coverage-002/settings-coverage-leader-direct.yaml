@@ -1,0 +1,120 @@
+# Settings menu coverage traversal profile (AGT-005).
+configVersion: "1"
+session:
+  taskTitle: 遍历设置菜单覆盖测试
+  workspace: UniClaw_Product_Tasks
+  workspaceReuse: true
+  autoCloseTurn: false
+bounds:
+  maxSteps: 72
+  maxConsultRounds: 90
+  maxScrolls: 18
+  maxConsecutiveFailures: 4
+  maxDirectiveRetries: 8
+coverage:
+  rootPage: true
+  firstLevelMode: all-visible
+  scrollDiscoveredEntries: 1
+  scrollCandidateEntries:
+    - Search settings
+  secondLevelPages: 15
+  backNavigation: true
+  repeatedEntries: 2
+targetPages:
+  - Network & internet
+  - Connected devices
+  - Apps
+  - Notifications
+  - Battery
+  - Storage
+  - Sound & vibration
+  - Display
+  - Wallpaper
+  - Accessibility
+  - Security & privacy
+  - Location
+  - Safety & emergency
+  - Passwords, passkeys & accounts
+  - System
+deepTraversal:
+  enabled: true
+  maxDepth: 1
+  maxEntriesPerPage: 3
+  nestedEntries:
+    - Network & internet > Internet
+    - Network & internet > Wi-Fi
+    - Network & internet > VPN
+    - Connected devices > Pair new device
+    - Connected devices > Connection preferences
+    - Connected devices > Android Auto
+    - Apps > See all 17 apps
+    - Apps > Default apps
+    - Apps > Permission manager
+    - Notifications > App notifications
+    - Notifications > Notification history
+    - Notifications > Conversations
+    - Battery > Battery usage
+    - Battery > Battery Saver
+    - Battery > Battery percentage
+    - Storage > Storage manager
+    - Storage > Free up space
+    - Storage > System
+    - Sound & vibration > Media volume
+    - Sound & vibration > Call volume
+    - Sound & vibration > Alarm volume
+    - Display > Brightness level
+    - Display > Screen timeout
+    - Display > Dark theme
+    - Wallpaper > Change wallpaper
+    - Wallpaper > Wallpaper services
+    - Wallpaper > Screen saver
+    - Accessibility > TalkBack
+    - Accessibility > Select to Speak
+    - Accessibility > Accessibility Menu
+    - Security & privacy > Device unlock
+    - Security & privacy > Privacy
+    - Security & privacy > More security & privacy
+    - Location > Use location
+    - Location > App location permissions
+    - Location > Location services
+    - Safety & emergency > Emergency information
+    - Safety & emergency > Wireless emergency alerts
+    - Safety & emergency > Crisis alerts
+    - Passwords, passkeys & accounts > Password Manager
+    - Passwords, passkeys & accounts > Autofill service
+    - Passwords, passkeys & accounts > Add account
+    - System > Languages
+    - System > Gestures
+    - System > Date & time
+termination:
+  onCoverageComplete: true
+  onMaxSteps: true
+  onMaxScrolls: true
+  onConsecutiveFailures: true
+evidence:
+  persistScreenshots: true
+  persistHierarchies: true
+rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
+scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
+backDescriptor: Navigate up
+# AGT-017：Slow 感知 live 启用（所有者指令）。text 档走会话模型；
+# 有界等待 15s（周期不阻塞超此界）；每 run 预算 6 次；visual 暂不启用。
+slow:
+  enabled: true
+  boundedWaitMs: 15000
+  maxRequestsPerRun: 6
+  visualEnabled: false
+  popupConsecutiveCycles: 2
+actionPolicy:
+  required: true
+  # PRF-005：canonical 副本升格产品声明面（product/AGENTS.md；ADR-0041）。
+  path: product/policy/android-settings-forbidden-actions.json
+
+# CAP-012 D1/D3：语言检查任务启用（英文 UI 判定；Internet 页是 SSID 列表——
+# 任意语言用户串，按所有者裁决设为忽略区）。
+languageInspection:
+  required: true
+  capabilityId: runtime.language-inspector
+  expectedLanguage: en
+  ignoreRoutes:
+    - "rk1:Internet|src=title|up=1"

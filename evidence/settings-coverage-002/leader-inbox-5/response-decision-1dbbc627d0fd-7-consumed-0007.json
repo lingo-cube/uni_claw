@@ -1,0 +1,15 @@
+{
+  "kind": "act",
+  "decisionId": "decision-1dbbc627d0fd-7",
+  "proposal": {
+    "decisionId": "decision-1dbbc627d0fd-7",
+    "steps": [
+      {
+        "targetRole": "ui.element",
+        "targetDescriptor": "Notifications",
+        "effectClass": "tap"
+      }
+    ],
+    "justification": "Enter planned first-level target Notifications"
+  }
+}

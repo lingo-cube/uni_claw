@@ -1,0 +1,287 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-facts.v2",
+  "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/settings-coverage-002/run-20261014-170444-227",
+  "status": "Completed",
+  "reason": "terminal-emitted",
+  "outcome": "Completion",
+  "delivered": 12,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": true,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0.2857142857142857,
+  "stepSuccessRate": 1,
+  "uncovered": [
+    "first-level-all-visible",
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "repeated-entry",
+    "nested-pages"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": null,
+  "diagnostics": {
+    "firstDivergence": null,
+    "terminalJustification": null,
+    "nextFiles": [
+      "facts.json",
+      "consult-bridge.json",
+      "environment-preflight.json",
+      "coverage-report.json",
+      "coverage-steps.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u8FD0\u884C\u5B8C\u6210\uFF1B\u5982\u9700\u6838\u5BF9\u6BCF\u4E00\u6B65\uFF0C\u5148\u770B coverage-steps.json\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 trace.json\u3002"
+  },
+  "languageInspection": {
+    "requested": true,
+    "file": "language-findings.json",
+    "findings": 13,
+    "persistenceHealthy": true,
+    "diagnostics": []
+  },
+  "consultMode": "advisory-direct",
+  "actionPolicy": {
+    "policyRef": "product/android-settings/forbidden-actions",
+    "digest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/product/policy/android-settings-forbidden-actions.json"
+  },
+  "evidenceDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/settings-coverage-002/run-20261014-170444-227/evidence",
+  "evidenceFiles": 26,
+  "journalBytes": 18503,
+  "consults": [
+    {
+      "decisionId": "decision-1dbbc627d0fd-1",
+      "phase": "InitialPlanning",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Enter planned first-level target Network \u0026 internet",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-2",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Return to parent/root after inspected page",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-3",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Enter planned first-level target Connected devices",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-4",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Return to parent/root after inspected page",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-5",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Enter planned first-level target Apps",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-6",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Return to parent/root after inspected page",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-7",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Enter planned first-level target Notifications",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-8",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Return to parent/root after inspected page",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-9",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Enter planned first-level target Battery",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-10",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Return to parent/root after inspected page",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-11",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Enter explicit verified scroll candidate Search settings",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-12",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Return to parent/root after inspected page",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-1dbbc627d0fd-13",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "noAction",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "No further safe explicit first-level action available; allow Host bounded disposition.",
+      "policyDigest": null,
+      "guardVerdict": null
+    }
+  ],
+  "steps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-5f0202fc95f1-3-1"
+    },
+    {
+      "decision": 2,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-0f569615a74f-1-2"
+    },
+    {
+      "decision": 3,
+      "step": 0,
+      "receipt": "receipt-bind-intent-3-occ-6006956e0daa-4-3"
+    },
+    {
+      "decision": 4,
+      "step": 0,
+      "receipt": "receipt-bind-intent-4-occ-ef78e708fc48-1-4"
+    },
+    {
+      "decision": 5,
+      "step": 0,
+      "receipt": "receipt-bind-intent-5-occ-ba584459f806-5-5"
+    },
+    {
+      "decision": 6,
+      "step": 0,
+      "receipt": "receipt-bind-intent-6-occ-e5f2b1da22d7-1-6"
+    },
+    {
+      "decision": 7,
+      "step": 0,
+      "receipt": "receipt-bind-intent-7-occ-bc7a474a62e3-6-7"
+    },
+    {
+      "decision": 8,
+      "step": 0,
+      "receipt": "receipt-bind-intent-8-occ-c8e2872776e9-1-8"
+    },
+    {
+      "decision": 9,
+      "step": 0,
+      "receipt": "receipt-bind-intent-9-occ-ff108ad176dc-7-9"
+    },
+    {
+      "decision": 10,
+      "step": 0,
+      "receipt": "receipt-bind-intent-10-occ-6dff5c18eb11-1-10"
+    },
+    {
+      "decision": 11,
+      "step": 0,
+      "receipt": "receipt-bind-intent-11-occ-c64536c400af-1-11"
+    },
+    {
+      "decision": 12,
+      "step": 0,
+      "receipt": "receipt-bind-intent-12-occ-189b7df1c506-0-12"
+    }
+  ]
+}

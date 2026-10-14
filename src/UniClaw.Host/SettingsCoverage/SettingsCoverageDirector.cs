@@ -60,6 +60,36 @@ public sealed class SettingsCoverageDirector
 
     public string? TerminalJustification => _terminalJustification;
 
+    /// <summary>
+    /// 直连认知测试的 advisory 留痕：不生成 coverage directive、不校验计划、
+    /// 不代替 Kernel 作任何授权。仅把模型实际返回的 Act/Plan ActItem 交给
+    /// 既有 receipt↔step 归属账本，避免把 direct 模式误写成 director 证据。
+    /// </summary>
+    public AgentDecision? RecordAdvisoryDecision(AgentDecisionContext context, AgentDecision? decision)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        _ledger.RecordConsultRound(context.DecisionId);
+        SettingsActionGuardResult? guard = null;
+        if (_config.ActionPolicy is { } actionPolicy)
+            decision = SettingsActionGuard.GuardDecision(decision, context, actionPolicy, out guard);
+        foreach (var step in AdvisorySteps(decision))
+            _adoptedSteps.Add((context.DecisionId, null, step));
+        _log.Add(new ConsultRecord(
+            context.DecisionId,
+            context.Phase.ToString(),
+            Directive: null,
+            DirectiveKind: "advisory-direct",
+            DecisionKind: DecisionKind(decision),
+            DeviationReason: decision is null
+                ? guard is null ? "no-response" : $"policy-guard:{guard.SemanticAction}:{guard.Reason}"
+                : null,
+            Attempts: 1,
+            Justification: DecisionJustification(decision),
+            PolicyDigest: guard?.PolicyDigest,
+            GuardVerdict: guard?.Verdict.ToString().ToUpperInvariant()));
+        return decision;
+    }
+
     /// <summary>路由回退身份（DeriveRouteKey 无标题时的值）——
     /// 语义 = 当前页面身份未知（AGT-006）。</summary>
     internal const string UnknownRouteIdentity = "android.settings";
@@ -299,7 +329,7 @@ public sealed class SettingsCoverageDirector
     private string? ValidateStepAgainstDirective(AgentActionStep step, string directive, string kind) =>
         kind switch
         {
-            "enter" or "re-enter" => IsTap(step) && step.TargetDescriptor == TargetOf(directive)
+            "enter" or "re-enter" or "nested-enter" => IsTap(step) && step.TargetDescriptor == TargetOf(directive)
                 ? null
                 : $"directive-target-mismatch:{step.TargetDescriptor ?? "<null>"}",
             "scroll" => step.EffectClass == "swipe-up"
@@ -317,6 +347,36 @@ public sealed class SettingsCoverageDirector
 
     private static bool IsTap(AgentActionStep step) =>
         step.EffectClass is "tap" or "click";
+
+    private static IEnumerable<AgentActionStep> AdvisorySteps(AgentDecision? decision) =>
+        decision switch
+        {
+            AgentDecision.Act act => act.Proposal.Steps,
+            AgentDecision.Plan plan => plan.Proposal.Items
+                .OfType<PlanItem.ActItem>()
+                .Select(item => new AgentActionStep(
+                    item.TargetRole, item.TargetDescriptor, item.EffectClass, item.DesiredState)),
+            _ => Array.Empty<AgentActionStep>(),
+        };
+
+    private static string? DecisionKind(AgentDecision? decision) => decision switch
+    {
+        AgentDecision.Act => "act",
+        AgentDecision.Plan => "plan",
+        AgentDecision.NoAction => "noAction",
+        AgentDecision.Defer => "defer",
+        AgentDecision.Policy => "policy",
+        null => null,
+        _ => "unknown",
+    };
+
+    private static string? DecisionJustification(AgentDecision? decision) => decision switch
+    {
+        AgentDecision.Act act => act.Proposal.Justification,
+        AgentDecision.Plan plan => plan.Proposal.Justification,
+        AgentDecision.NoAction noAction => noAction.Proposal.Justification,
+        _ => null,
+    };
 
     private static string? TargetOf(string directive)
     {

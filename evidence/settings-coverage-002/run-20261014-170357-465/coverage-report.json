@@ -1,0 +1,63 @@
+{
+  "status": "BoundedStop",
+  "items": [
+    {
+      "requirement": "root-page",
+      "detail": "root route observed",
+      "covered": true,
+      "evidence": "android.settings|rk1:Settings|src=homepage_title|up=0"
+    },
+    {
+      "requirement": "first-level-all-visible",
+      "detail": "entered 1/15",
+      "covered": false,
+      "evidence": "entered:Network \u0026 internet-\u003Eandroid.settings|rk1:Internet|src=title|up=1"
+    },
+    {
+      "requirement": "scroll-discovered-entry",
+      "detail": "entered 0/1 scroll-discovered",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "second-level-pages",
+      "detail": "distinct second-level routes 1/15",
+      "covered": false,
+      "evidence": "android.settings|rk1:Internet|src=title|up=1"
+    },
+    {
+      "requirement": "back-navigation",
+      "detail": "back verified 0",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "repeated-entry",
+      "detail": "satisfied 0/2",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "nested-pages",
+      "detail": "entered 0/45 explicit nested entries",
+      "covered": false,
+      "evidence": null
+    }
+  ],
+  "coverageRate": 0.14285714285714285,
+  "stepSuccessRate": 1,
+  "uncoveredItems": [
+    "first-level-all-visible",
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "back-navigation",
+    "repeated-entry",
+    "nested-pages"
+  ],
+  "firstDivergence": null,
+  "stepsExecuted": 2,
+  "stepsVerified": 2,
+  "scrollsUsed": 0,
+  "scrollAttempts": 0,
+  "consultRounds": 3
+}

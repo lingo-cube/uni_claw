@@ -1,0 +1,15 @@
+{
+  "kind": "act",
+  "decisionId": "decision-1dbbc627d0fd-11",
+  "proposal": {
+    "decisionId": "decision-1dbbc627d0fd-11",
+    "steps": [
+      {
+        "targetRole": "ui.element",
+        "targetDescriptor": "Search settings",
+        "effectClass": "tap"
+      }
+    ],
+    "justification": "Enter explicit verified scroll candidate Search settings"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "kind": "act",
+  "decisionId": "decision-1dbbc627d0fd-9",
+  "proposal": {
+    "decisionId": "decision-1dbbc627d0fd-9",
+    "steps": [
+      {
+        "targetRole": "ui.element",
+        "targetDescriptor": "Battery",
+        "effectClass": "tap"
+      }
+    ],
+    "justification": "Enter planned first-level target Battery"
+  }
+}

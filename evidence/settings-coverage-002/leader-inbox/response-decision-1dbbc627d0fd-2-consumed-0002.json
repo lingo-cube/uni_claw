@@ -1,0 +1,14 @@
+{
+  "kind": "act",
+  "decisionId": "decision-1dbbc627d0fd-2",
+  "proposal": {
+    "decisionId": "decision-1dbbc627d0fd-2",
+    "steps": [
+      {
+        "targetRole": "ui.element",
+        "targetDescriptor": "Internet",
+        "effectClass": "tap"
+      }
+    ]
+  }
+}

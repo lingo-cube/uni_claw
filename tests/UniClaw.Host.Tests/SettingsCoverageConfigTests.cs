@@ -251,6 +251,34 @@ public sealed class SettingsCoverageConfigTests
     }
 
     [Fact]
+    public void Load_DeepTraversal_IsOptionalAndExplicit()
+    {
+        var path = WriteConfig(MinimalConfig().Replace(
+            "backDescriptor: Navigate up",
+            "backDescriptor: Navigate up\ndeepTraversal:\n  enabled: true\n  maxDepth: 1\n  maxEntriesPerPage: 1\n  nestedEntries:\n    - Network & internet > Wi-Fi"));
+        try
+        {
+            var loaded = SettingsCoverageConfig.Load(path);
+            Assert.True(loaded.DeepTraversalSettings.Enabled);
+            Assert.Equal(1, loaded.DeepTraversalSettings.MaxDepth);
+            Assert.Equal(["Network & internet > Wi-Fi"], loaded.DeepTraversalSettings.Entries);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Load_DeepTraversalEnabledWithoutAllowlist_FailsClosed()
+    {
+        AssertInvalid(MinimalConfig().Replace(
+            "backDescriptor: Navigate up",
+            "backDescriptor: Navigate up\ndeepTraversal:\n  enabled: true"),
+            "config-missing:deepTraversal.nestedEntries");
+    }
+
+    [Fact]
     public void Load_MissingFile_ThrowsFileNotFoundException()
     {
         Assert.Throws<FileNotFoundException>(() =>

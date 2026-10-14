@@ -49,7 +49,10 @@ public sealed class SettingsCoverageRunner
         LanguageInspectionTaskRequest? LanguageInspection = null,
         LanguageInspectionSelection? LanguageInspectionSelection = null,
         Func<LanguageInspectionSelection?>? LanguageInspectionSelectionProvider = null,
-        UniClaw.Kernel.Capability.CapabilityRegistry? RuntimeIntegrationCapabilities = null);
+        UniClaw.Kernel.Capability.CapabilityRegistry? RuntimeIntegrationCapabilities = null,
+        // 认知测试缝：false 时直接采用 UnderlyingConsult 的建议，仍经同一
+        // Kernel grounding/assurance/effect 链；默认 true 保持 coverage director。
+        bool UseCoverageDirector = true);
 
     public sealed record StepArtifact(
         int Index,
@@ -81,6 +84,17 @@ public sealed class SettingsCoverageRunner
         IReadOnlyList<SettingsCoverageDirector.ConsultRecord> Consults,
         IReadOnlyList<string> DshDiagnostics,
         string FactsDigest);
+
+    private sealed record ConsultBridgeRecord(
+        string Mode,
+        AgentDecisionContext Context,
+        ConsultDecisionArtifact? Decision,
+        ConsultDecisionArtifact? EffectiveDecision);
+
+    private sealed record ConsultDecisionArtifact(
+        string Kind,
+        string? Justification,
+        IReadOnlyList<AgentActionStep> Steps);
 
     public static RunResult Run(string runRoot, Options options)
     {
@@ -133,6 +147,7 @@ public sealed class SettingsCoverageRunner
             options.DshSessionIdAccessor);
         var director = new SettingsCoverageDirector(
             options.UnderlyingConsult, ledger, config, journal);
+        var consultBridge = new List<ConsultBridgeRecord>();
         try
         {
             var world = new WorldModel(
@@ -209,7 +224,21 @@ public sealed class SettingsCoverageRunner
                             };
                             capabilityProfilesInjected = true;
                         }
-                        var decision = director.Consult(projected);
+                        var rawDecision = options.UseCoverageDirector
+                            ? director.Consult(projected)
+                            : options.UnderlyingConsult(projected);
+                        var decision = rawDecision;
+                        if (!options.UseCoverageDirector)
+                        {
+                            journal.Drain(director.AdoptedSteps);
+                            interleave.SyncNow();
+                            decision = director.RecordAdvisoryDecision(projected, decision);
+                        }
+                        consultBridge.Add(new ConsultBridgeRecord(
+                            options.UseCoverageDirector ? "coverage-director" : "advisory-direct",
+                            projected,
+                            ToConsultArtifact(rawDecision),
+                            ToConsultArtifact(decision)));
                         // Bind task initialization before the returned plan or
                         // instruction payload reaches Kernel execution.
                         TryBindLanguageInspection();
@@ -279,6 +308,12 @@ public sealed class SettingsCoverageRunner
             var report = ledger.Report(config);
             WriteText(runDir, "coverage-steps.json", TryJson(steps));
             WriteText(runDir, "coverage-report.json", TryJson(report));
+            WriteText(runDir, "consult-bridge.json", TryJson(new
+            {
+                schemaVersion = "uniclaw.settings-coverage-consult-bridge.v1",
+                mode = options.UseCoverageDirector ? "coverage-director" : "advisory-direct",
+                exchanges = consultBridge,
+            }));
 
             var consultSummaries = director.ConsultLog.Select(c => new
             {
@@ -313,7 +348,7 @@ public sealed class SettingsCoverageRunner
                 {
                     firstDivergence = report.FirstDivergence,
                     terminalJustification = director.TerminalJustification,
-                    nextFiles = new[] { "facts.json", "environment-preflight.json", "coverage-report.json", "coverage-steps.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
+                    nextFiles = new[] { "facts.json", "consult-bridge.json", "environment-preflight.json", "coverage-report.json", "coverage-steps.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
                     guidance = report.FirstDivergence is null && drive.Status == RunDriveStatus.Completed
                         ? "运行完成；如需核对每一步，先看 coverage-steps.json，再用 DecisionId 对照 trace.json。"
                         : "先看 firstDivergence/reason，再用 DecisionId 对照 coverage-steps.json、trace.json 和 exec.journal。"
@@ -326,6 +361,7 @@ public sealed class SettingsCoverageRunner
                     persistenceHealthy = languageInspection?.PersistenceHealthy ?? true,
                     diagnostics = languageInspection?.PersistenceDiagnostics ?? Array.Empty<string>(),
                 },
+                consultMode = options.UseCoverageDirector ? "coverage-director" : "advisory-direct",
                 actionPolicy = config.ActionPolicy is { } policy
                     ? new { policy.PolicyRef, policy.Digest, policy.SourcePath }
                     : null,
@@ -354,6 +390,12 @@ public sealed class SettingsCoverageRunner
         {
             try
             {
+                WriteText(runDir, "consult-bridge.json", TryJson(new
+                {
+                    schemaVersion = "uniclaw.settings-coverage-consult-bridge.v1",
+                    mode = options.UseCoverageDirector ? "coverage-director" : "advisory-direct",
+                    exchanges = consultBridge,
+                }));
                 WriteText(runDir, "failure.json", JsonSerializer.Serialize(new
                 {
                     schemaVersion = "uniclaw.settings-coverage-failure.v1",
@@ -635,4 +677,25 @@ public sealed class SettingsCoverageRunner
 
     private static void WriteText(string dir, string name, string content) =>
         File.WriteAllText(Path.Combine(dir, name), content);
+
+    private static ConsultDecisionArtifact? ToConsultArtifact(AgentDecision? decision) =>
+        decision switch
+        {
+            null => null,
+            AgentDecision.Act act => new ConsultDecisionArtifact(
+                "act", act.Proposal.Justification, act.Proposal.Steps),
+            AgentDecision.Plan plan => new ConsultDecisionArtifact(
+                "plan", plan.Proposal.Justification, plan.Proposal.Items
+                    .OfType<PlanItem.ActItem>()
+                    .Select(item => new AgentActionStep(item.TargetRole, item.TargetDescriptor,
+                        item.EffectClass, item.DesiredState))
+                    .ToArray()),
+            AgentDecision.NoAction noAction => new ConsultDecisionArtifact(
+                "noAction", noAction.Proposal.Justification, Array.Empty<AgentActionStep>()),
+            AgentDecision.Defer => new ConsultDecisionArtifact(
+                "defer", null, Array.Empty<AgentActionStep>()),
+            AgentDecision.Policy => new ConsultDecisionArtifact(
+                "policy", null, Array.Empty<AgentActionStep>()),
+            _ => new ConsultDecisionArtifact("unknown", null, Array.Empty<AgentActionStep>()),
+        };
 }

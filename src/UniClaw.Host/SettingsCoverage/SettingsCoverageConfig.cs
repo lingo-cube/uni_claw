@@ -6,9 +6,30 @@ public sealed record CoverageSessionConfig(string TaskTitle, string Workspace, b
 
 public sealed record CoverageBounds(int MaxSteps, int MaxConsultRounds, int MaxScrolls, int MaxConsecutiveFailures, int MaxDirectiveRetries);
 
-public sealed record CoverageRequirements(bool RootPage, string FirstLevelMode, int ScrollDiscoveredEntries, int SecondLevelPages, bool BackNavigation, int RepeatedEntries);
+public sealed record CoverageRequirements(
+    bool RootPage,
+    string FirstLevelMode,
+    int ScrollDiscoveredEntries,
+    int SecondLevelPages,
+    bool BackNavigation,
+    int RepeatedEntries,
+    IReadOnlyList<string>? ScrollCandidateEntries = null)
+{
+    public IReadOnlyList<string> ExplicitScrollCandidates => ScrollCandidateEntries ?? Array.Empty<string>();
+}
 
 public sealed record CoverageTermination(bool OnCoverageComplete, bool OnMaxSteps, bool OnMaxScrolls, bool OnConsecutiveFailures);
+
+/// <summary>可选的二级页深度遍历。只有显式列入 NestedEntries 的条目才可成为目标；
+/// 缺段或 Enabled=false 时保持旧的一层遍历行为。</summary>
+public sealed record DeepTraversalConfig(
+    bool Enabled = false,
+    int MaxDepth = 1,
+    int MaxEntriesPerPage = 0,
+    IReadOnlyList<string>? NestedEntries = null)
+{
+    public IReadOnlyList<string> Entries => NestedEntries ?? Array.Empty<string>();
+}
 
 /// <summary>AGT-008：证据工件持久化开关（缺省 true——追溯性默认留存）。</summary>
 public sealed record CoverageEvidenceOptions(bool PersistScreenshots = true, bool PersistHierarchies = true);
@@ -66,7 +87,8 @@ public sealed record SettingsCoverageConfig(
     SlowTriggerConfig? Slow = null,
     SettingsActionPolicy? ActionPolicy = null,
     bool ActionPolicyRequired = false,
-    LanguageInspectionTaskRequest? LanguageInspection = null)
+    LanguageInspectionTaskRequest? LanguageInspection = null,
+    DeepTraversalConfig? DeepTraversal = null)
 {
     /// <summary>证据持久化（缺省全开；旧配置无该段时保持缺省）。</summary>
     public CoverageEvidenceOptions EvidenceSettings => Evidence ?? new CoverageEvidenceOptions();
@@ -79,6 +101,8 @@ public sealed record SettingsCoverageConfig(
 
     /// <summary>CAP-013：可选语言检查任务要求；缺段 = 本任务不请求该能力。</summary>
     public LanguageInspectionTaskRequest? LanguageInspectionRequest => LanguageInspection;
+
+    public DeepTraversalConfig DeepTraversalSettings => DeepTraversal ?? new DeepTraversalConfig();
 
     public const string DefaultConfigRelativePath = "product/tasks/settings-coverage.yaml";
     public const string ConfigPathEnvironmentVariable = "UNICLAW_SETTINGS_COVERAGE_CONFIG";
@@ -131,6 +155,7 @@ public sealed record SettingsCoverageConfig(
             ActionPolicy: ReadActionPolicy(document, path, out var actionPolicyRequired),
             ActionPolicyRequired: actionPolicyRequired,
             LanguageInspection: ReadLanguageInspectionOptions(document, path),
+            DeepTraversal: ReadDeepTraversalOptions(document, path),
             ScrollContainerDescriptor: RequireNamed(document, ["scrollContainerDescriptor"], path),
             BackDescriptor: RequireNamed(document, ["backDescriptor"], path));
     }
@@ -209,7 +234,11 @@ public sealed record SettingsCoverageConfig(
         var secondLevelPages = RequireInt(document, ["coverage", "secondLevelPages"], path, minimum: 1);
         var backNavigation = RequireBool(document, ["coverage", "backNavigation"], path);
         var repeatedEntries = RequireInt(document, ["coverage", "repeatedEntries"], path, minimum: 0);
-        return new CoverageRequirements(rootPage, firstLevelMode, scrollDiscoveredEntries, secondLevelPages, backNavigation, repeatedEntries);
+        var candidates = document.OptionalList(["coverage", "scrollCandidateEntries"]);
+        if (candidates is { } values && (values.Any(string.IsNullOrWhiteSpace)
+            || values.Distinct(StringComparer.Ordinal).Count() != values.Count))
+            throw new InvalidOperationException($"config-invalid:coverage.scrollCandidateEntries [{path}]");
+        return new CoverageRequirements(rootPage, firstLevelMode, scrollDiscoveredEntries, secondLevelPages, backNavigation, repeatedEntries, candidates);
     }
 
     private static IReadOnlyList<string> ValidateTargetPages(YamlDocument document, string path)
@@ -327,6 +356,42 @@ public sealed record SettingsCoverageConfig(
             ExpectedLanguage: expectedLanguage,
             IgnoreRoutes: ignoreRoutes,
             FixedCapabilityId: capabilityId);
+    }
+
+    private static DeepTraversalConfig? ReadDeepTraversalOptions(YamlDocument document, string path)
+    {
+        var enabled = document.OptionalBool(["deepTraversal", "enabled"]);
+        var maxDepth = document.OptionalInt(["deepTraversal", "maxDepth"], minimum: 1);
+        var maxEntries = document.OptionalInt(["deepTraversal", "maxEntriesPerPage"], minimum: 0);
+        var entries = document.OptionalList(["deepTraversal", "nestedEntries"]);
+        if (enabled is null && maxDepth is null && maxEntries is null && entries is null)
+            return null;
+        if (entries is { } values && values.Any(string.IsNullOrWhiteSpace))
+            throw new InvalidOperationException($"config-invalid:deepTraversal.nestedEntries [{path}]");
+        if (entries is { } syntaxValues && syntaxValues.Any(value => !HasNestedEntrySyntax(value)))
+            throw new InvalidOperationException($"config-invalid:deepTraversal.nestedEntries:expected-parent>child [{path}]");
+        if (entries is { } duplicateValues && duplicateValues.Distinct(StringComparer.Ordinal).Count() != duplicateValues.Count)
+            throw new InvalidOperationException($"config-invalid:deepTraversal.nestedEntries:duplicate [{path}]");
+        if (enabled == true && (entries is null || entries.Count == 0))
+            throw new InvalidOperationException($"config-missing:deepTraversal.nestedEntries [{path}]");
+        if (maxDepth is > 1)
+            throw new InvalidOperationException($"config-invalid:deepTraversal.maxDepth:{maxDepth} (当前仅支持一层显式 nested entry) [{path}]");
+        return new DeepTraversalConfig(
+            Enabled: enabled ?? false,
+            MaxDepth: maxDepth ?? 1,
+            MaxEntriesPerPage: maxEntries ?? 0,
+            NestedEntries: entries);
+    }
+
+    private static bool HasNestedEntrySyntax(string value)
+    {
+        var separator = value.IndexOf('>');
+        if (separator < 0)
+            separator = value.IndexOf("::", StringComparison.Ordinal);
+        var width = value.Contains("::", StringComparison.Ordinal) ? 2 : 1;
+        return separator > 0 && separator + width < value.Length
+            && !string.IsNullOrWhiteSpace(value[..separator])
+            && !string.IsNullOrWhiteSpace(value[(separator + width)..]);
     }
 
     private static string RequireNamed(YamlDocument document, string[] pathSegments, string path)

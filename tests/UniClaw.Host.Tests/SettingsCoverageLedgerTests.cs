@@ -204,6 +204,77 @@ public sealed class SettingsCoverageLedgerTests
     }
 
     [Fact]
+    public void ExplicitNestedEntry_IsDrivenAndUnknownEntryIsIgnored()
+    {
+        var config = ConfigWith("""
+            configVersion: "1"
+            session:
+              taskTitle: nested
+              workspace: UniClaw_Product_Tasks
+              workspaceReuse: true
+              autoCloseTurn: false
+            bounds:
+              maxSteps: 24
+              maxConsultRounds: 24
+              maxScrolls: 2
+              maxConsecutiveFailures: 3
+              maxDirectiveRetries: 1
+            coverage:
+              rootPage: true
+              firstLevelMode: all-visible
+              scrollDiscoveredEntries: 1
+              secondLevelPages: 1
+              backNavigation: true
+              repeatedEntries: 0
+            targetPages:
+              - Network & internet
+            deepTraversal:
+              enabled: true
+              maxDepth: 1
+              maxEntriesPerPage: 1
+              nestedEntries:
+                - Network & internet > Wi-Fi
+            termination:
+              onCoverageComplete: true
+              onMaxSteps: true
+              onMaxScrolls: true
+              onConsecutiveFailures: true
+            rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
+            scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
+            backDescriptor: Navigate up
+            """);
+        var ledger = new SettingsCoverageLedger();
+        Observe(ledger, RootRoute, TargetPages[0]);
+        EnterStep(ledger, TargetPages[0], "android.settings|rk1:Network & internet|src=title|up=1");
+        Observe(ledger, "android.settings|rk1:Network & internet|src=title|up=1", "Wi-Fi", "Unknown control");
+
+        var pending = ledger.Snapshot(config);
+        Assert.Equal("nested-enter", pending.NextDirectiveKind);
+        Assert.Contains("<Wi-Fi>", pending.NextDirective);
+        Assert.DoesNotContain("Unknown control", pending.NextDirective);
+
+        ledger.RecordStep(new CoverageStepRecord(
+            Index: 2,
+            DecisionId: "nested-entry",
+            DshSessionId: "dsh",
+            TargetRole: "ui.element",
+            TargetDescriptor: "Wi-Fi",
+            EffectClass: "tap",
+            DesiredState: null,
+            PreActionTargetUnique: true,
+            ReceiptId: "nested-receipt",
+            ReceiptOutcome: "ok",
+            ReceiptCommand: "tap",
+            RouteBefore: "android.settings|rk1:Network & internet|src=title|up=1",
+            RouteAfter: "android.settings|rk1:Wi-Fi|src=title|up=1",
+            PostCaptureId: "nested-capture",
+            Verified: true,
+            FailureReason: null,
+            Directive: pending.NextDirective));
+        Assert.True(Item(ledger, config, "nested-pages").Covered);
+    }
+
+    [Fact]
     public void ScrollDiscoveredEntry_RequiresVerifiedScrollBeforeObservation()
     {
         var ledger = new SettingsCoverageLedger();

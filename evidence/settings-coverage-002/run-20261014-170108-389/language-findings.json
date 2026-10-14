@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "uniclaw.language-findings.v1",
+  "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+  "bindingId": "language-inspection-binding-e6104469f766cac1",
+  "capabilityId": "runtime.language-inspector",
+  "capabilityVersion": "1.0.0",
+  "expectedLanguage": "en",
+  "ignoreRoutes": [
+    "rk1:Internet|src=title|up=1"
+  ],
+  "findings": [
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-7dd9632cfe484313911c9ac55b68f6b2",
+        "observationCycleId": "settings-cycle-001",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "12 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-4091813c4e634a6083a78a28acfda1c8",
+        "observationCycleId": "settings-cycle-002",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "15 text item(s) conform to the expected language format \u0027en\u0027"
+    },
+    {
+      "findingId": "language-inspection-pass",
+      "correlation": {
+        "runId": "run-21f1102bae600a9bdbdd5ada624c591170497ec2bbfe20ef341c1dbbc627d0fd",
+        "parentEventId": null,
+        "domainCorrelation": null,
+        "operationId": null,
+        "receiptId": null,
+        "captureId": "capture-72c5c97c2a474382907d2ddc77ffdbc2",
+        "observationCycleId": "settings-cycle-003",
+        "hasExplicitAssociation": true
+      },
+      "ruleVersion": "1.0",
+      "sourceOwner": "runtime.language-inspector",
+      "disposition": 0,
+      "status": 0,
+      "diagnostic": "13 text item(s) conform to the expected language format \u0027en\u0027"
+    }
+  ],
+  "duplicateCaptures": {}
+}

@@ -1,0 +1,14 @@
+{
+  "kind": "act",
+  "decisionId": "decision-1dbbc627d0fd-3",
+  "proposal": {
+    "decisionId": "decision-1dbbc627d0fd-3",
+    "steps": [
+      {
+        "targetRole": "ui.element",
+        "targetDescriptor": "Wi-Fi",
+        "effectClass": "tap"
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "kind": "act",
+  "decisionId": "decision-1dbbc627d0fd-8",
+  "proposal": {
+    "decisionId": "decision-1dbbc627d0fd-8",
+    "steps": [
+      {
+        "targetRole": "ui.element",
+        "targetDescriptor": "Navigate up",
+        "effectClass": "tap"
+      }
+    ],
+    "justification": "Return to parent/root after inspected page"
+  }
+}

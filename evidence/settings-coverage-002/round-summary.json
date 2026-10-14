@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-round-summary.v1",
+  "date": "2026-10-15",
+  "rounds": [
+    {"id":"R1","runDir":"run-20261014-162142-145","mode":"coverage-director","status":"BoundedStop","steps":35,"verified":35,"coverageRate":0.5,"note":"16/16 first-level; scroll candidate, repeat, and deeper second-level incomplete"},
+    {"id":"R2","runDir":"run-20261014-163351-859","mode":"coverage-director","status":"operator-stopped","journalFrames":282,"prepareFrames":94,"note":"deep nested plan produced evidence but was stopped before finalization; no pass claim"},
+    {"id":"R3","runDir":"run-20261014-165815-270","mode":"advisory-direct","status":"AgentDecisionFailed","steps":2,"verified":2,"note":"decision bridge no-response boundary"},
+    {"id":"R4","runDir":"run-20261014-170108-389","mode":"advisory-direct","status":"AgentDecisionFailed","steps":2,"verified":2,"note":"Host action policy rejected untyped navigation in a page containing a switch"},
+    {"id":"R5","runDir":"run-20261014-170444-227","mode":"advisory-direct","status":"Completed","steps":12,"verified":12,"coverageRate":0.2857142857142857,"note":"Kernel Completion with CoverageReport BoundedStop; safe first-level fallback"}
+  ],
+  "authority": {"leader": "advisory decision only", "host": "policy/plan adapter", "kernel": "lifecycle/grounding/assurance/effect/verification/terminal authority"},
+  "verdict": "environment characterization complete; full Settings tree not proven"
+}
