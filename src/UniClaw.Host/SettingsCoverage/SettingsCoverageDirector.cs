@@ -167,6 +167,34 @@ public sealed class SettingsCoverageDirector
                 context.DecisionId, context.Phase.ToString(),
                 $"Observe again: current page identity is unknown ('{UnknownRouteIdentity}').",
                 "defer-unknown-page", "defer", null, 1, null));
+            var observeContext = context with
+            {
+                Objective = context.Objective
+                    + "\n\nCOVERAGE DIRECTIVE (authoritative for this turn): "
+                    + "Observe again: current page identity is unknown."
+                    + "\nUNKNOWN ROUTE (authoritative safety boundary): the current Settings page "
+                    + "has identity-only evidence. Do not propose Act, Plan, Policy, or any Effect. "
+                    + "Return only a Defer decision for one bounded re-observation."
+            };
+            var agentDecision = _underlying(observeContext);
+            var sameDecision = string.Equals(
+                DecisionIdOf(agentDecision),
+                context.DecisionId,
+                StringComparison.Ordinal);
+            if (agentDecision is AgentDecision.Defer && sameDecision)
+                return agentDecision;
+
+            // An agent response cannot authorize an action while route identity
+            // is unknown. Preserve the fail-closed Defer even when the agent
+            // times out, returns null, or proposes Act/Plan/Policy.
+            var reason = agentDecision is null
+                ? "unknown-route-agent-no-response"
+                : "unknown-route-agent-response-rejected";
+            _log[^1] = _log[^1] with
+            {
+                DecisionKind = DecisionKind(agentDecision),
+                DeviationReason = reason,
+            };
             return new AgentDecision.Defer(context.DecisionId,
                 new ObserveSpec(Subject: null, MaxRounds: 2));
         }
@@ -372,6 +400,17 @@ public sealed class SettingsCoverageDirector
         AgentDecision.Policy => "policy",
         null => null,
         _ => "unknown",
+    };
+
+    private static string? DecisionIdOf(AgentDecision? decision) => decision switch
+    {
+        AgentDecision.Act act => act.Proposal.DecisionId,
+        AgentDecision.Plan plan => plan.DecisionId,
+        AgentDecision.NoAction noAction => noAction.Proposal.DecisionId,
+        AgentDecision.Defer defer => defer.DecisionId,
+        AgentDecision.Policy policy => policy.DecisionId,
+        null => null,
+        _ => null,
     };
 
     private static string? DecisionJustification(AgentDecision? decision) => decision switch

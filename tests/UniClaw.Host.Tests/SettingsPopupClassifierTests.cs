@@ -89,6 +89,18 @@ public sealed class SettingsPopupClassifierTests
     }
 
     [Fact]
+    public void SettingsNamespacedPopupIds_ClassifyPresent()
+    {
+        const string xml = """
+            <?xml version='1.0'?><hierarchy><node resource-id="com.android.settings:id/action_bar_root" class="FrameLayout" package="com.android.settings">
+            <node resource-id="com.android.settings:id/alertTitle" class="TextView" package="com.android.settings"/>
+            <node resource-id="com.android.settings:id/buttonPanel" class="LinearLayout" package="com.android.settings"/>
+            </node></hierarchy>
+            """;
+        Assert.Equal("present", SettingsTraversalLiveFeed.DerivePopupState(xml, HostPackage));
+    }
+
+    [Fact]
     public void PopupProposal_EntersCycleBatch_WithProvenanceShape()
     {
         var now = DateTimeOffset.Parse("2026-10-02T09:00:00Z");

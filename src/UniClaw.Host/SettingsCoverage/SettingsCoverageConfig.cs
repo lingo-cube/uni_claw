@@ -75,6 +75,11 @@ public sealed record PopupClearanceConfig(
     public static readonly string[] DefaultPopupResourceIds =
     {
         "android:id/alertTitle", "android:id/parentPanel", "android:id/buttonPanel",
+        // Android Settings dialogs commonly namespace framework panel IDs with
+        // com.android.settings even when the dialog is owned by Settings.
+        "com.android.settings:id/alertTitle",
+        "com.android.settings:id/parentPanel",
+        "com.android.settings:id/buttonPanel",
     };
 
     /// <summary>清障目标缺省优先序。</summary>

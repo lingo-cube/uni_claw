@@ -198,12 +198,36 @@ public sealed class SettingsCoverageDirectorPlanTests
         var ledger = new SettingsCoverageLedger();
         ledger.RecordObservation(SettingsCoverageDirector.UnknownRouteIdentity,
             Array.Empty<(string, string?)>());
+        var consultations = 0;
+        var director = new SettingsCoverageDirector(
+            context =>
+            {
+                consultations++;
+                return new AgentDecision.Defer(context.DecisionId,
+                    new ObserveSpec(Subject: null, MaxRounds: 2));
+            }, ledger, Config());
+
+        var decision = director.Consult(Context());
+
+        Assert.IsType<AgentDecision.Defer>(decision);
+        Assert.Equal(1, consultations);
+        Assert.Equal("defer-unknown-page", Assert.Single(director.ConsultLog).DirectiveKind);
+    }
+
+    [Fact]
+    public void UnknownPage_RejectsAgentActWithoutEffect()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(SettingsCoverageDirector.UnknownRouteIdentity,
+            Array.Empty<(string, string?)>());
         var director = new SettingsCoverageDirector(
             _ => Act(Entry), ledger, Config());
 
         var decision = director.Consult(Context());
 
         Assert.IsType<AgentDecision.Defer>(decision);
-        Assert.Equal("defer-unknown-page", Assert.Single(director.ConsultLog).DirectiveKind);
+        Assert.Equal("act", director.ConsultLog.Single().DecisionKind);
+        Assert.Equal("unknown-route-agent-response-rejected",
+            director.ConsultLog.Single().DeviationReason);
     }
 }

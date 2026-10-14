@@ -454,7 +454,12 @@ public sealed class SettingsCoverageConfigTests
         var loaded = SettingsCoverageConfig.Load(WriteConfig(MinimalConfig()));
         Assert.Equal("com.android.settings", loaded.PopupSettings.HostPackage);
         Assert.Equal(
-            new[] { "android:id/alertTitle", "android:id/parentPanel", "android:id/buttonPanel" },
+            new[]
+            {
+                "android:id/alertTitle", "android:id/parentPanel", "android:id/buttonPanel",
+                "com.android.settings:id/alertTitle", "com.android.settings:id/parentPanel",
+                "com.android.settings:id/buttonPanel",
+            },
             loaded.PopupSettings.ResourceIds);
         Assert.Equal(new[] { "CANCEL", "button2", "DISMISS", "button1" }, loaded.PopupSettings.Targets);
         Assert.Equal(2, loaded.PopupSettings.MaxObstacleRetries);
