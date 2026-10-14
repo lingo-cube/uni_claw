@@ -306,16 +306,6 @@ public static class SettingsActionGuard
         if (switchTarget)
             return Reject("unknown-action", "switch target requires typed desiredState", policy);
 
-        // Only the policy-declared target switch freezes navigation (AGT-015：
-        // 字面 "Wi-Fi" 通用化——非声明目标的可见开关不得冻结其他任务的导航）。
-        var declaredLabels = policy.DeclaredTargetSwitchLabels;
-        var targetedSwitchVisible = (context.Elements ?? Array.Empty<ElementSummary>()).Any(element =>
-            string.Equals(element.Role, "switch", StringComparison.OrdinalIgnoreCase)
-            && declaredLabels.Any(label =>
-                string.Equals(element.Text?.Trim(), label, StringComparison.OrdinalIgnoreCase)));
-        if (targetedSwitchVisible && step.EffectClass is "tap" or "click")
-            return Reject("unknown-action", "target switch is visible; choose typed desiredState before another navigation", policy);
-
         var safeSemantic = step.EffectClass switch
         {
             "swipe-up" => "scroll",

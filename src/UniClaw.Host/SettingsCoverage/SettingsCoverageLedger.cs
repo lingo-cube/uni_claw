@@ -28,7 +28,13 @@ public sealed record CoverageReport(
     double StepSuccessRate,                 // verified/executed（executed=0 时 0）
     IReadOnlyList<string> UncoveredItems,
     string? FirstDivergence,
-    int StepsExecuted, int StepsVerified, int ScrollsUsed, int ScrollAttempts, int ConsultRounds);
+    int StepsExecuted, int StepsVerified, int ScrollsUsed, int ScrollAttempts, int ConsultRounds,
+    IReadOnlyList<string>? DynamicRootFrontier = null,
+    IReadOnlyList<string>? DynamicRootVisited = null,
+    IReadOnlyDictionary<string, string>? DynamicRootSkipReasons = null,
+    IReadOnlyList<string>? DynamicNestedFrontier = null,
+    IReadOnlyList<string>? DynamicNestedVisited = null,
+    IReadOnlyDictionary<string, string>? DynamicNestedSkipReasons = null);
 
 public sealed record CoverageSnapshot(
     bool CoverageComplete,
@@ -199,7 +205,68 @@ public sealed class SettingsCoverageLedger
             StepsVerified: _stepsVerified,
             ScrollsUsed: _scrollsUsed,
             ScrollAttempts: _scrollAttempts,
-            ConsultRounds: _consultRounds);
+            ConsultRounds: _consultRounds,
+            DynamicRootFrontier: DynamicRootFrontier(config),
+            DynamicRootVisited: DynamicRootVisited(config),
+            DynamicRootSkipReasons: DynamicRootSkipReasons(config),
+            DynamicNestedFrontier: DynamicNestedFrontier(config),
+            DynamicNestedVisited: DynamicNestedVisited(config),
+            DynamicNestedSkipReasons: DynamicNestedSkipReasons(config));
+    }
+
+    /// <summary>动态根页候选中尚未验证进入的 frontier。仅在显式开启
+    /// dynamicRootEntries/all-visible 时返回内容。</summary>
+    public IReadOnlyList<string> DynamicRootFrontier(SettingsCoverageConfig config)
+    {
+        if (!config.DynamicRootEntriesSettings.AllVisible)
+            return Array.Empty<string>();
+        var visited = DynamicRootVisited(config);
+        var skipped = DynamicRootSkipReasons(config);
+        return DynamicRootCandidates(config)
+            .Where(candidate => !visited.Contains(candidate, StringComparer.Ordinal)
+                && !skipped.ContainsKey(candidate))
+            .ToArray();
+    }
+
+    /// <summary>动态根页候选中已由真实 root→non-root verified step 进入的入口。</summary>
+    public IReadOnlyList<string> DynamicRootVisited(SettingsCoverageConfig config)
+    {
+        if (!config.DynamicRootEntriesSettings.AllVisible)
+            return Array.Empty<string>();
+        var entered = AllEnteredDescriptors(config);
+        return DynamicRootCandidates(config)
+            .Where(entered.Contains)
+            .ToArray();
+    }
+
+    /// <summary>记录结构性跳过原因，便于区分“未观察到”与“观察到但安全策略
+    /// 排除”。原因只来自 Host 可证明的字段（role/rid/descriptor），不作
+    /// 视觉或 Kernel 语义推断。</summary>
+    public IReadOnlyDictionary<string, string> DynamicRootSkipReasons(SettingsCoverageConfig config)
+    {
+        if (!config.DynamicRootEntriesSettings.AllVisible)
+            return new Dictionary<string, string>(StringComparer.Ordinal);
+        var reasons = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (_, route, occurrences) in _observations)
+        {
+            if (!IsCanonicalRoot(config, route))
+                continue;
+            foreach (var (role, descriptor, nativeRid) in occurrences)
+            {
+                if (descriptor is null || reasons.ContainsKey(descriptor))
+                    continue;
+                var reason = DynamicRootSkipReason(config, role, descriptor, nativeRid);
+                if (reason is not null)
+                    reasons[descriptor] = reason;
+            }
+        }
+        var dynamicCandidates = DynamicRootCandidates(config);
+        foreach (var descriptor in FailedEntryDescriptors(config))
+        {
+            if (dynamicCandidates.Contains(descriptor, StringComparer.Ordinal))
+                reasons.TryAdd(descriptor, "entry-verification-failed");
+        }
+        return reasons;
     }
 
     private (List<CoverageItem> Items, int BackVerified, Dictionary<string, List<EnteredEntry>> EnteredPages,
@@ -264,6 +331,7 @@ public sealed class SettingsCoverageLedger
         }
 
         var scrollCandidates = ScrollCandidates(config);
+        var dynamicFrontier = DynamicRootFrontier(config);
 
         var items = new List<CoverageItem>
         {
@@ -328,6 +396,33 @@ public sealed class SettingsCoverageLedger
                 Evidence: nestedEntered.Count > 0 ? string.Join(";", nestedEntered) : null));
         }
 
+        if (config.DynamicRootEntriesSettings.AllVisible)
+        {
+            var visited = DynamicRootVisited(config);
+            var skipped = DynamicRootSkipReasons(config);
+            items.Add(new(
+                Requirement: "dynamic-root-entries",
+                Detail: $"visited {visited.Count}, frontier {dynamicFrontier.Count}, skipped {skipped.Count}",
+                Covered: dynamicFrontier.Count == 0,
+                Evidence: visited.Count == 0 && dynamicFrontier.Count == 0
+                    ? null
+                    : $"visited={string.Join(",", visited)};frontier={string.Join(",", dynamicFrontier)}"));
+        }
+
+        if (config.DynamicNestedEntriesSettings.IsActive)
+        {
+            var visited = DynamicNestedVisited(config);
+            var frontier = DynamicNestedFrontier(config);
+            var skipped = DynamicNestedSkipReasons(config);
+            items.Add(new(
+                Requirement: "dynamic-nested-entries",
+                Detail: $"visited {visited.Count}, frontier {frontier.Count}, skipped {skipped.Count}",
+                Covered: frontier.Count == 0,
+                Evidence: visited.Count == 0 && frontier.Count == 0
+                    ? null
+                    : $"visited={string.Join(",", visited)};frontier={string.Join(",", frontier)}"));
+        }
+
         return (items, backVerified, enteredPages, scrollCandidates, _lastVerifiedScrollSequence, rootSeen, secondLevelRoutes.ToList());
     }
 
@@ -357,6 +452,16 @@ public sealed class SettingsCoverageLedger
             }
         }
 
+        if (config.DynamicNestedEntriesSettings.IsActive && currentRoute is not null && !IsRoot(config, currentRoute))
+        {
+            var nested = DynamicNestedFrontier(config)
+                .Where(key => key.StartsWith(currentRoute + ">", StringComparison.Ordinal))
+                .Select(key => key[(currentRoute.Length + 1)..])
+                .FirstOrDefault(visible.Contains);
+            if (nested is not null)
+                return ($"Enter the dynamically discovered nested Settings entry '<{nested}>' by tapping it.", "nested-enter");
+        }
+
         // 离开根页时返回；nested 页面同样 fail closed 地只允许配置的 back。
         if (currentRoute is not null && !IsRoot(config, currentRoute))
             return ($"Return to the Settings root page by tapping '<{config.BackDescriptor}>'", "back");
@@ -366,6 +471,14 @@ public sealed class SettingsCoverageLedger
             .FirstOrDefault(page => !enteredPages.Contains(page) && visible.Contains(page));
         if (firstNotEntered is not null)
             return ($"Enter the Settings first-level entry '<{firstNotEntered}>' by tapping it.", "enter");
+
+        if (config.DynamicRootEntriesSettings.AllVisible)
+        {
+            var dynamic = DynamicRootFrontier(config)
+                .FirstOrDefault(descriptor => visible.Contains(descriptor));
+            if (dynamic is not null)
+                return ($"Enter the dynamically discovered Settings entry '<{dynamic}>' by tapping it.", "enter");
+        }
 
         if (!scrollSatisfied)
         {
@@ -480,7 +593,7 @@ public sealed class SettingsCoverageLedger
         var scrollCandidates = new List<string>();
         foreach (var (sequence, route, occurrences) in _observations)
         {
-            if (!IsRoot(config, route)
+            if (!IsCanonicalRoot(config, route)
                 || _lastVerifiedScrollSequence < 0
                 || sequence < _lastVerifiedScrollSequence)
                 continue;
@@ -489,6 +602,7 @@ public sealed class SettingsCoverageLedger
                 if (role != "ui.element"
                     || descriptor is null
                     || descriptor == config.BackDescriptor // AGT-006 补：返回键不是遍历入口
+                    || descriptor == config.ScrollContainerDescriptor
                     || IsFrameworkButtonRid(nativeRid) // AGT-011 §5：对话框按钮不是遍历入口
                     || config.TargetPages.Contains(descriptor, StringComparer.Ordinal)
                     || (config.Coverage.ExplicitScrollCandidates.Count > 0
@@ -499,6 +613,131 @@ public sealed class SettingsCoverageLedger
             }
         }
         return scrollCandidates;
+    }
+
+    private List<string> DynamicRootCandidates(SettingsCoverageConfig config)
+    {
+        if (!config.DynamicRootEntriesSettings.AllVisible)
+            return new List<string>();
+        var candidates = new List<string>();
+        foreach (var (_, route, occurrences) in _observations)
+        {
+            if (!IsCanonicalRoot(config, route))
+                continue;
+            foreach (var (role, descriptor, nativeRid) in occurrences)
+            {
+                if (descriptor is null
+                    || DynamicRootSkipReason(config, role, descriptor, nativeRid) is not null
+                    || candidates.Contains(descriptor, StringComparer.Ordinal))
+                    continue;
+                candidates.Add(descriptor);
+            }
+        }
+        return candidates;
+    }
+
+    public IReadOnlyList<string> DynamicNestedFrontier(SettingsCoverageConfig config)
+    {
+        if (!config.DynamicNestedEntriesSettings.IsActive)
+            return Array.Empty<string>();
+        var visited = DynamicNestedVisited(config);
+        var skipped = DynamicNestedSkipReasons(config);
+        return DynamicNestedCandidates(config)
+            .Where(key => !visited.Contains(key, StringComparer.Ordinal) && !skipped.ContainsKey(key))
+            .ToArray();
+    }
+
+    public IReadOnlyList<string> DynamicNestedVisited(SettingsCoverageConfig config)
+    {
+        if (!config.DynamicNestedEntriesSettings.IsActive)
+            return Array.Empty<string>();
+        return DynamicNestedCandidates(config)
+            .Where(key => _steps.Any(entry => entry.Step.Verified
+                && IsTapOrClick(entry.Step.EffectClass)
+                && entry.Step.TargetDescriptor is not null
+                && key == $"{entry.Step.RouteBefore}>{entry.Step.TargetDescriptor}"
+                && entry.Step.RouteBefore is not null
+                && entry.Step.RouteAfter is not null
+                && !IsRoot(config, entry.Step.RouteBefore)
+                && !IsRoot(config, entry.Step.RouteAfter)))
+            .ToArray();
+    }
+
+    public IReadOnlyDictionary<string, string> DynamicNestedSkipReasons(SettingsCoverageConfig config)
+    {
+        if (!config.DynamicNestedEntriesSettings.IsActive)
+            return new Dictionary<string, string>(StringComparer.Ordinal);
+        var reasons = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var key in DynamicNestedCandidates(config, includeSkipped: true))
+        {
+            var separator = key.LastIndexOf('>');
+            var route = key[..separator];
+            var descriptor = key[(separator + 1)..];
+            foreach (var (_, observedRoute, occurrences) in _observations.Where(o => o.Route == route))
+            {
+                var occurrence = occurrences.FirstOrDefault(o => o.Descriptor == descriptor);
+                if (occurrence.Descriptor is null) continue;
+                var reason = DynamicNestedSkipReason(config, occurrence.Role, descriptor, occurrence.NativeRid);
+                if (reason is not null) reasons[key] = reason;
+            }
+        }
+        foreach (var (_, step) in _steps.Where(s => !s.Step.Verified && IsTapOrClick(s.Step.EffectClass)))
+        {
+            if (step.RouteBefore is null || step.TargetDescriptor is null || IsRoot(config, step.RouteBefore)) continue;
+            var key = $"{step.RouteBefore}>{step.TargetDescriptor}";
+            if (DynamicNestedCandidates(config, includeSkipped: true).Contains(key, StringComparer.Ordinal))
+                reasons.TryAdd(key, "entry-verification-failed");
+        }
+        return reasons;
+    }
+
+    private List<string> DynamicNestedCandidates(SettingsCoverageConfig config, bool includeSkipped = false)
+    {
+        var candidates = new List<string>();
+        foreach (var (_, route, occurrences) in _observations)
+        {
+            if (IsRoot(config, route)) continue;
+            var pageCount = 0;
+            foreach (var (role, descriptor, nativeRid) in occurrences)
+            {
+                if (descriptor is null || (!includeSkipped && DynamicNestedSkipReason(config, role, descriptor, nativeRid) is not null)) continue;
+                if (includeSkipped || DynamicNestedSkipReason(config, role, descriptor, nativeRid) is null)
+                {
+                    var key = $"{route}>{descriptor}";
+                    if (!candidates.Contains(key, StringComparer.Ordinal) && pageCount < config.DynamicNestedEntriesSettings.MaxEntriesPerPage)
+                    { candidates.Add(key); pageCount++; }
+                }
+            }
+        }
+        return candidates;
+    }
+
+    private static string? DynamicNestedSkipReason(SettingsCoverageConfig config, string role, string descriptor, string? nativeRid)
+    {
+        if (role != "ui.element") return "non-ui-element-role";
+        if (descriptor == config.BackDescriptor) return "back-descriptor";
+        if (descriptor == config.ScrollContainerDescriptor) return "scroll-container";
+        if (role == "switch") return "switch-control";
+        if (IsFrameworkButtonRid(nativeRid)) return "framework-control";
+        return null;
+    }
+
+    private static string? DynamicRootSkipReason(
+        SettingsCoverageConfig config, string role, string descriptor, string? nativeRid)
+    {
+        if (role != "ui.element")
+            return "non-ui-element-role";
+        if (descriptor == config.BackDescriptor)
+            return "back-descriptor";
+        if (descriptor == config.ScrollContainerDescriptor)
+            return "scroll-container";
+        if (IsFrameworkButtonRid(nativeRid))
+            return "framework-control";
+        if (config.TargetPages.Contains(descriptor, StringComparer.Ordinal))
+            return "configured-target";
+        if (config.DynamicRootEntriesSettings.Exclusions.Contains(descriptor, StringComparer.Ordinal))
+            return "explicit-exclusion";
+        return null;
     }
 
     /// <summary>最新一次观察的可见可进入 descriptor 集（ui.element 角色——
@@ -627,6 +866,14 @@ public sealed class SettingsCoverageLedger
     }
 
     private bool IsRoot(SettingsCoverageConfig config, string route) =>
+        string.Equals(route, config.RootRoute, StringComparison.Ordinal)
+        // Live UiAutomator can temporarily return identity-only evidence when
+        // the XML route probe is unavailable.  The Host may treat the stable
+        // Settings package identity as root for safe return/termination, but
+        // it must not invent a child route from that fallback.
+        || string.Equals(route, "android.settings", StringComparison.Ordinal);
+
+    private static bool IsCanonicalRoot(SettingsCoverageConfig config, string route) =>
         string.Equals(route, config.RootRoute, StringComparison.Ordinal);
 
     private static bool IsTapOrClick(string effectClass) => effectClass is "tap" or "click";

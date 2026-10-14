@@ -217,7 +217,7 @@ public sealed class SettingsActionPolicyTests
     }
 
     [Fact]
-    public void VisibleTargetSwitch_RejectsUnrelatedNavigation()
+    public void VisibleTargetSwitch_DoesNotBlockDistinctNavigation()
     {
         var policy = Policy();
         var result = SettingsActionGuard.Evaluate(
@@ -229,9 +229,8 @@ public sealed class SettingsActionPolicyTests
                     ElementEpistemic.Observed)),
             policy);
 
-        Assert.Equal(SettingsActionGuardVerdict.Reject, result.Verdict);
-        Assert.Equal("unknown-action", result.SemanticAction);
-        Assert.Contains("target switch is visible", result.Reason);
+        Assert.Equal(SettingsActionGuardVerdict.Allow, result.Verdict);
+        Assert.Equal("navigate", result.SemanticAction);
     }
 
     [Fact]

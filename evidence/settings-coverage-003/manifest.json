@@ -1,0 +1,257 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-003.manifest.v1",
+  "change": "SETTINGS-COVERAGE-003",
+  "generatedAt": "2026-10-15",
+  "runs": [
+    {
+      "run": "evidence/settings-coverage-003/leader-pass1/run-20261014-172846-128",
+      "status": "Completed",
+      "reason": "terminal-emitted",
+      "outcome": "Completion",
+      "delivered": 19,
+      "languageFindings": 20,
+      "consultMode": "coverage-director",
+      "coverageStatus": "CoverageComplete",
+      "coverageRate": 1,
+      "steps": 19,
+      "verified": 19,
+      "uncovered": [],
+      "dynamicRootVisited": null,
+      "dynamicRootFrontier": null,
+      "dynamicNestedVisited": null,
+      "dynamicNestedFrontier": null
+    },
+    {
+      "run": "evidence/settings-coverage-003/leader-pass2/run-20261014-173302-367",
+      "status": "Completed",
+      "reason": "terminal-emitted",
+      "outcome": "Completion",
+      "delivered": 23,
+      "languageFindings": 24,
+      "consultMode": "coverage-director",
+      "coverageStatus": "CoverageComplete",
+      "coverageRate": 1,
+      "steps": 23,
+      "verified": 23,
+      "uncovered": [],
+      "dynamicRootVisited": [
+        "Display",
+        "Wallpaper",
+        "Accessibility"
+      ],
+      "dynamicRootFrontier": [],
+      "dynamicNestedVisited": null,
+      "dynamicNestedFrontier": null
+    },
+    {
+      "run": "evidence/settings-coverage-003/leader-pass3/run-20261014-173721-626",
+      "status": "AgentDecisionFailed",
+      "reason": "no-response",
+      "outcome": null,
+      "delivered": 0,
+      "languageFindings": 3,
+      "consultMode": "coverage-director",
+      "coverageStatus": "BoundedStop",
+      "coverageRate": 0.25,
+      "steps": 2,
+      "verified": 2,
+      "uncovered": [
+        "first-level-all-visible",
+        "scroll-discovered-entry",
+        "second-level-pages",
+        "back-navigation",
+        "repeated-entry",
+        "dynamic-nested-entries"
+      ],
+      "dynamicRootVisited": [],
+      "dynamicRootFrontier": [],
+      "dynamicNestedVisited": [
+        "android.settings|rk1:Internet|src=title|up=1>Internet"
+      ],
+      "dynamicNestedFrontier": [
+        "android.settings|rk1:Internet|src=title|up=1>SIMs",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Fix connectivity",
+        "android.settings|rk1:T-Mobile|src=title|up=1>T-Mobile"
+      ]
+    },
+    {
+      "run": "evidence/settings-coverage-003/leader-pass4/run-20261014-173825-821",
+      "status": "TerminalNotProven",
+      "reason": "evidence-insufficient",
+      "outcome": null,
+      "delivered": 7,
+      "languageFindings": 8,
+      "consultMode": "coverage-director",
+      "coverageStatus": "BoundedStop",
+      "coverageRate": 0.25,
+      "steps": 7,
+      "verified": 7,
+      "uncovered": [
+        "first-level-all-visible",
+        "scroll-discovered-entry",
+        "second-level-pages",
+        "back-navigation",
+        "repeated-entry",
+        "dynamic-nested-entries"
+      ],
+      "dynamicRootVisited": [],
+      "dynamicRootFrontier": [],
+      "dynamicNestedVisited": [
+        "android.settings|rk1:Internet|src=title|up=1>Internet",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Fix connectivity",
+        "android.settings|rk1:T-Mobile|src=title|up=1>T-Mobile",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Settings",
+        "android.settings|rk1:Mobile network|src=title|up=1>SIM name & color",
+        "android.settings>T-Mobile"
+      ],
+      "dynamicNestedFrontier": [
+        "android.settings|rk1:Internet|src=title|up=1>SIMs",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Wi-Fi",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Network preferences",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Saved networks",
+        "android.settings|rk1:Mobile network|src=title|up=1>Roaming"
+      ]
+    },
+    {
+      "run": "evidence/settings-coverage-003/leader-pass5/run-20261014-173949-705",
+      "status": "TerminalNotProven",
+      "reason": "evidence-insufficient",
+      "outcome": null,
+      "delivered": 96,
+      "languageFindings": 97,
+      "consultMode": "coverage-director",
+      "coverageStatus": "BoundedStop",
+      "coverageRate": 0.125,
+      "steps": 96,
+      "verified": 96,
+      "uncovered": [
+        "first-level-all-visible",
+        "scroll-discovered-entry",
+        "second-level-pages",
+        "back-navigation",
+        "repeated-entry",
+        "dynamic-root-entries",
+        "dynamic-nested-entries"
+      ],
+      "dynamicRootVisited": [],
+      "dynamicRootFrontier": [
+        "T-Mobile"
+      ],
+      "dynamicNestedVisited": [
+        "android.settings|rk1:Internet|src=title|up=1>Internet",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Fix connectivity",
+        "android.settings|rk1:T-Mobile|src=title|up=1>T-Mobile",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Settings"
+      ],
+      "dynamicNestedFrontier": [
+        "android.settings|rk1:Internet|src=title|up=1>SIMs",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Wi-Fi",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Network preferences",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Saved networks",
+        "android.settings|rk1:Mobile network|src=title|up=1>SIM name & color",
+        "android.settings|rk1:Mobile network|src=title|up=1>Roaming"
+      ]
+    },
+    {
+      "run": "evidence/settings-coverage-003/leader-pass6/run-20261014-175051-395",
+      "status": "TerminalNotProven",
+      "reason": "evidence-insufficient",
+      "outcome": null,
+      "delivered": 6,
+      "languageFindings": 7,
+      "consultMode": "coverage-director",
+      "coverageStatus": "BoundedStop",
+      "coverageRate": 0.25,
+      "steps": 6,
+      "verified": 6,
+      "uncovered": [
+        "first-level-all-visible",
+        "scroll-discovered-entry",
+        "second-level-pages",
+        "back-navigation",
+        "repeated-entry",
+        "dynamic-nested-entries"
+      ],
+      "dynamicRootVisited": [],
+      "dynamicRootFrontier": [],
+      "dynamicNestedVisited": [
+        "android.settings|rk1:Internet|src=title|up=1>Internet",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Fix connectivity",
+        "android.settings|rk1:T-Mobile|src=title|up=1>T-Mobile",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Settings"
+      ],
+      "dynamicNestedFrontier": [
+        "android.settings|rk1:Internet|src=title|up=1>SIMs",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Wi-Fi",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Network preferences",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Saved networks",
+        "android.settings|rk1:Mobile network|src=title|up=1>SIM name & color",
+        "android.settings|rk1:Mobile network|src=title|up=1>Roaming"
+      ]
+    },
+    {
+      "run": "evidence/settings-coverage-003/leader-pass7/run-20261014-175206-835",
+      "status": "TerminalNotProven",
+      "reason": "evidence-insufficient",
+      "outcome": null,
+      "delivered": 6,
+      "languageFindings": 7,
+      "consultMode": "coverage-director",
+      "coverageStatus": "BoundedStop",
+      "coverageRate": 0.25,
+      "steps": 6,
+      "verified": 6,
+      "uncovered": [
+        "first-level-all-visible",
+        "scroll-discovered-entry",
+        "second-level-pages",
+        "back-navigation",
+        "repeated-entry",
+        "dynamic-nested-entries"
+      ],
+      "dynamicRootVisited": [],
+      "dynamicRootFrontier": [],
+      "dynamicNestedVisited": [
+        "android.settings|rk1:Internet|src=title|up=1>Internet",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Fix connectivity",
+        "android.settings|rk1:T-Mobile|src=title|up=1>T-Mobile",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Settings"
+      ],
+      "dynamicNestedFrontier": [
+        "android.settings|rk1:Mobile network|src=title|up=1>SIM name & color"
+      ]
+    },
+    {
+      "run": "evidence/settings-coverage-003/leader-pass8/run-20261014-175407-235",
+      "status": "TerminalNotProven",
+      "reason": "evidence-insufficient",
+      "outcome": null,
+      "delivered": 6,
+      "languageFindings": 9,
+      "consultMode": "coverage-director",
+      "coverageStatus": "BoundedStop",
+      "coverageRate": 0.25,
+      "steps": 6,
+      "verified": 6,
+      "uncovered": [
+        "first-level-all-visible",
+        "scroll-discovered-entry",
+        "second-level-pages",
+        "back-navigation",
+        "repeated-entry",
+        "dynamic-nested-entries"
+      ],
+      "dynamicRootVisited": [],
+      "dynamicRootFrontier": [],
+      "dynamicNestedVisited": [
+        "android.settings|rk1:Internet|src=title|up=1>Internet",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Fix connectivity",
+        "android.settings|rk1:T-Mobile|src=title|up=1>T-Mobile",
+        "android.settings|rk1:T-Mobile|src=title|up=1>Settings"
+      ],
+      "dynamicNestedFrontier": [
+        "android.settings|rk1:Mobile network|src=title|up=1>SIM name & color"
+      ]
+    }
+  ]
+}

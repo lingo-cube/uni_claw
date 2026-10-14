@@ -6,11 +6,11 @@ session:
   workspaceReuse: true
   autoCloseTurn: false
 bounds:
-  maxSteps: 48
-  maxConsultRounds: 48
-  maxScrolls: 6
-  maxConsecutiveFailures: 3
-  maxDirectiveRetries: 1
+  maxSteps: 96
+  maxConsultRounds: 112
+  maxScrolls: 12
+  maxConsecutiveFailures: 4
+  maxDirectiveRetries: 2
 coverage:
   rootPage: true
   firstLevelMode: all-visible
@@ -37,6 +37,17 @@ evidence:
 rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
 scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
 backDescriptor: Navigate up
+# 由真实根页 perception 观察建立动态安全入口前沿；静态 targetPages
+# 继续作为兼容 seed，未知危险/开关/框架控件由 Host policy 跳过并留痕。
+dynamicRootEntries:
+  enabled: true
+  mode: all-visible
+  excludedDescriptors:
+    - Search settings
+dynamicNestedEntries:
+  enabled: true
+  maxDepth: 1
+  maxEntriesPerPage: 1
 # AGT-017：Slow 感知 live 启用（所有者指令）。text 档走会话模型；
 # 有界等待 15s（周期不阻塞超此界）；每 run 预算 6 次；visual 暂不启用。
 slow:

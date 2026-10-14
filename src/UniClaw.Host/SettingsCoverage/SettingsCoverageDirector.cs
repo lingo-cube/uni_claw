@@ -146,9 +146,13 @@ public sealed class SettingsCoverageDirector
         // AGT-006 修复：路由回退身份（页面无标题，如启动过渡屏）≠ 已知
         // 非根页——"back" 会指挥幻影目标。未知页面 → Defer 有界重观察，
         // 等屏幕定形；配额尽（DeferRoundsExhausted 相位）→ 诚实 bounded stop。
+        var unknownRouteNeedsResample = snapshot.CurrentRoute == UnknownRouteIdentity
+            && !snapshot.Visible.Contains(_config.ScrollContainerDescriptor)
+            && !_config.TargetPages.Any(snapshot.Visible.Contains)
+            && !_ledger.DynamicRootFrontier(_config).Any(snapshot.Visible.Contains);
         if (snapshot.CurrentRoute is not null
             && snapshot.CurrentRoute == UnknownRouteIdentity
-            && snapshot.StepsVerified == 0)
+            && (snapshot.StepsVerified == 0 || unknownRouteNeedsResample))
         {
             if (context.Phase == AgentDecisionPhase.DeferRoundsExhausted)
             {

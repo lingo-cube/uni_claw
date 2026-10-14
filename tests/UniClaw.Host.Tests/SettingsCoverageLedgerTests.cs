@@ -190,6 +190,190 @@ public sealed class SettingsCoverageLedgerTests
     }
 
     [Fact]
+    public void DynamicRootEntries_ExposeFrontierVisitedAndStructuralSkipReasons()
+    {
+        var config = ConfigWith("""
+            configVersion: "1"
+            session:
+              taskTitle: dynamic-root
+              workspace: UniClaw_Product_Tasks
+              workspaceReuse: true
+              autoCloseTurn: false
+            bounds:
+              maxSteps: 24
+              maxConsultRounds: 24
+              maxScrolls: 4
+              maxConsecutiveFailures: 3
+              maxDirectiveRetries: 1
+            coverage:
+              rootPage: true
+              firstLevelMode: all-visible
+              scrollDiscoveredEntries: 1
+              secondLevelPages: 1
+              backNavigation: false
+              repeatedEntries: 0
+            targetPages:
+              - Network & internet
+            dynamicRootEntries:
+              enabled: true
+              mode: all-visible
+              excludedDescriptors:
+                - Search settings
+            termination:
+              onCoverageComplete: true
+              onMaxSteps: true
+              onMaxScrolls: true
+              onConsecutiveFailures: true
+            rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
+            scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
+            backDescriptor: Navigate up
+            """);
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(RootRoute, new[]
+        {
+            ("ui.element", (string?)"Network & internet", (string?)null),
+            ("ui.element", (string?)"Search settings", (string?)null),
+            ("ui.element", (string?)"Accessibility", (string?)null),
+            ("ui.element", (string?)"Navigate up", (string?)null),
+            ("ui.element", (string?)ScrollDescriptor, (string?)null),
+            ("ui.element", (string?)"Dismiss", (string?)"android:id/button1"),
+            ("ui.container", (string?)"Container", (string?)null),
+        });
+
+        Assert.Equal("enter", ledger.Snapshot(config).NextDirectiveKind);
+        EnterStep(ledger, "Network & internet", "android.settings|route:Network");
+        BackStep(ledger, "android.settings|route:Network");
+
+        var report = ledger.Report(config);
+        Assert.Equal(["Accessibility"], report.DynamicRootFrontier);
+        Assert.Empty(report.DynamicRootVisited);
+        Assert.Equal("configured-target", report.DynamicRootSkipReasons!["Network & internet"]);
+        Assert.Equal("explicit-exclusion", report.DynamicRootSkipReasons["Search settings"]);
+        Assert.Equal("back-descriptor", report.DynamicRootSkipReasons["Navigate up"]);
+        Assert.Equal("scroll-container", report.DynamicRootSkipReasons[ScrollDescriptor]);
+        Assert.Equal("framework-control", report.DynamicRootSkipReasons["Dismiss"]);
+        Assert.Equal("non-ui-element-role", report.DynamicRootSkipReasons["Container"]);
+        Assert.Equal("enter", ledger.Snapshot(config).NextDirectiveKind);
+        Assert.Contains("Accessibility", ledger.Snapshot(config).NextDirective);
+
+        EnterStep(ledger, "Accessibility", "android.settings|route:Accessibility");
+        var visited = ledger.Report(config).DynamicRootVisited;
+        Assert.Equal(["Accessibility"], visited);
+        Assert.Empty(ledger.Report(config).DynamicRootFrontier);
+    }
+
+    [Fact]
+    public void DynamicNestedEntries_DriveCurrentPageAndTrackVisited()
+    {
+        var config = ConfigWith("""
+            configVersion: "1"
+            session:
+              taskTitle: dynamic-nested
+              workspace: w
+              workspaceReuse: true
+              autoCloseTurn: false
+            bounds:
+              maxSteps: 12
+              maxConsultRounds: 12
+              maxScrolls: 1
+              maxConsecutiveFailures: 2
+              maxDirectiveRetries: 1
+            coverage:
+              rootPage: true
+              firstLevelMode: all-visible
+              scrollDiscoveredEntries: 1
+              secondLevelPages: 1
+              backNavigation: false
+              repeatedEntries: 0
+            targetPages:
+              - Network & internet
+            dynamicNestedEntries:
+              enabled: true
+              maxDepth: 1
+              maxEntriesPerPage: 2
+            termination:
+              onCoverageComplete: true
+              onMaxSteps: true
+              onMaxScrolls: true
+              onConsecutiveFailures: true
+            rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
+            scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
+            backDescriptor: Navigate up
+            """);
+        const string page = "android.settings|route:Network";
+        var ledger = new SettingsCoverageLedger();
+        Observe(ledger, RootRoute, "Network & internet");
+        EnterStep(ledger, "Network & internet", page);
+        ledger.RecordObservation(page, new[]
+        {
+            ("ui.element", (string?)"Private DNS"),
+            ("switch", (string?)"Use Wi-Fi"),
+            ("ui.element", (string?)"Navigate up"),
+        });
+
+        var snapshot = ledger.Snapshot(config);
+        Assert.Equal("nested-enter", snapshot.NextDirectiveKind);
+        Assert.Contains("Private DNS", snapshot.NextDirective);
+        Assert.Contains($"{page}>Private DNS", ledger.Report(config).DynamicNestedFrontier!);
+        Assert.Contains($"{page}>Use Wi-Fi", ledger.Report(config).DynamicNestedSkipReasons!.Keys);
+
+        ledger.RecordStep(new CoverageStepRecord(
+            0, "decision-private-dns", "dsh-session-1", "ui.element", "Private DNS", "tap", null,
+            true, "receipt-private-dns", "ok", "tap", page, "android.settings|route:Private DNS",
+            "capture-private-dns", true, null, null));
+        Assert.Contains($"{page}>Private DNS", ledger.Report(config).DynamicNestedVisited!);
+    }
+
+    [Fact]
+    public void IdentityOnlySettingsRoute_IsRootFallback()
+    {
+        var config = Config();
+        var ledger = new SettingsCoverageLedger();
+        Observe(ledger, "android.settings");
+        Assert.True(ledger.Report(config).Items[0].Covered);
+
+        var dynamic = ConfigWith("""
+            configVersion: "1"
+            session:
+              taskTitle: identity-only
+              workspace: w
+              workspaceReuse: true
+              autoCloseTurn: false
+            bounds:
+              maxSteps: 4
+              maxConsultRounds: 4
+              maxScrolls: 1
+              maxConsecutiveFailures: 2
+              maxDirectiveRetries: 1
+            coverage:
+              rootPage: true
+              firstLevelMode: all-visible
+              scrollDiscoveredEntries: 1
+              secondLevelPages: 1
+              backNavigation: false
+              repeatedEntries: 0
+            targetPages:
+              - Network & internet
+            dynamicRootEntries:
+              enabled: true
+              mode: all-visible
+            termination:
+              onCoverageComplete: true
+              onMaxSteps: true
+              onMaxScrolls: true
+              onConsecutiveFailures: true
+            rootRoute: android.settings|rk1:Settings|src=homepage_title|up=0
+            scrollContainerDescriptor: com.android.settings:id/main_content_scrollable_container
+            backDescriptor: Navigate up
+            """);
+        ledger.RecordObservation("android.settings", new[]
+        {
+            ("ui.element", (string?)"Child leaked from identity-only route", (string?)null)
+        });
+        Assert.Empty(ledger.Report(dynamic).DynamicRootFrontier!);
+    }
+
+    [Fact]
     public void EnterAllTargetsAndBack_CoversFirstLevelSecondLevelAndBack()
     {
         var ledger = new SettingsCoverageLedger();
@@ -358,7 +542,7 @@ public sealed class SettingsCoverageLedgerTests
     {
         var ledger = new SettingsCoverageLedger();
         Observe(ledger, RootRoute, TargetPages);
-        for (var attempt = 0; attempt < 3; attempt++)
+        for (var attempt = 0; attempt < Config().Bounds.MaxConsecutiveFailures; attempt++)
         {
             EnterStep(ledger, "Apps", RootRoute, verified: false,
                 failureReason: "post-action-target-unique");
@@ -366,7 +550,7 @@ public sealed class SettingsCoverageLedgerTests
 
         var snapshot = ledger.Snapshot(Config());
         Assert.True(snapshot.MaxConsecutiveFailuresReached);
-        Assert.Equal(3, ledger.Report(Config()).StepsExecuted);
+        Assert.Equal(Config().Bounds.MaxConsecutiveFailures, ledger.Report(Config()).StepsExecuted);
         Assert.Equal(0, ledger.Report(Config()).StepsVerified);
     }
 

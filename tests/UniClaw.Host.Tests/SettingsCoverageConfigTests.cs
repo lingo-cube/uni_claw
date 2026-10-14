@@ -213,8 +213,8 @@ public sealed class SettingsCoverageConfigTests
         Assert.Equal("UniClaw_Product_Tasks", config.Session.Workspace);
         Assert.True(config.Session.WorkspaceReuse);
         Assert.False(config.Session.AutoCloseTurn);
-        // AGT-017：深度预算（48/48/6/8）为所有者指令的持久基线。
-        Assert.Equal(new CoverageBounds(48, 48, 6, 3, 1), config.Bounds);
+        // SETTINGS-COVERAGE-003：动态前沿首轮预算。
+        Assert.Equal(new CoverageBounds(96, 112, 12, 4, 2), config.Bounds);
         Assert.Equal(new CoverageRequirements(true, "all-visible", 1, 8, true, 1), config.Coverage);
         Assert.Equal(7, config.TargetPages.Count);
         Assert.Contains("Network & internet", config.TargetPages);
@@ -224,6 +224,10 @@ public sealed class SettingsCoverageConfigTests
         Assert.Equal("com.android.settings:id/main_content_scrollable_container",
             config.ScrollContainerDescriptor);
         Assert.Equal("Navigate up", config.BackDescriptor);
+        Assert.True(config.DynamicRootEntriesSettings.AllVisible);
+        Assert.Contains("Search settings", config.DynamicRootEntriesSettings.Exclusions);
+        Assert.True(config.DynamicNestedEntriesSettings.IsActive);
+        Assert.Equal(1, config.DynamicNestedEntriesSettings.MaxEntriesPerPage);
     }
 
     [Fact]
@@ -276,6 +280,33 @@ public sealed class SettingsCoverageConfigTests
             "backDescriptor: Navigate up",
             "backDescriptor: Navigate up\ndeepTraversal:\n  enabled: true"),
             "config-missing:deepTraversal.nestedEntries");
+    }
+
+    [Fact]
+    public void Load_DynamicRootEntries_AllVisible_IsExplicitAndOptional()
+    {
+        var path = WriteConfig(MinimalConfig().Replace(
+            "backDescriptor: Navigate up",
+            "backDescriptor: Navigate up\ndynamicRootEntries:\n  enabled: true\n  mode: all-visible\n  excludedDescriptors:\n    - Search settings"));
+        try
+        {
+            var loaded = SettingsCoverageConfig.Load(path);
+            Assert.True(loaded.DynamicRootEntriesSettings.AllVisible);
+            Assert.Equal(["Search settings"], loaded.DynamicRootEntriesSettings.Exclusions);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Load_DynamicRootEntries_InvalidMode_FailsClosed()
+    {
+        AssertInvalid(MinimalConfig().Replace(
+            "backDescriptor: Navigate up",
+            "backDescriptor: Navigate up\ndynamicRootEntries:\n  enabled: true\n  mode: everything"),
+            "config-invalid:dynamicRootEntries.mode");
     }
 
     [Fact]

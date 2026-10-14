@@ -31,6 +31,31 @@ public sealed record DeepTraversalConfig(
     public IReadOnlyList<string> Entries => NestedEntries ?? Array.Empty<string>();
 }
 
+/// <summary>
+/// 根页动态入口策略。旧配置只遍历 targetPages；开启 all-visible 后，Host
+/// 会把每次根页观察中满足安全结构条件的 ui.element 纳入 frontier。该策略
+/// 只改变 Host 的候选发现，不绕过 Kernel 的 grounding/effect gate，也不把
+/// 视觉推断升级成可执行目标。
+/// </summary>
+public sealed record DynamicRootEntriesConfig(
+    bool Enabled = false,
+    string Mode = "configured-only",
+    IReadOnlyList<string>? ExcludedDescriptors = null)
+{
+    public bool AllVisible => Enabled && Mode == "all-visible";
+    public IReadOnlyList<string> Exclusions => ExcludedDescriptors ?? Array.Empty<string>();
+}
+
+/// <summary>非根页动态子入口策略。只消费真实 observation 中可安全导航的
+/// ui.element；switch、返回、滚动容器和 framework control 继续留在 skip ledger。</summary>
+public sealed record DynamicNestedEntriesConfig(
+    bool Enabled = false,
+    int MaxDepth = 1,
+    int MaxEntriesPerPage = 2)
+{
+    public bool IsActive => Enabled && MaxDepth > 0 && MaxEntriesPerPage > 0;
+}
+
 /// <summary>AGT-008：证据工件持久化开关（缺省 true——追溯性默认留存）。</summary>
 public sealed record CoverageEvidenceOptions(bool PersistScreenshots = true, bool PersistHierarchies = true);
 
@@ -88,7 +113,9 @@ public sealed record SettingsCoverageConfig(
     SettingsActionPolicy? ActionPolicy = null,
     bool ActionPolicyRequired = false,
     LanguageInspectionTaskRequest? LanguageInspection = null,
-    DeepTraversalConfig? DeepTraversal = null)
+    DeepTraversalConfig? DeepTraversal = null,
+    DynamicRootEntriesConfig? DynamicRootEntries = null,
+    DynamicNestedEntriesConfig? DynamicNestedEntries = null)
 {
     /// <summary>证据持久化（缺省全开；旧配置无该段时保持缺省）。</summary>
     public CoverageEvidenceOptions EvidenceSettings => Evidence ?? new CoverageEvidenceOptions();
@@ -103,6 +130,12 @@ public sealed record SettingsCoverageConfig(
     public LanguageInspectionTaskRequest? LanguageInspectionRequest => LanguageInspection;
 
     public DeepTraversalConfig DeepTraversalSettings => DeepTraversal ?? new DeepTraversalConfig();
+
+    public DynamicRootEntriesConfig DynamicRootEntriesSettings =>
+        DynamicRootEntries ?? new DynamicRootEntriesConfig();
+
+    public DynamicNestedEntriesConfig DynamicNestedEntriesSettings =>
+        DynamicNestedEntries ?? new DynamicNestedEntriesConfig();
 
     public const string DefaultConfigRelativePath = "product/tasks/settings-coverage.yaml";
     public const string ConfigPathEnvironmentVariable = "UNICLAW_SETTINGS_COVERAGE_CONFIG";
@@ -156,6 +189,8 @@ public sealed record SettingsCoverageConfig(
             ActionPolicyRequired: actionPolicyRequired,
             LanguageInspection: ReadLanguageInspectionOptions(document, path),
             DeepTraversal: ReadDeepTraversalOptions(document, path),
+            DynamicRootEntries: ReadDynamicRootEntriesOptions(document, path),
+            DynamicNestedEntries: ReadDynamicNestedEntriesOptions(document, path),
             ScrollContainerDescriptor: RequireNamed(document, ["scrollContainerDescriptor"], path),
             BackDescriptor: RequireNamed(document, ["backDescriptor"], path));
     }
@@ -381,6 +416,47 @@ public sealed record SettingsCoverageConfig(
             MaxDepth: maxDepth ?? 1,
             MaxEntriesPerPage: maxEntries ?? 0,
             NestedEntries: entries);
+    }
+
+    private static DynamicRootEntriesConfig? ReadDynamicRootEntriesOptions(YamlDocument document, string path)
+    {
+        var scalar = document.OptionalScalar(["dynamicRootEntries"]);
+        var enabled = document.OptionalBool(["dynamicRootEntries", "enabled"]);
+        if (enabled is null && scalar is not null && bool.TryParse(scalar, out var scalarEnabled))
+            enabled = scalarEnabled;
+        var mode = document.OptionalScalar(["dynamicRootEntries", "mode"])
+            ?? (scalar is not null && !bool.TryParse(scalar, out _) ? scalar : null);
+        var exclusions = document.OptionalList(["dynamicRootEntries", "excludedDescriptors"]);
+        if (enabled is null && mode is null && exclusions is null)
+            return null;
+        mode ??= enabled == true ? "all-visible" : "configured-only";
+        if (mode is not ("configured-only" or "all-visible"))
+            throw new InvalidOperationException(
+                $"config-invalid:dynamicRootEntries.mode:{mode} [{path}]");
+        if (exclusions is { } values &&
+            (values.Any(string.IsNullOrWhiteSpace)
+             || values.Distinct(StringComparer.Ordinal).Count() != values.Count))
+            throw new InvalidOperationException(
+                $"config-invalid:dynamicRootEntries.excludedDescriptors [{path}]");
+        return new DynamicRootEntriesConfig(
+            Enabled: enabled ?? mode == "all-visible",
+            Mode: mode,
+            ExcludedDescriptors: exclusions);
+    }
+
+    private static DynamicNestedEntriesConfig? ReadDynamicNestedEntriesOptions(YamlDocument document, string path)
+    {
+        var enabled = document.OptionalBool(["dynamicNestedEntries", "enabled"]);
+        var maxDepth = document.OptionalInt(["dynamicNestedEntries", "maxDepth"], minimum: 1);
+        var maxEntries = document.OptionalInt(["dynamicNestedEntries", "maxEntriesPerPage"], minimum: 1);
+        if (enabled is null && maxDepth is null && maxEntries is null)
+            return null;
+        if (maxDepth is > 1)
+            throw new InvalidOperationException($"config-invalid:dynamicNestedEntries.maxDepth:{maxDepth} (当前仅支持一层动态子入口) [{path}]");
+        return new DynamicNestedEntriesConfig(
+            Enabled: enabled ?? true,
+            MaxDepth: maxDepth ?? 1,
+            MaxEntriesPerPage: maxEntries ?? 2);
     }
 
     private static bool HasNestedEntrySyntax(string value)
