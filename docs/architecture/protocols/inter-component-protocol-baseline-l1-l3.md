@@ -1,6 +1,6 @@
 # Inter-Component Protocol Baseline（L1–L3）v0.1
 
-> 状态：ARCHITECTURE_ALIGNED / PROTOCOL_REVIEW_IN_PROGRESS（2026-10-11）。
+> 状态：ARCHITECTURE_ALIGNED / PROTOCOL_REVIEW_IN_PROGRESS（2026-10-14）。
 > P1–P23 的既有语义继续作为基线；P1/P24/P25 的边界已按 ARCH-ALIGN-001
 > 修订，尚未宣称所有实现和跨进程语义完成。
 > 证据源：E2B-001 / C2E-002 / OUT-003 / GEV-004 四个 CLOSED vertical
@@ -15,8 +15,10 @@
 > Deferred ⑯/⑰/② 注记；不重开 P1–P23 语义（见 §7）。
 > 2026-10-11 architecture alignment amendment（ARCH-ALIGN-001）：Product
 > architecture 已改用 T0–T3 + semantic lifecycle；P1/P24/P25 的职责、
-> neutral identity 和 activation 幂等规则已接受，字段实现与跨进程恢复仍按
-> known gap/deferred 记录；同一修订还冻结了 P2/P3 的 observation origin
+> neutral identity 和 activation 幂等规则已接受。LIFECYCLE-CLOSURE-001 已落地
+> 当前最小 buyer 闭包：P24 activation record、显式 binding、同 key 幂等/终态
+> 回放，以及 P25 journal/retry/no-response 语义；跨 Host 完整现场恢复仍按
+> known gap/deferred 记录。同一修订还冻结了 P2/P3 的 observation origin
 > 语义、拆分了 P7 obligation 定义/状态、限定了 P8 issuance 范围，并自纠了
 > P23 的陈旧状态（ADR-0047；范围补注见 ARCH-DOC-023）。本次不伪造完整
 > 协议实现。
@@ -77,7 +79,7 @@
     accepted Contract View 是合法激活的必要前置条件，但 P1 admission 本身不
     激活、恢复或推进 Run。internal driver 只拥有 composition/lifecycle
     coordination，不取得任何 L2 canonical state 或 judgment Authority
-    （ADR-0019；activation seam = Deferred ⑰）。
+    （ADR-0019；P24 当前最小持久闭包已实现，跨 Host 完整恢复仍 deferred）。
 
 ## 0.2 状态标注
 
@@ -121,9 +123,10 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
 
 组合缝产物（KernelResult / ActResult / TerminalEvaluation）是 Uni Kernel
 编排返回的引用聚合，不是 inter-component 协议对象。accepted Contract View 是
-Primary Run 合法激活的必要前置条件，但不触发激活；activation seam 仍为
-Deferred ⑰。Primary Run 合法激活后，由 Uni Kernel internal run driver
-self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019）。
+Primary Run 合法激活的必要前置条件，但不触发激活；P24 负责当前最小持久
+activation record 与显式 binding，跨 Host 完整现场恢复仍 deferred。Primary Run
+合法激活后，由 Uni Kernel internal run driver self-drive；UniAgent 与 Host 不逐
+cycle 调用 Kernel 操作面（ADR-0019）。
 
 ## 2. 逐边协议
 
@@ -152,7 +155,7 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
 - **Non-Activation**：P1 只负责 proposal/admission。成功 admission 只建立
   accepted Contract View；同 version 重复 admission 只返回同一 View，绝不
   启动、恢复或推进 Run，也不产生 Effect。Host retry 不构成 lifecycle command；
-  accepted View → legal Primary Run activation 属独立 Deferred ⑰。
+  accepted View → legal Primary Run activation 由 P24 负责，跨 Host 完整现场恢复仍 deferred。
 - **Reference Realization**：`ExecutionContract` / `ContractAdmission`。
 - **Budget Origin（ADR-0050，PROTOCOL-FIX-003）**：admission 确定性记录预算
   来源 valueOrigin ∈ {configured, default}，作为 Contract View 沿载留痕字段
@@ -780,7 +783,7 @@ self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019�
 | ⑭ | EntityScopedObligation → P23 物理入口 | 语义已锁（ADR-0014）；无真实 entity-scoped contract 场景前不建边（P5/ObservationNeed 先例：无 buyer 不造空协议） |
 | ⑮ | 非 UI 字符串 target 通道的长期去留 | UIW-002 裁决暂留兼容；去留由独立 buyer audit 决定（UWM-009 §33 deferred 23） |
 | ⑯ | UniAgent → Uni Kernel 的 cancel / pause / resume / escalation lifecycle command vocabulary | ADR-0019 只锁“有界独立协议、不得成为逐 cycle orchestration”；当前单 Goal/单 Run slice 无真实 command buyer，不提前设计载荷与状态转移 |
-| ⑰ | accepted Contract View → legal Primary Run activation | R1 Session/Contract Closure buyer；必须闭合唯一 Producer/Consumer、activation identity、Goal/Contract/Run correlation、重复/并发、失败与恢复语义，并保证当前 cardinality 下 at-most-one Primary Run；P1 不承载这些语义，R1 不得新增 Authority class，canonical Run State 仍只经 Run Model typed legal transition 更新 |
+| ⑰ | accepted Contract View → legal Primary Run activation | **当前最小 buyer 闭合：LIFECYCLE-CLOSURE-001 已实现唯一 Producer/Consumer、`acceptedContractViewRef + contractGeneration` activation key、Task/Session/Run correlation、`reserved`/`finalized`/`failed`/`blocked` 记录、重复/并发/终态回放与显式 resume。跨 Host 完整现场恢复仍 deferred；P1 不承载这些语义，canonical Run State 仍只经 Run Model typed legal transition 更新。** |
 
 ## 4. Scenario Pressure-Test List
 
@@ -836,11 +839,9 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   全部跨组件语义分歧经四轮问答裁决，难逆转决策已落 ADR-0009，术语已
   同步 CONTEXT.md，known deviation / gap / leak / overexposure 台账
   完整（见各边 Status）。
-- **不进入实现**：原协议会话产物 = 本文档 + ADR-0009 + CONTEXT.md 词条；
-  首个实现变更 Canonical-Binding Assurance Cutover 已由 CBA-005 完成。
-  2026-09-11 narrow revision 只增加 ADR-0019、Deferred ①/⑯/⑰、Scenario 15
-  与 CONTEXT 术语；activation seam 与 internal run driver realization 必须
-  另立 change 走 UniFlow。
+- **P24/P25 实现已同步**：LIFECYCLE-CLOSURE-001 已落地当前最小 buyer 闭包；
+  本档只保留跨 Host 完整恢复及无 buyer 扩展的 deferred 边界。Canonical-Binding
+  Assurance Cutover 已由 CBA-005 完成。
 - **重开条件**：任一尚未闭合的 Deferred row 出现真实 buyer；或任一 Status 非
   verified 标注的迁移完成时同步更新本档。
 
@@ -875,23 +876,24 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
 - **Producer**：UniClaw Runtime 的合法 activation path；Host composition root 或
   Simulation Host 只能作为 adapter 代提交，不取得 Product activation authority。
   Runtime 先完成 Task Instance/Product Session 与 accepted Contract View 的绑定，
-  再提交 P24。跨 Host 的唯一 Producer、持久 ownership 与完整 R1 仍需继续闭合。
+  再提交 P24。当前切片已具备最小持久 ownership；跨 Host 完整现场恢复继续 deferred。
 - **Consumer**：Uni Kernel internal run driver（唯一 activation 消费面；
   Kernel 持 activation latch，无新 Authority class）。
 - **Meaning**：请求把 accepted Contract View 激活为一个 self-driven
   Primary Run；不是 per-cycle 指令。
-- **Minimal Payload**（语义类别）：acceptedContractViewRef +
-  contractGeneration；可关联 taskInstanceId、productSessionId、contract reference
-  version。不得携带 dshSessionId 或 Host transcript id。
+- **Minimal Payload**（语义类别）：`taskInstanceId`、`productSessionId`、
+  `acceptedContractViewRef`、`contractGeneration`；`contractRef` 从已接受 View/
+  binding 解析，`launchId`/`idempotencyKey` 仅作查询或传输幂等键。不得携带
+  dshSessionId 或 Host transcript id。
 - **Validity / Idempotency**：同一启动钥匙最多建立一个 Product Session/Primary
   Run binding；重复或并发后到请求返回同一结果；同一钥匙但契约内容不同则拒绝；
   terminal 后只返回终态、零新动作。
 - **Forbidden Use**：不得携带 cycle 指令、expected owner state、Effect 载荷
   或 WorldBelief 注入；不得成为第二 driver；无 accepted View 时 fail closed。
 - **Absence/Failure**：无 accepted Contract View → 拒绝（零 Run 副作用）。
-- **Status**：activation seam 与同 Kernel 的 mechanical latch 已有 realization；
-  acceptedContractViewRef/contractGeneration 的持久 identity、跨请求并发、跨进程
-  recovery 仍是 known gap/deferred ⑰，不能把单进程 latch 当作完整 P24。
+- **Status**：当前最小 P24 buyer 闭合（LIFECYCLE-CLOSURE-001）：activation record
+  按 key 预留后 finalize，支持 `reserved` 中断、`failed`/`blocked` 处置、终态
+  回放和同 key 幂等；跨 Host 完整现场恢复仍是 deferred。
 
 #### P25 Agent Decision Consultation（Uni Kernel internal driver → UniAgent realization，外部 seam）
 
@@ -906,12 +908,13 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   proposal 属 Plan Hypothesis 层输入，Control 仍独占 Tactical Hypothesis 与
   Control Intent（baseline §24.2）。
 - **Minimal Payload**（语义类别）：runId、productSessionId、Contract View
-  reference、consultation correlation id（往返必配）+ 有界上下文（objective、
+  reference、`decisionBoundaryId`、consultation correlation id（往返必配）+ 有界上下文（objective、
   capability 面、当前相关 world 状态、pending obligations）；返回侧为 proposal
   + 同 correlation id。不得携带 dshSessionId。
-- **Ordering**：只在 decision boundary；每个 boundary 最多一次。同一 boundary
-  的重试沿用同一 consultation correlation 并返回同一结果；不同 boundary 可以
-  再次咨询。没有 boundary 的 duplicate / late 调用对调用方是违规。
+- **Ordering**：只在 decision boundary；同一 boundary 可以在 Contract/Policy
+  HardCap 内重复发起逻辑咨询。每次新的逻辑咨询必须生成独立的
+  `consultationCorrelationId`；同一逻辑咨询的 transport retry 沿用原 correlation
+  并返回同一结果。没有 boundary 的 duplicate / late 调用对调用方是违规。
 - **Idempotency / Failure**：no-response、invalid、correlation 失配、越权
   proposal → fail closed（零新 Effect，Run 保持合法非终态或按 contract
   safe-stop）。
@@ -929,11 +932,12 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   （拒续/触顶 → 既有 budget-exhausted 诚实终局）。轻记账 = driver 消耗态 +
   每笔续授 P25 留痕（决策 id、量、依据、授/拒）+ 审计投影；不进 canonical
   Run State（不变量 36 精神），不是 contract mutation，不新增协议边。
-- **Status**：外部语义已 HUMAN_SELECTED；当前 seam/fail-closed correlation
-  realization 已有测试，但 productSessionId、Contract View reference 和
-  per-boundary idempotency 尚未完整落地。Decision Context / Decision Package 的
-  完整 scope/capability/risk/budget 校验仍是 TRACER_HYPOTHESIS（H14，roadmap
-  Phase 6）。
+- **Status**：外部语义已 HUMAN_SELECTED；当前最小 journal 已落地：四元组 key 为
+  `runId + contractViewRef + decisionBoundaryId + consultationCorrelationId`；同
+  correlation transport retry 回放原结果且不消耗 HardCap，新的 semantic consultation
+  才计数；timeout/no-response 持久化并 fail-closed。Decision Context / Decision
+  Package 的完整 scope/capability/risk/budget 校验仍是 TRACER_HYPOTHESIS（H14，
+  roadmap Phase 6）。
 
 > Phase 1 realization may represent the advisory action as an ordered `Steps`
 > list bounded to at most 16 steps. This is a tracer safety bound, not a frozen
@@ -970,8 +974,9 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   cancel 经 contract 声明的 SafeStop obligation + evidence-backed SafeStop
   proof（P16 既有四分类）表达，不新增分类成员、不新增 DispatchResult outcome；
   正式 lifecycle command protocol 仍待真实 buyer。
-- **⑰（activation seam）**：保持 open（R1）。P24 只锁 consumer 面与幂等/
-  at-most-one 语义；activation identity、跨 Session、并发与恢复仍由 R1 闭合。
+- **⑰（activation seam）**：当前最小 buyer 已闭合（LIFECYCLE-CLOSURE-001）。
+  P24 的 activation identity、跨 Task/Session binding、并发、失败、终态回放与
+  显式 resume 已有记录和验收；跨 Host 完整现场恢复继续 deferred。
 - **②（Contract version 取代）**：方向已由 baseline §24.6 细化（Grant →
   UniAgent Proposal → Run Model admission → 新 immutable Contract View
   generation；旧 View 不改写）；完整 supersession 语义仍待 multi-run buyer。

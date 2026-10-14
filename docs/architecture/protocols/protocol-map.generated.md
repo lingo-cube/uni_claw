@@ -9,9 +9,11 @@
 
 | 机 | initial | 节点数 | 转移数 | 终态 | 悬挂白名单 |
 |---|---|---|---|---|---|
+| activation-record | reserved | 4 | 3 | blocked, failed, finalized | ∅ |
 | attempt | committed-pending | 5 | 4 | completed, failed, unknown-outcome | ∅ |
 | binding | candidate | 5 | 4 | consumed, derived-invalid, rejected | ∅ |
-| contract-view | admitted | 3 | 1 | frozen | admitted |
+| consultation-journal | pending | 3 | 4 | completed, rejected | ∅ |
+| contract-view | admitted | 3 | 2 | frozen | ∅ |
 | judgment | pending | 3 | 2 | consumed | ∅ |
 | run | created | 10 | 17 | closed, terminal | ∅ |
 

@@ -29,7 +29,7 @@ public sealed class ReliableExecutionRecordTests
         var bundle = GoldenScenarioBundles.TwoStepMissingMiddleEvidence();
         var fixture = new ReliableExecutionSourceFixture();
         var host = SimulationHost.Compose(bundle, new RunOptions { TraceArm = arm }, fixture);
-        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.KernelCore.AdmitContract(host.Contract).Accepted);
         Assert.True(host.Driver.Activate().Accepted);
 
         // 基线：step1 经真实产品路径 dispatch（driver=1），屏障等待证据，
@@ -47,7 +47,7 @@ public sealed class ReliableExecutionRecordTests
     {
         var bundle = GoldenScenarioBundles.TwoStepMissingMiddleEvidence();
         var host = SimulationHost.Compose(bundle, new RunOptions { TraceArm = arm }, fixture);
-        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.KernelCore.AdmitContract(host.Contract).Accepted);
         Assert.True(host.Driver.Activate().Accepted);
         return host;
     }

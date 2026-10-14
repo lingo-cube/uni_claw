@@ -238,7 +238,12 @@ public sealed class SettingsCoverageRunner
                         Mandatory: true),
                 },
                 MaxConsultations: config.Bounds.MaxConsultRounds,
-                MaxTotalSteps: config.Bounds.MaxSteps));
+                MaxTotalSteps: config.Bounds.MaxSteps,
+                TaskInstanceId: "task-settings-coverage",
+                ProductSessionId: "session-settings-coverage",
+                ContractRef: "contract-settings-coverage",
+                AcceptedContractViewRef: "view-settings-coverage",
+                ContractGeneration: 1));
             if (!admission.Accepted)
                 throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");
 

@@ -107,7 +107,9 @@ public sealed class KernelRunDriverPolicyValidationTests
         "v1", "cool-down", new HashSet<string> { "temp" },
         new HashSet<string> { "tap" }, new HashSet<string>(),
         new[] { "temp-20" },
-        MaxTotalSteps: maxTotalSteps);
+        MaxTotalSteps: maxTotalSteps,
+        TaskInstanceId: "task-policy-validation", ProductSessionId: "session-policy-validation",
+        ContractRef: "contract-policy-validation");
 
     private static AgentDecision.Policy Policy(
         string decisionId,

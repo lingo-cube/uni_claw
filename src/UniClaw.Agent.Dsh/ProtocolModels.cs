@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using UniClaw.Agent.Profile;
 using UniClaw.Kernel.Runtime;
 
@@ -128,6 +129,7 @@ public static class ProductProtocolJson
             WriteIndented = false,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
         options.Converters.Add(new AgentDecisionJsonConverter());
         options.Converters.Add(new PolicyPredicateJsonConverter());

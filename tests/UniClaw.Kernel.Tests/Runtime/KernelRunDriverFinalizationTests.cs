@@ -46,7 +46,9 @@ public sealed class KernelRunDriverFinalizationTests
         new HashSet<string> { "tap" }, new HashSet<string>(),
         new[] { "objective" },
         new[] { new RunObligation("obl-x", RunObligationKind.MaterialEffect, "x.state", "done", true) },
-        consultations, totalSteps);
+        consultations, totalSteps,
+        TaskInstanceId: "task-finalization", ProductSessionId: "session-finalization",
+        ContractRef: "contract-finalization");
 
     private static RunDriverInput.Observation SeedObservation() => new(new[]
     {
@@ -325,7 +327,9 @@ public sealed class KernelRunDriverFinalizationTests
                 new HashSet<string> { UIWorldDoubles.Observed, "x.state" },
                 new HashSet<string> { "toggle" }, new HashSet<string>(),
                 new[] { "objective" },
-                new[] { new RunObligation("obl-x", RunObligationKind.MaterialEffect, "x.state", "done", true) }));
+                new[] { new RunObligation("obl-x", RunObligationKind.MaterialEffect, "x.state", "done", true) },
+                TaskInstanceId: "task-finalization-inline", ProductSessionId: "session-finalization-inline",
+                ContractRef: "contract-finalization-inline"));
 
         var result = driver.Drive();
         Assert.Equal(RunDriveStatus.Completed, result.Status);
@@ -478,7 +482,9 @@ public sealed class KernelRunDriverFinalizationTests
                         "obl-switch", RunObligationKind.Objective, "ui.role.switch.checked", "checked", true,
                         EntityScope: new TargetDescriptor("switch", "primary")),
                 },
-                MaxConsultations: 64),
+                MaxConsultations: 64,
+                TaskInstanceId: "task-finalization-traverse", ProductSessionId: "session-finalization-traverse",
+                ContractRef: "contract-finalization-traverse"),
             seedValue: "switch:primary@off+menuItem:list@visible");
 
         var result = driver.Drive();
@@ -578,7 +584,9 @@ public sealed class KernelRunDriverFinalizationTests
                     new RunObligation(
                         "obl-switch", RunObligationKind.Objective, "ui.role.switch.checked", "checked", true,
                         EntityScope: new TargetDescriptor("switch", "primary")),
-                }));
+                },
+                TaskInstanceId: "task-finalization-wait", ProductSessionId: "session-finalization-wait",
+                ContractRef: "contract-finalization-wait"));
 
         var waiting = driver.Drive();
         Assert.Equal(RunDriveStatus.WaitingForInput, waiting.Status);
@@ -667,7 +675,9 @@ public sealed class KernelRunDriverFinalizationTests
                 new HashSet<string> { "a.state", "b.state", "c.state" },
                 new HashSet<string> { "tap" }, new HashSet<string>(),
                 new[] { "objective" },
-                new[] { new RunObligation("obl-a", RunObligationKind.MaterialEffect, "a.state", "1", false) }));
+                new[] { new RunObligation("obl-a", RunObligationKind.MaterialEffect, "a.state", "1", false) },
+                TaskInstanceId: "task-finalization-claims", ProductSessionId: "session-finalization-claims",
+                ContractRef: "contract-finalization-claims"));
 
         var result = driver.Drive();
 

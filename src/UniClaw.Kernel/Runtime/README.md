@@ -20,6 +20,7 @@ State 发出）。
 | `AgentPlanPolicy.cs` | 决策计划策略（FROZEN v0.3.1 咨询缝词汇） |
 | `PolicyProtocol.cs` / `PolicyRuntime.cs` | 策略求值协议与运行时（Slice A/B；求值机制面保持 internal） |
 | `ConsultationTypes.cs` | 咨询缝 typed 词汇 |
+| `ConsultationJournal.cs` | P25 四元组 journal seam、semantic count 与 fail-closed replay |
 
 ## 变更规则
 

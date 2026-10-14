@@ -312,7 +312,9 @@ public sealed class Per014CutoverTests
                 new RunObligation("obj-switch-checked", RunObligationKind.Objective,
                     Subject: "ui.role.switch.checked", RequiredValue: "checked",
                     Mandatory: true, EntityScope: new TargetDescriptor("switch")),
-            }));
+            },
+            TaskInstanceId: "task-per014", ProductSessionId: "session-per014",
+            ContractRef: "contract-per014"));
         Assert.True(admission.Accepted, admission.RejectionReason);
         return kernel;
     }

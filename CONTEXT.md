@@ -140,6 +140,18 @@ _Avoid_: CANDIDATE_FOR_ADOPTION、Authority:NONE、把代码存在当作架构�
 升级协议状态。
 _Avoid_: implemented 即 verified、把 deferred 当作已闭合、用空 DTO 伪造协议
 
+**Buyer Evidence**: 证明某字段或协议边进入当前最小完备性闭包的证据组合：必须同时
+存在当前 consumer、已登记场景或可判定验收、以及可回指的 Change。Owner 裁决只冻结
+语义，不单独构成实现 buyer；缺少 buyer 时可标记 `NO_REAL_BUYER` / `deferred`，但
+不得掩盖对当前 identity、authority、Effect safety 或 terminal closure 的依赖。
+_Avoid_: 用户提到即算 buyer、代码存在即算 buyer、用未来可能需求阻塞当前闭包
+
+**Minimal Buyer Closure**: 由当前 Buyer Evidence 所要求的字段集合构成的最小闭包；
+只对该集合判定字段 Presence、Domain、Authority、Correlation、Validity、Absence、
+Retry 和 Recovery。无当前 buyer 的预留字段不进入分母，但必须保留 deferred 状态和
+明确重开条件。
+_Avoid_: 对想象中的全协议全集求完备、把 deferred 当 PASS、把安全依赖降级为无 buyer
+
 **Uni Kernel**: 六个 Product T2 的 aggregate execution boundary 与唯一 Runtime
 Outcome emission 点；不拥有任何 canonical domain truth（WorldBelief /
 Run State / Assurance judgment / target binding），允许拥有组合与生命
@@ -501,14 +513,25 @@ _Avoid_: identity key、fingerprint、composite hash、selector
 **Execution Contract**: UniAgent 根据 Task 与 Product Session context 交给
 Uni Kernel 的稳定执行语义边界，描述 objective / scope / effect constraints /
 proof criteria / 可选 run-level obligations。它把用户任务细化成 Kernel 可以接收、
-执行和验证的约束；accepted version 不就地改写，显式新 version 的 supersession /
-replacement 语义尚未锁定。
+执行和验证的约束。当前 Run 允许受白名单约束的 ContractRevision：只可修订预算、
+适应策略和咨询策略；objective、scope、effect permissions、proof criteria 不可
+在当前 Run 内修改。每次允许的修订生成新的 immutable ContractRevision 和
+ContractViewRef，由 Run Model 接受，旧 revision 保留为历史依据。
 _Avoid_: task list、plan、SLA
 
-**Execution Contract View**: Run Model 在 Execution Contract 被接受时建立的
-immutable canonical view；Kernel 以此作为当前 Run 的契约输入。同 version 重复
-admit 幂等复用同一实例。
+**Execution Contract View**: Run Model 在 Execution Contract 或受限
+ContractRevision 被接受时建立的 immutable canonical view；Kernel 以 current
+ContractViewRef 作为当前 Run 的契约输入，旧 view 不被就地改写。同一
+acceptedContractViewRef + contractGeneration 的 P24 activation key 只能关联一个
+Primary Run。`/runs` 必须显式携带 taskInstanceId、productSessionId、
+acceptedContractViewRef、contractGeneration；contractRef 从已接受 View/binding 解析，
+launchId/idempotencyKey 只作查询和传输幂等键。
 _Avoid_: contract copy、session config
+
+**ContractRevision**: 当前 Primary Run 内对 Execution Contract 的受限修订记录；只
+允许预算、适应策略和咨询策略字段，必须有 revision、审计记录并由 Run Model 接受。
+它生成新的 ContractViewRef，不重新执行 P24 activation；P25 使用最新 current view。
+_Avoid_: Agent 覆盖 Contract、静默改 objective、scope 或 effect permissions
 
 **Budget Grant（预算续授）**: 决策边界上的运行额度续授（步数/轮次同机制）：
 UniAgent 按实际情况提案、policy 以绝对硬顶封顶并共同决定；触发阈值与硬顶同源
@@ -737,12 +760,22 @@ _Avoid_: UniAgent step driver、Host-driven Kernel、agent turn = run cycle
 **Legal Activation**: accepted Execution Contract View 之后、Kernel self-drive
 开始之前的一次性幂等 lifecycle command；admission ≠ activation。同一
 accepted Contract View generation 下至多一个 Primary Run，重复激活零副作用。
+P24 先按 Activation Key 预留记录，再绑定真实 RunId；成功 finalize，失败保留
+failed/terminal record，重试只回放原记录。reserved 中断后只能按原 key 查询/恢复；
+无法证明 owner 时转 BLOCKED/failed，禁止重新 mint，恢复必须显式 resume。
 _Avoid_: contract admission（同义化）、run creation、start command（泛义）
 
 **Activation Key**: 一份具体已接受执行契约版本的启动 identity，由
 `acceptedContractViewRef + contractGeneration` 共同标识；同一 key 至多关联一个
 Product Session / Primary Run，重复请求返回已有关联且不重放动作。
+`launchId` 和 `idempotencyKey` 只作查询/传输幂等键，不替代该组合键。
 _Avoid_: 单独的版本数字、launchRequestId、runId（作为启动去重来源）
+
+**Cancel Command**: 从 Host 接口进入、经鉴权和传输适配后由 Kernel/Runtime 铸造的
+Product 生命周期命令；它必须携带并校验 `productSessionId + runId`。Cancel 立即
+禁止新 Effect；在途 Attempt 对账成功后形成 SafeStop，无法对账则进入 BLOCKED。
+Cancel 不修改 Contract，Host 不直接写 Run State。
+_Avoid_: Host 直接改 Run、Agent 自行取消、取消后继续 dispatch
 
 ### UniAgent & Goal Evaluation（GEV-004 定稿）
 
@@ -888,7 +921,8 @@ _Avoid_: proof criteria（contract 的）、acceptance criteria、predicate、fi
 自身 EvaluationId 的 immutable 监督评价记录（satisfaction 分类 + 处置 +
 逐 criterion 结果 + rationale）；只依据 envelope、Goal Criteria 与
 Goal Evaluation Context，不回写 Runtime Outcome / Run State /
-WorldBelief / Outcome Proof。
+WorldBelief / Outcome Proof。它是只读交付；交付失败保留 EvaluationId 和待交付
+状态，后续重试必须幂等，最终可形成 NeedsFollowUp。
 _Avoid_: result、completion certificate、re-judgment
 
 **Goal Satisfaction**: Goal Evaluation 的 satisfaction 维度，封闭四值：
@@ -907,14 +941,18 @@ context）的 opaque 契约；当前仅允许 Empty，不携带业务语义。
 _Avoid_: user profile、session state、config
 
 **Consultation**: 只发生在 Primary Run 已经启动后的语义 decision boundary
-（T1-T6 触发点），由 Kernel 经外部 seam 向 UniAgent 发起一次同步请求-回答：
-输入 = 有界 AgentDecisionContext，输出 = 恰一个 AgentDecision（或 null =
-no-response fail-closed）。P1 只负责提交/审核 Execution Contract，P24 只负责
-启动已接受的 Contract View，P25 只负责运行中的边界咨询：每个 decision boundary
-最多一次，同一边界重试复用同一结果，不同边界可以再次咨询；P25 不创建、修改或
-替换 Contract/Contract View。咨询时机与次数由 Kernel 独占（D1-D7 纪律）；Agent
-只回答，永不发起。Host realization 内部的 turn/step 结构是回答的产生方式，不是
-第二次咨询。
+（T1-T6 触发点），由 Kernel 经外部 seam 向 UniAgent 发起同步请求-回答：输入 =
+有界 AgentDecisionContext，输出 = 恰一个 AgentDecision（或 null = no-response
+fail-closed）。P1 只负责提交/审核 Execution Contract，P24 只负责启动已接受的
+Contract View，P25 只负责运行中的边界咨询。同一 decision boundary 可以重复咨询，
+但每次必须有独立 `consultationCorrelationId`，总次数受 Contract/Policy HardCap
+限制；P25 不创建、修改或替换 Contract/Contract View。咨询时机、boundary 记录和
+生命周期推进由 Kernel 独占；Agent 只回答，永不发起。Host realization 内部的
+turn/step 结构是回答的产生方式，不是第二个生命周期 Owner。P25 journal key 为
+`runId + contractViewRef + decisionBoundaryId + consultationCorrelationId`；同
+correlation 的 transport retry 返回原结果且不重复消耗 HardCap。timeout/no-response
+计为一次 semantic consultation，持久化 fail-closed disposition；新 correlation
+才重新计数。
 _Avoid_: agent invocation（泛义）、chat round、turn（跨 realization 混用）、
 Agent 发起的询问
 

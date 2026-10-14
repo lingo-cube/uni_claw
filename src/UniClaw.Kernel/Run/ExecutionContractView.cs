@@ -12,6 +12,9 @@ public enum BudgetValueOrigin
 
     /// <summary>null → 缺省解析（16 / 256）。</summary>
     Default,
+
+    /// <summary>兼容聚合读取：两个预算维度来源不同。</summary>
+    Mixed,
 }
 
 /// <summary>
@@ -31,4 +34,16 @@ public sealed record ExecutionContractView(
     BudgetValueOrigin BudgetValueOrigin = BudgetValueOrigin.Default,
     string? TaskInstanceId = null,
     string? ProductSessionId = null,
-    string? ContractRef = null);
+    string? ContractRef = null,
+    string? AcceptedContractViewRef = null,
+    int? ContractGeneration = null)
+{
+    /// <summary>
+    /// maxConsultations 的逐维度来源。保留在 View 中，避免用聚合的
+    /// BudgetValueOrigin 掩盖部分缺省合同。
+    /// </summary>
+    public BudgetValueOrigin MaxConsultationsOrigin { get; init; } = BudgetValueOrigin.Default;
+
+    /// <summary>maxTotalSteps 的逐维度来源。</summary>
+    public BudgetValueOrigin MaxTotalStepsOrigin { get; init; } = BudgetValueOrigin.Default;
+}

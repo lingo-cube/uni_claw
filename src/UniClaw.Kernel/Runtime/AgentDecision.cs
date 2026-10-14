@@ -60,7 +60,10 @@ public sealed record AgentDecisionContext(
     ConsultationBudget? BudgetRemaining = null,
     IReadOnlyDictionary<string, CapabilityProfileReport>? AvailableCapabilities = null,
     // PROTOCOL-FIX-003（ADR-0050）：续授窗口投影；null = policy 未配置续授。
-    RenewalWindow? RenewalWindow = null);
+    RenewalWindow? RenewalWindow = null,
+    string? ProductSessionId = null,
+    string? ContractViewRef = null,
+    string? DecisionBoundaryId = null);
 
 /// <summary>
 /// obligation 的非权威摘要视图（P7 派生投影，只读）。

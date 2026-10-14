@@ -316,14 +316,21 @@ machines:
     initial: admitted
     terminal_nodes: [frozen]
     absorbing: [frozen]
-    # R1：admitted-never-activated 悬挂归属本机——activation seam Deferred ⑰
-    # 未闭合，v1 不画 admitted 出边；Slice 3 悬挂审计按本白名单放行。
-    hang_whitelist: [admitted]
+    # admitted 由 P24 activation record 消费；未激活不再作为永久悬挂接缝。
+    hang_whitelist: []
     nodes:
       - admitted
       - activated
       - frozen
     transitions:
+      - id: CV-T00
+        from: admitted
+        to: activated
+        trigger:
+          edge: P24
+          event: activation-record-finalized
+        guard: accepted View 的 activation record 已 finalized 并绑定真实 RunId；同 key 重放复用原记录
+        emits: []
       - id: CV-T01
         from: activated
         to: frozen
@@ -332,6 +339,94 @@ machines:
         guard: terminal Outcome State 已记录（P17）→ View 冻结：immutable，late evidence / receipt 不得改写
         emits: []
 
+  # ---- P24：持久 activation record 对象机 ----
+  # Run canonical state 仍由 run 机表达；本机只表达 activation key 的
+  # reserved → terminal 记录，以及 failed/blocked 的 fail-closed 分支。
+  activation-record:
+    title: P24 Activation Record 生命周期机（Host Runtime ActivationRecord；P24 / ADR-0019 §12）
+    initial: reserved
+    terminal_nodes: [finalized, failed, blocked]
+    absorbing: [finalized, failed, blocked]
+    nodes:
+      - reserved
+      - finalized
+      - failed
+      - blocked
+    transitions:
+      - id: AR-T01
+        from: reserved
+        to: finalized
+        trigger:
+          edge: P24
+          event: activation-finalized
+        guard: 初次提交或按原 activation key 显式 resume 后真实 RunId 已绑定；同 key 重放返回原 finalized record
+        emits: []
+      - id: AR-T02
+        from: reserved
+        to: failed
+        trigger:
+          edge: P24
+          event: activation-failed
+        guard: binding / contract / activation 校验确定失败；零新 Run、零新 Effect
+        emits: []
+      - id: AR-T03
+        from: reserved
+        to: blocked
+        trigger:
+          edge: P24
+          event: activation-blocked
+        guard: reserved 中断且无法证明原 owner；只能按原 key 显式 resume，禁止重新 mint
+        emits: []
+
+  # ---- P25：consultation journal 对象机 ----
+  # 每个四元组 (runId, contractViewRef, decisionBoundaryId,
+  # consultationCorrelationId) 是独立实例；同 correlation 的 transport
+  # retry 只回放原记录，新 semantic correlation 创建新实例并消耗 HardCap。
+  consultation-journal:
+    title: P25 Consultation Journal 生命周期机（Kernel Runtime ConsultationJournal；P25 / ADR-0050）
+    initial: pending
+    terminal_nodes: [completed, rejected]
+    absorbing: [completed, rejected]
+    nodes:
+      - pending
+      - completed
+      - rejected
+    transitions:
+      - id: CJ-T01
+        from: pending
+        to: completed
+        trigger:
+          edge: P25
+          event: consultation-completed
+        guard: 同一四元组与 request fingerprint 匹配；结果持久化后同 correlation retry 只回放
+        emits: []
+      - id: CJ-T02
+        from: pending
+        to: rejected
+        trigger:
+          edge: P25
+          event: consultation-rejected
+        guard: correlation / proposal 校验失败或 fail-closed；本 semantic consultation 计一次 HardCap
+        emits: []
+      - id: CJ-T03
+        from: pending
+        to: rejected
+        trigger:
+          edge: P25
+          event: consultation-timeout
+        guard: no-response / timeout 持久化为 rejected；不得产生 Effect；本 semantic consultation 计一次 HardCap
+        emits: []
+      # transport retry 不创建新语义，也不再次消耗 HardCap；外部传输重试
+      # 只允许沿原 correlation 回放同一 journal entry。
+      - id: CJ-T04
+        from: pending
+        to: pending
+        trigger:
+          edge: P25
+          event: same-correlation-transport-retry
+        guard: correlation 与 fingerprint 相同；继续等待原结果
+        await: external
+        emits: []
 # ---- 协议边登记（D11：kind/status 封闭词汇；id 命名空间 P##/O##/G##）----
 # Slice 1 只登记 run 机转移引用的边；object 机边（Slice 2）/ 图审计（Slice 3）
 # / 文档出口（Slice 4）不在本文件，缺sections 即缺席，不留 stub。

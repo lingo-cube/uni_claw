@@ -8,6 +8,7 @@ using UniClaw.Kernel.Diagnostics;
 using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception;
+using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Kernel.Run;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.Runtime;
@@ -559,6 +560,7 @@ internal sealed class AsyncPerceptionHost
     internal EvidenceLedger LedgerCore { get; }
 
     internal string ScenarioId { get; }
+    internal ExecutionContract Contract { get; }
 
     private readonly List<RunDriveResult> _driveResults = new();
 
@@ -568,9 +570,17 @@ internal sealed class AsyncPerceptionHost
     {
         ArgumentNullException.ThrowIfNull(scenario);
         ScenarioId = scenario.ScenarioId;
+        Contract = scenario.Contract with
+        {
+            TaskInstanceId = scenario.Contract.TaskInstanceId ?? $"task-async:{scenario.ScenarioId}",
+            ProductSessionId = scenario.Contract.ProductSessionId ?? $"session-async:{scenario.ScenarioId}",
+            ContractRef = scenario.Contract.ContractRef ?? $"contract-async:{scenario.ScenarioId}",
+            AcceptedContractViewRef = scenario.Contract.AcceptedContractViewRef ?? $"view-async:{scenario.ScenarioId}",
+            ContractGeneration = scenario.Contract.ContractGeneration ?? 1,
+        };
         Clock = new VirtualClock(scenario.T0);
         var world = new WorldModel(
-            scenario.Contract.Scope!,
+            Contract.Scope!,
             new SeedingAssociationStrategy(),
             new MenuFrameObservationStrategy());
         var assurance = new RuntimeAssurance(new SatisfyingFreshness());
@@ -754,6 +764,34 @@ internal static class AsyncRealizations
                 IngressKind.Observation,
                 script.Context,
                 new Provenance(producer, captureTime, scope, lineage)));
+            if (typed.State is not null)
+            {
+                var localIndex = typedElements.ToList().IndexOf(typed);
+                var captureId = script.CaptureArtifactId;
+                var checkedValue = typed.State is "enabled" or "on" or "true"
+                    ? "checked"
+                    : "unchecked";
+                var space = new CoordinateSpace("device-viewport", 1, 1);
+                var descriptor = new HierarchyCaptureDescriptor(
+                    captureId, 34, UiHierarchyAcquirerKind.LegacyUiAutomatorXml, "1.0",
+                    UiHierarchyFormat.UiAutomatorXml, "sim-device", "sim-session", null,
+                    captureTime, null, HierarchyCapability.CheckedBooleanCollapsed,
+                    CoverageCompleteness.CompleteWithinDeclaredSurface, null,
+                    localIndex, null, "checked", space);
+                var typedProvenance = new Provenance(
+                    TypedHierarchyProposalProjector.Producer, captureTime,
+                    $"scope:ui.node.{captureId}#{localIndex}",
+                    lineage, Hierarchy: descriptor);
+                proposals.Add(new ObservationProposal(
+                    new ObservationClaim($"ui.node.{captureId}#{localIndex}.checked", checkedValue),
+                    IngressKind.Observation, script.Context, typedProvenance));
+                var boundsDescriptor = descriptor with { Field = "bounds" };
+                proposals.Add(new ObservationProposal(
+                    new ObservationClaim($"ui.node.{captureId}#{localIndex}.bounds",
+                        string.Join(",", bounds.Select(v => v.ToString(System.Globalization.CultureInfo.InvariantCulture)))),
+                    IngressKind.Observation, script.Context,
+                    typedProvenance with { Hierarchy = boundsDescriptor }));
+            }
         }
         proposals.Insert(0, new ObservationProposal(
             new ObservationClaim("live.frame", $"{{\"detects\":[{string.Join(",", entries)}]}}"),
@@ -796,6 +834,10 @@ internal static class AsyncRealizations
             scope.Add($"ui.typing.{element.ElementId}");
         foreach (var subject in extraSubjects)
             scope.Add(subject);
+        // Typed hierarchy claims are capture-local and therefore dynamic; the
+        // protocol uses an explicit prefix entry rather than pre-minting a
+        // capture id in the contract.
+        scope.Add("ui.node.*");
         return scope;
     }
 }

@@ -15,6 +15,7 @@ using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
 using UniClaw.Host.Capability;
+using UniClaw.Host.Runtime;
 using UniClaw.Host.SettingsCoverage;
 
 namespace UniClaw.Host;
@@ -41,7 +42,9 @@ public sealed class HostRunner
         string IdempotencyKey,
         string CorrelationId,
         string? TaskInstanceId = null,
-        string? ContractRef = null);
+        string? ContractRef = null,
+        string? AcceptedContractViewRef = null,
+        int? ContractGeneration = null);
 
     public sealed record HostOptions(
         string? DeviceId = null,
@@ -109,6 +112,9 @@ public sealed class HostRunner
         var runDir = Path.Combine(runRoot, $"run-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}");
         Directory.CreateDirectory(runDir);
         var journalPath = Path.Combine(runDir, "exec.journal");
+            using var consultationJournal = options.Launch?.AcceptedContractViewRef is { Length: > 0 }
+                ? new FileConsultationJournal(Path.Combine(runDir, "p25-consultation.journal.ndjson"))
+                : null;
 
         // ---- 组合根：全部经抽象缝（利用抽象能力构建完整流程）----------
         var clock = new HostUtilities.VirtualClock();
@@ -230,6 +236,7 @@ public sealed class HostRunner
                 new RunDriverInputs
                 {
                     NextInput = NextInputAfterCommit,
+                    ConsultationJournal = consultationJournal,
                     ConsultAgent = context =>
                     {
                         var policy = options.SettingsActionPolicy;
@@ -302,7 +309,9 @@ public sealed class HostRunner
                 },
                 TaskInstanceId: options.Launch?.TaskInstanceId,
                 ProductSessionId: options.Launch?.ProductSessionId,
-                ContractRef: options.Launch?.ContractRef), options.Launch?.RunId);
+                ContractRef: options.Launch?.ContractRef,
+                AcceptedContractViewRef: options.Launch?.AcceptedContractViewRef,
+                ContractGeneration: options.Launch?.ContractGeneration), options.Launch?.RunId);
             if (!admission.Accepted)
                 throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");
             if (options.Launch is { } supplied && !string.Equals(kernel.RunId, supplied.RunId, StringComparison.Ordinal))

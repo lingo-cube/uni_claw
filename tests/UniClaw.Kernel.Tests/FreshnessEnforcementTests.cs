@@ -47,7 +47,9 @@ public sealed class FreshnessEnforcementTests
         Scope: new HashSet<string> { "screen.home" },
         AllowedEffects: allowed ?? new HashSet<string> { "tap" },
         ForbiddenEffects: forbidden ?? new HashSet<string> { "swipe" },
-        ProofCriteria: new[] { "home-screen-observed" });
+        ProofCriteria: new[] { "home-screen-observed" },
+        TaskInstanceId: "task-freshness", ProductSessionId: "session-freshness",
+        ContractRef: "contract-freshness");
 
     /// <summary>默认申请对 screen.home 的 tap。</summary>
     private sealed class ScriptedPolicy(string effectClass = "tap") : IControlPolicy

@@ -44,7 +44,9 @@ public sealed class ControlToEffectTests
         Scope: new HashSet<string> { "screen.home" },
         AllowedEffects: new HashSet<string> { "tap" },
         ForbiddenEffects: new HashSet<string> { "swipe" },
-        ProofCriteria: new[] { "home-screen-observed" });
+        ProofCriteria: new[] { "home-screen-observed" },
+        TaskInstanceId: "task-control-effect", ProductSessionId: "session-control-effect",
+        ContractRef: "contract-control-effect");
 
     /// <summary>确定性策略表（D9）：默认申请对 screen.home 的 tap。</summary>
     private sealed class ScriptedPolicy(string effectClass = "tap") : IControlPolicy

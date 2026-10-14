@@ -111,7 +111,12 @@ internal static class DevLoopRunner
                     new RunObligation(
                         "obj-switch-state", RunObligationKind.Objective,
                         Subject: "switch.state", RequiredValue: targetState, Mandatory: true),
-                }));
+                },
+                TaskInstanceId: "task-dev-loop",
+                ProductSessionId: "session-dev-loop",
+                ContractRef: "contract-dev-loop",
+                AcceptedContractViewRef: "view-dev-loop",
+                ContractGeneration: 1));
             if (!admission.Accepted)
                 throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");
 

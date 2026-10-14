@@ -1,0 +1,6 @@
+Implementation slices:
+- explicit /runs TaskInstanceId + ProductSessionId + AcceptedContractViewRef + ContractGeneration binding
+- P24 ActivationRecordStore reserved/finalized/failed/blocked JSONL replay
+- P25 ConsultationJournal four-key idempotency, rejected timeout/no-response, FileConsultationJournal reload
+- per-dimension BudgetValueOrigin and current ContractView projection
+- deterministic simulation fixture typed checked evidence and explicit identity migration

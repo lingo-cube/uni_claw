@@ -152,7 +152,9 @@ public sealed class LoopTwinTests
         Assert.True(kernel.AdmitContract(new ExecutionContract(
             "v1", "flip-toggle", new HashSet<string> { "live.frame" },
             new HashSet<string> { "tap" }, new HashSet<string>(),
-            new[] { "world-flip" })).Accepted);
+            new[] { "world-flip" },
+            TaskInstanceId: "task-loop-twin", ProductSessionId: "session-loop-twin",
+            ContractRef: "contract-loop-twin")).Accepted);
 
         // seed（台账#3 组合解：root container 先铸，occurrence 才有 owner 入 Slice）
         var seed = kernel.Process(new ObservationProposal(

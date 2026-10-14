@@ -442,7 +442,9 @@ internal static class GoldenScenarioBundles
         new HashSet<string>(),
         new[] { "temp-20" },
         new[] { new RunObligation("temp", RunObligationKind.Objective, "hvac.temp", "20", true) },
-        MaxTotalSteps: maxTotalSteps);
+        MaxTotalSteps: maxTotalSteps,
+        TaskInstanceId: "task-policy-scenario", ProductSessionId: "session-policy-scenario",
+        ContractRef: "contract-policy-scenario");
 
     private static GoalSpec PolicyGoal() => new(
         "goal-temp", "cool the setting down to 20",

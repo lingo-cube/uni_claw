@@ -39,7 +39,9 @@ public sealed class KernelRunDriverBudgetRenewalTests
         new HashSet<string> { "live.frame" },
         new HashSet<string> { "tap" }, new HashSet<string>(),
         new[] { "objective" },
-        Obligations: null, consultations, totalSteps);
+        Obligations: null, consultations, totalSteps,
+        TaskInstanceId: "task-budget", ProductSessionId: "session-budget",
+        ContractRef: "contract-budget");
 
     private static RunDriverInput.Observation SeedObservation() => new(new[]
     {
@@ -85,17 +87,59 @@ public sealed class KernelRunDriverBudgetRenewalTests
         var admittedConfigured = configured.AdmitContract(RenewalContract(consultations: 4, totalSteps: 32));
         Assert.True(admittedConfigured.Accepted);
         Assert.Equal(BudgetValueOrigin.Configured, configured.View!.BudgetValueOrigin);
+        Assert.Equal(BudgetValueOrigin.Configured, configured.View.MaxConsultationsOrigin);
+        Assert.Equal(BudgetValueOrigin.Configured, configured.View.MaxTotalStepsOrigin);
 
         var defaulted = new RunModel();
         var admittedDefault = defaulted.AdmitContract(RenewalContract());
         Assert.True(admittedDefault.Accepted);
         Assert.Equal(BudgetValueOrigin.Default, defaulted.View!.BudgetValueOrigin);
+        Assert.Equal(BudgetValueOrigin.Default, defaulted.View.MaxConsultationsOrigin);
+        Assert.Equal(BudgetValueOrigin.Default, defaulted.View.MaxTotalStepsOrigin);
 
         // 同内容重复 admit：同一 View 实例（幂等）+ origin 稳定（View 字节不变）
         var readmitted = configured.AdmitContract(RenewalContract(consultations: 4, totalSteps: 32));
         Assert.True(readmitted.Accepted);
         Assert.Same(configured.View, configured.View);
         Assert.Equal(BudgetValueOrigin.Configured, configured.View.BudgetValueOrigin);
+    }
+
+    [Fact]
+    public void Admission_RecordsBudgetValueOriginPerDimension_ForPartialDefault()
+    {
+        var consultationsConfigured = new RunModel();
+        Assert.True(consultationsConfigured.AdmitContract(
+            RenewalContract(consultations: 4)).Accepted);
+        Assert.Equal(BudgetValueOrigin.Configured,
+            consultationsConfigured.View!.MaxConsultationsOrigin);
+        Assert.Equal(BudgetValueOrigin.Default,
+            consultationsConfigured.View.MaxTotalStepsOrigin);
+        Assert.Equal(BudgetValueOrigin.Mixed, consultationsConfigured.View.BudgetValueOrigin);
+
+        var stepsConfigured = new RunModel();
+        Assert.True(stepsConfigured.AdmitContract(
+            RenewalContract(totalSteps: 32)).Accepted);
+        Assert.Equal(BudgetValueOrigin.Default,
+            stepsConfigured.View!.MaxConsultationsOrigin);
+        Assert.Equal(BudgetValueOrigin.Configured,
+            stepsConfigured.View.MaxTotalStepsOrigin);
+        Assert.Equal(BudgetValueOrigin.Mixed, stepsConfigured.View.BudgetValueOrigin);
+    }
+
+    [Fact]
+    public void Admission_SameResolvedBudgets_RemainsIdempotent_AndOriginsStayImmutable()
+    {
+        var model = new RunModel();
+        Assert.True(model.AdmitContract(RenewalContract(consultations: 16)).Accepted);
+        var firstView = model.View;
+
+        // Explicit default equals null at the budget signature level; the
+        // original View and its per-dimension provenance remain unchanged.
+        Assert.True(model.AdmitContract(RenewalContract(consultations: 16, totalSteps: 256)).Accepted);
+        Assert.Same(firstView, model.View);
+        Assert.Equal(BudgetValueOrigin.Configured, model.View!.MaxConsultationsOrigin);
+        Assert.Equal(BudgetValueOrigin.Default, model.View.MaxTotalStepsOrigin);
+        Assert.Equal(BudgetValueOrigin.Mixed, model.View.BudgetValueOrigin);
     }
 
     // ==== A2：阈值窗口开/关 + 续授生效 =======================================

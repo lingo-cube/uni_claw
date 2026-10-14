@@ -141,7 +141,7 @@ public sealed class AsyncPerceptionRealizationTests
                 : AsyncScenarioScripts.ActScript("open colors", new AgentActionStep("menu.row", "Colors", "tap", null)),
             new[] { initial with { Schedule = schedule },
                     post with { Schedule = new[] { postResult } } }));
-        Assert.True(host.KernelCore.AdmitContract(contract).Accepted);
+        Assert.True(host.KernelCore.AdmitContract(host.Contract).Accepted);
         Assert.True(host.Driver.Activate().Accepted);
         host.Clock.AdvanceTo(T0.AddSeconds(10));
         if (inspect)

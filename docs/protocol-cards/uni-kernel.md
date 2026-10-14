@@ -41,6 +41,14 @@
 - **P18**
   - run.R-T15: terminal 评估证据充分（P16/P17）；分类 ∈ {Completion, Failure, SafeStop, Escalation}
 - **P24**
+  - activation-record.AR-T01: 初次提交或按原 activation key 显式 resume 后真实 RunId 已绑定；同 key 重放返回原 finalized record
+  - activation-record.AR-T02: binding / contract / activation 校验确定失败；零新 Run、零新 Effect
+  - activation-record.AR-T03: reserved 中断且无法证明原 owner；只能按原 key 显式 resume，禁止重新 mint
+  - contract-view.CV-T00: accepted View 的 activation record 已 finalized 并绑定真实 RunId；同 key 重放复用原记录
   - run.R-T02: accepted Contract View 存在且 activation latch 未持有（幂等；基线 P24 / ADR-0019 §12）
 - **P25**
+  - consultation-journal.CJ-T01: 同一四元组与 request fingerprint 匹配；结果持久化后同 correlation retry 只回放
+  - consultation-journal.CJ-T02: correlation / proposal 校验失败或 fail-closed；本 semantic consultation 计一次 HardCap
+  - consultation-journal.CJ-T03: no-response / timeout 持久化为 rejected；不得产生 Effect；本 semantic consultation 计一次 HardCap
+  - consultation-journal.CJ-T04: correlation 与 fingerprint 相同；继续等待原结果
   - run.R-T04: 观察已入 belief（每 Run 决策咨询一次；恢复时从当前 phase 继续）

@@ -6,6 +6,9 @@ using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Kernel.Run;
 using UniClaw.Kernel.World.UiRealization;
 using UniClaw.Kernel.World;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 
 namespace UniClaw.Kernel.Runtime;
 
@@ -257,17 +260,21 @@ public sealed class KernelRunDriver
     private AgentActionStep? _planStep;
 
     private readonly RunDriverInputs _inputs;
+    private readonly IConsultationJournal _consultationJournal;
     private readonly object _driverIdentity = new();
     private DrivePhase _phase = DrivePhase.NeedInitialObservation;
     private AgentDecision? _adoptedDecision;
     private string? _consultRejection;
     private int _stepIndex;
+    private string? _boundarySignature;
+    private int _boundarySequence;
 
     public KernelRunDriver(UniKernel kernel, AgentPlanPolicy plan, RunDriverInputs inputs)
     {
         _kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
         _plan = plan ?? throw new ArgumentNullException(nameof(plan));
         _inputs = inputs ?? throw new ArgumentNullException(nameof(inputs));
+        _consultationJournal = inputs.ConsultationJournal ?? new InMemoryConsultationJournal();
     }
 
     /// <summary>
@@ -313,6 +320,12 @@ public sealed class KernelRunDriver
         var view = _kernel.RunView;
         if (view is null)
             return new RunDriveResult(RunDriveStatus.NotActivated, "no-accepted-contract", null, 0);
+        // A rejected consultation is a durable fail-closed disposition. A
+        // later Drive must report it, not mint a new correlation automatically.
+        if (_consultRejection is not null && _adoptedDecision is null)
+            return new RunDriveResult(
+                RunDriveStatus.AgentDecisionFailed, _consultRejection, null,
+                _kernel.EffectReceipts.Count);
 
         while (true)
         {
@@ -352,9 +365,19 @@ public sealed class KernelRunDriver
                     }
                     if (_consultRejection is not null)
                     {
-                        // RUN-004：null-response 已转 TerminalEvaluation → continue
-                        if (_phase == DrivePhase.TerminalEvaluation)
+                        // P25 no-response is durably journaled as a rejected
+                        // consultation. After an already-started run, retain
+                        // the historical terminal-evaluation surface so the
+                        // caller receives an honest non-proof outcome rather
+                        // than a second consultation or a new Effect.
+                        if (_consultRejection == "no-response"
+                            && _pendingFailurePhase is not null)
+                        {
+                            _phase = DrivePhase.TerminalEvaluation;
+                            _adoptedDecision = null;
+                            _consultRejection = null;
                             continue;
+                        }
                         return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, _consultRejection, null, 0);
                     }
 
@@ -1102,6 +1125,25 @@ public sealed class KernelRunDriver
     /// <summary>多轮咨询（V2）：构建 v2 上下文 + 递增 DecisionId + 锚点核验。</summary>
     private ConsultOutcome ConsultAgentV2(ExecutionContractView view)
     {
+        var viewRef = view.AcceptedContractViewRef ?? view.ContractRef ?? view.Version;
+        var boundarySignature = string.Join("|", PhaseForCurrent(), _stepsDispatched,
+            _completedSteps.Count, _pendingFailurePhase?.ToString() ?? "", _pendingFailedStepIndex?.ToString() ?? "");
+        if (!string.Equals(_boundarySignature, boundarySignature, StringComparison.Ordinal))
+        {
+            _boundarySignature = boundarySignature;
+            _boundarySequence++;
+        }
+        var boundaryId = $"{_kernel.RunId}:boundary-{_boundarySequence}";
+
+        // A pending record survives a process crash. Refuse the whole run until
+        // an explicit recovery path exists; never issue a second consultation.
+        if (_consultationJournal.HasPending(_kernel.RunId, viewRef))
+            return new ConsultOutcome(null, "consultation-pending");
+
+        // Reconstruct the ordinal from durable records so restart cannot reset
+        // the HardCap counter and mint an unbounded sequence.
+        _consultCounter = Math.Max(_consultCounter,
+            _consultationJournal.ConsumedCount(_kernel.RunId, viewRef));
         _consultCounter++;
         var decisionId = DecisionIdForRun(_consultCounter);
 
@@ -1143,17 +1185,42 @@ public sealed class KernelRunDriver
                 _consultCounter, _stepsDispatched, _completedSteps.Count,
                 PolicyState: _pendingPolicyOutcome?.Summary),
             BudgetRemaining: CurrentBudget(view),
-            RenewalWindow: RenewalWindowViewFor());
+            RenewalWindow: RenewalWindowViewFor(),
+            ProductSessionId: view.ProductSessionId,
+            ContractViewRef: viewRef,
+            DecisionBoundaryId: boundaryId);
 
-        var decision = _inputs.ConsultAgent(context);
+        var key = new ConsultationKey(_kernel.RunId, viewRef, boundaryId, decisionId);
+        var fingerprint = ConsultationFingerprint(context);
+        ConsultationJournalEntry reserved;
+        try
+        {
+            reserved = _consultationJournal.Reserve(key, fingerprint);
+        }
+        catch (ConsultationJournalConflictException)
+        {
+            return new ConsultOutcome(null, "consultation-payload-conflict");
+        }
+        if (reserved.Status == ConsultationJournalStatus.Completed)
+            return new ConsultOutcome(reserved.Decision, null);
+        if (reserved.Status == ConsultationJournalStatus.Rejected)
+            return new ConsultOutcome(null, reserved.RejectionReason ?? "consultation-rejected");
+        if (reserved.Status != ConsultationJournalStatus.Pending)
+            return new ConsultOutcome(null, "consultation-journal-invalid-state");
+
+        AgentDecision? decision;
+        try
+        {
+            decision = _inputs.ConsultAgent(context);
+        }
+        catch (Exception ex)
+        {
+            _consultationJournal.Reject(key, fingerprint, "consultation-exception:" + ex.GetType().Name);
+            return new ConsultOutcome(null, "consultation-exception");
+        }
         if (decision is null)
         {
-            // RUN-004：非初始边界的 no-response = agent 无法重规划 → 终局评估
-            if (context.Phase != AgentDecisionPhase.InitialPlanning)
-            {
-                _phase = DrivePhase.TerminalEvaluation;
-                _adoptedDecision = null;
-            }
+            _consultationJournal.Reject(key, fingerprint, "no-response");
             return new ConsultOutcome(null, "no-response");
         }
 
@@ -1171,10 +1238,24 @@ public sealed class KernelRunDriver
             // AGT-009：Plan 同律回带 DecisionId（D2 防串话适用于每一次
             // consultation response；Policy 先例）
             case AgentDecision.Plan plan: answeredId = plan.DecisionId; break;
-            default: return new ConsultOutcome(null, "unknown-decision-kind");
+            default:
+                _consultationJournal.Reject(key, fingerprint, "unknown-decision-kind");
+                return new ConsultOutcome(null, "unknown-decision-kind");
         }
         if (answeredId != decisionId)
+        {
+            _consultationJournal.Reject(key, fingerprint, "correlation-mismatch");
             return new ConsultOutcome(null, "correlation-mismatch");
+        }
+
+        try
+        {
+            _consultationJournal.Complete(key, fingerprint, decision);
+        }
+        catch (ConsultationJournalConflictException)
+        {
+            return new ConsultOutcome(null, "consultation-payload-conflict");
+        }
 
         // 清除失败上下文（已消费）；RUN-005：policy 结局同点消费即清（§8——
         // 活到下次咨询为止，本咨询 context 已携带其投影）
@@ -1183,6 +1264,30 @@ public sealed class KernelRunDriver
         _pendingFailedStepIndex = null;
         _pendingPolicyOutcome = null;
         return new ConsultOutcome(decision, null);
+    }
+
+    private static string ConsultationFingerprint(AgentDecisionContext context)
+    {
+        var canonical = JsonSerializer.Serialize(new
+        {
+            context.RunId,
+            context.ProductSessionId,
+            context.ContractViewRef,
+            context.DecisionBoundaryId,
+            context.DecisionId,
+            context.ContractVersion,
+            context.Objective,
+            AllowedEffects = context.AllowedEffects.OrderBy(x => x, StringComparer.Ordinal),
+            Claims = context.CurrentWorldClaims.OrderBy(x => x.Key, StringComparer.Ordinal),
+            context.PendingObligations,
+            context.Phase,
+            context.FailureReason,
+            context.FailedStepIndex,
+            context.Progress,
+            context.BudgetRemaining,
+        });
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)))
+            .ToLowerInvariant();
     }
 
     private AgentDecisionPhase PhaseForCurrent()

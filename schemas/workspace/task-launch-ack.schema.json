@@ -9,6 +9,9 @@
     "launchRequestId": {"type": "string", "minLength": 1},
     "launchId": {"type": "string", "minLength": 1},
     "taskInstanceId": {"type": "string", "minLength": 1},
+    "productSessionId": {"type": "string", "minLength": 1},
+    "acceptedContractViewRef": {"type": "string", "minLength": 1},
+    "contractGeneration": {"type": "integer", "minimum": 1},
     "status": {"enum": ["accepted", "partial", "completed", "failed"]},
     "stages": {"type": "array", "items": {"$ref": "https://uniclaw.dev/schemas/workspace/launch-stage-record/v1"}},
     "bindings": {"$ref": "https://uniclaw.dev/schemas/workspace/task-launch-ack/v1#/$defs/bindings"},
@@ -16,7 +19,10 @@
     "acknowledgedAt": {"type": "string", "format": "date-time"}
   },
   "required": ["schemaVersion", "contractVersion", "launchRequestId", "launchId", "status", "stages", "correlationId", "acknowledgedAt"],
-  "allOf": [{"if": {"properties": {"bindings": {"required": ["runId"]}}}, "then": {"required": ["stages"]}}],
+  "allOf": [
+    {"if": {"properties": {"bindings": {"required": ["runId"]}}}, "then": {"required": ["stages"]}},
+    {"if": {"properties": {"status": {"enum": ["accepted", "completed"]}}}, "then": {"required": ["taskInstanceId", "productSessionId", "acceptedContractViewRef", "contractGeneration"]}}
+  ],
   "$defs": {
     "bindings": {
       "type": "object", "additionalProperties": false,

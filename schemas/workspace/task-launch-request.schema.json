@@ -8,7 +8,13 @@
     "schemaVersion": {"const": "uniclaw.workspace.task-launch-request.v1"},
     "contractVersion": {"const": "uniclaw.workspace.contract.v1"},
     "launchRequestId": {"type": "string", "minLength": 1},
+    "launchId": {"type": "string", "minLength": 1},
     "idempotencyKey": {"type": "string", "minLength": 1},
+    "taskInstanceId": {"type": "string", "minLength": 1},
+    "productSessionId": {"type": "string", "minLength": 1},
+    "acceptedContractViewRef": {"type": "string", "minLength": 1},
+    "contractGeneration": {"type": "integer", "minimum": 1},
+    "resume": {"type": "boolean"},
     "projectRef": {"$ref": "#/$defs/logicalRef"},
     "testSetRef": {"$ref": "#/$defs/testSetRef"},
     "taskRef": {"$ref": "#/$defs/logicalRef"},
@@ -18,7 +24,7 @@
     "environmentIntent": {"type": "object", "additionalProperties": true},
     "metadata": {"type": "array", "items": {"$ref": "#/$defs/configuredClaim"}}
   },
-  "required": ["schemaVersion", "contractVersion", "launchRequestId", "idempotencyKey", "projectRef", "testSetRef", "taskRef", "correlationId", "requestedAt"],
+  "required": ["schemaVersion", "contractVersion", "launchRequestId", "idempotencyKey", "taskInstanceId", "productSessionId", "acceptedContractViewRef", "contractGeneration", "projectRef", "testSetRef", "taskRef", "correlationId", "requestedAt"],
   "$defs": {
     "logicalRef": {
       "type": "object", "additionalProperties": false,

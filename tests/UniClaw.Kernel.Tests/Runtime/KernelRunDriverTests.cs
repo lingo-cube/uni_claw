@@ -71,7 +71,9 @@ public sealed class KernelRunDriverTests
         "v1", "switch-on", new HashSet<string> { "live.frame" },
         new HashSet<string> { "tap" }, new HashSet<string>(),
         new[] { "objective" },
-        new[] { new RunObligation("wifi", RunObligationKind.MaterialEffect, "switch.wifi", "on", true) });
+        new[] { new RunObligation("wifi", RunObligationKind.MaterialEffect, "switch.wifi", "on", true) },
+        TaskInstanceId: "task-driver", ProductSessionId: "session-driver",
+        ContractRef: "contract-driver");
 
     private static RunDriverInput.Observation SeedObservation() => new(new[]
     {
@@ -505,7 +507,9 @@ public sealed class KernelRunDriverTests
                     "obl-switch-on", RunObligationKind.Objective,
                     Subject: "ui.role.switch.checked", RequiredValue: "checked", Mandatory: true,
                     EntityScope: new TargetDescriptor("switch", "primary")),
-            })).Accepted);
+            },
+            TaskInstanceId: "task-driver-direct", ProductSessionId: "session-driver-direct",
+            ContractRef: "contract-driver-direct")).Accepted);
 
         var driver = new KernelRunDriver(kernel, plan, inputs);
         Assert.True(driver.Activate().Accepted);
@@ -583,7 +587,9 @@ public sealed class KernelRunDriverTests
                     "obl-switch-on", RunObligationKind.Objective,
                     Subject: "ui.role.switch.checked", RequiredValue: "checked", Mandatory: true,
                     EntityScope: new TargetDescriptor("switch", "primary")),
-            })).Accepted);
+            },
+            TaskInstanceId: "task-driver-direct", ProductSessionId: "session-driver-direct",
+            ContractRef: "contract-driver-direct")).Accepted);
 
         var driver = new KernelRunDriver(kernel, plan, inputs);
         Assert.True(driver.Activate().Accepted);
@@ -697,7 +703,9 @@ public sealed class KernelRunDriverTests
                     "obl-switch-on", RunObligationKind.Objective,
                     Subject: "ui.role.switch.checked", RequiredValue: "checked", Mandatory: true,
                     EntityScope: new TargetDescriptor("switch", "primary")),
-            })).Accepted);
+            },
+            TaskInstanceId: "task-driver-direct", ProductSessionId: "session-driver-direct",
+            ContractRef: "contract-driver-direct")).Accepted);
 
         var driver = new KernelRunDriver(kernel, plan, inputs);
         Assert.True(driver.Activate().Accepted);

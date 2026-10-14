@@ -1,6 +1,6 @@
 # ADR-0046：P1 Contract、P24 Activation、P25 Consultation 的边界
 
-状态：accepted（2026-10-11，ARCH-ALIGN-001）
+状态：accepted（2026-10-11，ARCH-ALIGN-001；P25 重复次数规则由 ADR-0051 局部替代）
 
 前几轮已经确定 Task → Task Instance/Session → UniAgent Execution Contract →
 Kernel Run 的产品顺序。本决策把这条顺序落实到三条最容易混淆的协议边，并冻结
@@ -31,9 +31,10 @@ P24 不接收 cycle 指令、Effect 载荷、WorldBelief 注入或新的契约�
 ### 3. P25 只负责运行中的边界咨询
 
 P25 由 Kernel internal driver 在 Run 已启动后的 decision boundary 发起，向
-UniAgent 请求一次具体的 advisory decision。每个 decision boundary 最多一次：
-同一边界的重试沿用同一 consultation correlation id 并返回同一结果；进入不同
-边界可以再次咨询。P25 不创建、修改或替换 Execution Contract/Contract View，
+UniAgent 请求一次具体的 advisory decision。同一 decision boundary 可以在
+Contract/Policy HardCap 内重复咨询；每次新的逻辑咨询使用独立 consultation
+correlation id，同一逻辑咨询的重试沿用原 correlation 并返回同一结果。P25 不创建、
+修改或替换 Execution Contract/Contract View，
 不直接写 Run State、WorldBelief、Assurance、Binding 或 Effect。P25 请求至少带
 runId、productSessionId、Contract View reference 和本次 consultation correlation
 id；响应沿用同一 correlation id。

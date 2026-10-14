@@ -138,7 +138,7 @@ public sealed class UniAgentProfileYamlTests
     {
         var profile = UniAgentProfileYaml.LoadDefault();
 
-        Assert.Equal(2, profile.Revision);
+        Assert.Equal(3, profile.Revision);
         Assert.NotNull(profile.Assembly);
         Assert.NotNull(profile.Assembly!.PromptManifest);
         Assert.Equal("product/prompt/uniagent-prod", profile.Assembly.PromptManifest!.Path);

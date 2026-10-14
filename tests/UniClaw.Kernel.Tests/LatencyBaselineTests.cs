@@ -148,7 +148,9 @@ public sealed class LatencyBaselineTests
             Scope: new HashSet<string> { "perception.page.signature" },
             AllowedEffects: new HashSet<string> { allowedEffect },
             ForbiddenEffects: new HashSet<string>(),
-            ProofCriteria: new[] { "children-tapped" }));
+            ProofCriteria: new[] { "children-tapped" },
+            TaskInstanceId: "task-latency", ProductSessionId: "session-latency",
+            ContractRef: "contract-latency"));
         return kernel;
     }
 

@@ -37,8 +37,8 @@
     "schemaVersion": 2,
     "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
     "executionDigest": "3860d1ec54225994504fa909570a0cc7e77fb294899627a8e324d143d61db740",
-    "runtimeSourceHash": "0913550291e8b04a4698172abe1b4c2dcb12ebd98d829852229dce3c72b9814c",
-    "certifiedByChange": "PROTOCOL-FIX-002",
-    "certifiedAt": "2026-10-12"
+    "runtimeSourceHash": "e9aaaf399d12ce23201ff0624b7316e1533f09e35c5615465598a9ab40aa1919",
+    "certifiedByChange": "LIFECYCLE-CLOSURE-001",
+    "certifiedAt": "2026-10-14"
   }
 }

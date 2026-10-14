@@ -54,7 +54,9 @@ public sealed class KernelRunDriverPlanTests
                 "obl-switch", RunObligationKind.Objective, "ui.role.switch.checked", "checked", true,
                 EntityScope: new TargetDescriptor("switch", "primary")),
         },
-        consultations, totalSteps);
+        consultations, totalSteps,
+        TaskInstanceId: "task-plan", ProductSessionId: "session-plan",
+        ContractRef: "contract-plan");
 
     private static RunDriverInput.Observation SeedObservation() => new(new[]
     {
@@ -474,7 +476,9 @@ public sealed class KernelRunDriverPlanTests
                 new RunObligation(
                     "obl-switch", RunObligationKind.Objective, "ui.role.switch.checked", "checked", true,
                     EntityScope: new TargetDescriptor("switch", "primary")),
-            });
+            },
+            TaskInstanceId: "task-plan-inline", ProductSessionId: "session-plan-inline",
+            ContractRef: "contract-plan-inline");
         var (kernel, driver) = ComposePlanWorld(
             nextInput: expected => expected.Context == ObservationContext.External ? Observation() : null,
             consultFactory: _ => ctx =>

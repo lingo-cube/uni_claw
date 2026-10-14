@@ -92,14 +92,27 @@ public sealed class RunModel
             // 额度，终止测度由 policy HardCap 结构保证（续授见 P25 通道）。
             var consultations = contract.MaxConsultations ?? DefaultMaxConsultations;
             var totalSteps = contract.MaxTotalSteps ?? DefaultMaxTotalSteps;
-            var valueOrigin = contract.MaxConsultations.HasValue || contract.MaxTotalSteps.HasValue
+            var consultationsOrigin = contract.MaxConsultations.HasValue
                 ? BudgetValueOrigin.Configured
                 : BudgetValueOrigin.Default;
+            var totalStepsOrigin = contract.MaxTotalSteps.HasValue
+                ? BudgetValueOrigin.Configured
+                : BudgetValueOrigin.Default;
+            // 保留旧聚合读取面，但在部分缺省时明确标记 Mixed，避免把
+            // 一个显式维度误报成两个维度都 configured。
+            var valueOrigin = consultationsOrigin == totalStepsOrigin
+                ? consultationsOrigin
+                : BudgetValueOrigin.Mixed;
             View = new ExecutionContractView(
                 contract.Version, contract.Objective,
                 contract.Scope!, contract.AllowedEffects!, contract.ForbiddenEffects!,
                 contract.ProofCriteria!, consultations, totalSteps, valueOrigin,
-                contract.TaskInstanceId, contract.ProductSessionId, contract.ContractRef);
+                contract.TaskInstanceId, contract.ProductSessionId, contract.ContractRef,
+                contract.AcceptedContractViewRef, contract.ContractGeneration)
+            {
+                MaxConsultationsOrigin = consultationsOrigin,
+                MaxTotalStepsOrigin = totalStepsOrigin,
+            };
             RunId = string.IsNullOrWhiteSpace(runIdOverride)
                 ? MintRunId(contract, consultations, totalSteps)
                 : runIdOverride.Trim();

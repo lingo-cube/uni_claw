@@ -5,7 +5,7 @@ schemaVersion: "uniagent.profile/v1"
 profileId: uniagent-prod
 profileVersion: "1"
 # 装配修订号：每次可审计内容变更 +1；PRF-005 起按 Product Session 钉扎执法。
-profileRevision: 2
+profileRevision: 3
 identity:
   name: UniAgent
   description: UniClaw Product Runtime 的认知 realization
@@ -22,7 +22,7 @@ capabilities:
 assembly:
   promptManifest:
     path: product/prompt/uniagent-prod
-    hash: 0de246343fec2754364bdaed3692c563ef7452f8f18c48268b90cebd3317ba65
+    hash: 09adabed374ce7e0a011b714f79598de239e559a0b5ad0cac70dcb0d41c116c9
   safetyPolicy:
     path: product/policy/android-settings-forbidden-actions.json
     hash: 4cfc6bc43cb8498f555145cd891c95e801bedde7aedc6e3561d84a8e1a5fdf36

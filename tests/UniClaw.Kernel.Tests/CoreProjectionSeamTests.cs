@@ -140,7 +140,9 @@ public sealed class CoreProjectionSeamTests
             Scope: new HashSet<string> { "perception.page.signature" },
             AllowedEffects: new HashSet<string> { "scroll", "tap" },
             ForbiddenEffects: new HashSet<string>(),
-            ProofCriteria: new[] { "row-tapped" }));
+            ProofCriteria: new[] { "row-tapped" },
+            TaskInstanceId: "task-core-projection", ProductSessionId: "session-core-projection",
+            ContractRef: "contract-core-projection"));
         return (kernel, world, ledger);
     }
 
@@ -188,7 +190,9 @@ public sealed class CoreProjectionSeamTests
             Scope: new HashSet<string> { "screen.home" },
             AllowedEffects: new HashSet<string> { "tap" },
             ForbiddenEffects: new HashSet<string> { "swipe" },
-            ProofCriteria: new[] { "home-screen-observed" }));
+            ProofCriteria: new[] { "home-screen-observed" },
+            TaskInstanceId: "task-core-projection", ProductSessionId: "session-core-projection",
+            ContractRef: "contract-core-projection"));
         kernel.Process(Observation("screen.home", "idle", T0));
         return (kernel, world, effects);
     }

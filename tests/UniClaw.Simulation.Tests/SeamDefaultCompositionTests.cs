@@ -66,7 +66,7 @@ public sealed class SeamDefaultCompositionTests
     {
         var bundle = GoldenScenarioBundles.WifiToggleOffToOn();
         var host = SimulationHost.Compose(bundle, new RunOptions { Seams = null });
-        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.KernelCore.AdmitContract(host.Contract).Accepted);
         Assert.True(host.Driver.Activate().Accepted);
 
         var result = host.DriveOnce();

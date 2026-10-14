@@ -604,7 +604,9 @@ public sealed class FrameComputationReuseTests
             Scope: new HashSet<string> { "perception.page.signature" },
             AllowedEffects: new HashSet<string> { "tap" },
             ForbiddenEffects: new HashSet<string>(),
-            ProofCriteria: new[] { "children-tapped" }));
+            ProofCriteria: new[] { "children-tapped" },
+            TaskInstanceId: "task-frame-reuse", ProductSessionId: "session-frame-reuse",
+            ContractRef: "contract-frame-reuse"));
         return kernel;
     }
 

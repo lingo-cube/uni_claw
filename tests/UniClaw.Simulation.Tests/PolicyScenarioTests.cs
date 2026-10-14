@@ -184,7 +184,7 @@ public sealed class PolicyScenarioTests
                 Association = new DriftAfterAssociationStrategy(driftFrom),
             },
         });
-        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.KernelCore.AdmitContract(host.Contract).Accepted);
         Assert.True(host.Driver.Activate().Accepted);
         var result = host.DriveOnce();
 

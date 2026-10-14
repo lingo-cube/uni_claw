@@ -47,7 +47,9 @@ public sealed class RunTraceBulletTests
         new HashSet<string> { "app" },
         new HashSet<string> { "effect.ui" },
         new HashSet<string> { "effect.fs" },
-        new List<string> { "criterion" });
+        new List<string> { "criterion" },
+        TaskInstanceId: "task-trace-bullet", ProductSessionId: "session-trace-bullet",
+        ContractRef: "contract-trace-bullet");
 
     // ---- 六 owner 全组装（emission-reaching 场景，OUT-003 同构）-------
 
@@ -79,7 +81,9 @@ public sealed class RunTraceBulletTests
             {
                 new RunObligation("objective-home-active", RunObligationKind.Objective, "screen.home", "active", Mandatory: true),
                 new RunObligation("effect-home-active", RunObligationKind.MaterialEffect, "screen.home", "active", Mandatory: true),
-            })).Accepted);
+            },
+            TaskInstanceId: "task-trace-emission", ProductSessionId: "session-trace-emission",
+            ContractRef: "contract-trace-emission")).Accepted);
         var scope = RunTraceFactory.BeginRun(new RunCorrelation(run.RunId));
         var kernel = new UniKernel(
             new EvidenceLedger(),

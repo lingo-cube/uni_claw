@@ -54,7 +54,9 @@ public sealed class ConsultationCheckedStateTests
         Assert.True(kernel.AdmitContract(new ExecutionContract("v0", "inspect Wi-Fi", scope,
             new HashSet<string> { "tap" }, new HashSet<string>(), new[] { "switch-state" },
             new[] { new RunObligation("wifi", RunObligationKind.Objective,
-                "ui.role.switch.checked", "checked", true, EntityScope: new TargetDescriptor("switch", "Wi-Fi")) })).Accepted);
+                "ui.role.switch.checked", "checked", true, EntityScope: new TargetDescriptor("switch", "Wi-Fi")) },
+            TaskInstanceId: "task-consultation-checked", ProductSessionId: "session-consultation-checked",
+            ContractRef: "contract-consultation-checked")).Accepted);
         var driver = new KernelRunDriver(kernel, plan, inputs);
         Assert.True(driver.Activate().Accepted);
 

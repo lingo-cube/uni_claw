@@ -33,7 +33,7 @@ internal static class ScenarioRunner
 
         var stopwatch = Stopwatch.StartNew();
 
-        var admission = host.KernelCore.AdmitContract(bundle.Contract);
+        var admission = host.KernelCore.AdmitContract(host.Contract);
         if (!admission.Accepted)
             throw new InvalidOperationException(
                 "contract admission 被拒: " + string.Join(", ",
@@ -48,7 +48,7 @@ internal static class ScenarioRunner
         ActivationResult? secondActivation = null;
         if (options.DuplicateActivation)
         {
-            var reAdmission = host.KernelCore.AdmitContract(bundle.Contract);
+            var reAdmission = host.KernelCore.AdmitContract(host.Contract);
             if (!reAdmission.Accepted)
                 throw new InvalidOperationException("duplicate re-admission 被拒（应幂等接受）");
             secondActivation = host.Driver.Activate();

@@ -1,0 +1,35 @@
+method=dotnet test tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj --no-restore --verbosity minimal
+expected=all Host tests pass
+actual=PASS 211/211 (included in solution total 1530/1530)
+
+method=dotnet test tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj --no-restore --verbosity minimal
+expected=all Kernel tests pass
+actual=PASS 887/887
+
+method=dotnet test tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj --no-restore --verbosity minimal
+expected=all lifecycle/scenario tests pass
+actual=PASS 188/188
+
+method=npm test -- --runInBand (dsh/uniclaw-task-workbench)
+expected=plugin bridge and runtime payload tests pass
+actual=PASS 66/66
+
+method=dotnet build src/UniClaw.Host.Dsh/UniClaw.Host.Dsh.csproj --no-restore --verbosity minimal
+expected=build succeeds with no errors
+actual=PASS 0 warnings, 0 errors
+
+method=dotnet test UniClaw.Kernel.slnx --no-restore --verbosity minimal
+expected=all repository solution tests pass after identity/protocol fixture migration
+actual=PASS 1530/1530
+
+method=npm test (dsh/uniclaw-decision-channel)
+expected=prompt/schema coupling and decision-channel plugin tests pass
+actual=PASS 32/32
+
+method=python3 tools/prompt-manifest-hash.py product/prompt/uniagent-prod --check; python3 tools/prompt-manifest-hash.py dsh/uniclaw-decision-channel/prompt --check
+expected=canonical and plugin prompt manifests remain byte/hash consistent
+actual=PASS; both 09adabed374c…
+
+method=python3 tools/scenario_certify.py --all --change LIFECYCLE-CLOSURE-001
+expected=runtime source changes are explicitly certified by this Change
+actual=PASS 20 certification blocks refreshed

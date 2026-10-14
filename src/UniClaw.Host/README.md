@@ -9,6 +9,8 @@ Product Host 的组合根：装配 Kernel 六个 Product T2 责任域与 Capabil
 | 文件 | 职责 |
 |---|---|
 | `HostRunner.cs` | Product Host 最小 composition root（HOST-001 spec v0.3） |
+| `Runtime/ActivationRecordStore.cs` | P24 activation key 的 reserved/finalized/failed/blocked 持久记录 |
+| `Runtime/FileConsultationJournal.cs` | Kernel P25 consultation journal 的文件 adapter |
 | `Program.cs` | 进程入口（装配序） |
 | `LivePerception.cs` | 感知服务会话生命周期（UDS 服务 + 客户端启停/复用） |
 | `UniPerceptionPipeline.cs` | UniPerception 组合管线（SemanticDisposition 只进诊断面） |

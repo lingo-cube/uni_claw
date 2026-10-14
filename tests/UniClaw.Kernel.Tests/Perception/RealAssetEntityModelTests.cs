@@ -74,7 +74,9 @@ public sealed class RealAssetEntityModelTests
             Scope: new HashSet<string> { "perception.page.signature" },
             AllowedEffects: new HashSet<string> { "scroll" },
             ForbiddenEffects: new HashSet<string>(),
-            ProofCriteria: new[] { "list-scrolled" }));
+            ProofCriteria: new[] { "list-scrolled" },
+            TaskInstanceId: "task-real-asset", ProductSessionId: "session-real-asset",
+            ContractRef: "contract-real-asset"));
         return (kernel, world);
     }
 

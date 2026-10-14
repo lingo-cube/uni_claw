@@ -69,6 +69,7 @@ internal sealed class SimulationHost
     internal RuntimeStageMetrics Metrics { get; }
     internal RunTraceScope? TraceScope { get; }
     internal RunModel RunModelCore { get; }
+    internal ExecutionContract Contract { get; }
     internal EffectBoundary EffectBoundaryCore { get; }
     internal RuntimeAssurance AssuranceCore { get; }
     internal WorldModel WorldCore { get; }
@@ -121,11 +122,12 @@ internal sealed class SimulationHost
         RunTraceScope? traceScope, RunModel runModel, EffectBoundary effectBoundary,
         RuntimeAssurance assurance, WorldModel world, TraceArm bundleArm,
         AsyncFileTraceWriter? asyncWriter, AsyncTraceWriterOptions? asyncOptions,
-        ReliableExecutionSourceFixture? executionSource)
+        ReliableExecutionSourceFixture? executionSource, ExecutionContract contract)
     {
         KernelCore = kernel;
         Driver = driver;
         Plan = plan;
+        Contract = contract;
         Consultations = consultations;
         ScriptedAgent = scriptedAgent;
         EffectDriver = effectDriver;
@@ -161,6 +163,14 @@ internal sealed class SimulationHost
         ArgumentNullException.ThrowIfNull(bundle);
         options ??= new RunOptions();
         var assets = bundle.Verify();
+        var scenarioContract = bundle.Contract with
+        {
+            TaskInstanceId = bundle.Contract.TaskInstanceId ?? $"task-sim:{bundle.BundleId}",
+            ProductSessionId = bundle.Contract.ProductSessionId ?? $"session-sim:{bundle.BundleId}",
+            ContractRef = bundle.Contract.ContractRef ?? $"contract-sim:{bundle.BundleId}",
+            AcceptedContractViewRef = bundle.Contract.AcceptedContractViewRef ?? $"view-sim:{bundle.BundleId}",
+            ContractGeneration = bundle.Contract.ContractGeneration ?? 1,
+        };
 
         IRunTrace trace;
         RunTraceScope? scope;
@@ -195,7 +205,7 @@ internal sealed class SimulationHost
 
         // SIM-001：缝注入旋钮（null = 工厂默认，向后兼容）
         var seams = options.Seams;
-        var relevanceScope = new HashSet<string>(bundle.Contract.Scope!, StringComparer.Ordinal);
+        var relevanceScope = new HashSet<string>(scenarioContract.Scope!, StringComparer.Ordinal);
         foreach (var frame in bundle.Stimuli.OfType<ScenarioStimulus.ObservationFrame>())
             relevanceScope.UnionWith(ScenarioPerceptionAdapter.TypedSubjects(frame));
         var world = new WorldModel(
@@ -243,7 +253,7 @@ internal sealed class SimulationHost
         var host = new SimulationHost(
             kernel, driver, planPolicy, journal, scripted, effectDriver, feed, metrics,
             scope, runModel, effectBoundary, assurance, world, options.TraceArm,
-            asyncWriter, asyncOptions, executionSource);
+            asyncWriter, asyncOptions, executionSource, scenarioContract);
 
         // D18：per-host adapter（trace/metrics 注入）+ stimulus→artifact 登记
         foreach (var stimulus in bundle.Stimuli.OfType<ScenarioStimulus.ObservationFrame>())

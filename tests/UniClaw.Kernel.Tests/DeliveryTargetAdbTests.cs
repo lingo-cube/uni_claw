@@ -82,7 +82,9 @@ public sealed class DeliveryTargetAdbTests
             Scope: new HashSet<string> { UIWorldDoubles.Observed },
             AllowedEffects: new HashSet<string> { "tap" },
             ForbiddenEffects: new HashSet<string>(),
-            ProofCriteria: new[] { "tapped" }));
+            ProofCriteria: new[] { "tapped" },
+            TaskInstanceId: "task-adb-delivery", ProductSessionId: "session-adb-delivery",
+            ContractRef: "contract-adb-delivery"));
         return (kernel, effects);
     }
 
@@ -184,7 +186,9 @@ public sealed class DeliveryTargetAdbTests
             Scope: new HashSet<string> { UIWorldDoubles.Observed },
             AllowedEffects: new HashSet<string> { "swipe" },
             ForbiddenEffects: new HashSet<string>(),
-            ProofCriteria: new[] { "swiped" }));
+            ProofCriteria: new[] { "swiped" },
+            TaskInstanceId: "task-adb-delivery", ProductSessionId: "session-adb-delivery",
+            ContractRef: "contract-adb-delivery"));
         kernel.Process(UIWorldDoubles.Observation(SeedValue, UIWorldDoubles.T0));
 
         var intent = kernel.SelectIntent(kernel.DeriveSlice(ProbeContainerId()));

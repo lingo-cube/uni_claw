@@ -37,9 +37,9 @@ public sealed class InitializationEnvelopeTests
             Assert.Equal("session-A", root.GetProperty("productSessionId").GetString());
             Assert.Equal("run-1", root.GetProperty("firstRunId").GetString());
             // 五要素齐备：profile/协议/工件修订 + Skill 快照 + 模型路由。
-            Assert.Equal(2, root.GetProperty("runtimeProfileRevision").GetInt32());
+            Assert.Equal(3, root.GetProperty("runtimeProfileRevision").GetInt32());
             Assert.Equal(64, root.GetProperty("protocolSchemaHash").GetString()!.Length);
-            Assert.Equal(2, root.GetProperty("productPromptRevision").GetInt32());
+            Assert.Equal(3, root.GetProperty("productPromptRevision").GetInt32());
             Assert.Equal(1, root.GetProperty("safetyPolicyRevision").GetInt32());
             Assert.Equal("android-automotive-ui-testing", root.GetProperty("skill").GetProperty("name").GetString());
             Assert.Equal(1, root.GetProperty("skill").GetProperty("revision").GetInt32());

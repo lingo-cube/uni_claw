@@ -4,6 +4,9 @@
   "launchRequestId": "launch-001",
   "launchId": "launch-instance-001",
   "taskInstanceId": "task-instance-001",
+  "productSessionId": "product-session-001",
+  "acceptedContractViewRef": "contract-view-001",
+  "contractGeneration": 1,
   "status": "partial",
   "stages": [{
     "schemaVersion": "uniclaw.workspace.launch-stage-record.v1",

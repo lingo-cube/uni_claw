@@ -203,7 +203,11 @@ public sealed class ProtocolMachineTests
 
     // ---- 牙④（Slice 2）：object 机形状 + gap 纪律 ----
 
-    private static readonly string[] ObjectMachines = { "binding", "judgment", "attempt", "contract-view" };
+    private static readonly string[] ObjectMachines =
+    {
+        "binding", "judgment", "attempt", "contract-view",
+        "activation-record", "consultation-journal",
+    };
 
     [Fact]
     public void ObjectMachines_AreDeclaredWithInitialAndTerminal()
@@ -235,13 +239,26 @@ public sealed class ProtocolMachineTests
         var attempt = machines.GetProperty("attempt").GetProperty("nodes")
             .EnumerateArray().Select(n => n.GetString()!).ToHashSet();
         Assert.Contains("unknown-outcome", attempt);
-        // contract-view：frozen 在状态集；admitted 是唯一预期悬挂（Deferred ⑰，R1）。
+        // contract-view：P24 已消费 admitted，不再将其作为悬挂白名单。
         var cv = machines.GetProperty("contract-view");
         var cvNodes = cv.GetProperty("nodes").EnumerateArray().Select(n => n.GetString()!).ToHashSet();
         Assert.Contains("frozen", cvNodes);
         var whitelist = cv.GetProperty("hangWhitelist").EnumerateArray().Select(n => n.GetString()!).ToList();
-        Assert.Equal(new List<string> { "admitted" }, whitelist);
-        Assert.DoesNotContain("admitted", DeclaredTransitionsFor(cv).Select(t => t.From).ToList());
+        Assert.Empty(whitelist);
+        Assert.Contains(("admitted", "activated"), DeclaredTransitionsFor(cv));
+
+        var activation = machines.GetProperty("activation-record");
+        Assert.Equal(new HashSet<string> { "reserved", "finalized", "failed", "blocked" },
+            activation.GetProperty("nodes").EnumerateArray().Select(n => n.GetString()!).ToHashSet());
+        Assert.Contains(("reserved", "finalized"), DeclaredTransitionsFor(activation));
+        Assert.Contains(("reserved", "failed"), DeclaredTransitionsFor(activation));
+        Assert.Contains(("reserved", "blocked"), DeclaredTransitionsFor(activation));
+
+        var journal = machines.GetProperty("consultation-journal");
+        Assert.Equal(new HashSet<string> { "pending", "completed", "rejected" },
+            journal.GetProperty("nodes").EnumerateArray().Select(n => n.GetString()!).ToHashSet());
+        Assert.Contains(("pending", "completed"), DeclaredTransitionsFor(journal));
+        Assert.Contains(("pending", "rejected"), DeclaredTransitionsFor(journal));
     }
 
     [Fact]

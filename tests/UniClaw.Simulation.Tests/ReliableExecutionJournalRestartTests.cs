@@ -61,7 +61,7 @@ public sealed class ReliableExecutionJournalRestartTests : IDisposable
         var bundle = GoldenScenarioBundles.TwoStepMissingMiddleEvidence();
         var host = SimulationHost.Compose(
             bundle, new RunOptions { TraceArm = arm }, null, source);
-        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.KernelCore.AdmitContract(host.Contract).Accepted);
         Assert.True(host.Driver.Activate().Accepted);
         return host;
     }

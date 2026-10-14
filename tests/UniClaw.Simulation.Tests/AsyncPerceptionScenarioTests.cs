@@ -54,7 +54,9 @@ public sealed class AsyncPerceptionScenarioTests
         {
             new RunObligation(
                 "open", RunObligationKind.MaterialEffect, obligationSubject, requiredValue, Mandatory: true),
-        });
+        },
+        TaskInstanceId: "task-async-perception", ProductSessionId: "session-async-perception",
+        ContractRef: "contract-async-perception");
 
     private static ScriptedOperation InitialOp(
         IReadOnlyList<AsyncPerceptionTruth.ElementSpec> scopeElements,
@@ -89,7 +91,7 @@ public sealed class AsyncPerceptionScenarioTests
     private static AsyncPerceptionHost Activate(AsyncScenario scenario)
     {
         var host = new AsyncPerceptionHost(scenario);
-        Assert.True(host.KernelCore.AdmitContract(scenario.Contract).Accepted);
+        Assert.True(host.KernelCore.AdmitContract(host.Contract).Accepted);
         Assert.True(host.Driver.Activate().Accepted);
         return host;
     }

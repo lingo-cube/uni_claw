@@ -166,7 +166,9 @@ public sealed class KernelRunDriverPolicyExpandTests
             Obligations: new[]
             {
                 new RunObligation("obl-temp", RunObligationKind.Objective, TempSubject, "20", true),
-            })).Accepted);
+            },
+            TaskInstanceId: "task-policy-expand", ProductSessionId: "session-policy-expand",
+            ContractRef: "contract-policy-expand")).Accepted);
 
     /// <summary>合法 policy（A2 语义：temp 方向域 match + 终点终止 + 可选守卫）。</summary>
     private static AgentDecision.Policy Policy(

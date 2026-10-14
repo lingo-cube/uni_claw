@@ -74,7 +74,9 @@ public sealed class DescriptorMatcherDriftTests
             Scope: new HashSet<string> { UIWorldDoubles.Observed },
             AllowedEffects: new HashSet<string> { "tap" },
             ForbiddenEffects: new HashSet<string>(),
-            ProofCriteria: new[] { "drift-matrix" })).Accepted);
+            ProofCriteria: new[] { "drift-matrix" },
+            TaskInstanceId: "task-matcher-drift", ProductSessionId: "session-matcher-drift",
+            ContractRef: "contract-matcher-drift")).Accepted);
         kernel.Process(UIWorldDoubles.Observation("page:seed:v1", T0)); // rev-1 铸 root
         kernel.Process(UIWorldDoubles.Observation("landscape:v1", T1)); // rev-2 occurrence 景观
         return world;

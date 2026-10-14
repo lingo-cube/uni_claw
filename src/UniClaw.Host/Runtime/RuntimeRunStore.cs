@@ -64,7 +64,9 @@ public sealed class RuntimeRunStore
                 LastEventSequence: 1,
                 Consistency: "current",
                 Artifacts: Array.Empty<RuntimeArtifactRef>(),
-                IdempotencyKey: request.IdempotencyKey);
+                IdempotencyKey: request.IdempotencyKey,
+                AcceptedContractViewRef: request.AcceptedContractViewRef,
+                ContractGeneration: request.ContractGeneration);
             WriteEventUnsafe(new RuntimeRunEvent(
                 EventSchema,
                 ContractVersion,
@@ -288,7 +290,9 @@ public sealed class RuntimeRunStore
         JsonElement? ProjectRef,
         JsonElement? TestSetRef,
         JsonElement? TaskRef,
-        JsonElement? Environment);
+        JsonElement? Environment,
+        string? AcceptedContractViewRef = null,
+        int? ContractGeneration = null);
 
     public sealed record EventPage(IReadOnlyList<RuntimeRunEvent> Events, string? NextCursor);
     public sealed record RunPage(IReadOnlyList<RuntimeRunProjection> Runs, string? NextCursor);
@@ -318,7 +322,9 @@ public sealed class RuntimeRunStore
         long LastEventSequence,
         string Consistency,
         IReadOnlyList<RuntimeArtifactRef> Artifacts,
-        string? IdempotencyKey = null);
+        string? IdempotencyKey = null,
+        string? AcceptedContractViewRef = null,
+        int? ContractGeneration = null);
 
     public sealed record HostSessionRef(string Host, string SessionId);
     public sealed record RuntimeArtifactRef(string ArtifactId, string Kind, string Availability, string? DetailEndpoint = null);

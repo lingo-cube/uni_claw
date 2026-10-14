@@ -34,7 +34,9 @@ public sealed class DispatchSeamSpecificationTests
         Scope: new HashSet<string> { "screen.home" },
         AllowedEffects: new HashSet<string> { "tap" },
         ForbiddenEffects: new HashSet<string> { "swipe" },
-        ProofCriteria: new[] { "home-screen-observed" });
+        ProofCriteria: new[] { "home-screen-observed" },
+        TaskInstanceId: "task-dispatch-seam", ProductSessionId: "session-dispatch-seam",
+        ContractRef: "contract-dispatch-seam");
 
     private sealed class ScriptedPolicy : IControlPolicy
     {

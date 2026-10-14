@@ -76,7 +76,9 @@ EXPECTED_HANG_WHITELIST: dict[str, set[str]] = {
     "binding": set(),
     "judgment": set(),
     "attempt": set(),
-    "contract-view": {"admitted"},  # Deferred ⑰（activation seam 未闭合）
+    "contract-view": set(),
+    "activation-record": set(),
+    "consultation-journal": set(),
 }
 
 # Slice 4：交互模型（HTML 27 步）单源。步骤是渲染数据：组/编号/边引用/

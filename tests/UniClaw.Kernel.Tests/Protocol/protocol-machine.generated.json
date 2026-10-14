@@ -506,6 +506,67 @@
     }
   ],
   "machines": {
+    "activation-record": {
+      "absorbing": [
+        "finalized",
+        "failed",
+        "blocked"
+      ],
+      "hangWhitelist": [],
+      "initial": "reserved",
+      "nodes": [
+        "blocked",
+        "failed",
+        "finalized",
+        "reserved"
+      ],
+      "terminalNodes": [
+        "finalized",
+        "failed",
+        "blocked"
+      ],
+      "transitions": [
+        {
+          "await": null,
+          "emits": [],
+          "from": "reserved",
+          "guard": "初次提交或按原 activation key 显式 resume 后真实 RunId 已绑定；同 key 重放返回原 finalized record",
+          "id": "AR-T01",
+          "measure": null,
+          "to": "finalized",
+          "trigger": {
+            "edge": "P24",
+            "event": "activation-finalized"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "reserved",
+          "guard": "binding / contract / activation 校验确定失败；零新 Run、零新 Effect",
+          "id": "AR-T02",
+          "measure": null,
+          "to": "failed",
+          "trigger": {
+            "edge": "P24",
+            "event": "activation-failed"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "reserved",
+          "guard": "reserved 中断且无法证明原 owner；只能按原 key 显式 resume，禁止重新 mint",
+          "id": "AR-T03",
+          "measure": null,
+          "to": "blocked",
+          "trigger": {
+            "edge": "P24",
+            "event": "activation-blocked"
+          }
+        }
+      ]
+    },
     "attempt": {
       "absorbing": [
         "completed",
@@ -656,13 +717,82 @@
         }
       ]
     },
+    "consultation-journal": {
+      "absorbing": [
+        "completed",
+        "rejected"
+      ],
+      "hangWhitelist": [],
+      "initial": "pending",
+      "nodes": [
+        "completed",
+        "pending",
+        "rejected"
+      ],
+      "terminalNodes": [
+        "completed",
+        "rejected"
+      ],
+      "transitions": [
+        {
+          "await": null,
+          "emits": [],
+          "from": "pending",
+          "guard": "同一四元组与 request fingerprint 匹配；结果持久化后同 correlation retry 只回放",
+          "id": "CJ-T01",
+          "measure": null,
+          "to": "completed",
+          "trigger": {
+            "edge": "P25",
+            "event": "consultation-completed"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "pending",
+          "guard": "correlation / proposal 校验失败或 fail-closed；本 semantic consultation 计一次 HardCap",
+          "id": "CJ-T02",
+          "measure": null,
+          "to": "rejected",
+          "trigger": {
+            "edge": "P25",
+            "event": "consultation-rejected"
+          }
+        },
+        {
+          "await": null,
+          "emits": [],
+          "from": "pending",
+          "guard": "no-response / timeout 持久化为 rejected；不得产生 Effect；本 semantic consultation 计一次 HardCap",
+          "id": "CJ-T03",
+          "measure": null,
+          "to": "rejected",
+          "trigger": {
+            "edge": "P25",
+            "event": "consultation-timeout"
+          }
+        },
+        {
+          "await": "external",
+          "emits": [],
+          "from": "pending",
+          "guard": "correlation 与 fingerprint 相同；继续等待原结果",
+          "id": "CJ-T04",
+          "measure": null,
+          "to": "pending",
+          "trigger": {
+            "edge": "P25",
+            "event": "same-correlation-transport-retry"
+          }
+        }
+      ]
+    },
     "contract-view": {
       "absorbing": [
         "frozen"
       ],
-      "hangWhitelist": [
-        "admitted"
-      ],
+      "hangWhitelist": [],
       "initial": "admitted",
       "nodes": [
         "activated",
@@ -673,6 +803,19 @@
         "frozen"
       ],
       "transitions": [
+        {
+          "await": null,
+          "emits": [],
+          "from": "admitted",
+          "guard": "accepted View 的 activation record 已 finalized 并绑定真实 RunId；同 key 重放复用原记录",
+          "id": "CV-T00",
+          "measure": null,
+          "to": "activated",
+          "trigger": {
+            "edge": "P24",
+            "event": "activation-record-finalized"
+          }
+        },
         {
           "await": null,
           "emits": [],

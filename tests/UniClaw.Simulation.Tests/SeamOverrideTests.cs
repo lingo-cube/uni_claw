@@ -30,7 +30,7 @@ public sealed class SeamOverrideTests
         {
             Calls++;
             return new DispatchResult(DispatchOutcome.DeliveryCompleted, "injected-driver",
-                DateTimeOffset.UtcNow, null);
+                new DateTimeOffset(2026, 9, 13, 9, 0, 1, TimeSpan.Zero), null);
         }
     }
 
@@ -50,7 +50,7 @@ public sealed class SeamOverrideTests
         Assert.NotNull(host.ScriptedAgent); // bundle PhaseScript → ScriptedUniAgent
         Assert.IsType<DeterministicEffectDriver>(host.EffectDriver);
         // default 路径行为与既有回归一致
-        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.KernelCore.AdmitContract(host.Contract).Accepted);
         Assert.True(host.Driver.Activate().Accepted);
         var result = host.DriveOnce();
         Assert.Equal(RunDriveStatus.Completed, result.Status);
@@ -74,7 +74,7 @@ public sealed class SeamOverrideTests
         {
             Seams = new SeamOverrides { Freshness = freshness },
         });
-        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.KernelCore.AdmitContract(host.Contract).Accepted);
         Assert.True(host.Driver.Activate().Accepted);
         var result = host.DriveOnce();
 
@@ -103,7 +103,7 @@ public sealed class SeamOverrideTests
             Seams = new SeamOverrides { Driver = driver },
         });
         Assert.Same(driver, host.EffectDriver); // 组合采用注入实例
-        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.KernelCore.AdmitContract(host.Contract).Accepted);
         Assert.True(host.Driver.Activate().Accepted);
         var result = host.DriveOnce();
 
@@ -127,7 +127,7 @@ public sealed class SeamOverrideTests
         {
             Seams = new SeamOverrides { Driver = new InjectedDriver() },
         });
-        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.KernelCore.AdmitContract(host.Contract).Accepted);
         Assert.True(host.Driver.Activate().Accepted);
         var result = host.DriveOnce();
 
@@ -162,7 +162,7 @@ public sealed class SeamOverrideTests
         });
         Assert.Null(host.ScriptedAgent); // 组合面不再要求 concrete double
 
-        Assert.True(host.KernelCore.AdmitContract(bundle.Contract).Accepted);
+        Assert.True(host.KernelCore.AdmitContract(host.Contract).Accepted);
         Assert.True(host.Driver.Activate().Accepted);
         var result = host.DriveOnce();
 

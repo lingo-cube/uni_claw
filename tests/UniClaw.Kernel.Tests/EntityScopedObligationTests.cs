@@ -33,7 +33,9 @@ public sealed class EntityScopedObligationTests
                 ObligationId, RunObligationKind.Objective,
                 Subject: "save-button", RequiredValue: "present", Mandatory: true,
                 EntityScope: scope),
-        });
+        },
+        TaskInstanceId: "task-entity-scoped", ProductSessionId: "session-entity-scoped",
+        ContractRef: "contract-entity-scoped");
 
     /// <summary>observation + continuity + Run 三面组合 kernel（ESO 组合缝）。</summary>
     private static (UniKernel Kernel, WorldModel World) NewKernel(

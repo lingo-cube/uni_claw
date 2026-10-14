@@ -100,7 +100,9 @@ public sealed class ControlReferencePolicyTests
             Scope: new HashSet<string> { "perception.page.signature" },
             AllowedEffects: new HashSet<string> { allowedEffect },
             ForbiddenEffects: new HashSet<string>(),
-            ProofCriteria: new[] { "target-acted" }));
+            ProofCriteria: new[] { "target-acted" },
+            TaskInstanceId: "task-control-reference", ProductSessionId: "session-control-reference",
+            ContractRef: "contract-control-reference"));
         return (kernel, world, policy, effects);
     }
 
@@ -257,7 +259,9 @@ public sealed class ControlReferencePolicyTests
             Scope: new HashSet<string> { UIWorldDoubles.Observed },
             AllowedEffects: new HashSet<string> { "tap" },
             ForbiddenEffects: new HashSet<string>(),
-            ProofCriteria: new[] { "button-tapped" }));
+            ProofCriteria: new[] { "button-tapped" },
+            TaskInstanceId: "task-control-reference", ProductSessionId: "session-control-reference",
+            ContractRef: "contract-control-reference"));
         kernel.Process(UIWorldDoubles.Observation("page:seed:v1", UIWorldDoubles.T0));
 
         var slice = kernel.DeriveSlice(world.Current!.Containers.Single().Identity.ContainerId);
@@ -327,7 +331,9 @@ public sealed class ControlReferencePolicyTests
             Scope: new HashSet<string> { UIWorldDoubles.Observed },
             AllowedEffects: new HashSet<string> { "tap" },
             ForbiddenEffects: new HashSet<string>(),
-            ProofCriteria: new[] { "button-tapped" }));
+            ProofCriteria: new[] { "button-tapped" },
+            TaskInstanceId: "task-control-reference", ProductSessionId: "session-control-reference",
+            ContractRef: "contract-control-reference"));
         kernel.Process(UIWorldDoubles.Observation("page:twin:v1", UIWorldDoubles.T0));
 
         var slice = kernel.DeriveSlice(cid);

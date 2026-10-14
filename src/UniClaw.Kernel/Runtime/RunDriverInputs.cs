@@ -64,4 +64,7 @@ public sealed class RunDriverInputs
 
     /// <summary>P25 UniAgent consultation seam（唯一调用方 = internal driver）。</summary>
     public required Func<AgentDecisionContext, AgentDecision?> ConsultAgent { get; init; }
+
+    /// <summary>P25 durable seam; null uses an in-process journal for legacy/test composition.</summary>
+    public IConsultationJournal? ConsultationJournal { get; init; }
 }

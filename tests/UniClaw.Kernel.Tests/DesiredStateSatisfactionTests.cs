@@ -74,7 +74,9 @@ public sealed class DesiredStateSatisfactionTests
             Scope: new HashSet<string> { UIWorldDoubles.Observed },
             AllowedEffects: new HashSet<string> { "set-switch" },
             ForbiddenEffects: new HashSet<string>(),
-            ProofCriteria: new[] { "toggle-set" }));
+            ProofCriteria: new[] { "toggle-set" },
+            TaskInstanceId: "task-desired-state", ProductSessionId: "session-desired-state",
+            ContractRef: "contract-desired-state"));
         return (kernel, control, effects, assurance);
     }
 

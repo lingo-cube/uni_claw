@@ -114,7 +114,9 @@ public sealed class EntityObligationFulfillmentTests
                 ObligationId, RunObligationKind.Objective,
                 Subject: "switch", RequiredValue: "on", Mandatory: true,
                 EntityScope: SwitchScope),
-        });
+        },
+        TaskInstanceId: "task-entity-fulfillment", ProductSessionId: "session-entity-fulfillment",
+        ContractRef: "contract-entity-fulfillment");
 
     private static (UniKernel Kernel, WorldModel World, string Cid) NewSwitchKernel()
     {

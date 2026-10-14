@@ -56,7 +56,9 @@ public sealed class TerminalOutcomeTests
         AllowedEffects: new HashSet<string> { "tap" },
         ForbiddenEffects: new HashSet<string> { "swipe" },
         ProofCriteria: obligations?.Select(o => o.ObligationId).ToArray() ?? new[] { "home-screen-observed" },
-        Obligations: obligations);
+        Obligations: obligations,
+        TaskInstanceId: "task-terminal-outcome", ProductSessionId: "session-terminal-outcome",
+        ContractRef: "contract-terminal-outcome");
 
     /// <summary>成功路径 obligations：objective + material effect 双双 mandatory。</summary>
     private static IReadOnlyList<RunObligation> CompletionObligations() => new[]

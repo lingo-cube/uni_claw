@@ -55,7 +55,9 @@ public sealed class UIWorldGroundingSeamTests
         Scope: new HashSet<string> { "screen.home" },
         AllowedEffects: new HashSet<string> { "tap" },
         ForbiddenEffects: new HashSet<string> { "swipe" },
-        ProofCriteria: new[] { "button-tapped" });
+        ProofCriteria: new[] { "button-tapped" },
+        TaskInstanceId: "task-ui-grounding", ProductSessionId: "session-ui-grounding",
+        ContractRef: "contract-ui-grounding");
 
     /// <summary>
     /// 组装 grounding seam kernel：SeedContainer association（首条 evidence 铸

@@ -65,7 +65,9 @@ public sealed class EgoBrowserDeliveryTests
             Scope: new HashSet<string> { UIWorldDoubles.Observed },
             AllowedEffects: new HashSet<string> { "click" },
             ForbiddenEffects: new HashSet<string>(),
-            ProofCriteria: new[] { "clicked" }));
+            ProofCriteria: new[] { "clicked" },
+            TaskInstanceId: "task-ego-delivery", ProductSessionId: "session-ego-delivery",
+            ContractRef: "contract-ego-delivery"));
         return kernel;
     }
 

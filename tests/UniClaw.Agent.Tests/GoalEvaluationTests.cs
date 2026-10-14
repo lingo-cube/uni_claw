@@ -471,7 +471,12 @@ public sealed class GoalEvaluationTests
                     "screen.home", "active", Mandatory: true),
                 new RunObligation("effect-home-active", RunObligationKind.MaterialEffect,
                     "screen.home", "active", Mandatory: true),
-            }));
+            },
+            TaskInstanceId: "task-goal-evaluation",
+            ProductSessionId: "session-goal-evaluation",
+            ContractRef: "contract-goal-evaluation",
+            AcceptedContractViewRef: "view-goal-evaluation",
+            ContractGeneration: 1));
         kernel.Process(Observation("screen.home", "idle", T0));
 
         var intent = kernel.SelectIntent(kernel.DeriveSlice(kernel.CurrentBelief!.Containers.Single().Identity.ContainerId));

@@ -40,7 +40,9 @@ public sealed class KernelRunDriverAcceptanceV03RedTests
         new HashSet<string> { "tap" }, new HashSet<string>(),
         new[] { "objective" },
         new[] { new RunObligation("wifi", RunObligationKind.MaterialEffect, "switch.wifi", "on", true) },
-        consultations, totalSteps);
+        consultations, totalSteps,
+        TaskInstanceId: "task-acceptance-v03", ProductSessionId: "session-acceptance-v03",
+        ContractRef: "contract-acceptance-v03");
 
     private static RunDriverInput.Observation SeedObservation() => new(new[]
     {

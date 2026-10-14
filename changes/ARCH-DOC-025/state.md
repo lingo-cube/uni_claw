@@ -17,6 +17,11 @@ Out：实现 P24/P25、恢复、Memory、用户中途控制或 Observation Reque
 - 场景层与协议图层结论互补：场景负责实例化和反例，形式审计负责可达性、终止性、闭合性和认识论循环。
 - 150 场景结论为 `✅122 · ◐14 · D13 · NB1`；整体生命周期判定为“部分完备，尚不能称为完全完备”。
 - `ARCH-DOC-024` 保持组件分级与工程化管理主题；本 Change 独立承载生命周期题目，避免两个问题共用一个 Change。
+- 2026-10-14 buyer-scoped revalidation：完备性改按当前 buyer 的最小字段集合判定。
+  P5、P20/P21、无当前 consumer 的 GoalEvaluation delivery、Host lifecycle command
+  transport 和通用跨进程扩展允许保持 deferred；Task/Session/Run、P24、P25
+  仍是当前运行链的阻塞字段闭口。P1 HostRunner authoring 作为 known deviation
+  保留，待真实 UniAgent authoring buyer。
 
 ## Acceptance
 
@@ -40,3 +45,4 @@ verification:
 ## Status log
 
 - 2026-10-13 · UNDERSTAND → PERSIST · 根据用户反馈纠正文档主题；以场景推理和协议形式审计为主证据重写；新增独立 Change，避免与组件工程化审查 Change 混淆。
+- 2026-10-14 · REVIEW · 按“最小购买者闭包”重新复核：区分当前 buyer、Owner 已裁决但尚无 consumer 的候选扩展、以及明确 no-current-buyer 的 deferred 边；结论收窄为身份链/P24/P25 仍阻塞，P1 authoring 作为 known deviation，P5/P20/P21 等不再计入当前失败分母。

@@ -1,0 +1,6 @@
+Change: PROTOCOL-MACHINE-003
+State: closed
+Finding: P24/P25 implementation branches were present in runtime but missing from the canonical protocol graph; workspace launch schema and baseline prose also lagged the implemented minimum closure.
+Resolution: added activation-record and consultation-journal object machines, closed contract-view admission hang, wired four explicit P24 binding fields into workspace request/ack schemas, and synchronized baseline/completeness docs. Runtime behavior was unchanged.
+Verification: protocol graph 7 machines/36 transitions/44 edges, anchors 44/44; full solution 1530/1530; DSH decision plugin 32/32; task workbench 66/66; scenarios 28/0 violations; invariant matrix 47/47; workspace schemas 13/13; diff check passed.
+Evidence: audit-report.txt; schemas/protocol/state-machine.yaml; schemas/workspace/task-launch-request.schema.json; schemas/workspace/task-launch-ack.schema.json; docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md.

@@ -1,5 +1,8 @@
 # UniClaw 组件、协议与生命周期完备性审查（2026-10-13）
 
+> Status: superseded by the buyer-scoped 2026-10-14 completeness review
+> Authority: NONE
+
 ## 这份审查要回答什么
 
 题目不是“工程管理做得好不好”，而是四个语义问题：

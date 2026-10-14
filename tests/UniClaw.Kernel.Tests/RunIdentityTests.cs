@@ -16,7 +16,9 @@ public sealed class RunIdentityTests
         new HashSet<string> { "app" },
         new HashSet<string> { "effect.ui" },
         new HashSet<string> { "effect.fs" },
-        new List<string> { "criterion" });
+        new List<string> { "criterion" },
+        TaskInstanceId: "task-run-identity", ProductSessionId: "session-run-identity",
+        ContractRef: "contract-run-identity");
 
     [Fact]
     public void SameContract_AcrossInstances_MintsSameRunId()
@@ -72,13 +74,17 @@ public sealed class RunIdentityTests
             new HashSet<string> { "a", "b" },
             new HashSet<string> { "c" },
             new HashSet<string> { "effect.fs" },
-            new List<string> { "criterion" })).Accepted);
+            new List<string> { "criterion" },
+            TaskInstanceId: "task-boundary-a", ProductSessionId: "session-boundary-a",
+            ContractRef: "contract-boundary-a")).Accepted);
         Assert.True(b.AdmitContract(new ExecutionContract(
             "v1", "obj",
             new HashSet<string> { "a" },
             new HashSet<string> { "b", "c" },
             new HashSet<string> { "effect.fs" },
-            new List<string> { "criterion" })).Accepted);
+            new List<string> { "criterion" },
+            TaskInstanceId: "task-boundary-b", ProductSessionId: "session-boundary-b",
+            ContractRef: "contract-boundary-b")).Accepted);
 
         Assert.NotEqual(a.RunId, b.RunId);
     }
@@ -106,13 +112,17 @@ public sealed class RunIdentityTests
             new HashSet<string> { "app", "web" },
             new HashSet<string> { "effect.ui" },
             new HashSet<string> { "effect.fs" },
-            new List<string> { "c" })).Accepted);
+            new List<string> { "c" },
+            TaskInstanceId: "task-insertion-a", ProductSessionId: "session-insertion-a",
+            ContractRef: "contract-insertion-a")).Accepted);
         Assert.True(b.AdmitContract(new ExecutionContract(
             "v1", "obj",
             new HashSet<string> { "web", "app" }, // 相同成员、不同插入序
             new HashSet<string> { "effect.ui" },
             new HashSet<string> { "effect.fs" },
-            new List<string> { "c" })).Accepted);
+            new List<string> { "c" },
+            TaskInstanceId: "task-insertion-a", ProductSessionId: "session-insertion-a",
+            ContractRef: "contract-insertion-a")).Accepted);
 
         Assert.Equal(a.RunId, b.RunId);
     }

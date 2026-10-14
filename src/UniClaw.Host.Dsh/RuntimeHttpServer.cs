@@ -33,6 +33,7 @@ public sealed class RuntimeHttpServer
     private readonly RuntimeRunStore _store;
     private readonly TaskInstanceStore _taskStore;
     private readonly ProductSessionStore _sessionStore;
+    private readonly ActivationRecordStore _activationStore;
 
     private RuntimeHttpServer(WebApplication app, string runsRoot, string device,
         UniClaw.Agent.Profile.UniAgentProfile agentProfile, UniagentDshBindings bindings)
@@ -48,6 +49,7 @@ public sealed class RuntimeHttpServer
         var dataDir = Path.Combine(runsRoot, ".identity");
         _taskStore = new TaskInstanceStore(Path.Combine(dataDir, "task-instances.jsonl"));
         _sessionStore = new ProductSessionStore(Path.Combine(dataDir, "product-sessions.jsonl"));
+        _activationStore = new ActivationRecordStore(Path.Combine(dataDir, "activation-records.jsonl"));
     }
 
     public static RuntimeHttpServer Create(string[] args, string runsRoot, string device)
@@ -143,34 +145,80 @@ public sealed class RuntimeHttpServer
         if (!HasReference(request.ProjectRef) || !HasReference(request.TestSetRef) || !HasReference(request.TaskRef))
             return Error(StatusCodes.Status400BadRequest, "invalid-request", "projectRef, testSetRef and taskRef are required", retryable: false);
 
-        // Runtime owns run identity. The legacy request RunId is accepted for
-        // wire compatibility but is never used as the persisted identity.
+        var taskInstanceId = Required(request.TaskInstanceId);
+        var productSessionId = Required(request.ProductSessionId);
+        var acceptedContractViewRef = Required(request.AcceptedContractViewRef);
+        if (taskInstanceId is null || productSessionId is null || acceptedContractViewRef is null
+            || request.ContractGeneration is null || request.ContractGeneration <= 0)
+            return Error(StatusCodes.Status400BadRequest, "activation-binding-required",
+                "taskInstanceId, productSessionId, acceptedContractViewRef and positive contractGeneration are required",
+                retryable: false);
+
+        var taskRecord = _taskStore.Get(taskInstanceId);
+        var sessionRecord = _sessionStore.Get(productSessionId);
+        if (taskRecord is null || sessionRecord is null)
+            return Error(StatusCodes.Status404NotFound, "activation-binding-not-found",
+                "taskInstanceId or productSessionId does not exist", retryable: false);
+        if (!string.Equals(taskRecord.ProductSessionId, productSessionId, StringComparison.Ordinal)
+            || !string.Equals(sessionRecord.TaskInstanceId, taskInstanceId, StringComparison.Ordinal))
+            return Error(StatusCodes.Status409Conflict, "activation-binding-mismatch",
+                "taskInstanceId and productSessionId do not belong to the same binding", retryable: false);
+
+        // Runtime owns run identity. Caller-supplied RunId is never accepted as
+        // canonical identity; launch/idempotency are lookup keys only.
         var launchId = Required(request.LaunchId) ?? $"launch-{Guid.NewGuid():N}";
         var idempotency = Required(request.IdempotencyKey) ?? $"idem-{Guid.NewGuid():N}";
         var correlation = Required(request.CorrelationId) ?? Guid.NewGuid().ToString("N");
-        var existing = _store.FindByIdempotencyKey(idempotency) ?? _store.FindByLaunchId(launchId);
-        if (existing is not null)
-            return Results.Accepted($"/api/uniclaw-runtime/runs/{existing.RunId}", Response(existing, idempotent: true));
 
-        // RUNTIME-IDENTITY-001：Runtime 铸造身份（ADR-0044/0045）——
-        // 不再消费 caller-supplied ProductSessionId/TaskInstanceId；
-        // 从 Store 幂等铸造，与 ADR-0046 的启动钥匙语义一致。
-        var taskRefLabel = JsonLabel(request.TaskRef, "label") ?? JsonLabel(request.TaskRef, "id") ?? "unknown";
-        var taskInstance = _taskStore.Create(taskRefLabel, idempotency);
-        var productSession = _sessionStore.Create(taskInstance.TaskInstanceId);
-        _taskStore.BindSession(taskInstance.TaskInstanceId, productSession.ProductSessionId);
-        _sessionStore.BindRun(productSession.ProductSessionId, $"run-pending-{launchId}");
+        var activationKey = new ActivationKey(acceptedContractViewRef, request.ContractGeneration.Value);
+        var reservation = _activationStore.Reserve(
+            activationKey, taskInstanceId, productSessionId, launchId, idempotency, correlation);
+        if (reservation.Conflict)
+            return Error(StatusCodes.Status409Conflict, "activation-key-conflict",
+                "launchId or idempotencyKey is already bound to a different activation key", retryable: false);
+        var activation = reservation.Record;
+        if (sessionRecord.RunId is not null && activation.Status != "finalized")
+        {
+            _activationStore.Fail(activationKey, "blocked", "product-session-already-bound");
+            return Error(StatusCodes.Status409Conflict, "product-session-already-bound",
+                "productSessionId is already bound to a different Run", retryable: false);
+        }
+        if (activation.Status is "failed" or "blocked")
+            return Error(StatusCodes.Status409Conflict, "activation-closed", activation.Reason ?? activation.Status, retryable: false);
+        if (activation.Status == "reserved" && activation.RunId is null && !reservation.Created && !request.Resume)
+            return Error(StatusCodes.Status409Conflict, "activation-reserved",
+                "activation is reserved and requires explicit resume", retryable: true);
+        if (activation.Status == "finalized" && activation.RunId is not null)
+        {
+            var replay = _store.Get(activation.RunId);
+            return replay is null
+                ? Error(StatusCodes.Status409Conflict, "activation-record-incomplete",
+                    "activation is finalized but its Run projection is unavailable", retryable: true)
+                : Results.Accepted($"/api/uniclaw-runtime/runs/{replay.RunId}", Response(replay, idempotent: true));
+        }
 
         var run = _store.Create(new RuntimeRunStore.CreateRequest(
-            productSession.ProductSessionId,
-            taskInstance.TaskInstanceId,
+            productSessionId,
+            taskInstanceId,
             launchId,
             idempotency,
             correlation,
             request.ProjectRef,
             request.TestSetRef,
             request.TaskRef,
-            request.EnvironmentIntent));
+            request.EnvironmentIntent,
+            acceptedContractViewRef,
+            request.ContractGeneration));
+        try
+        {
+            _sessionStore.BindRun(productSessionId, run.RunId);
+            _activationStore.Finalize(activationKey, run.RunId);
+        }
+        catch (Exception ex)
+        {
+            _activationStore.Fail(activationKey, "blocked", $"activation-finalize-failed:{ex.Message}");
+            return Error(StatusCodes.Status409Conflict, "activation-finalize-failed", ex.Message, retryable: true);
+        }
 
         // CAP-006：runtime-http 面同样经产品 ModelManagement 缝 resolve
         //（缺省 realization 借用 DSH；不直连 yaml）。
@@ -218,8 +266,10 @@ public sealed class RuntimeHttpServer
             p => p with { HostSessionRef = new RuntimeRunStore.HostSessionRef("dsh", attachment.DshSessionId) });
         var launch = new HostRunner.LaunchContext(running.RunId, running.ProductSessionId,
             launchId, idempotency, correlation,
-            TaskInstanceId: taskInstance.TaskInstanceId,
-            ContractRef: $"contract-{running.RunId}");
+            TaskInstanceId: taskInstanceId,
+            ContractRef: $"contract-view:{acceptedContractViewRef}",
+            AcceptedContractViewRef: acceptedContractViewRef,
+            ContractGeneration: request.ContractGeneration);
         var agent = new DshAgentAdapter(channel, running.ProductSessionId, running.RunId, turnTimeout: TimeSpan.FromSeconds(110));
         // PNL-011：需求原文经 taskRef（web launch 流把 requirement 放在 taskRef.label）
         // 进入 run 目录 metadata 投影，报告①区从此有真相，不再依赖 --requirement。
@@ -662,7 +712,7 @@ public sealed class RuntimeHttpServer
     }
 
     private static string RepoRoot() => Directory.GetParent(AppContext.BaseDirectory)?.Parent?.Parent?.Parent?.Parent?.FullName ?? Environment.CurrentDirectory;
-    public sealed record LaunchRequest(string? RunId, string? ProductSessionId, string? LaunchId, string? IdempotencyKey, string? CorrelationId, JsonElement? ProjectRef = null, JsonElement? TestSetRef = null, JsonElement? TaskRef = null, JsonElement? EnvironmentIntent = null, string? TaskInstanceId = null);
+    public sealed record LaunchRequest(string? RunId, string? ProductSessionId, string? LaunchId, string? IdempotencyKey, string? CorrelationId, JsonElement? ProjectRef = null, JsonElement? TestSetRef = null, JsonElement? TaskRef = null, JsonElement? EnvironmentIntent = null, string? TaskInstanceId = null, string? AcceptedContractViewRef = null, int? ContractGeneration = null, bool Resume = false);
     public sealed record RecoverRequest(string? LaunchId = null, string? IdempotencyKey = null);
 
     private static void RunAdb(string device, params string[] arguments)

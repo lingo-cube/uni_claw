@@ -31,4 +31,6 @@ public sealed record ExecutionContract(
     int? MaxTotalSteps = null,
     string? TaskInstanceId = null,
     string? ProductSessionId = null,
-    string? ContractRef = null);
+    string? ContractRef = null,
+    string? AcceptedContractViewRef = null,
+    int? ContractGeneration = null);
