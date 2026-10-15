@@ -45,6 +45,13 @@ verification:
 
 ## Status log
 
+- 2026-10-17 · implementing · **B4 完成（ad53c419，TDD）**：停滞事实
+  升格为 ConsultationProgress 协议字段（+StagnantConsultations/
+  +SameRouteConsultations，缺省 0 兼容；纯事实禁判语）；Director 注入
+  阈值达成时写字段并退役 Slice A 的 Objective 文本注入（消冗余）；
+  Progress 缺席则诚实不造。工件再生 + 插件副本 + hash；场景库重封；
+  全 8 工程绿。剩余：B3 局部视图（六族）→ B5 截图三道闸 → B6 F5
+  钉扎收尾。
 - 2026-10-17 · implementing · **B2 完成（dbcd63e0 + 1daa6282，TDD）**：
   参数化 ObserveSpec——Depth 封闭枚举（Normal/Focused/Deep，白名单 +1）
   + Purpose 诚实字段（非空白 ≤256）；V5 静态界跨深度恒执法（三本账取
