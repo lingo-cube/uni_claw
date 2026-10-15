@@ -1,5 +1,10 @@
 # Agent 异常升级与观察机制（设计讨论稿 v0.1）
 
+> **SUPERSEDED（2026-10-17）**：本稿为未 grill 候选形态，已被 v0.2
+> （GRILLED / DECISION-COMPLETE）取代——见
+> `agent-exception-escalation-and-observation-v0.2.md`。本稿仅存档，
+> 不再是任何实现的依据。
+
 > Status: DRAFT / CANDIDATE
 > Authority: NONE（本文档只整理问题、候选机制与借鉴对照，供 owner 讨论
 > 敲定；不修改任何冻结面）
