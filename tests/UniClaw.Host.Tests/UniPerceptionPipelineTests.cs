@@ -245,4 +245,46 @@ public sealed class UniPerceptionPipelineTests
         Assert.Equal(expected, SettingsTraversalLiveFeed.MaterialInsufficiency(
             hierarchyAvailable, proposalCount));
     }
+
+    // ---- AGT-019 M2③/B5：截图三道闸（Q3 裁决：判断级永不入账）--------------
+
+    [Fact]
+    public async Task JudgmentLevelSlowResult_NeverLands_DroppedEvenWhenRouteAligned()
+    {
+        var tcs = new TaskCompletionSource<UniPerceptionFetchResult>();
+        var pipeline = new UniPerceptionPipeline((_, _, _) => tcs.Task, maxRequestsPerRun: 4);
+        pipeline.Dispatch(Request(), "corr", "android.settings", "ScreenshotRead",
+            judgmentLevel: true);
+        _ = Task.Delay(50).ContinueWith(_ => tcs.TrySetResult(Ok(("ui.screen.route", "Unknown"))));
+
+        var landCalls = 0;
+        var tokens = pipeline.WaitAndPoll(
+            (_, _) => { landCalls++; return "should-never-land"; },
+            "android.settings", budget: TimeSpan.FromSeconds(5));
+
+        var token = Assert.Single(tokens);
+        Assert.Contains("|Dropped|judgment-source-never-ledgered|", token);
+        Assert.Matches(@"\|ms=\d+$", token);
+        Assert.Equal(0, landCalls); // 入账拒收：零投影
+        await Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task JudgmentGate_PrecedesAlignmentCheck_InTrace()
+    {
+        var tcs = new TaskCompletionSource<UniPerceptionFetchResult>();
+        var pipeline = new UniPerceptionPipeline((_, _, _) => tcs.Task, maxRequestsPerRun: 4);
+        pipeline.Dispatch(Request(), "corr", "android.settings", "ScreenshotRead",
+            judgmentLevel: true);
+        _ = Task.Delay(50).ContinueWith(_ => tcs.TrySetResult(Ok(("ui.screen.route", "Unknown"))));
+
+        // 路由也变了，但 judgment 闸优先——令牌是 judgment-source 不是 unaligned。
+        var tokens = pipeline.WaitAndPoll((_, _) => "should-not-land",
+            "android.settings|rk1:Internet", budget: TimeSpan.FromSeconds(5));
+
+        var token = Assert.Single(tokens);
+        Assert.Contains("judgment-source-never-ledgered", token);
+        Assert.DoesNotContain("unaligned-route", token);
+        await Task.CompletedTask;
+    }
 }

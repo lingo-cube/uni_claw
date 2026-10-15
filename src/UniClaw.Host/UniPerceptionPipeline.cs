@@ -39,7 +39,10 @@ public sealed class UniPerceptionPipeline
         CancellationTokenSource CancellationTokenSource,
         // AGT-019 M3：发射时刻（ms 延迟分量基准）与 fetch 界（周期剩余预算基准）。
         long DispatchedAtTimestamp,
-        TimeSpan FetchBound);
+        TimeSpan FetchBound,
+        // AGT-019 M2③/B5（Q3 裁决）：judgment 级来源标记（截图/视觉模型
+        // 读出）——闸一：载荷强制标记，发射时声明，结算时执法。
+        bool JudgmentLevel = false);
 
     private readonly Fetch _fetch;
     private readonly int _maxRequestsPerRun;
@@ -59,7 +62,8 @@ public sealed class UniPerceptionPipeline
     /// <summary>非阻塞发射。返回 Dispatched 令牌；预算尽/无效输入返回 Skipped 令牌。</summary>
     public string Dispatch(
         SlowConsultationRequest request, string sessionCorrelation,
-        string routeKey, string triggerToken, TimeSpan? fetchBound = null)
+        string routeKey, string triggerToken, TimeSpan? fetchBound = null,
+        bool judgmentLevel = false)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (!HasBudget)
@@ -73,7 +77,7 @@ public sealed class UniPerceptionPipeline
         var cts = new CancellationTokenSource(bound);
         var task = _fetch(request, sessionCorrelation, cts.Token);
         _pending.Add(new Pending(request, routeKey, task, triggerToken, cts,
-            System.Diagnostics.Stopwatch.GetTimestamp(), bound));
+            System.Diagnostics.Stopwatch.GetTimestamp(), bound, judgmentLevel));
         // AGT-019 M3：令牌带 ms 延迟分量（发射即 0）。
         return $"{triggerToken}|Dispatched|in-flight={_pending.Count}|ms=0";
     }
@@ -136,6 +140,15 @@ public sealed class UniPerceptionPipeline
                 or Kernel.Perception.SlowConsultationStatus.Partial))
             {
                 tokens.Add($"{p.TriggerToken}|{result.Status}|{result.Diagnostic}|ms={latencyMs}");
+                continue;
+            }
+            // AGT-019 M2③/B5（Q3 裁决）：闸二——入账拒收。judgment 级来源
+            // 永不投影入账（与错屏丢弃门同构执法），且**先于**路由对齐判定
+            //（对齐也不入账：判断级/事实级分界红线）；drop 令牌即闸三——
+            // trace 只记"看过"，不记采信。
+            if (p.JudgmentLevel)
+            {
+                tokens.Add($"{p.TriggerToken}|Dropped|judgment-source-never-ledgered|ms={latencyMs}");
                 continue;
             }
             if (!string.Equals(p.RouteAtDispatch, currentRouteKey, StringComparison.Ordinal))
