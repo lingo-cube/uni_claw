@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-consult-bridge.v1",
+  "mode": "coverage-director",
+  "exchanges": [
+    {
+      "mode": "coverage-director",
+      "context": {
+        "decisionId": "decision-d24d3d1dc90d-1",
+        "runId": "run-1038b6556f8684c6816f0c9e7a5cf2851fcfd610e511e35f297dd24d3d1dc90d",
+        "contractVersion": "v0",
+        "objective": "Traverse the Android Settings menu for coverage per the configured plan: enter every configured first-level entry, discover and enter at least one scroll-only entry, verify back navigation and repeated entry, and end on the Settings root page. Choose every target only from the current semantic hierarchy.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.overlay.popup": {
+            "value": "absent",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-322c5a248eb3": {
+            "value": "android.settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-322c5a248eb3",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 0,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-322c5a248eb3",
+          "signature": "android.settings"
+        },
+        "elements": [
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/settings_homepage_container",
+            "bounds": "0,0.0568,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 1,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Search settings",
+            "bounds": "0.0389,0.2979,0.9611,0.3693",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "com.android.settings:id/main_content_scrollable_container",
+            "bounds": "0,0.3911,1,0.9344",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 1,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Network \u0026 internet",
+            "bounds": "0,0.3911,1,0.5115",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 1,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Connected devices",
+            "bounds": "0,0.5115,1,0.6318",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 1,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Apps",
+            "bounds": "0,0.6318,1,0.7521",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 1,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Notifications",
+            "bounds": "0,0.7521,1,0.8724",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 1,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Battery",
+            "bounds": "0,0.8724,1,0.9344",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 1,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 1,
+          "stepsDispatched": 0,
+          "stepsVerified": 0,
+          "policyState": null,
+          "stagnantConsultations": 0,
+          "sameRouteConsultations": 0
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 111,
+          "stepsRemaining": 96
+        },
+        "availableCapabilities": {
+          "runtime.language-inspector": {
+            "summary": "\u6BD4\u5BF9\u89C2\u5BDF\u6587\u672C\u662F\u5426\u7B26\u5408\u671F\u671B\u8BED\u8A00\u7684\u4E66\u5199\u683C\u5F0F\uFF08Unicode \u811A\u672C\u7EA7\uFF0Cen=Latin / zh=Han\uFF09",
+            "effectiveConfiguration": {
+              "allowlistTerms": "8 \u8BCD\u6761\uFF1AWLAN, Wi-Fi, Bluetooth, GPS, NFC, USB, SIM, VPN",
+              "granularity": "\u6587\u672C\u9879\u7EA7\u539F\u5B50\u5224\u5B9A\uFF08\u83DC\u5355\u7EA7\u5FFD\u7565\u533A\u7531\u5BBF\u4E3B\u4EFB\u52A1\u4FA7\u58F0\u660E\uFF0C\u89C1\u63A5\u7EBF change\uFF09"
+            },
+            "impactDisclosures": [],
+            "limitations": [
+              "\u811A\u672C\u7EA7\u5224\u5B9A\uFF1A\u5B57\u6BCD\u987B\u5C5E\u671F\u671B\u811A\u672C\uFF0C\u6570\u5B57/\u6807\u70B9/\u7A7A\u767D\u4E2D\u7ACB",
+              "\u4E0D\u652F\u6301\u7684\u8BED\u8A00\uFF08en/zh \u4E4B\u5916\uFF09\u8BDA\u5B9E Unknown\uFF0C\u4E0D\u731C",
+              "\u767D\u540D\u5355\u4E3A\u8BCD\u6761\u7EA7\u6574\u8BCD\u79FB\u9664\uFF0C\u4E0D\u505A\u6A21\u5F0F\u5339\u914D"
+            ],
+            "isValid": true
+          }
+        },
+        "renewalWindow": null,
+        "localView": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-1038b6556f8684c6816f0c9e7a5cf2851fcfd610e511e35f297dd24d3d1dc90d:boundary-1"
+      },
+      "decision": null,
+      "effectiveDecision": null
+    }
+  ]
+}

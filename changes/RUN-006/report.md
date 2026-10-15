@@ -2,8 +2,35 @@
 
 > Worker：glm-5.3-flash（≤3 轮纪律，实用 2 轮 + 1 次就地修正）；Leader
 > 复核了全部关键声明（以复核数为准）。证据：evidence/run-006/。
-> 咨询链降级申报：真实 DSH 3081 桥因沙箱无法自起（~/.dsh profile 写入
-> 被拒，EPERM 实录）→ 文档化 directive-follower double（如实标注）。
+> 咨询链降级申报（第 1 轮）：真实 DSH 3081 桥因沙箱无法自起 → 文档化
+> directive-follower double。**追加轮（owner 授权 full-access，+3 次尝试）：
+> 真实链已跑通，见 §追加轮。**
+
+## 追加轮：真实 DSH 链全遍历（owner 授权后 3 次尝试）
+
+1. **尝试 1**：3081 起服务（uniclaw-product profile）→ 握手 404。归因：
+   四插件未部署到该 profile → `dsh/deploy.sh`（DSH_PROFILE_DIR 覆盖）。
+2. **尝试 2**：仍 404。**根因 = AGT-019 B6 漏钉**：B2/B4 schema 进化后
+   插件 prompt manifest 钉旧 schemaHash → fail-closed 耦合校验拒绝激活
+   （路由不挂载）。按纪律整链补钉：canonical prompt（hash 8bd78b5a… +
+   promptRevision 3→4 + defer depth/purpose 段）→ prompt-hash.txt 再生
+   （tools/prompt-manifest-hash.py）→ 插件副本字节一致 → profile 哈希
+   引用刷新 + profileRevision 3→4 → 三处测试随动。全 8 工程绿
+   （commit c97069af）。
+3. **尝试 3（真实链全遍历，full-traversal-3b/run-20261015-225305-029）**：
+   **deepseek-flash 真实咨询链跑完全程**——97 周期 96 步，BoundedStop
+   38%，比替身轮走得更远（first-level entered 1/7、second-level 2/8、
+   repeated-entry 达成、nested visited 4），divergence NONE。
+   - slow：6×Dispatched（真机触发）→ **传输层打通**（不再 connection
+     refused）→ 6×`Rejected|slow-endpoint-empty-text`（~7s 真实模型
+     往返后空文本）。**最后一里**：插件靠 session 事件流
+     （assistant/message / assistant/attempt）抓 slow 文本，疑 dk-harness
+     事件形状演进致捕获落空——有界后续项（插件侧事件形状适配）。
+   - localView 桥载荷仍 null（发现③在真实链复现，桥 DTO 映射缺）；
+     stagnation 仍 0（弹窗循环判据不可达，发现②在真实链复现）。
+
+**慢感知真实使用结论（最终版）**：触发→派发→传输全部真实生效；落地
+卡在插件 slow 文本捕获（空文本）——机制外的最后一里，修复路径明确。
 
 ## 四元组
 

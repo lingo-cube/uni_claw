@@ -36,6 +36,12 @@ coverage，真实产品配置），验证 AGT-019 机制在真实链路生效并
 
 ## Status log
 
+- 2026-10-17 · closed-ready · **追加轮：真实 DSH 链跑通（owner 授权
+  full-access，3 次尝试）**：插件部署 → B6 漏钉修复（prompt manifest
+  钉扎链整环，c97069af）→ deepseek-flash 真实咨询链全遍历（97 周期
+  96 步，38%，导航真实发生）。slow 六段全通到传输层，最后一里 =
+  插件 slow 文本捕获空（事件形状适配，有界后续项）。发现②③真实链
+  复现。环境已清理（模拟器 + 3081 停）。
 - 2026-10-17 · closed-ready · **全遍历完成（Worker 2 轮 + Leader 复核）**：
   BoundedStop 诚实终局（37.5%，96 步全 verified）；slow 触发链真机实证
   （6×Dispatched，桥缺席 0 Landed——环境阻塞非机制失效）；progress 双

@@ -1,0 +1,28 @@
+[
+  {
+    "cycle": 1,
+    "context": "External",
+    "captureId": "capture-8e179f2ef3aa4117bcb96b05a1cee560",
+    "observationCycleId": "settings-cycle-001",
+    "fastAvailable": true,
+    "hierarchyAvailable": true,
+    "proposalCount": 638,
+    "fastLatency": "00:00:00.5125738",
+    "hierarchyLatency": "00:00:01.9655408",
+    "screenIdentity": "android.settings|rk1:Settings|src=homepage_title|up=0",
+    "popup": "absent",
+    "slow": null,
+    "viewportDigest": "vd1:53DCAF07",
+    "grounding": null,
+    "assurance": null,
+    "effect": null,
+    "verification": null,
+    "fastServiceStartupLatency": "00:00:00",
+    "fastDecodeLatency": "00:00:00.0475820",
+    "fastInferenceLatency": "00:00:00.4639197",
+    "fastInferenceSucceeded": true,
+    "fastServiceWarmupLatency": "00:00:02.3107601",
+    "fastServiceWarmupSucceeded": true,
+    "fastServiceWarmupError": null
+  }
+]
