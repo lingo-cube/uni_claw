@@ -384,4 +384,38 @@ public sealed class SettingsCoverageDirectorPlanTests
         Assert.Equal("unknown-route-agent-response-rejected",
             Assert.Single(director.ConsultLog).DeviationReason);
     }
+
+    // AGT-019 M5（Q6 裁决）：no-progress 双零窗口——新完成验证增量与
+    // frontier 计数增量同时为零持续窗口（保守初值：注入 3 / 硬停 5，
+    // 标定切片后冻结）→ 只注入事实计数（禁 Host 判语）；更高阈值机械
+    // 硬停兜底（bounded-stop 同族）。
+
+    [Fact]
+    public void StagnantTraversal_InjectsNoProgressFacts_AfterWindow()
+    {
+        var objectives = new List<string>();
+        var director = new SettingsCoverageDirector(
+            context => { objectives.Add(context.Objective); return Act(Entry); },
+            NormalRootLedger(), Config());
+        for (var i = 1; i <= 4; i++)
+            Assert.NotNull(director.Consult(Context($"d-{i}")));
+
+        Assert.DoesNotContain("NO-PROGRESS", objectives[0]);
+        Assert.Contains("NO-PROGRESS", objectives[3]);
+        Assert.Contains("counts only", objectives[3]);
+    }
+
+    [Fact]
+    public void StagnantTraversal_StopsBounded_AtHigherThreshold()
+    {
+        var director = new SettingsCoverageDirector(
+            _ => Act(Entry), NormalRootLedger(), Config());
+        for (var i = 1; i <= 5; i++)
+            Assert.NotNull(director.Consult(Context($"d-{i}")));
+
+        var sixth = director.Consult(Context("d-6"));
+
+        Assert.IsType<AgentDecision.NoAction>(sixth);
+        Assert.Equal("bounded-stop:no-progress", director.TerminalJustification);
+    }
 }

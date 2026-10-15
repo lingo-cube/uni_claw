@@ -5,7 +5,17 @@ namespace UniClaw.Host.SettingsCoverage;
 
 public sealed record CoverageSessionConfig(string TaskTitle, string Workspace, bool WorkspaceReuse, bool AutoCloseTurn);
 
-public sealed record CoverageBounds(int MaxSteps, int MaxConsultRounds, int MaxScrolls, int MaxConsecutiveFailures, int MaxDirectiveRetries);
+/// <summary>AGT-019 M5（Q6）：StagnationInjectConsults / StagnationStopConsults =
+/// no-progress 双零窗口的注入/硬停阈值（保守初值 3/5，标定切片后冻结；
+/// 硬停兜底与 bounded-stop 同族）。</summary>
+public sealed record CoverageBounds(
+    int MaxSteps,
+    int MaxConsultRounds,
+    int MaxScrolls,
+    int MaxConsecutiveFailures,
+    int MaxDirectiveRetries,
+    int StagnationInjectConsults = 3,
+    int StagnationStopConsults = 5);
 
 public sealed record CoverageRequirements(
     bool RootPage,
@@ -276,7 +286,11 @@ public sealed record SettingsCoverageConfig(
         var maxScrolls = RequireInt(document, ["bounds", "maxScrolls"], path, minimum: 0);
         var maxConsecutiveFailures = RequireInt(document, ["bounds", "maxConsecutiveFailures"], path, minimum: 1);
         var maxDirectiveRetries = RequireInt(document, ["bounds", "maxDirectiveRetries"], path, minimum: 0);
-        return new CoverageBounds(maxSteps, maxConsultRounds, maxScrolls, maxConsecutiveFailures, maxDirectiveRetries);
+        // AGT-019 M5：可选（缺省 3/5——保守初值，标定后冻结）。
+        var stagnationInject = document.OptionalInt(["bounds", "stagnationInjectConsults"], minimum: 1) ?? 3;
+        var stagnationStop = document.OptionalInt(["bounds", "stagnationStopConsults"], minimum: 1) ?? 5;
+        return new CoverageBounds(maxSteps, maxConsultRounds, maxScrolls, maxConsecutiveFailures,
+            maxDirectiveRetries, stagnationInject, stagnationStop);
     }
 
     private static CoverageRequirements ValidateCoverage(YamlDocument document, string path)

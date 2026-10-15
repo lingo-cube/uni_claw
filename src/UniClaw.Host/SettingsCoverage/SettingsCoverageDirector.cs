@@ -36,6 +36,10 @@ public sealed class SettingsCoverageDirector
     private readonly List<(string DecisionId, string? Directive, AgentActionStep Step)> _adoptedSteps = new();
     private string? _terminalJustification;
     private int _obstacleAttempts;
+    private (int StepsVerified, int Frontier)? _lastProgressSignal;
+    private int _stagnantConsults;
+    private int _sameRouteConsults;
+    private string? _lastRoute;
 
     /// <summary>AGT-009：advisory Plan 的最大项数（超出 fail closed）。</summary>
     internal const int MaxPlanItems = 4;
@@ -111,6 +115,38 @@ public sealed class SettingsCoverageDirector
         var snapshot = _ledger.Snapshot(_config);
         var directive = snapshot.NextDirective;
         var kind = snapshot.NextDirectiveKind;
+
+        // AGT-019 M5（Q6）：no-progress 双零窗口——事实计数（新完成验证
+        // 增量与 frontier 计数增量同时为零才计停滞，避开合法长验证段误报）；
+        // 窗口达注入阈值 → 只注入事实计数（禁 Host 判语）；达硬停阈值 →
+        // bounded-stop 同族机械兜底。
+        var frontierCount = _ledger.DynamicRootFrontier(_config).Count
+            + _ledger.DynamicNestedFrontier(_config).Count;
+        if (_lastProgressSignal is { } prior
+            && prior.StepsVerified == snapshot.StepsVerified
+            && prior.Frontier == frontierCount)
+            _stagnantConsults++;
+        else
+            _stagnantConsults = 0;
+        _lastProgressSignal = (snapshot.StepsVerified, frontierCount);
+        _sameRouteConsults = snapshot.CurrentRoute is not null && snapshot.CurrentRoute == _lastRoute
+            ? _sameRouteConsults + 1
+            : 0;
+        _lastRoute = snapshot.CurrentRoute;
+        if (_stagnantConsults >= _config.Bounds.StagnationStopConsults)
+        {
+            _terminalJustification = "bounded-stop:no-progress";
+            _log.Add(new ConsultRecord(
+                context.DecisionId, context.Phase.ToString(), null, null,
+                "noAction", null, 0, "bounded-stop:no-progress"));
+            return new AgentDecision.NoAction(new AgentNoActionProposal(
+                context.DecisionId, "settings-coverage:bounded-stop:no-progress"));
+        }
+        var noProgressFacts = _stagnantConsults >= _config.Bounds.StagnationInjectConsults
+            ? "\n\nNO-PROGRESS FACTS (counts only, no verdict): "
+              + $"{_stagnantConsults} consecutive consultations with 0 newly verified steps "
+              + $"and 0 frontier changes; same-route consultations in a row: {_sameRouteConsults}."
+            : null;
 
         // AGT-009 §1：弹窗在场优先于一切普通遍历指令——先清障，弹窗回到
         // absent 才恢复普通遍历。有界重试（config MaxObstacleRetries）；
@@ -280,7 +316,8 @@ public sealed class SettingsCoverageDirector
                 + (_config.ActionPolicy is { } policy
                     ? "\n\nSETTINGS ACTION POLICY (read-only; Runtime Guard is authoritative): "
                       + policy.AgentProjection()
-                    : string.Empty),
+                    : string.Empty)
+                + noProgressFacts,
         };
 
         var attempts = 0;

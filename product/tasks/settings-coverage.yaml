@@ -11,6 +11,11 @@ bounds:
   maxScrolls: 12
   maxConsecutiveFailures: 4
   maxDirectiveRetries: 2
+  # AGT-019 M5（Q6）：no-progress 双零窗口（新发现+新完成验证同零）。
+  # 保守初值：注入 3 / 硬停 5——标定切片（pass5 病态 90+/96 vs 合法
+  # 重入 repeatedEntries=1）完成后冻结；硬停与 bounded-stop 同族。
+  stagnationInjectConsults: 3
+  stagnationStopConsults: 5
 coverage:
   rootPage: true
   firstLevelMode: all-visible
