@@ -2,7 +2,7 @@ Payload shape per kind (exact field names; every proposal ALSO carries
 decisionId — the same value as task.payload.decisionId):
 - act:      proposal {decisionId, steps[] = {targetRole, targetDescriptor?, effectClass, desiredState?}, justification?}
 - noAction: proposal {decisionId, justification, completion? {basis, checklist[]}}
-- defer:    spec {subject?, maxRounds}  (maxRounds: integer >= 1)
+- defer:    spec {subject?, maxRounds, depth?, purpose?}  (maxRounds: integer >= 1; depth: "Normal"|"Focused"|"Deep"; purpose: non-blank <=256)
 - policy:   proposal {policyId, match[], template {targetRole, targetDescriptor?, effectClass, desiredState?}, termination[], guards[], maxApplications, justification?}
   predicates: {kind:"ClaimEquals",subject,value} | {kind:"ClaimInSet",subject,values[]}
 
