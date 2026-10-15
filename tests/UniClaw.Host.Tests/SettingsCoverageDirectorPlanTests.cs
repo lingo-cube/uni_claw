@@ -498,4 +498,30 @@ public sealed class SettingsCoverageDirectorPlanTests
         Assert.Null(view.Diagnostics);
         Assert.Null(view.Viewport);
     }
+
+    // AGT-019 M2-②/B3 seam：诊断/视口从感知管线最新周期（Runner 注入的
+    // supplier）流入 LocalView——四族补缺闭环；supplier 缺席才诚实空。
+
+    [Fact]
+    public void LocalView_Seam_PopulatesDiagnosticsAndViewport_FromSuppliers()
+    {
+        var localViews = new List<LocalObservationView?>();
+        var director = new SettingsCoverageDirector(
+            context => { localViews.Add(context.LocalView); return Act(Entry); },
+            NormalRootLedger(), Config(),
+            localViewSources: () => (
+                new ObservationDiagnostics(
+                    HierarchyAvailable: true, FastAvailable: true, ProposalCount: 7,
+                    FastLatencyMs: 120, HierarchyLatencyMs: 340),
+                new ViewportSummary(1080, 2340)));
+        Assert.NotNull(director.Consult(Context("d-1")));
+
+        var view = localViews[0]!;
+        Assert.NotNull(view);
+        Assert.NotNull(view.Diagnostics);
+        Assert.True(view.Diagnostics!.HierarchyAvailable);
+        Assert.Equal(7, view.Diagnostics.ProposalCount);
+        Assert.Equal(120, view.Diagnostics.FastLatencyMs);
+        Assert.Equal(2340, view.Viewport!.Height);
+    }
 }

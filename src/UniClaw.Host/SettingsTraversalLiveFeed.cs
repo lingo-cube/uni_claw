@@ -117,6 +117,15 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
 
     public IReadOnlyList<TraceEntry> Trace => _trace;
 
+    /// <summary>AGT-019 M2-②/B3 seam：最新周期的观察侧诊断（fast/XML 在否、
+    /// 提案数、各段耗时）——Runner 经装饰层供 Director 写入 LocalView。
+    /// null = 尚无完整周期。</summary>
+    public ObservationDiagnostics? LatestDiagnostics { get; private set; }
+
+    /// <summary>AGT-019 M2-②/B3 seam：最新周期视口（capture 实测宽高，
+    /// 与 CoordinateSpace.DeviceViewport 同源）。null = 尚无周期。</summary>
+    public ViewportSummary? LatestViewport { get; private set; }
+
     public VisionServiceSession.WarmupTiming EnvironmentPreflight => _warmup;
 
     /// <summary>AGT-009：kernel 访问缝（runner 注入）——Slow 结果投影目标；
@@ -193,8 +202,13 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         if (_uniPerception is not null)
             slowTokens.AddRange(_uniPerception.Poll(LandSlow, routeKey));
         var slowDispatchedThisCycle = false;
+        // AGT-019：clickable 节点数 = grounding 材料的机械度量——触发词与
+        // 材料不足谓词共用同一计算（M3 修正：谓词曾用 proposals.Count，
+        // 该计数含 identity/route 常驻声明恒 ≥2，proposalCount=0 分支在
+        // 真实路径永不成立；改用可点击节点数后语义对齐"可 grounding 材料"）。
+        var clickableNodeCount = CountClickableNodes(xmlResult.Xml);
         var trigger = DeriveSlowTrigger(
-            xmlResult.Xml is not null, fastAvailable, CountClickableNodes(xmlResult.Xml), routeKey,
+            xmlResult.Xml is not null, fastAvailable, clickableNodeCount, routeKey,
             UpdatePopupStreak(popupState), _coverageConfig?.SlowSettings);
         if (trigger is not null && _uniPerception is not null && _coverageConfig?.SlowSettings is { Enabled: true } slowOn)
         {
@@ -225,7 +239,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         // （_slowFetchBound），≤ fetch 界剩余量 = 周期剩余预算；路由已变时
         // Poll 内的 unaligned-route 门控照常丢弃（同步等待不豁免）。
         if (slowDispatchedThisCycle
-            && MaterialInsufficiency(xmlResult.Xml is not null, proposals.Count)
+            && MaterialInsufficiency(xmlResult.Xml is not null, clickableNodeCount)
             && _slowFetchBound is { } slowWaitBound)
             slowTokens.AddRange(_uniPerception!.WaitAndPoll(LandSlow, routeKey, slowWaitBound));
         var slowTrace = slowTokens.Count == 0 ? null : string.Join("; ", slowTokens);
@@ -247,6 +261,12 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
             }
         }
 
+        // AGT-019 M2-②/B3 seam：本周期诊断与视口快照（先于 trace 落录，
+        // 装饰层在同周期内可读）。
+        LatestViewport = new ViewportSummary(capture.Width, capture.Height);
+        LatestDiagnostics = new ObservationDiagnostics(
+            xmlResult.Xml is not null, fastAvailable, proposals.Count,
+            (long)fastLatency.TotalMilliseconds, (long)hierarchyLatency.TotalMilliseconds);
         _trace.Add(new TraceEntry(cycle, directive.Context.ToString(), captureId,
             observationCycleId, fastAvailable, xmlResult.Xml is not null,
             proposals.Count, fastLatency, hierarchyLatency, routeKey,

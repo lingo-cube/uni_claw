@@ -146,7 +146,10 @@ public sealed class SettingsCoverageRunner
                 ?? (IReadOnlyList<PostActionEffectVerification>)Array.Empty<PostActionEffectVerification>(),
             options.DshSessionIdAccessor);
         var director = new SettingsCoverageDirector(
-            options.UnderlyingConsult, ledger, config, journal);
+            options.UnderlyingConsult, ledger, config, journal,
+            // AGT-019 M2-②/B3 seam：诊断/视口从感知管线最新周期流入
+            // Director 装饰层（LocalView 四族补缺闭环）。
+            localViewSources: liveFeed is null ? null : () => (liveFeed.LatestDiagnostics, liveFeed.LatestViewport));
         var consultBridge = new List<ConsultBridgeRecord>();
         try
         {

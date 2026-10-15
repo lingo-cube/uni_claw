@@ -49,13 +49,17 @@ public sealed class SettingsCoverageDirector
         Func<AgentDecisionContext, AgentDecision?> underlying,
         SettingsCoverageLedger ledger,
         SettingsCoverageConfig config,
-        SettingsCoverageRunner.CoverageStepJournal? stepJournal = null)
+        SettingsCoverageRunner.CoverageStepJournal? stepJournal = null,
+        Func<(ObservationDiagnostics? Diagnostics, ViewportSummary? Viewport)>? localViewSources = null)
     {
         _underlying = underlying ?? throw new ArgumentNullException(nameof(underlying));
         _ledger = ledger ?? throw new ArgumentNullException(nameof(ledger));
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _stepJournal = stepJournal;
+        _localViewSources = localViewSources;
     }
+
+    private readonly Func<(ObservationDiagnostics? Diagnostics, ViewportSummary? Viewport)>? _localViewSources;
 
     public IReadOnlyList<ConsultRecord> ConsultLog => _log;
 
@@ -142,6 +146,7 @@ public sealed class SettingsCoverageDirector
             $"route={snapshot.CurrentRoute ?? "unknown"};verified={snapshot.StepsVerified};frontier={frontierCount}");
         while (_recentCycleFacts.Count > 3)
             _recentCycleFacts.Dequeue();
+        var (diagnostics, viewport) = _localViewSources?.Invoke() ?? (null, null);
         context = context with
         {
             LocalView = new LocalObservationView(
@@ -151,8 +156,8 @@ public sealed class SettingsCoverageDirector
                         context.Screen?.ContainerId ?? snapshot.CurrentRoute ?? "unknown",
                         IsScrollable: snapshot.Visible.Contains(_config.ScrollContainerDescriptor)),
                 },
-                Viewport: null,
-                Diagnostics: null,
+                Viewport: viewport,
+                Diagnostics: diagnostics,
                 RecentCycles: _recentCycleFacts.ToArray()),
         };
         if (_stagnantConsults >= _config.Bounds.StagnationStopConsults)

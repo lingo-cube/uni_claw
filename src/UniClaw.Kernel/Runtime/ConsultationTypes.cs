@@ -108,6 +108,9 @@ public sealed record CompletionEvidence(
 /// 深看（局部视图全量）。v1 语义：档位入 trace/journal 留痕，观察拉取
 /// 机制复用既有 Defer 链（不新建观察系统）；预算执法不变（V5 静态界
 /// MaxRounds≤4 与咨询预算合同同时生效、取最严）。
+/// 消歧（B2 复核）：本枚举是 **Agent 回答侧**（ObserveSpec 请求档位），
+/// 与 RunDriverInputs.ObservationDepth（**指令侧** PER-009 词汇，第三档
+/// 是 Slow=capability 路线提示）语义不同面、值集不同，非重复词表。
 /// RUN-003：公开组合缝；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
 public enum ObserveDepth
