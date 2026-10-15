@@ -45,6 +45,16 @@ verification:
 
 ## Status log
 
+- 2026-10-17 · implementing · **Slice A / M3 完成（委派 glm-5.3-flash，
+  Leader 审查后提交 c9e61d02）**：UniPerceptionPipeline.WaitAndPoll 有界
+  同步等待（材料不足谓词 hierarchyAvailable=false ∨ proposalCount=0，
+  既有 trace 字段；预算 = 配置值 ∩ fetch 界剩余；unaligned 门全额执法）；
+  全部结算令牌带 |ms= 耗时（P6 闭合）。独立复验全量 1561/1561。
+  **边界发现（待 owner 知悉，不阻塞）**：Q4 的"高置信度优先跳过低置信"
+  在 Runner/LiveFeed 无实现缝——perception payload 不产 confidence 信号
+  （全源码仅 Kernel ConflictResolver 注释提及），排序缝在
+  Ledger.NextDirective；实现需先给 perception 加 confidence 面（产品
+  决策，候选 Slice B+）。M3 的"耗尽后等待/滚动"部分已落地。
 - 2026-10-17 · implementing · **Slice A / M1 + M5 完成（TDD，自主推进）**：
   M1 = 路由不明强制升级给选项集 {再观察, back（配置了才给）, 滚动（容器
   可见才给）}，选项外响应保持 004-A2 零 Effect 安全 Defer（a9074a57）；
