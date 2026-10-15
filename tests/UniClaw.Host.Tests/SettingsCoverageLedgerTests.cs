@@ -835,4 +835,39 @@ public sealed class SettingsCoverageLedgerTests
         Assert.NotEmpty(truncatedReport.UncoveredItems);
         Assert.Contains("first-level-all-visible", truncatedReport.UncoveredItems);
     }
+
+    // AGT-019 Q4（owner 订正：置信面即 ElementEpistemic 轴，Host 侧载体 =
+    // 观测里的 NativeRid——XML 连接 = 双源/Observed，缺失 = 视觉单源/
+    // Partial）。skip-first：同轮可见候选双源优先，单源跳过不丢弃。
+
+    [Fact]
+    public void NextDirective_PrefersDualSourceEntry_OverEarlierListedSingleSource()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(RootRoute, new (string, string?, string?)[]
+        {
+            ("ui.element", "Apps", null),                     // 单源（视觉）
+            ("ui.element", "Battery", "android:id/battery"),  // 双源（XML 连接）
+        });
+
+        var snapshot = ledger.Snapshot(Config());
+
+        Assert.Equal("enter", snapshot.NextDirectiveKind);
+        Assert.Contains("Battery", snapshot.NextDirective);
+    }
+
+    [Fact]
+    public void NextDirective_SingleSourceEntry_StillSelected_WhenNoDualSourceVisible()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(RootRoute, new (string, string?, string?)[]
+        {
+            ("ui.element", "Apps", null),
+        });
+
+        var snapshot = ledger.Snapshot(Config());
+
+        Assert.Equal("enter", snapshot.NextDirectiveKind);
+        Assert.Contains("Apps", snapshot.NextDirective);
+    }
 }

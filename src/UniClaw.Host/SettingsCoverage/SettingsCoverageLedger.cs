@@ -438,6 +438,14 @@ public sealed class SettingsCoverageLedger
         if (visible is null)
             return (null, null); // 尚无根页观察：等待，不指挥
 
+        // AGT-019 Q4 skip-first：同轮可见候选双源（NativeRid 在场）优先，
+        // 单源跳过不丢弃；OrderBy 稳定排序保确定性（同输入同指令）。
+        var dualSource = CurrentDualSourceDescriptors();
+        string? ByConfidence(IEnumerable<string> candidates, Func<string, bool> eligible) =>
+            candidates.Where(eligible)
+                .OrderBy(descriptor => dualSource.Contains(descriptor) ? 0 : 1)
+                .FirstOrDefault();
+
         // 深度遍历只接受配置中显式声明的 parent > child；未知 UI 不会被提升为目标。
         if (config.DeepTraversalSettings.Enabled && currentRoute is not null && !IsRoot(config, currentRoute))
         {
@@ -446,18 +454,21 @@ public sealed class SettingsCoverageLedger
             if (currentPage is not null && nestedParents.ContainsKey(currentPage)
                 && nestedParents[currentPage].Any(child => !NestedWasEntered(config, currentPage, child)))
             {
-                var child = nestedParents[currentPage].First(child => !NestedWasEntered(config, currentPage, child));
-                if (visible.Contains(child))
+                var child = ByConfidence(
+                    nestedParents[currentPage],
+                    child => !NestedWasEntered(config, currentPage, child) && visible.Contains(child));
+                if (child is not null)
                     return ($"Enter the nested Settings entry '<{child}>' by tapping it.", "nested-enter");
             }
         }
 
         if (config.DynamicNestedEntriesSettings.IsActive && currentRoute is not null && !IsRoot(config, currentRoute))
         {
-            var nested = DynamicNestedFrontier(config)
-                .Where(key => key.StartsWith(currentRoute + ">", StringComparison.Ordinal))
-                .Select(key => key[(currentRoute.Length + 1)..])
-                .FirstOrDefault(visible.Contains);
+            var nested = ByConfidence(
+                DynamicNestedFrontier(config)
+                    .Where(key => key.StartsWith(currentRoute + ">", StringComparison.Ordinal))
+                    .Select(key => key[(currentRoute.Length + 1)..]),
+                visible.Contains);
             if (nested is not null)
                 return ($"Enter the dynamically discovered nested Settings entry '<{nested}>' by tapping it.", "nested-enter");
         }
@@ -467,15 +478,15 @@ public sealed class SettingsCoverageLedger
             return ($"Return to the Settings root page by tapping '<{config.BackDescriptor}>'", "back");
 
         // 只指挥当前可见的目标（不可见目标经滚动露出后再指挥）。
-        var firstNotEntered = config.TargetPages
-            .FirstOrDefault(page => !enteredPages.Contains(page) && visible.Contains(page));
+        var firstNotEntered = ByConfidence(
+            config.TargetPages,
+            page => !enteredPages.Contains(page) && visible.Contains(page));
         if (firstNotEntered is not null)
             return ($"Enter the Settings first-level entry '<{firstNotEntered}>' by tapping it.", "enter");
 
         if (config.DynamicRootEntriesSettings.AllVisible)
         {
-            var dynamic = DynamicRootFrontier(config)
-                .FirstOrDefault(descriptor => visible.Contains(descriptor));
+            var dynamic = ByConfidence(DynamicRootFrontier(config), visible.Contains);
             if (dynamic is not null)
                 return ($"Enter the dynamically discovered Settings entry '<{dynamic}>' by tapping it.", "enter");
         }
@@ -488,8 +499,9 @@ public sealed class SettingsCoverageLedger
             // AGT-007 加固：进入验证失败过的候选不再重试（真机实证：底部
             // 候选可能因路由指纹碰撞永远无法验证进入，重试只会耗尽失败预算）。
             var failedCandidates = FailedEntryDescriptors(config);
-            var candidate = ScrollCandidates(config)
-                .FirstOrDefault(descriptor => !allEntered.Contains(descriptor)
+            var candidate = ByConfidence(
+                ScrollCandidates(config),
+                descriptor => !allEntered.Contains(descriptor)
                     && !failedCandidates.Contains(descriptor)
                     && visible.Contains(descriptor));
             if (candidate is not null)
@@ -754,6 +766,22 @@ public sealed class SettingsCoverageLedger
             return descriptors;
         }
         return null;
+    }
+
+    /// <summary>AGT-019 Q4（owner 订正）：最新观察里带 NativeRid 的元素
+    /// = 双源（XML 连接，ElementEpistemic.Observed 等价）；缺失 = 视觉
+    /// 单源（Partial 等价）。skip-first 排序依据。</summary>
+    private HashSet<string> CurrentDualSourceDescriptors()
+    {
+        for (var i = _observations.Count - 1; i >= 0; i--)
+        {
+            var (_, _, occurrences) = _observations[i];
+            return occurrences
+                .Where(o => o.Role == "ui.element" && o.Descriptor is not null && o.NativeRid is not null)
+                .Select(o => o.Descriptor!)
+                .ToHashSet(StringComparer.Ordinal);
+        }
+        return new HashSet<string>(StringComparer.Ordinal);
     }
 
     /// <summary>AGT-007：进入验证失败的 descriptor（tap 未通过验证）——
