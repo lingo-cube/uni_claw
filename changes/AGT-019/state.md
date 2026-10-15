@@ -45,6 +45,16 @@ verification:
 
 ## Status log
 
+- 2026-10-17 · implementing · **owner 订正 → skip-first 落地**：M3 期"无
+  confidence 信号"结论被 owner 订正——置信面即 ElementEpistemic 枚举
+  （Observed=双源/Partial=视觉单源/Ambiguous 保留；ConsultationTypes.cs
+  "词汇无分数"系有意设计），M3 子代理只搜字面 confidence 故漏判。实现：
+  Ledger 五处选目标点改双源优先（NativeRid 在场 = Observed 等价），
+  单源跳过不丢弃，OrderBy 稳定保确定性；1 RED→GREEN + 1 守护。
+  **遗留（精确已定位）**：Kernel 侧 DeriveElementSummaries 仍硬编码
+  Observed（KernelRunDriver.cs L1350；顺带 Enabled:true 同款退化）——
+  诚实填值（Native!=null→Observed 否则 Partial）为独立小片，改 Agent
+  可见面需过 golden 检查，未在本轮内做。
 - 2026-10-17 · implementing · **Slice A 收口**：声明面随动完成（e165e642）
   ——skill guidance 增补弹窗/停滞/未知页处置纪律，manifest revision 2 +
   profile sha256 重钉（推导 = sha256(manifest++guidance)，与 loader
