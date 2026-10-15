@@ -422,6 +422,21 @@ public sealed class KernelRunDriver
                             _adoptedDecision = null;
                             continue;
                         }
+                        case AgentDecision.Blocked blocked:
+                        {
+                            // AGT-019 M1：Agent 诚实申报卡死——零新 Effect
+                            // 的确定性终局（defer-exhausted 同族；合法回答，
+                            // 非 AgentDecisionFailed）。原因随 reason 留痕。
+                            _lastAnswer = _adoptedDecision;
+                            _deferRoundsUsed = 0;
+                            _deferExhaustedPending = false;
+                            _adoptedDecision = null;
+                            return new RunDriveResult(
+                                RunDriveStatus.TerminalNotProven,
+                                $"agent-blocked:{blocked.Reason}",
+                                null,
+                                _kernel.EffectReceipts.Count);
+                        }
                         case AgentDecision.Defer defer:
                         {
                             // V5 defer-unbounded（静态界）
@@ -1238,6 +1253,8 @@ public sealed class KernelRunDriver
             // AGT-009：Plan 同律回带 DecisionId（D2 防串话适用于每一次
             // consultation response；Policy 先例）
             case AgentDecision.Plan plan: answeredId = plan.DecisionId; break;
+            // AGT-019 M1：Blocked 同律回带 DecisionId（D2 防串话；Plan 先例）
+            case AgentDecision.Blocked blocked: answeredId = blocked.DecisionId; break;
             default:
                 _consultationJournal.Reject(key, fingerprint, "unknown-decision-kind");
                 return new ConsultOutcome(null, "unknown-decision-kind");
@@ -1412,6 +1429,14 @@ public sealed class KernelRunDriver
                 // 「嵌套拒绝」语义 2026-09-23 修订移除，见 spec §4 注记）
                 if (defer.Spec.MaxRounds > 4)
                     return "defer-unbounded:max-rounds";
+                break;
+            }
+            case AgentDecision.Blocked blocked:
+            {
+                // AGT-019 M1：reason 是诚实信号的本体——空原因拒绝
+                //（honest-signaling 执法；非形状约束）。
+                if (string.IsNullOrWhiteSpace(blocked.Reason))
+                    return "blocked-empty-reason";
                 break;
             }
             case AgentDecision.Policy policy:

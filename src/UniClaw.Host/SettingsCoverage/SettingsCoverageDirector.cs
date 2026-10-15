@@ -231,6 +231,7 @@ public sealed class SettingsCoverageDirector
                 options.Add($"back (tap '<{_config.BackDescriptor}>')");
             if (scrollVisible)
                 options.Add($"scroll (swipe up on '<{_config.ScrollContainerDescriptor}>')");
+            options.Add("declare blocked with a reason (the run ends honestly as blocked)");
             _log.Add(new ConsultRecord(
                 context.DecisionId, context.Phase.ToString(),
                 $"Observe again: current page identity is unknown ('{UnknownRouteIdentity}').",
@@ -250,6 +251,17 @@ public sealed class SettingsCoverageDirector
                 StringComparison.Ordinal);
             if (agentDecision is AgentDecision.Defer && sameDecision)
                 return agentDecision;
+            // AGT-019 M1（Q1/B1）：blocked 诚实申报——同号即采纳透传，
+            // Kernel 侧零 Effect 确定性终局（agent-blocked:{reason}）。
+            if (agentDecision is AgentDecision.Blocked blockedAnswer && sameDecision)
+            {
+                _log[^1] = _log[^1] with
+                {
+                    DecisionKind = "blocked",
+                    Justification = blockedAnswer.Reason,
+                };
+                return agentDecision;
+            }
             if (agentDecision is AgentDecision.Act act
                 && sameDecision
                 && act.Proposal.Steps.Count == 1
@@ -498,6 +510,7 @@ public sealed class SettingsCoverageDirector
         AgentDecision.NoAction noAction => noAction.Proposal.DecisionId,
         AgentDecision.Defer defer => defer.DecisionId,
         AgentDecision.Policy policy => policy.DecisionId,
+        AgentDecision.Blocked blocked => blocked.DecisionId,
         null => null,
         _ => null,
     };

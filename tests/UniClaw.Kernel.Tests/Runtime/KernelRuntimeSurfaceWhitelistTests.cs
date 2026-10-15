@@ -287,6 +287,9 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.AgentActionStep",
             "UniClaw.Kernel.Runtime.AgentDecision",
             "UniClaw.Kernel.Runtime.AgentDecision+Act",
+            // AGT-019 M1（Q1 裁决；RUN-004 D3/D7 修订通道，G4 DEFERRED
+            // 先例）：异常升级选项集的诚实卡死申报（零 Effect 终局）。
+            "UniClaw.Kernel.Runtime.AgentDecision+Blocked",
             "UniClaw.Kernel.Runtime.AgentDecision+Defer",
             "UniClaw.Kernel.Runtime.AgentDecision+NoAction",
             "UniClaw.Kernel.Runtime.AgentDecision+Plan",

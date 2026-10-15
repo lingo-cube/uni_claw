@@ -157,6 +157,16 @@ public abstract record AgentDecision
     /// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
     /// </summary>
     public sealed record Plan(string DecisionId, AgentPlanProposal Proposal) : AgentDecision;
+
+    /// <summary>
+    /// AGT-019 M1（Q1 裁决；RUN-004 D3/D7 修订通道，G4 DEFERRED 先例）：
+    /// Agent 诚实申报「我被卡住了，原因 X」——异常时刻升级咨询选项集的
+    /// 成员。decision outcome，不是 effect：零新 Effect，run 以
+    /// TerminalNotProven("agent-blocked:{Reason}") 诚实终局（defer-exhausted
+    /// 同族）。DecisionId 回带同律（D2 防串话；Defer/Policy/Plan 先例）。
+    /// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
+    /// </summary>
+    public sealed record Blocked(string DecisionId, string Reason) : AgentDecision;
 }
 
 /// <summary>

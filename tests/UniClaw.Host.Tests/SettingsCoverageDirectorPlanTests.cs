@@ -385,6 +385,49 @@ public sealed class SettingsCoverageDirectorPlanTests
             Assert.Single(director.ConsultLog).DeviationReason);
     }
 
+    // AGT-019 M1/B1（Q1 裁决；RUN-004 D3/D7 修订通道）：blocked 诚实
+    // 申报——同号采纳透传（Kernel 零 Effect 终局 agent-blocked:{reason}），
+    // 异号照旧零 Effect 安全 Defer。
+
+    [Fact]
+    public void UnknownPage_AcceptsBlockedDeclaration_PassesThroughWithReason()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(SettingsCoverageDirector.UnknownRouteIdentity,
+            Array.Empty<(string, string?)>());
+        var director = new SettingsCoverageDirector(
+            context => new AgentDecision.Blocked(
+                context.DecisionId, "hierarchy unavailable on identity-only page"),
+            ledger, Config());
+
+        var decision = director.Consult(Context());
+
+        var blocked = Assert.IsType<AgentDecision.Blocked>(decision);
+        Assert.Equal("hierarchy unavailable on identity-only page", blocked.Reason);
+        var record = Assert.Single(director.ConsultLog);
+        Assert.Equal("blocked", record.DecisionKind);
+        Assert.Equal("hierarchy unavailable on identity-only page", record.Justification);
+        Assert.Empty(director.AdoptedSteps);
+    }
+
+    [Fact]
+    public void UnknownPage_BlockedWithWrongDecisionId_RejectedWithZeroEffect()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(SettingsCoverageDirector.UnknownRouteIdentity,
+            Array.Empty<(string, string?)>());
+        var director = new SettingsCoverageDirector(
+            _ => new AgentDecision.Blocked("other-decision", "stale reason"),
+            ledger, Config());
+
+        var decision = director.Consult(Context());
+
+        Assert.IsType<AgentDecision.Defer>(decision);
+        Assert.Empty(director.AdoptedSteps);
+        Assert.Equal("unknown-route-agent-response-rejected",
+            Assert.Single(director.ConsultLog).DeviationReason);
+    }
+
     // AGT-019 M5（Q6 裁决）：no-progress 双零窗口——新完成验证增量与
     // frontier 计数增量同时为零持续窗口（保守初值：注入 3 / 硬停 5，
     // 标定切片后冻结）→ 只注入事实计数（禁 Host 判语）；更高阈值机械

@@ -34,9 +34,10 @@ public sealed class PolicyProtocolTests
         Assert.IsType<AgentDecision.Policy>(decision);
         Assert.Equal("decision-x-1", decision.DecisionId);
         Assert.Equal("pol-1", decision.Proposal.PolicyId);
-        // 封闭 union（Act/NoAction/Defer/Policy + AGT-009 Plan 第五成员）
+        // 封闭 union（Act/NoAction/Defer/Policy + AGT-009 Plan 第五成员
+        // + AGT-019 M1 第六成员 Blocked——RUN-004 D3/D7 修订通道）
         Assert.Equal(
-            new[] { "Act", "Defer", "NoAction", "Plan", "Policy" },
+            new[] { "Act", "Blocked", "Defer", "NoAction", "Plan", "Policy" },
             typeof(AgentDecision).GetNestedTypes().Select(t => t.Name).OrderBy(n => n, StringComparer.Ordinal));
     }
 
