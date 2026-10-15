@@ -1,3 +1,4 @@
+using System.Text.Json;
 using UniClaw.Host.Capability;
 
 namespace UniClaw.Host.SettingsCoverage;
@@ -62,14 +63,19 @@ public sealed record CoverageEvidenceOptions(bool PersistScreenshots = true, boo
 /// <summary>
 /// AGT-009：弹窗识别与清障配置。HostPackage = 结构分类器的 host 包身份；
 /// PopupResourceIds = 弹窗结构 resource-id 白名单；ObstacleTargets = 清障
-/// 点击的 descriptor 优先序（CANCEL/button2 优先，DISMISS/button1 次之）；
+/// 点击的 descriptor 优先序（安全侧：cancel/dismiss/negative）；
 /// MaxObstacleRetries = 有界清障重试（超出即 fail closed bounded stop）。
+/// AGT-019 M4（Q5）：DenyObstacleTargets = 禁手清单（确认侧词汇，命中即
+/// 不可中选，无论是否在候选词表）——遍历型任务没有 confirm 权限，候选
+/// 词表必须先过禁手清单；无安全词可用时用返回键 dismiss；返回键也未
+/// 配置 → bounded stop 暂停+重授权（不变量 47），绝不点 confirm 侧。
 /// </summary>
 public sealed record PopupClearanceConfig(
     string HostPackage = "com.android.settings",
     IReadOnlyList<string>? PopupResourceIds = null,
     IReadOnlyList<string>? ObstacleTargets = null,
-    int MaxObstacleRetries = 2)
+    int MaxObstacleRetries = 2,
+    IReadOnlyList<string>? DenyObstacleTargets = null)
 {
     /// <summary>弹窗结构 resource-id 缺省白名单（e1 真机实证）。</summary>
     public static readonly string[] DefaultPopupResourceIds =
@@ -82,11 +88,20 @@ public sealed record PopupClearanceConfig(
         "com.android.settings:id/buttonPanel",
     };
 
-    /// <summary>清障目标缺省优先序。</summary>
-    public static readonly string[] DefaultObstacleTargets = { "CANCEL", "button2", "DISMISS", "button1" };
+    /// <summary>清障目标缺省优先序（AGT-019 M4：button1 移除——确认侧
+    /// 目标永不作为清障候选）。</summary>
+    public static readonly string[] DefaultObstacleTargets = { "CANCEL", "button2", "DISMISS" };
+
+    /// <summary>禁手清单缺省值（确认侧词汇；与 policy 工件
+    /// android-settings-popup-disposition 的 denyObstacleTargets 同源）。</summary>
+    public static readonly string[] DefaultDenyObstacleTargets =
+        { "button1", "OK", "CONFIRM", "ALLOW", "ACCEPT", "AGREE", "CONTINUE", "NEXT", "DONE" };
 
     public IReadOnlyList<string> ResourceIds => PopupResourceIds ?? DefaultPopupResourceIds;
     public IReadOnlyList<string> Targets => ObstacleTargets ?? DefaultObstacleTargets;
+
+    /// <summary>有效禁手清单（缺省 = 确认侧词汇集）。</summary>
+    public IReadOnlyList<string> DenyTargets => DenyObstacleTargets ?? DefaultDenyObstacleTargets;
 }
 
 /// <summary>
@@ -111,7 +126,7 @@ public sealed record SettingsCoverageConfig(
     CoverageTermination Termination,
     string RootRoute,
     string ScrollContainerDescriptor,
-    string BackDescriptor,
+    string? BackDescriptor,
     CoverageEvidenceOptions? Evidence = null,
     PopupClearanceConfig? Popup = null,
     SlowTriggerConfig? Slow = null,
@@ -335,20 +350,67 @@ public sealed record SettingsCoverageConfig(
             PersistHierarchies: hierarchies ?? true);
     }
 
-    /// <summary>AGT-009：可选 popup 段（缺省 = 记录的缺省词汇；显式值非法 fail closed）。</summary>
+    /// <summary>AGT-009：可选 popup 段（缺省 = 记录的缺省词汇；显式值非法 fail closed）。
+    /// AGT-019 M4：新增 denyObstacleTargets（禁手清单）与 dispositionPolicy
+    /// （product/policy 弹窗处置工件路径；工件的 denyObstacleTargets 与显式
+    /// deny 并集——宁多勿漏；工件缺失/形状不符 fail closed）。</summary>
     private static PopupClearanceConfig? ReadPopupOptions(YamlDocument document, string path)
     {
         var hostPackage = document.OptionalScalar(["popup", "hostPackage"]);
         var resourceIds = document.OptionalList(["popup", "popupResourceIds"]);
         var obstacleTargets = document.OptionalList(["popup", "obstacleTargets"]);
+        var denyTargets = document.OptionalList(["popup", "denyObstacleTargets"]);
         var maxRetries = document.OptionalInt(["popup", "maxObstacleRetries"], minimum: 0);
-        if (hostPackage is null && resourceIds is null && obstacleTargets is null && maxRetries is null)
+        var dispositionPolicy = document.OptionalScalar(["popup", "dispositionPolicy"]);
+        if (hostPackage is null && resourceIds is null && obstacleTargets is null
+            && denyTargets is null && maxRetries is null && dispositionPolicy is null)
             return null; // 段缺失 → 调用方缺省
+        if (dispositionPolicy is not null)
+        {
+            var policyPath = Path.IsPathRooted(dispositionPolicy)
+                ? dispositionPolicy
+                : ResolvePolicyPath(path, dispositionPolicy);
+            var artifactDeny = LoadPopupDispositionDenyTargets(policyPath);
+            denyTargets = artifactDeny
+                .Concat(denyTargets ?? Array.Empty<string>())
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+        }
         return new PopupClearanceConfig(
             HostPackage: hostPackage ?? "com.android.settings",
             PopupResourceIds: resourceIds,
             ObstacleTargets: obstacleTargets,
-            MaxObstacleRetries: maxRetries ?? 2);
+            MaxObstacleRetries: maxRetries ?? 2,
+            DenyObstacleTargets: denyTargets);
+    }
+
+    /// <summary>AGT-019 M4：装载弹窗处置 policy 工件的禁手清单（fail closed：
+    /// 文件缺失/JSON 非法/schema 不符/denyObstacleTargets 缺失或非字符串数组
+    /// → PROFILE_CONTRACT_NOT_READY）。</summary>
+    private static IReadOnlyList<string> LoadPopupDispositionDenyTargets(string policyPath)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(policyPath));
+            var root = document.RootElement;
+            if (!root.TryGetProperty("schemaVersion", out var version)
+                || version.ValueKind != JsonValueKind.String
+                || !version.GetString()!.StartsWith(
+                    "android-settings-popup-disposition.", StringComparison.Ordinal))
+                throw new InvalidOperationException(
+                    $"PROFILE_CONTRACT_NOT_READY: popup disposition policy schema mismatch: {policyPath}");
+            if (!root.TryGetProperty("denyObstacleTargets", out var deny)
+                || deny.ValueKind != JsonValueKind.Array
+                || deny.EnumerateArray().Any(item => item.ValueKind != JsonValueKind.String))
+                throw new InvalidOperationException(
+                    $"PROFILE_CONTRACT_NOT_READY: popup disposition policy denyObstacleTargets missing/invalid: {policyPath}");
+            return deny.EnumerateArray().Select(item => item.GetString()!).ToArray();
+        }
+        catch (Exception error) when (error is JsonException or IOException)
+        {
+            throw new InvalidOperationException(
+                $"PROFILE_CONTRACT_NOT_READY: popup disposition policy unreadable: {policyPath}", error);
+        }
     }
 
     /// <summary>AGT-009：可选 slow 段（缺省 Disabled=false——现有行为不变）。</summary>

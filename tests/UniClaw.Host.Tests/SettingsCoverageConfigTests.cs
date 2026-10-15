@@ -461,13 +461,57 @@ public sealed class SettingsCoverageConfigTests
                 "com.android.settings:id/buttonPanel",
             },
             loaded.PopupSettings.ResourceIds);
-        Assert.Equal(new[] { "CANCEL", "button2", "DISMISS", "button1" }, loaded.PopupSettings.Targets);
+        // AGT-019 M4：button1（确认侧）移出缺省清障词表——禁手清单执法。
+        Assert.Equal(new[] { "CANCEL", "button2", "DISMISS" }, loaded.PopupSettings.Targets);
+        Assert.Contains("button1", loaded.PopupSettings.DenyTargets);
         Assert.Equal(2, loaded.PopupSettings.MaxObstacleRetries);
         Assert.False(loaded.SlowSettings.Enabled);
         Assert.Equal(2000, loaded.SlowSettings.BoundedWaitMs);
         Assert.Equal(4, loaded.SlowSettings.MaxRequestsPerRun);
         Assert.False(loaded.SlowSettings.VisualEnabled);
         Assert.Equal(2, loaded.SlowSettings.PopupConsecutiveCycles);
+    }
+
+    [Fact]
+    public void PopupDispositionPolicy_LoadsArtifactDenyUnion_AndFailsClosedWhenUnreadable()
+    {
+        // AGT-019 M4：popup.dispositionPolicy 工件（绝对路径）——deny 取自
+        // 工件并与显式 deny 并集（宁多勿漏）；工件缺失 fail closed。
+        var artifactPath = Path.Combine(Path.GetTempPath(),
+            $"popup-disposition-{Guid.NewGuid():N}.json");
+        File.WriteAllText(artifactPath, """
+            {
+              "schemaVersion": "android-settings-popup-disposition.v1",
+              "denyObstacleTargets": ["button1", "OK"]
+            }
+            """);
+        try
+        {
+            var yaml = MinimalConfig() + $"""
+
+                popup:
+                  dispositionPolicy: {artifactPath}
+                  denyObstacleTargets:
+                    - GIVEUP
+                """;
+            var loaded = SettingsCoverageConfig.Load(WriteConfig(yaml));
+            Assert.Contains("button1", loaded.PopupSettings.DenyTargets);
+            Assert.Contains("OK", loaded.PopupSettings.DenyTargets);
+            Assert.Contains("GIVEUP", loaded.PopupSettings.DenyTargets);
+
+            var missing = MinimalConfig() + $"""
+
+                popup:
+                  dispositionPolicy: {Path.Combine(Path.GetTempPath(), $"missing-{Guid.NewGuid():N}.json")}
+                """;
+            var error = Assert.Throws<InvalidOperationException>(
+                () => SettingsCoverageConfig.Load(WriteConfig(missing)));
+            Assert.StartsWith("PROFILE_CONTRACT_NOT_READY", error.Message);
+        }
+        finally
+        {
+            File.Delete(artifactPath);
+        }
     }
 
     [Fact]

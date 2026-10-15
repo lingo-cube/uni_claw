@@ -246,4 +246,66 @@ public sealed class SettingsCoverageDirectorPlanTests
         Assert.IsType<AgentDecision.Act>(decision);
         Assert.Equal("obstacle", Assert.Single(director.ConsultLog).DirectiveKind);
     }
+
+    // AGT-019 M4（Q5 裁决）：弹窗处置任务型白名单——遍历型任务没有
+    // confirm 权限。确认侧目标（button1）永不进入清障指令：安全词可用
+    // 用安全词；无安全词用返回键 dismiss；返回键也缺配置 → 暂停+重授权
+    // （bounded stop），绝不把 confirm 侧按钮交给 tap。
+
+    [Fact]
+    public void PopupWithOnlyConfirmTarget_DismissesByBack_NeverTapsConfirm()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(RootRoute,
+            new (string, string?)[] { ("ui.element", "button1") });
+        ledger.RecordPopupState("present");
+        var director = new SettingsCoverageDirector(
+            _ => Act("Navigate up"), ledger, Config());
+
+        var decision = director.Consult(Context());
+
+        Assert.IsType<AgentDecision.Act>(decision);
+        var record = Assert.Single(director.ConsultLog);
+        Assert.Equal("obstacle", record.DirectiveKind);
+        Assert.DoesNotContain("button1", record.Directive);
+        Assert.Equal("Navigate up", Assert.Single(director.AdoptedSteps).Step.TargetDescriptor);
+    }
+
+    [Fact]
+    public void PopupWithOnlyConfirmTarget_AndNoBack_StopsBounded_ForReauthorization()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(RootRoute,
+            new (string, string?)[] { ("ui.element", "button1") });
+        ledger.RecordPopupState("present");
+        var config = Config() with { BackDescriptor = null };
+        var director = new SettingsCoverageDirector(
+            _ => Act("button1"), ledger, config);
+
+        var decision = director.Consult(Context());
+
+        Assert.IsType<AgentDecision.NoAction>(decision);
+        Assert.Equal("bounded-stop:popup-confirm-requires-reauthorization",
+            director.TerminalJustification);
+        Assert.Empty(director.AdoptedSteps);
+    }
+
+    [Fact]
+    public void PopupObstacle_SkipsDeniedConfirmTarget_EvenIfListed()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(RootRoute,
+            new (string, string?)[] { ("ui.element", "button1"), ("ui.element", "DISMISS") });
+        ledger.RecordPopupState("present");
+        var director = new SettingsCoverageDirector(
+            _ => Act("DISMISS"), ledger, Config());
+
+        var decision = director.Consult(Context());
+
+        Assert.IsType<AgentDecision.Act>(decision);
+        var record = Assert.Single(director.ConsultLog);
+        Assert.Equal("obstacle", record.DirectiveKind);
+        Assert.Contains("DISMISS", record.Directive);
+        Assert.DoesNotContain("button1", record.Directive);
+    }
 }

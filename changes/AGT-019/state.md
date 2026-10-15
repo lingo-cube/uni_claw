@@ -45,6 +45,16 @@ verification:
 
 ## Status log
 
+- 2026-10-17 · implementing · **Slice A / M4 完成（TDD）**：弹窗处置任务型
+  白名单落地——`product/policy/android-settings-popup-disposition.json`
+  新工件（遍历型：denyObstacleTargets 禁手清单 + confirmWhitelist 空 +
+  pause-reauthorize）；Config 装载（工件 deny ∪ yaml deny，fail-closed；
+  BackDescriptor 可空化 = Q1"缺 backDescriptor 则隐藏"的前置）；
+  Director 障碍分支三段：安全词（过禁手清单）→ 返回键 dismiss →
+  bounded-stop:popup-confirm-requires-reauthorization（不变量 47）；
+  DefaultObstacleTargets 移除 button1。验证：全 solution 8 工程全绿
+  （Kernel 887 / Host 225+ / Simulation 188 / …，含 5 个新测试）。
+  下一步 = M1 异常强制升级 + 选项集（Director unknown-route 分支改造）。
 - 2026-10-17 · designing→implement-ready · 三轨 grill 完成（owner 主审
   + 盲审 + 业界对照，子代理按 owner 指令走 zai-coding-cn/glm-5.3-flash
   显式覆盖）；十裁决（owner 五条：Q2-Q5 + Q7 修订版；Leader 受权五条，

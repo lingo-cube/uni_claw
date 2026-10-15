@@ -126,16 +126,36 @@ public sealed class SettingsCoverageDirector
                 return new AgentDecision.NoAction(new AgentNoActionProposal(
                     context.DecisionId, "settings-coverage:bounded-stop:popup-not-cleared"));
             }
-            // 清障目标从当前可见元素发现（config 词汇优先序，确定性）；
-            // 词汇内无可见目标时无法 grounding——回落普通遍历指令。
+            // AGT-019 M4（Q5 裁决）：弹窗处置任务型白名单——遍历型任务没有
+            // confirm 权限。候选词表先过禁手清单（确认侧目标永不中选）；
+            // 无安全词可用时用返回键 dismiss（back/cancel 直点）；返回键也
+            // 未配置 → 暂停+重授权是唯一出路（不变量 47），绝不点 confirm。
+            var deny = _config.PopupSettings.DenyTargets;
             var obstacle = _config.PopupSettings.Targets
-                .FirstOrDefault(target => snapshot.Visible.Contains(target));
+                .FirstOrDefault(target => snapshot.Visible.Contains(target) && !deny.Contains(target));
             if (obstacle is not null)
             {
                 _obstacleAttempts++;
                 directive =
                     $"Clear the popup overlay by tapping '<{obstacle}>' before resuming traversal.";
                 kind = "obstacle";
+            }
+            else if (_config.BackDescriptor is not null)
+            {
+                _obstacleAttempts++;
+                directive =
+                    $"Dismiss the popup overlay by tapping '<{_config.BackDescriptor}>' (back). "
+                    + "Confirm-side buttons are not allowed for this task.";
+                kind = "obstacle";
+            }
+            else
+            {
+                _terminalJustification = "bounded-stop:popup-confirm-requires-reauthorization";
+                _log.Add(new ConsultRecord(
+                    context.DecisionId, context.Phase.ToString(), null, "obstacle",
+                    "noAction", null, 0, "bounded-stop:popup-confirm-requires-reauthorization"));
+                return new AgentDecision.NoAction(new AgentNoActionProposal(
+                    context.DecisionId, "settings-coverage:bounded-stop:popup-confirm-requires-reauthorization"));
             }
         }
         else if (snapshot.PopupState == "absent")

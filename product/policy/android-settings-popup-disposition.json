@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "android-settings-popup-disposition.v1",
+  "policyRef": "product/android-settings/popup-disposition",
+  "safetyPolicyRevision": 1,
+  "taskType": "traversal",
+  "allowedDispositions": ["cancel", "dismiss", "back"],
+  "confirmWhitelist": [],
+  "denyObstacleTargets": ["button1", "OK", "CONFIRM", "ALLOW", "ACCEPT", "AGREE", "CONTINUE", "NEXT", "DONE"],
+  "outsideWhitelistDisposition": "pause-reauthorize",
+  "generatedBeforeFirstConsultation": true
+}

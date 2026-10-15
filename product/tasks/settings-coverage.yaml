@@ -56,6 +56,12 @@ slow:
   maxRequestsPerRun: 6
   visualEnabled: false
   popupConsecutiveCycles: 2
+# AGT-019 M4（Q5）：弹窗处置 policy（任务型白名单）。遍历型任务无
+# confirm 权限；安全词 {cancel, dismiss} + 返回键直接点；白名单外
+# confirm 唯一出路 = 暂停+重授权（不变量 47）。禁手清单以 policy 工件
+# 为准（PRF-004 面），与 yaml 显式 deny 并集。
+popup:
+  dispositionPolicy: product/policy/android-settings-popup-disposition.json
 actionPolicy:
   required: true
   # PRF-005：canonical 副本升格产品声明面（product/AGENTS.md；ADR-0041）。
