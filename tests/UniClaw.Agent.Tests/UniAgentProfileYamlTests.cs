@@ -153,7 +153,8 @@ public sealed class UniAgentProfileYamlTests
 
         var skill = Assert.Single(profile.AllowedSkillRefs!);
         Assert.Equal("android-automotive-ui-testing", skill.Name);
-        Assert.Equal(1, skill.Revision);
+        // AGT-019 声明面随动：guidance 增补弹窗/停滞处置纪律 → revision 2。
+        Assert.Equal(2, skill.Revision);
         Assert.Equal("product/skills/android-automotive-ui-testing", skill.Path);
         Assert.Equal(64, skill.Sha256.Length);
     }
@@ -180,7 +181,7 @@ public sealed class UniAgentProfileYamlTests
     {
         var path = WriteFixture(ValidProfile.Replace(
             "profileRevision: 1",
-            "profileRevision: 1\nallowedSkillRefs:\n  android-automotive-ui-testing:\n    revision: 1\n    path: product/skills/android-automotive-ui-testing\n    sha256: " + new string('a', 64)));
+            "profileRevision: 1\nallowedSkillRefs:\n  android-automotive-ui-testing:\n    revision: 2\n    path: product/skills/android-automotive-ui-testing\n    sha256: " + new string('a', 64)));
         try
         {
             var error = Assert.Throws<InvalidOperationException>(() => UniAgentProfileYaml.Load(path));

@@ -42,7 +42,8 @@ public sealed class InitializationEnvelopeTests
             Assert.Equal(3, root.GetProperty("productPromptRevision").GetInt32());
             Assert.Equal(1, root.GetProperty("safetyPolicyRevision").GetInt32());
             Assert.Equal("android-automotive-ui-testing", root.GetProperty("skill").GetProperty("name").GetString());
-            Assert.Equal(1, root.GetProperty("skill").GetProperty("revision").GetInt32());
+            // AGT-019 声明面随动：skill revision 2（guidance 弹窗/停滞纪律）。
+            Assert.Equal(2, root.GetProperty("skill").GetProperty("revision").GetInt32());
             Assert.Equal(64, root.GetProperty("skill").GetProperty("sha256").GetString()!.Length);
             Assert.Equal("deepseek-official", root.GetProperty("modelRoute").GetProperty("provider").GetString());
             Assert.Equal("deepseek-flash", root.GetProperty("modelRoute").GetProperty("model").GetString());
