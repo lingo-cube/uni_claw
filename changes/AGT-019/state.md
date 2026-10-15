@@ -45,6 +45,13 @@ verification:
 
 ## Status log
 
+- 2026-10-17 · implementing · **Q4 链路端到端闭合（e0d0d3ce）**：Kernel
+  侧 DeriveElementSummaries 诚实填值（Native 在场 → Observed，视觉
+  单源 → Partial），Agent 咨询上下文自此区分双源/单源；Host 排序
+  （817144be）+ Kernel 标记两面齐。场景库经官方 writer 重封
+  （change=AGT-019，20/28 块），全 solution 8 工程绿。enabled:true
+  硬编码仍退化（无诚实数据源，另行处理）。**owner 待办仅剩**：标定
+  数字冻结（需真机数据）、Slice B 排期（blocked 成员 / M2 视图与截图）。
 - 2026-10-17 · implementing · **owner 订正 → skip-first 落地**：M3 期"无
   confidence 信号"结论被 owner 订正——置信面即 ElementEpistemic 枚举
   （Observed=双源/Partial=视觉单源/Ambiguous 保留；ConsultationTypes.cs
