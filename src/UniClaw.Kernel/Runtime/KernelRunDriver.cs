@@ -1347,7 +1347,11 @@ public sealed class KernelRunDriver
                 Clickable: o.Role is "ui.element" or "switch",
                 Checkable: o.Role == "switch",
                 Enabled: true,
-                ElementEpistemic.Observed,
+                // AGT-019（owner 订正后补齐）：诚实填值——NativeLocator
+                // 在场（XML 连接，双源一致）= Observed；视觉单源 = Partial
+                // （枚举本义"XML 缺席或未连接——诚实降级"，此前硬编码
+                // Observed 属退化填值）。
+                o.Native is not null ? ElementEpistemic.Observed : ElementEpistemic.Partial,
                 State: o.Role == "switch"
                     ? _kernel.ResolveCheckedForConsultation(new TargetDescriptor(
                         o.Role, o.SemanticDescriptor, o.OwningContainerId)) is { State: FieldState.Observed } checkedValue
