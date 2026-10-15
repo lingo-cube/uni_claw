@@ -45,6 +45,14 @@ verification:
 
 ## Status log
 
+- 2026-10-17 · implementing · **Slice A 收口**：声明面随动完成（e165e642）
+  ——skill guidance 增补弹窗/停滞/未知页处置纪律，manifest revision 2 +
+  profile sha256 重钉（推导 = sha256(manifest++guidance)，与 loader
+  VerifySkill 一致）；C8 场景库 check PASS（28 文件 0 违规，无需重封）；
+  全量 8 工程绿。**标定切片准备就绪**：M5 初值 3/5 + 滚动上限默认 2 已
+  作为任务参数在 yaml 可调；标定需真机跑 pass 型 run（stagnation 计数
+  + slow ms= 令牌即证据面），冻结呈报 owner。待 owner 三项：skip-first
+  confidence 面决策、标定数字冻结、Slice B（blocked 协议成员）。
 - 2026-10-17 · implementing · **Slice A / M3 完成（委派 glm-5.3-flash，
   Leader 审查后提交 c9e61d02）**：UniPerceptionPipeline.WaitAndPoll 有界
   同步等待（材料不足谓词 hierarchyAvailable=false ∨ proposalCount=0，
