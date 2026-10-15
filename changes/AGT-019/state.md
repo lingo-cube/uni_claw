@@ -45,6 +45,13 @@ verification:
 
 ## Status log
 
+- 2026-10-17 · implementing · **B3 完成（03728f8a，TDD）**：局部观察视图
+  （M2-②，Q2 六族全上、不重复承载）——LocalObservationView 载四族
+  补缺（容器含可滚动/视口/观察诊断/近周期趋势），claims/elements 走
+  既有字段；RUN-005 PolicyEvaluationView 先例形态；白名单 +4。Director
+  每咨询写默认形态（有真源的容器+趋势窗口 3；诊断/视口源在感知管线
+  seam 未接，诚实空）。**待办**：诊断/视口两族的 feed→Director seam
+  （后续片）；B5 截图三道闸 → B6 F5 钉扎。全 8 工程绿。
 - 2026-10-17 · implementing · **B4 完成（ad53c419，TDD）**：停滞事实
   升格为 ConsultationProgress 协议字段（+StagnantConsultations/
   +SameRouteConsultations，缺省 0 兼容；纯事实禁判语）；Director 注入
