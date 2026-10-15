@@ -475,4 +475,27 @@ public sealed class SettingsCoverageDirectorPlanTests
         Assert.IsType<AgentDecision.NoAction>(sixth);
         Assert.Equal("bounded-stop:no-progress", director.TerminalJustification);
     }
+
+    // AGT-019 M2-②（B3）：局部视图默认形态——容器结构（含可滚动）与
+    // 近周期趋势有真源即载；诊断/视口源未接（诚实空）。
+
+    [Fact]
+    public void LocalView_DefaultForm_CarriesContainersAndTrends_HonestNullsForUnsourced()
+    {
+        var localViews = new List<LocalObservationView?>();
+        var director = new SettingsCoverageDirector(
+            context => { localViews.Add(context.LocalView); return Act(Entry); },
+            NormalRootLedger(), Config());
+        Assert.NotNull(director.Consult(Context("d-1")));
+        Assert.NotNull(director.Consult(Context("d-2")));
+
+        var view = localViews[1]!;
+        Assert.NotNull(view);
+        var container = Assert.Single(view.Containers);
+        Assert.False(container.IsScrollable); // NormalRootLedger 无滚动容器可见
+        Assert.Equal(2, view.RecentCycles!.Count);
+        Assert.Contains("frontier=", view.RecentCycles[0]);
+        Assert.Null(view.Diagnostics);
+        Assert.Null(view.Viewport);
+    }
 }

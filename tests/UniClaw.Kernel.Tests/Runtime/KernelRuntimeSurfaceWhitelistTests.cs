@@ -313,12 +313,17 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.ConsultationJournalStatus",
             "UniClaw.Kernel.Runtime.ConsultationKey",
             "UniClaw.Kernel.Runtime.ConsultationProgress",
+            // AGT-019 M2-②（B3，局部视图四族补缺；RUN-005
+            // PolicyEvaluationView 先例形态）：
+            "UniClaw.Kernel.Runtime.ContainerSummary",
             "UniClaw.Kernel.Runtime.ElementEpistemic",
             "UniClaw.Kernel.Runtime.ElementSummary",
             "UniClaw.Kernel.Runtime.IConsultationJournal",
             "UniClaw.Kernel.Runtime.InMemoryConsultationJournal",
             "UniClaw.Kernel.Runtime.KernelRunDriver",
+            "UniClaw.Kernel.Runtime.LocalObservationView",
             "UniClaw.Kernel.Runtime.ObservationDepth",
+            "UniClaw.Kernel.Runtime.ObservationDiagnostics",
             "UniClaw.Kernel.Runtime.ObservationDirective",
             // AGT-019 M2（B2，RUN-004 D7 ObserveSpec 形状扩展）：
             // ObserveDepth 封闭枚举（Normal/Focused/Deep）。
@@ -353,6 +358,7 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.RunDriverInput+Unexpected",
             "UniClaw.Kernel.Runtime.RunDriverInputs",
             "UniClaw.Kernel.Runtime.ScreenSummary",
+            "UniClaw.Kernel.Runtime.ViewportSummary",
             "UniClaw.Kernel.TerminalEvaluation",
             "UniClaw.Kernel.Trace.DisabledRunTrace",
             "UniClaw.Kernel.Trace.IRunTrace",

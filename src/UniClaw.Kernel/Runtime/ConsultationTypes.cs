@@ -131,3 +131,39 @@ public sealed record ObserveSpec(
 public sealed record ScreenSummary(
     string ContainerId,
     string? Signature);
+
+/// <summary>
+/// AGT-019 M2-②（Q2 裁决：六族全上，纪律 = 无重复冗余 + 结构清晰）：
+/// 局部观察视图。read-only / ephemeral / not persisted / not authority
+/// （RUN-005 PolicyEvaluationView 先例形态）。六族中"局部 claims"与
+/// "元素"已由 CurrentWorldClaims / Elements 结构化承载，本视图只补
+/// 缺的四族：容器结构（含可滚动）、视口摘要、观察侧诊断、近 N 周期
+/// 趋势（事实行）。诊断与趋势由 Host 装饰层写入（Kernel 计数器不含
+/// frontier/周期语义）；null 族 = 该源缺席（诚实空，不伪造）。
+/// RUN-003：公开组合缝；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
+/// </summary>
+public sealed record LocalObservationView(
+    IReadOnlyList<ContainerSummary> Containers,
+    ViewportSummary? Viewport = null,
+    ObservationDiagnostics? Diagnostics = null,
+    IReadOnlyList<string>? RecentCycles = null);
+
+/// <summary>容器结构行（M2-② 族 3）：ContainerId + 可滚动性。</summary>
+public sealed record ContainerSummary(
+    string ContainerId,
+    bool IsScrollable);
+
+/// <summary>视口摘要（M2-② 族 4）：显示尺寸（px）；null = 源缺席。</summary>
+public sealed record ViewportSummary(int Width, int Height);
+
+/// <summary>
+/// 观察侧诊断（M2-② 族 5，trace 既有字段的上下文化）：XML 层级在否 /
+/// fast 在否 / 入账提案数 / 各段耗时（ms）。Host 装饰层从感知管线最新
+/// 周期写入；纯事实，无判语。
+/// </summary>
+public sealed record ObservationDiagnostics(
+    bool HierarchyAvailable,
+    bool FastAvailable,
+    int ProposalCount,
+    long? FastLatencyMs = null,
+    long? HierarchyLatencyMs = null);

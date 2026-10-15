@@ -61,6 +61,9 @@ public sealed record AgentDecisionContext(
     IReadOnlyDictionary<string, CapabilityProfileReport>? AvailableCapabilities = null,
     // PROTOCOL-FIX-003（ADR-0050）：续授窗口投影；null = policy 未配置续授。
     RenewalWindow? RenewalWindow = null,
+    // AGT-019 M2-②（B3）：局部观察视图（四族补缺；claims/elements 已在
+    // 既有字段）。null = Host 装饰层未提供（诚实空）。
+    LocalObservationView? LocalView = null,
     string? ProductSessionId = null,
     string? ContractViewRef = null,
     string? DecisionBoundaryId = null);

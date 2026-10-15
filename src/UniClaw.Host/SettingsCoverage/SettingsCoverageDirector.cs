@@ -40,6 +40,7 @@ public sealed class SettingsCoverageDirector
     private int _stagnantConsults;
     private int _sameRouteConsults;
     private string? _lastRoute;
+    private readonly Queue<string> _recentCycleFacts = new();
 
     /// <summary>AGT-009：advisory Plan 的最大项数（超出 fail closed）。</summary>
     internal const int MaxPlanItems = 4;
@@ -133,6 +134,27 @@ public sealed class SettingsCoverageDirector
             ? _sameRouteConsults + 1
             : 0;
         _lastRoute = snapshot.CurrentRoute;
+        // AGT-019 M2-②（B3）：局部视图（观察阶梯默认形态）——四族补缺中
+        // 有真源的三族：容器结构（屏身份 + 可滚动性）、近周期趋势（本
+        // Director 的有界事实行，窗口 3）；诊断/视口源在感知管线 seam
+        //（后续片接入），诚实空不伪造。claims/elements 由既有字段承载。
+        _recentCycleFacts.Enqueue(
+            $"route={snapshot.CurrentRoute ?? "unknown"};verified={snapshot.StepsVerified};frontier={frontierCount}");
+        while (_recentCycleFacts.Count > 3)
+            _recentCycleFacts.Dequeue();
+        context = context with
+        {
+            LocalView = new LocalObservationView(
+                Containers: new[]
+                {
+                    new ContainerSummary(
+                        context.Screen?.ContainerId ?? snapshot.CurrentRoute ?? "unknown",
+                        IsScrollable: snapshot.Visible.Contains(_config.ScrollContainerDescriptor)),
+                },
+                Viewport: null,
+                Diagnostics: null,
+                RecentCycles: _recentCycleFacts.ToArray()),
+        };
         if (_stagnantConsults >= _config.Bounds.StagnationStopConsults)
         {
             _terminalJustification = "bounded-stop:no-progress";
