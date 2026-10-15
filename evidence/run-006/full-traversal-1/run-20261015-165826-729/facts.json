@@ -1,0 +1,1799 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-facts.v2",
+  "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/run-006/full-traversal-1/run-20261015-165826-729",
+  "status": "AgentDecisionFailed",
+  "reason": "budget-exceeded:steps",
+  "outcome": null,
+  "delivered": 0,
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0.375,
+  "stepSuccessRate": 1,
+  "uncovered": [
+    "first-level-all-visible",
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "back-navigation",
+    "dynamic-nested-entries"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": null,
+  "diagnostics": {
+    "firstDivergence": null,
+    "terminalJustification": null,
+    "nextFiles": [
+      "facts.json",
+      "consult-bridge.json",
+      "environment-preflight.json",
+      "coverage-report.json",
+      "coverage-steps.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B firstDivergence/reason\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 coverage-steps.json\u3001trace.json \u548C exec.journal\u3002"
+  },
+  "languageInspection": {
+    "requested": true,
+    "file": "language-findings.json",
+    "findings": 97,
+    "persistenceHealthy": true,
+    "diagnostics": []
+  },
+  "consultMode": "coverage-director",
+  "actionPolicy": {
+    "policyRef": "product/android-settings/forbidden-actions",
+    "digest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/product/policy/android-settings-forbidden-actions.json"
+  },
+  "evidenceDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/run-006/full-traversal-1/run-20261015-165826-729/evidence",
+  "evidenceFiles": 194,
+  "journalBytes": 149243,
+  "consults": [
+    {
+      "decisionId": "decision-d24d3d1dc90d-1",
+      "phase": "InitialPlanning",
+      "directive": "Enter the Settings first-level entry \u0027\u003CNetwork \u0026 internet\u003E\u0027 by tapping it.",
+      "directiveKind": "enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-2",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CInternet\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-3",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CFix connectivity\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-4",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CT-Mobile\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-5",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSettings\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-6",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-7",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-8",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-9",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-10",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-11",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-12",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-13",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-14",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-15",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-16",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-17",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-18",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-19",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-20",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-21",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-22",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-23",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-24",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-25",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-26",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-27",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-28",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-29",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-30",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-31",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-32",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-33",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-34",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-35",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-36",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-37",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-38",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-39",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-40",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-41",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-42",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-43",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-44",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-45",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-46",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-47",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-48",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-49",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-50",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-51",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-52",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-53",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-54",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-55",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-56",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-57",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-58",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-59",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-60",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-61",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-62",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-63",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-64",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-65",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-66",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-67",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-68",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-69",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-70",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-71",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-72",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-73",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-74",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-75",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-76",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-77",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-78",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-79",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-80",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-81",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-82",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-83",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-84",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-85",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-86",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-87",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-88",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-89",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-90",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-91",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-92",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-93",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-94",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-95",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-96",
+      "phase": "StepVerified",
+      "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+      "directiveKind": "nested-enter",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-d24d3d1dc90d-97",
+      "phase": "StepVerified",
+      "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+      "directiveKind": "obstacle",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "RUN-006 directive-follower double: executed the coverage directive literally",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    }
+  ],
+  "steps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-c156570edb34-3-1"
+    },
+    {
+      "decision": 2,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-a5dc2bb5cefd-3-2"
+    },
+    {
+      "decision": 3,
+      "step": 0,
+      "receipt": "receipt-bind-intent-3-occ-cf961990b32b-2-3"
+    },
+    {
+      "decision": 4,
+      "step": 0,
+      "receipt": "receipt-bind-intent-4-occ-0ec92ccc5fd6-4-4"
+    },
+    {
+      "decision": 5,
+      "step": 0,
+      "receipt": "receipt-bind-intent-5-occ-351168a9a840-5-5"
+    },
+    {
+      "decision": 6,
+      "step": 0,
+      "receipt": "receipt-bind-intent-6-occ-0a252b5b8051-2-6"
+    },
+    {
+      "decision": 7,
+      "step": 0,
+      "receipt": "receipt-bind-intent-7-occ-da006e762c70-2-7"
+    },
+    {
+      "decision": 8,
+      "step": 0,
+      "receipt": "receipt-bind-intent-8-occ-d5cf6850a0d6-2-8"
+    },
+    {
+      "decision": 9,
+      "step": 0,
+      "receipt": "receipt-bind-intent-9-occ-4c4e4ea72afd-2-9"
+    },
+    {
+      "decision": 10,
+      "step": 0,
+      "receipt": "receipt-bind-intent-10-occ-b7ca1b211e89-2-10"
+    },
+    {
+      "decision": 11,
+      "step": 0,
+      "receipt": "receipt-bind-intent-11-occ-9d029e757164-2-11"
+    },
+    {
+      "decision": 12,
+      "step": 0,
+      "receipt": "receipt-bind-intent-12-occ-b4eaf772db13-2-12"
+    },
+    {
+      "decision": 13,
+      "step": 0,
+      "receipt": "receipt-bind-intent-13-occ-96b30876a265-2-13"
+    },
+    {
+      "decision": 14,
+      "step": 0,
+      "receipt": "receipt-bind-intent-14-occ-07ef17199dc2-2-14"
+    },
+    {
+      "decision": 15,
+      "step": 0,
+      "receipt": "receipt-bind-intent-15-occ-c5b1469cc9c4-2-15"
+    },
+    {
+      "decision": 16,
+      "step": 0,
+      "receipt": "receipt-bind-intent-16-occ-54c3edf2aeb9-2-16"
+    },
+    {
+      "decision": 17,
+      "step": 0,
+      "receipt": "receipt-bind-intent-17-occ-c083dec38a84-2-17"
+    },
+    {
+      "decision": 18,
+      "step": 0,
+      "receipt": "receipt-bind-intent-18-occ-9c95a1e0e7b7-2-18"
+    },
+    {
+      "decision": 19,
+      "step": 0,
+      "receipt": "receipt-bind-intent-19-occ-eb840d1dd996-2-19"
+    },
+    {
+      "decision": 20,
+      "step": 0,
+      "receipt": "receipt-bind-intent-20-occ-aa60b43b96fa-2-20"
+    },
+    {
+      "decision": 21,
+      "step": 0,
+      "receipt": "receipt-bind-intent-21-occ-a0ab7ff7a0a8-2-21"
+    },
+    {
+      "decision": 22,
+      "step": 0,
+      "receipt": "receipt-bind-intent-22-occ-b9e9e808f3ce-2-22"
+    },
+    {
+      "decision": 23,
+      "step": 0,
+      "receipt": "receipt-bind-intent-23-occ-3087c502f354-2-23"
+    },
+    {
+      "decision": 24,
+      "step": 0,
+      "receipt": "receipt-bind-intent-24-occ-428a37468d2e-2-24"
+    },
+    {
+      "decision": 25,
+      "step": 0,
+      "receipt": "receipt-bind-intent-25-occ-bea9878caedf-2-25"
+    },
+    {
+      "decision": 26,
+      "step": 0,
+      "receipt": "receipt-bind-intent-26-occ-2ef391d61e8e-2-26"
+    },
+    {
+      "decision": 27,
+      "step": 0,
+      "receipt": "receipt-bind-intent-27-occ-dee073921107-2-27"
+    },
+    {
+      "decision": 28,
+      "step": 0,
+      "receipt": "receipt-bind-intent-28-occ-06d833d1a733-2-28"
+    },
+    {
+      "decision": 29,
+      "step": 0,
+      "receipt": "receipt-bind-intent-29-occ-d734929c5700-2-29"
+    },
+    {
+      "decision": 30,
+      "step": 0,
+      "receipt": "receipt-bind-intent-30-occ-0efb69262388-2-30"
+    },
+    {
+      "decision": 31,
+      "step": 0,
+      "receipt": "receipt-bind-intent-31-occ-768244c45c63-2-31"
+    },
+    {
+      "decision": 32,
+      "step": 0,
+      "receipt": "receipt-bind-intent-32-occ-99d294db2310-2-32"
+    },
+    {
+      "decision": 33,
+      "step": 0,
+      "receipt": "receipt-bind-intent-33-occ-f4054eadf3d3-2-33"
+    },
+    {
+      "decision": 34,
+      "step": 0,
+      "receipt": "receipt-bind-intent-34-occ-3e2ecccc2ac6-2-34"
+    },
+    {
+      "decision": 35,
+      "step": 0,
+      "receipt": "receipt-bind-intent-35-occ-0e225df5ad3c-2-35"
+    },
+    {
+      "decision": 36,
+      "step": 0,
+      "receipt": "receipt-bind-intent-36-occ-406477b66f1a-2-36"
+    },
+    {
+      "decision": 37,
+      "step": 0,
+      "receipt": "receipt-bind-intent-37-occ-2a0ec1b596fa-2-37"
+    },
+    {
+      "decision": 38,
+      "step": 0,
+      "receipt": "receipt-bind-intent-38-occ-10c1b5e864d4-2-38"
+    },
+    {
+      "decision": 39,
+      "step": 0,
+      "receipt": "receipt-bind-intent-39-occ-f250bbf23243-2-39"
+    },
+    {
+      "decision": 40,
+      "step": 0,
+      "receipt": "receipt-bind-intent-40-occ-7effdfc17021-2-40"
+    },
+    {
+      "decision": 41,
+      "step": 0,
+      "receipt": "receipt-bind-intent-41-occ-0e01b697b7ea-2-41"
+    },
+    {
+      "decision": 42,
+      "step": 0,
+      "receipt": "receipt-bind-intent-42-occ-a25919098cf8-2-42"
+    },
+    {
+      "decision": 43,
+      "step": 0,
+      "receipt": "receipt-bind-intent-43-occ-f53191f81876-2-43"
+    },
+    {
+      "decision": 44,
+      "step": 0,
+      "receipt": "receipt-bind-intent-44-occ-28d461e8d1a4-2-44"
+    },
+    {
+      "decision": 45,
+      "step": 0,
+      "receipt": "receipt-bind-intent-45-occ-245e39188f31-2-45"
+    },
+    {
+      "decision": 46,
+      "step": 0,
+      "receipt": "receipt-bind-intent-46-occ-5fa363cb98ec-2-46"
+    },
+    {
+      "decision": 47,
+      "step": 0,
+      "receipt": "receipt-bind-intent-47-occ-26b7bb40684e-2-47"
+    },
+    {
+      "decision": 48,
+      "step": 0,
+      "receipt": "receipt-bind-intent-48-occ-261a207016e5-2-48"
+    },
+    {
+      "decision": 49,
+      "step": 0,
+      "receipt": "receipt-bind-intent-49-occ-8ac33635bd60-2-49"
+    },
+    {
+      "decision": 50,
+      "step": 0,
+      "receipt": "receipt-bind-intent-50-occ-8a8dababbffb-2-50"
+    },
+    {
+      "decision": 51,
+      "step": 0,
+      "receipt": "receipt-bind-intent-51-occ-7bd60a76d8e4-2-51"
+    },
+    {
+      "decision": 52,
+      "step": 0,
+      "receipt": "receipt-bind-intent-52-occ-ab2a47cf118e-2-52"
+    },
+    {
+      "decision": 53,
+      "step": 0,
+      "receipt": "receipt-bind-intent-53-occ-23fb7e873fb0-2-53"
+    },
+    {
+      "decision": 54,
+      "step": 0,
+      "receipt": "receipt-bind-intent-54-occ-a223067920cd-2-54"
+    },
+    {
+      "decision": 55,
+      "step": 0,
+      "receipt": "receipt-bind-intent-55-occ-49ad8845b555-2-55"
+    },
+    {
+      "decision": 56,
+      "step": 0,
+      "receipt": "receipt-bind-intent-56-occ-b30186cff551-2-56"
+    },
+    {
+      "decision": 57,
+      "step": 0,
+      "receipt": "receipt-bind-intent-57-occ-cc11685b8ae8-2-57"
+    },
+    {
+      "decision": 58,
+      "step": 0,
+      "receipt": "receipt-bind-intent-58-occ-41f843bdbaf6-2-58"
+    },
+    {
+      "decision": 59,
+      "step": 0,
+      "receipt": "receipt-bind-intent-59-occ-b6848292f1ed-2-59"
+    },
+    {
+      "decision": 60,
+      "step": 0,
+      "receipt": "receipt-bind-intent-60-occ-3100776e9fc8-2-60"
+    },
+    {
+      "decision": 61,
+      "step": 0,
+      "receipt": "receipt-bind-intent-61-occ-689ab45ec319-2-61"
+    },
+    {
+      "decision": 62,
+      "step": 0,
+      "receipt": "receipt-bind-intent-62-occ-25e3eb731a31-2-62"
+    },
+    {
+      "decision": 63,
+      "step": 0,
+      "receipt": "receipt-bind-intent-63-occ-ccfbee75a131-2-63"
+    },
+    {
+      "decision": 64,
+      "step": 0,
+      "receipt": "receipt-bind-intent-64-occ-44ddf8bc8ab9-2-64"
+    },
+    {
+      "decision": 65,
+      "step": 0,
+      "receipt": "receipt-bind-intent-65-occ-7733e9249faa-2-65"
+    },
+    {
+      "decision": 66,
+      "step": 0,
+      "receipt": "receipt-bind-intent-66-occ-ae3272cb0b76-2-66"
+    },
+    {
+      "decision": 67,
+      "step": 0,
+      "receipt": "receipt-bind-intent-67-occ-16461bfb6219-2-67"
+    },
+    {
+      "decision": 68,
+      "step": 0,
+      "receipt": "receipt-bind-intent-68-occ-3f346c832846-2-68"
+    },
+    {
+      "decision": 69,
+      "step": 0,
+      "receipt": "receipt-bind-intent-69-occ-dc24fd3e34d4-2-69"
+    },
+    {
+      "decision": 70,
+      "step": 0,
+      "receipt": "receipt-bind-intent-70-occ-9921619553f8-2-70"
+    },
+    {
+      "decision": 71,
+      "step": 0,
+      "receipt": "receipt-bind-intent-71-occ-18b57700acce-2-71"
+    },
+    {
+      "decision": 72,
+      "step": 0,
+      "receipt": "receipt-bind-intent-72-occ-a0b622975809-2-72"
+    },
+    {
+      "decision": 73,
+      "step": 0,
+      "receipt": "receipt-bind-intent-73-occ-370483751f94-2-73"
+    },
+    {
+      "decision": 74,
+      "step": 0,
+      "receipt": "receipt-bind-intent-74-occ-42fd5eaa06dd-2-74"
+    },
+    {
+      "decision": 75,
+      "step": 0,
+      "receipt": "receipt-bind-intent-75-occ-597780e71c0a-2-75"
+    },
+    {
+      "decision": 76,
+      "step": 0,
+      "receipt": "receipt-bind-intent-76-occ-05e5cec753c2-2-76"
+    },
+    {
+      "decision": 77,
+      "step": 0,
+      "receipt": "receipt-bind-intent-77-occ-4c9ef1717d28-2-77"
+    },
+    {
+      "decision": 78,
+      "step": 0,
+      "receipt": "receipt-bind-intent-78-occ-8a01195f15fb-2-78"
+    },
+    {
+      "decision": 79,
+      "step": 0,
+      "receipt": "receipt-bind-intent-79-occ-5e405104f0ea-2-79"
+    },
+    {
+      "decision": 80,
+      "step": 0,
+      "receipt": "receipt-bind-intent-80-occ-f6cd7be08acd-2-80"
+    },
+    {
+      "decision": 81,
+      "step": 0,
+      "receipt": "receipt-bind-intent-81-occ-5e453c6f5aad-2-81"
+    },
+    {
+      "decision": 82,
+      "step": 0,
+      "receipt": "receipt-bind-intent-82-occ-4e6ea3f1b5fd-2-82"
+    },
+    {
+      "decision": 83,
+      "step": 0,
+      "receipt": "receipt-bind-intent-83-occ-c357d64ad5ba-2-83"
+    },
+    {
+      "decision": 84,
+      "step": 0,
+      "receipt": "receipt-bind-intent-84-occ-8fccd6745b2e-2-84"
+    },
+    {
+      "decision": 85,
+      "step": 0,
+      "receipt": "receipt-bind-intent-85-occ-0a8fa1b10195-2-85"
+    },
+    {
+      "decision": 86,
+      "step": 0,
+      "receipt": "receipt-bind-intent-86-occ-297e25e27443-2-86"
+    },
+    {
+      "decision": 87,
+      "step": 0,
+      "receipt": "receipt-bind-intent-87-occ-144d1abbfbf7-2-87"
+    },
+    {
+      "decision": 88,
+      "step": 0,
+      "receipt": "receipt-bind-intent-88-occ-13814f75cc9e-2-88"
+    },
+    {
+      "decision": 89,
+      "step": 0,
+      "receipt": "receipt-bind-intent-89-occ-eeed25c225ce-2-89"
+    },
+    {
+      "decision": 90,
+      "step": 0,
+      "receipt": "receipt-bind-intent-90-occ-2b4350851df3-2-90"
+    },
+    {
+      "decision": 91,
+      "step": 0,
+      "receipt": "receipt-bind-intent-91-occ-cddcc0977bf9-2-91"
+    },
+    {
+      "decision": 92,
+      "step": 0,
+      "receipt": "receipt-bind-intent-92-occ-09f8d0e68073-2-92"
+    },
+    {
+      "decision": 93,
+      "step": 0,
+      "receipt": "receipt-bind-intent-93-occ-9c75ecc62c0f-2-93"
+    },
+    {
+      "decision": 94,
+      "step": 0,
+      "receipt": "receipt-bind-intent-94-occ-85c5ff6a1c11-2-94"
+    },
+    {
+      "decision": 95,
+      "step": 0,
+      "receipt": "receipt-bind-intent-95-occ-0c38e6a36133-2-95"
+    },
+    {
+      "decision": 96,
+      "step": 0,
+      "receipt": "receipt-bind-intent-96-occ-7efe5f96ea24-2-96"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "uniclaw.run-006.manifest.v1",
+  "change": "RUN-006",
+  "generatedAt": "2026-10-16",
+  "run": "evidence/run-006/full-traversal-1/run-20261015-165826-729",
+  "device": "registered p26_pixel AVD clone via tools/android/start-test-device.sh, serial emulator-5556, API 35, wm 1080x1920",
+  "deviceProvenanceNote": "source AVD ~/.android/avd/p26_pixel.avd carried a stale multiinstance.lock (ADB-003 snapshot-pending FATAL, attempt 1); sandbox denied cleaning ~/.android, so a lock-free clone of the SAME registered AVD was made in $TMPDIR and booted via the registered launcher with ANDROID_AVD_HOME override. No ad-hoc manual emulator start.",
+  "consultChain": {
+    "tier": "DOWNGRADED - directive-follower double (leader-file decision bridge)",
+    "reason": "real DSH model bridge unavailable: dedicated DSH instance (127.0.0.1:3081) could not be started from this session; harness CLI must write ~/.dsh/profiles/web/cordis.yml which the fixed workspace-write sandbox denies (approval disabled). Slow bridge likewise connection-refused (recorded in trace as Rejected tokens).",
+    "responder": "evidence/run-006/tools/directive-follower.py - literal execution of the Coverage Director directive; unknown-route directives would defer; confirm-side controls never tapped"
+  },
+  "command": "UNICLAW_ANDROID_DEVICE=emulator-5556 dotnet src/UniClaw.Host.Dsh/bin/Debug/net10.0/UniClaw.Host.Dsh.dll --settings-coverage --device emulator-5556 --runs <abs>/evidence/run-006/full-traversal-1 --decision-inbox <abs>/evidence/run-006/full-traversal-1/inbox",
+  "config": "product/tasks/settings-coverage.yaml (slow enabled boundedWaitMs=15000 maxRequestsPerRun=6; popup dispositionPolicy; stagnationInject/Stop=3/5; all AGT-019 mechanisms on)",
+  "terminal": {
+    "status": "AgentDecisionFailed",
+    "reason": "budget-exceeded:steps",
+    "coverageStatus": "BoundedStop",
+    "coverageRate": 0.38,
+    "steps": 96,
+    "stepsVerified": 96,
+    "delivered": 0
+  },
+  "keyFindings": [
+    "SIM setup dialog loop: entering T-Mobile triggers a recurring dialog; alternating 'SIM name & color' nested-entry and 'Clear popup CANCEL' directives consumed 92/96 steps; every tap verified (route changed), so stepsVerified kept advancing and M5 stagnation (3/5) never fired - honest attribution, not a mechanism failure",
+    "slow tokens: 6 Dispatched(ms=0) + 5 Rejected(slow-transport-failed:Connection refused 127.0.0.1:3081, ms=5031..5327) + 1 Skipped(budget-exhausted) + 40 Skipped(budget-exhausted); 0 Landed / 0 Dropped - trigger condition (popup=SemanticUnclear) fired 46 times but the model bridge was absent",
+    "0 confirm-side taps: only safe-word CANCEL + Navigate up/entry taps; no OK/CONFIRM/ALLOW/button1 anywhere",
+    "consult payload schema carries localView/progress.stagnantConsultations/sameRouteConsultations in all 97 exchanges, but values null/0 (element list was carried in context.elements in coverage-director mode; no stagnation accrued)"
+  ],
+  "artifacts": [
+    "settings-trace.json", "consult-bridge.json", "coverage-report.json",
+    "coverage-steps.json", "capability-facts.json", "capability-profiles.json",
+    "facts.json", "trace.json", "language-findings.json", "environment-preflight.json",
+    "exec.journal", "evidence/ (194 capture png/xml)"
+  ]
+}

@@ -36,5 +36,12 @@ coverage，真实产品配置），验证 AGT-019 机制在真实链路生效并
 
 ## Status log
 
+- 2026-10-17 · closed-ready · **全遍历完成（Worker 2 轮 + Leader 复核）**：
+  BoundedStop 诚实终局（37.5%，96 步全 verified）；slow 触发链真机实证
+  （6×Dispatched，桥缺席 0 Landed——环境阻塞非机制失效）；progress 双
+  停滞字段 97 载荷实机在场；零 confirm（45 弹窗全 CANCEL）。关键负结果：
+  M5 双零判据在弹窗循环不可达（标定未达）；新发现：桥 DTO 缺 LocalView
+  映射、popupConsecutiveCycles 疑未消费。报告 = report.md（四元组 +
+  5 条优化建议）。咨询链降级（directive-follower）如实申报。
 - 2026-10-17 · created · owner 指令（"RUN 开头 + 跑全遍历 + Worker
   执行 ≤3 轮 + 报告建议 + 提交推送"）；baseline = AGT-019 全量离线绿。
