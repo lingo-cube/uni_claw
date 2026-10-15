@@ -45,6 +45,14 @@ verification:
 
 ## Status log
 
+- 2026-10-17 · implementing · **Slice B 开工（owner 排期："现在排，阈值
+  后调"）· B1 完成（f547b791，TDD）**：Blocked 第六成员入封闭 union
+  （RUN-004 D3/D7 修订通道，G4 先例）——reason 必填执法、D2 同号回带、
+  Driver 零 Effect 确定性终局 TerminalNotProven(agent-blocked:{reason})、
+  白名单 +1、Director 选项集接入（同号透传/异号零 Effect）。
+  场景库重封（change=AGT-019）；全 8 工程绿。剩余：B2 参数化
+  ObserveSpec → B4 M5 进度字段化 → B3 局部视图 → B5 截图三道闸 →
+  B6 F5 钉扎 + payload-shapes。
 - 2026-10-17 · implementing · **Q4 链路端到端闭合（e0d0d3ce）**：Kernel
   侧 DeriveElementSummaries 诚实填值（Native 在场 → Observed，视觉
   单源 → Partial），Agent 咨询上下文自此区分双源/单源；Host 排序
