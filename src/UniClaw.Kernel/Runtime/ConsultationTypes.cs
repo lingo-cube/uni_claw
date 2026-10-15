@@ -38,7 +38,13 @@ public sealed record ConsultationProgress(
     int RoundsUsed,
     int StepsDispatched,
     int StepsVerified,
-    PolicyProgressState? PolicyState = null);
+    PolicyProgressState? PolicyState = null,
+    // AGT-019 M5（B4，RUN-004 D3 字段扩展）：停滞事实计数——纯事实，
+    // 禁判语（protocol §3:112：no-progress 判定职责在 Agent）。0 = 无
+    // 停滞信号（缺省兼容现行为）；由 Host 装饰层写入（Kernel 计数器
+    // 不含 frontier 语义）。
+    int StagnantConsultations = 0,
+    int SameRouteConsultations = 0);
 
 /// <summary>
 /// RUN-005 §8 — Progress.PolicyState 投影（policy 摘要）：PolicyId ·

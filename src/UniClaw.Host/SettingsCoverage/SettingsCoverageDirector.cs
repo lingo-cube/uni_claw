@@ -142,11 +142,21 @@ public sealed class SettingsCoverageDirector
             return new AgentDecision.NoAction(new AgentNoActionProposal(
                 context.DecisionId, "settings-coverage:bounded-stop:no-progress"));
         }
-        var noProgressFacts = _stagnantConsults >= _config.Bounds.StagnationInjectConsults
-            ? "\n\nNO-PROGRESS FACTS (counts only, no verdict): "
-              + $"{_stagnantConsults} consecutive consultations with 0 newly verified steps "
-              + $"and 0 frontier changes; same-route consultations in a row: {_sameRouteConsults}."
-            : null;
+        // AGT-019 M5（B4）：注入阈值达成 → 停滞事实进协议字段
+        // ConsultationProgress（取代 Slice A 的 Objective 文本注入——
+        // 消冗余）；Progress 缺席（非 Kernel 正常组合）则诚实不造字段。
+        if (_stagnantConsults >= _config.Bounds.StagnationInjectConsults
+            && context.Progress is { } progress)
+        {
+            context = context with
+            {
+                Progress = progress with
+                {
+                    StagnantConsultations = _stagnantConsults,
+                    SameRouteConsultations = _sameRouteConsults,
+                },
+            };
+        }
 
         // AGT-009 §1：弹窗在场优先于一切普通遍历指令——先清障，弹窗回到
         // absent 才恢复普通遍历。有界重试（config MaxObstacleRetries）；
@@ -328,8 +338,7 @@ public sealed class SettingsCoverageDirector
                 + (_config.ActionPolicy is { } policy
                     ? "\n\nSETTINGS ACTION POLICY (read-only; Runtime Guard is authoritative): "
                       + policy.AgentProjection()
-                    : string.Empty)
-                + noProgressFacts,
+                    : string.Empty),
         };
 
         var attempts = 0;

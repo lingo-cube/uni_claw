@@ -35,7 +35,9 @@ public sealed class SettingsCoverageDirectorPlanTests
             Popup: new PopupClearanceConfig(ObstacleTargets: obstacleTargets ?? new[] { "CANCEL", "button2", "DISMISS", "button1" },
                 MaxObstacleRetries: maxObstacleRetries));
 
-    private static AgentDecisionContext Context(string decisionId = "d-1") =>
+    private static AgentDecisionContext Context(
+        string decisionId = "d-1",
+        ConsultationProgress? progress = null) =>
         new(
             DecisionId: decisionId,
             RunId: "run-1",
@@ -44,7 +46,8 @@ public sealed class SettingsCoverageDirectorPlanTests
             AllowedEffects: new HashSet<string>(StringComparer.Ordinal) { "tap", "swipe-up" },
             CurrentWorldClaims: new Dictionary<string, ClaimSummary>(),
             PendingObligations: Array.Empty<AgentObligationView>(),
-            Phase: AgentDecisionPhase.StepVerified);
+            Phase: AgentDecisionPhase.StepVerified,
+            Progress: progress);
 
     private static AgentDecision Act(string descriptor, string effectClass = "tap") =>
         new AgentDecision.Act(new AgentActionProposal(
@@ -436,16 +439,27 @@ public sealed class SettingsCoverageDirectorPlanTests
     [Fact]
     public void StagnantTraversal_InjectsNoProgressFacts_AfterWindow()
     {
+        // B4：停滞事实升格为协议字段（ConsultationProgress），文本注入退役。
+        var progresses = new List<ConsultationProgress?>();
         var objectives = new List<string>();
         var director = new SettingsCoverageDirector(
-            context => { objectives.Add(context.Objective); return Act(Entry); },
-            NormalRootLedger(), Config());
+            context =>
+            {
+                progresses.Add(context.Progress);
+                objectives.Add(context.Objective);
+                return Act(Entry);
+            },
+            NormalRootLedger(),
+            Config());
         for (var i = 1; i <= 4; i++)
-            Assert.NotNull(director.Consult(Context($"d-{i}")));
+            Assert.NotNull(director.Consult(Context($"d-{i}",
+                progress: new ConsultationProgress(i, i - 1, 0))));
 
-        Assert.DoesNotContain("NO-PROGRESS", objectives[0]);
-        Assert.Contains("NO-PROGRESS", objectives[3]);
-        Assert.Contains("counts only", objectives[3]);
+        Assert.NotNull(progresses[0]);
+        Assert.Equal(0, progresses[0]!.StagnantConsultations);
+        Assert.Equal(3, progresses[3]!.StagnantConsultations);
+        Assert.Equal(3, progresses[3]!.SameRouteConsultations);
+        Assert.DoesNotContain("NO-PROGRESS", objectives[3]);
     }
 
     [Fact]
