@@ -45,6 +45,17 @@ verification:
 
 ## Status log
 
+- 2026-10-17 · implementing · **诊断/视口 seam + 慢感知生效修复
+  （dc43ee0f，owner 指令两件一起）**：① seam 闭环——LiveFeed 每周期
+  暴露 LatestDiagnostics（fast/XML 在否、提案数、双耗时）+
+  LatestViewport（capture 实测宽高），Runner 注入 Director，LocalView
+  两族诚实空补真源（supplier 缝离线可测）；② **M3 谓词输入源修复**——
+  原传 proposals.Count，该点恒 ≥2（identity/route 常驻 + typed 提案未
+  并入），proposalCount=0 分支真实路径死代码；改与触发词共用
+  clickable 节点数（grounding 材料的机械度量，单一计算双消费）。
+  消歧：ObserveDepth（回答侧）≠ ObservationDepth（指令侧 PER-009，
+  第三档 Slow≠Deep），注释钉死非重复词表。live 全链证明随下次真实
+  遍历（验收 2 挂账项）。场景库重封；全 8 工程绿。
 - 2026-10-17 · implementing · **B5 + B6 完成 → Slice B 全部落地**：
   B5（601a5a71）截图三道闸——Dispatch 强制 judgment 标记（闸一）/
   入账拒收且**先于**路由对齐判定（闸二，同构错屏门执法）/ drop 令牌
