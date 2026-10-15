@@ -320,6 +320,9 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.KernelRunDriver",
             "UniClaw.Kernel.Runtime.ObservationDepth",
             "UniClaw.Kernel.Runtime.ObservationDirective",
+            // AGT-019 M2（B2，RUN-004 D7 ObserveSpec 形状扩展）：
+            // ObserveDepth 封闭枚举（Normal/Focused/Deep）。
+            "UniClaw.Kernel.Runtime.ObserveDepth",
             "UniClaw.Kernel.Runtime.ObserveSpec",
             // AGT-009 增集（§11 advisory 遍历计划词汇）：AgentDecision
             //（+Plan）/ AgentPlanProposal / PlanItem（+ActItem/ObserveItem/

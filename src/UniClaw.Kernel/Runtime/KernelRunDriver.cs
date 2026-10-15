@@ -1429,6 +1429,11 @@ public sealed class KernelRunDriver
                 // 「嵌套拒绝」语义 2026-09-23 修订移除，见 spec §4 注记）
                 if (defer.Spec.MaxRounds > 4)
                     return "defer-unbounded:max-rounds";
+                // AGT-019 M2（B2）：参数化观察的诚实执法——档位封闭
+                //（enum 类型形状）；Purpose 提供则必须有内容且有界。
+                if (defer.Spec.Purpose is { } purpose
+                    && (string.IsNullOrWhiteSpace(purpose) || purpose.Length > 256))
+                    return "defer-purpose-invalid";
                 break;
             }
             case AgentDecision.Blocked blocked:

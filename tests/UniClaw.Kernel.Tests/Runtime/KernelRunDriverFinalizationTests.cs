@@ -397,6 +397,44 @@ public sealed class KernelRunDriverFinalizationTests
         Assert.False(kernel.IsRunTerminal);
     }
 
+    // ==== AGT-019 B2：参数化 ObserveSpec（深度/目的）—— V5 三本账取最严 ==
+
+    /// <summary>深度档不豁免 V5 静态界：Deep + MaxRounds 5 照拒。</summary>
+    [Fact]
+    public void AGT019_B2_DeferDeepDepth_MaxRoundsStillBoundByV5()
+    {
+        var (_, driver) = ComposePlain(
+            nextInput: _ => SeedObservation(),
+            consultFactory: _ => ctx => new AgentDecision.Defer(
+                ctx.DecisionId, new ObserveSpec(
+                    Subject: null, MaxRounds: 5, Depth: ObserveDepth.Deep,
+                    Purpose: "need the full local view of the dead page")),
+            contract: CompletionContract());
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, result.Status);
+        Assert.Equal("defer-unbounded:max-rounds", result.Reason);
+    }
+
+    /// <summary>Purpose 是深思入口的诚实字段：空白目的拒绝。</summary>
+    [Fact]
+    public void AGT019_B2_DeferPurposeBlank_FailsClosed()
+    {
+        var (_, driver) = ComposePlain(
+            nextInput: _ => SeedObservation(),
+            consultFactory: _ => ctx => new AgentDecision.Defer(
+                ctx.DecisionId, new ObserveSpec(
+                    Subject: null, MaxRounds: 2, Depth: ObserveDepth.Focused,
+                    Purpose: "   ")),
+            contract: CompletionContract());
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, result.Status);
+        Assert.Equal("defer-purpose-invalid", result.Reason);
+    }
+
     // ==== Ac 6：预算耗尽诚实失败 =============================================
 
     /// <summary>

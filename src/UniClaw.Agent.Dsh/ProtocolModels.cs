@@ -122,6 +122,23 @@ public sealed record JsonRpcResponse(
 
 public static class ProductProtocolJson
 {
+    /// <summary>AGT-019 B2：ObserveDepth 字符串载荷转换器（strict——
+    /// 只收字符串名，与生成 schema 的 enum 声明一致）。</summary>
+    private sealed class ObserveDepthJsonConverter
+        : System.Text.Json.Serialization.JsonConverter<ObserveDepth>
+    {
+        public override ObserveDepth Read(
+            ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+            reader.TokenType == JsonTokenType.String
+            && System.Enum.TryParse<ObserveDepth>(reader.GetString(), out var depth)
+                ? depth
+                : throw new JsonException("observe spec depth must be Normal, Focused, or Deep");
+
+        public override void Write(
+            Utf8JsonWriter writer, ObserveDepth value, JsonSerializerOptions options) =>
+            writer.WriteStringValue(value.ToString());
+    }
+
     public static JsonSerializerOptions CreateOptions()
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
@@ -134,6 +151,10 @@ public static class ProductProtocolJson
         options.Converters.Add(new AgentDecisionJsonConverter());
         options.Converters.Add(new PolicyPredicateJsonConverter());
         options.Converters.Add(new PolicyGuardJsonConverter());
+        // AGT-019 B2：ObserveDepth 以字符串进出载荷（与生成 schema 的
+        // enum ["Deep","Focused","Normal"] 同源；定向转换器，不泛化到
+        // 其他枚举——ElementEpistemic 等既有数字载荷不受影响）。
+        options.Converters.Add(new ObserveDepthJsonConverter());
         return options;
     }
 }

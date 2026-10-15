@@ -96,10 +96,30 @@ public sealed record CompletionEvidence(
     string Basis,
     IReadOnlyList<string> Checklist);
 
-/// <summary>Defer 的有界观察请求（SR-067/068）。</summary>
+/// <summary>
+/// AGT-019 M2（Q8 裁决）：观察深度三档——封闭枚举，越贵越晚用。
+/// Normal=常规摘要观察；Focused=定向聚焦复查（Subject 靶向）；Deep=
+/// 深看（局部视图全量）。v1 语义：档位入 trace/journal 留痕，观察拉取
+/// 机制复用既有 Defer 链（不新建观察系统）；预算执法不变（V5 静态界
+/// MaxRounds≤4 与咨询预算合同同时生效、取最严）。
+/// RUN-003：公开组合缝；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
+/// </summary>
+public enum ObserveDepth
+{
+    Normal,
+    Focused,
+    Deep,
+}
+
+/// <summary>Defer 的有界观察请求（SR-067/068）。
+/// AGT-019 M2 参数化（RUN-004 D7 ObserveSpec 形状扩展，V5 上限执法
+/// 不变）：Depth 深度档（缺省 Normal = 现行为）；Purpose 目的陈述
+/// （可选；提供则非空白且 ≤256——上下文经济学有界）。</summary>
 public sealed record ObserveSpec(
     string? Subject,
-    int MaxRounds);
+    int MaxRounds,
+    ObserveDepth Depth = ObserveDepth.Normal,
+    string? Purpose = null);
 
 /// <summary>当前屏摘要（协议 §2.1 Screen 字段）。</summary>
 public sealed record ScreenSummary(

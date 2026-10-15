@@ -170,11 +170,26 @@ public sealed class AgentDecisionJsonConverter : JsonConverter<AgentDecision>
 
     private static void ValidateObserveSpec(JsonElement spec)
     {
-        EnsureOnly(spec, "subject", "maxRounds");
+        // AGT-019 B2：参数化观察（深度档/目的）入严格词表——与生成 schema
+        // 同源（schemas/agt-002 单源生成，codec 不得落后于 schema）。
+        EnsureOnly(spec, "subject", "maxRounds", "depth", "purpose");
         var rounds = RequiredArrayOrNumber(spec, "maxRounds");
         if (rounds.ValueKind != JsonValueKind.Number || !rounds.TryGetInt32(out var maxRounds)
             || maxRounds < 1)
             throw new JsonException("observe spec maxRounds must be a positive integer");
+        if (spec.TryGetProperty("depth", out var depth) && depth.ValueKind != JsonValueKind.Null)
+        {
+            if (depth.ValueKind != JsonValueKind.String
+                || depth.GetString() is not ("Normal" or "Focused" or "Deep"))
+                throw new JsonException("observe spec depth must be Normal, Focused, or Deep");
+        }
+        if (spec.TryGetProperty("purpose", out var purpose) && purpose.ValueKind != JsonValueKind.Null)
+        {
+            var text = purpose.ValueKind == JsonValueKind.String ? purpose.GetString() : null;
+            if (string.IsNullOrWhiteSpace(text) || text!.Length > 256)
+                throw new JsonException(
+                    "observe spec purpose must be a non-empty string of at most 256 characters");
+        }
     }
 
     private static void ValidatePolicyProposal(JsonElement proposal)
