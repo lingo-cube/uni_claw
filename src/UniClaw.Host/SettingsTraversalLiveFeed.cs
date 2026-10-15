@@ -192,6 +192,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         var slowTokens = new List<string>();
         if (_uniPerception is not null)
             slowTokens.AddRange(_uniPerception.Poll(LandSlow, routeKey));
+        var slowDispatchedThisCycle = false;
         var trigger = DeriveSlowTrigger(
             xmlResult.Xml is not null, fastAvailable, CountClickableNodes(xmlResult.Xml), routeKey,
             UpdatePopupStreak(popupState), _coverageConfig?.SlowSettings);
@@ -212,10 +213,21 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
                 var request = BuildSlowRequest(
                     trigger, slowOn.VisualEnabled, slowOn.VisualEnabled ? capture.Artifact.Payload : null,
                     captureId, _clock.Now, observationCycleId, fastBasis);
-                slowTokens.Add(_uniPerception.Dispatch(
-                    request, sessionCorrelation, routeKey, trigger, _slowFetchBound));
+                var dispatchToken = _uniPerception.Dispatch(
+                    request, sessionCorrelation, routeKey, trigger, _slowFetchBound);
+                slowTokens.Add(dispatchToken);
+                slowDispatchedThisCycle = dispatchToken.Contains("|Dispatched|", StringComparison.Ordinal);
             }
         }
+        // AGT-019 M3：材料不足（hierarchyAvailable=false ∨ proposalCount=0）
+        // 且本周期刚发射 slow → 有界同步等待并在返回前结算，而非丢给后续
+        // 周期的 wrong-screen 门控。等待量 = BoundedWaitMs 同一常量
+        // （_slowFetchBound），≤ fetch 界剩余量 = 周期剩余预算；路由已变时
+        // Poll 内的 unaligned-route 门控照常丢弃（同步等待不豁免）。
+        if (slowDispatchedThisCycle
+            && MaterialInsufficiency(xmlResult.Xml is not null, proposals.Count)
+            && _slowFetchBound is { } slowWaitBound)
+            slowTokens.AddRange(_uniPerception!.WaitAndPoll(LandSlow, routeKey, slowWaitBound));
         var slowTrace = slowTokens.Count == 0 ? null : string.Join("; ", slowTokens);
         if (xmlResult.Xml is not null)
         {
@@ -349,6 +361,15 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
             return null;
         }
     }
+
+    /// <summary>
+    /// AGT-019 M3 — 材料不足机械触发谓词（既有 per-cycle trace 字段）：
+    /// hierarchyAvailable=false（无 XML 层级）或 proposalCount=0。二者其一
+    /// 成立且本周期已发射 slow → 有界同步等待，而非把晚到结果丢给
+    /// wrong-screen 门控。
+    /// </summary>
+    internal static bool MaterialInsufficiency(bool hierarchyAvailable, int proposalCount) =>
+        !hierarchyAvailable || proposalCount == 0;
 
     /// <summary>resource-id 短 id（最后一段 ':' 之后；无冒号 = 原值）。</summary>
     private static string ShortId(string resourceId)

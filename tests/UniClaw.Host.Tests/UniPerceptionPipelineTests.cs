@@ -50,7 +50,7 @@ public sealed class UniPerceptionPipelineTests
             "android.settings");
 
         var token = Assert.Single(tokens);
-        Assert.Equal("L|1|Supported", token);
+        Assert.StartsWith("L|1|Supported|ms=", token); // AGT-019 M3：令牌带 ms 延迟分量
         Assert.Equal(0, pipeline.InFlight);
         await Task.CompletedTask;
     }
@@ -128,5 +128,121 @@ public sealed class UniPerceptionPipelineTests
         Assert.Equal(1, projected);
         var evidence = Assert.Single(ledger.CanonicalRecords.Values);
         Assert.Equal("uni.perception", evidence.Provenance?.Producer);
+    }
+
+    // ---- AGT-019 M3：slow 令牌延迟分量（P6 可观测性闭合）-------------------
+
+    [Fact]
+    public void Dispatch_TokenCarriesLatencyComponent()
+    {
+        var tcs = new TaskCompletionSource<UniPerceptionFetchResult>();
+        var pipeline = new UniPerceptionPipeline((_, _, _) => tcs.Task, maxRequestsPerRun: 4);
+
+        var token = pipeline.Dispatch(Request(), "corr", "android.settings", "SemanticUnclear");
+
+        Assert.Matches(@"^SemanticUnclear\|Dispatched\|in-flight=1\|ms=\d+$", token);
+    }
+
+    [Fact]
+    public async Task Settled_DropTokenCarriesLatencyComponent()
+    {
+        var droppedTcs = new TaskCompletionSource<UniPerceptionFetchResult>();
+        var pipeline = new UniPerceptionPipeline((_, _, _) => droppedTcs.Task, maxRequestsPerRun: 4);
+        pipeline.Dispatch(Request(), "corr", "android.settings", "SemanticUnclear");
+        droppedTcs.SetResult(Ok(("ui.screen.route", "X")));
+
+        var dropped = Assert.Single(pipeline.Poll((_, _) => "should-not-land",
+            "android.settings|rk1:Internet"));
+        Assert.Matches(@"^SemanticUnclear\|Dropped\|unaligned-route:.*\|ms=\d+$", dropped);
+        await Task.CompletedTask;
+    }
+
+    // ---- AGT-019 M3：材料不足的有界同步等待 ---------------------------------
+
+    [Fact]
+    public void WaitAndPoll_LandsResultWithinBudget_WhenFetchCompletes()
+    {
+        var tcs = new TaskCompletionSource<UniPerceptionFetchResult>();
+        var pipeline = new UniPerceptionPipeline((_, _, _) => tcs.Task, maxRequestsPerRun: 4);
+        pipeline.Dispatch(Request(), "corr", "android.settings", "SemanticUnclear");
+        _ = Task.Delay(50).ContinueWith(_ => tcs.TrySetResult(Ok(("ui.screen.route", "Unknown"))));
+
+        var tokens = pipeline.WaitAndPoll(
+            (_, result) => $"L|{result.Proposals.Count}",
+            "android.settings",
+            budget: TimeSpan.FromSeconds(5));
+
+        var token = Assert.Single(tokens);
+        Assert.StartsWith("L|1|ms=", token);
+        Assert.Equal(0, pipeline.InFlight);
+    }
+
+    [Fact]
+    public void WaitAndPoll_RespectsBudget_KeepsPendingForLaterCycles()
+    {
+        var tcs = new TaskCompletionSource<UniPerceptionFetchResult>();
+        var pipeline = new UniPerceptionPipeline((_, _, _) => tcs.Task, maxRequestsPerRun: 4);
+        pipeline.Dispatch(Request(), "corr", "android.settings", "SemanticUnclear");
+
+        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        var tokens = pipeline.WaitAndPoll((_, _) => "should-not-land", "android.settings",
+            budget: TimeSpan.FromMilliseconds(200));
+        var elapsed = System.Diagnostics.Stopwatch.GetElapsedTime(started);
+
+        Assert.Empty(tokens); // 未完成不结算：跨周期晚到语义不变
+        Assert.Equal(1, pipeline.InFlight);
+        Assert.True(elapsed >= TimeSpan.FromMilliseconds(180), $"wait short-circuited: {elapsed}");
+        Assert.True(elapsed < TimeSpan.FromSeconds(5), $"budget ignored: {elapsed}");
+    }
+
+    [Fact]
+    public void WaitAndPoll_WaitCappedByRemainingFetchBound_CycleBudget()
+    {
+        // fetch 界 500ms（发射时 CTS 起）；budget 30s ≫ 界剩余量 → 等待被
+        // 周期剩余预算封顶（≤ fetch 界），不得等满 budget。
+        var neverTcs = new TaskCompletionSource<UniPerceptionFetchResult>();
+        var pipeline = new UniPerceptionPipeline((_, _, _) => neverTcs.Task, maxRequestsPerRun: 4);
+        pipeline.Dispatch(Request(), "corr", "route", "NoXml",
+            fetchBound: TimeSpan.FromMilliseconds(500));
+
+        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        var tokens = pipeline.WaitAndPoll((_, _) => "should-not-land", "route",
+            budget: TimeSpan.FromSeconds(30));
+        var elapsed = System.Diagnostics.Stopwatch.GetElapsedTime(started);
+
+        Assert.Empty(tokens);
+        Assert.True(elapsed < TimeSpan.FromSeconds(10),
+            $"wait exceeded remaining cycle budget: {elapsed}");
+    }
+
+    [Fact]
+    public async Task WaitAndPoll_KeepsUnalignedRouteDropGate_FullyInForce()
+    {
+        var tcs = new TaskCompletionSource<UniPerceptionFetchResult>();
+        var pipeline = new UniPerceptionPipeline((_, _, _) => tcs.Task, maxRequestsPerRun: 4);
+        pipeline.Dispatch(Request(), "corr", "android.settings", "SemanticUnclear");
+        _ = Task.Delay(50).ContinueWith(_ => tcs.TrySetResult(Ok(("ui.screen.route", "Unknown"))));
+
+        var tokens = pipeline.WaitAndPoll((_, _) => "should-not-land",
+            "android.settings|rk1:Internet", budget: TimeSpan.FromSeconds(5));
+
+        var token = Assert.Single(tokens);
+        Assert.Contains("|Dropped|unaligned-route:android.settings->", token);
+        Assert.Matches(@"\|ms=\d+$", token);
+        await Task.CompletedTask;
+    }
+
+    // ---- AGT-019 M3：机械触发谓词（既有 per-cycle trace 字段）---------------
+
+    [Theory]
+    [InlineData(false, 3, true)]   // hierarchyAvailable=false → 材料不足
+    [InlineData(true, 0, true)]    // proposalCount=0 → 材料不足
+    [InlineData(true, 5, false)]   // 层级在场且非空 → 不等待
+    [InlineData(false, 0, true)]
+    public void MaterialInsufficiency_TriggerPredicate_UsesExistingTraceFields(
+        bool hierarchyAvailable, int proposalCount, bool expected)
+    {
+        Assert.Equal(expected, SettingsTraversalLiveFeed.MaterialInsufficiency(
+            hierarchyAvailable, proposalCount));
     }
 }

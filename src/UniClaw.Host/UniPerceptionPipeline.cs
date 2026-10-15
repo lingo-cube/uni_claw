@@ -36,7 +36,10 @@ public sealed class UniPerceptionPipeline
         string RouteAtDispatch,
         Task<UniPerceptionFetchResult> Task,
         string TriggerToken,
-        CancellationTokenSource CancellationTokenSource);
+        CancellationTokenSource CancellationTokenSource,
+        // AGT-019 M3：发射时刻（ms 延迟分量基准）与 fetch 界（周期剩余预算基准）。
+        long DispatchedAtTimestamp,
+        TimeSpan FetchBound);
 
     private readonly Fetch _fetch;
     private readonly int _maxRequestsPerRun;
@@ -69,8 +72,33 @@ public sealed class UniPerceptionPipeline
         // 完成即刻可结算（无需跨线程拍）。外层再挂一道界，防 fetch 忽略 token。
         var cts = new CancellationTokenSource(bound);
         var task = _fetch(request, sessionCorrelation, cts.Token);
-        _pending.Add(new Pending(request, routeKey, task, triggerToken, cts));
-        return $"{triggerToken}|Dispatched|in-flight={_pending.Count}";
+        _pending.Add(new Pending(request, routeKey, task, triggerToken, cts,
+            System.Diagnostics.Stopwatch.GetTimestamp(), bound));
+        // AGT-019 M3：令牌带 ms 延迟分量（发射即 0）。
+        return $"{triggerToken}|Dispatched|in-flight={_pending.Count}|ms=0";
+    }
+
+    /// <summary>AGT-019 M3 — 材料不足的有界同步等待：在当前驱动线程等待本流水
+    /// 全部 in-flight 至完成或预算耗尽，随后正常 Poll 结算。等待量 = 预算
+    /// 期望（调用方传 BoundedWaitMs 同一常量），并被周期剩余预算封顶（最早
+    /// fetch 界的剩余量）；提前完成即刻返回。未完成的 pending 原样保留
+    /// （跨周期晚到语义不变）；wrong-screen（unaligned-route）门控在 Poll
+    /// 内保持全额执法——同步等待不豁免。</summary>
+    public IReadOnlyList<string> WaitAndPoll(LandProjector land, string currentRouteKey, TimeSpan budget)
+    {
+        ArgumentNullException.ThrowIfNull(land);
+        if (_pending.Count > 0)
+        {
+            var now = System.Diagnostics.Stopwatch.GetTimestamp();
+            var remainingCycleBudget = _pending
+                .Select(p => p.FetchBound - System.Diagnostics.Stopwatch.GetElapsedTime(
+                    p.DispatchedAtTimestamp, now))
+                .Min();
+            var wait = budget < remainingCycleBudget ? budget : remainingCycleBudget;
+            if (wait > TimeSpan.Zero)
+                Task.WaitAll(_pending.Select(p => (Task)p.Task).ToArray(), wait);
+        }
+        return Poll(land, currentRouteKey);
     }
 
     /// <summary>驱动线程结算：落成投影（LandProjector）/ 路由变更丢弃 / 超时-错误零投影。
@@ -86,6 +114,9 @@ public sealed class UniPerceptionPipeline
                 continue;
             _pending.RemoveAt(i);
             p.CancellationTokenSource.Dispose();
+            // AGT-019 M3：结算令牌统一带 ms 延迟分量（发射→结算实际耗时）。
+            var latencyMs = (long)System.Diagnostics.Stopwatch.GetElapsedTime(
+                p.DispatchedAtTimestamp).TotalMilliseconds;
             UniPerceptionFetchResult result;
             try
             {
@@ -93,26 +124,26 @@ public sealed class UniPerceptionPipeline
             }
             catch (Exception error)
             {
-                tokens.Add($"{p.TriggerToken}|Rejected|slow-pipeline-fault:{error.Message}");
+                tokens.Add($"{p.TriggerToken}|Rejected|slow-pipeline-fault:{error.Message}|ms={latencyMs}");
                 continue;
             }
             if (result.Status == Kernel.Perception.SlowConsultationStatus.TimedOut)
             {
-                tokens.Add($"{p.TriggerToken}|TimedOut|zero-projection");
+                tokens.Add($"{p.TriggerToken}|TimedOut|zero-projection|ms={latencyMs}");
                 continue;
             }
             if (result.Status is not (Kernel.Perception.SlowConsultationStatus.Succeeded
                 or Kernel.Perception.SlowConsultationStatus.Partial))
             {
-                tokens.Add($"{p.TriggerToken}|{result.Status}|{result.Diagnostic}");
+                tokens.Add($"{p.TriggerToken}|{result.Status}|{result.Diagnostic}|ms={latencyMs}");
                 continue;
             }
             if (!string.Equals(p.RouteAtDispatch, currentRouteKey, StringComparison.Ordinal))
             {
-                tokens.Add($"{p.TriggerToken}|Dropped|unaligned-route:{p.RouteAtDispatch}->{currentRouteKey}");
+                tokens.Add($"{p.TriggerToken}|Dropped|unaligned-route:{p.RouteAtDispatch}->{currentRouteKey}|ms={latencyMs}");
                 continue;
             }
-            tokens.Add(land(p.Request, result));
+            tokens.Add(land(p.Request, result) + $"|ms={latencyMs}");
         }
         return tokens;
     }
