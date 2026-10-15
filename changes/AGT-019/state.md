@@ -45,6 +45,17 @@ verification:
 
 ## Status log
 
+- 2026-10-17 · implementing · **B5 + B6 完成 → Slice B 全部落地**：
+  B5（601a5a71）截图三道闸——Dispatch 强制 judgment 标记（闸一）/
+  入账拒收且**先于**路由对齐判定（闸二，同构错屏门执法）/ drop 令牌
+  即"看过不采信"审计（闸三），2 测试含闸优先序。B6 核实：白名单随动
+  +6（Blocked/ObserveDepth/LocalView 四族）已逐片落；payload-shapes
+  hash 随 B2/B4 再生重钉；F5 handshake 单源流动（Handshake.cs 从
+  ProductProtocolSchema.Current 取 hash，无硬编码）——自动重钉，零
+  额外改动。工作树干净；全 8 工程绿；场景库认证 PASS。
+  **AGT-019 遗留（非 Slice B）**：诊断/视口两族的 feed→Director seam、
+  标定切片（真机数据后 owner 冻结数字）、真机验收留证（验收 1-4 实机
+  路径）、M6 v2 方向性声明已在 spec（不实现）。
 - 2026-10-17 · implementing · **B3 完成（03728f8a，TDD）**：局部观察视图
   （M2-②，Q2 六族全上、不重复承载）——LocalObservationView 载四族
   补缺（容器含可滚动/视口/观察诊断/近周期趋势），claims/elements 走
