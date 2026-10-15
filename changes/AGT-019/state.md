@@ -45,6 +45,16 @@ verification:
 
 ## Status log
 
+- 2026-10-17 · implementing · **B2 完成（dbcd63e0 + 1daa6282，TDD）**：
+  参数化 ObserveSpec——Depth 封闭枚举（Normal/Focused/Deep，白名单 +1）
+  + Purpose 诚实字段（非空白 ≤256）；V5 静态界跨深度恒执法（三本账取
+  最严）；DSH 严格 codec 与生成 schema 同源随动（定向字符串枚举转换
+  器，ElementEpistemic 数字载荷不动）；单源生成工件全量再生
+  （schemas/agt-002 schema+d.ts + 插件包副本 + schema-hash）。
+  发现并修复：生成工件无 CLI 再生入口（一次性测试调用 writer，运行后
+  删除）；JsonStringEnumConverter 本版无 Type 重载（手写十行定向转换器）。
+  场景库重封；全 8 工程绿。剩余：B4 M5 进度字段化 → B3 局部视图 →
+  B5 截图三道闸 → B6 F5 钉扎收尾。
 - 2026-10-17 · implementing · **Slice B 开工（owner 排期："现在排，阈值
   后调"）· B1 完成（f547b791，TDD）**：Blocked 第六成员入封闭 union
   （RUN-004 D3/D7 修订通道，G4 先例）——reason 必填执法、D2 同号回带、
