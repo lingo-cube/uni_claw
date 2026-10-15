@@ -184,6 +184,17 @@ public sealed class SettingsCoverageDirector
                 return new AgentDecision.NoAction(new AgentNoActionProposal(
                     context.DecisionId, "settings-coverage:bounded-stop:unknown-page"));
             }
+            // AGT-019 M1（Q7 裁决）：处理不了的默认升级 UniAgent——路由不明
+            // 是强制升级谓词之一。升级咨询给选项集 {再观察, back（配置了
+            // 才给）, 滚动（容器可见才给）}；选项外的 Act/Plan/Policy 照拒、
+            // 零 Effect（004-A2 等价执法，仍返回安全 Defer）。
+            var scrollVisible = snapshot.Visible.Contains(_config.ScrollContainerDescriptor);
+            var backAvailable = _config.BackDescriptor is not null;
+            var options = new List<string> { "re-observe (return a Defer for one bounded re-observation)" };
+            if (backAvailable)
+                options.Add($"back (tap '<{_config.BackDescriptor}>')");
+            if (scrollVisible)
+                options.Add($"scroll (swipe up on '<{_config.ScrollContainerDescriptor}>')");
             _log.Add(new ConsultRecord(
                 context.DecisionId, context.Phase.ToString(),
                 $"Observe again: current page identity is unknown ('{UnknownRouteIdentity}').",
@@ -192,10 +203,9 @@ public sealed class SettingsCoverageDirector
             {
                 Objective = context.Objective
                     + "\n\nCOVERAGE DIRECTIVE (authoritative for this turn): "
-                    + "Observe again: current page identity is unknown."
-                    + "\nUNKNOWN ROUTE (authoritative safety boundary): the current Settings page "
-                    + "has identity-only evidence. Do not propose Act, Plan, Policy, or any Effect. "
-                    + "Return only a Defer decision for one bounded re-observation."
+                    + "the current page identity is unknown."
+                    + "\nChoose EXACTLY ONE recovery option: " + string.Join("; ", options) + "."
+                    + "\nAny other Act, Plan, or Policy response is rejected without Effect."
             };
             var agentDecision = _underlying(observeContext);
             var sameDecision = string.Equals(
@@ -204,10 +214,24 @@ public sealed class SettingsCoverageDirector
                 StringComparison.Ordinal);
             if (agentDecision is AgentDecision.Defer && sameDecision)
                 return agentDecision;
+            if (agentDecision is AgentDecision.Act act
+                && sameDecision
+                && act.Proposal.Steps.Count == 1
+                && IsUnknownRouteRecoveryStep(act.Proposal.Steps[0], backAvailable, scrollVisible))
+            {
+                var recovery = act.Proposal.Steps[0];
+                var recoveryDirective = recovery.EffectClass == "swipe-up"
+                    ? $"Scroll the container '<{_config.ScrollContainerDescriptor}>' on the unknown page."
+                    : $"Navigate back from the unknown page by tapping '<{_config.BackDescriptor}>'.";
+                _adoptedSteps.Add((context.DecisionId, recoveryDirective, recovery));
+                _log[^1] = _log[^1] with { Directive = recoveryDirective, DecisionKind = "act" };
+                return agentDecision;
+            }
 
-            // An agent response cannot authorize an action while route identity
-            // is unknown. Preserve the fail-closed Defer even when the agent
-            // times out, returns null, or proposes Act/Plan/Policy.
+            // An agent response cannot authorize an action outside the option
+            // set while route identity is unknown. Preserve the fail-closed
+            // Defer even when the agent times out, returns null, or proposes
+            // Act/Plan/Policy outside {back, scroll}.
             var reason = agentDecision is null
                 ? "unknown-route-agent-no-response"
                 : "unknown-route-agent-response-rejected";
@@ -400,6 +424,13 @@ public sealed class SettingsCoverageDirector
 
     private static bool IsTap(AgentActionStep step) =>
         step.EffectClass is "tap" or "click";
+
+    /// <summary>AGT-019 M1：路由不明升级咨询的选项集执法——仅接受单步
+    /// back（tap 返回键，须已配置）或滚动（swipe-up 滚动容器，须容器
+    /// 可见）；其余响应零 Effect（004-A2 等价，防漂移与幻影目标）。</summary>
+    private bool IsUnknownRouteRecoveryStep(AgentActionStep step, bool backAvailable, bool scrollVisible) =>
+        backAvailable && IsTap(step) && step.TargetDescriptor == _config.BackDescriptor
+        || scrollVisible && step.EffectClass == "swipe-up" && step.TargetDescriptor == _config.ScrollContainerDescriptor;
 
     private static IEnumerable<AgentActionStep> AdvisorySteps(AgentDecision? decision) =>
         decision switch

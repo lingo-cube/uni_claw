@@ -308,4 +308,80 @@ public sealed class SettingsCoverageDirectorPlanTests
         Assert.Contains("DISMISS", record.Directive);
         Assert.DoesNotContain("button1", record.Directive);
     }
+
+    // AGT-019 M1（Q7 裁决）：处理不了的默认升级 UniAgent——路由不明是
+    // 强制升级谓词之一。升级咨询给选项集 {再观察, back（配置了才给）,
+    // 滚动（容器可见才给）}；选项外的 Act/Plan/Policy 照拒、零 Effect
+    // （004-A2 等价执法，返回安全 Defer）。
+
+    [Fact]
+    public void UnknownPage_AcceptsBackRecovery_WhenConfigured()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(SettingsCoverageDirector.UnknownRouteIdentity,
+            Array.Empty<(string, string?)>());
+        var director = new SettingsCoverageDirector(
+            _ => Act("Navigate up"), ledger, Config());
+
+        var decision = director.Consult(Context());
+
+        Assert.IsType<AgentDecision.Act>(decision);
+        var adopted = Assert.Single(director.AdoptedSteps);
+        Assert.Equal("Navigate up", adopted.Step.TargetDescriptor);
+        Assert.Equal("tap", adopted.Step.EffectClass);
+        Assert.Null(Assert.Single(director.ConsultLog).DeviationReason);
+    }
+
+    [Fact]
+    public void UnknownPage_AcceptsScrollRecovery_WhenContainerVisible()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(SettingsCoverageDirector.UnknownRouteIdentity,
+            new (string, string?)[] { ("ui.element", ScrollContainer) });
+        var director = new SettingsCoverageDirector(
+            _ => Act(ScrollContainer, "swipe-up"), ledger, Config());
+
+        var decision = director.Consult(Context());
+
+        Assert.IsType<AgentDecision.Act>(decision);
+        var adopted = Assert.Single(director.AdoptedSteps);
+        Assert.Equal(ScrollContainer, adopted.Step.TargetDescriptor);
+        Assert.Equal("swipe-up", adopted.Step.EffectClass);
+        Assert.Null(Assert.Single(director.ConsultLog).DeviationReason);
+    }
+
+    [Fact]
+    public void UnknownPage_BackNotConfigured_RejectsBackRecovery_WithZeroEffect()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(SettingsCoverageDirector.UnknownRouteIdentity,
+            Array.Empty<(string, string?)>());
+        var config = Config() with { BackDescriptor = null };
+        var director = new SettingsCoverageDirector(
+            _ => Act("Navigate up"), ledger, config);
+
+        var decision = director.Consult(Context());
+
+        Assert.IsType<AgentDecision.Defer>(decision);
+        Assert.Empty(director.AdoptedSteps);
+        Assert.Equal("unknown-route-agent-response-rejected",
+            Assert.Single(director.ConsultLog).DeviationReason);
+    }
+
+    [Fact]
+    public void UnknownPage_ScrollContainerNotVisible_RejectsScrollRecovery_WithZeroEffect()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(SettingsCoverageDirector.UnknownRouteIdentity,
+            Array.Empty<(string, string?)>());
+        var director = new SettingsCoverageDirector(
+            _ => Act(ScrollContainer, "swipe-up"), ledger, Config());
+
+        var decision = director.Consult(Context());
+
+        Assert.IsType<AgentDecision.Defer>(decision);
+        Assert.Empty(director.AdoptedSteps);
+        Assert.Equal("unknown-route-agent-response-rejected",
+            Assert.Single(director.ConsultLog).DeviationReason);
+    }
 }
