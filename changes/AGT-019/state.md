@@ -45,6 +45,14 @@ verification:
 
 ## Status log
 
+- 2026-10-17 · implementing · **Slice A / M1 + M5 完成（TDD，自主推进）**：
+  M1 = 路由不明强制升级给选项集 {再观察, back（配置了才给）, 滚动（容器
+  可见才给）}，选项外响应保持 004-A2 零 Effect 安全 Defer（a9074a57）；
+  M5 = 双零窗口（新完成验证 + frontier 计数同零才计停滞）注入事实计数
+  （禁 Host 判语）+ bounded-stop:no-progress 硬停兜底，保守初值 3/5 入
+  bounds yaml，冻结待标定切片（114f3fe1）。M3（Runner 侧：同步等待
+  谓词 + slow 令牌耗时）已委派 glm-5.3-flash 子代理进行中（workflow-2）。
+  Host.Tests 242/242。
 - 2026-10-17 · implementing · **Slice A / M4 完成（TDD）**：弹窗处置任务型
   白名单落地——`product/policy/android-settings-popup-disposition.json`
   新工件（遍历型：denyObstacleTargets 禁手清单 + confirmWhitelist 空 +
