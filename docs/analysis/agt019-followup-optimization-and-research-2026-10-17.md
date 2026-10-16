@@ -1,115 +1,201 @@
-# AGT-019 后续优化：融合 / 循环发现 / 坐标利用——四层研究与待办（v2，2026-10-17）
+# AGT-019 后续优化：事实流水 / Heartbeat / 升级咨询——研究与设计定稿（v3，2026-10-17）
 
 > Status: DRAFT / CANDIDATE
-> Authority: NONE（研究整理 + 设计提案，供 owner 裁决与排期；不修改任何冻结面）
-> 谱系：RUN-006 真机全遍历（六轮）暴露弹窗死循环 → owner 系列讨论 →
-> v1 文档 → owner 对抗审查 + Leader 反驳 + 仲裁 → 本 v2（四层重构）。
+> Authority: NONE（设计定稿记录 + owner 裁决已录；实现须经 change 通道）
+> 谱系：RUN-006 真机六轮暴露弹窗死循环 → owner/团队多轮讨论与对抗审查
+> （v1 → 对抗 → v2 四层 → 事件 push/pull 之争 → 介入目的收敛 → 本 v3
+> 定稿；命名裁决：不用"薄/厚 push"——**Heartbeat** 与**升级咨询**）。
 > 证据锚点：changes/RUN-006/report.md + evidence/run-006/。
-> v1→v2 变更：三处事实修正（viewportDigest/LocalView 分层/slow 能力源）；
-> 三处语义边界收窄（L2 定性、skip⊥blocked、几何 authority）；结构改为
-> "已证事实 / 待证假设 / 候选设计 / owner 裁决"四层，主张必附证明方法。
 
 ---
 
-## 第一层：已证明的运行事实（只写 trace/代码能直接证明的）
+## 一、总目标
 
-| # | 事实 | 证据 |
-|---|---|---|
-| F1 | `SIM name & color` 被重派 **46 次**、`CANCEL` 清障 **45 次**（同一目标/同一弹窗） | coverage-steps 计数（3/6 轮一致） |
-| F2 | 每一步 tap 均"验证通过"，覆盖进度零推进（37.5% 止步） | steps 全 verified + coverage-report |
-| F3 | 该弹窗即目的地：XML 内容 = "SIM label and color" 对话框（Name/Color/CANCEL/SAVE） | capture-273b….xml 原文 |
-| F4 | 对话窗周期 XML dump 只含对话框（焦点窗口所限），底页元素丢失 | 同上 XML |
-| F5 | 弹窗周期路由回退 `android.settings`（无页面标题） | settings-trace routeKey |
-| F6 | `viewportDigest` 在循环中不变 | trace |
-| F7 | `viewportDigest` = **XML 可点击节点 text/resource-id 排序摘要**，不含像素、不含 bounds（v1"截图 digest"系误写） | DeriveViewportDigest 源码 |
-| F8 | M5 双零判据在此类循环**不可达**（StepsVerified 恒涨）——miss 是直接观测，非假设 | F2 + 判据定义 |
-| F9 | slow 全链真机闭环：6× `Landed\|projected=1\|late\|ms=850-1215`（真模型/真 DSH 链） | full-traversal-6 trace |
-| F10 | consult-bridge.json 97/97 `localView: null`——**记录层原因已定位**：Runner 把装饰前的 `projected` 写入桥记录（Runner L233-242），Director 的装饰发生在其内部副本 | 源码 + 全轮 bridge |
-| F11 | slow text 消费 fast/XML 依据；slow visual（像素）未接线（visualEnabled=false，无 buyer） | 配置 + BuildSlowRequest 源码 |
+本机制的消费者不是循环检测器，而是：
 
-## 第二层：待证明的语义假设（每项附证明方法）
+> **当系统不知道下一步怎么走时，帮助 Agent 判断是否介入、如何介入。**
 
-| # | 假设 | 证明方法 |
-|---|---|---|
-| H1 | 弹窗出现 = 目标已到达（目的地对话框） | 对照实验：目标弹窗 vs 无关弹窗（场景 S1/S2），到达后账本能否区分 |
-| H2 | 底页可作为"历史锚点"（BasePageAnchor）而非当前页面 | 语义三分（Overlay/BasePage/CurrentContainer）+ 裁决 D1 |
-| H3 | `CANCEL` 验证 = "动作已验证但覆盖无进展" | 验证类型分类回放（L2 候选 b） |
-| H4 | 同一弹窗指纹复现 = 循环 | 场景 S5（重复 CANCEL 无新增覆盖）vs 合法重复操作 |
-| H5 | titleless popup 必属对话窗 | 场景 S2/S3（有/无标题、部分遮挡）+ 分类器对照 XML |
-| H6 | 几何零位移 = 到底/卡死 | 场景 S6（scroll 后文本同 bounds 变）——**L4 必须绑定**：同一元素 association、坐标空间、容差；否则 sticky/重排/缩放/异窗坐标均致误报 |
-| H7 | 真实 DSH 传输边界的 LocalView 非空（Agent 实际收到装饰后 Context） | **实现验证项（前置）**：在 FileDecisionConsult.WriteRequest 或 HTTP peer 请求边界读最终载荷 |
+循环检测只是机械前置条件。链路：
 
-## 第三层：候选设计（语义边界写清；只产生事实信号或升级信号）
+```text
+事实流水（事件，Owner 产生）
+  ↓
+信号计算（派生计数）
+  ↓
+介入闸 InterventionGate
+  ├─ 普通咨询：附 Heartbeat
+  ├─ 强制介入：升级咨询（Heartbeat 快照 + 案件包）
+  └─ 无法继续：终局（bounded-stop）或带标记 Skip
+```
 
-### 片 1：融合（Overlay/BasePage/几何）
-- 对话窗判定（弹窗 resource-id 集 + 无页面标题，H5 待证）；
-- 底页保留为 **BasePageAnchor**（Option B，业界同款先例见 §引用）——语义归裁决 D1；
-- 视觉当仲裁不当身份源；几何遮挡（中心点判据为主）→ 事实进 LocalView；
-- 路由连续性：对话周期路由 = 底页路由（依赖 D1 结论）。
+## 二、事实流水（事件模型）
 
-### 片 2：循环发现（触发 + 轨迹上报）
-- 机械触发：L1 目标重派 / L1' 弹窗指纹复现 / **L2 覆盖指纹（修法待回放选择，F8 的 miss 本身已证）** / L3 XML 视口摘要（F7 语义）/ L4 bounds 零位移（H6 绑定条件为前提）；
-- 心跳轨（轨迹摘要搭正常咨询便车，占比/窗口=W 待裁决 D-参数）；
-- 五族轨迹摘要（事实无判语）；升级选项集含 **skip（独立语义，⊥blocked：blocked=终局申报、skip=跳过继续——两者非别名，B1 定形时已正交）**；
-- 自动 skip 仅限预算耗尽或 Agent 连续无效响应（子问题见 D4）。
+事件 = 事实源。五种事实事件：
 
-### 横切规则
-- 置信度方言：数值=感知内部，枚举=决策跨层，阈值=翻译官；
-- **几何 authority 边界**：几何差分只产生 displacement/zero-motion/occlusion **事实信号**，可触发升级/诊断/慢感知；覆盖记账仍走既有 post-action verification 与 occurrence 链——几何若要改变覆盖事实，须另立 Promotion 决策（D5）。
+```text
+ObservationAccepted    看到了什么（含 bounds/digest 字段）
+PopupStateObserved     弹窗状态
+EffectReceiptProduced  点了什么（回执）
+PostActionVerified     验证结果
+TargetCoverageMarked   目标标记（ReachedOverlay / RouteEntered / Skipped）
+```
 
-## 第四层：owner 裁决（五项，各配最小验证场景）
+**实现约束（钉死）**：其中四类已有现成载体（Kernel effect receipts、
+PostActionEffectVerification、账本弹窗记录、账本观测）——实现 =
+**存量记录流正式化（补 seq）+ 新增 TargetCoverageMarked 一类**，
+不造第二条事件总线。
 
-| # | 裁决 | 场景 |
-|---|---|---|
-| D1 | BasePageAnchor 是否入 Agent Context；执法点定位：Kernel fresh-observation 有效性（锚点元素无当前 fresh occurrence → Grounding 自然拒绝，无需伪装成新 truth）——收窄为"在哪执法" | S1/S2/S3 |
-| D2 | "到达即完成"是否适用于弹窗目标；适用则覆盖率如何记录 | S1（目标弹窗）vs S2（无关弹窗） |
-| D3 | M5 进度轴修法四选（回放比较误报/漏报）：a) 维持 StepsVerified；b) obstacle 验证从进度中分类排除；c) 独立 CoverageProgressFingerprint；d) 组合 | S4（合法长验证）+ S5 |
-| D4 | skip 六问：改覆盖状态？零 Effect？必须 Agent 明确选择？自动仅限预算耗尽/连续无效响应？允许重进？独立 skipReason+目标证据？ | S5 + S7（Agent 无响应/非法决策） |
-| D5 | 几何与 digest 只做升级信号，还是允许进覆盖判定 | S6 |
+四类投影（同一事实源派生）：
 
-**七个最小验证场景**：S1 目标弹窗 vs S2 无关弹窗；S3 弹窗部分遮挡目标；
-S4 合法长验证过程；S5 重复 CANCEL 无新增覆盖；S6 scroll 后 XML 文本同
-bounds 变；S7 Agent 无响应/非法决策。
+```text
+完整事件流 → 审计、回放、验证
+Heartbeat  → 普通咨询的常驻附页
+案件包     → 升级咨询的载荷
+CoverageReport → 任务结果
+```
 
-**参数类（先保守后标定）**：心跳占比/公式、流水窗口 W、摘要落点、滚动
-差分归属、K/R/W/N 初值。
+## 三、信号（派生计数，非新权威）
 
-**实现验证项（先于裁决完成）**：
-- [ ] H7：DSH 请求边界读最终 Context 载荷（判定桥空是记录层假象还是传输也丢）；
-- [ ] 桥记录改记装饰后 Context（或并记两态）——审计真实性修复。
+```text
+RepeatedTargetSignal         同目标重派 ≥K
+PopupReappearanceSignal      弹窗清除后复现 ≥R
+CoverageStagnantSignal       覆盖进度指纹不变 ≥W
+ViewportUnchangedSignal      XML 视口摘要重复 ≥N
+ScrollZeroDisplacementSignal 滚动零位移（绑定同元素/坐标空间/容差）
+KernelUnknownSignal          未知路由
+```
 
-## 业界参照（"参考启发"级，除非另注；深挖任一篇可升证）
+信号只触发升级与诊断，不改覆盖事实（裁决 D5）。
 
-| 来源 | 启发 | 深度 |
-|---|---|---|
-| [MobileUse（NeurIPS 2025）](https://papers.neurips.cc/paper_files/paper/2025/hash/3994410d63ec68ce9a66011a34c9a2c4-Abstract-Conference.html) | 分层反思 + Reflection-on-Demand（片 2 双轨同构） | 摘要 |
-| [Mobile-Agent-v2（NeurIPS 2024）](https://papers.neurips.cc/paper_files/paper/2024/file/0520537ba799d375b8ff5523295c337a-Paper-Conference.pdf) | 独立反思角色盯轨迹 | 标题 |
-| [Reflexion（arXiv 2303.11366）](https://browse.arxiv.org:443/pdf/2303.11366) | 失败后读轨迹写教训；跨 run 记忆 Out-of-Scope | 摘要 |
-| [AdaPlan-H（arXiv 2604.23194）](https://arxiv.org/abs/2604.23194) | 固定粒度两头错；自适应粗→细（抽象/具体决策流） | 摘要 |
-| [Plan-and-Execute 对比](https://atlan.com/know/ai-agent/react-vs-plan-and-execute-agent-architecture/) + [resilient 版](https://browse-export.arxiv.org/pdf/2509.08646) | 抽象摊销 + 偏差重规划 | 文章/摘要 |
-| [AutoDroid](https://ar5iv.labs.arxiv.org/html/2308.15272v4) / [V2](https://ar5iv.labs.arxiv.org/html/2412.18116) | 离线脚本 vs 在线交互（Policy 摊销同构） | 摘要 |
-| [auto-mobile PR #1496](https://github.com/kaeawc/auto-mobile/pull/1496) | 浮层时保留应用层级（Option B 先例） | 标题 |
-| [AppAgent v2](https://www.alphaxiv.org/zh/abs/2408.11824) / [综述](https://ar5iv.labs.arxiv.org/html/2504.13865v1) | 结构×视觉交叉验证；SoM 锚定 | 标题 |
-| [Chromium a11y](https://github.com/chromium/chromium/blob/main/content/public/android/javatests/src/org/chromium/content/browser/accessibility/WebContentsAccessibilityTest.java) | 平台可见性轴（dump 不导出则几何自算） | 存在性 |
-| [playwright-spatial-layout-mcp](https://www.npmjs.com/package/playwright-spatial-layout-mcp/v/0.2.0) | 空间关系一等输出 | 标题 |
-| [Web Scraper 无限滚动](https://webscraper.io/blog/how-to-scrape-infinite-scroll-pages) | 滚动 diff 增量采集 | 文章 |
-| [YOLO 阈值实践](https://journals.plos.org/plosone/article/file?type=supplementary&id=10.1371/journal.pone.0340640.s005) / [Appium 图像](https://docs.saucelabs.com/mobile-apps/automated-testing/appium/appium-images-plugin/) / [Safeguard](https://cognaptus.com/blog/2026-02-03-click-with-confidence-teaching-gui-agents-when-not-to-click/) | 置信度方言三例证 | 摘要/文档/文章 |
-| 早前 grill-2（changes/AGT-019/grill-2-industry-compare.md） | 选项集/弹窗默认/硬停兜底 | 已归档 |
+## 四、Heartbeat（普通咨询的常驻附页）
 
-## 附：抽象计划 vs 具体指令（信任阶梯，待立项归属裁决）
+每次普通 Agent 咨询自动附带（搭便车，零额外轮次），内容：
 
-词表已齐（Act/Plan/Policy = ReAct/微计划/规则摊销三级）；缺决策流。提案：
-信任阶梯 + 事件驱动升降级（升级靠证据积累判断权归 Agent；降级全机械：
-租约失效/验证失败/异常谓词/循环信号；不可逆动作恒单步）。
-业界锚：AdaPlan-H（自适应粒度）、Plan-and-Execute（replan）、AutoDroid
-（脚本摊销）。**归属建议：M6 v2 设计输入正式立项**。
+```text
+当前 Run 状态 / 当前路由与弹窗
+reached / skipped / pending
+frontier / 剩余预算
+signals 计数 / 最近变化趋势
+上次咨询之后的新增事件（增量）
+```
+
+**增量机制**：`fromEventSeq / toEventSeq / eventDelta / omittedCount`——
+只传增量不重放历史；首次咨询带全量种子。
+
+**语义闭环（钉死）**："最近事件窗口"内的筛选只发生在**词表策展层**
+（五类事实事件本身即策展结果），窗口内按序全量、丢最旧、**不做二次
+语义筛选**——防"筛选即偏见"（viewportDigest 教训）。
+
+**参数**：`heartbeatEveryConsults`（调度节奏，可调）；
+`recentEventWindow = 12`（最近 12 个事实事件，非"每 12 步触发"）。
+不使用 maxSteps/8（无证据依据，等标定）。
+
+## 五、升级咨询（复用既有咨询机制）
+
+**不是新通道**：即 RUN-004 多轮咨询协议的既有用法（M1 未知页强制升级
+的推广）——同一 DecisionId 纪律、同一选项集词汇，载荷换成案件包。
+
+**触发流程（机械）**：
+
+```text
+冻结 eventSeq → 生成 Heartbeat 快照 → 组装案件包
+→ 暂停下一步 Effect → 强制咨询 Agent
+```
+
+**触发清单**：同目标反复重派 / 同弹窗复现 / 覆盖长期不变 / 滚动无位移 /
+未知路由 / 材料不足 / 策略冲突 / 预算将尽 / 即将 bounded-stop。
+（"验证结果互相矛盾"待机械定义后再入列；slow/bridge/device 基础设施
+异常**不进此通道**——桥死则咨询亦不可达，走 bounded-stop 带原因旁路。）
+
+**升级冷却**：同一信号命中升级后，若 Agent 选"再观察"，计数器重置并
+冷却 N 轮（防升级自身成环）。
+
+**案件包按介入动作分**（不做超大通用包）：
+
+```text
+skip-target → 目标完整尝试史、验证史、弹窗史、覆盖分量
+replan      → 全局覆盖、frontier、近期事件、剩余预算
+blocked     → 失败链、尝试过的动作、失败原因、最后有效状态
+takeover    → 以上全部 + 当前指令意图、约束、待完成义务
+```
+
+**resumeToken**：v1 为不透明关联号；完整恢复语义随 M6 v2 定。
+
+## 六、介入闸职责边界
+
+InterventionGate 只做：是否暂停下一步 / 是否升级 / 选哪种案件包 /
+限制 Agent 可选动作。**不做**：是否 skip / 是否 blocked / 是否完成——
+Agent 返回后照旧过 Kernel → Grounding → Policy → Assurance →
+Effect Boundary → Post-action Verification 全链。
+
+## 七、裁决记录（owner 已裁，2026-10-17）
+
+- **D1 底页锚点：通过**。弹窗期间 BasePageAnchor 入 Agent Context：
+  只作背景与历史依据；不能直接点击；无当前 fresh occurrence 不可
+  Grounding；不改 CurrentContainer；不证明页面进入完成。
+- **D2 到达即完成：分账**。目标弹窗记"已到达"（ReachedOverlay），
+  不自动记"底页路由已进入"（RouteEntered）；覆盖四态：
+  ReachedOverlay / RouteEntered / Skipped / Pending。
+- **D3 M5 进度轴：组合**。清障类验证不算 Coverage Progress +
+  独立 CoverageProgressFingerprint；StepsVerified 保留为事实字段，
+  不单独代表"有进展"。
+- **D4 Skip：事件化**。`TargetCoverageMarked{state:"Skipped", target,
+  reason, source(agent|policy-auto), decisionId, evidenceRefs}`；
+  零 Effect；Agent 主动与系统自动都必须留同样标记；预算耗尽不得静默
+  Skip；允许新观察下重试；双指标：taskCoverage = reached+skipped、
+  verifiedReachRate = reached/total。
+- **D5 几何与 digest：第一阶段只做升级/诊断信号与慢感知输入**，不改
+  Coverage Ledger；将来参与覆盖判定须另立 Promotion 决策。
+- **M6 v2 正式立项**：抽象计划与具体指令的信任阶梯（升级靠证据积累、
+  判断权归 Agent；降级全机械：租约失效/验证失败/异常谓词/循环信号；
+  不可逆动作恒单步）。
+- **参数初值**：K_enter=3、R_popup=2、W_stagnation=5、N_digest=3、
+  recentEventWindow=12；heartbeatEveryConsults 可调待标定。
+
+## 八、主动查档（Pull，发运 M6 v2）
+
+能力定义现在写全（对着 §二 事件分类学，查的是协议级类型不是 Host
+内部记录名）：
+
+```text
+scope ∈ {
+  target:   某目标完整事件史（验证/弹窗/派发）
+  popup:    某弹窗指纹全部出现与清除记录
+  events:   按类型 + seq 窗口过滤的事实事件（更具体的 trace event）
+  signal:   某信号的计算输入（如零位移背后的两份观测对照）
+  coverage: 逐条目覆盖状态与 skip/failure 原因
+  budget:   预算消耗明细
+}
++ { limit, 字节上限 } 双预算；结果只进咨询上下文（判断级，永不进
+  World Model、不产生覆盖事实）；像 Defer 一样计轮封顶。
+```
+
+## 九、先行核查（与任何实现并行）
+
+- [ ] H7：真实 DSH 请求边界（FileDecisionConsult.WriteRequest / HTTP
+  peer）确认是否收到装饰后 Context——不把 consult-bridge.json 空值
+  直接等同于传输丢失；
+- [ ] 桥审计修复：同时记录 Director 装饰前后两态 Context。
+
+## 十、业界参照（"参考启发"级；深度见 v2 存档）
+
+MobileUse（分层反思/按需反思——Heartbeat+升级咨询双轨同构）、
+Mobile-Agent-v2（独立反思角色）、Reflexion（轨迹反思；跨 run 记忆
+Out-of-Scope）、AdaPlan-H（自适应粒度——信任阶梯）、Plan-and-Execute
+（偏差重规划）、AutoDroid/V2（脚本摊销）、auto-mobile PR#1496（浮层
+保留底页先例）、AppAgent v2/综述（结构×视觉交叉验证）、playwright-
+spatial-layout-mcp（空间关系一等输出）、Web Scraper（滚动 diff）、
+YOLO/Appium/Safeguard（置信度方言）。链接全文见 git 历史 v2 版
+（a8cdd808）。
 
 ## 待办汇总
 
-- 等 owner：D1-D5 + 参数组 + 阶梯立项归属；
-- 先行实现验证：H7 传输边界 + 桥审计修复；
-- 已设计待实现：矩形工具箱 → 片 1 → 片 2（顺序按依赖）；
-- RUN-006 旧挂账：deploy.sh preset 工具化、标定冻结（数据后）、slow 落地
-  内容的决策消费验证；
-- 未讨论留观：键盘浮层（无 buyer 不预造）、超视口列表重建、sticky 锚点、
+- 实现（顺序）：存量事件流正式化+TargetCoverageMarked → 矩形工具箱
+  → 融合片（Overlay/BasePage/几何）→ 循环信号+Heartbeat → 升级咨询
+  案件包 → D2/D3/D4 落账；
+- 先行核查：H7 + 桥双记（可立即开工）；
+- M6 v2：信任阶梯 + Pull + resume 完整语义；
+- RUN-006 旧挂账：deploy.sh preset 工具化、标定冻结（数据后）、slow
+  落地内容的决策消费验证；
+- 留观：键盘浮层（无 buyer 不预造）、超视口列表重建、sticky 锚点、
   视口边缘策略、LocalView 空间关系族、跨 run 反思记忆。
