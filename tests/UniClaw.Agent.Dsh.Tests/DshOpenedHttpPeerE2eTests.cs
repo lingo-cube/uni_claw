@@ -77,6 +77,33 @@ public sealed class DshOpenedHttpPeerE2eTests
         Progress: new ConsultationProgress(1, 0, 0),
         BudgetRemaining: new ConsultationBudget(3, 8));
 
+    private static AgentDecisionContext TrajectoryContext(string decisionId)
+    {
+        var heartbeat = new Heartbeat(
+            new HeartbeatWorldModel("rev-live", "settings", "settings", "settings-root", "wifi-dialog", 41, "capture-live-41"),
+            new HeartbeatKernel(AgentDecisionPhase.StepVerified, "tap Wi-Fi", "receipt-live-1", "verified", Array.Empty<AgentObligationView>(), true),
+            new HeartbeatTraversal("Wi-Fi", new[] { "Wi-Fi" }, 1, 0, 2, new[] { "opened Wi-Fi" }, new[] { "tap Wi-Fi" }),
+            40, 41,
+            new[] { new HeartbeatEvent(41, "ObservationAccepted", "Wi-Fi dialog observation accepted", "Wi-Fi") }, 0);
+        var reference = new ContextReferenceEntry(
+            "live-event-41", "event", "CoverageLedger", 41, "capture-live-41", "fresh", "e2e-run-1/event-41",
+            "Wi-Fi dialog observation", "CoverageLedger", "observed", "agent", "none", "read", 4096, "available");
+        return Context(decisionId) with
+        {
+            LocalView = new LocalObservationView(
+                new[] { new ContainerSummary("settings-root", true) },
+                new ViewportSummary(1080, 1920),
+                new ObservationDiagnostics(true, true, 4, 12, 18),
+                new[] { "settings → Wi-Fi dialog" }),
+            Heartbeat = heartbeat,
+            ContextReferenceIndex = new[] { reference },
+            CasePacket = new CasePacket(
+                "coverage-stagnant", new[] { "CoverageStagnantSignal" }, heartbeat,
+                heartbeat.EventDelta, new[] { reference }, new[] { "replan", "skip" },
+                new[] { "zero-effect-until-verified" }),
+        };
+    }
+
     [Fact]
     public async Task E2E_Handshake_AcceptedOnRealDsh_WithFrozenStamp()
     {
@@ -120,7 +147,7 @@ public sealed class DshOpenedHttpPeerE2eTests
             turnTimeout: TimeSpan.FromSeconds(110));
         try
         {
-            var decision = await adapter.ConsultAsync(Context("decision-e2e-1"));
+            var decision = await adapter.ConsultAsync(TrajectoryContext("decision-e2e-1"));
 
             // Whatever the real service answers — a captured real-model decision
             // or a fail-closed provider/credential/no-submit error — the adapter

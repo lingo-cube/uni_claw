@@ -35,7 +35,7 @@
     "expectationsDigest": "5fc118241dc16870c7ab7655c6483647d1f9ee3b5c85a69ddd5e8641d7c7bec1",
     "executionDigest": "405f5f1abfb87ce9aa2ec307038a5943a99fbffc730d9069f9eb87dbe665cada",
     "runtimeSourceHash": "a663e68c6d919b5dbe1b43d616191658c42a8fb916b19370db988e44ee85450f",
-    "certifiedByChange": "TRAJECTORY-001",
+    "certifiedByChange": "AGT-020",
     "certifiedAt": "2026-10-17"
   },
   "security": {

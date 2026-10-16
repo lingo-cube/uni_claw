@@ -227,7 +227,7 @@ test('apply registers five routes and the schema-derived tool', () => {
   }
   const tool = harness.ctx.tools.registered.find(t => t.name === 'submit_decision')
   assert.ok(tool)
-  assert.deepEqual([...tool.parameters.properties.task.properties.payload.properties.kind.enum].sort(), ['act', 'defer', 'noAction', 'policy'])
+  assert.deepEqual([...tool.parameters.properties.task.properties.payload.properties.kind.enum].sort(), ['act', 'defer', 'noAction', 'policy', 'skip'])
   assert.deepEqual(tool.parameters.required, ['task'])
   assert.deepEqual(tool.output.render({}, { accepted: true, reason: 'captured' }), [
     { type: 'text', text: 'submit_decision accepted: captured' },
@@ -601,7 +601,7 @@ test('B3: act, policy, noAction and defer are accepted with traceable identities
     },
     {
       kind: 'defer',
-      spec: { subject: 'wifi.state', maxRounds: 2 },
+      spec: { subject: 'wifi.state', maxRounds: 2, depth: 'Normal' },
     },
   ]
 
@@ -886,7 +886,7 @@ test('PRF-009: package skill artifact stays byte-identical with product canonica
       `skill artifact drift: ${name}`)
   const artifact = plugin.loadSkillArtifactFor(PACKAGE_ROOT)
   assert.equal(artifact.name, 'android-automotive-ui-testing')
-  assert.equal(artifact.revision, 1)
+  assert.equal(artifact.revision, 2)
   assert.equal(artifact.sha256, readFileSync(join(CANONICAL_SKILL_DIR, '..', '..', 'profiles', 'uniagent-prod.yaml'), 'utf8').match(/sha256: ([0-9a-f]{64})/)?.[1])
 })
 

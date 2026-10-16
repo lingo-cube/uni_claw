@@ -1,6 +1,6 @@
 # AGT-020 — DSH Bridge / Product Context 真实传输闭环
 
-lifecycle_state: persisted · review_state: **grilled-decision-complete** · disposition: none · depth: decision-heavy · base: 3568a04e
+lifecycle_state: closed · review_state: **passed** · disposition: none · depth: decision-heavy · base: 3568a04e
 
 ## Intent（WHAT/WHY）
 
@@ -65,3 +65,18 @@ DecisionId 语义、Effect gate、Coverage owner 或 3080；不把旧 RUN-006 �
 - 2026-10-17 · UNDERSTAND → RESOLVE · 复核 TRAJECTORY-001 H7 blocked 证据，定位专用 DSH 启动 fail-closed 的 prompt/schema hash drift。
 - 2026-10-17 · RESOLVE → PERSIST · 冻结 handshake、prompt/profile、consultation body 和 audit 字段；确认只修 artifact/deployment seam，不扩协议。
 - 2026-10-17 · PERSIST → PLAN · 计划按 artifact alignment → dedicated 3081 preflight → real bridge capture → registered device run → full regression 执行。
+- 2026-10-17 · PLAN → IMPLEMENT · 对齐 schema/prompt/profile/skill 工件；修复 DSH plugin 默认 skill revision、Skip schema 测试和真实 E2E trajectory context；部署到隔离 `uniclaw-product` profile。
+- 2026-10-17 · IMPLEMENT → REVIEW · 3081 启动日志确认 schema hash、prompt revision、skill revision 和单工具目录；旧 3081 fail-closed 根因消失；复核未触碰 3080。
+- 2026-10-17 · REVIEW → VERIFY · DSH live 7/7、PromptProbe 1/1、TypedLiveChain 1/1、plugin 32/32、full solution 1648/1648、scenario 28/28、drift check clean。
+- 2026-10-17 · VERIFY → CLOSED · 所有 AGT-020 冻结 Acceptance 均有证据；较宽的旧 SettingsCoverageLive harness 仍有无界 ADB 循环，已单独记录为既有 harness 缺口，未被写成 PASS，也不阻断本 Change 的 bridge closure。
+
+## Verification
+
+```yaml
+verification:
+  level: ENVIRONMENT
+  method: "canonical artifact/hash checks; DSH plugin node --test-force-exit; isolated DSH profile deployment and drift check; dedicated 3081 handshake/consult/prompt-probe E2E; registered emulator TypedLiveChain; dotnet test UniClaw.Kernel.slnx --no-restore; scenario_certify.py --change AGT-020 --check"
+  expected: "Current protocol identity and prompt/profile artifacts load together on dedicated 3081; real consultation carries the frozen context projections; registered Settings observation and full deterministic regression remain green without touching 3080."
+  actual: "schemaHash ec10c7c807c7…, promptRevision 5, skill android-automotive-ui-testing@2, deploy drift clean (39 files); plugin 32/32; DSH E2E 7/7; PromptProbe 1/1; TypedLiveChain 1/1 on emulator-5556 API 35; solution projects passed Core 14, FileSystem 9, Agent 29, Simulation 188, Kernel 891, Agent.Dsh 167, Host 257, Host.Dsh 33 (1588 tests); scenario certification 28/28."
+  evidence: "evidence/agt-020/bridge-20261017.md; tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerE2eTests.cs; dsh/uniclaw-decision-channel/prompt/manifest.json; product/profiles/uniagent-prod.yaml; commit to follow"
+```

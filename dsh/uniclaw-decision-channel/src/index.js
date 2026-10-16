@@ -71,7 +71,7 @@ const SCHEMA_PATH = join(PACKAGE_ROOT, 'schema', 'product-protocol.schema.json')
 const SCHEMA_HASH_PATH = join(PACKAGE_ROOT, 'schema', 'schema-hash.txt')
 const DEFAULT_SKILL_PATH = 'skill/android-automotive-ui-testing'
 const DEFAULT_SKILL_NAME = 'android-automotive-ui-testing'
-const DEFAULT_SKILL_REVISION = 1
+const DEFAULT_SKILL_REVISION = 2
 
 function loadSchemaArtifact() {
   const schema = JSON.parse(readFileSync(SCHEMA_PATH, 'utf8'))
