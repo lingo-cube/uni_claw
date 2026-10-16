@@ -17,7 +17,35 @@ public abstract record RunDriverInput
 
     /// <summary>stimulus 消费纪律拒绝（context 失配等）——fail closed 信号。</summary>
     public sealed record Unexpected(string Reason) : RunDriverInput;
+
+    /// <summary>
+    /// Host/Owner interruption signal. It is consumed at the next safe
+    /// decision boundary; it never authorizes an Effect by itself.
+    /// </summary>
+    public sealed record Interruption(InterruptionSignal Signal) : RunDriverInput;
 }
+
+/// <summary>Typed, owner-produced signal that requests a new consultation.</summary>
+public sealed record InterruptionSignal(
+    string SignalKey,
+    string Kind,
+    long EventSeq,
+    string? Target = null,
+    string? Reason = null,
+    Heartbeat? Heartbeat = null,
+    IReadOnlyList<ContextReferenceEntry>? ContextReferenceIndex = null,
+    CasePacket? CasePacket = null);
+
+/// <summary>
+/// Kernel-to-Owner seam for the zero-Effect Skip outcome. The Kernel does not
+/// reference the coverage ledger; the Host/Owner decides how to append the
+/// TargetCoverageMarked fact.
+/// </summary>
+public sealed record TargetCoverageMarkRequest(
+    string Target,
+    string DecisionId,
+    string Reason,
+    IReadOnlyList<string> EvidenceRefs);
 
 /// <summary>
 /// 观察深度档位（PER-009 mechanism ①，台账 #20 A 方案）。Focused = Tier 1
@@ -64,6 +92,9 @@ public sealed class RunDriverInputs
 
     /// <summary>P25 UniAgent consultation seam（唯一调用方 = internal driver）。</summary>
     public required Func<AgentDecisionContext, AgentDecision?> ConsultAgent { get; init; }
+
+    /// <summary>Optional Owner callback for AgentDecision.Skip.</summary>
+    public Action<TargetCoverageMarkRequest>? MarkTargetCoverage { get; set; }
 
     /// <summary>P25 durable seam; null uses an in-process journal for legacy/test composition.</summary>
     public IConsultationJournal? ConsultationJournal { get; init; }

@@ -535,6 +535,7 @@ public sealed class SettingsCoverageDirector
         AgentDecision.NoAction => "noAction",
         AgentDecision.Defer => "defer",
         AgentDecision.Policy => "policy",
+        AgentDecision.Skip => "skip",
         null => null,
         _ => "unknown",
     };
@@ -547,6 +548,7 @@ public sealed class SettingsCoverageDirector
         AgentDecision.Defer defer => defer.DecisionId,
         AgentDecision.Policy policy => policy.DecisionId,
         AgentDecision.Blocked blocked => blocked.DecisionId,
+        AgentDecision.Skip skip => skip.DecisionId,
         null => null,
         _ => null,
     };
@@ -556,6 +558,7 @@ public sealed class SettingsCoverageDirector
         AgentDecision.Act act => act.Proposal.Justification,
         AgentDecision.Plan plan => plan.Proposal.Justification,
         AgentDecision.NoAction noAction => noAction.Proposal.Justification,
+        AgentDecision.Skip skip => skip.Reason,
         _ => null,
     };
 

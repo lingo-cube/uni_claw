@@ -161,6 +161,13 @@ internal sealed class FileAgentDecisionJsonConverter : JsonConverter<AgentDecisi
             "plan" => new AgentDecision.Plan(
                 root.GetProperty("decisionId").GetString()!,
                 root.GetProperty("proposal").Deserialize<AgentPlanProposal>(options)! ),
+            "skip" => new AgentDecision.Skip(
+                root.GetProperty("decisionId").GetString()!,
+                root.GetProperty("target").GetString()!,
+                root.GetProperty("reason").GetString()!,
+                root.TryGetProperty("evidenceRefs", out var evidenceRefs)
+                    ? evidenceRefs.Deserialize<IReadOnlyList<string>>(options) ?? Array.Empty<string>()
+                    : Array.Empty<string>()),
             _ => throw new JsonException($"Unknown durable AgentDecision kind '{kind}'"),
         };
     }
@@ -203,6 +210,14 @@ internal sealed class FileAgentDecisionJsonConverter : JsonConverter<AgentDecisi
                 writer.WriteString("decisionId", plan.DecisionId);
                 writer.WritePropertyName("proposal");
                 JsonSerializer.Serialize(writer, plan.Proposal, options);
+                break;
+            case AgentDecision.Skip skip:
+                writer.WriteString("$kind", "skip");
+                writer.WriteString("decisionId", skip.DecisionId);
+                writer.WriteString("target", skip.Target);
+                writer.WriteString("reason", skip.Reason);
+                writer.WritePropertyName("evidenceRefs");
+                JsonSerializer.Serialize(writer, skip.EvidenceRefs, options);
                 break;
             default:
                 throw new JsonException($"Unsupported durable AgentDecision type {value.GetType().Name}");

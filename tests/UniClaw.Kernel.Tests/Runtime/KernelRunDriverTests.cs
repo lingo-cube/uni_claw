@@ -177,6 +177,77 @@ public sealed class KernelRunDriverTests
     }
 
     [Fact]
+    public void Drive_Skip_MarksOwnerAndProducesZeroEffect()
+    {
+        var calls = 0;
+        var marked = new List<TargetCoverageMarkRequest>();
+        var c = Compose(
+            nextInput: _ => SeedObservation(),
+            consult: ctx => ++calls == 1
+                ? new AgentDecision.Skip(ctx.DecisionId, "wifi-name", "unsupported dialog", new[] { "evidence:dialog" })
+                : new AgentDecision.Blocked(ctx.DecisionId, "stop-after-test"));
+        c.Inputs.MarkTargetCoverage = request => marked.Add(request);
+        Assert.True(c.Kernel.AdmitContract(Contract()).Accepted);
+        var driver = new KernelRunDriver(c.Kernel, c.Plan, c.Inputs);
+        Assert.True(driver.Activate().Accepted);
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Single(marked);
+        Assert.Equal("wifi-name", marked[0].Target);
+        Assert.Equal("unsupported dialog", marked[0].Reason);
+        Assert.Empty(c.Effects.ReceiptLog);
+    }
+
+    [Fact]
+    public void Drive_Interruption_UsesNewDecisionBoundaryAndReason()
+    {
+        var heartbeat = new Heartbeat(
+            new HeartbeatWorldModel("r1", "settings", "settings", null, null, 7, "capture-7"),
+            new HeartbeatKernel(AgentDecisionPhase.StepVerified, "tap wifi", "receipt-1", "verified", Array.Empty<AgentObligationView>(), true),
+            new HeartbeatTraversal("wifi-name", new[] { "wifi-name" }, 0, 0, 1, Array.Empty<string>(), new[] { "wifi-name" }),
+            1,
+            7,
+            new[] { new HeartbeatEvent(7, "CoverageStagnantSignal", "coverage has not advanced", "wifi-name") },
+            0);
+        var packet = new CasePacket(
+            "coverage-stagnant",
+            new[] { "CoverageStagnantSignal" },
+            heartbeat,
+            heartbeat.EventDelta,
+            Array.Empty<ContextReferenceEntry>(),
+            new[] { "Reobserve", "Replan", "Blocked", "Skip" },
+            new[] { "zero Effect for Skip and Blocked" });
+        var inputs = new Queue<RunDriverInput>(new RunDriverInput[]
+        {
+            new RunDriverInput.Interruption(new InterruptionSignal(
+                "coverage-stagnant:wifi-name", "CoverageStagnantSignal", 7,
+                "wifi-name", "no verified progress", heartbeat, Array.Empty<ContextReferenceEntry>(), packet)),
+        });
+        AgentDecisionContext? seen = null;
+        var c = Compose(
+            nextInput: _ => inputs.Count == 0 ? null : inputs.Dequeue(),
+            consult: ctx =>
+            {
+                seen = ctx;
+                return new AgentDecision.Blocked(ctx.DecisionId, "intervention-required");
+            });
+        Assert.True(c.Kernel.AdmitContract(Contract()).Accepted);
+        var driver = new KernelRunDriver(c.Kernel, c.Plan, c.Inputs);
+        Assert.True(driver.Activate().Accepted);
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.NotNull(seen);
+        Assert.Equal("no verified progress", seen!.FailureReason);
+        Assert.Same(heartbeat, seen.Heartbeat);
+        Assert.Same(packet, seen.CasePacket);
+        Assert.StartsWith("decision-", seen.DecisionId);
+    }
+
+    [Fact]
     public void Drive_CorrelationMismatch_FailsClosed_ZeroEffects()
     {
         var c = Compose(

@@ -454,6 +454,14 @@ public sealed class HostRunner
         AgentDecision.Defer defer => new { kind = "defer", decisionId = defer.DecisionId, spec = defer.Spec },
         AgentDecision.Policy policy => new { kind = "policy", decisionId = policy.DecisionId, proposal = (object)policy.Proposal },
         AgentDecision.Plan plan => new { kind = "plan", decisionId = plan.DecisionId, proposal = (object)plan.Proposal },
+        AgentDecision.Skip skip => new
+        {
+            kind = "skip",
+            decisionId = skip.DecisionId,
+            target = skip.Target,
+            reason = skip.Reason,
+            evidenceRefs = skip.EvidenceRefs,
+        },
         _ => null,
     };
 

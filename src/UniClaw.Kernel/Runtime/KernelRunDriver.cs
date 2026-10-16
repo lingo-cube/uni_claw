@@ -268,6 +268,7 @@ public sealed class KernelRunDriver
     private int _stepIndex;
     private string? _boundarySignature;
     private int _boundarySequence;
+    private InterruptionSignal? _pendingInterruption;
 
     public KernelRunDriver(UniKernel kernel, AgentPlanPolicy plan, RunDriverInputs inputs)
     {
@@ -436,6 +437,35 @@ public sealed class KernelRunDriver
                                 $"agent-blocked:{blocked.Reason}",
                                 null,
                                 _kernel.EffectReceipts.Count);
+                        }
+                        case AgentDecision.Skip skip:
+                        {
+                            var rejection = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
+                            if (rejection is not null)
+                                return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, rejection, null, 0);
+                            if (_inputs.MarkTargetCoverage is null)
+                                return new RunDriveResult(
+                                    RunDriveStatus.AgentDecisionFailed,
+                                    "skip-owner-unavailable", null, _kernel.EffectReceipts.Count);
+                            try
+                            {
+                                _inputs.MarkTargetCoverage(new TargetCoverageMarkRequest(
+                                    skip.Target, skip.DecisionId, skip.Reason, skip.EvidenceRefs));
+                            }
+                            catch (Exception ex)
+                            {
+                                return new RunDriveResult(
+                                    RunDriveStatus.AgentDecisionFailed,
+                                    "skip-owner-failed:" + ex.GetType().Name, null,
+                                    _kernel.EffectReceipts.Count);
+                            }
+                            _lastAnswer = _adoptedDecision;
+                            _deferRoundsUsed = 0;
+                            _deferExhaustedPending = false;
+                            _adoptedDecision = null;
+                            _pendingInterruption = null;
+                            _phase = DrivePhase.NeedDecision;
+                            continue;
                         }
                         case AgentDecision.Defer defer:
                         {
@@ -1142,7 +1172,8 @@ public sealed class KernelRunDriver
     {
         var viewRef = view.AcceptedContractViewRef ?? view.ContractRef ?? view.Version;
         var boundarySignature = string.Join("|", PhaseForCurrent(), _stepsDispatched,
-            _completedSteps.Count, _pendingFailurePhase?.ToString() ?? "", _pendingFailedStepIndex?.ToString() ?? "");
+            _completedSteps.Count, _pendingFailurePhase?.ToString() ?? "", _pendingFailedStepIndex?.ToString() ?? "",
+            _pendingInterruption?.SignalKey ?? "", _pendingInterruption?.EventSeq.ToString() ?? "");
         if (!string.Equals(_boundarySignature, boundarySignature, StringComparison.Ordinal))
         {
             _boundarySignature = boundarySignature;
@@ -1205,6 +1236,17 @@ public sealed class KernelRunDriver
             ContractViewRef: viewRef,
             DecisionBoundaryId: boundaryId);
 
+        if (_pendingInterruption is { } interruption)
+        {
+            context = context with
+            {
+                FailureReason = interruption.Reason ?? context.FailureReason,
+                Heartbeat = interruption.Heartbeat ?? context.Heartbeat,
+                ContextReferenceIndex = interruption.ContextReferenceIndex ?? context.ContextReferenceIndex,
+                CasePacket = interruption.CasePacket ?? context.CasePacket,
+            };
+        }
+
         var key = new ConsultationKey(_kernel.RunId, viewRef, boundaryId, decisionId);
         var fingerprint = ConsultationFingerprint(context);
         ConsultationJournalEntry reserved;
@@ -1255,6 +1297,7 @@ public sealed class KernelRunDriver
             case AgentDecision.Plan plan: answeredId = plan.DecisionId; break;
             // AGT-019 M1：Blocked 同律回带 DecisionId（D2 防串话；Plan 先例）
             case AgentDecision.Blocked blocked: answeredId = blocked.DecisionId; break;
+            case AgentDecision.Skip skip: answeredId = skip.DecisionId; break;
             default:
                 _consultationJournal.Reject(key, fingerprint, "unknown-decision-kind");
                 return new ConsultOutcome(null, "unknown-decision-kind");
@@ -1280,6 +1323,7 @@ public sealed class KernelRunDriver
         _pendingFailurePhase = null;
         _pendingFailedStepIndex = null;
         _pendingPolicyOutcome = null;
+        _pendingInterruption = null;
         return new ConsultOutcome(decision, null);
     }
 
@@ -1302,6 +1346,9 @@ public sealed class KernelRunDriver
             context.FailedStepIndex,
             context.Progress,
             context.BudgetRemaining,
+            context.Heartbeat,
+            context.ContextReferenceIndex,
+            context.CasePacket,
         });
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)))
             .ToLowerInvariant();
@@ -1442,6 +1489,17 @@ public sealed class KernelRunDriver
                 //（honest-signaling 执法；非形状约束）。
                 if (string.IsNullOrWhiteSpace(blocked.Reason))
                     return "blocked-empty-reason";
+                break;
+            }
+            case AgentDecision.Skip skip:
+            {
+                if (string.IsNullOrWhiteSpace(skip.Target))
+                    return "skip-target-empty";
+                if (string.IsNullOrWhiteSpace(skip.Reason))
+                    return "skip-reason-empty";
+                if (skip.EvidenceRefs is null || skip.EvidenceRefs.Count == 0
+                    || skip.EvidenceRefs.Any(string.IsNullOrWhiteSpace))
+                    return "skip-evidence-required";
                 break;
             }
             case AgentDecision.Policy policy:
@@ -1826,6 +1884,26 @@ public sealed class KernelRunDriver
                     new RunDriveResult(RunDriveStatus.UnexpectedInput, unexpected.Reason, null,
                         _kernel.EffectReceipts.Count),
                     Array.Empty<KernelResult>());
+
+            case RunDriverInput.Interruption interruption:
+                if (string.IsNullOrWhiteSpace(interruption.Signal.SignalKey)
+                    || string.IsNullOrWhiteSpace(interruption.Signal.Kind)
+                    || interruption.Signal.EventSeq < 0)
+                    return new ObservationPull(
+                        new RunDriveResult(RunDriveStatus.UnexpectedInput,
+                            "invalid-interruption-signal", null, _kernel.EffectReceipts.Count),
+                        Array.Empty<KernelResult>());
+                _pendingInterruption = interruption.Signal;
+                // A post-action interruption cannot bypass the verification
+                // barrier. Keep StepVerify resumable and let the next input
+                // provide the required observation before consulting.
+                if (expected == ObservationContext.PostActionEffectFlow)
+                    return new ObservationPull(
+                        new RunDriveResult(RunDriveStatus.WaitingForInput,
+                            "interruption-awaits-post-action-evidence", null,
+                            _kernel.EffectReceipts.Count),
+                        Array.Empty<KernelResult>());
+                return new ObservationPull(null, Array.Empty<KernelResult>());
 
             case RunDriverInput.Observation observation:
                 if (observation.Proposals.Count == 0

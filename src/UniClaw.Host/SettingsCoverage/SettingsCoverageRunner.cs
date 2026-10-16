@@ -94,7 +94,10 @@ public sealed class SettingsCoverageRunner
     private sealed record ConsultDecisionArtifact(
         string Kind,
         string? Justification,
-        IReadOnlyList<AgentActionStep> Steps);
+        IReadOnlyList<AgentActionStep> Steps,
+        string? SkipTarget = null,
+        string? SkipReason = null,
+        IReadOnlyList<string>? EvidenceRefs = null);
 
     public static RunResult Run(string runRoot, Options options)
     {
@@ -203,6 +206,7 @@ public sealed class SettingsCoverageRunner
                 currentCaptureId,
                 ledger,
                 journal,
+                config,
                 TryBindLanguageInspection,
                 () => languageInspection);
             director.SyncBeforeSnapshot = interleave.SyncNow;
@@ -214,6 +218,16 @@ public sealed class SettingsCoverageRunner
                 new RunDriverInputs
                 {
                     NextInput = interleave.WrappedNext,
+                    MarkTargetCoverage = request =>
+                    {
+                        // Agent Skip is a zero-Effect owner mark. Duplicate or
+                        // already-marked targets are idempotent at the ledger.
+                        ledger.TryMarkTargetSkipped(
+                            request.Target,
+                            request.DecisionId,
+                            request.Reason,
+                            request.EvidenceRefs);
+                    },
                     ConsultAgent = context =>
                     {
                         var projected = context;
@@ -296,6 +310,13 @@ public sealed class SettingsCoverageRunner
                     break;
             }
             interleave.FlushObservation();
+            WriteText(
+                runDir,
+                "coverage-events.jsonl",
+                string.Join(
+                    Environment.NewLine,
+                    ledger.Events.Select(eventRecord => JsonSerializer.Serialize(eventRecord, JsonOptions)))
+                + Environment.NewLine);
             TryBindLanguageInspection();
             if (languageInspectionRequest is { Required: true } && languageInspection is null)
                 throw new InvalidOperationException("language-inspection-required-capability-not-bound");
@@ -433,6 +454,7 @@ public sealed class SettingsCoverageRunner
         private readonly Func<string?> _currentCaptureId;
         private readonly SettingsCoverageLedger _ledger;
         private readonly CoverageStepJournal _journal;
+        private readonly SettingsCoverageConfig _config;
         private readonly Action _tryBindLanguageInspection;
         private readonly Func<LanguageInspectionPostCommit?> _languageInspection;
         private string? _lastCycleRoute;
@@ -441,6 +463,10 @@ public sealed class SettingsCoverageRunner
         private bool _cycleRecorded;
         private IReadOnlyList<ObservationProposal>? _pendingInspectionProposals;
         private string? _pendingInspectionCaptureId;
+        private (int StepsVerified, int Frontier)? _lastProgress;
+        private string? _lastEvidenceFingerprint;
+        private int _stagnantCycles;
+        private bool _interruptionIssued;
 
         public InterleaveBookkeeper(
             UniKernel kernel,
@@ -448,6 +474,7 @@ public sealed class SettingsCoverageRunner
             Func<string?> currentCaptureId,
             SettingsCoverageLedger ledger,
             CoverageStepJournal journal,
+            SettingsCoverageConfig config,
             Action tryBindLanguageInspection,
             Func<LanguageInspectionPostCommit?> languageInspection)
         {
@@ -456,6 +483,7 @@ public sealed class SettingsCoverageRunner
             _currentCaptureId = currentCaptureId;
             _ledger = ledger;
             _journal = journal;
+            _config = config;
             _tryBindLanguageInspection = tryBindLanguageInspection;
             _languageInspection = languageInspection;
         }
@@ -466,6 +494,9 @@ public sealed class SettingsCoverageRunner
             // (a) 上一周期已处理完毕：其 route + 当前 belief 的可见 occurrences
             // 入账本（occurrences 为该屏 grounded 景观）。
             RecordPendingObservation();
+
+            if (TryBuildInterruption() is { } interruption)
+                return interruption;
 
             var input = _feedNext(directive);
 
@@ -491,6 +522,139 @@ public sealed class SettingsCoverageRunner
             }
             return input;
         }
+
+        private RunDriverInput.Interruption? TryBuildInterruption()
+        {
+            var snapshot = _ledger.Snapshot(_config);
+            var frontier = _ledger.DynamicRootFrontier(_config).Count
+                + _ledger.DynamicNestedFrontier(_config).Count;
+            var progress = (snapshot.StepsVerified, frontier);
+            var evidenceFingerprint = string.Join(
+                "|",
+                snapshot.CurrentRoute ?? "unknown",
+                snapshot.PopupState ?? "unknown",
+                string.Join(",", snapshot.Visible));
+            if (_lastProgress is { } prior
+                && prior == progress
+                && string.Equals(_lastEvidenceFingerprint, evidenceFingerprint, StringComparison.Ordinal))
+                _stagnantCycles++;
+            else
+            {
+                _stagnantCycles = 0;
+                _interruptionIssued = false;
+            }
+            _lastProgress = progress;
+            _lastEvidenceFingerprint = evidenceFingerprint;
+
+            if (_interruptionIssued
+                || _stagnantCycles < _config.Bounds.StagnationInjectConsults)
+                return null;
+
+            var cutoff = _ledger.LastEventSequence;
+            var events = _ledger.ReadEvents(Math.Max(0, cutoff - 11), 12);
+            var heartbeatEvents = events
+                .Select(ToHeartbeatEvent)
+                .ToArray();
+            var references = events
+                .Select(ToReference)
+                .ToArray();
+            var heartbeat = new Heartbeat(
+                new HeartbeatWorldModel(
+                    CurrentRevision: null,
+                    CurrentContainer: snapshot.CurrentRoute,
+                    CurrentRoute: snapshot.CurrentRoute,
+                    BasePageAnchor: null,
+                    Overlay: snapshot.PopupState == "present" ? "popup" : null,
+                    LastAcceptedObservationEventSeq: events
+                        .Where(item => item.Type == CoverageEventType.ObservationAccepted)
+                        .Select(item => (long?)item.Sequence)
+                        .LastOrDefault(),
+                    LastAcceptedObservationCaptureId: events
+                        .Where(item => item.Type == CoverageEventType.ObservationAccepted)
+                        .Select(item => item.CaptureId)
+                        .LastOrDefault()),
+                new HeartbeatKernel(
+                    AgentDecisionPhase.StepVerified,
+                    LastEffect: events.LastOrDefault(item => item.Type == CoverageEventType.EffectReceiptProduced)?.Target,
+                    LastReceipt: events.LastOrDefault(item => item.Type == CoverageEventType.EffectReceiptProduced)?.ReceiptId,
+                    LastVerification: events.LastOrDefault(item => item.Type == CoverageEventType.PostActionVerified)?.Reason,
+                    PendingObligations: Array.Empty<AgentObligationView>(),
+                    NextEffectBlocked: true),
+                new HeartbeatTraversal(
+                    CurrentTarget: snapshot.NextDirective,
+                    Frontier: snapshot.Visible,
+                    ReachedCount: _ledger.TargetMarks.Values.Count(mark =>
+                        mark.Kind is TargetCoverageMarkKind.RouteEntered or TargetCoverageMarkKind.ReachedOverlay),
+                    SkippedCount: _ledger.AgentSkippedTargets.Count,
+                    PendingCount: frontier,
+                    RecentTransitions: events
+                        .Where(item => item.Route is not null)
+                        .Select(item => item.Route!)
+                        .Distinct(StringComparer.Ordinal)
+                        .ToArray(),
+                    RecentAttempts: events
+                        .Where(item => item.Target is not null)
+                        .Select(item => item.Target!)
+                        .ToArray()),
+                FromEventSeq: events.FirstOrDefault()?.Sequence ?? cutoff,
+                ToEventSeq: cutoff,
+                EventDelta: heartbeatEvents,
+                OmittedCount: Math.Max(0, _ledger.Events.Count - events.Count));
+            var casePacket = new CasePacket(
+                CaseKind: "coverage-stagnant",
+                TriggerSignals: new[] { "CoverageStagnantSignal" },
+                HeartbeatSnapshot: heartbeat,
+                EventDelta: heartbeatEvents,
+                RelevantRefs: references,
+                AvailableActions: new[] { "Reobserve", "Replan", "Blocked", "Skip" },
+                Constraints: new[]
+                {
+                    "zero Effect for Skip and Blocked",
+                    "all Act proposals remain subject to existing Grounding and Effect Boundary",
+                });
+
+            _interruptionIssued = true;
+            return new RunDriverInput.Interruption(new InterruptionSignal(
+                SignalKey: $"coverage-stagnant:{snapshot.NextDirective ?? "unknown"}",
+                Kind: "CoverageStagnantSignal",
+                EventSeq: cutoff,
+                Target: snapshot.NextDirective,
+                Reason: "no new discovery and no new verified completion",
+                Heartbeat: heartbeat,
+                ContextReferenceIndex: references,
+                CasePacket: casePacket));
+        }
+
+        private static HeartbeatEvent ToHeartbeatEvent(CoverageEvent item) =>
+            new(item.Sequence, item.Type.ToString(), SemanticLabel(item), item.Target);
+
+        private static ContextReferenceEntry ToReference(CoverageEvent item) =>
+            new(
+                RefId: $"coverage-event:{item.Sequence}",
+                Kind: "event",
+                Owner: item.Owner,
+                EventSeq: item.Sequence,
+                CaptureId: item.CaptureId,
+                Freshness: "current",
+                Lineage: $"coverage-ledger:{item.Sequence}",
+                SemanticLabel: SemanticLabel(item),
+                SourceAuthority: item.Owner,
+                Epistemic: "observed",
+                Audience: "agent",
+                Redaction: "settings-coverage-default",
+                Capability: "runtime.settings-coverage.events",
+                MaxBytes: 8192,
+                Availability: "available");
+
+        private static string SemanticLabel(CoverageEvent item) => item.Type switch
+        {
+            CoverageEventType.ObservationAccepted => "accepted settings observation",
+            CoverageEventType.PopupStateObserved => $"popup state observed: {item.Reason ?? "unknown"}",
+            CoverageEventType.EffectReceiptProduced => $"effect receipt produced for {item.Target ?? "unknown target"}",
+            CoverageEventType.PostActionVerified => $"post-action verification: {item.Verified}",
+            CoverageEventType.TargetCoverageMarked => $"coverage marked: {item.MarkKind}",
+            _ => "settings coverage event",
+        };
 
         /// <summary>幂等补记当前周期（director 在快照前调用——首个观察的
         /// 处理完成先于首次咨询，但普通记账点在下一次拉取时才到）。</summary>
@@ -699,6 +863,9 @@ public sealed class SettingsCoverageRunner
                 "defer", null, Array.Empty<AgentActionStep>()),
             AgentDecision.Policy => new ConsultDecisionArtifact(
                 "policy", null, Array.Empty<AgentActionStep>()),
+            AgentDecision.Skip skip => new ConsultDecisionArtifact(
+                "skip", null, Array.Empty<AgentActionStep>(),
+                skip.Target, skip.Reason, skip.EvidenceRefs),
             _ => new ConsultDecisionArtifact("unknown", null, Array.Empty<AgentActionStep>()),
         };
 }

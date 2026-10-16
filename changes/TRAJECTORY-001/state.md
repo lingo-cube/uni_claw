@@ -1,6 +1,6 @@
 # TRAJECTORY-001 — Event Stream / Heartbeat / 事件触发咨询（Agent 介入判断基础设施）
 
-lifecycle_state: planned · review_state: **grilled-decision-complete** · disposition: none · depth: decision-heavy · base: 56334655
+lifecycle_state: implementing · review_state: **grilled-decision-complete** · disposition: none · depth: decision-heavy · base: 56334655
 
 ## Intent（WHAT/WHY）
 
@@ -88,3 +88,6 @@ Context Pull / resume 完整语义 / 信任阶梯实现（M6 v2 承载）；
   下一步 = PLAN。
 - 2026-10-17 · PERSIST → PLAN · plan.md 按协议 → Owner Event Stream → Kernel
   trigger → H7 evidence 的垂直切片落定；完整 Agent-driven Pull 保留 M6 v2。
+- 2026-10-17 · PLAN → IMPLEMENT · Slice A/B/C 完成：协议投影与 typed Skip、
+  Owner Event Stream、Kernel interruption/P25 入口和 Host Skip 持久化映射；
+  当前进入 Host signal wiring、artifact replay 和 H7 真机验收。

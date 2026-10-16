@@ -198,6 +198,7 @@ public sealed class FileDecisionConsult
             AgentDecision.Defer => "defer",
             AgentDecision.NoAction => "noAction",
             AgentDecision.Policy => "policy",
+            AgentDecision.Skip => "skip",
             _ => "unknown",
         };
         var receipt = new

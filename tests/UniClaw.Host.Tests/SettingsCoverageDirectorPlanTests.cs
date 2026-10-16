@@ -143,6 +143,21 @@ public sealed class SettingsCoverageDirectorPlanTests
     }
 
     [Fact]
+    public void AdvisorySkip_IsLoggedAsSkip_WithoutAdoptingAnEffectStep()
+    {
+        var director = new SettingsCoverageDirector(
+            _ => new AgentDecision.Skip("d-1", Entry, "unsupported dialog", ["evidence:dialog"]),
+            NormalRootLedger(), Config());
+
+        var decision = director.RecordAdvisoryDecision(Context(),
+            new AgentDecision.Skip("d-1", Entry, "unsupported dialog", ["evidence:dialog"]));
+
+        Assert.IsType<AgentDecision.Skip>(decision);
+        Assert.Equal("skip", Assert.Single(director.ConsultLog).DecisionKind);
+        Assert.Empty(director.AdoptedSteps);
+    }
+
+    [Fact]
     public void Plan_WithMultipleActItems_FailsClosed()
     {
         var director = new SettingsCoverageDirector(

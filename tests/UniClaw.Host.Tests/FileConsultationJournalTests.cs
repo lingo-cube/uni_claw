@@ -39,4 +39,31 @@ public sealed class FileConsultationJournalTests
             if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true);
         }
     }
+
+    [Fact]
+    public void SkipDecision_RoundTripsAsZeroEffectDecision()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "uniclaw-consultation-skip-" + Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(directory, "journal.jsonl");
+        var key = new ConsultationKey("run-skip", "view-1", "boundary-1", "decision-skip-1");
+        try
+        {
+            using (var journal = new FileConsultationJournal(path))
+            {
+                journal.Reserve(key, "fp-skip");
+                journal.Complete(key, "fp-skip", new AgentDecision.Skip(
+                    "decision-skip-1", "Wi-Fi name", "unsupported dialog", ["evidence:dialog"]));
+            }
+
+            using var restored = new FileConsultationJournal(path);
+            var skip = Assert.IsType<AgentDecision.Skip>(restored.Find(key)!.Decision);
+            Assert.Equal("Wi-Fi name", skip.Target);
+            Assert.Equal("unsupported dialog", skip.Reason);
+            Assert.Equal(["evidence:dialog"], skip.EvidenceRefs);
+        }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true);
+        }
+    }
 }
