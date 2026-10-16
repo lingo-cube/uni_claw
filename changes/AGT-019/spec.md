@@ -82,7 +82,7 @@ Director 不再有处理不了情形的终局裁量；UniAgent 的编排只在�
 | Host 执行 | Director/Config/Ledger/LiveFeed/UniPerceptionPipeline | M1/M3/M4/M5 | 代码变更（Slice A）；无声明面 revision |
 | 协议（RUN-004 D3/D7 修订） | blocked 新成员 / 局部视图字段 / 参数化 ObserveSpec / 进度字段 / 白名单随动 +N | M1/M2/M5 | 独立修订 change（本 change，G4 DEFERRED 先例）；Slice B |
 | Kernel（浅） | 视图派生落 World Model 侧（owner-derived；Kernel 只执法——grill F13 订正） | M2 | 不动 Kernel 冻结面 |
-| 产品声明 | profiles（+image-input 能力声明） | M2③ | profileRevision +1（PRF-005 纪律） |
+| 产品声明 | profiles 视觉轴（M2③ 三层链的 profile 腿）**已由 modelRoles 承载关闭**（2026-10-17 owner 裁决 A）：`modelRoles.slow.semantic.visual: required=false` = 诚实未绑眼睛；capabilities 为工具面不加条目（Q3 裁决：附着形态不造工具，且与冻结清单 ProductHeadless 全等核对会 fail-closed）；视觉 buyer 出现时翻 required=true 即本行执行 | M2③ | 零 yaml 改动；本行不再有独立 revision 动作 |
 | 产品声明 | prompt/payload-shapes | M1/M2/M4 | payload-shapes hash 重钉 |
 | 产品声明 | skill 遍历纪律（M4/M5 判断纪律） | M4/M5 | SKILL revision+hash 更新，skills-lock.json 随动 |
 | 产品声明 | tasks/settings-coverage.yaml = M3/M4/M5 任务参数真源（滚动上限 / 停滞窗口 / 弹窗任务分型） | M3/M4/M5 | task yaml 变更经本 change |
