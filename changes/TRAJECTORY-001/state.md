@@ -1,6 +1,6 @@
 # TRAJECTORY-001 — Event Stream / Heartbeat / 事件触发咨询（Agent 介入判断基础设施）
 
-lifecycle_state: implementing · review_state: **grilled-decision-complete** · disposition: none · depth: decision-heavy · base: 56334655
+lifecycle_state: verified · review_state: **passed** · disposition: blocked · depth: decision-heavy · base: 56334655
 
 ## Intent（WHAT/WHY）
 
@@ -91,3 +91,23 @@ Context Pull / resume 完整语义 / 信任阶梯实现（M6 v2 承载）；
 - 2026-10-17 · PLAN → IMPLEMENT · Slice A/B/C 完成：协议投影与 typed Skip、
   Owner Event Stream、Kernel interruption/P25 入口和 Host Skip 持久化映射；
   当前进入 Host signal wiring、artifact replay 和 H7 真机验收。
+- 2026-10-17 · IMPLEMENT → REVIEW · Host signal wiring、Heartbeat/Case Packet
+  构造、push-only Reference Index、Skip 零 Effect 与生成工件闭环完成；
+  复核补齐 CoverageEvent 注册、Skip union 断言和 DSH outbound context 断言。
+- 2026-10-17 · REVIEW → VERIFY · 定向测试、全量 solution 回归和场景库重封存
+  均通过；`scenario_certify.py --check` 报告 28/28 无违规。
+- 2026-10-17 · VERIFY · BLOCKED · 代码与确定性桥测试已通过；注册的专用 DSH
+  3081 未启动，H7 真实传输/真机一轮无法取得，证据见
+  `evidence/trajectory-001/h7-preflight-20261017.json`。恢复条件：启动 3081
+  专线并完成 H7 + device run；在此之前不宣称真实 Agent 已收到三组字段。
+
+## Verification
+
+```yaml
+verification:
+  level: SCENARIO
+  method: "targeted Kernel/Host/DSH tests; dotnet test UniClaw.Kernel.slnx --no-restore; scenario_certify.py --change TRAJECTORY-001 --check; deterministic outbound bridge assertion"
+  expected: "Event Stream, Heartbeat cutoff, Case Packet, typed Skip and push-only Reference Index are protocol-valid, replay-safe, zero-Effect safe, and serialized without duplicate consultation"
+  actual: "All solution projects passed: Core 14, FileSystem 9, Agent 29, Simulation 188, Kernel 891, Agent.Dsh 166, Host 257, Host.Dsh 33; targeted DSH bridge test 13 passed; scenario certification 28/28 passed. H7 live DSH/device evidence remains unavailable because the registered 3081 endpoint was not running."
+  evidence: "commits 872f4ba0/d67f5abe/0f508be7/2414361a; tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs; scenarios/*.json; evidence/trajectory-001/h7-preflight-20261017.json"
+```

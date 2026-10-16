@@ -1,0 +1,10 @@
+{
+  "changeId": "TRAJECTORY-001",
+  "check": "H7-real-dsh-bridge",
+  "observedAt": "2026-10-16T20:26:41Z",
+  "status": "ENVIRONMENT_UNAVAILABLE",
+  "expected": "A dedicated DSH instance on the registered 3081 endpoint accepts a real consultation and returns the decorated context fields.",
+  "actual": "UNICLAW_DSH_E2E_BASE is unset and http://127.0.0.1:3081/ refused the connection.",
+  "deterministicEvidence": "DshOpenedHttpPeerTests.Consult_SerializesHeartbeatReferenceIndexAndCasePacket proves the outbound JSON retains Heartbeat, ContextReferenceIndex and CasePacket.",
+  "recovery": "Start the registered dedicated DSH instance on 3081, set UNICLAW_DSH_E2E_BASE, then run the live DSH E2E and device flow before removing the blocked disposition."
+}

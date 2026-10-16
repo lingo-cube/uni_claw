@@ -44,6 +44,7 @@ Product Host 的组合根：装配 Kernel 六个 Product T2 责任域与 Capabil
 | `PerceptionCapabilityComposition.cs` | 感知能力声明组装（uni.perception 实例 + 锚点，CAP-009） |
 | `SettingsCoverageDirector.cs` | 覆盖遍历 director：ConsultAgent 缝上的计划执法者（AGT-005） |
 | `SettingsCoverageRunner.cs` | 可配置、有界、可追溯的 Settings 菜单覆盖遍历 runner（AGT-005） |
+| `CoverageEvent.cs` | Owner-owned 覆盖事件流、TargetCoverageMarked 与回放游标 |
 | `SettingsCoverageConfig.cs` / `SettingsCoverageLedger.cs` / `SettingsActionPolicy.cs` | 遍历配置 / 台账（含可选 dynamicRootEntries/all-visible frontier、visited、结构性 skip reason）/ 动作策略 |
 
 ## 变更规则

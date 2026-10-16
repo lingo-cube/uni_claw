@@ -110,11 +110,11 @@ public sealed class DshOpenedHttpPeerTests
     public async Task Consult_DecodesObjectDecision_AndCarriesContext()
     {
         string? receivedBody = null;
-        var handler = new ScriptedHandler((request, _) =>
+        var handler = new ScriptedHandler(async (request, _) =>
         {
-            receivedBody = request.Content!.ReadAsStringAsync().Result;
-            return Task.FromResult(Json(HttpStatusCode.OK,
-                """{"requestId":"dsh-req-00000001","generation":3,"task":{"initialization":{},"payload":{"kind":"noAction","decisionId":"decision-1","proposal":{"decisionId":"decision-1","justification":"already on"}}},"diagnostics":{"source":"submit_decision"}}"""));
+            receivedBody = await request.Content!.ReadAsStringAsync();
+            return Json(HttpStatusCode.OK,
+                """{"requestId":"dsh-req-00000001","generation":3,"task":{"initialization":{},"payload":{"kind":"noAction","decisionId":"decision-1","proposal":{"decisionId":"decision-1","justification":"already on"}}},"diagnostics":{"source":"submit_decision"}}""");
         });
         await using var peer = new DshOpenedHttpPeer(
             new DshServiceEndpoint(new Uri("http://127.0.0.1:3080/", UriKind.Absolute)),
@@ -128,6 +128,50 @@ public sealed class DshOpenedHttpPeerTests
         Assert.IsType<AgentDecision.NoAction>(response.Decision);
         Assert.Contains("decision-1", receivedBody, StringComparison.Ordinal);
         Assert.Contains("turnTimeoutMs", receivedBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Consult_SerializesHeartbeatReferenceIndexAndCasePacket()
+    {
+        string? receivedBody = null;
+        var handler = new ScriptedHandler(async (request, _) =>
+        {
+            receivedBody = await request.Content!.ReadAsStringAsync();
+            return Json(HttpStatusCode.OK,
+                """{"requestId":"dsh-req-context","generation":1,"task":{"initialization":{},"payload":{"kind":"noAction","decisionId":"decision-context","proposal":{"decisionId":"decision-context","justification":"inspect"}}}}""");
+        });
+        await using var peer = new DshOpenedHttpPeer(
+            new DshServiceEndpoint(new Uri("http://127.0.0.1:3080/", UriKind.Absolute)),
+            credential: Credential(), handler: handler);
+
+        var heartbeat = new Heartbeat(
+            new HeartbeatWorldModel("rev-1", "settings", "settings", null, "wifi-dialog", 7, "capture-7"),
+            new HeartbeatKernel(AgentDecisionPhase.StepVerified, "tap Wi-Fi", "receipt-1", "verified", Array.Empty<AgentObligationView>(), true),
+            new HeartbeatTraversal("wifi-name", new[] { "wifi-name" }, 0, 0, 1, new[] { "opened Wi-Fi" }, new[] { "tap Wi-Fi" }),
+            7, 8,
+            new[] { new HeartbeatEvent(8, "PopupStateObserved", "Wi-Fi dialog observed", "wifi-name") }, 0);
+        var reference = new ContextReferenceEntry(
+            "event-8", "event", "CoverageLedger", 8, "capture-7", "fresh", "run-1/event-8",
+            "Wi-Fi dialog observation", "CoverageLedger", "observed", "agent", "none", "read", 4096, "available");
+        var packet = new CasePacket(
+            "coverage-stagnant", new[] { "CoverageStagnantSignal" }, heartbeat,
+            heartbeat.EventDelta, new[] { reference }, new[] { "replan", "skip" }, new[] { "zero-effect-until-verified" });
+        var context = Context("decision-context") with
+        {
+            Heartbeat = heartbeat,
+            ContextReferenceIndex = new[] { reference },
+            CasePacket = packet,
+        };
+
+        var response = await peer.ReceiveDecisionRequestAsync(new DecisionRequest(
+            "dsh-req-context", 1, "product-session-1", "run-1", context), CancellationToken.None);
+
+        Assert.Null(response.Error);
+        Assert.Contains("\"heartbeat\"", receivedBody, StringComparison.Ordinal);
+        Assert.Contains("\"contextReferenceIndex\"", receivedBody, StringComparison.Ordinal);
+        Assert.Contains("\"casePacket\"", receivedBody, StringComparison.Ordinal);
+        Assert.Contains("Wi-Fi dialog observation", receivedBody, StringComparison.Ordinal);
+        Assert.Contains("coverage-stagnant", receivedBody, StringComparison.Ordinal);
     }
 
     [Fact]
