@@ -6,6 +6,18 @@
 > directive-follower double。**追加轮（owner 授权 full-access，+3 次尝试）：
 > 真实链已跑通，见 §追加轮。**
 
+## 终局轮（owner"直接修了接着跑"）：慢感知真实使用闭环（第 4-6 轮）
+
+| 轮 | 修复 | slow 结果 |
+|---|---|---|
+| 4 | slow 错误解析归一（C# 只认字符串 error，插件 fail() 回对象 → 真错误全被吞成 empty-text） | 真凶现形：`Unknown agent preset: uniclaw-slow` |
+| 5 | preset 行镜像进 product profile（web patch 的 `preset-uniclaw-slow` 块，字节一致） | 会话建立、模型真被调（~6.5s 往返）、结果真回来——但被错屏门丢弃（派发周期 XML 在场但无标题 → 谓词假 → 未同步等） |
+| 6 | **弹窗遮蔽轴**：无标题弹窗页 XML 在场 + 弹窗按钮计入 clickable → 谓词恒假（5 轮 6×Dropped 实录）；补 `popupOccluded` 轴（弹窗自身按钮不是穿越材料） | **6× `Landed|projected=1|late|ms=850-1215` —— 同周期等待、落地、投影入账** |
+
+**"慢感知被真实使用吗"最终答案：是。** 真机 + 真模型（glm-5.3-flash）+ 真实 DSH
+链：触发→派发→同步等待→**落地→投影入世界模型**，全链带 ms 耗时实证
+（full-traversal-6/run-20261016-001948-908/settings-trace.json）。
+
 ## 追加轮：真实 DSH 链全遍历（owner 授权后 3 次尝试）
 
 1. **尝试 1**：3081 起服务（uniclaw-product profile）→ 握手 404。归因：

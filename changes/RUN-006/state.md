@@ -36,6 +36,13 @@ coverage，真实产品配置），验证 AGT-019 机制在真实链路生效并
 
 ## Status log
 
+- 2026-10-17 · closed · **终局轮（第 4-6 轮）：慢感知真实使用闭环**。
+  修复链：slow 错误解析归一（对象/字符串双形状，DshOpenedHttpPeer）→
+  真凶 uniclaw-slow preset 缺失（镜像 web patch preset 行进 product
+  profile）→ 弹窗遮蔽轴（MaterialInsufficiency +popupOccluded，谓词
+  6/6 测试）。终局证据：**6× Landed|projected=1|late|ms=850-1215**
+  （同周期等待落地投影，真机真模型真实 DSH 链）——P2/P6 闭合，
+  验收 2 达成。环境已清理。
 - 2026-10-17 · closed-ready · **追加轮：真实 DSH 链跑通（owner 授权
   full-access，3 次尝试）**：插件部署 → B6 漏钉修复（prompt manifest
   钉扎链整环，c97069af）→ deepseek-flash 真实咨询链全遍历（97 周期

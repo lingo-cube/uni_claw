@@ -1,0 +1,99 @@
+{
+  "status": "BoundedStop",
+  "items": [
+    {
+      "requirement": "root-page",
+      "detail": "root route observed",
+      "covered": true,
+      "evidence": "android.settings|rk1:Settings|src=homepage_title|up=0"
+    },
+    {
+      "requirement": "first-level-all-visible",
+      "detail": "entered 1/7",
+      "covered": false,
+      "evidence": "entered:Network \u0026 internet-\u003Eandroid.settings|rk1:Internet|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1;entered:CANCEL-\u003Eandroid.settings|rk1:Mobile network|src=title|up=1"
+    },
+    {
+      "requirement": "scroll-discovered-entry",
+      "detail": "entered 0/1 scroll-discovered",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "second-level-pages",
+      "detail": "distinct second-level routes 2/8",
+      "covered": false,
+      "evidence": "android.settings|rk1:Internet|src=title|up=1;android.settings|rk1:Mobile network|src=title|up=1"
+    },
+    {
+      "requirement": "back-navigation",
+      "detail": "back verified 0",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "repeated-entry",
+      "detail": "satisfied 1/1",
+      "covered": true,
+      "evidence": "CANCEL"
+    },
+    {
+      "requirement": "dynamic-root-entries",
+      "detail": "visited 0, frontier 0, skipped 8",
+      "covered": true,
+      "evidence": null
+    },
+    {
+      "requirement": "dynamic-nested-entries",
+      "detail": "visited 4, frontier 2, skipped 7",
+      "covered": false,
+      "evidence": "visited=android.settings|rk1:Internet|src=title|up=1\u003EInternet,android.settings|rk1:T-Mobile|src=title|up=1\u003EFix connectivity,android.settings|rk1:T-Mobile|src=title|up=1\u003ET-Mobile,android.settings|rk1:T-Mobile|src=title|up=1\u003ESettings;frontier=android.settings|rk1:Mobile network|src=title|up=1\u003ESIM name \u0026 color,android.settings|rk1:Mobile network|src=title|up=1\u003ERoaming"
+    }
+  ],
+  "coverageRate": 0.375,
+  "stepSuccessRate": 1,
+  "uncoveredItems": [
+    "first-level-all-visible",
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "back-navigation",
+    "dynamic-nested-entries"
+  ],
+  "firstDivergence": null,
+  "stepsExecuted": 96,
+  "stepsVerified": 96,
+  "scrollsUsed": 0,
+  "scrollAttempts": 0,
+  "consultRounds": 97,
+  "dynamicRootFrontier": [],
+  "dynamicRootVisited": [],
+  "dynamicRootSkipReasons": {
+    "com.android.settings:id/settings_homepage_container": "non-ui-element-role",
+    "Search settings": "explicit-exclusion",
+    "com.android.settings:id/main_content_scrollable_container": "non-ui-element-role",
+    "Network \u0026 internet": "configured-target",
+    "Connected devices": "configured-target",
+    "Apps": "configured-target",
+    "Notifications": "configured-target",
+    "Battery": "configured-target"
+  },
+  "dynamicNestedFrontier": [
+    "android.settings|rk1:Mobile network|src=title|up=1\u003ESIM name \u0026 color",
+    "android.settings|rk1:Mobile network|src=title|up=1\u003ERoaming"
+  ],
+  "dynamicNestedVisited": [
+    "android.settings|rk1:Internet|src=title|up=1\u003EInternet",
+    "android.settings|rk1:T-Mobile|src=title|up=1\u003EFix connectivity",
+    "android.settings|rk1:T-Mobile|src=title|up=1\u003ET-Mobile",
+    "android.settings|rk1:T-Mobile|src=title|up=1\u003ESettings"
+  ],
+  "dynamicNestedSkipReasons": {
+    "android.settings|rk1:Internet|src=title|up=1\u003Ecom.android.settings:id/content_parent": "non-ui-element-role",
+    "android.settings|rk1:T-Mobile|src=title|up=1\u003Ecom.android.settings:id/content_parent": "non-ui-element-role",
+    "android.settings|rk1:T-Mobile|src=title|up=1\u003ENavigate up": "back-descriptor",
+    "android.settings|rk1:Mobile network|src=title|up=1\u003Ecom.android.settings:id/content_parent": "non-ui-element-role",
+    "android.settings|rk1:Mobile network|src=title|up=1\u003ENavigate up": "back-descriptor",
+    "android.settings|rk1:Mobile network|src=title|up=1\u003Ecom.android.settings:id/recycler_view": "non-ui-element-role",
+    "android.settings|rk1:Mobile network|src=title|up=1\u003EUse this SIM": "non-ui-element-role"
+  }
+}

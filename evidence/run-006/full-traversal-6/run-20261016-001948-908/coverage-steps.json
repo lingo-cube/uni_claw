@@ -1,0 +1,4314 @@
+[
+  {
+    "index": 0,
+    "decisionId": "decision-d24d3d1dc90d-1",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the Settings first-level entry \u0027\u003CNetwork \u0026 internet\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Network \u0026 internet",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-1-occ-9d0d7f5e07a2-3-1",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 866",
+    "routeBefore": "android.settings|rk1:Settings|src=homepage_title|up=0",
+    "routeAfter": "android.settings|rk1:Internet|src=title|up=1",
+    "postCaptureId": "capture-78ca2e2302f0443eb90b96d7edc40005",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "decisionId": "decision-d24d3d1dc90d-2",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CInternet\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Internet",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-2-occ-a80c9649e62f-3-2",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 682",
+    "routeBefore": "android.settings|rk1:Internet|src=title|up=1",
+    "routeAfter": "android.settings|rk1:T-Mobile|src=title|up=1",
+    "postCaptureId": "capture-2d1be2eadd954bca8ba0f7db13639995",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "decisionId": "decision-d24d3d1dc90d-3",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CFix connectivity\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Fix connectivity",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-3-occ-82eb779f6da8-2-3",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:T-Mobile|src=title|up=1",
+    "routeAfter": "android.settings|rk1:T-Mobile|src=title|up=1",
+    "postCaptureId": "capture-214a41fcdb0c4199885bd2fe9eb73cf9",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "decisionId": "decision-d24d3d1dc90d-4",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CT-Mobile\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "T-Mobile",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-4-occ-866291e2f2cf-4-4",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 690",
+    "routeBefore": "android.settings|rk1:T-Mobile|src=title|up=1",
+    "routeAfter": "android.settings|rk1:T-Mobile|src=title|up=1",
+    "postCaptureId": "capture-60c96098a8aa4e389966b6b6b40e5b93",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "decisionId": "decision-d24d3d1dc90d-5",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSettings\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Settings",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-5-occ-8f2f6d6f2909-5-5",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 943 690",
+    "routeBefore": "android.settings|rk1:T-Mobile|src=title|up=1",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-e67a815d1663495f92630de406d4c853",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "decisionId": "decision-d24d3d1dc90d-6",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-6-occ-16bcdfa6bf82-2-6",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-b7c5921bac5f45d69226913600e2b0c1",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "decisionId": "decision-d24d3d1dc90d-7",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-7-occ-8cedda1f5f07-2-7",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-257c2e4cc788466c939fdc4eb3e0d8ba",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "decisionId": "decision-d24d3d1dc90d-8",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-8-occ-6b8340166981-2-8",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-a430fcec58d049b4b0f79aea94786b0e",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "decisionId": "decision-d24d3d1dc90d-9",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-9-occ-24f41c188160-2-9",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-408eb39d033243fc95e7ee0aabc5851b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 9,
+    "decisionId": "decision-d24d3d1dc90d-10",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-10-occ-5e575aef6ba0-2-10",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-7b878ce56ec74670a58d498b805ef541",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 10,
+    "decisionId": "decision-d24d3d1dc90d-11",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-11-occ-5bbb00c2ad8c-2-11",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-41bcd0a54f134e9d8df85662dd89217b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 11,
+    "decisionId": "decision-d24d3d1dc90d-12",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-12-occ-8c83ff959f13-2-12",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-d5ed12aa7f504d95aaf0287875915d93",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 12,
+    "decisionId": "decision-d24d3d1dc90d-13",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-13-occ-b0ae532cf50e-2-13",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-207fa25fcc90424f99d6976f59c36e91",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 13,
+    "decisionId": "decision-d24d3d1dc90d-14",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-14-occ-bb54eb07c4e9-2-14",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-43a12b5cf8d54bdebf9e40870dbb9096",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 14,
+    "decisionId": "decision-d24d3d1dc90d-15",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-15-occ-cf968b4635dc-2-15",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-c01f97df9b2143a28be02f3061dd87d3",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 15,
+    "decisionId": "decision-d24d3d1dc90d-16",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-16-occ-4aac68ebdb59-2-16",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-bb951872551a43308aafd0c413b55e7b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 16,
+    "decisionId": "decision-d24d3d1dc90d-17",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-17-occ-afb522ba0ca0-2-17",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-16630ae6872f41a0b94a35005966529c",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 17,
+    "decisionId": "decision-d24d3d1dc90d-18",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-18-occ-ecc1be47bd2b-2-18",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-64c666fa68214465ba0d9cc73aa85fe6",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 18,
+    "decisionId": "decision-d24d3d1dc90d-19",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-19-occ-2271281910cc-2-19",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-df81b65f635b45c6a44dce350d370d7c",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 19,
+    "decisionId": "decision-d24d3d1dc90d-20",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-20-occ-0c9c4617e25c-2-20",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-d4e883a528d74fbf8954e066d3ce6ef0",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 20,
+    "decisionId": "decision-d24d3d1dc90d-21",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-21-occ-557c15980204-2-21",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-d484a80db9ff47b283d4ae8193a24ed2",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 21,
+    "decisionId": "decision-d24d3d1dc90d-22",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-22-occ-59033b77be38-2-22",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-2d7b9825928447628fb1f9fac8cb86fa",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 22,
+    "decisionId": "decision-d24d3d1dc90d-23",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-23-occ-94597533230e-2-23",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-748ab30c8cbd48aba9353e5442735032",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 23,
+    "decisionId": "decision-d24d3d1dc90d-24",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-24-occ-6d69b68d629b-2-24",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-e33f0f593e544976aea8f06a7c52446b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 24,
+    "decisionId": "decision-d24d3d1dc90d-25",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-25-occ-600de35cf9c8-2-25",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-bb4d9b43193c42d19e9d12adc4c81366",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 25,
+    "decisionId": "decision-d24d3d1dc90d-26",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-26-occ-0ecbd4cf2e24-2-26",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-7c30b7a7a75246df896d91108930494b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 26,
+    "decisionId": "decision-d24d3d1dc90d-27",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-27-occ-2aff488363b7-2-27",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-0f962d6cb411496a8abbec20c8650d98",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 27,
+    "decisionId": "decision-d24d3d1dc90d-28",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-28-occ-a4f3952dbd15-2-28",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-d55dca92ff94437ab7591553974e72b5",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 28,
+    "decisionId": "decision-d24d3d1dc90d-29",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-29-occ-e1aca6e1b0fd-2-29",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-df9f816dce2247429ad296d7866d7935",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 29,
+    "decisionId": "decision-d24d3d1dc90d-30",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-30-occ-a7151ec00909-2-30",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-73fdd50130f3458c92a79b6effe912cc",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 30,
+    "decisionId": "decision-d24d3d1dc90d-31",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-31-occ-723a03721537-2-31",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-69bf70c9a4804e47ab8d7a8914403a76",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 31,
+    "decisionId": "decision-d24d3d1dc90d-32",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-32-occ-df388fab7c35-2-32",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-586890b726e84508a7faaec92fe96900",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 32,
+    "decisionId": "decision-d24d3d1dc90d-33",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-33-occ-9993c63954f4-2-33",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-0cf29bca504b410d9d97481d99ba698b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 33,
+    "decisionId": "decision-d24d3d1dc90d-34",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-34-occ-8aefb56fcb0a-2-34",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-84d2236da0594b86822ed2aad8e31c1d",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 34,
+    "decisionId": "decision-d24d3d1dc90d-35",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-35-occ-dce090ec3c86-2-35",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-765dac19157d4a02845e9923f8de3c17",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 35,
+    "decisionId": "decision-d24d3d1dc90d-36",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-36-occ-f1f89792cdb9-2-36",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-df66d4cab01943e6be06895f31fd42f3",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 36,
+    "decisionId": "decision-d24d3d1dc90d-37",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-37-occ-83dbe7fb70ce-2-37",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-5c598debe8f946be98c067b47172d01b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 37,
+    "decisionId": "decision-d24d3d1dc90d-38",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-38-occ-462c835eb80a-2-38",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-f062755597164a37a7b17c34a5edbd0c",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 38,
+    "decisionId": "decision-d24d3d1dc90d-39",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-39-occ-4269d71722a7-2-39",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-03be822a29e94d0e8ab5c973a0c64d36",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 39,
+    "decisionId": "decision-d24d3d1dc90d-40",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-40-occ-e9b67ab01863-2-40",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-8fb84fdaccc54b7d9dfb558574645c0b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 40,
+    "decisionId": "decision-d24d3d1dc90d-41",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-41-occ-b0fa089c7d28-2-41",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-1354936a6d634dc2a9eb34d07adf5dc8",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 41,
+    "decisionId": "decision-d24d3d1dc90d-42",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-42-occ-c8c14090831b-2-42",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-71dccd9939cc43e1a71035c16a8bf825",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 42,
+    "decisionId": "decision-d24d3d1dc90d-43",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-43-occ-3e4bd256e9ba-2-43",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-9de4b34d429c4a86ac8f6aea25043901",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 43,
+    "decisionId": "decision-d24d3d1dc90d-44",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-44-occ-596f0e3d77c3-2-44",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-e51ae851e9d7483e855991d63c8e276b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 44,
+    "decisionId": "decision-d24d3d1dc90d-45",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-45-occ-7ae8186bad1e-2-45",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-f099b4b480ea4cfcb7f64637d36ca556",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 45,
+    "decisionId": "decision-d24d3d1dc90d-46",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-46-occ-a1b0be24416f-2-46",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-7b9a55d1ec314f429d177add46b63fea",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 46,
+    "decisionId": "decision-d24d3d1dc90d-47",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-47-occ-efe862dd7586-2-47",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-b87de3d3f108494a9871962e2ed44e03",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 47,
+    "decisionId": "decision-d24d3d1dc90d-48",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-48-occ-f6d9cd388ef3-2-48",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-9372fcd440ab475382218dd570cab22f",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 48,
+    "decisionId": "decision-d24d3d1dc90d-49",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-49-occ-9d47dfaf171b-2-49",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-cafc784f56ce4b4d974b83ab50e4cf07",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 49,
+    "decisionId": "decision-d24d3d1dc90d-50",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-50-occ-db40ded640c9-2-50",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-374fdc8403554d638f90f3a86a89f482",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 50,
+    "decisionId": "decision-d24d3d1dc90d-51",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-51-occ-26025b5a91d1-2-51",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-18179afd0d0a46bcb72918167ee79fd5",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 51,
+    "decisionId": "decision-d24d3d1dc90d-52",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-52-occ-c05da5432be4-2-52",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-273b6dd3835f4e91b359e44110c4fbf7",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 52,
+    "decisionId": "decision-d24d3d1dc90d-53",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-53-occ-70ef6846534a-2-53",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-8ecc3c139f904f56a4fb01a37794e6d8",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 53,
+    "decisionId": "decision-d24d3d1dc90d-54",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-54-occ-5ebdc4aa6373-2-54",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-a7a6462b0b4942778dba6199a3d42c4b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 54,
+    "decisionId": "decision-d24d3d1dc90d-55",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-55-occ-aa136b356de1-2-55",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-7fef272649864fbeab75c3ee00dde27e",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 55,
+    "decisionId": "decision-d24d3d1dc90d-56",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-56-occ-0a4ef5687b57-2-56",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-cbba0ccc3ad84e3ba01135b8be19c90b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 56,
+    "decisionId": "decision-d24d3d1dc90d-57",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-57-occ-1659b79078c3-2-57",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-af88b91db80d4a64817b28b4da1fd743",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 57,
+    "decisionId": "decision-d24d3d1dc90d-58",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-58-occ-3d17f7f35794-2-58",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-65578e219b444251b83bca2b6df008e6",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 58,
+    "decisionId": "decision-d24d3d1dc90d-59",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-59-occ-06d551865596-2-59",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-2fcde7e173324a58b7f68be391807ded",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 59,
+    "decisionId": "decision-d24d3d1dc90d-60",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-60-occ-62aa23c9864c-2-60",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-2a76ac06ac914737ab72cf21f1726fad",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 60,
+    "decisionId": "decision-d24d3d1dc90d-61",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-61-occ-ce160b275b63-2-61",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-89dbb79fa33549379493e87407fc2df2",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 61,
+    "decisionId": "decision-d24d3d1dc90d-62",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-62-occ-185b26605bf6-2-62",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-e9ad9fd0c3c140449e68f4532994a7aa",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 62,
+    "decisionId": "decision-d24d3d1dc90d-63",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-63-occ-50ef9f7e33fc-2-63",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-ce984b186147434bad05871e5a1713f4",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 63,
+    "decisionId": "decision-d24d3d1dc90d-64",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-64-occ-098b8d598231-2-64",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-42e722313f0a4b64a0867762c2492352",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 64,
+    "decisionId": "decision-d24d3d1dc90d-65",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-65-occ-c4f002e223e6-2-65",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-f362a68c412a45ffa3e3ad85ec269f74",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 65,
+    "decisionId": "decision-d24d3d1dc90d-66",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-66-occ-b61fe1e04e52-2-66",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-7dd502948cf04491bd564b8383f17b3f",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 66,
+    "decisionId": "decision-d24d3d1dc90d-67",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-67-occ-75455886fa85-2-67",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-ef2c2657fbcd48e1ba59dfba74c520d2",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 67,
+    "decisionId": "decision-d24d3d1dc90d-68",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-68-occ-16fd6b512162-2-68",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-346a672608a749688bf0d307c48f0309",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 68,
+    "decisionId": "decision-d24d3d1dc90d-69",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-69-occ-351e0175aad2-2-69",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-b49db77a88fa4cfeab18dc9cca8bf293",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 69,
+    "decisionId": "decision-d24d3d1dc90d-70",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-70-occ-18319291b31f-2-70",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-3164d21faf924a52b4a61449ddc29526",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 70,
+    "decisionId": "decision-d24d3d1dc90d-71",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-71-occ-dbb633d77804-2-71",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-5e3f1d71708e4ad2b4ba7c08ecca55be",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 71,
+    "decisionId": "decision-d24d3d1dc90d-72",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-72-occ-df5c05262402-2-72",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-7aa994af3a4449dbae54411c91014a85",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 72,
+    "decisionId": "decision-d24d3d1dc90d-73",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-73-occ-3afa8777919c-2-73",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-c57b92897d434bc6ba13eef18b15b95a",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 73,
+    "decisionId": "decision-d24d3d1dc90d-74",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-74-occ-919094148c66-2-74",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-3e340f0ad5e545298d411a30cc120832",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 74,
+    "decisionId": "decision-d24d3d1dc90d-75",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-75-occ-d7aaa4649df8-2-75",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-39c7e5fc8c294ea8bbbaf0a57953f00e",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 75,
+    "decisionId": "decision-d24d3d1dc90d-76",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-76-occ-7608ef6e0867-2-76",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-96a4684312004d738db2afa0e5afc3ef",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 76,
+    "decisionId": "decision-d24d3d1dc90d-77",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-77-occ-3a8e0fa81ea0-2-77",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-b55da1bb699b4633a1a134ff164f469e",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 77,
+    "decisionId": "decision-d24d3d1dc90d-78",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-78-occ-fd7b6edf55e9-2-78",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-ff6fec7996fd434aa51c7ba3b69c33e5",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 78,
+    "decisionId": "decision-d24d3d1dc90d-79",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-79-occ-5bf70ff87434-2-79",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-e4e0595d0b5442dc8edfed842f4dd332",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 79,
+    "decisionId": "decision-d24d3d1dc90d-80",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-80-occ-a6d123258763-2-80",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-bd8be9df720b45febf3675ad9dd13c1a",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 80,
+    "decisionId": "decision-d24d3d1dc90d-81",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-81-occ-3622a2b7f02e-2-81",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-b44a59f43e9c47f9b425c2f7a5f1a631",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 81,
+    "decisionId": "decision-d24d3d1dc90d-82",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-82-occ-5ce805462c6c-2-82",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-4833b98111f34c1ea13ba96980281270",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 82,
+    "decisionId": "decision-d24d3d1dc90d-83",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-83-occ-ef90bb07e670-2-83",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-ccd40cf63f2d4cc58999c1d7da3511f4",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 83,
+    "decisionId": "decision-d24d3d1dc90d-84",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-84-occ-e039b6c6dddf-2-84",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-57a6cc1bcb144b4eba8355cb0eabb115",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 84,
+    "decisionId": "decision-d24d3d1dc90d-85",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-85-occ-237619063500-2-85",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-3f11454e286f43d19530964392708b93",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 85,
+    "decisionId": "decision-d24d3d1dc90d-86",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-86-occ-65488ad541b1-2-86",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-c7ba1a90c81847e687d0ef0d67a94c19",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 86,
+    "decisionId": "decision-d24d3d1dc90d-87",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-87-occ-b02dd41fa3ed-2-87",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-397e169f3e274f158aea53ca10d2cd01",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 87,
+    "decisionId": "decision-d24d3d1dc90d-88",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-88-occ-9d783e026c10-2-88",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-73c535b84c1c43c9b4fa03e9abe90cf1",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 88,
+    "decisionId": "decision-d24d3d1dc90d-89",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-89-occ-dd5245fa78b2-2-89",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-cd59b251e6c8482bb99c19aaf3b9aca4",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 89,
+    "decisionId": "decision-d24d3d1dc90d-90",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-90-occ-9e6703d05bd1-2-90",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-ec5e48eb83454f7c945792f65ae138a6",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 90,
+    "decisionId": "decision-d24d3d1dc90d-91",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-91-occ-c2446a667492-2-91",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-c696d073a27f4183981dd4d500bb1939",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 91,
+    "decisionId": "decision-d24d3d1dc90d-92",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-92-occ-ec19caab9266-2-92",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-9f144cffd6e848728ca3bee4960373b5",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 92,
+    "decisionId": "decision-d24d3d1dc90d-93",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-93-occ-d744a5d2ba85-2-93",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-a54c84ec1ad844789eb51581ecae57df",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 93,
+    "decisionId": "decision-d24d3d1dc90d-94",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-94-occ-8931a91bc073-2-94",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-f172045a8b754b04974beb1592480969",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 94,
+    "decisionId": "decision-d24d3d1dc90d-95",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Clear the popup overlay by tapping \u0027\u003CCANCEL\u003E\u0027 before resuming traversal.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "CANCEL",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-95-occ-32565cb285ee-2-95",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 709 1247",
+    "routeBefore": "android.settings",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-edc960c7b1f54227bb56b82ecb593e75",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 95,
+    "decisionId": "decision-d24d3d1dc90d-96",
+    "dshSessionId": "session-4e319d8f-a9db-4096-ab8e-c3d00ef4810e",
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-96-occ-b1125b3d11ed-2-96",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-fc9fcbfe34894ce3be0498fa3f74aeca",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  }
+]

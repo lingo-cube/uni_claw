@@ -69,6 +69,43 @@ public sealed class DshOpenedHttpPeerTests
         Assert.True(ProductHandshake.Validate(expected, response).Accepted);
     }
 
+    // AGT-019/RUN-006 修复：slow 解析归一对象错误封包（fail() 的
+    // {code,message} 形状此前被吞成 slow-endpoint-empty-text）。
+
+    [Fact]
+    public async Task Slow_NormalizesObjectErrorEnvelope()
+    {
+        var handler = new ScriptedHandler((_, _) => Task.FromResult(Json(HttpStatusCode.OK,
+            """{"requestId":"slow-1","text":null,"error":{"code":"dsh-session-create-failed","message":"agentPreset uniclaw-slow not found"},"diagnostics":{}}""")));
+        await using var peer = new DshOpenedHttpPeer(
+            new DshServiceEndpoint(new Uri("http://127.0.0.1:3080/", UriKind.Absolute)),
+            credential: Credential(), handler: handler);
+
+        var response = await peer.ExecuteSlowAsync(
+            "slow-1", "prompt", new ModelConfiguration("zai-coding-cn", "glm-5.3-flash"),
+            imagePng: null, cancellationToken: CancellationToken.None);
+
+        Assert.Null(response.Text);
+        Assert.Contains("dsh-session-create-failed", response.Error, StringComparison.Ordinal);
+        Assert.Contains("uniclaw-slow", response.Error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Slow_KeepsStringErrorEnvelope()
+    {
+        var handler = new ScriptedHandler((_, _) => Task.FromResult(Json(HttpStatusCode.OK,
+            """{"requestId":"slow-2","text":null,"error":"no-slow-result","diagnostics":{}}""")));
+        await using var peer = new DshOpenedHttpPeer(
+            new DshServiceEndpoint(new Uri("http://127.0.0.1:3080/", UriKind.Absolute)),
+            credential: Credential(), handler: handler);
+
+        var response = await peer.ExecuteSlowAsync(
+            "slow-2", "prompt", new ModelConfiguration("zai-coding-cn", "glm-5.3-flash"),
+            imagePng: null, cancellationToken: CancellationToken.None);
+
+        Assert.Equal("no-slow-result", response.Error);
+    }
+
     [Fact]
     public async Task Consult_DecodesObjectDecision_AndCarriesContext()
     {

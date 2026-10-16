@@ -239,7 +239,8 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         // （_slowFetchBound），≤ fetch 界剩余量 = 周期剩余预算；路由已变时
         // Poll 内的 unaligned-route 门控照常丢弃（同步等待不豁免）。
         if (slowDispatchedThisCycle
-            && MaterialInsufficiency(xmlResult.Xml is not null, clickableNodeCount)
+            && MaterialInsufficiency(xmlResult.Xml is not null, clickableNodeCount,
+                popupOccluded: popupState == "present")
             && _slowFetchBound is { } slowWaitBound)
             slowTokens.AddRange(_uniPerception!.WaitAndPoll(LandSlow, routeKey, slowWaitBound));
         var slowTrace = slowTokens.Count == 0 ? null : string.Join("; ", slowTokens);
@@ -387,9 +388,14 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     /// hierarchyAvailable=false（无 XML 层级）或 proposalCount=0。二者其一
     /// 成立且本周期已发射 slow → 有界同步等待，而非把晚到结果丢给
     /// wrong-screen 门控。
+    /// RUN-006 第 5 轮实证补轴：popupOccluded（弹窗遮蔽）——无标题弹窗页
+    /// XML 在场且弹窗按钮计入 clickable，旧谓词恒假 → 同步等待不触发 →
+    /// 晚到结果被错屏丢弃（6×Dropped 实录）。弹窗自身按钮不是穿越目标
+    /// 材料：遮蔽期有效材料为 0，谓词成立。
     /// </summary>
-    internal static bool MaterialInsufficiency(bool hierarchyAvailable, int proposalCount) =>
-        !hierarchyAvailable || proposalCount == 0;
+    internal static bool MaterialInsufficiency(
+        bool hierarchyAvailable, int proposalCount, bool popupOccluded = false) =>
+        !hierarchyAvailable || proposalCount == 0 || popupOccluded;
 
     /// <summary>resource-id 短 id（最后一段 ':' 之后；无冒号 = 原值）。</summary>
     private static string ShortId(string resourceId)

@@ -235,15 +235,19 @@ public sealed class UniPerceptionPipelineTests
     // ---- AGT-019 M3：机械触发谓词（既有 per-cycle trace 字段）---------------
 
     [Theory]
-    [InlineData(false, 3, true)]   // hierarchyAvailable=false → 材料不足
-    [InlineData(true, 0, true)]    // proposalCount=0 → 材料不足
-    [InlineData(true, 5, false)]   // 层级在场且非空 → 不等待
-    [InlineData(false, 0, true)]
+    [InlineData(false, 3, false, true)]   // hierarchyAvailable=false → 材料不足
+    [InlineData(true, 0, false, true)]    // proposalCount=0 → 材料不足
+    [InlineData(true, 5, false, false)]   // 层级在场且非空 → 不等待
+    [InlineData(false, 0, false, true)]
+    // RUN-006 第 5 轮实证补轴：弹窗遮蔽（无标题弹窗页 XML 在场、
+    // clickable>0——旧谓词恒假，晚到结果 6×Dropped 实录）。
+    [InlineData(true, 5, true, true)]     // popupOccluded → 材料不足（穿越目标被遮蔽）
+    [InlineData(true, 0, true, true)]
     public void MaterialInsufficiency_TriggerPredicate_UsesExistingTraceFields(
-        bool hierarchyAvailable, int proposalCount, bool expected)
+        bool hierarchyAvailable, int proposalCount, bool popupOccluded, bool expected)
     {
         Assert.Equal(expected, SettingsTraversalLiveFeed.MaterialInsufficiency(
-            hierarchyAvailable, proposalCount));
+            hierarchyAvailable, proposalCount, popupOccluded));
     }
 
     // ---- AGT-019 M2③/B5：截图三道闸（Q3 裁决：判断级永不入账）--------------

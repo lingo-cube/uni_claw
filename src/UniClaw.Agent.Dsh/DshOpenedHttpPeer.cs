@@ -250,10 +250,27 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
         {
             var document = await PostJsonAsync(SlowPath, body, cancellationToken).ConfigureAwait(false);
             var root = document.RootElement;
+            // AGT-019/RUN-006 修复：插件 fail() 封包 error 为 {code,message}
+            // 对象（consult 路径同形状），slow 解析此前只认字符串——真实
+            // 错误被吞成 slow-endpoint-empty-text。归一两种形状。
+            string? errorText = null;
+            if (root.TryGetProperty("error", out var error))
+            {
+                if (error.ValueKind == JsonValueKind.String)
+                    errorText = error.GetString();
+                else if (error.ValueKind == JsonValueKind.Object)
+                {
+                    var code = error.TryGetProperty("code", out var c) && c.ValueKind == JsonValueKind.String ? c.GetString() : null;
+                    var message = error.TryGetProperty("message", out var m) && m.ValueKind == JsonValueKind.String ? m.GetString() : null;
+                    errorText = string.IsNullOrWhiteSpace(code) ? message
+                        : string.IsNullOrWhiteSpace(message) ? code
+                        : $"{code}:{message}";
+                }
+            }
             var result = new DshSlowResponse(
                 root.TryGetProperty("requestId", out var id) ? id.GetString() ?? requestId : requestId,
                 root.TryGetProperty("text", out var text) && text.ValueKind == JsonValueKind.String ? text.GetString() : null,
-                root.TryGetProperty("error", out var error) && error.ValueKind == JsonValueKind.String ? error.GetString() : null,
+                errorText,
                 root.TryGetProperty("diagnostics", out var diagnostics) ? diagnostics.GetRawText() : null);
             if (retry >= MaxCapacityRetries || !IsCapacityFailure(result)) return result;
             await Task.Delay(CapacityRetryDelay, cancellationToken).ConfigureAwait(false);
