@@ -2,11 +2,12 @@
 
 > 派生索引：列出所有 lifecycle_state ≠ closed 的 change。
 > 再生：`python3 tools/gen-open-changes.py`（GATE-001 P-E′；一致性执法二期）。
-> 统计：197 changes · 8 open。
+> 统计：198 changes · 9 open。
 
 | change | lifecycle_state | disposition | depth | title |
 |---|---|---|---|---|
 | AGT-019 | implementing | none | decision-heavy | AGT-019 — Agent 异常升级与观察机制 |
+| AGT-020 | persisted | none | decision-heavy | AGT-020 — DSH Bridge / Product Context 真实传输闭环 |
 | ARCH-DOC-024 | persisted | none | standard | ARCH-DOC-024 — 组件分级与工程化管理审查及 P0/P1/P2 优化建议 |
 | ARCH-DOC-025 | persisted | none | decision-heavy | ARCH-DOC-025 — 组件、协议与生命周期完备性审查 |
 | RUN-006 | implementing | none | standard | RUN-006 — 全遍历真机轮（AGT-019 机制 live 验证） |
