@@ -34,7 +34,10 @@ public sealed record CoverageReport(
     IReadOnlyDictionary<string, string>? DynamicRootSkipReasons = null,
     IReadOnlyList<string>? DynamicNestedFrontier = null,
     IReadOnlyList<string>? DynamicNestedVisited = null,
-    IReadOnlyDictionary<string, string>? DynamicNestedSkipReasons = null);
+    IReadOnlyDictionary<string, string>? DynamicNestedSkipReasons = null,
+    IReadOnlyList<string>? ReachedTargets = null,
+    IReadOnlyList<string>? AgentSkippedTargets = null,
+    IReadOnlyList<string>? StructuralSkippedTargets = null);
 
 public sealed record CoverageSnapshot(
     bool CoverageComplete,
@@ -60,6 +63,9 @@ public sealed class SettingsCoverageLedger
     private readonly List<(long Sequence, string Route, IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> Occurrences)> _observations = new();
     private readonly List<(long Sequence, string State)> _popupStates = new();
     private readonly List<(long Sequence, CoverageStepRecord Step)> _steps = new();
+    private readonly List<CoverageEvent> _events = new();
+    private readonly Dictionary<string, TargetCoverageMark> _targetMarks = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _recordedReceiptIds = new(StringComparer.Ordinal);
     private readonly HashSet<int> _duplicateEffectStepIndexes = new();
     private long _sequence;
     private int _consultRounds;
@@ -71,6 +77,29 @@ public sealed class SettingsCoverageLedger
     private long _lastVerifiedScrollSequence = -1;
     private bool _duplicateEffectRecorded;
 
+    /// <summary>Owner-owned append-only facts, in monotonically increasing seq order.</summary>
+    public IReadOnlyList<CoverageEvent> Events => _events;
+
+    public long LastEventSequence => _sequence;
+
+    /// <summary>Read-only replay cursor over this run's owner stream.</summary>
+    public IReadOnlyList<CoverageEvent> ReadEvents(long afterSequence = 0, int limit = 100)
+    {
+        var boundedLimit = Math.Clamp(limit, 1, 1000);
+        return _events.Where(item => item.Sequence > afterSequence)
+            .Take(boundedLimit)
+            .ToArray();
+    }
+
+    /// <summary>Latest accepted mark per target. Structural exclusions are not included.</summary>
+    public IReadOnlyDictionary<string, TargetCoverageMark> TargetMarks => _targetMarks;
+
+    public IReadOnlyList<string> AgentSkippedTargets => _targetMarks.Values
+        .Where(mark => mark.Kind == TargetCoverageMarkKind.Skipped)
+        .Select(mark => mark.Target)
+        .OrderBy(target => target, StringComparer.Ordinal)
+        .ToArray();
+
     public void RecordObservation(string route, IReadOnlyList<(string Role, string? Descriptor)> visibleOccurrences)
         => RecordObservation(route, visibleOccurrences.Select(o => (o.Role, o.Descriptor, (string?)null)).ToList());
 
@@ -78,12 +107,31 @@ public sealed class SettingsCoverageLedger
     public void RecordObservation(string route, IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> visibleOccurrences)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(route);
-        _observations.Add((++_sequence, route, visibleOccurrences));
+        var sequence = ++_sequence;
+        _observations.Add((sequence, route, visibleOccurrences));
+        _events.Add(new CoverageEvent(
+            sequence,
+            CoverageEventType.ObservationAccepted,
+            Owner: "settings-coverage.observation",
+            Route: route));
     }
 
     public void RecordStep(CoverageStepRecord step)
     {
-        _steps.Add((++_sequence, step));
+        if (step.ReceiptId is { Length: > 0 } receiptId && !_recordedReceiptIds.Add(receiptId))
+            return;
+
+        var sequence = ++_sequence;
+        _steps.Add((sequence, step));
+        _events.Add(new CoverageEvent(
+            sequence,
+            CoverageEventType.EffectReceiptProduced,
+            Owner: "settings-coverage.kernel",
+            Target: step.TargetDescriptor,
+            Route: step.RouteAfter,
+            DecisionId: step.DecisionId,
+            ReceiptId: step.ReceiptId,
+            CaptureId: step.PostCaptureId));
 
         _stepsExecuted++;
         if (step.Verified)
@@ -95,6 +143,18 @@ public sealed class SettingsCoverageLedger
         {
             _consecutiveFailures++;
         }
+
+        _events.Add(new CoverageEvent(
+            ++_sequence,
+            CoverageEventType.PostActionVerified,
+            Owner: "settings-coverage.verification",
+            Target: step.TargetDescriptor,
+            Route: step.RouteAfter,
+            DecisionId: step.DecisionId,
+            ReceiptId: step.ReceiptId,
+            CaptureId: step.PostCaptureId,
+            Verified: step.Verified,
+            Reason: step.FailureReason));
 
         if (step.EffectClass is "swipe-up" or "swipe-down")
         {
@@ -139,7 +199,77 @@ public sealed class SettingsCoverageLedger
         ArgumentException.ThrowIfNullOrWhiteSpace(state);
         if (state is not ("present" or "absent"))
             throw new ArgumentException($"popup state must be 'present' or 'absent', got '{state}'", nameof(state));
-        _popupStates.Add((++_sequence, state));
+        var sequence = ++_sequence;
+        _popupStates.Add((sequence, state));
+        _events.Add(new CoverageEvent(
+            sequence,
+            CoverageEventType.PopupStateObserved,
+            Owner: "settings-coverage.popup",
+            Reason: state));
+    }
+
+    /// <summary>
+    /// Marks an Agent-owned coverage decision. This is a zero-Effect event and
+    /// never writes to the structural skip projections.
+    /// </summary>
+    public bool TryMarkTargetSkipped(
+        string target,
+        string decisionId,
+        string reason,
+        IReadOnlyList<string>? evidenceRefs = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(target);
+        ArgumentException.ThrowIfNullOrWhiteSpace(decisionId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+        return TryMarkTarget(
+            target,
+            TargetCoverageMarkKind.Skipped,
+            decisionId,
+            reason,
+            evidenceRefs ?? Array.Empty<string>(),
+            route: null);
+    }
+
+    /// <summary>Marks a verified route entry or overlay reachability fact.</summary>
+    public bool TryMarkTargetReached(
+        string target,
+        TargetCoverageMarkKind kind,
+        string? decisionId = null,
+        string? route = null,
+        IReadOnlyList<string>? evidenceRefs = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(target);
+        if (kind is not (TargetCoverageMarkKind.RouteEntered or TargetCoverageMarkKind.ReachedOverlay))
+            throw new ArgumentException("Reached marks must be RouteEntered or ReachedOverlay", nameof(kind));
+        return TryMarkTarget(target, kind, decisionId, reason: null,
+            evidenceRefs ?? Array.Empty<string>(), route);
+    }
+
+    private bool TryMarkTarget(
+        string target,
+        TargetCoverageMarkKind kind,
+        string? decisionId,
+        string? reason,
+        IReadOnlyList<string> evidenceRefs,
+        string? route)
+    {
+        if (_targetMarks.ContainsKey(target))
+            return false;
+        var sequence = ++_sequence;
+        var mark = new TargetCoverageMark(target, kind, decisionId, reason,
+            evidenceRefs.ToArray(), sequence);
+        _targetMarks[target] = mark;
+        _events.Add(new CoverageEvent(
+            sequence,
+            CoverageEventType.TargetCoverageMarked,
+            Owner: "settings-coverage.coverage",
+            Target: target,
+            Route: route,
+            DecisionId: decisionId,
+            Reason: reason,
+            EvidenceRefs: mark.EvidenceRefs,
+            MarkKind: kind));
+        return true;
     }
 
     /// <summary>AGT-009：最新弹窗声明（从未记录 → null = 无声明）。</summary>
@@ -193,6 +323,16 @@ public sealed class SettingsCoverageLedger
         var coveredCount = items.Count(item => item.Covered);
         var coverageComplete = items.Count > 0 && coveredCount == items.Count;
         var uncovered = items.Where(item => !item.Covered).Select(item => item.Requirement).ToList();
+        var structuralSkipped = DynamicRootSkipReasons(config).Keys
+            .Concat(DynamicNestedSkipReasons(config).Keys)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(target => target, StringComparer.Ordinal)
+            .ToArray();
+        var reachedTargets = _targetMarks.Values
+            .Where(mark => mark.Kind is TargetCoverageMarkKind.RouteEntered or TargetCoverageMarkKind.ReachedOverlay)
+            .Select(mark => mark.Target)
+            .OrderBy(target => target, StringComparer.Ordinal)
+            .ToArray();
 
         return new CoverageReport(
             Status: coverageComplete ? "CoverageComplete" : "BoundedStop",
@@ -211,7 +351,10 @@ public sealed class SettingsCoverageLedger
             DynamicRootSkipReasons: DynamicRootSkipReasons(config),
             DynamicNestedFrontier: DynamicNestedFrontier(config),
             DynamicNestedVisited: DynamicNestedVisited(config),
-            DynamicNestedSkipReasons: DynamicNestedSkipReasons(config));
+            DynamicNestedSkipReasons: DynamicNestedSkipReasons(config),
+            ReachedTargets: reachedTargets,
+            AgentSkippedTargets: AgentSkippedTargets,
+            StructuralSkippedTargets: structuralSkipped);
     }
 
     /// <summary>动态根页候选中尚未验证进入的 frontier。仅在显式开启
@@ -224,6 +367,7 @@ public sealed class SettingsCoverageLedger
         var skipped = DynamicRootSkipReasons(config);
         return DynamicRootCandidates(config)
             .Where(candidate => !visited.Contains(candidate, StringComparer.Ordinal)
+                && !IsAgentSkipped(candidate)
                 && !skipped.ContainsKey(candidate))
             .ToArray();
     }
@@ -344,17 +488,18 @@ public sealed class SettingsCoverageLedger
 
         var enteredEvidence = string.Join(";",
             enteredPages.SelectMany(kv => kv.Value.Select(entry => $"entered:{kv.Key}->{entry.RouteAfter}")));
-        var targetPagesEntered = config.TargetPages.Count(page => enteredPages.ContainsKey(page));
+        var targetPagesEntered = config.TargetPages.Count(page => enteredPages.ContainsKey(page) || IsAgentSkipped(page));
         items.Add(new(
             Requirement: "first-level-all-visible",
             Detail: $"entered {targetPagesEntered}/{config.TargetPages.Count}",
-            Covered: config.TargetPages.All(page => enteredPages.ContainsKey(page)),
+            Covered: config.TargetPages.All(page => enteredPages.ContainsKey(page) || IsAgentSkipped(page)),
             Evidence: enteredEvidence.Length > 0 ? enteredEvidence : null));
 
         var enteredCandidates = scrollCandidates
             .Where(candidate => _lastVerifiedScrollSequence >= 0
-                && enteredPages.TryGetValue(candidate, out var entries)
-                && entries.Any(entry => entry.Sequence > _lastVerifiedScrollSequence))
+                && ((enteredPages.TryGetValue(candidate, out var entries)
+                    && entries.Any(entry => entry.Sequence > _lastVerifiedScrollSequence))
+                    || IsAgentSkipped(candidate)))
             .ToList();
         items.Add(new(
             Requirement: "scroll-discovered-entry",
@@ -655,7 +800,9 @@ public sealed class SettingsCoverageLedger
         var visited = DynamicNestedVisited(config);
         var skipped = DynamicNestedSkipReasons(config);
         return DynamicNestedCandidates(config)
-            .Where(key => !visited.Contains(key, StringComparer.Ordinal) && !skipped.ContainsKey(key))
+            .Where(key => !visited.Contains(key, StringComparer.Ordinal)
+                && !IsAgentSkipped(key)
+                && !skipped.ContainsKey(key))
             .ToArray();
     }
 
@@ -818,7 +965,19 @@ public sealed class SettingsCoverageLedger
                 && !IsRoot(config, step.RouteAfter))
                 entered.Add(step.TargetDescriptor);
         }
+        foreach (var target in AgentSkippedTargets)
+            entered.Add(target);
         return entered;
+    }
+
+    private bool IsAgentSkipped(string target)
+    {
+        if (_targetMarks.TryGetValue(target, out var exact))
+            return exact.Kind == TargetCoverageMarkKind.Skipped;
+        var separator = target.LastIndexOf('>');
+        var descriptor = separator >= 0 ? target[(separator + 1)..] : target;
+        return _targetMarks.TryGetValue(descriptor, out var nested)
+            && nested.Kind == TargetCoverageMarkKind.Skipped;
     }
 
     private HashSet<string> EnteredPagesSnapshot(SettingsCoverageConfig config)
@@ -840,6 +999,9 @@ public sealed class SettingsCoverageLedger
                 entered.Add(descriptor);
             }
         }
+        foreach (var target in AgentSkippedTargets)
+            if (config.TargetPages.Contains(target, StringComparer.Ordinal))
+                entered.Add(target);
         return entered;
     }
 

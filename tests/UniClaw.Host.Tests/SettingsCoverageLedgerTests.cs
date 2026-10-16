@@ -870,4 +870,60 @@ public sealed class SettingsCoverageLedgerTests
         Assert.Equal("enter", snapshot.NextDirectiveKind);
         Assert.Contains("Apps", snapshot.NextDirective);
     }
+
+    [Fact]
+    public void OwnerEventStream_RecordsTypedFactsWithMonotonicSequence()
+    {
+        var ledger = new SettingsCoverageLedger();
+
+        ledger.RecordObservation(RootRoute, new[] { ("ui.element", (string?)"Apps") });
+        ledger.RecordPopupState("absent");
+        EnterStep(ledger, "Apps", "android.settings|route:Apps", receiptId: "receipt-event-1");
+
+        Assert.Equal(
+            [
+                CoverageEventType.ObservationAccepted,
+                CoverageEventType.PopupStateObserved,
+                CoverageEventType.EffectReceiptProduced,
+                CoverageEventType.PostActionVerified,
+            ],
+            ledger.Events.Select(item => item.Type));
+        Assert.Equal(ledger.Events.Count, ledger.Events.Select(item => item.Sequence).Distinct().Count());
+        Assert.True(ledger.Events.Zip(ledger.Events.Skip(1)).All(pair => pair.First.Sequence < pair.Second.Sequence));
+        Assert.DoesNotContain(ledger.Events, item => item.Owner == "uniclaw-runtime");
+    }
+
+    [Fact]
+    public void AgentSkip_IsZeroEffect_Idempotent_AndSeparateFromStructuralSkip()
+    {
+        var ledger = new SettingsCoverageLedger();
+
+        Assert.True(ledger.TryMarkTargetSkipped(
+            "Accessibility", "decision-skip-1", "not-actionable", ["event-12"]));
+        Assert.False(ledger.TryMarkTargetSkipped(
+            "Accessibility", "decision-skip-1", "duplicate", ["event-13"]));
+
+        var mark = Assert.Single(ledger.TargetMarks).Value;
+        Assert.Equal(TargetCoverageMarkKind.Skipped, mark.Kind);
+        Assert.Equal(["Accessibility"], ledger.AgentSkippedTargets);
+        Assert.Single(ledger.Events, item => item.Type == CoverageEventType.TargetCoverageMarked);
+        Assert.Empty(ledger.Events.Where(item => item.Type == CoverageEventType.EffectReceiptProduced));
+        Assert.Empty(ledger.Report(Config()).StructuralSkippedTargets!);
+    }
+
+    [Fact]
+    public void TargetCoverageMark_CannotBeReclassifiedAfterFirstMark()
+    {
+        var ledger = new SettingsCoverageLedger();
+
+        Assert.True(ledger.TryMarkTargetReached(
+            "Network & internet", TargetCoverageMarkKind.RouteEntered,
+            decisionId: "decision-enter-1", route: "android.settings|route:Network"));
+        Assert.False(ledger.TryMarkTargetSkipped(
+            "Network & internet", "decision-skip-1", "later-skip"));
+
+        Assert.Equal(TargetCoverageMarkKind.RouteEntered,
+            ledger.TargetMarks["Network & internet"].Kind);
+        Assert.Single(ledger.Events, item => item.Type == CoverageEventType.TargetCoverageMarked);
+    }
 }

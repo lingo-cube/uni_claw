@@ -170,3 +170,83 @@ public sealed record ObservationDiagnostics(
     int ProposalCount,
     long? FastLatencyMs = null,
     long? HierarchyLatencyMs = null);
+
+/// <summary>Heartbeat 的 World Model 导航投影（只读、非事实 Owner）。</summary>
+public sealed record HeartbeatWorldModel(
+    string? CurrentRevision,
+    string? CurrentContainer,
+    string? CurrentRoute,
+    string? BasePageAnchor,
+    string? Overlay,
+    long? LastAcceptedObservationEventSeq,
+    string? LastAcceptedObservationCaptureId);
+
+/// <summary>Heartbeat 的 Kernel 执行投影（只读、非执行权威）。</summary>
+public sealed record HeartbeatKernel(
+    AgentDecisionPhase CurrentPhase,
+    string? LastEffect,
+    string? LastReceipt,
+    string? LastVerification,
+    IReadOnlyList<AgentObligationView>? PendingObligations,
+    bool NextEffectBlocked);
+
+/// <summary>Heartbeat 的覆盖遍历投影（只读、非 Coverage Owner）。</summary>
+public sealed record HeartbeatTraversal(
+    string? CurrentTarget,
+    IReadOnlyList<string> Frontier,
+    int ReachedCount,
+    int SkippedCount,
+    int PendingCount,
+    IReadOnlyList<string>? RecentTransitions,
+    IReadOnlyList<string>? RecentAttempts);
+
+/// <summary>Heartbeat 事件增量中的一条语义可读事实索引。</summary>
+public sealed record HeartbeatEvent(
+    long EventSeq,
+    string Kind,
+    string SemanticLabel,
+    string? Target = null);
+
+/// <summary>
+/// AgentDecisionContext 的 Heartbeat 状态投影。它不拥有 World Model、Kernel
+/// 或 Coverage 事实；事件序号只用于 cutoff/回放关联，不能替代 DecisionId。
+/// </summary>
+public sealed record Heartbeat(
+    HeartbeatWorldModel WorldModel,
+    HeartbeatKernel Kernel,
+    HeartbeatTraversal Traversal,
+    long FromEventSeq,
+    long ToEventSeq,
+    IReadOnlyList<HeartbeatEvent> EventDelta,
+    int OmittedCount);
+
+/// <summary>咨询上下文中可引用的判断级材料目录项。</summary>
+public sealed record ContextReferenceEntry(
+    string RefId,
+    string Kind,
+    string Owner,
+    long? EventSeq,
+    string? CaptureId,
+    string Freshness,
+    string Lineage,
+    string SemanticLabel,
+    string SourceAuthority,
+    string Epistemic,
+    string Audience,
+    string Redaction,
+    string Capability,
+    int MaxBytes,
+    string Availability);
+
+/// <summary>
+/// 事件触发咨询的证据包。Case Packet 只提供证据和允许动作集合，不替 Agent
+/// 决定 Skip、Blocked 或完成，也不取得任何 Effect 权限。
+/// </summary>
+public sealed record CasePacket(
+    string CaseKind,
+    IReadOnlyList<string> TriggerSignals,
+    Heartbeat HeartbeatSnapshot,
+    IReadOnlyList<HeartbeatEvent> EventDelta,
+    IReadOnlyList<ContextReferenceEntry> RelevantRefs,
+    IReadOnlyList<string> AvailableActions,
+    IReadOnlyList<string> Constraints);

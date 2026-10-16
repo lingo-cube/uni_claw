@@ -294,6 +294,7 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.AgentDecision+NoAction",
             "UniClaw.Kernel.Runtime.AgentDecision+Plan",
             "UniClaw.Kernel.Runtime.AgentDecision+Policy",
+            "UniClaw.Kernel.Runtime.AgentDecision+Skip",
             "UniClaw.Kernel.Runtime.AgentDecisionContext",
             "UniClaw.Kernel.Runtime.AgentDecisionPhase",
             "UniClaw.Kernel.Runtime.AgentNoActionProposal",
@@ -304,6 +305,8 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             // 续授窗口投影与轻记账留痕（driver 只读审计投影）。
             "UniClaw.Kernel.Runtime.BudgetRenewalRecord",
             "UniClaw.Kernel.Runtime.BudgetRenewalRequest",
+            // TRAJECTORY-001 Slice A：Agent-facing push-only context projections.
+            "UniClaw.Kernel.Runtime.CasePacket",
             "UniClaw.Kernel.Runtime.ClaimSummary",
             "UniClaw.Kernel.Runtime.CompletionEvidence",
             "UniClaw.Kernel.Runtime.ConsultationBudget",
@@ -316,8 +319,14 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             // AGT-019 M2-②（B3，局部视图四族补缺；RUN-005
             // PolicyEvaluationView 先例形态）：
             "UniClaw.Kernel.Runtime.ContainerSummary",
+            "UniClaw.Kernel.Runtime.ContextReferenceEntry",
             "UniClaw.Kernel.Runtime.ElementEpistemic",
             "UniClaw.Kernel.Runtime.ElementSummary",
+            "UniClaw.Kernel.Runtime.Heartbeat",
+            "UniClaw.Kernel.Runtime.HeartbeatEvent",
+            "UniClaw.Kernel.Runtime.HeartbeatKernel",
+            "UniClaw.Kernel.Runtime.HeartbeatTraversal",
+            "UniClaw.Kernel.Runtime.HeartbeatWorldModel",
             "UniClaw.Kernel.Runtime.IConsultationJournal",
             "UniClaw.Kernel.Runtime.InMemoryConsultationJournal",
             "UniClaw.Kernel.Runtime.KernelRunDriver",

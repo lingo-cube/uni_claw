@@ -29,6 +29,9 @@ public static class ProductProtocolSchemaGenerator
         typeof(PolicyGuard), typeof(ClaimSummary), typeof(AgentObligationView),
         typeof(ElementSummary), typeof(ScreenSummary), typeof(ConsultationProgress),
         typeof(ConsultationBudget), typeof(CompletionEvidence), typeof(PolicyProgressState),
+        typeof(Heartbeat), typeof(HeartbeatWorldModel), typeof(HeartbeatKernel),
+        typeof(HeartbeatTraversal), typeof(HeartbeatEvent), typeof(ContextReferenceEntry),
+        typeof(CasePacket),
         typeof(CapabilitySelectionPayload), typeof(AgentTaskInitialization),
         typeof(AgentTaskEnvelope),
     };
@@ -236,6 +239,23 @@ public static class ProductProtocolSchemaGenerator
                                 ["decisionId"] = new JsonObject { ["type"] = "string" },
                                 ["spec"] = Ref(typeof(ObserveSpec)),
                             }, ["required"] = new JsonArray("kind", "decisionId", "spec"),
+                            ["additionalProperties"] = false,
+                        },
+                        new JsonObject
+                        {
+                            ["type"] = "object", ["properties"] = new JsonObject
+                            {
+                                ["kind"] = new JsonObject { ["const"] = "skip" },
+                                ["decisionId"] = new JsonObject { ["type"] = "string" },
+                                ["target"] = new JsonObject { ["type"] = "string" },
+                                ["reason"] = new JsonObject { ["type"] = "string" },
+                                ["evidenceRefs"] = new JsonObject
+                                {
+                                    ["type"] = "array", ["minItems"] = 1,
+                                    ["items"] = new JsonObject { ["type"] = "string" },
+                                },
+                            },
+                            ["required"] = new JsonArray("kind", "decisionId", "target", "reason", "evidenceRefs"),
                             ["additionalProperties"] = false,
                         })
                 };

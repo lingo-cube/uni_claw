@@ -26,7 +26,7 @@ public sealed class ProtocolFoundationTests
 
     [Theory]
     [MemberData(nameof(Decisions))]
-    public void Four_Decision_Variants_RoundTrip(AgentDecision original)
+    public void Decision_Variants_RoundTrip(AgentDecision original)
     {
         var options = ProductProtocolJson.CreateOptions();
         var json = JsonSerializer.Serialize(original, options);
@@ -40,7 +40,7 @@ public sealed class ProtocolFoundationTests
 
     [Theory]
     [MemberData(nameof(Decisions))]
-    public async Task Replay_Provider_Covers_All_Four_Decisions(AgentDecision expected)
+    public async Task Replay_Provider_Covers_All_Decisions(AgentDecision expected)
     {
         var decisionId = AgentDecisionCorrelation.TryGetDecisionId(expected)!;
         var json = JsonSerializer.Serialize(expected, ProductProtocolJson.CreateOptions());
@@ -166,6 +166,8 @@ public sealed class ProtocolFoundationTests
     [InlineData("{\"kind\":\"noAction\",\"decisionId\":\"d\",\"proposal\":{\"decisionId\":\"other\",\"justification\":\"ok\"}}")]
     [InlineData("{\"kind\":\"defer\",\"decisionId\":\"d\",\"spec\":{\"subject\":\"wifi\",\"maxRounds\":0}}")]
     [InlineData("{\"kind\":\"policy\",\"decisionId\":\"d\",\"proposal\":{\"policyId\":\"p\",\"match\":[],\"actionTemplate\":{\"targetRole\":\"switch\",\"effectClass\":\"tap\"},\"termination\":[],\"guards\":[],\"maxApplications\":0}}")]
+    [InlineData("{\"kind\":\"skip\",\"decisionId\":\"d\",\"target\":\"wifi\",\"reason\":\"blocked\",\"evidenceRefs\":[]}")]
+    [InlineData("{\"kind\":\"skip\",\"decisionId\":\"d\",\"target\":\"wifi\",\"reason\":\"blocked\",\"evidenceRefs\":[\"\"]}")]
     public void Malformed_Decision_Payload_Is_Rejected(string payload)
     {
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<AgentDecision>(
@@ -209,6 +211,27 @@ public sealed class ProtocolFoundationTests
             available.GetProperty("additionalProperties").GetProperty("$ref").GetString()!.Split('/').Last());
         Assert.DoesNotContain("availableCapabilities",
             context.GetProperty("required").EnumerateArray().Select(value => value.GetString()));
+    }
+
+    [Fact]
+    public void Generated_Schema_Exposes_Trajectory_Context_Projections_And_Skip()
+    {
+        using var document = JsonDocument.Parse(ProductProtocolSchema.Current.Json);
+        var definitions = document.RootElement.GetProperty("$defs");
+        var context = definitions.GetProperty("AgentDecisionContext");
+        Assert.Contains("heartbeat", context.GetProperty("properties").EnumerateObject()
+            .Select(property => property.Name));
+        Assert.Contains("contextReferenceIndex", context.GetProperty("properties").EnumerateObject()
+            .Select(property => property.Name));
+        Assert.Contains("casePacket", context.GetProperty("properties").EnumerateObject()
+            .Select(property => property.Name));
+        var skip = document.RootElement.GetProperty("$defs").GetProperty("AgentDecision")
+            .GetProperty("oneOf").EnumerateArray()
+            .Single(variant => variant.GetProperty("properties").GetProperty("kind")
+                .GetProperty("const").GetString() == "skip");
+        Assert.Equal("string", skip.GetProperty("properties").GetProperty("target").GetProperty("type").GetString());
+        Assert.Contains("evidenceRefs", skip.GetProperty("required").EnumerateArray()
+            .Select(value => value.GetString()));
     }
 
     [Fact]
@@ -258,6 +281,10 @@ public sealed class ProtocolFoundationTests
         yield return new object[]
         {
             new AgentDecision.Defer("decision-4", new ObserveSpec("switch", 1))
+        };
+        yield return new object[]
+        {
+            new AgentDecision.Skip("decision-5", "wifi", "already covered", new[] { "ref-1" })
         };
     }
 }

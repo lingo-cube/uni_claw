@@ -66,7 +66,10 @@ public sealed record AgentDecisionContext(
     LocalObservationView? LocalView = null,
     string? ProductSessionId = null,
     string? ContractViewRef = null,
-    string? DecisionBoundaryId = null);
+    string? DecisionBoundaryId = null,
+    Heartbeat? Heartbeat = null,
+    IReadOnlyList<ContextReferenceEntry>? ContextReferenceIndex = null,
+    CasePacket? CasePacket = null);
 
 /// <summary>
 /// obligation 的非权威摘要视图（P7 派生投影，只读）。
@@ -170,6 +173,16 @@ public abstract record AgentDecision
     /// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
     /// </summary>
     public sealed record Blocked(string DecisionId, string Reason) : AgentDecision;
+
+    /// <summary>
+    /// TRAJECTORY-001：Agent 主动跳过一个目标。它是零 Effect 的决策结果；
+    /// Host/Kernel 必须另行写入 TargetCoverageMarked，不得把该类型当作动作。
+    /// </summary>
+    public sealed record Skip(
+        string DecisionId,
+        string Target,
+        string Reason,
+        IReadOnlyList<string> EvidenceRefs) : AgentDecision;
 }
 
 /// <summary>

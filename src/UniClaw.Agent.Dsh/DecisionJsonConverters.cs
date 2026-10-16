@@ -22,6 +22,7 @@ public sealed class AgentDecisionJsonConverter : JsonConverter<AgentDecision>
             "policy" => ReadPolicy(root, options),
             "noAction" => ReadNoAction(root, options),
             "defer" => ReadDefer(root, options),
+            "skip" => ReadSkip(root),
             _ => throw new JsonException($"unknown AgentDecision kind '{kind}'"),
         };
     }
@@ -64,6 +65,21 @@ public sealed class AgentDecisionJsonConverter : JsonConverter<AgentDecision>
             DeserializeRequired<ObserveSpec>(root, "spec", options));
     }
 
+    private static AgentDecision ReadSkip(JsonElement root)
+    {
+        EnsureOnly(root, "kind", "decisionId", "target", "reason", "evidenceRefs");
+        var decisionId = RequiredString(root, "decisionId");
+        var target = RequiredString(root, "target");
+        var reason = RequiredString(root, "reason");
+        var evidenceRefs = RequiredArray(root, "evidenceRefs")
+            .EnumerateArray()
+            .Select(item => item.ValueKind == JsonValueKind.String ? item.GetString() : null)
+            .ToArray();
+        if (evidenceRefs.Length == 0 || evidenceRefs.Any(string.IsNullOrWhiteSpace))
+            throw new JsonException("skip evidenceRefs must contain at least one non-empty string");
+        return new AgentDecision.Skip(decisionId, target, reason, evidenceRefs!);
+    }
+
     public override void Write(Utf8JsonWriter writer, AgentDecision value,
         JsonSerializerOptions options)
     {
@@ -95,6 +111,20 @@ public sealed class AgentDecisionJsonConverter : JsonConverter<AgentDecision>
                 writer.WriteString("decisionId", defer.DecisionId);
                 writer.WritePropertyName("spec");
                 JsonSerializer.Serialize(writer, defer.Spec, options);
+                break;
+            case AgentDecision.Skip skip:
+                EnsureNonEmpty(skip.DecisionId, "decisionId");
+                EnsureNonEmpty(skip.Target, "target");
+                EnsureNonEmpty(skip.Reason, "reason");
+                if (skip.EvidenceRefs is null || skip.EvidenceRefs.Count == 0
+                    || skip.EvidenceRefs.Any(string.IsNullOrWhiteSpace))
+                    throw new JsonException("skip evidenceRefs must contain at least one non-empty string");
+                writer.WriteString("kind", "skip");
+                writer.WriteString("decisionId", skip.DecisionId);
+                writer.WriteString("target", skip.Target);
+                writer.WriteString("reason", skip.Reason);
+                writer.WritePropertyName("evidenceRefs");
+                JsonSerializer.Serialize(writer, skip.EvidenceRefs, options);
                 break;
             default:
                 throw new JsonException($"unsupported AgentDecision type {value.GetType().Name}");
@@ -354,6 +384,7 @@ public static class AgentDecisionCorrelation
         AgentDecision.Policy policy => policy.DecisionId,
         AgentDecision.NoAction noAction => noAction.Proposal.DecisionId,
         AgentDecision.Defer defer => defer.DecisionId,
+        AgentDecision.Skip skip => skip.DecisionId,
         _ => null,
     };
 }

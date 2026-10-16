@@ -13,4 +13,4 @@
 | RUNTIME-IDENTITY-001 | verified | none | standard | RUNTIME-IDENTITY-001 — TaskInstance / ProductSession 最小持久化存储 |
 | SETTINGS-COVERAGE-003 | verified | blocked | decision-heavy | SETTINGS-COVERAGE-003 — 动态前沿驱动的 Android Settings 可达界面遍历 |
 | SETTINGS-COVERAGE-004 | verified | none | standard | SETTINGS-COVERAGE-004 — 未知页面咨询与弹窗识别修复 |
-| TRAJECTORY-001 | persisted | none | decision-heavy | TRAJECTORY-001 — Event Stream / Heartbeat / 事件触发咨询（Agent 介入判断基础设施） |
+| TRAJECTORY-001 | planned | none | decision-heavy | TRAJECTORY-001 — Event Stream / Heartbeat / 事件触发咨询（Agent 介入判断基础设施） |
