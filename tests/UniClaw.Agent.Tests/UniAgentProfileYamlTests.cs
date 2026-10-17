@@ -139,7 +139,7 @@ public sealed class UniAgentProfileYamlTests
         var profile = UniAgentProfileYaml.LoadDefault();
 
         // TRAJECTORY-001：payload-shapes 增补 skip 形状 → profile revision 6。
-        Assert.Equal(7, profile.Revision);
+        Assert.Equal(8, profile.Revision);
         Assert.NotNull(profile.Assembly);
         Assert.NotNull(profile.Assembly!.PromptManifest);
         Assert.Equal("product/prompt/uniagent-prod", profile.Assembly.PromptManifest!.Path);
