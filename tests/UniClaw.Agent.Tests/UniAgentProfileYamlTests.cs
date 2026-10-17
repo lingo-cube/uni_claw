@@ -138,8 +138,8 @@ public sealed class UniAgentProfileYamlTests
     {
         var profile = UniAgentProfileYaml.LoadDefault();
 
-        // AGT-020：DSH bridge artifact alignment bumps the product profile revision.
-        Assert.Equal(5, profile.Revision);
+        // TRAJECTORY-001：payload-shapes 增补 skip 形状 → profile revision 6。
+        Assert.Equal(6, profile.Revision);
         Assert.NotNull(profile.Assembly);
         Assert.NotNull(profile.Assembly!.PromptManifest);
         Assert.Equal("product/prompt/uniagent-prod", profile.Assembly.PromptManifest!.Path);

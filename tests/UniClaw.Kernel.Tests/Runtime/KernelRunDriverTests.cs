@@ -201,6 +201,56 @@ public sealed class KernelRunDriverTests
     }
 
     [Fact]
+    public void Drive_Skip_CarriesEvidenceRefsToOwner()
+    {
+        var marked = new List<TargetCoverageMarkRequest>();
+        var calls = 0;
+        var c = Compose(
+            nextInput: _ => SeedObservation(),
+            consult: ctx => ++calls == 1
+                ? new AgentDecision.Skip(
+                    ctx.DecisionId, "wifi-name", "unsupported dialog", new[] { "event:12", "obs:7" })
+                : new AgentDecision.Blocked(ctx.DecisionId, "stop-after-test"));
+        c.Inputs.MarkTargetCoverage = request => marked.Add(request);
+        Assert.True(c.Kernel.AdmitContract(Contract()).Accepted);
+        var driver = new KernelRunDriver(c.Kernel, c.Plan, c.Inputs);
+        Assert.True(driver.Activate().Accepted);
+
+        var result = driver.Drive();
+
+        // Skip 零 Effect 且继续 run（回到 NeedDecision；无后续输入 → 非终局停）。
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        var mark = Assert.Single(marked);
+        Assert.Equal("wifi-name", mark.Target);
+        Assert.Equal(["event:12", "obs:7"], mark.EvidenceRefs);
+        Assert.Empty(c.Effects.ReceiptLog);
+    }
+
+    [Theory]
+    [InlineData("", "unsupported dialog", "skip-target-empty")]
+    [InlineData("wifi-name", "", "skip-reason-empty")]
+    public void Drive_Skip_EmptyMandatoryField_FailsClosed_ZeroEffects(
+        string target, string reason, string expectedRejection)
+    {
+        var marked = 0;
+        var c = Compose(
+            nextInput: _ => SeedObservation(),
+            consult: ctx => new AgentDecision.Skip(
+                ctx.DecisionId, target, reason, new[] { "evidence:dialog" }));
+        c.Inputs.MarkTargetCoverage = _ => marked++;
+        Assert.True(c.Kernel.AdmitContract(Contract()).Accepted);
+        var driver = new KernelRunDriver(c.Kernel, c.Plan, c.Inputs);
+        Assert.True(driver.Activate().Accepted);
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, result.Status);
+        Assert.Equal(expectedRejection, result.Reason);
+        Assert.Equal(0, marked);
+        Assert.Equal(0, c.Effects.ReceiptLog.Count);
+    }
+
+    [Fact]
     public void Drive_Interruption_UsesNewDecisionBoundaryAndReason()
     {
         var heartbeat = new Heartbeat(

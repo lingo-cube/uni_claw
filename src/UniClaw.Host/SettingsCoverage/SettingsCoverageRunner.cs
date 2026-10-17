@@ -30,6 +30,18 @@ namespace UniClaw.Host.SettingsCoverage;
 /// </summary>
 public sealed class SettingsCoverageRunner
 {
+    /// <summary>
+    /// TRAJECTORY-001 D3 裁决的停滞判定纯函数：进度指纹 (已进入/到达目标数,
+    /// frontier) 与上一快照相等 = 覆盖事实无推进，停滞计数 +1。不含
+    /// StepsVerified（弹窗循环里每个清障 tap 都"验证成功"，恒涨）；也不比较
+    /// 证据指纹（present/absent 交替会每轮清零计数器）。首快照（prior=null）
+    /// 不算停滞。
+    /// </summary>
+    internal static bool ShouldIncrementStagnation(
+        (int Entered, int Frontier)? prior,
+        (int Entered, int Frontier) current) =>
+        prior is { } snapshot && snapshot == current;
+
     public sealed record Options(
         string DeviceId,
         LivePerception.LiveAssets Live,
@@ -537,7 +549,7 @@ public sealed class SettingsCoverageRunner
                 mark.Kind is TargetCoverageMarkKind.RouteEntered
                     or TargetCoverageMarkKind.ReachedOverlay);
             var progress = (entered, frontier);
-            if (_lastProgress is { } prior && prior == progress)
+            if (ShouldIncrementStagnation(_lastProgress, progress))
                 _stagnantCycles++;
             else
             {

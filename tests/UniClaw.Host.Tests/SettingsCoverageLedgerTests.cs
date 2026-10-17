@@ -912,6 +912,27 @@ public sealed class SettingsCoverageLedgerTests
     }
 
     [Fact]
+    public void AgentSkip_ExcludesTargetFromNextDirectiveCandidates()
+    {
+        // TRAJECTORY-001 Skip 回路：Agent skip 落账后，NextDirective 的
+        // enter 候选不再包含被跳过目标（与 structural-skip 同一排除面）。
+        var ledger = new SettingsCoverageLedger();
+        Observe(ledger, RootRoute, TargetPages);
+
+        var before = ledger.Snapshot(Config());
+        Assert.Equal("enter", before.NextDirectiveKind);
+        Assert.Contains($"<{TargetPages[0]}>", before.NextDirective);
+
+        Assert.True(ledger.TryMarkTargetSkipped(
+            TargetPages[0], "decision-skip-rt", "not-actionable", ["event:12"]));
+
+        var after = ledger.Snapshot(Config());
+        Assert.Equal("enter", after.NextDirectiveKind);
+        Assert.DoesNotContain($"<{TargetPages[0]}>", after.NextDirective);
+        Assert.Contains($"<{TargetPages[1]}>", after.NextDirective);
+    }
+
+    [Fact]
     public void TargetCoverageMark_CannotBeReclassifiedAfterFirstMark()
     {
         var ledger = new SettingsCoverageLedger();
