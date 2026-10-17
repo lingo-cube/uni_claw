@@ -164,7 +164,10 @@ public sealed class SettingsCoverageRunner
             options.UnderlyingConsult, ledger, config, journal,
             // AGT-019 M2-②/B3 seam：诊断/视口从感知管线最新周期流入
             // Director 装饰层（LocalView 四族补缺闭环）。
-            localViewSources: liveFeed is null ? null : () => (liveFeed.LatestDiagnostics, liveFeed.LatestViewport));
+            localViewSources: liveFeed is null ? null : () => (liveFeed.LatestDiagnostics, liveFeed.LatestViewport),
+            // TRAJECTORY-001 D2：对话框标题从感知管线最新周期流入 Director
+            // （到达即完成判据）。
+            dialogTitleSource: liveFeed is null ? null : () => liveFeed.LatestDialogTitle);
         var consultBridge = new List<ConsultBridgeRecord>();
         try
         {
@@ -546,6 +549,10 @@ public sealed class SettingsCoverageRunner
             // 判停滞永远不触发）；也**不要求证据指纹逐轮相等**（弹窗循环的
             // 指纹是 present/absent 交替，相等条件会每轮清零计数器——
             // 验收轮实证复发根因）。停滞 = 覆盖事实无变化，与画面交替正交。
+            // D3 补充执法口径：单步粒度上"清障验证不算 Coverage Progress"
+            // 由 SettingsCoverageLedger.CountsAsCoverageProgress 裁定
+            // （obstacle 类 Verified 步骤不计入进度轴）；本指纹走 TargetMarks
+            // 计数，天然不把清障步骤算作覆盖推进——两处口径一致。
             var entered = _ledger.TargetMarks.Values.Count(mark =>
                 mark.Kind is TargetCoverageMarkKind.RouteEntered
                     or TargetCoverageMarkKind.ReachedOverlay);
@@ -558,12 +565,6 @@ public sealed class SettingsCoverageRunner
                 _interruptionIssued = false;
             }
             _lastProgress = progress;
-            // [DEBUG-stag] TRAJECTORY-001 E4 取证：真机指纹轨迹（H1/H2 判据；
-            // H3/H4 由 issued 后 bridge 载荷判）。收口时整标签清除。
-            Console.Error.WriteLine(
-                $"[DEBUG-stag] prior={(_lastProgress.HasValue ? _lastProgress.Value.ToString() : "none")} "
-                + $"current={progress} stagnant={_stagnantCycles} "
-                + $"threshold={_config.Bounds.StagnationInjectConsults} issued={_interruptionIssued}");
 
             // TRAJECTORY-001 冷却（真机实证修正）：Agent 答非介入选项后
             // N 轮冷却再重问（而非永久锁存——锁存致 95% 停滞周期里 Agent

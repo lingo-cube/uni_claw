@@ -58,6 +58,26 @@ public sealed record CoverageSnapshot(
 
 public sealed class SettingsCoverageLedger
 {
+    /// <summary>
+    /// TRAJECTORY-001 D3 裁决（M5 进度轴组合）：清障验证不算 Coverage
+    /// Progress。obstacle 类 directive（"Clear the popup" / "Dismiss the
+    /// popup" 前缀）的步骤即使 Verified=true 也不计入覆盖进度轴——
+    /// RUN-006 实证：弹窗循环里每个清障 tap 都"验证成功"，若计入进度轴
+    /// 会把零覆盖推进误报为有进展。StepsVerified 保留为事实字段（不受此
+    /// 裁决影响）。停滞判定消费方：Runner 的 InterleaveBookkeeper 进度
+    /// 指纹路径（(entered, frontier) 指纹天然不含 obstacle 步骤）。
+    /// </summary>
+    internal static bool CountsAsCoverageProgress(CoverageStepRecord step, SettingsCoverageConfig config)
+    {
+        if (!step.Verified)
+            return false;
+        if (step.Directive is { } directive
+            && (directive.StartsWith("Clear the popup", StringComparison.Ordinal)
+                || directive.StartsWith("Dismiss the popup", StringComparison.Ordinal)))
+            return false;
+        return true;
+    }
+
     private sealed record EnteredEntry(string RouteAfter, string? ReceiptId, long Sequence);
 
     private readonly List<(long Sequence, string Route, IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> Occurrences)> _observations = new();

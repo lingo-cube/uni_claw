@@ -40,6 +40,8 @@ public sealed class SettingsCoverageDirector
     private int _stagnantConsults;
     private int _sameRouteConsults;
     private string? _lastRoute;
+    private string? _lastPopupState;
+    private string? _lastAdoptedDirectiveKind;
     private readonly Queue<string> _recentCycleFacts = new();
 
     /// <summary>AGT-009：advisory Plan 的最大项数（超出 fail closed）。</summary>
@@ -50,16 +52,22 @@ public sealed class SettingsCoverageDirector
         SettingsCoverageLedger ledger,
         SettingsCoverageConfig config,
         SettingsCoverageRunner.CoverageStepJournal? stepJournal = null,
-        Func<(ObservationDiagnostics? Diagnostics, ViewportSummary? Viewport)>? localViewSources = null)
+        Func<(ObservationDiagnostics? Diagnostics, ViewportSummary? Viewport)>? localViewSources = null,
+        Func<string?>? dialogTitleSource = null)
     {
         _underlying = underlying ?? throw new ArgumentNullException(nameof(underlying));
         _ledger = ledger ?? throw new ArgumentNullException(nameof(ledger));
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _stepJournal = stepJournal;
         _localViewSources = localViewSources;
+        _dialogTitleSource = dialogTitleSource;
     }
 
     private readonly Func<(ObservationDiagnostics? Diagnostics, ViewportSummary? Viewport)>? _localViewSources;
+
+    /// <summary>TRAJECTORY-001 D2：最新周期对话框标题（alertTitle 文本）；
+    /// null = 无弹窗或无标题声明。</summary>
+    private readonly Func<string?>? _dialogTitleSource;
 
     public IReadOnlyList<ConsultRecord> ConsultLog => _log;
 
@@ -190,6 +198,9 @@ public sealed class SettingsCoverageDirector
         // 超界仍 present → fail closed bounded stop（理由进 ConsultLog）。
         if (snapshot.PopupState == "present")
         {
+            // TRAJECTORY-001 D2：prior popup 声明留档（到达判据之一）。
+            var priorPopupState = _lastPopupState;
+            _lastPopupState = "present";
             if (_obstacleAttempts >= _config.PopupSettings.MaxObstacleRetries)
             {
                 _terminalJustification = "bounded-stop:popup-not-cleared";
@@ -198,6 +209,28 @@ public sealed class SettingsCoverageDirector
                     "noAction", null, 0, "bounded-stop:popup-not-cleared"));
                 return new AgentDecision.NoAction(new AgentNoActionProposal(
                     context.DecisionId, "settings-coverage:bounded-stop:popup-not-cleared"));
+            }
+            // TRAJECTORY-001 D2（到达即完成）：我们自己的 enter-tap 之后弹窗
+            // 立即出现（prior absent → present），且对话框标题（alertTitle）
+            // 与被进入目标模糊匹配（词重叠 ≥50%，& ≈ and）→ 该目标实际已
+            // 到达目标页面（弹窗就是页面自身的确认/信息对话框）。落
+            // ReachedOverlay 零 Effect mark，再走下方安全 dismiss（CANCEL/
+            // back）关闭对话框继续遍历。不匹配 → 诚实落入既有 obstacle
+            // 清障逻辑（不猜）。
+            if (priorPopupState == "absent"
+                && _lastAdoptedDirectiveKind is "enter" or "nested-enter" or "re-enter"
+                && _adoptedSteps.Count > 0
+                && _adoptedSteps[^1].Step.TargetDescriptor is { } arrivalTarget
+                && _dialogTitleSource?.Invoke() is { Length: > 0 } dialogTitle
+                && TitleMatchesTarget(dialogTitle, arrivalTarget))
+            {
+                _ledger.TryMarkTargetReached(
+                    arrivalTarget, TargetCoverageMarkKind.ReachedOverlay,
+                    context.DecisionId, snapshot.CurrentRoute);
+                _log.Add(new ConsultRecord(
+                    context.DecisionId, context.Phase.ToString(), null,
+                    "arrival-detected", null, null, 0,
+                    $"arrival-detected: dialog title '{dialogTitle}' matches target '{arrivalTarget}'"));
             }
             // AGT-019 M4（Q5 裁决）：弹窗处置任务型白名单——遍历型任务没有
             // confirm 权限。候选词表先过禁手清单（确认侧目标永不中选）；
@@ -234,6 +267,7 @@ public sealed class SettingsCoverageDirector
         else if (snapshot.PopupState == "absent")
         {
             _obstacleAttempts = 0; // 清障成功：恢复普通遍历预算
+            _lastPopupState = "absent";
         }
 
         // AGT-006 修复：路由回退身份（页面无标题，如启动过渡屏）≠ 已知
@@ -422,6 +456,8 @@ public sealed class SettingsCoverageDirector
                 // Act 单步与受约束 Plan 的唯一 ActItem 都物化为 AgentActionStep
                 // 归属（归因/journal 路径不变；Plan 的执行由 driver 负责）。
                 _adoptedSteps.Add((context.DecisionId, directive, adopted!));
+                // TRAJECTORY-001 D2：记录采纳指令 kind（到达判据之一）。
+                _lastAdoptedDirectiveKind = kind;
                 _log.Add(new ConsultRecord(
                     context.DecisionId, context.Phase.ToString(), directive, kind,
                     decision is AgentDecision.Plan ? "plan" : "act",
@@ -583,6 +619,35 @@ public sealed class SettingsCoverageDirector
         var start = directive.IndexOf('<');
         var end = directive.IndexOf('>');
         return start >= 0 && end > start ? directive[(start + 1)..end] : null;
+    }
+
+    /// <summary>
+    /// TRAJECTORY-001 D2 — 对话框标题与 directive 目标的模糊匹配：小写化、
+    /// "&" 归一为 "and"、按非字母数字切词；词集交集/并集（Jaccard）≥ 50%
+    /// 判匹配（"SIM label and color" ≈ "SIM name &amp; color"：3/5 = 60%）。
+    /// 任一侧无词 → 不匹配（不猜）。
+    /// </summary>
+    internal static bool TitleMatchesTarget(string title, string target)
+    {
+        var titleWords = Words(title);
+        var targetWords = Words(target);
+        if (titleWords.Count == 0 || targetWords.Count == 0)
+            return false;
+        var intersection = titleWords.Count(targetWords.Contains);
+        var union = titleWords.Union(targetWords).Count();
+        return union > 0 && (double)intersection / union >= 0.5;
+
+        static HashSet<string> Words(string raw)
+        {
+            var text = new string(raw
+                .Replace("&", " and ", StringComparison.Ordinal)
+                .Select(ch => char.IsLetterOrDigit(ch) ? ch : ' ')
+                .ToArray());
+            var words = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var word in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                words.Add(word.ToLowerInvariant());
+            return words;
+        }
     }
 
     private string TerminationReason(CoverageSnapshot snapshot) =>
