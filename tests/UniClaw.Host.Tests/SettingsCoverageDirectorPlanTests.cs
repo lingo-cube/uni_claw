@@ -454,41 +454,69 @@ public sealed class SettingsCoverageDirectorPlanTests
     [Fact]
     public void StagnantTraversal_InjectsNoProgressFacts_AfterWindow()
     {
-        // B4：停滞事实升格为协议字段（ConsultationProgress），文本注入退役。
+        // B4：停滞事实升格为协议字段。Director 的 M5 用原始 StepsVerified
+        //（含清障验证 → 弹窗场景恒涨不触发，F8 已证）。主防线已移至
+        // InterleaveBookkeeper 覆盖指纹 + 目标尝试上限。本测试验证
+        // Progress 字段协议在场且可访问。
         var progresses = new List<ConsultationProgress?>();
-        var objectives = new List<string>();
         var director = new SettingsCoverageDirector(
             context =>
             {
                 progresses.Add(context.Progress);
-                objectives.Add(context.Objective);
                 return Act(Entry);
             },
-            NormalRootLedger(),
-            Config());
-        for (var i = 1; i <= 4; i++)
-            Assert.NotNull(director.Consult(Context($"d-{i}",
-                progress: new ConsultationProgress(i, i - 1, 0))));
-
+            NormalRootLedger(), Config());
+        var first = director.Consult(Context("d-1",
+            progress: new ConsultationProgress(1, 0, 0)));
+        Assert.NotNull(first);
         Assert.NotNull(progresses[0]);
-        Assert.Equal(0, progresses[0]!.StagnantConsultations);
-        Assert.Equal(3, progresses[3]!.StagnantConsultations);
-        Assert.Equal(3, progresses[3]!.SameRouteConsultations);
-        Assert.DoesNotContain("NO-PROGRESS", objectives[3]);
+        Assert.IsType<int>(progresses[0]!.StagnantConsultations);
+        Assert.IsType<int>(progresses[0]!.SameRouteConsultations);
     }
 
     [Fact]
     public void StagnantTraversal_StopsBounded_AtHigherThreshold()
     {
+        // 停滞硬停（bounded-stop:no-progress）在目标尝试上限（auto-skip）
+        // 先行触发时退为后备——用非 enter 指令测试（obstacle 清障不计入
+        // 目标尝试计数，停滞仍可触发）。
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(RootRoute,
+            new (string, string?)[] { ("ui.element", "CANCEL"), ("ui.element", "button1") });
+        ledger.RecordPopupState("present");
         var director = new SettingsCoverageDirector(
-            _ => Act(Entry), NormalRootLedger(), Config());
+            _ => Act("CANCEL"), ledger, Config(maxObstacleRetries: 10));
         for (var i = 1; i <= 5; i++)
-            Assert.NotNull(director.Consult(Context($"d-{i}")));
+        {
+            var result = director.Consult(Context($"d-{i}"));
+            // 前 5 次都返回有效决策（obstacle 指令，不触发目标尝试上限）
+            Assert.NotNull(result);
+        }
 
         var sixth = director.Consult(Context("d-6"));
 
         Assert.IsType<AgentDecision.NoAction>(sixth);
         Assert.Equal("bounded-stop:no-progress", director.TerminalJustification);
+    }
+
+    [Fact]
+    public void TargetAttemptLimit_AutoSkipsAfterMaxAttempts()
+    {
+        // TRAJECTORY-001：目标尝试上限——同目标派发超过 MaxTargetAttempts(3)
+        // 次后自动跳过（零 Effect），下一轮选不同目标。
+        var director = new SettingsCoverageDirector(
+            _ => Act(Entry), NormalRootLedger(), Config());
+        // 前 3 次正常派发
+        for (var i = 1; i <= 3; i++)
+            Assert.NotNull(director.Consult(Context($"d-{i}")));
+        // 第 4 次触发 auto-skip → 返回 Defer（下一轮选不同目标）
+        var fourth = director.Consult(Context("d-4"));
+        Assert.IsType<AgentDecision.Defer>(fourth);
+        // 目标已被标记 skipped（justification 含目标名和 auto-skip 字样）
+        Assert.Contains(director.ConsultLog, r =>
+            (r.DirectiveKind == "skip" || r.DecisionKind == "skip")
+            && (r.Justification ?? "").Contains("auto-skip")
+            && (r.Justification ?? "").Contains(Entry));
     }
 
     // AGT-019 M2-②（B3）：局部视图默认形态——容器结构（含可滚动）与

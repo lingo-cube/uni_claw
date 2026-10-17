@@ -43,6 +43,10 @@ public sealed class SettingsCoverageDirector
     private string? _lastPopupState;
     private string? _lastAdoptedDirectiveKind;
     private readonly Queue<string> _recentCycleFacts = new();
+    // TRAJECTORY-001：目标尝试计数（跨周期持久，不分 verified 与否——
+    // SIM 循环每步都 verified 但零推进，现有连续未验证检测抓不到交替模式）。
+    private readonly Dictionary<string, int> _targetAttemptCounts = new(StringComparer.Ordinal);
+    private const int MaxTargetAttempts = 3;
 
     /// <summary>AGT-009：advisory Plan 的最大项数（超出 fail closed）。</summary>
     internal const int MaxPlanItems = 4;
@@ -385,6 +389,36 @@ public sealed class SettingsCoverageDirector
                 "noAction", null, 0, justification));
             return new AgentDecision.NoAction(new AgentNoActionProposal(
                 context.DecisionId, $"settings-coverage:{justification}"));
+        }
+
+        // TRAJECTORY-001：目标尝试上限——同目标被派发 MaxTargetAttempts 次后
+        // 不再下发指令，直接标记跳过（零 Effect），遍历继续。这是在停滞
+        // 介入之前的**第一道防线**（比等 3 轮覆盖不变更快更准）。
+        if (kind is "enter" or "nested-enter" or "re-enter")
+        {
+            var targetDesc = TargetOf(directive!);
+            if (targetDesc is not null)
+            {
+                _targetAttemptCounts.TryGetValue(targetDesc, out var targetAttempts);
+                targetAttempts++;
+                _targetAttemptCounts[targetDesc] = targetAttempts;
+                if (targetAttempts > MaxTargetAttempts
+                    && !_ledger.AgentSkippedTargets.Contains(targetDesc))
+                {
+                    _ledger.TryMarkTargetSkipped(
+                        targetDesc, context.DecisionId,
+                        $"auto-skip: {targetAttempts} attempts without coverage completion",
+                        new[] { $"target-attempts:{targetAttempts}" });
+                    _log.Add(new ConsultRecord(
+                        context.DecisionId, context.Phase.ToString(), directive, kind,
+                        "skip", null, 1,
+                        $"auto-skip: target '{targetDesc}' attempted {targetAttempts}x without completion"));
+                    // 下一轮咨询会选不同目标（该目标已标记 skipped）
+                    return new AgentDecision.Defer(context.DecisionId,
+                        new ObserveSpec(Subject: null, MaxRounds: 1,
+                            Purpose: "auto-skip target; next directive picks another"));
+                }
+            }
         }
 
         var derived = context with
