@@ -474,6 +474,12 @@ public sealed class SettingsCoverageDirector
             return null;
         }
 
+        // AGT-019/TRAJECTORY-001：Skip 和 Blocked 是合法回答（零 Effect
+        // 介入选项）——Director 透传给 Kernel（Kernel 已有处理逻辑：
+        // Skip → MarkTargetCoverage；Blocked → 终局）。不进 adherence
+        // 校验（它们不是对指令的"执行"，是对指令的"裁决"）。
+        if (decision is AgentDecision.Skip or AgentDecision.Blocked)
+            return null;
         if (decision is not AgentDecision.Act actDecision)
             return $"expected-act-for-directive:{kind}";
         if (actDecision.Proposal.Steps.Count != 1)
