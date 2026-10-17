@@ -369,8 +369,10 @@ public sealed class SettingsCoverageDirector
 
 
         // 覆盖完成后若不在根页，终局义务（end-on-route）要求先返回根页。
+        // TRAJECTORY-001 修复：当前页无可做目标但覆盖未完时，也要返回
+        // 上一级——剩余一级目标在根页上不可见，不回去就永远无法继续
+        //（defer-exhausted 真机实证：1/7 entered + 6 个目标等在根页）。
         if (directive is null
-            && snapshot.CoverageComplete
             && snapshot.CurrentRoute is not null
             && snapshot.CurrentRoute != _config.RootRoute)
         {
