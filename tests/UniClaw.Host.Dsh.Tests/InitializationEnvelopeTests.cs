@@ -38,10 +38,10 @@ public sealed class InitializationEnvelopeTests
             Assert.Equal("run-1", root.GetProperty("firstRunId").GetString());
             // 五要素齐备：profile/协议/工件修订 + Skill 快照 + 模型路由。
             // TRAJECTORY-001：payload-shapes 增补 skip 形状 → profileRevision 6.
-            Assert.Equal(6, root.GetProperty("runtimeProfileRevision").GetInt32());
+            Assert.Equal(7, root.GetProperty("runtimeProfileRevision").GetInt32());
             Assert.Equal(64, root.GetProperty("protocolSchemaHash").GetString()!.Length);
             // TRAJECTORY-001：skip 形状随动 → prompt artifact rev 6（schemaHash 不变）。
-            Assert.Equal(6, root.GetProperty("productPromptRevision").GetInt32());
+            Assert.Equal(7, root.GetProperty("productPromptRevision").GetInt32());
             Assert.Equal(1, root.GetProperty("safetyPolicyRevision").GetInt32());
             Assert.Equal("android-automotive-ui-testing", root.GetProperty("skill").GetProperty("name").GetString());
             // AGT-019 声明面随动：skill revision 2（guidance 弹窗/停滞纪律）。
