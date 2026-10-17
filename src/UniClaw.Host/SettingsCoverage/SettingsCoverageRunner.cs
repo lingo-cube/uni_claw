@@ -478,6 +478,7 @@ public sealed class SettingsCoverageRunner
         private (int Entered, int Frontier)? _lastProgress;
         private int _stagnantCycles;
         private bool _interruptionIssued;
+        private int _lastInterruptionStagnant;
 
         public InterleaveBookkeeper(
             UniKernel kernel,
@@ -557,9 +558,22 @@ public sealed class SettingsCoverageRunner
                 _interruptionIssued = false;
             }
             _lastProgress = progress;
+            // [DEBUG-stag] TRAJECTORY-001 E4 取证：真机指纹轨迹（H1/H2 判据；
+            // H3/H4 由 issued 后 bridge 载荷判）。收口时整标签清除。
+            Console.Error.WriteLine(
+                $"[DEBUG-stag] prior={(_lastProgress.HasValue ? _lastProgress.Value.ToString() : "none")} "
+                + $"current={progress} stagnant={_stagnantCycles} "
+                + $"threshold={_config.Bounds.StagnationInjectConsults} issued={_interruptionIssued}");
 
-            if (_interruptionIssued
-                || _stagnantCycles < _config.Bounds.StagnationInjectConsults)
+            // TRAJECTORY-001 冷却（真机实证修正）：Agent 答非介入选项后
+            // N 轮冷却再重问（而非永久锁存——锁存致 95% 停滞周期里 Agent
+            // 再无被问机会，循环无法打破）。冷却 = StagnationInjectConsults
+            // 同值（数据后标定）。
+            var cooldownOver = _stagnantCycles - _lastInterruptionStagnant
+                >= _config.Bounds.StagnationInjectConsults;
+            if (_interruptionIssued && !cooldownOver)
+                return null;
+            if (_stagnantCycles < _config.Bounds.StagnationInjectConsults)
                 return null;
 
             var cutoff = _ledger.LastEventSequence;
@@ -626,12 +640,32 @@ public sealed class SettingsCoverageRunner
                 });
 
             _interruptionIssued = true;
+            _lastInterruptionStagnant = _stagnantCycles;
+            // TRAJECTORY-001 思路引导（owner："引导 Agent 多思路，引入正确
+            // 思考流程"）：Reason = 数据前置 + 推理路径 + 行为转折指令。
+            var recentTargets = string.Join(", ",
+                _ledger.Events
+                    .Where(e => e.Type == CoverageEventType.EffectReceiptProduced && e.Target is not null)
+                    .Select(e => e.Target!)
+                    .Reverse().Take(8).Reverse());
+            var reason = $"STAGNATION INTERVENTION (read carefully before deciding).\n"
+                + $"You have been repeating the same actions without progress for {_stagnantCycles} cycles.\n"
+                + $"Recent actions: [{recentTargets}]\n"
+                + $"Think about this: if tapping the same target repeatedly has not completed "
+                + $"the goal, doing it again will likely fail the same way.\n"
+                + $"Your options NOW (pick one):\n"
+                + $"  1. SKIP the current target (recommended) — submit a skip decision with the "
+                + $"target name and reason; the run continues with other targets.\n"
+                + $"  2. BLOCKED — submit a blocked decision with reason; the run ends honestly.\n"
+                + $"  3. REOBSERVE — submit a defer; but on the NEXT consultation you MUST "
+                + $"choose skip or blocked if nothing has changed.\n"
+                + $"DO NOT propose the same action that has been failing. Change your approach.";
             return new RunDriverInput.Interruption(new InterruptionSignal(
                 SignalKey: $"coverage-stagnant:{snapshot.NextDirective ?? "unknown"}",
                 Kind: "CoverageStagnantSignal",
                 EventSeq: cutoff,
                 Target: snapshot.NextDirective,
-                Reason: "no new discovery and no new verified completion",
+                Reason: reason,
                 Heartbeat: heartbeat,
                 ContextReferenceIndex: references,
                 CasePacket: casePacket));
