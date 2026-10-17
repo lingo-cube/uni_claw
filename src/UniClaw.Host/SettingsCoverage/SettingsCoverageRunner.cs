@@ -463,8 +463,7 @@ public sealed class SettingsCoverageRunner
         private bool _cycleRecorded;
         private IReadOnlyList<ObservationProposal>? _pendingInspectionProposals;
         private string? _pendingInspectionCaptureId;
-        private (int StepsVerified, int Frontier)? _lastProgress;
-        private string? _lastEvidenceFingerprint;
+        private (int Entered, int Frontier)? _lastProgress;
         private int _stagnantCycles;
         private bool _interruptionIssued;
 
@@ -528,15 +527,17 @@ public sealed class SettingsCoverageRunner
             var snapshot = _ledger.Snapshot(_config);
             var frontier = _ledger.DynamicRootFrontier(_config).Count
                 + _ledger.DynamicNestedFrontier(_config).Count;
-            var progress = (snapshot.StepsVerified, frontier);
-            var evidenceFingerprint = string.Join(
-                "|",
-                snapshot.CurrentRoute ?? "unknown",
-                snapshot.PopupState ?? "unknown",
-                string.Join(",", snapshot.Visible));
-            if (_lastProgress is { } prior
-                && prior == progress
-                && string.Equals(_lastEvidenceFingerprint, evidenceFingerprint, StringComparison.Ordinal))
+            // TRAJECTORY-001 验收修复（D3 裁决落法）：进度指纹 = (已进入/到达
+            // 目标数, frontier)——**不含 StepsVerified**（RUN-006 F8 实证：
+            // 弹窗循环里每个清障 tap 都"验证成功"，StepsVerified 恒涨，用它
+            // 判停滞永远不触发）；也**不要求证据指纹逐轮相等**（弹窗循环的
+            // 指纹是 present/absent 交替，相等条件会每轮清零计数器——
+            // 验收轮实证复发根因）。停滞 = 覆盖事实无变化，与画面交替正交。
+            var entered = _ledger.TargetMarks.Values.Count(mark =>
+                mark.Kind is TargetCoverageMarkKind.RouteEntered
+                    or TargetCoverageMarkKind.ReachedOverlay);
+            var progress = (entered, frontier);
+            if (_lastProgress is { } prior && prior == progress)
                 _stagnantCycles++;
             else
             {
@@ -544,7 +545,6 @@ public sealed class SettingsCoverageRunner
                 _interruptionIssued = false;
             }
             _lastProgress = progress;
-            _lastEvidenceFingerprint = evidenceFingerprint;
 
             if (_interruptionIssued
                 || _stagnantCycles < _config.Bounds.StagnationInjectConsults)
