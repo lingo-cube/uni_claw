@@ -375,6 +375,23 @@ public sealed class SettingsCoverageDirector
         {
             attempts++;
             var decision = _underlying(derived);
+            // TRAJECTORY-001：Skip/Blocked 是零 Effect 介入裁决——在
+            // adherence/guard/journal 之前直接透传（它们没有 action step，
+            // 走 Act 管线会空引用）。Kernel 已有处理逻辑。
+            if (decision is AgentDecision.Skip skipDecision)
+            {
+                _log.Add(new ConsultRecord(
+                    context.DecisionId, context.Phase.ToString(), directive, kind,
+                    "skip", null, attempts, skipDecision.Reason));
+                return decision;
+            }
+            if (decision is AgentDecision.Blocked blockedDecision)
+            {
+                _log.Add(new ConsultRecord(
+                    context.DecisionId, context.Phase.ToString(), directive, kind,
+                    "blocked", null, attempts, blockedDecision.Reason));
+                return decision;
+            }
             AgentActionStep? adoptedStep = null;
             deviation = decision is null
                 ? "no-response"
@@ -473,13 +490,6 @@ public sealed class SettingsCoverageDirector
             adopted = actStep;
             return null;
         }
-
-        // AGT-019/TRAJECTORY-001：Skip 和 Blocked 是合法回答（零 Effect
-        // 介入选项）——Director 透传给 Kernel（Kernel 已有处理逻辑：
-        // Skip → MarkTargetCoverage；Blocked → 终局）。不进 adherence
-        // 校验（它们不是对指令的"执行"，是对指令的"裁决"）。
-        if (decision is AgentDecision.Skip or AgentDecision.Blocked)
-            return null;
         if (decision is not AgentDecision.Act actDecision)
             return $"expected-act-for-directive:{kind}";
         if (actDecision.Proposal.Steps.Count != 1)
