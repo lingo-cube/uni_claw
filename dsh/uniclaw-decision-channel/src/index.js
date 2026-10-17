@@ -1273,6 +1273,68 @@ export function apply(ctx, config) {
           new Promise(resolve => setTimeout(resolve, timeoutMs)),
         ])
       }
+
+      // TRAJECTORY-001: no-submit-decision retry — if the agent finished its
+      // turn without calling submit_decision, re-prompt once before failing.
+      // This is at the HTTP endpoint level (safe: event handlers untouched).
+      if (captured.ok !== true && captured.error.code === 'no-submit-decision') {
+        log('consult retry', { requestId: body.requestId, reason: 'no-submit-decision' })
+        try {
+          // Reset pending state for the retry
+          state.pending = null
+          state.activeTurn = null
+          activeTurn.resolveTurnEnd()
+          // Create fresh pending for the retry
+          let retrySettled
+          const retryCompletion = new Promise(resolve => { retrySettled = resolve })
+          state.pending = {
+            requestId: body.requestId,
+            resolve: retrySettled,
+            captured: null,
+            lastError: null,
+            timer: null,
+          }
+          const retryTurn = {
+            sessionId: attached.dshSessionId,
+            turnEnd: new Promise(resolve => {}),
+            resolveTurnEnd: () => {},
+            pending: state.pending,
+          }
+          state.activeTurn = retryTurn
+          // Send the nudge
+          await controller.prompt({
+            requestId: `${body.requestId}-nudge-${Date.now()}`,
+            sessionId: attached.dshSessionId,
+            mode: 'queue',
+            content: [{ type: 'text', text: 'You did not call submit_decision. You MUST call the submit_decision tool NOW to submit your decision for this consultation. Do not respond with text only.' }],
+          }, AbortSignal.timeout(30000))
+          // Wait for the retry to produce a result (up to 30s)
+          const retryCaptured = await Promise.race([
+            retryCompletion,
+            new Promise(resolve => setTimeout(() => resolve({ ok: false, error: { code: 'retry-timeout' } }), 30000)),
+          ])
+          if (retryCaptured.ok === true) {
+            // Retry succeeded! Use the retry result
+            if (state.pending !== null) { state.pending = null }
+            if (state.activeTurn !== null) { state.activeTurn = null }
+            const retryDurationMs = Date.now() - startedAt
+            log('consult retry captured', { requestId: body.requestId, kind: retryCaptured.task.payload.kind, durationMs: retryDurationMs })
+            return json(200, {
+              requestId: body.requestId,
+              generation: typeof body.generation === 'number' ? body.generation : 0,
+              task: retryCaptured.task,
+              diagnostics: { durationMs: retryDurationMs, source: 'submit_decision_retry', schemaHash: artifact.schemaHash },
+            })
+          }
+          // Retry also failed; fall through to normal failure path
+          if (state.pending !== null) { state.pending = null }
+          if (state.activeTurn !== null) { state.activeTurn = null }
+        } catch (retryError) {
+          // Retry mechanism failed entirely; clean up and fall through
+          if (state.pending !== null) { state.pending = null }
+          if (state.activeTurn !== null) { state.activeTurn = null }
+        }
+      }
       const durationMs = Date.now() - startedAt
       if (captured.ok !== true) {
         recordEvent('consult-failed', {
