@@ -150,6 +150,15 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
         {
             var document = await PostJsonAsync(ConsultPath, body, cancellationToken).ConfigureAwait(false);
             var response = DecodeDecisionResponse(document, request);
+            // [DEBUG-drop] TRAJECTORY-001 E4 取证：C# 侧偶发丢结果定位。
+            if (response.Decision is null)
+            {
+                var rawJson = document.RootElement.GetRawText();
+                Console.Error.WriteLine(
+                    $"[DEBUG-drop] requestId={request.RequestId} decision=null "
+                    + $"error={response.Error ?? "none"} "
+                    + $"rawLength={rawJson.Length} raw={rawJson[..Math.Min(500, rawJson.Length)]}");
+            }
             if (retry >= MaxCapacityRetries || !IsCapacityFailure(response))
                 return response;
             await Task.Delay(CapacityRetryDelay, cancellationToken).ConfigureAwait(false);

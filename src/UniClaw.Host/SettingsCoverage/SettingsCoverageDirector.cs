@@ -394,11 +394,32 @@ public sealed class SettingsCoverageDirector
         // TRAJECTORY-001：目标尝试上限——同目标被派发 MaxTargetAttempts 次后
         // 不再下发指令，直接标记跳过（零 Effect），遍历继续。这是在停滞
         // 介入之前的**第一道防线**（比等 3 轮覆盖不变更快更准）。
+        // 同时：开关控件目标（policy 声明的 targeted toggle，如 Wi-Fi）
+        // 不能下发导航指令——guard 会以 "switch requires desiredState" 拒掉，
+        // 造成有效回答被丢弃 → no-response（真机实证根因）。
         if (kind is "enter" or "nested-enter" or "re-enter")
         {
             var targetDesc = TargetOf(directive!);
             if (targetDesc is not null)
             {
+                // 开关控件：跳过（guard 会拒）
+                if (_config.ActionPolicy is { } ap
+                    && ap.DeclaredTargetSwitchLabels.Any(label =>
+                        string.Equals(label, targetDesc, StringComparison.OrdinalIgnoreCase)))
+                {
+                    _log.Add(new ConsultRecord(
+                        context.DecisionId, context.Phase.ToString(), directive, kind,
+                        "skip", null, 1,
+                        $"switch-target-skipped: '{targetDesc}' is a declared toggle; navigation tap would be guard-rejected"));
+                    if (!_ledger.AgentSkippedTargets.Contains(targetDesc))
+                        _ledger.TryMarkTargetSkipped(
+                            targetDesc, context.DecisionId,
+                            "switch-target: navigation on toggle control not guardable",
+                            new[] { "switch-target" });
+                    return new AgentDecision.Defer(context.DecisionId,
+                        new ObserveSpec(Subject: null, MaxRounds: 1,
+                            Purpose: "switch target skipped; next directive picks another"));
+                }
                 _targetAttemptCounts.TryGetValue(targetDesc, out var targetAttempts);
                 targetAttempts++;
                 _targetAttemptCounts[targetDesc] = targetAttempts;
