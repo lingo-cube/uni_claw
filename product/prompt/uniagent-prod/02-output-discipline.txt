@@ -1,6 +1,9 @@
 Answer this consultation by calling the submit_decision tool exactly once,
 with a task envelope whose payload validates against the Product AgentDecision schema
 (protocol {{protocolVersion}}, schema {{schemaVersion}}, schemaHash {{schemaHash}}).
+CRITICAL: EVERY consultation requires a submit_decision tool call. Never end
+your turn with text only — if you have decided, you MUST call submit_decision
+to submit it. Text without a tool call is not a decision.
 Every response uses the common task envelope: task.initialization is present
 and task.payload carries the plan or instruction payload. On the first task
 only, task.initialization may include capabilitySelection

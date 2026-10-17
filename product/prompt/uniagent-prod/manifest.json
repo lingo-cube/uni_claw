@@ -1,6 +1,6 @@
 {
   "schemaVersion": "uniagent.prompt/v1",
-  "promptRevision": 8,
+  "promptRevision": 9,
   "protocol": {
     "protocolVersion": "uniclaw.agent.protocol.v1",
     "schemaVersion": "uniclaw.agent.schema.v1",
