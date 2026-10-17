@@ -126,6 +126,10 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     /// 与 CoordinateSpace.DeviceViewport 同源）。null = 尚无周期。</summary>
     public ViewportSummary? LatestViewport { get; private set; }
 
+    /// <summary>TRAJECTORY-001 D2：最新周期的弹窗标题（alertTitle 节点
+    /// 文本）；弹窗 absent → null。Director 到达判定用。</summary>
+    public string? LatestDialogTitle { get; private set; }
+
     public VisionServiceSession.WarmupTiming EnvironmentPreflight => _warmup;
 
     /// <summary>AGT-009：kernel 访问缝（runner 注入）——Slow 结果投影目标；
@@ -268,6 +272,10 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         LatestDiagnostics = new ObservationDiagnostics(
             xmlResult.Xml is not null, fastAvailable, proposals.Count,
             (long)fastLatency.TotalMilliseconds, (long)hierarchyLatency.TotalMilliseconds);
+        // TRAJECTORY-001 D2：弹窗标题提取（弹窗 present 时；absent → null）。
+        LatestDialogTitle = popupState == "present"
+            ? ExtractDialogTitle(xmlResult.Xml)
+            : null;
         _trace.Add(new TraceEntry(cycle, directive.Context.ToString(), captureId,
             observationCycleId, fastAvailable, xmlResult.Xml is not null,
             proposals.Count, fastLatency, hierarchyLatency, routeKey,
@@ -349,6 +357,30 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     /// 同页滚动 → key 不变 digest 变；同视口重复观察 → digest 稳定（e1 语料
     /// 三视口成组实证）。本摘要只作可观测性（trace/测试/后续 OCR/Slow 来源
     /// 对齐）——滚动内容变化的判定权威仍是 Kernel post-action occurrence
+    /// <summary>TRAJECTORY-001 D2：从 XML 提取弹窗标题（alertTitle 节点
+    /// 的 text 属性）。无 XML/无 alertTitle/空文本 → null（诚实不猜）。
+    /// </summary>
+    internal static string? ExtractDialogTitle(string? xml)
+    {
+        if (xml is null) return null;
+        try
+        {
+            var root = System.Xml.Linq.XDocument.Parse(xml).Root;
+            if (root is null) return null;
+            var titleNode = root.Descendants("node")
+                .FirstOrDefault(n => (string?)n.Attribute("resource-id") is { } id
+                    && id.EndsWith("alertTitle", StringComparison.Ordinal));
+            return (string?)titleNode?.Attribute("text") is { Length: > 0 } text
+                ? text
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>AGT-010 §2 — 视口摘要（XML 可点击元素集合的确定性摘要）。
     /// 集合比较，不建第二判断面。无 XML/不可解析 → null（无声明）。
     /// </summary>
     internal static string? DeriveViewportDigest(string? xml)
