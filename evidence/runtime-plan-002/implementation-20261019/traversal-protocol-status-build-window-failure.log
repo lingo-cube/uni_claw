@@ -1,0 +1,7 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/UniKernel.cs(292,9): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/UniClaw.Kernel.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/Runtime/KernelRunDriver.cs(594,45): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/UniClaw.Kernel.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/Runtime/KernelRunDriver.cs(1436,50): warning CS8604: “void TraversalControl.Start(string planId, int version, string root)”中的形参“planId”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/UniClaw.Kernel.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/Runtime/KernelRunDriver.cs(2105,66): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/UniClaw.Kernel.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/Runtime/KernelRunDriver.cs(2299,34): error CS0165: 使用了未赋值的局部变量“status” [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/UniClaw.Kernel.csproj]

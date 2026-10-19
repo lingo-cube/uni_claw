@@ -1,0 +1,37 @@
+{
+  "scope": {
+    "write": [
+      "src/UniClaw.Kernel/Control/TraversalControl.cs",
+      "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+      "tests/UniClaw.Kernel.Tests/Runtime/TraversalExecutionTests.cs"
+    ],
+    "read_hints": [
+      "plans/runtime-plan-002.md",
+      "changes/RUNTIME-PLAN-002/implementation-handoff.md",
+      "src/UniClaw.Kernel/Runtime/TraversalExecution.cs"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "在D1-D19及既有Owner链内实现持续Traversal；不改变历史001语义。Leader已冻结本次工程类型与计划。"
+  },
+  "acceptance": [
+    "plans/runtime-plan-002.md A1-A5对应执行行为有真实driver测试",
+    "TraversalControl拥有探索/返回/深度去重，driver只协调typed调用和原Act/Verify链",
+    "每次调用/状态通过_kernel.RecordTraversal入Run；查询只读；暂停保留游标/预算/在途事实",
+    "handler协议及Finding由能力解释，driver不能判语言；RequirePass仅消费Finding.Disposition/Status按显式约定",
+    "dotnet test指定测试通过，报告失败和未覆盖项"
+  ],
+  "forbidden": [
+    "共享代码库还有他人；保留入口所有修改，不回滚他人编辑",
+    "不修改写入范围外文件；需要缝调整先向Leader报告",
+    "不改ADR-0053/001历史成绩，不reset/clean/commit/push",
+    "不加入万能Hook/Execute/Registry、不把领域检查/Recovery算法塞入driver"
+  ],
+  "frozen_decisions": [
+    "changes/RUNTIME-PLAN-002/state.md D1-D19",
+    "plans/runtime-plan-002.md"
+  ],
+  "status": "done",
+  "id": "WI-RUNTIME-PLAN-002-EXECUTION",
+  "objective": "实现Control所有的持续遍历和driver协调，以同一真实Effect/验证链完成菜单探索并支持操作handlers与续行"
+}

@@ -1,0 +1,9 @@
+# 失败模型调用usage丢失：DSH Provider归属
+
+旧三轮实验的26次trial共记录194次实际模型调用，13次缺usage；已报告5881174 token是下界，不能冒充完整费用。只读定位到独立DSH仓库的llm-deepseek/src/translate.ts：message_stop已取得提供方累计usage，但工具JSON校验/空内容判定先抛错，usage尚未yield，Agent持久层因而没有计量可记录。
+
+修改前DSH checkout仅有无关untracked scripts/restart-dsh.sh；相关源/测试/双语README及原bundle均已备份，见integration/dsh-usage-entry.json。该文件用于恢复，不代表当前版本身份。修复只将完整settled响应的provider usage移到最终输出校验之前，仍保留MALFORMED_RESPONSE/EMPTY_RESPONSE；没有修复/补齐工具JSON、放宽校验、增加重试或换模型。尚未正常结束的流仍可能缺最终usage，不造估计值。
+
+stream原反例增强：RED 2/47，GREEN stream/runtime/Loader composition三个文件209/209；源代码叶包类型构建与实际发布bundle构建通过。plain Node通过发布DeepSeekAdapter和本地HTTP SSE夹具实测：usage17、MALFORMED_RESPONSE、无finish、1request（dsh-provider-built-smoke.json）。新增独立authored会话场景failed-response-usage，复用既有retry header owner，不修改旧generation；修正新manifest重复pin后，定向完整headless profile回放1/1通过（其余134用例因名称筛选未运行），见dsh-usage-session-snapshot2.txt。英中说明及pairhash同步。
+
+新加载记录见integration/service-reload-provider-accounted.json，实际api-key provider解析到同一bundle的证据为provider-module-resolution.json；真实试验experiment新增providerArtifactPath/providerArtifactSha256，同一epoch须一致。原始三轮样本、门槛及计量缺口保留，不能追补旧session的未知usage或混合新旧产物宣称收益。后续accounted epoch重新建立Step基线并在Plan前冻结独立门槛。

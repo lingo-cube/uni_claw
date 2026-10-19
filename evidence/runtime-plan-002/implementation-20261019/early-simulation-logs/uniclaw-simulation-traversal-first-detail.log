@@ -1,0 +1,27 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.02]   Discovering: UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.04]   Discovered:  UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.04]   Starting:    UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.18]     UniClaw.Simulation.Tests.TraversalScenarioTests.DeepBranchDoesNotHideDWhenTheSamePageIsReachedShallower [FAIL]
+[xUnit.net 00:00:00.18]       Assert.Contains() Failure: Filter not matched in collection
+[xUnit.net 00:00:00.18]       Collection: ["ctr-ecef1b42a580->ctr-ed34b7bf7ddc:visit-link", "ctr-ed34b7bf7ddc->ctr-11c24306ffc3:visit-link", "return:ctr-11c24306ffc3->ctr-ed34b7bf7ddc", "return:ctr-ed34b7bf7ddc->ctr-ecef1b42a580", "ctr-ecef1b42a580->ctr-11c24306ffc3:visit-link", ···]
+[xUnit.net 00:00:00.18]       Stack Trace:
+[xUnit.net 00:00:00.18]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs(38,0): at UniClaw.Simulation.Tests.TraversalScenarioTests.DeepBranchDoesNotHideDWhenTheSamePageIsReachedShallower()
+[xUnit.net 00:00:00.18]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.18]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.19]   Finished:    UniClaw.Simulation.Tests
+  失败 UniClaw.Simulation.Tests.TraversalScenarioTests.DeepBranchDoesNotHideDWhenTheSamePageIsReachedShallower [122 ms]
+  错误消息:
+   Assert.Contains() Failure: Filter not matched in collection
+Collection: ["ctr-ecef1b42a580->ctr-ed34b7bf7ddc:visit-link", "ctr-ed34b7bf7ddc->ctr-11c24306ffc3:visit-link", "return:ctr-11c24306ffc3->ctr-ed34b7bf7ddc", "return:ctr-ed34b7bf7ddc->ctr-ecef1b42a580", "ctr-ecef1b42a580->ctr-11c24306ffc3:visit-link", ···]
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.TraversalScenarioTests.DeepBranchDoesNotHideDWhenTheSamePageIsReachedShallower() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs:line 38
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+测试运行失败。
+测试总数: 1
+     失败数: 1
+总时间: 0.6362 秒

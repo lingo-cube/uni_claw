@@ -1,0 +1,41 @@
+{
+  "scope": {
+    "write": [
+      "src/UniClaw.Agent.Dsh/DecisionJsonConverters.cs",
+      "src/UniClaw.Agent.Dsh/ProtocolModels.cs",
+      "src/UniClaw.Agent.Dsh/ProtocolSchema.cs",
+      "schemas/agt-002/",
+      "product/prompt/uniagent-prod/",
+      "dsh/uniclaw-decision-channel/",
+      "tests/UniClaw.Agent.Dsh.Tests/TraversalProtocolTests.cs"
+    ],
+    "read_hints": [
+      "plans/runtime-plan-002.md",
+      "changes/RUNTIME-PLAN-002/implementation-handoff.md",
+      "src/UniClaw.Kernel/Runtime/TraversalExecution.cs"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "在D1-D19及既有Owner链内实现持续Traversal；不改变历史001语义。Leader已冻结本次工程类型与计划。"
+  },
+  "acceptance": [
+    "plans/runtime-plan-002.md A6完整正负向测试，正式codec拒绝缺失/错型/unknown kind/非法绑定/版本",
+    "生成Schema/TS及DSH镜像、Prompt/manifest/hash一致；用真实生成工具不手改hash",
+    "保留旧Plan wire兼容；不创建新的AgentDecision状态/结果union",
+    "协议producer→codec→consumer测试实际运行；发现runtime拒绝职责按Leader协作",
+    "dotnet及DSH插件相关测试通过，报告失败和闭包限制"
+  ],
+  "forbidden": [
+    "共享代码库还有他人；保留入口所有修改，不回滚他人编辑",
+    "不修改写入范围外文件；需要缝调整先向Leader报告",
+    "不改ADR-0053/001历史成绩，不reset/clean/commit/push",
+    "不加入万能Hook/Execute/Registry、不把领域检查/Recovery算法塞入driver"
+  ],
+  "frozen_decisions": [
+    "changes/RUNTIME-PLAN-002/state.md D1-D19",
+    "plans/runtime-plan-002.md"
+  ],
+  "status": "done",
+  "id": "WI-RUNTIME-PLAN-002-PROTOCOL",
+  "objective": "使正式Agent.Dsh producer/codec/schema及DSH消费端支持TraverseItem与typed操作handler，生成闭包并验证非法载荷拒绝"
+}

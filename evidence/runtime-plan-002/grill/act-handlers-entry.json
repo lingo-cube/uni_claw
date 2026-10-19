@@ -1,0 +1,11 @@
+{
+  "backup": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-plan002-act-handlers-m93kzpvc",
+  "before": {
+    "CONTEXT.md": "5995c6a5e48ffdf0b0a351c4a8364bdf0d827a76f6ab4da5f19b170a0f1e64ca",
+    "changes/RUNTIME-PLAN-002/state.md": "583305e05d4080c9dab4a5660a7a07af5b3fa4df35f3233602006336152c6d1e",
+    "changes/RUNTIME-PLAN-002/flow-contract.md": "952d2075a403357815d5b5a25dce2b42cb6f7f7eacc90690c38e66342c2b2d55",
+    "changes/RUNTIME-PLAN-002/discussion-reference.md": "48f3ad91bef611a7d11277f7311085feb0c42f1a004a35cf1eb7fb6674594e7d",
+    "changes/RUNTIME-PLAN-002/protocol-sketch.md": "c7aaf41a88db6171547027d0899d565c98f564a2a39411579be2bfa3d3b55e2a",
+    "changes/RUNTIME-PLAN-002/grill-round-09.md": "80957a9a27bcf26a97a24b6a0df30be4befdd72012d43baf5de3c013420bcb03"
+  }
+}

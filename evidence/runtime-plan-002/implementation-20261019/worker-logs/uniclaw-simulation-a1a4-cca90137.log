@@ -1,0 +1,6 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.25]     UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.MissingRequiredBindingFailsBeforeReadOnlyHandlerOrEffect [FAIL]
+[xUnit.net 00:00:00.33]     UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.LifecycleCancellationWhileTraversalIsActiveDoesNotDispatchHandlerOrEffect [FAIL]
+
+失败!  - 失败:     2，通过:    15，已跳过:     0，总计:    17，持续时间: 241 ms - UniClaw.Simulation.Tests.dll (net10.0)

@@ -1,0 +1,56 @@
+[
+  {
+    "suite": "agent-dsh",
+    "exitCode": 0,
+    "command": [
+      "dotnet",
+      "test",
+      "tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj",
+      "--no-restore",
+      "--logger",
+      "console;verbosity=minimal"
+    ],
+    "log": "agent-dsh-tests-final-source.log"
+  },
+  {
+    "suite": "host",
+    "exitCode": 0,
+    "command": [
+      "dotnet",
+      "test",
+      "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj",
+      "--no-restore",
+      "--logger",
+      "console;verbosity=minimal"
+    ],
+    "log": "host-tests-final-source.log"
+  },
+  {
+    "suite": "agent",
+    "exitCode": 0,
+    "command": [
+      "dotnet",
+      "test",
+      "tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj",
+      "--no-restore",
+      "--logger",
+      "console;verbosity=minimal"
+    ],
+    "log": "agent-tests-final-source.log"
+  },
+  {
+    "suite": "host-dsh",
+    "exitCode": 0,
+    "command": [
+      "dotnet",
+      "test",
+      "tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj",
+      "--no-restore",
+      "--logger",
+      "console;verbosity=minimal",
+      "--filter",
+      "FullyQualifiedName!~Live"
+    ],
+    "log": "host-dsh-tests-final-source.log"
+  }
+]

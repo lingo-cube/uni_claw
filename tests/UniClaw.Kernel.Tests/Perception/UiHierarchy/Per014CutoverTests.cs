@@ -176,9 +176,11 @@ public sealed class Per014CutoverTests
         }
 
         // 源码级（方法体 reflection 不可见）：PolicyRuntime.cs 不出现
-        // WorldModel / SemanticCheckedResolver 触点。
+        // WorldModel / SemanticCheckedResolver 触点。ADR-0052仅允许读取
+        // 既有current-container subject常量；不能取得WorldModel实例或写入口。
         var source = File.ReadAllText(RepoPath("src/UniClaw.Kernel/Runtime/PolicyRuntime.cs"));
-        Assert.DoesNotContain("WorldModel", source);
+        Assert.DoesNotContain("WorldModel",
+            source.Replace("WorldModel.CurrentContainerSubject", "", StringComparison.Ordinal));
         Assert.DoesNotContain("SemanticCheckedResolver", source);
     }
 

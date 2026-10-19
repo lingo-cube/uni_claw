@@ -1,0 +1,10 @@
+{
+  "backup": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-plan002-grill-r6-anq6s30m",
+  "before": {
+    "CONTEXT.md": "7321607456cde3c3e9cdbbc67effdc3e980959b6c9514b66def8da2eddcd532b",
+    "changes/RUNTIME-PLAN-002/state.md": "a016c22cf569899724ce9279a544929bade3b9b6da9c4087a5b5de593695328e",
+    "changes/RUNTIME-PLAN-002/discussion-reference.md": "c3a29b8c025907c1c3939eaefbfdc58fb8ba2f419703e363a75c7e0f632857df",
+    "changes/RUNTIME-PLAN-002/grill-round-05.md": "901387a51af6d9a1b2e177fcf2b0e6a890b589e6e8cfca45c204ceb77a7fa358",
+    "evidence/runtime-plan-002/verify-docs.py": "3ddfde93e00fdb3dea86c10873d077da80ad3dcad59d9abade44515c318b949b"
+  }
+}

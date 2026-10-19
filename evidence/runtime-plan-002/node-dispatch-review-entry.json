@@ -1,0 +1,8 @@
+{
+  "backup": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-plan002-node-dispatch-review-w3hyc39w",
+  "before": {
+    "changes/RUNTIME-PLAN-002/state.md": "c55cd0f290868cbbed89aabcbec2e603e7f6f7a83716a9c4a7675bab21aecba7",
+    "changes/RUNTIME-PLAN-002/protocol-sketch.md": "5d920ebcd994230f2039652597d95d20ea8babd7689925a0d46005e5520ca88d",
+    "changes/RUNTIME-PLAN-002/discussion-reference.md": "04c9d3977edc12bb6e7bb52a645a901ac9fd6d97b07046e887a77e1e7e3a4385"
+  }
+}

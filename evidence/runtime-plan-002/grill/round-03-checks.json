@@ -1,0 +1,10 @@
+{
+  "round": 3,
+  "decision": "D2=A; relationship requested before other inputs",
+  "frontier": "Q3 pending",
+  "round_documents_checked": 3,
+  "local_round_links_checked": 5,
+  "world_facts_checked": "read-only explorer; WorldGraph subject index; Containers/Relations owner facts; scoped-edge projection exists; task node scoping and validity propagation not complete",
+  "product_tests_run": false,
+  "implementation_started": false
+}

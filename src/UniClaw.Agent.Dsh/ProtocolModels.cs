@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using UniClaw.Agent.Profile;
+using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Runtime;
 
 namespace UniClaw.Agent.Dsh;
@@ -139,6 +140,52 @@ public static class ProductProtocolJson
             writer.WriteStringValue(value.ToString());
     }
 
+    private sealed class BudgetReviewOutcomeJsonConverter
+        : System.Text.Json.Serialization.JsonConverter<BudgetReviewOutcome>
+    {
+        public override BudgetReviewOutcome Read(
+            ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var name = reader.TokenType == JsonTokenType.String ? reader.GetString() : null;
+            if (name is null || !Enum.GetNames<BudgetReviewOutcome>().Contains(name, StringComparer.Ordinal)
+                || !Enum.TryParse<BudgetReviewOutcome>(name, ignoreCase: false, out var outcome))
+                throw new JsonException("reviewResponse outcome must be a supported BudgetReviewOutcome string");
+            return outcome;
+        }
+
+        public override void Write(
+            Utf8JsonWriter writer, BudgetReviewOutcome value, JsonSerializerOptions options) =>
+            writer.WriteStringValue(value.ToString());
+    }
+
+    private sealed class ReadOnlyStringSetJsonConverter : JsonConverter<IReadOnlySet<string>>
+    {
+        public override IReadOnlySet<string> Read(
+            ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType != JsonTokenType.StartArray)
+                throw new JsonException("string set must be an array");
+            var values = new HashSet<string>(StringComparer.Ordinal);
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+            {
+                if (reader.TokenType != JsonTokenType.String)
+                    throw new JsonException("string set entries must be strings");
+                values.Add(reader.GetString()!);
+            }
+            if (reader.TokenType != JsonTokenType.EndArray)
+                throw new JsonException("string set array is incomplete");
+            return values;
+        }
+
+        public override void Write(
+            Utf8JsonWriter writer, IReadOnlySet<string> value, JsonSerializerOptions options)
+        {
+            writer.WriteStartArray();
+            foreach (var item in value.Order(StringComparer.Ordinal)) writer.WriteStringValue(item);
+            writer.WriteEndArray();
+        }
+    }
+
     public static JsonSerializerOptions CreateOptions()
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
@@ -149,12 +196,24 @@ public static class ProductProtocolJson
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
         options.Converters.Add(new AgentDecisionJsonConverter());
+        options.Converters.Add(new PlanItemJsonConverter());
+        options.Converters.Add(new TraversalOperationJsonConverter());
+        options.Converters.Add(new JsonStringEnumConverter<PlanExecutionStatus>(allowIntegerValues: false));
+        options.Converters.Add(new JsonStringEnumConverter<PlanAttemptStatus>(allowIntegerValues: false));
+        options.Converters.Add(new JsonStringEnumConverter<AgentDecisionPhase>(allowIntegerValues: false));
+        options.Converters.Add(new JsonStringEnumConverter<TraversalOperationKind>(allowIntegerValues: false));
+        options.Converters.Add(new JsonStringEnumConverter<PlanHandlerCallStatus>(allowIntegerValues: false));
+        options.Converters.Add(new JsonStringEnumConverter<FindingDisposition>(allowIntegerValues: false));
+        options.Converters.Add(new JsonStringEnumConverter<CapabilityStatus>(allowIntegerValues: false));
+        options.Converters.Add(new JsonStringEnumConverter<PolicyTruth>(allowIntegerValues: false));
         options.Converters.Add(new PolicyPredicateJsonConverter());
         options.Converters.Add(new PolicyGuardJsonConverter());
         // AGT-019 B2：ObserveDepth 以字符串进出载荷（与生成 schema 的
         // enum ["Deep","Focused","Normal"] 同源；定向转换器，不泛化到
         // 其他枚举——ElementEpistemic 等既有数字载荷不受影响）。
         options.Converters.Add(new ObserveDepthJsonConverter());
+        options.Converters.Add(new BudgetReviewOutcomeJsonConverter());
+        options.Converters.Add(new ReadOnlyStringSetJsonConverter());
         return options;
     }
 }

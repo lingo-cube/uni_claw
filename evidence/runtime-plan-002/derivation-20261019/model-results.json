@@ -1,0 +1,69 @@
+{
+  "kind": "BOUNDED_REFERENCE_MODELS_ONLY",
+  "result": "PASS_REFERENCE_CHECKS_ONLY",
+  "graph_count": 530,
+  "graph_root_depth_cases": 6244,
+  "graph_limits": "1..3 vertices; every directed graph including loops; all roots; depth 0..size",
+  "naive_visited_counterexample": {
+    "adjacency": [
+      [
+        1,
+        2
+      ],
+      [
+        2
+      ],
+      [
+        3
+      ],
+      []
+    ],
+    "root": 0,
+    "max_depth": 2,
+    "oracle": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "naive": [
+      0,
+      1,
+      2
+    ],
+    "lifted": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "missed": [
+      3
+    ]
+  },
+  "three_valued_rule_cases": 27,
+  "decided_cases": 14,
+  "pending_cases": 13,
+  "unknown_as_false_counterexample": {
+    "values": [
+      "U",
+      "T",
+      "F"
+    ],
+    "naive_choice": 1,
+    "possible_correct_choices": [
+      0,
+      1
+    ],
+    "required": "pending"
+  },
+  "product_executions": 0,
+  "device_runs": 0,
+  "proves_real_world_completeness": false,
+  "limitations": [
+    "no real asynchronous kernel",
+    "no identity/perception proof",
+    "no handler recovery implementation",
+    "no end-to-end correctness proof"
+  ]
+}

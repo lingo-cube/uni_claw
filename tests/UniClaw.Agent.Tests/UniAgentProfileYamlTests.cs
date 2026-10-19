@@ -138,8 +138,8 @@ public sealed class UniAgentProfileYamlTests
     {
         var profile = UniAgentProfileYaml.LoadDefault();
 
-        // TRAJECTORY-001：payload-shapes 增补 skip 形状 → profile revision 6。
-        Assert.Equal(9, profile.Revision);
+        // RUNTIME-PLAN-002：持续遍历/typed handlers提示词及生成Schema装配随动。
+        Assert.Equal(19, profile.Revision);
         Assert.NotNull(profile.Assembly);
         Assert.NotNull(profile.Assembly!.PromptManifest);
         Assert.Equal("product/prompt/uniagent-prod", profile.Assembly.PromptManifest!.Path);

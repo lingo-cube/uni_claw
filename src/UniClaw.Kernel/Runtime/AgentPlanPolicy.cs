@@ -32,6 +32,15 @@ public sealed class AgentPlanPolicy : IControlPolicy
     /// <summary>续授窗口阈值：轮次剩余 ≤ 该值时窗口开启（默认 0 = 不开窗）。</summary>
     public int RenewalThresholdRounds { get; init; }
 
+    /// <summary>Enable goal-directed review continuation without an arbitrary cumulative cap.</summary>
+    public bool GoalDirectedContinuationEnabled { get; init; }
+
+    /// <summary>Optional explicit total step authorization boundary.</summary>
+    public int? AuthorizedTotalSteps { get; init; }
+
+    /// <summary>Optional explicit consultation authorization boundary.</summary>
+    public int? AuthorizedTotalConsultRounds { get; init; }
+
     /// <summary>当前已采纳 specs（观察面；null = 尚未采纳）。</summary>
     public IReadOnlyList<TargetSpec>? Adopted { get; private set; }
 

@@ -429,6 +429,18 @@ intrinsic / contextual state claims）按 semantic kind 分界，不按变化频
 分界；graph relation ≠ timeless structural truth；不成为跨组件公共协议。
 _Avoid_: timeless structure、DOM tree、跨组件协议对象
 
+**Traversal Graph（遍历图）**: 由运行时从World有依据结构中按任务范围摘取引用、组织形成，供Traversal消费的可重建结构视图，覆盖累计已观察的页面、元素及关系；身份与依据沿用World，当前有效性随World更新，历史定位不成为当前可执行目标。它不包含任务处理进度、不反写World，也不构成独立世界真值；调用方不必另行提交图，即时查询或缓存不改变这一语义关系。
+_Avoid_: 任务进度图、执行历史、第二套World、Effect授权
+
+**Traversal（遍历执行）**: Control Loop中依据计划与当前事实推进结构探索、覆盖和控制权返回的职责，由Kernel内部driver协调既有Owner执行链；对外接受一次执行，运行中提供只读状态查询，本次执行结束后返回结果。需新决策时暂停并保留进度，经明确继续/修订和事实重检后恢复，具体恢复意图仍属Control Loop的Recovery职责；不拥有Goal、Belief、canonical Run进度、Completion或Effect投递权威，查询本身不推进执行。
+_Avoid_: 每查询一次推进一步、调用方反复取NextStep、第二个Run驱动、Traversal结果即目标完成
+
+**Traversal Status（遍历执行状态）**: 由同源Run/执行记录派生的只读概览，表达当前状态、执行位置、完成/剩余工作、暂停原因及待决定事项，详细依据通过引用读取。它不是新的状态权威，查询不触发执行、恢复或咨询。
+_Avoid_: 整图/全量日志转储、查询即推进、状态查询即控制命令
+
+**Traversal Result（遍历执行结果）**: 本次Traversal执行结束后交付的报告，说明结束方式和原因、完成/未完成工作、跳过/未知及证据引用。它不是单步回执，也不能单独作为Goal完成证明。
+_Avoid_: 每步处理结果、暂停即最终结果、任务完成授权
+
 **Container Association**: World Model 内部维护 ContainerIdentity
 continuity 的领域过程；合法输入 = accepted world-relevant Evidence（P3）+
 previous WorldBeliefRevision + TransitionContext（仅 prior，P22）。结果见
@@ -533,12 +545,8 @@ _Avoid_: contract copy、session config
 它生成新的 ContractViewRef，不重新执行 P24 activation；P25 使用最新 current view。
 _Avoid_: Agent 覆盖 Contract、静默改 objective、scope 或 effect permissions
 
-**Budget Grant（预算续授）**: 决策边界上的运行额度续授（步数/轮次同机制）：
-UniAgent 按实际情况提案、policy 以绝对硬顶封顶并共同决定；触发阈值与硬顶同源
-于 policy；经 P25 咨询通道（终问可携带），不是 contract mutation，不作 canonical
-Run State transition；admission 记录初始额度来源（configured/default）。
-（ADR-0050；实现经 PROTOCOL-FIX）
-_Avoid_: contract revision、无限续授、policy 自续、Run State 膨胀
+**Budget Grant（预算续授）**: 决策边界上的步数/咨询轮次额度续授，由Runtime按资源状态触发明确复核，UniAgent结合目标和实际进展判断与提案，规则侧校验并记录授拒。单笔有限、累计消耗保留，不修改目标或权限，不是ContractRevision或新的canonical Run State转移；累计边界依所接受的资源策略定义（ADR-0050及其部分替代ADR-0052）。
+_Avoid_: contract revision、无复核自动续额、policy自续、Run State膨胀
 
 **Run State**: Run Model 拥有的 canonical 执行状态聚合（Contract View +
 Objective + Proof Obligation + Progress + terminal **Outcome State**）；
@@ -554,6 +562,9 @@ _Avoid_: god context、execution log
 Consumer View 规则立 view。不是全量 Run State，不含 action-local
 assurance state，也不是 Goal Evaluation。
 _Avoid_: run state dump、progress log、goal evaluation、空协议载荷
+
+**Execution Overview（执行概览，overview）**: 关联同一Run目标、已知结构、累计及当前授额区间进展、剩余工作和阻碍的同源只读事实视图，可并列呈现UniAgent基于这些事实作出的方向判断，判断不覆盖事实。剩余工作可以表示为已知分支、范围或待查明问题，细度随证据逐步展开，不要求预先穷举详细任务。当前可行动事项由事实Owner以稳定键、来源引用及相关稳定成果键投影；Agent用NextItemKey选择，Runtime不从方向文字推断事项身份。
+_Avoid_: 第二份Run State、模型自评即事实、完整任务清单、完成或续额裁决
 
 **Control Intent**: Control Loop 唯一签发的控制产出（observe / act /
 recovery）。act-intent 只携带 target hint 与 basis revision，不是
@@ -782,6 +793,8 @@ _Avoid_: Host 直接改 Run、Agent 自行取消、取消后继续 dispatch
 **UniAgent**: Product T1 中、Uni Kernel 之外的监督主体；
 拥有 Primary Goal 与 Goal Evaluation，不拥有 WorldBelief、Run State、
 Assurance Judgment、target binding 或 effect delivery。
+执行期间，UniAgent 结合目标预期与实际事实判断是否朝目标推进；该方向判断
+不替代 Run Progress 的事实记录或 Assurance Judgment。
 _Avoid_: 壳/shell、orchestrator、supervisor（泛称）
 
 **UniAgent Realization**: 在具体 Host Runtime 上完整承担 UniAgent 产品职责与
@@ -875,6 +888,17 @@ profileRef、profileRevision 或完整能力/预算/终止契约。目标设计�
 计划更新依据，探索不能绕过 Capability/Effect authority 或把暂时假设升级为事实。
 _Avoid_: always-precise instruction、unbounded exploration、exploration as authority
 
+**Product Execution Plan（产品执行计划）**: UniAgent提出并修订的advisory执行意图，保留阶段预期，并以具体步骤或已声明语义范围内可判定的有界规则表达当前可执行内容，供Runtime依据当前事实逐步展开并记录实际采纳与执行情况。它不改变目标、权限或事实权威；计划内规则无法覆盖所需判断时返回Agent，执行与验证仍由既有Owner负责，计划修订不改写已发生事实。
+_Avoid_: 开发Leader Plan、完整预知的点击脚本、Effect授权、第二套执行器
+
+**PlanTree（计划树）**: Product Execution Plan的结构化表达，以任务/子任务和已声明语义的处理规则组织目标、范围、安全限制及结束条件，供Control Loop中的Traversal消费，由Kernel协调执行；不要求预先列出运行中才会发现的全部页面或动作。它表示执行意图，不表示当前世界事实、任务进度或Effect许可。
+_Avoid_: UI页面树、World图副本、预展开的完整点击脚本、开发Leader Plan
+
+**Plan Handler（计划处理步骤）**: 绑定于计划中具体操作、引用任务已提供并有效绑定的Capability及其声明操作和参数的处理步骤；不同操作可绑定不同列表，分别声明操作前或完成并验证后的时机，各时机内有序。独立只读处理也可绑定，不要求产生UI交互；目标与观察须明确关联，原目标消失不能自动替换。它不是独立注册的能力组件，不因引用能力而获得事实、裁决或Effect权威。 调用完成、领域通过、继续条件与Goal满足相互独立；能力按自己的typed协议给出领域结果，计划仅按显式继续条件协调。运行中的状态查询只读，最终遍历报告保留发现不足、排除、深度截断及未完成事项。
+_Avoid_: 独立Handler注册表、注册顺序即任务顺序、任意方法调用、绕过Kernel直达能力
+
+检查范围、完成及通过的领域含义由该handler对应的能力协议定义；Kernel负责协调调度，经原Owner缝记录执行状态与返回结果，不重判领域结论。检查不符合与调用执行异常分开：前者可按声明策略记录并继续，只有明确必需的继续条件不满足才暂停；具体恢复意图归Control Loop的Recovery职责，handler不直接改写canonical状态或成为控制/安全裁决者。
+
 **DSH Realization Binding**: UniAgent Profile 在 DSH realization 上的映射
 文件（逻辑角色到 provider/model 的偏好序、服务端点），由 DSH adapter
 拥有；更换 provider 或端点不改变 UniAgent Profile。
@@ -945,12 +969,12 @@ _Avoid_: user profile、session state、config
 有界 AgentDecisionContext，输出 = 恰一个 AgentDecision（或 null = no-response
 fail-closed）。P1 只负责提交/审核 Execution Contract，P24 只负责启动已接受的
 Contract View，P25 只负责运行中的边界咨询。同一 decision boundary 可以重复咨询，
-但每次必须有独立 `consultationCorrelationId`，总次数受 Contract/Policy HardCap
+但每次必须有独立 `consultationCorrelationId`，资源消耗受初始额度、逐笔明确复核及已声明的资源授权边界
 限制；P25 不创建、修改或替换 Contract/Contract View。咨询时机、boundary 记录和
 生命周期推进由 Kernel 独占；Agent 只回答，永不发起。Host realization 内部的
 turn/step 结构是回答的产生方式，不是第二个生命周期 Owner。P25 journal key 为
 `runId + contractViewRef + decisionBoundaryId + consultationCorrelationId`；同
-correlation 的 transport retry 返回原结果且不重复消耗 HardCap。timeout/no-response
+correlation 的 transport retry 返回原结果且不重复消耗咨询额度。timeout/no-response
 计为一次 semantic consultation，持久化 fail-closed disposition；新 correlation
 才重新计数。
 _Avoid_: agent invocation（泛义）、chat round、turn（跨 realization 混用）、

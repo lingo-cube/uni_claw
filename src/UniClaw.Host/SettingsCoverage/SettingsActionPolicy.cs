@@ -208,7 +208,8 @@ public static class SettingsActionGuard
         AgentDecision? decision,
         AgentDecisionContext context,
         SettingsActionPolicy policy,
-        out SettingsActionGuardResult? result)
+        out SettingsActionGuardResult? result,
+        bool currentStepGuardInstalled = false)
     {
         result = null;
         if (decision is null or AgentDecision.NoAction or AgentDecision.Defer)
@@ -220,17 +221,21 @@ public static class SettingsActionGuard
             if (act.Proposal.Steps.Count != 1)
             {
                 result = Reject("unknown-action", "multi-step act is not policy-guardable", policy);
-                return null;
+                return RejectedDecision(decision, context, result);
             }
             step = act.Proposal.Steps[0];
         }
         else if (decision is AgentDecision.Plan plan)
         {
+            // Future-page actions are checked only after materialization against
+            // current facts. This opt-in is set only by a composition that has
+            // installed the mandatory per-step Runtime constraint below.
+            if (currentStepGuardInstalled) return decision;
             var acts = plan.Proposal.Items.OfType<PlanItem.ActItem>().Take(2).ToList();
             if (acts.Count > 1)
             {
                 result = Reject("unknown-action", "multi-act plan is not policy-guardable", policy);
-                return null;
+                return RejectedDecision(decision, context, result);
             }
             if (acts.Count == 1)
             {
@@ -242,7 +247,7 @@ public static class SettingsActionGuard
         else if (decision is AgentDecision.Policy)
         {
             result = Reject("unknown-action", "policy proposal is not policy-guardable", policy);
-            return null;
+            return RejectedDecision(decision, context, result);
         }
         if (step is null)
             return decision;
@@ -252,10 +257,32 @@ public static class SettingsActionGuard
         {
             SettingsActionGuardVerdict.Allow => decision,
             SettingsActionGuardVerdict.NoAction => new AgentDecision.NoAction(
-                new AgentNoActionProposal(context.DecisionId, $"settings-policy:{result.Reason}")),
-            _ => null,
+                new AgentNoActionProposal(context.DecisionId, $"settings-policy:{result.Reason}"),
+                ReviewResponseOf(decision)),
+            _ => RejectedDecision(decision, context, result),
         };
     }
+
+    private static AgentDecision? RejectedDecision(
+        AgentDecision? decision,
+        AgentDecisionContext context,
+        SettingsActionGuardResult? result) => ReviewResponseOf(decision) is { } review
+            ? new AgentDecision.NoAction(new AgentNoActionProposal(
+                context.DecisionId, $"settings-policy:{result?.SemanticAction ?? "rejected"}:{result?.Reason ?? "action rejected"}"), review)
+            : null;
+
+    private static BudgetReviewResponse? ReviewResponseOf(AgentDecision? decision) => decision switch
+    {
+        AgentDecision.Act x => x.ReviewResponse,
+        AgentDecision.NoAction x => x.ReviewResponse,
+        AgentDecision.Defer x => x.ReviewResponse,
+        AgentDecision.Policy x => x.ReviewResponse,
+        AgentDecision.Plan x => x.ReviewResponse,
+        AgentDecision.ContinuePlan x => x.ReviewResponse,
+        AgentDecision.Blocked x => x.ReviewResponse,
+        AgentDecision.Skip x => x.ReviewResponse,
+        _ => null,
+    };
 
     public static SettingsActionGuardResult Evaluate(
         AgentActionStep step,
@@ -317,6 +344,30 @@ public static class SettingsActionGuard
             return new SettingsActionGuardResult(SettingsActionGuardVerdict.Allow, safeSemantic,
                 "safe action class", policy.Digest);
         return Reject(safeSemantic, $"action class not declared: {step.EffectClass}", policy);
+    }
+
+    /// <summary>Current-action constraint, called by Kernel before Control and
+    /// dispatch. It can withhold an action, never authorize an Effect.</summary>
+    public static PlanStepGuardResult EvaluateCurrentStep(
+        AgentActionStep step, AgentDecisionContext context, SettingsActionPolicy policy)
+    {
+        var classified = Evaluate(step, context, policy);
+        var refs = new[] { $"settings-policy:{policy.Digest}" };
+        if (classified.Verdict == SettingsActionGuardVerdict.Reject)
+            return new PlanStepGuardResult(PlanStepGuardVerdict.Reject, classified.Reason, refs);
+        var matches = (context.Elements ?? Array.Empty<ElementSummary>())
+            .Where(element => string.Equals(element.Text?.Trim(), step.TargetDescriptor?.Trim(), StringComparison.OrdinalIgnoreCase)
+                && (string.Equals(element.Role, step.TargetRole, StringComparison.OrdinalIgnoreCase)
+                    || step.DesiredState is not null && element.Checkable == true)).ToArray();
+        if (matches.Length != 1)
+            return new PlanStepGuardResult(PlanStepGuardVerdict.Unknown,
+                "current target is missing or ambiguous", refs);
+        if (matches[0].Enabled == false)
+            return new PlanStepGuardResult(PlanStepGuardVerdict.Reject, "current target is disabled", refs);
+        if (step.DesiredState is not null && string.IsNullOrWhiteSpace(matches[0].State))
+            return new PlanStepGuardResult(PlanStepGuardVerdict.Unknown, "current switch state is unknown", refs);
+        return new PlanStepGuardResult(classified.Verdict == SettingsActionGuardVerdict.NoAction
+            ? PlanStepGuardVerdict.AlreadySatisfied : PlanStepGuardVerdict.Allow, classified.Reason, refs);
     }
 
     private static SettingsActionGuardResult Reject(

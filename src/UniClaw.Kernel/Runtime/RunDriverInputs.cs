@@ -1,4 +1,5 @@
 using UniClaw.Kernel.Evidence;
+using UniClaw.Kernel.Capability;
 
 namespace UniClaw.Kernel.Runtime;
 
@@ -90,6 +91,10 @@ public sealed class RunDriverInputs
     /// </summary>
     public required Func<ObservationDirective, RunDriverInput?> NextInput { get; init; }
 
+    /// <summary>Non-observation lifecycle poll, consumed only at safe driver
+    /// boundaries; cannot dequeue or synthesize an observation or authorize effects.</summary>
+    public Func<RunDriverInput.Cancel?>? PollCancellation { get; init; }
+
     /// <summary>P25 UniAgent consultation seam（唯一调用方 = internal driver）。</summary>
     public required Func<AgentDecisionContext, AgentDecision?> ConsultAgent { get; init; }
 
@@ -98,4 +103,42 @@ public sealed class RunDriverInputs
 
     /// <summary>P25 durable seam; null uses an in-process journal for legacy/test composition.</summary>
     public IConsultationJournal? ConsultationJournal { get; init; }
+
+    /// <summary>Owner-produced read-only progress facts for the shared execution overview.</summary>
+    public Func<ExecutionOverviewProjection?>? ProjectExecutionOverview { get; init; }
+
+    /// <summary>Optional task-evidence barrier. A non-null reason withholds
+    /// completion proof; it can never grant completion or authorize effects.</summary>
+    public Func<string?>? CheckTaskEvidenceBarrier { get; init; }
+
+    /// <summary>Owner's read-only current candidate projection for a named plan source.</summary>
+    public Func<string, PlanCandidateSet?>? ProjectPlanCandidates { get; init; }
+
+    /// <summary>Names and descriptions of candidate sources available to the Agent.</summary>
+    public IReadOnlyDictionary<string, string>? AvailablePlanSources { get; init; }
+
+    /// <summary>Read-only current owner condition, optionally evaluated for the current semantic candidate.</summary>
+    public Func<string, PlanCandidate?, PlanConditionResult?>? EvaluatePlanCondition { get; init; }
+
+    /// <summary>Declared condition names and descriptions available to the Agent.</summary>
+    public IReadOnlyDictionary<string, string>? AvailablePlanConditions { get; init; }
+
+    /// <summary>World-derived, current-revision traversal reference view.</summary>
+    public Func<string, TraversalObservation?>? ProjectTraversal { get; init; }
+
+    /// <summary>Task binding validation for the existing typed inspection protocol.</summary>
+    public Func<PlanLanguageHandler, bool>? CanBindPlanLanguage { get; init; }
+
+    /// <summary>Explicit cross-domain typed inspection adapter; no registry dispatch.</summary>
+    public Func<PlanLanguageHandler, PlanHandlerInput, Finding?>? InspectPlanLanguage { get; init; }
+
+    /// <summary>Maximum wait for one read-only typed inspection. Late results
+    /// have no Owner write authority and are not accepted after this deadline.</summary>
+    public TimeSpan PlanHandlerTimeout { get; init; } = TimeSpan.FromSeconds(2);
+
+    /// <summary>Control Loop Recovery receives execution facts; strategy remains there.</summary>
+    public Action<TraversalRecoveryFacts>? ObserveTraversalRecovery { get; init; }
+
+    /// <summary>Per-step current-fact guard. This constrains execution and grants no Effect authority.</summary>
+    public Func<AgentActionStep, AgentDecisionContext, PlanStepGuardResult>? GuardStep { get; init; }
 }

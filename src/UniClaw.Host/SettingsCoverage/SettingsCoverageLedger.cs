@@ -102,6 +102,9 @@ public sealed class SettingsCoverageLedger
 
     public long LastEventSequence => _sequence;
 
+    /// <summary>Read-only verified route/action history; projection grants no new navigation authority.</summary>
+    internal IReadOnlyList<CoverageStepRecord> VerifiedSteps => _steps.Where(item => item.Step.Verified).Select(item => item.Step).ToArray();
+
     /// <summary>Read-only replay cursor over this run's owner stream.</summary>
     public IReadOnlyList<CoverageEvent> ReadEvents(long afterSequence = 0, int limit = 100)
     {
@@ -110,6 +113,15 @@ public sealed class SettingsCoverageLedger
             .Take(boundedLimit)
             .ToArray();
     }
+
+    /// <summary>Read-only view derived from accepted observation events. It adds
+    /// no state owner and keeps discovery tied to the original ledger sequence.</summary>
+    public IReadOnlyList<CoverageObservedElement> ObservedElements => _observations
+        .SelectMany(observation => observation.Occurrences
+            .Where(item => item.Descriptor is not null)
+            .Select(item => new CoverageObservedElement(
+                observation.Sequence, observation.Route, item.Role, item.Descriptor!, item.NativeRid)))
+        .ToArray();
 
     /// <summary>Latest accepted mark per target. Structural exclusions are not included.</summary>
     public IReadOnlyDictionary<string, TargetCoverageMark> TargetMarks => _targetMarks;
@@ -302,22 +314,36 @@ public sealed class SettingsCoverageLedger
         var coverageComplete = items.All(item => item.Covered);
         var currentRoute = _observations.Count > 0 ? _observations[^1].Route : null;
 
-        var maxStepsReached = _stepsExecuted >= config.Bounds.MaxSteps;
+        // In goal-directed mode, the current grant and consultation budget are
+        // Runtime-owned. Host stops only at an explicitly authorized total
+        // ceiling. Legacy mode retains its configured final ceiling behavior.
+        var maxStepsCeiling = config.Bounds.GoalDirectedContinuationEnabled
+            ? config.Bounds.AuthorizedTotalSteps
+            : config.Bounds.MaxTotalSteps ?? config.Bounds.MaxSteps;
+        var maxRoundsCeiling = config.Bounds.GoalDirectedContinuationEnabled
+            ? config.Bounds.AuthorizedTotalConsultRounds
+            : config.Bounds.MaxTotalConsultRounds ?? config.Bounds.MaxConsultRounds;
+        var maxStepsReached = maxStepsCeiling is { } stepCeiling && _stepsExecuted >= stepCeiling;
         var maxScrollsReached = _scrollAttempts >= config.Bounds.MaxScrolls;
         var maxConsecutiveFailuresReached = _consecutiveFailures >= config.Bounds.MaxConsecutiveFailures;
-        var maxConsultRoundsReached = _consultRounds >= config.Bounds.MaxConsultRounds;
+        var maxConsultRoundsReached = maxRoundsCeiling is { } roundCeiling && _consultRounds >= roundCeiling;
 
         var terminated =
             (config.Termination.OnCoverageComplete && coverageComplete)
             || (config.Termination.OnMaxSteps && maxStepsReached)
-            || (config.Termination.OnMaxScrolls && maxScrollsReached)
-            || (config.Termination.OnConsecutiveFailures && maxConsecutiveFailuresReached);
+            || (config.Termination.OnMaxScrolls && maxScrollsReached
+                && !config.Bounds.GoalDirectedContinuationEnabled)
+            || (config.Termination.OnConsecutiveFailures && maxConsecutiveFailuresReached
+                && !config.Bounds.GoalDirectedContinuationEnabled);
 
         string? directive = null;
         string? directiveKind = null;
         if (!coverageComplete && !terminated)
         {
-            var scrollSatisfied = items.First(item => item.Requirement == "scroll-discovered-entry").Covered;
+            // The scroll-attempt limit constrains only further swipes. Preserve
+            // its unmet coverage fact, but continue other visible branches.
+            var scrollSatisfied = items.First(item => item.Requirement == "scroll-discovered-entry").Covered
+                || config.Bounds.GoalDirectedContinuationEnabled && maxScrollsReached;
             var backSatisfied = items.First(item => item.Requirement == "back-navigation").Covered;
             var repeatedSatisfied = items.First(item => item.Requirement == "repeated-entry").Covered;
             (directive, directiveKind) = NextDirective(config, scrollSatisfied, backSatisfied, repeatedSatisfied, currentRoute);
@@ -388,6 +414,7 @@ public sealed class SettingsCoverageLedger
         return DynamicRootCandidates(config)
             .Where(candidate => !visited.Contains(candidate, StringComparer.Ordinal)
                 && !IsAgentSkipped(candidate)
+                && !IsTargetReached(candidate)
                 && !skipped.ContainsKey(candidate))
             .ToArray();
     }
@@ -671,7 +698,7 @@ public sealed class SettingsCoverageLedger
                     && visible.Contains(descriptor));
             if (candidate is not null)
                 return ($"Enter the scroll-discovered Settings entry '<{candidate}>' by tapping it.", "enter");
-            if (_scrollsUsed < config.Bounds.MaxScrolls)
+            if (_scrollAttempts < config.Bounds.MaxScrolls)
                 return ($"Scroll the Settings list down with swipe-up on '<{config.ScrollContainerDescriptor}>'", "scroll");
             return (null, null);
         }
@@ -679,7 +706,8 @@ public sealed class SettingsCoverageLedger
         if (!repeatedSatisfied)
         {
             var firstEntered = config.TargetPages
-                .FirstOrDefault(page => enteredPages.Contains(page) && visible.Contains(page));
+                .FirstOrDefault(page => enteredPages.Contains(page)
+                    && !IsAgentSkipped(page) && visible.Contains(page));
             if (firstEntered is not null)
                 return ($"Enter '<{firstEntered}>' again to verify repeated entry.", "re-enter");
         }
@@ -822,6 +850,7 @@ public sealed class SettingsCoverageLedger
         return DynamicNestedCandidates(config)
             .Where(key => !visited.Contains(key, StringComparer.Ordinal)
                 && !IsAgentSkipped(key)
+                && !IsTargetReached(key)
                 && !skipped.ContainsKey(key))
             .ToArray();
     }
@@ -870,13 +899,47 @@ public sealed class SettingsCoverageLedger
         return reasons;
     }
 
+    // Depth is derived only from verified navigation edges. MaxDepth counts
+    // nested-enter layers after the first-level page (1 therefore permits A -> B).
+    internal IReadOnlyDictionary<string, int> KnownNavigationDepths(SettingsCoverageConfig config)
+    {
+        var depths = new Dictionary<string, int>(StringComparer.Ordinal) { [config.RootRoute] = 0 };
+        var edges = _steps.Select(item => item.Step).Where(step => step.Verified
+            && CountsAsCoverageProgress(step, config) && IsTapOrClick(step.EffectClass)
+            && step.TargetDescriptor != config.BackDescriptor
+            && step.RouteBefore is not null && step.RouteAfter is not null && step.RouteBefore != step.RouteAfter).ToArray();
+        var changed = true;
+        while (changed)
+        {
+            changed = false;
+            foreach (var step in edges)
+            {
+                var before = IsRoot(config, step.RouteBefore!) ? 0
+                    : depths.TryGetValue(step.RouteBefore!, out var known) ? known : (int?)null;
+                if (before is null || IsRoot(config, step.RouteAfter!)) continue;
+                var candidate = before.Value + 1;
+                if (!depths.TryGetValue(step.RouteAfter!, out var current) || candidate < current)
+                {
+                    depths[step.RouteAfter!] = candidate;
+                    changed = true;
+                }
+            }
+        }
+        return depths;
+    }
+
     private List<string> DynamicNestedCandidates(SettingsCoverageConfig config, bool includeSkipped = false)
     {
         var candidates = new List<string>();
+        var pageCounts = new Dictionary<string, int>(StringComparer.Ordinal);
+        var depths = KnownNavigationDepths(config);
         foreach (var (_, route, occurrences) in _observations)
         {
             if (IsRoot(config, route)) continue;
-            var pageCount = 0;
+            if (depths.TryGetValue(route, out var depth) && depth > config.DynamicNestedEntriesSettings.MaxDepth) continue;
+            // Candidate scope is per page for the whole run, not per capture.
+            // The excluded-element audit keeps its existing observation projection.
+            var pageCount = includeSkipped ? 0 : pageCounts.GetValueOrDefault(route);
             foreach (var (role, descriptor, nativeRid) in occurrences)
             {
                 if (descriptor is null || (!includeSkipped && DynamicNestedSkipReason(config, role, descriptor, nativeRid) is not null)) continue;
@@ -887,6 +950,7 @@ public sealed class SettingsCoverageLedger
                     { candidates.Add(key); pageCount++; }
                 }
             }
+            if (!includeSkipped) pageCounts[route] = pageCount;
         }
         return candidates;
     }
@@ -970,6 +1034,10 @@ public sealed class SettingsCoverageLedger
 
     /// <summary>AGT-006 修复：全部已进入 descriptor（不限 TargetPages——
     /// 滚动候选不在 TargetPages 内，指令引擎用它防候选重复进入）。</summary>
+    /// <summary>Owner-derived successful root arrivals and explicit Agent skips;
+    /// used to project the pending Plan frontier without another task store.</summary>
+    public IReadOnlySet<string> EnteredRootDescriptors(SettingsCoverageConfig config) => AllEnteredDescriptors(config);
+
     private HashSet<string> AllEnteredDescriptors(SettingsCoverageConfig config)
     {
         var entered = new HashSet<string>(StringComparer.Ordinal);
@@ -990,14 +1058,20 @@ public sealed class SettingsCoverageLedger
         return entered;
     }
 
-    private bool IsAgentSkipped(string target)
+    private bool IsAgentSkipped(string target) =>
+        FindTargetMark(target)?.Kind == TargetCoverageMarkKind.Skipped;
+
+    private bool IsTargetReached(string target) =>
+        FindTargetMark(target)?.Kind is TargetCoverageMarkKind.RouteEntered or TargetCoverageMarkKind.ReachedOverlay;
+
+    private TargetCoverageMark? FindTargetMark(string target)
     {
         if (_targetMarks.TryGetValue(target, out var exact))
-            return exact.Kind == TargetCoverageMarkKind.Skipped;
+            return exact;
         var separator = target.LastIndexOf('>');
         var descriptor = separator >= 0 ? target[(separator + 1)..] : target;
         return _targetMarks.TryGetValue(descriptor, out var nested)
-            && nested.Kind == TargetCoverageMarkKind.Skipped;
+            ? nested : null;
     }
 
     private HashSet<string> EnteredPagesSnapshot(SettingsCoverageConfig config)

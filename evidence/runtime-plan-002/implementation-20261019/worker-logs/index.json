@@ -1,0 +1,87 @@
+[
+  {
+    "source": "/tmp/uniclaw-simulation-a1-detail.log",
+    "sha256": "0a77ecc2f8aa166451196420d1078f4fb435236863b44be2e931f93f361be696",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-a1-detail-0a77ecc2.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-a1.log",
+    "sha256": "ce49e0d0edca64159c1eaeb8c6a05c901a715232ad3d7a2bce3ff7561d61d79e",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-a1-ce49e0d0.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-a1a4.log",
+    "sha256": "cca901372c55c9ef10467b26a48950dc11a26cdb4697b5f047f35ea70214a412",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-a1a4-cca90137.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-after-missing-detail.log",
+    "sha256": "c20dd66ab18dfc52e815b328f9c4409859a78b31b82c5ed2ff8d6232952c7cb6",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-after-missing-detail-c20dd66a.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-after-missing.log",
+    "sha256": "ecc662885af67e012d7521964af11142d790ee0cd0934f84a8d698c80aa048e1",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-after-missing-ecc66288.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-blocked.log",
+    "sha256": "1b1b97b74f2a9d026301f9620c98107a994b132397653c7d88ac4a0e899a255f",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-blocked-1b1b97b7.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-cycle-detail.log",
+    "sha256": "e38ca4e7aefe087ae6453dc4980e4a7e21d2507da83a9984e3e07761ced1a395",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-cycle-detail-e38ca4e7.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-cycle.log",
+    "sha256": "6700a5b44b83d323c86abfc64f5996ca003df5ece511e24c460bb2a3e97ed6fe",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-cycle-6700a5b4.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-handler-detail.log",
+    "sha256": "a67f91496b88924a11078edf3f6e90107981cb1e01e3f36300b82704b0be8075",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-handler-detail-a67f9149.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-return-failed-detail.log",
+    "sha256": "dffede7739907e450fcf6abf719b5bc17c507af0018975aeda781cbc551ef7d0",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-return-failed-detail-dffede77.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-return-failed.log",
+    "sha256": "77a0b123f601d4369f6960102fda34cd5d40e83f2d66f23ee2779393bb893d25",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-return-failed-77a0b123.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-sharedpage-detail.log",
+    "sha256": "5c8c7b9f4ba05e6b2df4ebeca4e863e5e142edc07e704a5d94dce26367a37a46",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-sharedpage-detail-5c8c7b9f.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-sharedpage.log",
+    "sha256": "7460c19ffb171f33d39ff5a2d9997b97c25aa547684b231ad7b3ada6839ce4db",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-sharedpage-7460c19f.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-traversal-first-detail.log",
+    "sha256": "751c0020ea21edfa234b3fd5af9865890512fb0fe8bd0cd52c57fe6e8d668651",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-traversal-first-detail-751c0020.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-traversal-first.log",
+    "sha256": "f575f2c0fbdc427cc7ad36256419e639c500e71a461419a6e387ee0993980f4f",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-traversal-first-f575f2c0.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-unauthorized-detail.log",
+    "sha256": "9c150ffaa9ea542590149145eff2674d30449c60704d125d8de2b9993e61475b",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-unauthorized-detail-9c150ffa.log"
+  },
+  {
+    "source": "/tmp/uniclaw-simulation-unauthorized.log",
+    "sha256": "170d834c25e9fe4e4088f87a538678a67782eb7710ebcaf0b398f04ee0b759ae",
+    "copy": "evidence/runtime-plan-002/implementation-20261019/worker-logs/uniclaw-simulation-unauthorized-170d834c.log"
+  }
+]

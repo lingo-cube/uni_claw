@@ -263,6 +263,19 @@ public sealed class SettingsCoverageLedgerTests
     }
 
     [Fact]
+    public void DynamicNestedEntries_PerPageLimitDoesNotResetOnEveryObservation()
+    {
+        var config = Config() with { DynamicNestedEntries = new DynamicNestedEntriesConfig(true, 1, 1) };
+        const string page = "android.settings|route:Network";
+        var ledger = new SettingsCoverageLedger();
+        Observe(ledger, RootRoute, "Network & internet");
+        EnterStep(ledger, "Network & internet", page);
+        Observe(ledger, page, "Internet", "SIMs");
+        Observe(ledger, page, "Internet", "SIMs");
+        Assert.Equal(new[] { $"{page}>Internet" }, ledger.DynamicNestedFrontier(config));
+    }
+
+    [Fact]
     public void DynamicNestedEntries_DriveCurrentPageAndTrackVisited()
     {
         var config = ConfigWith("""
@@ -552,6 +565,98 @@ public sealed class SettingsCoverageLedgerTests
         Assert.True(snapshot.MaxConsecutiveFailuresReached);
         Assert.Equal(Config().Bounds.MaxConsecutiveFailures, ledger.Report(Config()).StepsExecuted);
         Assert.Equal(0, ledger.Report(Config()).StepsVerified);
+    }
+
+    [Fact]
+    public void ConsultCeiling_UsesFinalTotal_LeavingCurrentGrantsToKernel()
+    {
+        var ledger = new SettingsCoverageLedger();
+        var config = BoundedConfig();
+        config = config with { Bounds = config.Bounds with { MaxConsultRounds = 3, MaxTotalConsultRounds = 6 } };
+        for (var i = 0; i < 3; i++)
+            ledger.RecordConsultRound($"decision-{i}");
+        Assert.False(ledger.Snapshot(config).MaxConsultRoundsReached);
+        for (var i = 3; i < 6; i++)
+            ledger.RecordConsultRound($"decision-{i}");
+        Assert.True(ledger.Snapshot(config).MaxConsultRoundsReached);
+    }
+
+    [Fact]
+    public void GoalDirectedMode_IgnoresLegacyTotalsAndSingleGrantCeilingsWithoutAuthorizedTotal()
+    {
+        var ledger = new SettingsCoverageLedger();
+        var config = BoundedConfig() with
+        {
+            Bounds = BoundedConfig().Bounds with
+            {
+                MaxSteps = 3,
+                MaxConsultRounds = 3,
+                MaxTotalSteps = 6,
+                MaxTotalConsultRounds = 6,
+                GoalDirectedContinuationEnabled = true,
+            },
+        };
+        for (var i = 0; i < 7; i++)
+        {
+            EnterStep(ledger, $"target-{i}", $"route-{i}", verified: false);
+            ledger.RecordConsultRound($"decision-{i}");
+        }
+
+        var snapshot = ledger.Snapshot(config);
+
+        Assert.False(snapshot.MaxStepsReached);
+        Assert.False(snapshot.MaxConsultRoundsReached);
+        Assert.True(snapshot.MaxConsecutiveFailuresReached);
+        Assert.False(snapshot.CoverageComplete);
+    }
+
+    [Fact]
+    public void GoalDirectedMode_StopsAtExplicitAuthorizedTotalCeilings()
+    {
+        var ledger = new SettingsCoverageLedger();
+        var config = BoundedConfig() with
+        {
+            Bounds = BoundedConfig().Bounds with
+            {
+                MaxSteps = 3,
+                MaxConsultRounds = 3,
+                GoalDirectedContinuationEnabled = true,
+                AuthorizedTotalSteps = 4,
+                AuthorizedTotalConsultRounds = 4,
+            },
+        };
+        for (var i = 0; i < 4; i++)
+        {
+            EnterStep(ledger, $"target-{i}", $"route-{i}", verified: true);
+            ledger.RecordConsultRound($"decision-{i}");
+        }
+
+        var snapshot = ledger.Snapshot(config);
+
+        Assert.True(snapshot.MaxStepsReached);
+        Assert.True(snapshot.MaxConsultRoundsReached);
+    }
+
+    [Fact]
+    public void GoalDirectedMode_ScrollLimitBlocksSwipesButKeepsOtherVisibleBranchesActionable()
+    {
+        var ledger = new SettingsCoverageLedger();
+        var config = BoundedConfig() with
+        {
+            Bounds = BoundedConfig().Bounds with
+            {
+                MaxScrolls = 0,
+                GoalDirectedContinuationEnabled = true,
+            },
+        };
+        Observe(ledger, config.RootRoute, TargetPages[0]);
+
+        var snapshot = ledger.Snapshot(config);
+
+        Assert.True(snapshot.MaxScrollsReached);
+        Assert.False(snapshot.CoverageComplete);
+        Assert.Equal("enter", snapshot.NextDirectiveKind);
+        Assert.Contains(TargetPages[0], snapshot.NextDirective);
     }
 
     [Fact]
@@ -946,5 +1051,33 @@ public sealed class SettingsCoverageLedgerTests
         Assert.Equal(TargetCoverageMarkKind.RouteEntered,
             ledger.TargetMarks["Network & internet"].Kind);
         Assert.Single(ledger.Events, item => item.Type == CoverageEventType.TargetCoverageMarked);
+    }
+
+    [Theory]
+    [InlineData(TargetCoverageMarkKind.ReachedOverlay)]
+    [InlineData(TargetCoverageMarkKind.RouteEntered)]
+    public void ReachedNestedTarget_IsNotPendingOrDispatchedAgain(TargetCoverageMarkKind kind)
+    {
+        const string page = "android.settings|rk1:Mobile network|src=title|up=1";
+        const string target = "SIM name & color";
+        const string next = "Roaming";
+        var config = BoundedConfig() with
+        {
+            DynamicNestedEntries = new DynamicNestedEntriesConfig(true, 1, 2),
+        };
+        var ledger = new SettingsCoverageLedger();
+        Observe(ledger, RootRoute, TargetPages);
+        Observe(ledger, page, target, next, BackDescriptor);
+        Assert.Contains($"<{target}>", ledger.Snapshot(config).NextDirective);
+
+        Assert.True(ledger.TryMarkTargetReached(target, kind, "decision-arrival", "android.settings"));
+
+        Assert.DoesNotContain($"{page}>{target}", ledger.DynamicNestedFrontier(config));
+        Assert.Contains($"{page}>{next}", ledger.DynamicNestedFrontier(config));
+        Assert.Contains($"<{next}>", ledger.Snapshot(config).NextDirective);
+        Assert.Contains(target, ledger.Report(config).ReachedTargets!);
+        Assert.Empty(ledger.AgentSkippedTargets);
+        Assert.False(ledger.TryMarkTargetSkipped(target, "decision-skip", "must not overwrite arrival"));
+        Assert.Equal(kind, ledger.TargetMarks[target].Kind);
     }
 }

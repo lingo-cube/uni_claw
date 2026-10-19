@@ -1,0 +1,145 @@
+{
+  "change": "RUNTIME-PLAN-002",
+  "complete": true,
+  "pending": [],
+  "base": "2225c642006e85290a6e98db82348a94fe3a66f8 + entry dirty snapshot",
+  "runtimeSourceHash": "2cf39a51cbf2295b53ecdbbcedc9a8296f4f8e3d7f6f3591af86a224255ea5f3",
+  "generated": {
+    "schemaHash": "e293016ef3360412f9c560e306f9ee200007d2a7578a9e0be7585ca0fa045057",
+    "promptHash": "9ba8c3830538f564e2fdfb5b6c6c2f0f0a12b19542a728b4522c009559fa6639",
+    "revision": 19
+  },
+  "acceptance": [
+    {
+      "id": "A1",
+      "level": "SCENARIO",
+      "method": "真实ScenarioRunner/SimulationHost执行TraversalScenarioTests",
+      "expected": "动态发现/有序首匹配/Unknown暂停/安全零越权投递",
+      "actual": "14个traversal场景通过；动态8次导航/返回；Unknown前项不落后项，Blocked与越权均0 Effect",
+      "evidence": "simulation-tests-final.log; review-3/current/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs"
+    },
+    {
+      "id": "A2",
+      "level": "SCENARIO",
+      "method": "真实注册LanguageFormatInspector及独立操作/phase绑定；显式typed失败替身",
+      "expected": "只读零Effect；按operation/phase顺序，调用完成与领域Finding分离",
+      "actual": "14个handler场景通过；导航前后revision不同；readonly同revision；Violation默认继续，RequirePass暂停；异常/null/超时/不可用保留真实调用状态",
+      "evidence": "simulation-tests-final.log; review-3/current/tests/UniClaw.Simulation.Tests/HandlerTraversalScenarioTests.cs; host-tests-final-source.log"
+    },
+    {
+      "id": "A3",
+      "level": "SCENARIO",
+      "method": "缺失/矛盾动作post、原target消失、查询/显式Continue及Recovery测试",
+      "expected": "原验证未过则After/下一Effect均不得执行；暂停无EndReason且不重发动作/重置预算",
+      "actual": "缺post仅1交付等待，矛盾post被Assurance拒绝；原目标跨页为Unknown；查询0咨询/Effect；Continue保持Invocation、attempts及已用work，导航不重放",
+      "evidence": "simulation-tests-final.log; kernel-tests-final.log"
+    },
+    {
+      "id": "A4",
+      "level": "SCENARIO",
+      "method": "深浅/等深共享/祖先环/深度/返回失败/发现不足/stale投影真实执行",
+      "expected": "不漏较浅展开和本页新义务；所有缺口/实际位置诚实记录",
+      "actual": "深浅轨迹A,C,Back,Back,C,D,Back,Back；World图4节点8边；等深C两次unchecked/checked检查；环和意外返回同步实际位置并暂停；不充分发现报告partial",
+      "evidence": "simulation-tests-final.log; review-3/results.md"
+    },
+    {
+      "id": "A5",
+      "level": "SCENARIO",
+      "method": "localwork、必需启动缺缝/运行掉绑定、optional、typed timeout、取消/重复Drive",
+      "expected": "有界执行；预算耗尽要求修订，停止不复活/不冒充Verified",
+      "actual": "localwork耗尽拒绝Continue且消耗保留；必需启动缺typed adapter零Effect，运行失效暂停；optional记录Unavailable继续；超时记录TimedOut；在途取消保留Receipt未Verified，重复Drive零新增调用/投递",
+      "evidence": "simulation-tests-final.log; kernel-tests-final.log"
+    },
+    {
+      "id": "A6",
+      "level": "CONTRACT+DETERMINISTIC",
+      "method": "producer→codec→DshAgentAdapter与DSH实际submit consumer；生成物/hash/profile audit",
+      "expected": "正式union正反向拒收与生成资产一致",
+      "actual": "C# Agent.Dsh198/198；Traversal协议13项通过；Schema/TS/Prompt/profile/DSH镜像一致；最终DSH Node全套45/45，退出码0",
+      "evidence": "agent-dsh-tests-final-source.log; traversal-protocol-status-final.log; dsh-node-tests-final-source.log; closure-audit.json; final-protocol-hashes.json"
+    },
+    {
+      "id": "A7",
+      "level": "SCENARIO",
+      "method": "scenario_certify --change RUNTIME-PLAN-002 --all及--check；场景trait与最终执行日志逐项对应",
+      "expected": "28身份/期望/execution不变，20carrier实际执行，8none不计通过",
+      "actual": "20/28更新认证；28文件0认证违规；20个carrier对应已通过实际测试；8none字节保持不变，不计库执行通过",
+      "evidence": "carrier-execution.json; scenario-certify-final.log; scenario-certification-check-final.log; closure-audit.json"
+    },
+    {
+      "id": "A8",
+      "level": "CONTRACT",
+      "method": "三轮独立Standards/Spec评审、文档/Owner/保护/增量hash核对",
+      "expected": "评审问题修复；正式契约同步；001/ADR-0053/共享控制面和既有文件保留",
+      "actual": "最终两轴各0新增问题；3项独立发现已修复，额外真实返回缺陷已回归；45个冻结增量与review一致，001/ADR-0053共2809保护项无变；16项闭包/保护检查通过，当前范围完成可关闭",
+      "evidence": "review-1/results.md; review-2/results.md; review-3/results.md; closure-audit.json; ownership-audit.json; changes/RUNTIME-PLAN-002/implementation-report.md"
+    }
+  ],
+  "dotnetSuites": [
+    {
+      "suite": "Kernel",
+      "passed": 951,
+      "failed": 0,
+      "exitCode": 0,
+      "log": "kernel-tests-final.log"
+    },
+    {
+      "suite": "Simulation",
+      "passed": 216,
+      "failed": 0,
+      "exitCode": 0,
+      "log": "simulation-tests-final.log"
+    },
+    {
+      "suite": "Agent.Dsh",
+      "passed": 198,
+      "failed": 0,
+      "exitCode": 0,
+      "log": "agent-dsh-tests-final-source.log"
+    },
+    {
+      "suite": "Host",
+      "passed": 349,
+      "failed": 0,
+      "exitCode": 0,
+      "log": "host-tests-final-source.log"
+    },
+    {
+      "suite": "Agent",
+      "passed": 29,
+      "failed": 0,
+      "exitCode": 0,
+      "log": "agent-tests-final-source.log"
+    },
+    {
+      "suite": "Host.Dsh non-Live",
+      "passed": 33,
+      "failed": 0,
+      "exitCode": 0,
+      "log": "host-dsh-tests-final-source.log"
+    }
+  ],
+  "dotnetTotal": 1776,
+  "newSimulationCasesIncludedInTotal": 28,
+  "node": {
+    "passed": 45,
+    "failed": 0,
+    "exitCode": 0,
+    "log": "dsh-node-tests-final-source.log"
+  },
+  "limits": [
+    "SCENARIO evidence; no new physical device or real-model acceptance",
+    "Agent/page observation interpretation/mechanical effect are explicit deterministic doubles",
+    "Normal language check uses registered Inspector; typed failure/recovery returns are explicit fixtures",
+    "Traversal completion does not prove Goal or live discovery exhaustion",
+    "Cross-process recovery is outside current scope"
+  ],
+  "preservation": {
+    "entryFiles": 7490,
+    "protected001AndAdrFiles": 2809,
+    "unrelatedEntryChanges": 0,
+    "commit": false,
+    "push": false,
+    "merge": false
+  }
+}

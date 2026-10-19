@@ -1,0 +1,25 @@
+{
+  "id": "WI-RUNTIME-PLAN-001-DESIGN-RESEARCH",
+  "objective": "以业界一手设计审查当前产品执行Plan，提出有证据且克制的改进建议",
+  "scope": {
+    "write": ["docs/research/runtime-plan-design-review-20261018.md"],
+    "read_hints": ["AGENTS.md", "changes/RUNTIME-PLAN-001/state.md", "changes/RUNTIME-PLAN-001/proposal.md", "docs/research/general-agent-harness-planning-evidence-20261018.md"]
+  },
+  "semantic_brief": {
+    "summary": "Owner要求再次检查业界方案和当前设计是否有改进。D1-D9保留；只研究及文档，不实现。重点校验递进规划、行为树/层级任务的适用性，避免一次发明完整语言。",
+    "core_points": ["事实与迁移推断分开", "最多补充四项高相关一手资料", "提出具体缺口及反例，不仅罗列框架"]
+  },
+  "acceptance": [
+    "唯一笔记以中文保存，对照当前方案提出三至五项可操作改进或保留结论",
+    "核对作者论文或官方文档中的有限前瞻/执行反馈/层级技能或行为树机制，引用确切支持页并记录局限",
+    "辨别哪些适合首版，哪些应延期；不得宣称换框架或多Agent即可提升性能",
+    "给Leader返回来源、主要发现与尚不能确认之处"
+  ],
+  "forbidden": [
+    "你不是独自在工作区；不得撤销他人修改，只写允许的唯一笔记",
+    "不得修改产品代码、主方案、状态、协议、ADR或CONTEXT；不得提交推送或启动设备",
+    "不得创建其他Agent或会话，不得向用户提问或对外发送消息",
+    "不得用二手转述替代一手来源，不得把建议标为Owner已确认"
+  ],
+  "status": "done"
+}

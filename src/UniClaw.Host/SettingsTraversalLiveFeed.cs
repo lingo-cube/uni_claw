@@ -175,20 +175,31 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         var popupState = DerivePopupState(xmlResult.Xml,
             popup?.HostPackage ?? "com.android.settings",
             popup?.ResourceIds ?? SettingsCoverage.PopupClearanceConfig.DefaultPopupResourceIds);
+        var priorBelief = KernelProvider?.Invoke()?.CurrentBelief;
+        var priorSignature = priorBelief?.WorldState.TryGetValue(
+            ProductAssociationStrategy.ScreenIdentitySubject, out var screenClaim) == true
+                ? screenClaim.Value : null;
+        var priorRoute = priorBelief?.WorldState.TryGetValue(
+            ProductAssociationStrategy.ScreenRouteSubject, out var routeClaim) == true
+                ? routeClaim.Value : null;
+        var lastReceipt = KernelProvider?.Invoke()?.EffectReceipts.LastOrDefault();
+        var pageSignature = SettingsPageIdentity.Derive(priorSignature, priorRoute, routeKey,
+            lastReceipt?.TargetSubject, directive.Context == ObservationContext.PostActionEffectFlow,
+            overlayPresent: popupState == "present",
+            backDescriptor: _coverageConfig?.BackDescriptor ?? "Navigate up");
 
         if (_evidenceDir is not null && _persistHierarchies && xmlResult.Xml is not null)
             WriteEvidenceFile(_evidenceDir, captureId + ".xml",
                 System.Text.Encoding.UTF8.GetBytes(xmlResult.Xml));
 
-        var proposals = new List<ObservationProposal>
-        {
-            new(
-                new ObservationClaim(ProductAssociationStrategy.ScreenIdentitySubject, "android.settings"),
+        var proposals = new List<ObservationProposal>();
+        if (pageSignature is not null)
+            proposals.Add(new(
+                new ObservationClaim(ProductAssociationStrategy.ScreenIdentitySubject, pageSignature),
                 IngressKind.Observation,
                 directive.Context,
-                new Provenance("host.live.settings", _clock.Now, "scope:ui.screen",
-                    new[] { "real-device", "capture:" + captureId }))
-        };
+                new Provenance("host.live.settings", _clock.Now, $"scope:ui.screen:{observationCycleId}",
+                    new[] { "real-device", "capture:" + captureId })));
         proposals.Add(new ObservationProposal(
             new ObservationClaim(ProductAssociationStrategy.ScreenRouteSubject, routeKey),
             IngressKind.Observation,
@@ -291,8 +302,9 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     }
 
     /// <summary>
-    /// AGT-010 §2 — 多信号 RouteKey（页面身份）：标题 × 标题来源（homepage_title
-    /// = 根页 / title = 二级页）× up 按键在场。字段以 e1 实录语料（23 份 XML）
+    /// 多信号 RouteKey（页面身份）：标题 × 标题来源 × up 按键在场。
+    /// 根页与折叠工具栏提供页面标题，android:id/title 仅为旧页面回退来源。
+    /// 字段以 e1 实录语料（23 份 XML）
     /// 离线区分度分析冻结（changes/AGT-010 Decisions 1）：撞名页（Security &amp;
     /// privacy，标题 "Settings"）与根页在 src/up 两信号全不同；根页 12 份采样
     /// （含滚动前后三种视口态）key 全稳定。滚动容器信号经语料证伪被剔除：
@@ -312,7 +324,8 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
             var nodes = root.Descendants("node").ToList();
             string? title = null;
             var source = "none";
-            // 根页标题（homepage_title）优先于二级页标题（android:id/title）
+            // 页面标题优先于列表行标题。collapsing_toolbar 的无障碍名称
+            // 是页标题；列表第一行会随内容改变，不能覆盖它。
             foreach (var n in nodes)
             {
                 if ((string?)n.Attribute("resource-id") is { } id
@@ -322,6 +335,17 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
                     title = homeTitle;
                     source = "homepage_title";
                     break;
+                }
+            }
+            if (title is null)
+            {
+                var toolbar = nodes.FirstOrDefault(n =>
+                    ((string?)n.Attribute("resource-id"))?.EndsWith(":id/collapsing_toolbar", StringComparison.Ordinal) == true);
+                var toolbarTitle = ((string?)toolbar?.Attribute("content-desc"))?.Trim();
+                if (!string.IsNullOrEmpty(toolbarTitle))
+                {
+                    title = toolbarTitle;
+                    source = "collapsing_toolbar";
                 }
             }
             if (title is null)

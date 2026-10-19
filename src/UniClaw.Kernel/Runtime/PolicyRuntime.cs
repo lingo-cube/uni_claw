@@ -169,11 +169,12 @@ internal readonly record struct PolicyLeaseDerivation(PolicyLeaseRef? Lease, str
 /// <summary>
 /// RUN-005 §4 — adoption 所需的 lease identity 规则（机械封闭，无检测系统）：
 /// <list type="bullet">
-/// <item>无 belief / 零 root / 多 root → <c>no-active-lease</c>（无 active
+/// <item>无 belief / 无可确定当前锚点 → <c>no-active-lease</c>（无 active
 /// execution lease → Policy reject）。</item>
 /// <item>唯一 root 但 ContainerId 空白 → <c>lease-identity-invalid</c>
 ///（identity 不合法 → Policy reject；防御性——铸造算法不产空白 id）。</item>
-/// <item>唯一 root + 合法身份 → 绑定（ref = ContainerId）。</item>
+/// <item>当前锚点 + 合法身份 → 绑定（ref = ContainerId）；历史页面不参与当前lease。
+/// 无锚点的legacy单容器路径保持兼容。</item>
 /// </list>
 /// </summary>
 internal static class PolicyLease
@@ -181,9 +182,18 @@ internal static class PolicyLease
     /// <summary>从当前 belief 派生 active execution lease（纯函数、无副作用）。</summary>
     public static PolicyLeaseDerivation TryDerive(WorldBeliefRevision? current)
     {
-        if (current?.Containers is not { Count: 1 } containers)
+        string? containerId;
+        if (current?.WorldState.TryGetValue(WorldModel.CurrentContainerSubject, out var anchor) == true)
+        {
+            if (current.Conflicts.Any(conflict => conflict.Subject == WorldModel.CurrentContainerSubject)
+                || current.Containers?.Count(container => container.Identity.ContainerId == anchor.Value) != 1)
+                return new PolicyLeaseDerivation(null, "no-active-lease");
+            containerId = anchor.Value;
+        }
+        else if (current?.Containers is { Count: 1 } containers)
+            containerId = containers[0].Identity.ContainerId;
+        else
             return new PolicyLeaseDerivation(null, "no-active-lease");
-        var containerId = containers[0].Identity.ContainerId;
         if (string.IsNullOrWhiteSpace(containerId))
             return new PolicyLeaseDerivation(null, "lease-identity-invalid");
         return new PolicyLeaseDerivation(new PolicyLeaseRef(containerId), null);

@@ -20,6 +20,14 @@ public sealed class ControlLoop
     private readonly ReadOnlyCollection<ControlIntent> _intentLogView;
     private readonly ReadOnlyCollection<TacticalHypothesis> _hypothesisLogView;
 
+    // Recovery consumes immutable facts through its owning Control Loop seam.
+    private readonly List<UniClaw.Kernel.Runtime.TraversalRecoveryFacts> _traversalRecoveryFacts = new();
+    internal IReadOnlyList<UniClaw.Kernel.Runtime.TraversalRecoveryFacts> TraversalRecoveryFacts => _traversalRecoveryFacts.AsReadOnly();
+    internal void AcceptTraversalRecovery(UniClaw.Kernel.Runtime.TraversalRecoveryFacts facts) =>
+        _traversalRecoveryFacts.Add(facts);
+
+    internal TraversalControl Traversal { get; } = new();
+
     private int _cycleIndex;
     private (string TargetSubject, string FailedAtRevisionId)? _pendingRecovery;
 

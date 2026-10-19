@@ -1,0 +1,20 @@
+{
+  "kind": "FLOW_REVIEW_DRAFT",
+  "accepted_decisions": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D7",
+    "D8"
+  ],
+  "remaining_business_questions": [],
+  "final_shared_understanding_confirmation": "pending",
+  "local_markdown_documents_checked": 10,
+  "links_checked": 28,
+  "terminology": "unique; role boundaries retained",
+  "implementation_started": false,
+  "adaptation_completeness": "NOT_PROVEN"
+}

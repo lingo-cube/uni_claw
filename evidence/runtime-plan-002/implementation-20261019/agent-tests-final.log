@@ -1,0 +1,10 @@
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs(15,25): warning CS1591: 缺少对公共可见类型或成员“UniAgentProfileYaml.SchemaVersion”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs(16,25): warning CS1591: 缺少对公共可见类型或成员“UniAgentProfileYaml.DefaultConfigRelativePath”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs(17,25): warning CS1591: 缺少对公共可见类型或成员“UniAgentProfileYaml.ConfigPathEnvironmentVariable”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs(27,26): warning CS1591: 缺少对公共可见类型或成员“UniAgentProfileYaml.ResolveDefaultPath()”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs(44,35): warning CS1591: 缺少对公共可见类型或成员“UniAgentProfileYaml.Load(string)”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/GoalEvaluationTests.cs(482,61): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/bin/Debug/net10.0/UniClaw.Agent.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    29，已跳过:     0，总计:    29，持续时间: 47 ms - UniClaw.Agent.Tests.dll (net10.0)

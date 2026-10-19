@@ -1,0 +1,13 @@
+{
+  "result": "PASS_DOCUMENT_CHECKS_ONLY",
+  "change_documents_links_checked": 63,
+  "json_examples_syntax_checked": 6,
+  "decisions_accepted": [
+    "D15",
+    "D16"
+  ],
+  "semantic_frontier": "empty within current scope",
+  "final_contract_confirmed": false,
+  "product_implementation_changed": false,
+  "model_or_device_runs": 0
+}

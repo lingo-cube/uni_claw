@@ -1,0 +1,121 @@
+{
+  "kind": "DERIVATION_REVIEW_ONLY",
+  "result": "PASS_STATIC_AND_REFERENCE_CHECKS_ONLY",
+  "baseline": "D1-D16 used with owner authorization; no new design decisions silently accepted",
+  "level": "CONTRACT_WITH_BOUNDED_REFERENCE_MODELS",
+  "method": "fresh input parsing and hashes; explicit scenario mapping; conditional proofs/counterexamples; bounded reference checks; links and syntax",
+  "expected": "no input omission or inherited product PASS; scope/theorem assumptions explicit; counterexamples reproducible; documents recoverable",
+  "actual": {
+    "reasoning": 150,
+    "library": 28,
+    "golden": 20,
+    "descriptive": 8,
+    "interactions": 18,
+    "node_fields": 22,
+    "window_fields": 7,
+    "new_handler_cases": 16,
+    "reasoning_scopes": {
+      "CONDITIONAL_OBLIGATION": 135,
+      "CROSS_DOMAIN": 2,
+      "MEMORY_DEPENDENCY": 4,
+      "NON_UI_GOVERNANCE": 2,
+      "RECOVERY_DEPENDENCY": 7
+    },
+    "interaction_scopes": {
+      "BEYOND_LIVE_RESUME_SCOPE": 1,
+      "COMPOSITION_REQUIRED": 4,
+      "CONDITIONAL_MAPPING": 3,
+      "CROSS_DOMAIN": 5,
+      "DOMAIN_ADAPTER_REQUIRED": 5
+    },
+    "omitted_input_ids": 0,
+    "product_scenarios_executed": 0,
+    "support_rate": "NOT_COMPUTED",
+    "graph_reference_cases": 6244,
+    "rule_reference_cases": 27,
+    "reference_counterexamples_reproduced": [
+      "naive global visited",
+      "Unknown treated as false"
+    ],
+    "links_checked": 83,
+    "json_examples_syntax_checked": 6,
+    "unresolved_contract_obligations": [
+      "K1",
+      "K2",
+      "K3",
+      "K4",
+      "K5",
+      "K6",
+      "K7",
+      "K8"
+    ]
+  },
+  "evidence": [
+    "inventory.json",
+    "scenario-matrix.md",
+    "model-results.json",
+    "entry.json"
+  ],
+  "checks": [
+    {
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "/Users/fran/Documents/Code/spacex/uni_claw/evidence/runtime-plan-002/derivation-20261019/audit.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"mode\": \"check\", \"reasoning\": 150, \"library\": 28, \"golden\": 20, \"descriptive\": 8, \"interactions\": 18, \"node_fields\": 22, \"window_fields\": 7, \"new_handler_cases\": 16, \"reasoning_scopes\": {\"CONDITIONAL_OBLIGATION\": 135, \"CROSS_DOMAIN\": 2, \"MEMORY_DEPENDENCY\": 4, \"NON_UI_GOVERNANCE\": 2, \"RECOVERY_DEPENDENCY\": 7}, \"interaction_scopes\": {\"BEYOND_LIVE_RESUME_SCOPE\": 1, \"COMPOSITION_REQUIRED\": 4, \"CONDITIONAL_MAPPING\": 3, \"CROSS_DOMAIN\": 5, \"DOMAIN_ADAPTER_REQUIRED\": 5}, \"omitted_input_ids\": 0, \"product_scenarios_executed\": 0, \"support_rate\": \"NOT_COMPUTED\", \"verdict\": \"NOT_PROVEN\"}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "/Users/fran/Documents/Code/spacex/uni_claw/evidence/runtime-plan-002/verify-docs.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"kind\": \"DOCUMENT_DELIVERY_ONLY\",\n  \"change\": \"RUNTIME-PLAN-002\",\n  \"lifecycle_state\": \"RESOLVE\",\n  \"final_contract_confirmed\": false,\n  \"product_implementation_changed\": false,\n  \"product_tests_run\": false,\n  \"model_or_device_runs\": 0,\n  \"links_checked\": 58,\n  \"missing_links\": [],\n  \"result\": \"PASS_DOCUMENT_CHECKS_ONLY\",\n  \"old_index_rows_preserved\": true,\n  \"status_and_index_consistent\": true,\n  \"fences_and_whitespace\": \"PASS\",\n  \"diff_check\": {\n    \"command\": [\n      \"git\",\n      \"diff\",\n      \"--check\",\n      \"--\",\n      \"changes/RUNTIME-PLAN-002/state.md\",\n      \"changes/RUNTIME-PLAN-002/discussion-reference.md\",\n      \"changes/RUNTIME-PLAN-001/state.md\",\n      \"changes/RUNTIME-PLAN-002/flow-contract.md\",\n      \"changes/RUNTIME-PLAN-002/protocol-sketch.md\",\n      \"changes/INDEX.md\"\n    ],\n    \"exit_code\": 0,\n    \"stdout\": \"\",\n    \"stderr\": \"\"\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "changes/RUNTIME-PLAN-002",
+        "CONTEXT.md"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "artifacts": {
+    "evidence/runtime-plan-002/derivation-20261019/audit.py": "c934b2473c064b98e2dcba4fdda3c13edd50604f1e01c46e324f012869d7607d",
+    "evidence/runtime-plan-002/derivation-20261019/check-model.py": "d7b89cddd735596c3e64538e81c0814e39171c6387afc175c1aa05fe15a96bb0",
+    "evidence/runtime-plan-002/derivation-20261019/model-results.json": "6d541ceafc4a3850c281188b3e3bfe67a52414d9bca2f0f4f5f55602c900f0d6",
+    "evidence/runtime-plan-002/derivation-20261019/inventory.json": "cae3f88f08b260681ede0dedb32c184f21f973d603a07ff85b0bb36d76dca367",
+    "evidence/runtime-plan-002/derivation-20261019/scenario-matrix.md": "332c1cc865b99d70667e708514da236af1481aae5365ce361700f1f7420b8381",
+    "changes/RUNTIME-PLAN-002/derivation-review.md": "25c68986f89202bcaaa17bd8bd335d5a115d35dde069819da97380992f9224aa",
+    "changes/RUNTIME-PLAN-002/mathematical-derivation.md": "7b88e46d15030a01471c77955a191032c79e30f7ee93b4c2683ebbc36e19ee61",
+    "changes/RUNTIME-PLAN-002/philosophical-derivation.md": "7373406b14d9beca686a015300126ec8185f3ccf15d99c044863f34ca9f6300e"
+  },
+  "paper_sources": [
+    {
+      "title": "Turing 1936 original paper",
+      "url": "https://www.cs.virginia.edu/~robins/Turing_Paper_1936.pdf",
+      "use": "universal computation and undecidability boundary; no claim it proves product correctness"
+    },
+    {
+      "title": "Lamport 1977 original paper",
+      "url": "https://lamport.azurewebsites.net/pubs/proving.pdf",
+      "use": "safety and liveness distinction; project-specific deductions are authored here"
+    }
+  ],
+  "product_verdict": "NOT_PROVEN",
+  "formal_prover_used": false,
+  "new_mechanism_product_tests_run": false,
+  "model_or_device_runs": 0,
+  "authority_or_protocol_changed": false,
+  "lifecycle_state": "RESOLVE"
+}

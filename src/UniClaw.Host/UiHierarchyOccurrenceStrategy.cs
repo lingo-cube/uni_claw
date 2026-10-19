@@ -57,9 +57,7 @@ public sealed class UiHierarchyOccurrenceStrategy : IUiObservationStrategy
         Apply(node, hierarchy.Field, record.Claim.Value);
         nodes[hierarchy.NodeLocalIndex] = node;
 
-        var owner = previous?.Containers is { Count: 1 } containers
-            ? containers[0].Identity.ContainerId
-            : null;
+        var owner = CurrentPageAnchor.Resolve(previous);
         return Build(nodes, owner, hierarchy.Space);
     }
 
@@ -81,8 +79,7 @@ public sealed class UiHierarchyOccurrenceStrategy : IUiObservationStrategy
             var width = root.TryGetProperty("w", out var w) && w.TryGetInt32(out var wi) ? wi : 0;
             var height = root.TryGetProperty("h", out var h) && h.TryGetInt32(out var hi) ? hi : 0;
             var space = width > 0 && height > 0 ? CoordinateSpace.DeviceViewport(width, height) : null;
-            var owner = previous?.Containers is { Count: 1 } containers
-                ? containers[0].Identity.ContainerId : null;
+            var owner = CurrentPageAnchor.Resolve(previous);
             return new[] { new ProposedOccurrence(owner, root.GetProperty("role").GetString()!, null,
                 state, new SpatialLocator(bounds[0], bounds[1], bounds[2], bounds[3], frame), null, space) };
         }

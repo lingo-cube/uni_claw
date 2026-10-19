@@ -1,0 +1,10 @@
+{
+  "backup": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-plan002-flow-review-5i47v05i",
+  "before": {
+    "CONTEXT.md": "f36c5a1e70d167643b8b169d5fc710ff7f8c13893d94fbf019e002170b7b341a",
+    "changes/RUNTIME-PLAN-002/state.md": "861b3d913c6cf25207154aae86b6f24e1e7a9de0fd1529fe7419aed8909d6b82",
+    "changes/RUNTIME-PLAN-002/discussion-reference.md": "3e2f5256e8aa6ad2dc33e699792e5d5a18b922793297fb94d252b63e3dd64576",
+    "changes/RUNTIME-PLAN-002/grill-round-07.md": "94efc222b7f718c94181faab522d8c7064997e789560c52a0ebd75a9f2a65961",
+    "evidence/runtime-plan-002/verify-docs.py": "b0c22197c50079edaedaaf042b056056cd83606d4b58968c806dd03031952192"
+  }
+}

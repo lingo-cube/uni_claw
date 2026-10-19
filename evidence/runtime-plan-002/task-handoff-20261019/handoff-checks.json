@@ -1,0 +1,7 @@
+{
+  "result": "PASS_HANDOFF_DOC_CHECKS_ONLY",
+  "links_checked": 15,
+  "handoff_sha256": "8c8fc70c136169db39441a6eaa06a8f81b163ccf37cd9f6472e235d68e228508",
+  "implementation_started_by_this_chat": false,
+  "simulation_or_protocol_acceptance_claimed": false
+}

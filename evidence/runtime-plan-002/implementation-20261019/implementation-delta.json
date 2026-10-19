@@ -1,0 +1,272 @@
+[
+  {
+    "path": "CONTEXT.md",
+    "entrySha256": "bfa896fc977bae0f447a83c7990aaed13dd0b456c829fe81048506cf1680e80d",
+    "currentSha256": "0a3d952becbb278a60e7a22ac84e79c3f889651f6a8cc49c432e339a3a0f468c",
+    "new": false
+  },
+  {
+    "path": "docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md",
+    "entrySha256": "10b549de8ee0fb99f0286c1d307b1f26e7e3a23d8a70c67d312f36a320042b5f",
+    "currentSha256": "38e4cafd245302c2371db10623753ec733e3259a0db964b71f148e69a1ffdbc7",
+    "new": false
+  },
+  {
+    "path": "dsh/uniclaw-decision-channel/prompt/03-payload-shapes.txt",
+    "entrySha256": "f5b754cc0b0536ffc433be05ad6ed7b7d0009f2e65831f8055745218a4a33669",
+    "currentSha256": "05c16acfc44a8257c75cd5ed4f8bca41f3b7771a8389b4dfb48f63a16189c677",
+    "new": false
+  },
+  {
+    "path": "dsh/uniclaw-decision-channel/prompt/manifest.json",
+    "entrySha256": "f31ac2a5480bebc36e4f0f96d1f1efb8dfcd424dd5b9c48d07f18fca4fcc03a1",
+    "currentSha256": "4c2b42889e279ebad5777fc9c38d5873cd8c0c3966ec122785fbfda7a0240038",
+    "new": false
+  },
+  {
+    "path": "dsh/uniclaw-decision-channel/prompt/prompt-hash.txt",
+    "entrySha256": "32baa5a4c8aeca4d2949a7b72dcbf81afa107506e11ad3cadc52c785ac49b956",
+    "currentSha256": "3de978aef59f3f1c19291bff0d71212927d79382667584fe452f56376aea61ae",
+    "new": false
+  },
+  {
+    "path": "dsh/uniclaw-decision-channel/schema/product-protocol.schema.json",
+    "entrySha256": "abf64b2903fe7e7178c5175c6ec3c9d0342456659ddc8015cb5dcaf66b88d68c",
+    "currentSha256": "90b1a75a175b2b991114f4b0582664733d118dee915bf2a61b6d32cabff314e6",
+    "new": false
+  },
+  {
+    "path": "dsh/uniclaw-decision-channel/schema/schema-hash.txt",
+    "entrySha256": "bb5b8d39fdb76495154e049d026f8a46ef588d1dabfe3ea6bee31099ebeda2e1",
+    "currentSha256": "cf7e999c13a1dcd10c1790255bd3b73bc676d736f7e640297a84f1cf67a33300",
+    "new": false
+  },
+  {
+    "path": "dsh/uniclaw-decision-channel/src/index.js",
+    "entrySha256": "11f98c262e3ee58ea1ce27389cbe07230b4bbd7f00e3d73e341a133326d959fb",
+    "currentSha256": "7ffe4b3caa29a3067b6cf66d35ecf392e95c6c144e0a16146e6f48ef2cb4d5bb",
+    "new": false
+  },
+  {
+    "path": "dsh/uniclaw-decision-channel/tests/plugin.test.mjs",
+    "entrySha256": "0a559f5220b6d1aeef817aacdf55c34a97ad70b4ef449d2846d129dce1d61d73",
+    "currentSha256": "fcf36e184739d2e7b708da25766fbe83851848e038707719906ac7c93b3ebfab",
+    "new": false
+  },
+  {
+    "path": "product/profiles/uniagent-prod.yaml",
+    "entrySha256": "94e36a5208311f15449d070a5438ca5a87a5d750c26f20ff15578cd2a24aad2d",
+    "currentSha256": "f813e45db392fe41b867bf9bbcdcafc76721f65715de52387f62af4684e4a583",
+    "new": false
+  },
+  {
+    "path": "product/prompt/uniagent-prod/03-payload-shapes.txt",
+    "entrySha256": "f5b754cc0b0536ffc433be05ad6ed7b7d0009f2e65831f8055745218a4a33669",
+    "currentSha256": "05c16acfc44a8257c75cd5ed4f8bca41f3b7771a8389b4dfb48f63a16189c677",
+    "new": false
+  },
+  {
+    "path": "product/prompt/uniagent-prod/manifest.json",
+    "entrySha256": "f31ac2a5480bebc36e4f0f96d1f1efb8dfcd424dd5b9c48d07f18fca4fcc03a1",
+    "currentSha256": "4c2b42889e279ebad5777fc9c38d5873cd8c0c3966ec122785fbfda7a0240038",
+    "new": false
+  },
+  {
+    "path": "product/prompt/uniagent-prod/prompt-hash.txt",
+    "entrySha256": "32baa5a4c8aeca4d2949a7b72dcbf81afa107506e11ad3cadc52c785ac49b956",
+    "currentSha256": "3de978aef59f3f1c19291bff0d71212927d79382667584fe452f56376aea61ae",
+    "new": false
+  },
+  {
+    "path": "schemas/agt-002/product-protocol.d.ts",
+    "entrySha256": "fd0ae132c38a62645329ff300344d008b650ac6e42912a973876af5bb24f3fe0",
+    "currentSha256": "30257625ebe1b08f13754a28b33cd8c92ca24840da41ce540e3a0eee1d456386",
+    "new": false
+  },
+  {
+    "path": "schemas/agt-002/product-protocol.schema.json",
+    "entrySha256": "abf64b2903fe7e7178c5175c6ec3c9d0342456659ddc8015cb5dcaf66b88d68c",
+    "currentSha256": "90b1a75a175b2b991114f4b0582664733d118dee915bf2a61b6d32cabff314e6",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Agent.Dsh/DecisionJsonConverters.cs",
+    "entrySha256": "b979baaeaaff9be6c3874000a895bd5c2ece7d6a7738bf6b6d47e8f923b2a685",
+    "currentSha256": "fb8a95ce9a443d5eb74b04b8c58b5312cce27e278fd668acfbd5d81ac1d533c2",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Agent.Dsh/ProtocolModels.cs",
+    "entrySha256": "e4a0fd5162d6498e1fb0569e7608a27c205edf9a9001e7b1ae5512c0300a3570",
+    "currentSha256": "a97f0017ed31312595ca7d1ddcc05ee6c5d8c3ed86d04b2d4d9995c5f8965903",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Agent.Dsh/ProtocolSchema.cs",
+    "entrySha256": "2b9ef7bb5ec0827a976bc8fe2f4f0950179b9cf02686eea38521e696450534d6",
+    "currentSha256": "45b6f364cfdb29fe7ead1bb21a0ea208b11be247f374ff91dbf8ee52d6f1967b",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Host/Capability/TraversalLanguageInspection.cs",
+    "entrySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "currentSha256": "8161114aa4f3c8aad16862cbdaa83082e5d8f1e27f388b5b8cc2ada2caa3b6e6",
+    "new": true
+  },
+  {
+    "path": "src/UniClaw.Host/README.md",
+    "entrySha256": "1c66d515dbd2c894b065071ca8292fef4d3ddc021569202ecf93c6acd4f76283",
+    "currentSha256": "56a30f3122da72886805a4280bb578720b683279fcbe974cbf9b51e894dc1fef",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs",
+    "entrySha256": "05c4fbee219b713315b3469fa9e1d21def3405e8827b75f883b1856de34c1e8d",
+    "currentSha256": "40a289e59691e513377b37b799e592db9da7e2873793818be91a642091695d71",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Host/SettingsCoverage/SettingsTraversalProjection.cs",
+    "entrySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "currentSha256": "bd1a65063e5ba1d96140430c08e85d634a7df17f0a7289ea7764e0477b5735b3",
+    "new": true
+  },
+  {
+    "path": "src/UniClaw.Kernel/Control/ControlLoop.cs",
+    "entrySha256": "3352c8d0b3275d1edcd92612ffd09e255921e136ea4bf0dc93e1f055c541e382",
+    "currentSha256": "2a0d93d58673b2e8c1c49a3027cc7861a8ea9f06683266ba75871997db4c0379",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Kernel/Control/README.md",
+    "entrySha256": "59a59464548c9726bfd1f8b18db956717a08cc961363f18299ef3d562cb195c9",
+    "currentSha256": "6f0413c28a94d66b67a0d2071c3cec8d2939ad5090e68f18572554bf0da43a29",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Kernel/Control/TraversalControl.cs",
+    "entrySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "currentSha256": "5df267292e55b0563f96d664bba9d1763c19fdf57f50dde9e107c73337d4a883",
+    "new": true
+  },
+  {
+    "path": "src/UniClaw.Kernel/Run/RunModel.cs",
+    "entrySha256": "bc046d031be172544f3ccae894ce1be633de59b6c88e2290a4f23d778370d6bb",
+    "currentSha256": "61a6b781aff49935443ac38fdf7b1a6d3fa64134023e4fcfe40020c7572baf25",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Kernel/Runtime/AgentDecision.cs",
+    "entrySha256": "8e2c20b4295a7600ec1e82c5473beae2149d6940c5b6379583b44be385fa688f",
+    "currentSha256": "8c657ba8ef01a64256d82316a9ba6d8e72debe37e0d127f1bc653362cfb0e788",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+    "entrySha256": "30eed47839829a4cceab074066d3907b7ab62303f308c5f6bf64afe3245ca242",
+    "currentSha256": "6e349eab1305288971f88f652c63858f9cb71aa4ee301d9f5a55e7a10ee1191a",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Kernel/Runtime/PlanExecution.cs",
+    "entrySha256": "4985b1298a826ed94f8c161ca9641d99650f1b7ebfaca7af9cbe523b7e2b9aae",
+    "currentSha256": "008a1062a8c589232bc053f643d25c3c4a7c07f3d9cfe2a0921fafb9734c0284",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Kernel/Runtime/README.md",
+    "entrySha256": "8154d41aae6839559738debfb5fcee539874995b4ef89427b6e83a51e94197c6",
+    "currentSha256": "5372fb409cc6db46ccac938989e795ec928e2f0ae10f299badef8d6f0b055949",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Kernel/Runtime/RunDriverInputs.cs",
+    "entrySha256": "e2c430fdcfcd93330e83f699afdc6a968c7af7eff73ba7a3e47b489732fe083f",
+    "currentSha256": "4c5b79416e1ea7b8b4e17470aa524fcfc3e018779bd630028602f2b9c5095e10",
+    "new": false
+  },
+  {
+    "path": "src/UniClaw.Kernel/Runtime/TraversalExecution.cs",
+    "entrySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "currentSha256": "8ecfebfb073315123c90faa5402f58dcd8e7425d957516e880bfd43cb8f92c0b",
+    "new": true
+  },
+  {
+    "path": "src/UniClaw.Kernel/UniKernel.cs",
+    "entrySha256": "e3984f27efeca7ef3786ecd65d46aac072255754c493218dec5a4be24c189361",
+    "currentSha256": "6cb1cef8d68f834a2fc8dd75044e97b6efac1af814a6f9f62be784f357e8ea15",
+    "new": false
+  },
+  {
+    "path": "tests/UniClaw.Agent.Dsh.Tests/TraversalProtocolTests.cs",
+    "entrySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "currentSha256": "8beb9f16855549e5e2db953d4f272fbc52b9a6340f24c9ca55921af0f24507a7",
+    "new": true
+  },
+  {
+    "path": "tests/UniClaw.Agent.Tests/UniAgentProfileYamlTests.cs",
+    "entrySha256": "4ceb3e2d603b12eb5a9d418e569570e3638eb1f84918da3773babefff471c063",
+    "currentSha256": "94a426a4fb12a07c38c9f725bd884167fb358a3730fdeacefb12e2f689284706",
+    "new": false
+  },
+  {
+    "path": "tests/UniClaw.Host.Dsh.Tests/InitializationEnvelopeTests.cs",
+    "entrySha256": "2c0f094953fd7618e6f705ee953e75f8c4bfe0cdbec34c6bf7b619a900b0ffbe",
+    "currentSha256": "135bfe713d083aef674d007d9cebb8c0b9b6fa1a70b783bbc8d36d1d19ffb979",
+    "new": false
+  },
+  {
+    "path": "tests/UniClaw.Host.Tests/TraversalOwnerBindingTests.cs",
+    "entrySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "currentSha256": "0582b83c04a7547df952ee0c463c14f11ce415e495131a7a9ed831daf0ec04df",
+    "new": true
+  },
+  {
+    "path": "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs",
+    "entrySha256": "613aabca5cf62e52c83f8aea3ef25589965c3929063dff9221fc86e2568dd980",
+    "currentSha256": "5d65d7dfa60e1fd6a854fd7c59b9d8ff461edcca2efdbf76e58a53751c053327",
+    "new": false
+  },
+  {
+    "path": "tests/UniClaw.Kernel.Tests/Runtime/TraversalExecutionTests.cs",
+    "entrySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "currentSha256": "17053f5e65849e2c04a9b8b547ad7ca6e7203aa2b0c01ebed93af590a8103857",
+    "new": true
+  },
+  {
+    "path": "tests/UniClaw.Simulation.Tests/HandlerTraversalScenarioTests.cs",
+    "entrySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "currentSha256": "f3c1abe91382f8fbc223bf7fc907dcecee2b60e1769d52236d8e6d575f5dd623",
+    "new": true
+  },
+  {
+    "path": "tests/UniClaw.Simulation.Tests/ScenarioStimulus.cs",
+    "entrySha256": "f42bb692d0ed88656fca4e0de7479c4585b8459d0c7f1ac574317ad3a637ace2",
+    "currentSha256": "b4d1a2622f9b0f90eb54e8d21b75148ee791cb35d82c96e6aafeaf33c7be88c6",
+    "new": false
+  },
+  {
+    "path": "tests/UniClaw.Simulation.Tests/SimContract.cs",
+    "entrySha256": "a75483223066c8fc6f480dac41f556388b3818945591f538e1852d19aa5736d7",
+    "currentSha256": "fbc33bfc795a2ef763e0be9659e53273cba03e78550881cd6de573b6dd5d9788",
+    "new": false
+  },
+  {
+    "path": "tests/UniClaw.Simulation.Tests/SimulationHost.cs",
+    "entrySha256": "1f584989e4088d33ba0f76cad98787371cf6a98d1fd7fef8bbc9e65a6927e397",
+    "currentSha256": "39eafc01ee7ee69638abddeca7bb59f2f26c94d6104fe5cfe95df0e94e502c33",
+    "new": false
+  },
+  {
+    "path": "tests/UniClaw.Simulation.Tests/TraversalScenarioFixture.cs",
+    "entrySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "currentSha256": "b9e696e96259b571e7bd798a617c33dba39cdcaf45e70da8ff54f88603b4cb1c",
+    "new": true
+  },
+  {
+    "path": "tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs",
+    "entrySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "currentSha256": "5df19dba575a4b8be6a3a84bf366dfd4109bcac18d6874d9a70acaa226b6bc10",
+    "new": true
+  }
+]

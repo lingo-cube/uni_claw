@@ -1,0 +1,13 @@
+# Decision-channel retry context identity and turn barrier
+
+Observed failure supplied by Leader: session `session-60268643-20fa-468c-95a3-2fa3d09f08cd` ended its first physical turn without `submit_decision`; the HTTP route initiated its existing retry, but a valid submit on that retry was repeatedly rejected as `decision-id-mismatch` with expected `undefined`.
+
+Root cause: the initial consultation pending record stores both `requestId` and `context.decisionId` (`src/index.js:1263-1270`). The retry branch recreated pending with only `requestId` (`src/index.js:1362-1369` before the fix). The public `submit_decision` tool compares `payload.decisionId` to `pending.decisionId` (`src/index.js:701-712`), so a valid same-context retry could never pass correlation.
+
+A second red-capable assertion exposed a related lifecycle gap: `retryTurn.turnEnd` was a never-resolving placeholder, and the retry-success branch returned as soon as submit was captured. It therefore broke the established serialization guarantee that a completed semantic decision does not release the session until its physical turn ends. See `retry-turn-boundary-red.txt`.
+
+Minimal fix: copy `context.decisionId` into the replacement pending record; give retryTurn a real turn/end promise resolved by the existing `session/event` handler; after successful retry capture, await the same bounded physical-turn barrier as the initial consultation. Keep `state.activeTurn` intact if that barrier reaches its deadline so later consults remain serialized until the actual turn/end event. The retry trigger, one-retry limit, 30-second retry wait, prompt, and authorization behavior are unchanged.
+
+Regression seam: `tests/plugin.test.mjs:561-604` invokes the public `/consult` route, ends its first physical turn without submitting, waits for the retry prompt, submits a valid noAction through the registered tool with the same context decision ID, verifies the HTTP response remains pending until retry turn/end, then checks the retry response. Temporarily removing the new identity field produced `expected undefined; received decision-retry-context-1` (`retry-identity-red.txt`). With identity restored but before the physical barrier, the test failed because the consultation settled before turn/end (`retry-turn-boundary-red.txt`).
+
+Final verification: the new test plus existing session serialization and late-detach tests passed 3/3 (`retry-green.txt`). `node --check` passed for both changed JS files. The test process took about 60 seconds to exit because timer races leave their fallback timers alive; all three TAP cases passed. No device, real model, or failed real session was replayed.

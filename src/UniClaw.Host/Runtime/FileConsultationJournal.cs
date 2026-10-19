@@ -28,6 +28,7 @@ public sealed class FileConsultationJournal : IConsultationJournal, IDisposable
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         options.Converters.Add(new FileAgentDecisionJsonConverter());
+        options.Converters.Add(new FilePlanItemJsonConverter());
         return options;
     }
 
@@ -148,26 +149,34 @@ internal sealed class FileAgentDecisionJsonConverter : JsonConverter<AgentDecisi
         var kind = root.GetProperty("$kind").GetString();
         return kind switch
         {
-            "act" => new AgentDecision.Act(root.GetProperty("proposal").Deserialize<AgentActionProposal>(options)!),
-            "noAction" => new AgentDecision.NoAction(root.GetProperty("proposal").Deserialize<AgentNoActionProposal>(options)! ),
+            "act" => new AgentDecision.Act(root.GetProperty("proposal").Deserialize<AgentActionProposal>(options)!,
+                ReadReviewResponse(root, options)),
+            "noAction" => new AgentDecision.NoAction(root.GetProperty("proposal").Deserialize<AgentNoActionProposal>(options)!,
+                ReadReviewResponse(root, options)),
             "defer" => new AgentDecision.Defer(
                 root.GetProperty("decisionId").GetString()!,
                 root.GetProperty("spec").Deserialize<ObserveSpec>(options)!,
                 root.TryGetProperty("renewal", out var deferRenewal)
-                    ? deferRenewal.Deserialize<BudgetRenewalRequest>(options) : null),
+                    ? deferRenewal.Deserialize<BudgetRenewalRequest>(options) : null,
+                ReadReviewResponse(root, options)),
             "policy" => new AgentDecision.Policy(
                 root.GetProperty("decisionId").GetString()!,
-                root.GetProperty("proposal").Deserialize<PolicyProposal>(options)! ),
+                root.GetProperty("proposal").Deserialize<PolicyProposal>(options)!, ReadReviewResponse(root, options)),
             "plan" => new AgentDecision.Plan(
                 root.GetProperty("decisionId").GetString()!,
-                root.GetProperty("proposal").Deserialize<AgentPlanProposal>(options)! ),
+                root.GetProperty("proposal").Deserialize<AgentPlanProposal>(options)!, ReadReviewResponse(root, options)),
+            "continuePlan" => new AgentDecision.ContinuePlan(
+                root.GetProperty("decisionId").GetString()!,
+                root.GetProperty("position").Deserialize<PlanExecutionPosition>(options)!, ReadReviewResponse(root, options)),
+            "blocked" => new AgentDecision.Blocked(root.GetProperty("decisionId").GetString()!,
+                root.GetProperty("reason").GetString()!, ReadReviewResponse(root, options)),
             "skip" => new AgentDecision.Skip(
                 root.GetProperty("decisionId").GetString()!,
                 root.GetProperty("target").GetString()!,
                 root.GetProperty("reason").GetString()!,
                 root.TryGetProperty("evidenceRefs", out var evidenceRefs)
                     ? evidenceRefs.Deserialize<IReadOnlyList<string>>(options) ?? Array.Empty<string>()
-                    : Array.Empty<string>()),
+                    : Array.Empty<string>(), ReadReviewResponse(root, options)),
             _ => throw new JsonException($"Unknown durable AgentDecision kind '{kind}'"),
         };
     }
@@ -182,11 +191,13 @@ internal sealed class FileAgentDecisionJsonConverter : JsonConverter<AgentDecisi
                 writer.WriteString("$kind", "act");
                 writer.WritePropertyName("proposal");
                 JsonSerializer.Serialize(writer, act.Proposal, options);
+                WriteReviewResponse(writer, act.ReviewResponse, options);
                 break;
             case AgentDecision.NoAction noAction:
                 writer.WriteString("$kind", "noAction");
                 writer.WritePropertyName("proposal");
                 JsonSerializer.Serialize(writer, noAction.Proposal, options);
+                WriteReviewResponse(writer, noAction.ReviewResponse, options);
                 break;
             case AgentDecision.Defer defer:
                 writer.WriteString("$kind", "defer");
@@ -198,18 +209,34 @@ internal sealed class FileAgentDecisionJsonConverter : JsonConverter<AgentDecisi
                     writer.WritePropertyName("renewal");
                     JsonSerializer.Serialize(writer, defer.Renewal, options);
                 }
+                WriteReviewResponse(writer, defer.ReviewResponse, options);
                 break;
             case AgentDecision.Policy policy:
                 writer.WriteString("$kind", "policy");
                 writer.WriteString("decisionId", policy.DecisionId);
                 writer.WritePropertyName("proposal");
                 JsonSerializer.Serialize(writer, policy.Proposal, options);
+                WriteReviewResponse(writer, policy.ReviewResponse, options);
                 break;
             case AgentDecision.Plan plan:
                 writer.WriteString("$kind", "plan");
                 writer.WriteString("decisionId", plan.DecisionId);
                 writer.WritePropertyName("proposal");
                 JsonSerializer.Serialize(writer, plan.Proposal, options);
+                WriteReviewResponse(writer, plan.ReviewResponse, options);
+                break;
+            case AgentDecision.ContinuePlan resume:
+                writer.WriteString("$kind", "continuePlan");
+                writer.WriteString("decisionId", resume.DecisionId);
+                writer.WritePropertyName("position");
+                JsonSerializer.Serialize(writer, resume.Position, options);
+                WriteReviewResponse(writer, resume.ReviewResponse, options);
+                break;
+            case AgentDecision.Blocked blocked:
+                writer.WriteString("$kind", "blocked");
+                writer.WriteString("decisionId", blocked.DecisionId);
+                writer.WriteString("reason", blocked.Reason);
+                WriteReviewResponse(writer, blocked.ReviewResponse, options);
                 break;
             case AgentDecision.Skip skip:
                 writer.WriteString("$kind", "skip");
@@ -218,10 +245,56 @@ internal sealed class FileAgentDecisionJsonConverter : JsonConverter<AgentDecisi
                 writer.WriteString("reason", skip.Reason);
                 writer.WritePropertyName("evidenceRefs");
                 JsonSerializer.Serialize(writer, skip.EvidenceRefs, options);
+                WriteReviewResponse(writer, skip.ReviewResponse, options);
                 break;
             default:
                 throw new JsonException($"Unsupported durable AgentDecision type {value.GetType().Name}");
         }
+        writer.WriteEndObject();
+    }
+
+    private static BudgetReviewResponse? ReadReviewResponse(JsonElement root, JsonSerializerOptions options) =>
+        root.TryGetProperty("reviewResponse", out var response) && response.ValueKind != JsonValueKind.Null
+            ? response.Deserialize<BudgetReviewResponse>(options) : null;
+
+    private static void WriteReviewResponse(Utf8JsonWriter writer, BudgetReviewResponse? response,
+        JsonSerializerOptions options)
+    {
+        if (response is null) return;
+        writer.WritePropertyName("reviewResponse");
+        JsonSerializer.Serialize(writer, response, options);
+    }
+}
+
+/// <summary>Durable representation only. Reloading a consultation is not an
+/// execution checkpoint and never replays an Effect.</summary>
+internal sealed class FilePlanItemJsonConverter : JsonConverter<PlanItem>
+{
+    public override PlanItem Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        using var document = JsonDocument.ParseValue(ref reader);
+        var root = document.RootElement;
+        var payload = root.GetProperty("payload");
+        return root.GetProperty("$kind").GetString() switch
+        {
+            nameof(PlanItem.ActItem) => payload.Deserialize<PlanItem.ActItem>(options)!,
+            nameof(PlanItem.ObserveItem) => payload.Deserialize<PlanItem.ObserveItem>(options)!,
+            nameof(PlanItem.ControlItem) => payload.Deserialize<PlanItem.ControlItem>(options)!,
+            nameof(PlanItem.ForEachItem) => payload.Deserialize<PlanItem.ForEachItem>(options)!,
+            nameof(PlanItem.CheckpointItem) => payload.Deserialize<PlanItem.CheckpointItem>(options)!,
+            nameof(PlanItem.IfItem) => payload.Deserialize<PlanItem.IfItem>(options)!,
+            nameof(PlanItem.RepeatItem) => payload.Deserialize<PlanItem.RepeatItem>(options)!,
+            _ => throw new JsonException("unknown durable PlanItem kind"),
+        };
+    }
+    public override void Write(Utf8JsonWriter writer, PlanItem value, JsonSerializerOptions options)
+    {
+        if (value is not (PlanItem.ActItem or PlanItem.ObserveItem or PlanItem.ControlItem
+            or PlanItem.ForEachItem or PlanItem.CheckpointItem or PlanItem.IfItem or PlanItem.RepeatItem)) throw new JsonException("unknown durable PlanItem type");
+        writer.WriteStartObject();
+        writer.WriteString("$kind", value.GetType().Name);
+        writer.WritePropertyName("payload");
+        JsonSerializer.Serialize(writer, value, value.GetType(), options);
         writer.WriteEndObject();
     }
 }

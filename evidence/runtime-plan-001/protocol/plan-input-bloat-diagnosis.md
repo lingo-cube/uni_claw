@@ -1,0 +1,11 @@
+# Plan咨询输入膨胀：实际性能证据
+
+revision15已知路径Step/5：2动作独立验证，3咨询/6模型调用，80167 total token，3观察轮，formal21142.1629ms。首轮ShortPlan/1：相同目标2动作独立验证，3咨询/7模型调用，1308713 token，5观察轮，formal36345.535ms；RulePlan/1：4咨询/12模型调用，已报告1942063 token（usage不完整，为下界），5观察轮，formal47129.3379ms。两者功能完成而收益未通过，原始trial与冻结thresholds保留。
+
+定位：Settings当前guard将累计World EvidenceBasis全部带入PlanAttempt；独立post-action又合并全部已处理观察ID。CurrentPlanExecutionView在每轮Agent咨询原样复制完整attempt refs。ShortPlan单份plan-execution.json约317591bytes，第二及第三咨询复带同批原始证据ID，并伴随会话历史重复。问题在咨询投影尺寸，而非必要观察/验证本身。
+
+最小修复：Driver公开完整审计视图及最终持久证据继续保留原始refs；只读Agent咨询的每个attempt保留执行身份、位置、动作、状态、receipt与原因，EvidenceRefs指向该真实plan-attempt审计记录。完成Verifier仍只接受Verified attempt，不截断完整审计、不绕过任何动作检查/观察/验证。新公开Driver反例验证审计与咨询两面。
+
+RulePlan/1初稿的返回位于forEach之后，第一次body结束停在子页，因此后续Source范围失配正确中断；Agent修订再返回，检查点Continue后NoAction完成。Source说明改为每次body内部返回的明确组合约束，不放松scope检查。Prompt16同时说明每个Act已有独立新观察验证，只有欠证时才额外Observe/Defer；不能用省调用为由跳过必要观察。
+
+修复后是新编译/Prompt条件，须重新取三份Step基线并在该epoch Plan前冻结新数值门槛；旧性能失败不删除、不冒充通过，也不修改已冻结的原门槛。

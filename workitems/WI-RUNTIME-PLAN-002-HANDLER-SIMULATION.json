@@ -1,0 +1,41 @@
+{
+  "id": "WI-RUNTIME-PLAN-002-HANDLER-SIMULATION",
+  "objective": "在既有SimulationHost真实链证明操作handler顺序、默认记录/显式暂停、续行、能力失败与预算/取消边界",
+  "scope": {
+    "write": [
+      "tests/UniClaw.Simulation.Tests/HandlerTraversalScenarioTests.cs"
+    ],
+    "read_hints": [
+      "tests/UniClaw.Simulation.Tests/TraversalScenarioFixture.cs",
+      "tests/UniClaw.Simulation.Tests/SimulationHost.cs",
+      "src/UniClaw.Kernel/Runtime/TraversalExecution.cs",
+      "plans/runtime-plan-002.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "复用另一个Worker独占维护的fixture，只写独立handler测试。所有Owner/driver为真实模块，LanguageFormatInspector注册实例经typed缝，外部Agent/感知/机械Effect如实仿真。"
+  },
+  "acceptance": [
+    "不同操作Before/AfterVerified有序，调用结果关联具体唯一OperationId及正确World版本",
+    "只读switch记录状态零Effect；真实注册语言能力Violation默认继续、RequirePass暂停，明确恢复保留已发生动作和消耗",
+    "必需缺失启动零Effect，运行中失效/异常/null/超时不假Completed；仅可选可Skip；领域Unknown默认记录",
+    "暂停no-response不返回最终报告、查询零推进，后续明确Continue不重发已发生Effect，Recovery事实关联可观察",
+    "局部工作预算/调用超时/取消及终态重复Drive边界实际可执行；缺后验/矛盾post与主SimulationWorker协作不重复造夹具",
+    "所有新bundle Expected为各场景独立literal；终局或phased final report真实校验，不能测试通过却忽略AcceptancePassed=false"
+  ],
+  "forbidden": [
+    "共享代码库还有他人，不能回滚既有修改",
+    "不改TraversalScenarioFixture.cs及主TraversalScenarioTests.cs；helper缺口向原Owner请求",
+    "只写自己新测试；Kernel缺陷先报Leader/依照原执行WorkItem修复，不弱化断言",
+    "不修改scenarios旧期望/历史001，不把none条目算通过",
+    "不创建子Agent，不提交推送，不改模型/路由"
+  ],
+  "frozen_decisions": [
+    "changes/RUNTIME-PLAN-002/state.md D1-D19",
+    "plans/runtime-plan-002.md"
+  ],
+  "dependencies": [
+    "WI-RUNTIME-PLAN-002-EXECUTION"
+  ],
+  "status": "done"
+}

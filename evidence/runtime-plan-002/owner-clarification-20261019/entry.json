@@ -1,0 +1,15 @@
+{
+  "head": "2225c642006e85290a6e98db82348a94fe3a66f8",
+  "before": {
+    "CONTEXT.md": "634dd052d1f34514ed8745b155ea274e003cfb3786693a703f1ffbb7af20415e",
+    "changes/RUNTIME-PLAN-002/state.md": "6b9d8d701dd05c2d9359af318a10c06fb956aa485c93d7b6687b45f6245b6a0d",
+    "changes/RUNTIME-PLAN-002/flow-contract.md": "700fca1299736ee52f7b21f0ee3dfe3836204a17103bd5a8dd9529d9027bff4c",
+    "changes/RUNTIME-PLAN-002/discussion-reference.md": "676a840c667872e57b9f6de0ff8d0a649da028a06c7338a0faf9ae69f72f7e2f",
+    "changes/RUNTIME-PLAN-002/protocol-sketch.md": "b4d535fdddd527d8fd5292a216cd2745bbda46ec02a4b34f7f97fe3d6ec35824",
+    "changes/RUNTIME-PLAN-002/derivation-review.md": "25c68986f89202bcaaa17bd8bd335d5a115d35dde069819da97380992f9224aa",
+    "changes/RUNTIME-PLAN-002/mathematical-derivation.md": "7b88e46d15030a01471c77955a191032c79e30f7ee93b4c2683ebbc36e19ee61",
+    "changes/RUNTIME-PLAN-002/philosophical-derivation.md": "7373406b14d9beca686a015300126ec8185f3ccf15d99c044863f34ca9f6300e"
+  },
+  "prior_derivation_source_drift_at_entry": [],
+  "scope": "Q17-Q19 owner clarification; documents only"
+}

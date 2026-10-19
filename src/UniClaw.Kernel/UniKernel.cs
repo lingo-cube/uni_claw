@@ -113,6 +113,10 @@ public sealed class UniKernel
     /// <summary>Current WorldBelief 透传（Kernel 不持有平行 belief）。</summary>
     public WorldBeliefRevision? CurrentBelief => _world.Current;
 
+    /// <summary>Read-only World-owned graph view; does not authorize navigation.</summary>
+    public WorldGraphProjection? ProjectWorldGraph(string scope) => _world.Current is { } current
+        ? _world.DeriveGraphProjection(current.RevisionId, scope) : null;
+
     /// <summary>Container Association decision log 透传（owner-internal；R-UW-02/03）。</summary>
     public IReadOnlyList<AssociationDecision> AssociationLog => _world.AssociationLog;
 
@@ -262,6 +266,16 @@ public sealed class UniKernel
 
     /// <summary>RunId（admission 铸造后非空；否则空串）。</summary>
     public string RunId => _run?.RunId ?? string.Empty;
+
+    public UniClaw.Kernel.Runtime.TraversalExecutionView? TraversalExecution => _run?.TraversalExecution;
+    internal void RecordTraversal(UniClaw.Kernel.Runtime.TraversalExecutionView view) => Run.RecordTraversal(view);
+    internal void BeginTraversalRecords() => Run.BeginTraversalRecords();
+    internal void RecordTraversalHandler(UniClaw.Kernel.Runtime.PlanHandlerRecord record) => Run.RecordTraversalHandler(record);
+    internal void RecordTraversalOperation(UniClaw.Kernel.Runtime.TraversalOperationRecord record) => Run.RecordTraversalOperation(record);
+    internal void RecordTraversalProgress(UniClaw.Kernel.Runtime.TraversalProgressEvent progress) => Run.RecordTraversalProgress(progress);
+    internal UniClaw.Kernel.Control.TraversalControl TraversalControl => Control.Traversal;
+    internal void RecordTraversalRecovery(UniClaw.Kernel.Runtime.TraversalRecoveryFacts facts) => Control.AcceptTraversalRecovery(facts);
+
 
     /// <summary>Run 是否已 terminal。</summary>
     public bool IsRunTerminal => _run?.IsTerminal ?? false;
@@ -478,9 +492,8 @@ public sealed class UniKernel
             return Assurance.RecordPostActionVerification(verification);
         }
 
-        var root = _world.Current?.Containers is { Count: 1 } containers
-            ? containers[0].Identity.ContainerId
-            : throw new InvalidOperationException("post-action verification requires one root container");
+        var root = CurrentInteractionContainer(_world.Current)
+            ?? throw new InvalidOperationException("post-action verification requires a current container");
         var slice = DeriveSlice(root);
         var targetWasUniqueBeforeDispatch = preActionBelief?.Occurrences is { } priorOccurrences
             && priorOccurrences.Count(o => MatchesTarget(o.Role, o.SemanticDescriptor, target)) == 1;
@@ -521,11 +534,38 @@ public sealed class UniKernel
                 .Select(o => (o.Role, o.SemanticDescriptor)).ToHashSet();
             visibleContentChanged = !before.SetEquals(after);
         }
-        return Assurance.VerifyPostActionEffect(
+        var result = Assurance.VerifyPostActionEffect(
             new PostActionEffectVerificationInput(target, slice, processedObservations,
                 expected,
                 TargetDisappearedAfterRouteChange: navigationTransition,
                 Change: new ChangeEvidence(routeBefore, routeAfter, visibleContentChanged)));
+        // The independent Assurance result and accepted pre/post page observations
+        // must exist before World can add a navigation relation. Delivery alone
+        // and the P22 transition prior never establish this relation.
+        if (result.IsVerified && !isSwipe && routeChanged
+            && preActionBelief is { } beforeBelief && _world.Current is { } afterBelief
+            && CurrentInteractionContainer(beforeBelief) is { } sourceId
+            && CurrentInteractionContainer(afterBelief) is { } targetId
+            && beforeBelief.WorldState.TryGetValue(WorldModel.SignatureSubjectPrefix + sourceId, out var sourceSignature)
+            && afterBelief.WorldState.TryGetValue(WorldModel.SignatureSubjectPrefix + targetId, out var targetSignature))
+        {
+            _world.RecordObservedNavigation(new ObservedNavigation(
+                beforeBelief.RevisionId, sourceId, sourceSignature.EvidenceId,
+                afterBelief.RevisionId, targetId, targetSignature.EvidenceId,
+                NavigationScope, $"verification:{result.RevisionId}:{EffectReceipts.LastOrDefault()?.ReceiptId}"));
+        }
+        return result;
+    }
+
+    internal string NavigationScope => $"{RunId}:{RunView?.Version}";
+
+    private static string? CurrentInteractionContainer(WorldBeliefRevision? belief)
+    {
+        if (belief?.WorldState.TryGetValue(WorldModel.CurrentContainerSubject, out var current) == true
+            && belief.Containers?.Count(container => container.Identity.ContainerId == current.Value) == 1)
+            return current.Value;
+        // Compatibility for single-container realizations without an association anchor.
+        return belief?.Containers is { Count: 1 } containers ? containers[0].Identity.ContainerId : null;
     }
 
     private static bool MatchesTarget(OccurrenceFact occurrence, TargetSpec target) =>

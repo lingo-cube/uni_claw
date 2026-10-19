@@ -1,0 +1,40 @@
+生成启动时间为 2026/10/19 22:56:04。
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/bin/Debug/net10.0/UniClaw.Agent.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.01]   Discovering: UniClaw.Agent.Tests
+[xUnit.net 00:00:00.03]   Discovered:  UniClaw.Agent.Tests
+[xUnit.net 00:00:00.03]   Starting:    UniClaw.Agent.Tests
+[xUnit.net 00:00:00.05]     UniClaw.Agent.Tests.UniAgentProfileYamlTests.Repo_Profile_Loads_With_Assembly_And_Revision [FAIL]
+[xUnit.net 00:00:00.05]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:00.05]       Expected: 18
+[xUnit.net 00:00:00.05]       Actual:   19
+[xUnit.net 00:00:00.05]       Stack Trace:
+[xUnit.net 00:00:00.05]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/UniAgentProfileYamlTests.cs(142,0): at UniClaw.Agent.Tests.UniAgentProfileYamlTests.Repo_Profile_Loads_With_Assembly_And_Revision()
+[xUnit.net 00:00:00.05]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.05]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.05]   Finished:    UniClaw.Agent.Tests
+  失败 UniClaw.Agent.Tests.UniAgentProfileYamlTests.Repo_Profile_Loads_With_Assembly_And_Revision [8 ms]
+  错误消息:
+   Assert.Equal() Failure: Values differ
+Expected: 18
+Actual:   19
+  堆栈跟踪:
+     at UniClaw.Agent.Tests.UniAgentProfileYamlTests.Repo_Profile_Loads_With_Assembly_And_Revision() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/UniAgentProfileYamlTests.cs:line 142
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+测试运行失败。
+测试总数: 1
+     失败数: 1
+总时间: 0.5018 秒
+     1>项目“/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj”在节点 1 上(VSTest 个目标)。
+     1>_VSTestConsole:
+         MSB4181: “VSTestTask”任务返回了 false，但未记录错误。
+     1>已完成生成项目“/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj”(VSTest 个目标)的操作 - 失败。
+
+生成失败。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.73

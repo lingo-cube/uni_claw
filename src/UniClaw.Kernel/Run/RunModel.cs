@@ -30,6 +30,78 @@ public sealed class RunModel
     /// <summary>当前 Run 的 immutable Contract View（contract 被接受前为 null）。</summary>
     public ExecutionContractView? View { get; private set; }
 
+    /// <summary>Canonical latest traversal progress, recorded only by this Owner.</summary>
+    public UniClaw.Kernel.Runtime.TraversalExecutionView? TraversalExecution { get; private set; }
+
+    private readonly List<UniClaw.Kernel.Runtime.TraversalExecutionView> _traversalHistory = new();
+    private readonly List<UniClaw.Kernel.Runtime.PlanHandlerRecord> _traversalHandlers = new();
+    private readonly List<UniClaw.Kernel.Runtime.TraversalGap> _traversalGaps = new();
+    private readonly List<UniClaw.Kernel.Runtime.TraversalOperationRecord> _traversalOperations = new();
+    private readonly List<string> _traversalCompletedWork = new();
+    public IReadOnlyList<UniClaw.Kernel.Runtime.TraversalExecutionView> TraversalHistory => _traversalHistory.AsReadOnly();
+
+    internal void BeginTraversalRecords()
+    {
+        if (IsTerminal) return;
+        _traversalHandlers.Clear();
+        _traversalGaps.Clear();
+        _traversalOperations.Clear();
+        _traversalCompletedWork.Clear();
+    }
+
+    internal void RecordTraversalHandler(UniClaw.Kernel.Runtime.PlanHandlerRecord record)
+    {
+        if (!IsTerminal) _traversalHandlers.Add(record);
+    }
+
+    internal void RecordTraversalOperation(UniClaw.Kernel.Runtime.TraversalOperationRecord record)
+    {
+        if (IsTerminal) return;
+        if (_traversalOperations.Any(operation => operation.OperationId == record.OperationId))
+            throw new InvalidOperationException("duplicate-traversal-operation");
+        _traversalOperations.Add(record with { EvidenceRefs = Array.AsReadOnly(record.EvidenceRefs.ToArray()) });
+    }
+
+    internal void RecordTraversalProgress(UniClaw.Kernel.Runtime.TraversalProgressEvent progress)
+    {
+        if (IsTerminal) return;
+        switch (progress)
+        {
+            case UniClaw.Kernel.Runtime.TraversalProgressEvent.Gap gap:
+                _traversalGaps.Add(gap.Value with { EvidenceRefs = Array.AsReadOnly(gap.Value.EvidenceRefs.ToArray()) });
+                break;
+            case UniClaw.Kernel.Runtime.TraversalProgressEvent.Completed completed:
+                var index = _traversalOperations.FindIndex(operation => operation.OperationId == completed.OperationId);
+                if (index < 0) throw new InvalidOperationException("unknown-traversal-operation");
+                if (!_traversalOperations[index].Completed)
+                {
+                    _traversalOperations[index] = _traversalOperations[index] with { Completed = true };
+                    _traversalCompletedWork.Add(completed.Work);
+                }
+                break;
+        }
+    }
+
+    internal void RecordTraversal(UniClaw.Kernel.Runtime.TraversalExecutionView controlState)
+    {
+        if (IsTerminal) return;
+        // The incoming value contributes only Control state. All execution
+        // records, counts and report aggregation are owned and built here.
+        TraversalExecution = controlState with
+        {
+            OperationsCompleted = _traversalOperations.Count(operation => operation.Completed),
+            Handlers = Array.AsReadOnly(_traversalHandlers.ToArray()),
+            Gaps = Array.AsReadOnly(_traversalGaps.ToArray()),
+            CompletedWork = Array.AsReadOnly(_traversalCompletedWork.ToArray()),
+            Operations = Array.AsReadOnly(_traversalOperations.ToArray()),
+            DiscoveryComplete = controlState.DiscoveryComplete
+                && !_traversalGaps.Any(gap => gap.Reason == "discovery-incomplete"),
+            EndReason = controlState.Status == UniClaw.Kernel.Runtime.PlanExecutionStatus.Completed
+                && _traversalGaps.Count > 0 ? "partial" : controlState.EndReason,
+        };
+        _traversalHistory.Add(TraversalExecution);
+    }
+
     /// <summary>Current canonical Run State（typed transitions 的最新结果）。</summary>
     public RunState? State => _history.Count == 0 ? null : _history[^1];
 

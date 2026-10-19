@@ -1,0 +1,27 @@
+{
+  "id": "WI-RUNTIME-PLAN-001-RESEARCH",
+  "objective": "对照一手来源研究通用Agent Harness的规划/动作循环/重规划，形成可用于UniClaw设计讨论的证据笔记",
+  "scope": {
+    "write": ["docs/research/general-agent-harness-planning-evidence-20261018.md"],
+    "read_hints": ["AGENTS.md", ".agents/skills/research/SKILL.md", "docs/research/planning-llm-agents-research.md"]
+  },
+  "semantic_brief": {
+    "summary": "Owner要求先研究业界、列出观点、形成文档，再grill-with-docs；本轮不实现、不默认Plan优于Act。区分内部思考、任务清单、执行Plan、反应式工具循环及执行授权。",
+    "core_points": ["只使用官方文档/作者论文/上游源码", "比较实际调用循环与信息流，而非产品宣传", "本地代码审计由Leader负责"]
+  },
+  "acceptance": [
+    "写入唯一研究文件，以中文说明研究日期、范围、来源及证据限制",
+    "覆盖Anthropic长任务Harness/Agent实践、LangChain Deep Agents或LangGraph规划、Microsoft Magentic、OpenAI Agents或Codex/Computer Use的正式一手资料；至少四种实际机制，避免仅罗列品牌",
+    "每项关键事实有直接来源，说明规划表示、执行循环、何时重规划、状态/历史/验证的作用；区别事实与对UniClaw的推断",
+    "比较显式Plan的收益与代价，不声称所有Harness都要求先Plan，不把Todo或Plan Mode等同机器执行计划",
+    "给出可供Leader整合的观点与反例，保留不能验证之处；不要修改产品或向用户发问"
+  ],
+  "forbidden": [
+    "不得写允许路径之外的文件；不得修改产品代码、测试、配置、ADR或CONTEXT",
+    "共享工作区有其他作者，不得还原、清理或覆盖他人改动",
+    "不得创建子Agent、其他用户会话或对外发送消息",
+    "不得用二手博客代替权威来源或把推测写成已验证事实"
+  ],
+  "required_skills": ["research"],
+  "status": "done"
+}

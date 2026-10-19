@@ -1,0 +1,34 @@
+{
+  "kind": "DOCUMENT_DELIVERY_ONLY",
+  "change": "RUNTIME-PLAN-002",
+  "lifecycle_state": "persisted",
+  "final_contract_confirmed": true,
+  "confirmation_scope": "high-level design semantics; wire fields and implementation not accepted by this check",
+  "product_implementation_changed": false,
+  "product_tests_run": false,
+  "model_or_device_runs": 0,
+  "links_checked": 80,
+  "missing_links": [],
+  "result": "PASS_DOCUMENT_CHECKS_ONLY",
+  "old_index_rows_preserved": true,
+  "status_and_index_consistent": true,
+  "fences_and_whitespace": "PASS",
+  "diff_check": {
+    "command": [
+      "git",
+      "diff",
+      "--check",
+      "--",
+      "changes/RUNTIME-PLAN-002/state.md",
+      "changes/RUNTIME-PLAN-002/discussion-reference.md",
+      "changes/RUNTIME-PLAN-001/state.md",
+      "changes/RUNTIME-PLAN-002/flow-contract.md",
+      "changes/RUNTIME-PLAN-002/protocol-sketch.md",
+      "changes/RUNTIME-PLAN-002/architecture-review.md",
+      "changes/INDEX.md"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+}

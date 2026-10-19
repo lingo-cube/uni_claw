@@ -1,0 +1,10 @@
+{
+  "result": "PASS_DOCUMENT_CHECKS_ONLY",
+  "accepted": "D11 operation-scoped handler binding",
+  "pending": [
+    "Q11",
+    "Q13",
+    "Q14"
+  ],
+  "product_changes": false
+}

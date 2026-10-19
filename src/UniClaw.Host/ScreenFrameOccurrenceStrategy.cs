@@ -7,7 +7,7 @@ namespace UniClaw.Host;
 
 /// <summary>
 /// SIM-002 G1：内容帧 claim（screen.frame JSON，LivePerception 产出格式）
-/// → occurrence 提案（owner = previous revision 的唯一根容器；非帧 claim
+/// → occurrence 提案（owner = previous revision 当前交互锚点；非帧 claim
 /// 不派生）。live 全真路径依赖本派生（tap 目标 bounds 来自 occurrence
 /// locator），故属产品能力、随 G1 从仿真档独立成件。
 /// 仿真侧孪生：Simulation Host 的 dev 帧源文件内同名策略（双 Host 不得
@@ -40,9 +40,7 @@ public sealed class ScreenFrameOccurrenceStrategy : IUiObservationStrategy
         var space = width is { } sw && height is { } sh
             ? UniClaw.Kernel.Perception.CoordinateSpace.DeviceViewport(sw, sh)
             : null;
-        var owner = previous?.Containers.Count == 1
-            ? previous.Containers[0].Identity.ContainerId
-            : null;
+        var owner = CurrentPageAnchor.Resolve(previous);
         return new[]
         {
             new ProposedOccurrence(

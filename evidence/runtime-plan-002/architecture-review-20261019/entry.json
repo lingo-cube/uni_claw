@@ -1,0 +1,22 @@
+{
+  "head": "2225c642006e85290a6e98db82348a94fe3a66f8",
+  "before": {
+    "CONTEXT.md": "2fe99a14c5ba6640fd9b0b57709feb9022959e0afe5cf583d4a49fbe68737735",
+    "changes/INDEX.md": "d58606d6dcc8fe4a83494a41414e7ad9887e726d38175c08f032e471688b3393",
+    "changes/RUNTIME-PLAN-002/state.md": "8d8f2f0bf15ddd5160b9d8993aa387e575b00f47fa235b949037d4ac4dcf9cae",
+    "changes/RUNTIME-PLAN-002/flow-contract.md": "efba407aa2836b144ae96dfb1ca1f48557f68efa42e01ae2f0b432338638bcf4",
+    "changes/RUNTIME-PLAN-002/discussion-reference.md": "4e9512042fea145232d0a2f261c0b247848855dcabec13294b61530881ff1db4",
+    "changes/RUNTIME-PLAN-002/protocol-sketch.md": "805a6314aab71e32dc81a73b517a651014aedb7cb1fe8a4aef624153c6d9e589",
+    "evidence/runtime-plan-002/verify-docs.py": "6c1b6dd1e48d317c61c78da8c82cb7dac8b720501f8614f82328d73a626c0fac",
+    "evidence/runtime-plan-002/verification.json": "ca4a9452e412612420437b77cdac087d9a42d23ea4def7e7f5e4b8358f3b5197"
+  },
+  "review_sources": {
+    "AGENTS.md": "ff69f550f5ca3904e579a1228ef7ab1ebcd51d012279c89e316fbc8bdae99a7f",
+    "docs/architecture/product-architecture-baseline-l0-l3.md": "f4d95f7acf3ebbce3297932bb0c7bd38c9ee4a771a807752f83617e90b5ed928",
+    "docs/adr/0053-composable-product-plan-with-bounded-local-execution.md": "e79747b3c8ba502b93cfd5ffd8c99b18837799f81208fe4580920717bf6618dd",
+    ".agents/skills/codebase-design/SKILL.md": "2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2",
+    ".agents/skills/capability-component/SKILL.md": "461a27348c4e30781b5cb4f73cc8840ef049211a61cb3fc2a8207b406b009b2c"
+  },
+  "authority": "user conditional instruction: review architecture, persist if satisfied, then await user task",
+  "scope": "design documents and document verification only"
+}

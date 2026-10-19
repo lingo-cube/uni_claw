@@ -1,0 +1,31 @@
+{
+  "checkout": "/tmp/uniclaw-runtime-publish-check-1792425959",
+  "tree": "17c46f9219d8e75233478818de43e9d4b9e7965c",
+  "results": [
+    {
+      "suite": "scenario-check",
+      "exitCode": 0
+    },
+    {
+      "suite": "kernel",
+      "exitCode": 0,
+      "log": "/tmp/uniclaw-runtime-publish-validation-20261020/kernel.log",
+      "passed": 951
+    },
+    {
+      "suite": "simulation",
+      "exitCode": 0,
+      "log": "/tmp/uniclaw-runtime-publish-validation-20261020/simulation.log"
+    },
+    {
+      "suite": "agent-dsh",
+      "exitCode": 0,
+      "log": "/tmp/uniclaw-runtime-publish-validation-20261020/agent-dsh.log"
+    },
+    {
+      "suite": "host",
+      "exitCode": 1,
+      "log": "/tmp/uniclaw-runtime-publish-validation-20261020/host.log"
+    }
+  ]
+}

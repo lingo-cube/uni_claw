@@ -90,6 +90,42 @@ public sealed class SettingsCoverageArrivalTests
     }
 
     [Fact]
+    public void ReachedOverlay_AfterDismissal_SelectsNextNestedTarget()
+    {
+        const string page = "android.settings|rk1:Mobile network|src=title|up=1";
+        var config = Config() with
+        {
+            DynamicNestedEntries = new DynamicNestedEntriesConfig(true, 1, 2),
+        };
+        var ledger = new SettingsCoverageLedger();
+        void Observe(string route, params string[] targets) => ledger.RecordObservation(route,
+            targets.Select(target => ("ui.element", (string?)target)).ToArray());
+        Observe(RootRoute, "Network & internet");
+        Observe(page, Entry, "Roaming", "Navigate up");
+        ledger.RecordPopupState("absent");
+        var answers = new Queue<string>([Entry, "CANCEL", "Roaming"]);
+        var director = new SettingsCoverageDirector(_ => Act(answers.Dequeue()), ledger, config,
+            dialogTitleSource: () => "SIM label and color");
+        Assert.IsType<AgentDecision.Act>(director.Consult(Context("d-enter")));
+
+        // 与真实运行一致：弹窗出现时路由退化为 identity-only。
+        Observe("android.settings", "CANCEL");
+        ledger.RecordPopupState("present");
+        var dismiss = Assert.IsType<AgentDecision.Act>(director.Consult(Context("d-arrival")));
+        Assert.Equal("CANCEL", dismiss.Proposal.Steps[0].TargetDescriptor);
+
+        Observe(page, Entry, "Roaming", "Navigate up");
+        ledger.RecordPopupState("absent");
+        var next = Assert.IsType<AgentDecision.Act>(director.Consult(Context("d-next")));
+
+        Assert.Equal("Roaming", next.Proposal.Steps[0].TargetDescriptor);
+        Assert.Contains("<Roaming>", director.ConsultLog[^1].Directive);
+        Assert.Equal(TargetCoverageMarkKind.ReachedOverlay, ledger.TargetMarks[Entry].Kind);
+        Assert.Empty(ledger.AgentSkippedTargets);
+        Assert.DoesNotContain(director.ConsultLog, record => record.DecisionKind == "skip");
+    }
+
+    [Fact]
     public void PopupAfterEnterTap_TitleMismatch_FallsThroughToObstacleLogic()
     {
         var (ledger, director) = AdoptEnterTap(() => "Battery optimization");

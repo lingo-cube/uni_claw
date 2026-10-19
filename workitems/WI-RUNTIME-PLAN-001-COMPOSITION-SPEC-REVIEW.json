@@ -1,0 +1,32 @@
+{
+  "id": "WI-RUNTIME-PLAN-001-COMPOSITION-SPEC-REVIEW",
+  "objective": "独立核对本次有限条件/重复组合是否满足原泛化目标与执行边界",
+  "scope": {
+    "write": [
+      "evidence/runtime-plan-001/composition-20261018/spec-review.md"
+    ],
+    "read_hints": [
+      "changes/RUNTIME-PLAN-001/composition-contract.md",
+      "evidence/runtime-plan-001/composition-20261018/implementation.patch",
+      "evidence/runtime-plan-001/composition-20261018/inventory.json"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "只审本次相对于149文件入口快照的增量。原单层ForEach不足，现补Owner命名If、有界Repeat与有限嵌套块；Kernel不理解UI菜单名，Host提供只读当前页候选/条件。重点检查组合、候选遮蔽/恢复、准确暂停、Unknown及在途屏障。"
+  },
+  "acceptance": [
+    "规格轴逐项报告缺失/错误/越界并给具体反例与位置，未跑实机不写已验证",
+    "每个发现引用composition-contract或D1-D10/ADR条目；无阻塞则说明审查范围和限制"
+  ],
+  "forbidden": [
+    "不得修改产品/测试/配置/既有证据",
+    "不得启动构建/测试/模型/设备",
+    "不得再委派",
+    "不得回退共享修改"
+  ],
+  "contract_refs": [
+    "docs/adr/0053-composable-product-plan-with-bounded-local-execution.md",
+    "changes/RUNTIME-PLAN-001/composition-contract.md"
+  ],
+  "status": "done"
+}

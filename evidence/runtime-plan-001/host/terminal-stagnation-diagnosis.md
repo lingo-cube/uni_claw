@@ -1,0 +1,9 @@
+# 已完成Plan的停滞误报
+
+真实compact ShortPlan/2的第二次咨询：两个动作均Verified、Owner覆盖完成且当前根页，但failureReason携带“重复相同行为无进展3周期”干预。模型还在末尾Checkpoint选择Continue空尾，随后再次NoAction；仍3咨询，未达基线门槛。RulePlan/2同样3咨询。该epoch候选ShortPlan/1的模型原始及retry参数不完整，未形成合法决策，0动作；batch按失败停止，保留无效消耗。
+
+公开Host用例增加末尾重复Observe，短/规则两例RED，另两例原路径通过（terminal-stagnation-red2.txt：2/4；明确断言捕获到STAGNATION INTERVENTION）。第一步仅在CoverageComplete根页不发新信号仍未通过；补外部观察前对账后仍未通过（green/green2日志如实保留）。继续定位：停滞fingerprint只读显式TargetMarks，却漏掉Owner账本由真实已验证根页进入得出的事实，entered长期为0；Plan无咨询推进使此问题显现。
+
+最终修复：Interleave在External观察前flush已完成步骤，先receipt/verification再观察和停滞判断；PostActionEffectFlow前不drain，继续等待独立验证。进入计数复用EnteredRootDescriptors，排除AgentSkippedTargets后并入显式RouteEntered/ReachedOverlay去重；同页清障与重复进入不增加进入计数。Owner确认CoverageComplete且当前已回Root时不产生新的停滞信号，仍由Agent/Kernel判断终局。没有改停滞阈值或把StepsVerified作为进度。
+
+最终10/10（terminal-stagnation-green3.txt），包含原popup-loop进度反例；Host全量341/341（integration/uniclaw.host.tests-final17.txt）。Prompt/Profile17说明已满足义务可在Checkpoint直接NoAction，不必Continue空尾，已有同subject动作后证据不机械重复Observe。未知/欠证和逐动作验证仍保持。

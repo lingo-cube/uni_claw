@@ -1,0 +1,10 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Agent -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+  UniClaw.Agent.Dsh -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent.Dsh/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll
+  UniClaw.Agent.Dsh.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    13，已跳过:     0，总计:    13，持续时间: 85 ms - UniClaw.Agent.Dsh.Tests.dll (net10.0)

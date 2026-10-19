@@ -1,0 +1,20 @@
+{
+  "checkout": "/tmp/uniclaw-runtime-publish-check-1792425959",
+  "tree": "7bdfaafeb26a2336f15ac7df8f1fc570e7d9461c",
+  "results": [
+    {
+      "suite": "scenario-check",
+      "exitCode": 0
+    },
+    {
+      "suite": "kernel",
+      "exitCode": 0,
+      "log": "/tmp/uniclaw-runtime-publish-validation-20261020/kernel.log"
+    },
+    {
+      "suite": "simulation",
+      "exitCode": 1,
+      "log": "/tmp/uniclaw-runtime-publish-validation-20261020/simulation.log"
+    }
+  ]
+}

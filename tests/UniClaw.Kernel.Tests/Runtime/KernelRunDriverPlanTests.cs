@@ -38,6 +38,45 @@ public sealed class KernelRunDriverPlanTests
             new(DispatchOutcome.DeliveryCompleted, "test:ok", T0);
     }
 
+    private sealed class UnknownDriver : IEffectDriver
+    {
+        public DispatchResult Deliver(DispatchRequest request) =>
+            new(DispatchOutcome.UnknownOutcome, "test:unknown", T0, "simulated-timeout");
+    }
+
+    private sealed class CallbackDriver(Action<DispatchRequest> delivered) : IEffectDriver
+    {
+        public DispatchResult Deliver(DispatchRequest request)
+        {
+            delivered(request);
+            return new DispatchResult(DispatchOutcome.DeliveryCompleted, "test:record-verified", T0);
+        }
+    }
+
+    private sealed class SequenceControlPolicy(params ControlDecision[] decisions) : IControlPolicy
+    {
+        private int _index;
+
+        public ControlDecision Decide(ControlInputs inputs)
+        {
+            var index = Math.Min(_index++, decisions.Length - 1);
+            return decisions[index];
+        }
+    }
+
+    private sealed class SeparateEveryObservationAssociationStrategy : IAssociationStrategy
+    {
+        public AssociationProposal Propose(AssociationInput input) => new(
+            AssociationDispositionKind.New,
+            MatchedContainerId: null,
+            new[]
+            {
+                new AssociationCandidate("(new)", new[] { input.Current.EvidenceId }, Array.Empty<string>()),
+            },
+            Relations: Array.Empty<ProposedRelation>(),
+            Reason: "test-separate-observation-containers");
+    }
+
     // ---- 夹具（同 KernelRunDriverFinalizationTests 约定）----------------------
 
     /// <summary>测试域 Rogue PlanItem（closed union 之外的派生类型）：plan:unknown-item 防御面。</summary>
@@ -72,7 +111,8 @@ public sealed class KernelRunDriverPlanTests
     {
         public IReadOnlyList<ProposedOccurrence> Derive(EvidenceRecord record, WorldBeliefRevision? previous)
         {
-            if (record.Claim.Subject.StartsWith("ui.node.", StringComparison.Ordinal)
+            if ((record.Claim.Subject.StartsWith("ui.node.", StringComparison.Ordinal)
+                    || record.Claim.Subject.StartsWith("record:", StringComparison.Ordinal))
                 && previous?.Occurrences is { Count: > 0 } prior)
             {
                 return prior.Select(o => new ProposedOccurrence(
@@ -150,24 +190,38 @@ public sealed class KernelRunDriverPlanTests
         Func<ObservationDirective, RunDriverInput?> nextInput,
         Func<UniKernel, Func<AgentDecisionContext, AgentDecision?>> consultFactory,
         ExecutionContract contract,
-        string seedValue = "switch:primary@off")
+        string seedValue = "switch:primary@off",
+        Func<string, PlanCandidateSet?>? projectPlanCandidates = null,
+        Func<AgentActionStep, AgentDecisionContext, PlanStepGuardResult>? guardStep = null,
+        AgentPlanPolicy? planPolicy = null,
+        IControlPolicy? controlPolicy = null,
+        IEffectDriver? effectDriver = null,
+        IAssociationStrategy? associationStrategy = null,
+        Func<string, PlanCandidate?, PlanConditionResult?>? evaluatePlanCondition = null)
     {
         var cid = ProbeContainerId(seedValue);
-        var plan = new AgentPlanPolicy();
-        var effects = new EffectBoundary(new OkDriver());
+        var plan = planPolicy ?? new AgentPlanPolicy();
+        var effects = new EffectBoundary(effectDriver ?? new OkDriver());
         var kernel = new UniKernel(
             new EvidenceLedger(),
             new WorldModel(
                 new HashSet<string>(contract.Scope.Append(TypedSubject)),
-                new SeedContainerAssociationStrategy(),
+                associationStrategy ?? new SeedContainerAssociationStrategy(),
                 new StatefulObservationStrategy(cid),
                 new RoleContinuityStrategy()),
             DisabledRunTrace.Instance,
             new RunModel(),
-            new ControlLoop(plan),
+            new ControlLoop(controlPolicy ?? plan),
             new RuntimeAssurance(new AlwaysFresh()),
             effects);
-        var inputs = new RunDriverInputs { NextInput = nextInput, ConsultAgent = consultFactory(kernel) };
+        var inputs = new RunDriverInputs
+        {
+            NextInput = nextInput,
+            ConsultAgent = consultFactory(kernel),
+            ProjectPlanCandidates = projectPlanCandidates,
+            EvaluatePlanCondition = evaluatePlanCondition,
+            GuardStep = guardStep,
+        };
         var driver = new KernelRunDriver(kernel, plan, inputs);
         Assert.True(kernel.AdmitContract(contract).Accepted);
         Assert.True(driver.Activate().Accepted);
@@ -176,6 +230,196 @@ public sealed class KernelRunDriverPlanTests
 
     private static AgentDecision PlanDecision(string decisionId, params PlanItem[] items) =>
         new AgentDecision.Plan(decisionId, new AgentPlanProposal(items, "test-plan"));
+
+    [Fact]
+    public void ConditionalRepeat_UsesFreshOwnerFactsWithoutPerIterationConsultation()
+    {
+        var observed = new List<string>();
+        var consults = 0;
+        var evaluations = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            expected =>
+            {
+                if (expected.Subjects?.SingleOrDefault() is { } subject) observed.Add(subject);
+                return new RunDriverInput.Observation(new[]
+                {
+                    UIWorldDoubles.Observation("switch:primary@off", T0.AddSeconds(observed.Count)),
+                });
+            },
+            _ => ctx => ++consults == 1
+                ? new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                {
+                    new PlanItem.RepeatItem(new PlanItem[]
+                    {
+                        new PlanItem.IfItem("records.need-evidence",
+                            new PlanItem[] { new PlanItem.ObserveItem("collect-evidence") },
+                            new PlanItem[] { new PlanItem.ObserveItem("inspect-result") }),
+                    }, 3),
+                }, "choose from new owner facts", "conditional-records", MaxLocalOperations: 20))
+                : new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "not a completion proof")),
+            PlanContract(),
+            evaluatePlanCondition: (name, candidate) =>
+            {
+                Assert.Equal("records.need-evidence", name);
+                Assert.Null(candidate);
+                evaluations++;
+                return new PlanConditionResult(observed.Count == 0 ? PolicyTruth.Satisfied : PolicyTruth.Violated,
+                    "records", $"observations:{observed.Count}", new[] { "owner:records:current-state" });
+            });
+        var result = driver.Drive();
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Equal(new[] { "collect-evidence", "inspect-result", "inspect-result" }, observed);
+        Assert.Equal(3, evaluations);
+        Assert.Equal(2, consults);
+        Assert.Empty(kernel.EffectReceipts);
+    }
+
+    [Fact]
+    public void NestedCandidateBranch_ResumesParentAndProcessesNewCandidateWithoutDuplicateEffects()
+    {
+        var postPulls = 0;
+        var postEnabled = false;
+        var consults = 0;
+        var evaluations = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            expected => expected.Context == ObservationContext.External
+                ? new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off+menuItem:list@visible", UIWorldDoubles.T0) })
+                : !postEnabled ? null : new RunDriverInput.Observation(new[]
+                {
+                    PostActionObservation($"switch:primary@on+menuItem:list@{(++postPulls == 1 ? "visible" : "visited")}", T1.AddSeconds(postPulls)),
+                    TypedCheckedClaim("checked", T1.AddSeconds(postPulls)),
+                    TypedResourceClaim(T1.AddSeconds(postPulls)),
+                }),
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.RepeatItem(new PlanItem[]
+                        {
+                            new PlanItem.ForEachItem("current", new PlanItem[]
+                            {
+                                new PlanItem.IfItem("candidate.is-switch",
+                                    new PlanItem[]
+                                    {
+                                        new PlanItem.CheckpointItem("review nested branch"),
+                                        new PlanItem.ActItem("$candidate", "$candidate", "toggle", "on"),
+                                    },
+                                    new PlanItem[] { new PlanItem.ActItem("$candidate", "$candidate", "tap", null) }),
+                            }, 3),
+                        }, 2),
+                    }, "use fresh candidates and choose per-item behavior", "nested-candidates", MaxLocalOperations: 40));
+                if (ctx.PlanExecution?.Status == PlanExecutionStatus.Paused)
+                {
+                    Assert.False(string.IsNullOrWhiteSpace(ctx.PlanExecution.Position.ControlPath));
+                    Assert.Equal("primary", ctx.PlanExecution.Position.CandidateKey);
+                    return new AgentDecision.ContinuePlan(ctx.DecisionId, ctx.PlanExecution.Position);
+                }
+                return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "done"));
+            },
+            PlanContract(), seedValue: "switch:primary@off+menuItem:list@visible",
+            projectPlanCandidates: _ => new PlanCandidateSet("current", $"r{postPulls}", postPulls switch
+            {
+                0 => new[] { new PlanCandidate("primary", "switch", "primary", PlanCandidateDisposition.Ready, new[] { "owner:switch" }) },
+                1 => new[] { new PlanCandidate("list", "menuItem", "list", PlanCandidateDisposition.Ready, new[] { "owner:menu" }) },
+                _ => Array.Empty<PlanCandidate>(),
+            }),
+            evaluatePlanCondition: (_, candidate) =>
+            {
+                evaluations++;
+                Assert.NotNull(candidate);
+                return new PlanConditionResult(candidate!.TargetRole == "switch" ? PolicyTruth.Satisfied : PolicyTruth.Violated,
+                    "current", $"r{postPulls}", candidate.EvidenceRefs);
+            });
+        var waiting = driver.Drive();
+        Assert.Equal(RunDriveStatus.WaitingForInput, waiting.Status);
+        Assert.Single(kernel.EffectReceipts);
+        Assert.Equal(RunDriveStatus.WaitingForInput, driver.Drive().Status);
+        Assert.Single(kernel.EffectReceipts);
+        postEnabled = true;
+        var result = driver.Drive();
+        Assert.True(result.Status == RunDriveStatus.Completed, $"{result.Status}:{result.Reason}; {System.Text.Json.JsonSerializer.Serialize(driver.PlanExecution)}");
+        Assert.Equal(3, consults); // initial + declared checkpoint + terminal assessment
+        Assert.Equal(2, evaluations); // resuming a branch never re-evaluates or repeats its prefix
+        Assert.Equal(2, kernel.EffectReceipts.Count);
+        var attempts = driver.PlanExecution!.Attempts.Where(a => a.Status == PlanAttemptStatus.Verified).ToArray();
+        Assert.Equal(2, attempts.Length);
+        Assert.NotEqual(attempts[0].Position.ControlPath, attempts[1].Position.ControlPath);
+        Assert.Equal(new[] { "primary", "list" }, attempts.Select(a => a.Step!.TargetDescriptor));
+    }
+
+    [Fact]
+    public void UnknownPlanCondition_DoesNotSelectElseOrDispatch()
+    {
+        var consults = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", T0) }),
+            _ => ctx => ++consults == 1
+                ? new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                {
+                    new PlanItem.IfItem("owner.unknown", Array.Empty<PlanItem>(),
+                        new PlanItem[] { new PlanItem.ActItem("switch", "primary", "toggle", "on") }),
+                }, "unknown cannot imply false", "unknown-branch"))
+                : new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "not proven")),
+            PlanContract(), evaluatePlanCondition: (_, _) => new PlanConditionResult(
+                PolicyTruth.Unknown, "scope", "revision", Array.Empty<string>(), "missing evidence"));
+        var result = driver.Drive();
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.Contains("plan:condition-unknown", driver.PlanExecution!.InterruptionReason);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ConditionalCheckpoint_RejectsTamperedControlPathAndMissingConditionEvidence(bool missingEvidence)
+    {
+        var consults = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0) }),
+            _ => ctx => ++consults == 1
+                ? new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                {
+                    new PlanItem.IfItem("owner.ready", new PlanItem[]
+                    {
+                        new PlanItem.CheckpointItem("review"),
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, Array.Empty<PlanItem>()),
+                }, "guard exact branch position", "tamper-plan"))
+                : ctx.PlanExecution?.Status == PlanExecutionStatus.Paused
+                    ? new AgentDecision.ContinuePlan(ctx.DecisionId, ctx.PlanExecution.Position with { ControlPath = null })
+                    : new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "unproven")),
+            PlanContract(), evaluatePlanCondition: (_, _) => new PlanConditionResult(PolicyTruth.Satisfied,
+                "scope", "r1", missingEvidence ? Array.Empty<string>() : new[] { "owner:evidence" }));
+        var result = driver.Drive();
+        Assert.Empty(kernel.EffectReceipts);
+        if (missingEvidence)
+        {
+            Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+            Assert.Equal("plan:condition-unavailable", driver.PlanExecution!.InterruptionReason);
+        }
+        else
+        {
+            Assert.Equal(RunDriveStatus.AgentDecisionFailed, result.Status);
+            Assert.Equal("plan:resume-position-mismatch", result.Reason);
+        }
+    }
+
+    [Fact]
+    public void SelfReferencingControlBlock_IsRejectedBeforeEffects()
+    {
+        var body = new List<PlanItem>();
+        body.Add(new PlanItem.RepeatItem(body, 1));
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0) }),
+            _ => ctx => new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(body, "invalid self-reference", "cyclic-plan")),
+            PlanContract());
+        var result = driver.Drive();
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, result.Status);
+        Assert.Equal("plan:invalid-control-structure", result.Reason);
+        Assert.Empty(kernel.EffectReceipts);
+    }
 
     // ==== 多 ActItem 串行执行 + 逐项验证 + 完成归档 ==========================
 
@@ -247,13 +491,635 @@ public sealed class KernelRunDriverPlanTests
         Assert.Equal(1, driver.CompletedSteps[1].StepIndex);
     }
 
+    [Fact]
+    public void DynamicPlan_RecordsBlockedCandidate_AndExecutesNewCandidateThroughVerifiedActChain()
+    {
+        var projectCount = 0;
+        var dispatchCount = 0;
+        var consults = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            nextInput: expected => expected.Context == ObservationContext.External
+                ? new RunDriverInput.Observation(new[]
+                    { UIWorldDoubles.Observation("switch:primary@off+menuItem:A@visible+menuItem:B@locked", UIWorldDoubles.T0) })
+                : new RunDriverInput.Observation(new[]
+                    {
+                        PostActionObservation($"switch:primary@on+menuItem:C@visible+item:{dispatchCount}", T1.AddSeconds(dispatchCount)),
+                        TypedCheckedClaim("checked", T1.AddSeconds(dispatchCount)),
+                        TypedResourceClaim(T1.AddSeconds(dispatchCount)),
+                    }),
+            consultFactory: _ => ctx =>
+            {
+                consults++;
+                if (ctx.BudgetReview is { Required: true } review)
+                {
+                    var assessment = new AgentProgressAssessment(
+                        review.ReviewId, "progress", "continue records", "remaining records",
+                        new[] { "candidate C current" }, new[] { "fact:C" }, Rationale: "A verified; C newly discovered");
+                    return new AgentDecision.ContinuePlan(ctx.DecisionId, ctx.PlanExecution!.Position,
+                        new BudgetReviewResponse(review.ReviewId, BudgetReviewOutcome.RequestRenewal,
+                            assessment, new BudgetRenewalRequest(2, 1, "continue C")));
+                }
+                if (consults > 1)
+                {
+                    // The dynamic scenario proves independent verified effects, but does not
+                    // claim the external goal is complete without its own completion evidence.
+                    return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "actions verified; goal remains unproven"));
+                }
+                return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(
+                    new PlanItem[]
+                    {
+                        new PlanItem.ForEachItem("records", new PlanItem[]
+                        {
+                            new PlanItem.ActItem("$candidate", "$candidate", "tap", null),
+                        }, MaxIterations: 3, ContinueOnBlocked: true),
+                    }, "dynamic records", "records-plan", 1, "process records", 12));
+            },
+            PlanContract(consultations: 8, totalSteps: 2),
+            seedValue: "switch:primary@off+menuItem:A@visible+menuItem:B@locked",
+            projectPlanCandidates: source =>
+            {
+                Assert.Equal("records", source);
+                projectCount++;
+                var candidates = new List<PlanCandidate>
+                {
+                    new("a", "switch", "primary", PlanCandidateDisposition.Ready, new[] { "fact:A" }),
+                    new("b", "menuItem", "B", PlanCandidateDisposition.Blocked, new[] { "fact:B" }, "locked by owner"),
+                };
+                if (projectCount >= 2)
+                    candidates.Add(new("c", "menuItem", "C", PlanCandidateDisposition.Ready, new[] { "fact:C" }));
+                return new PlanCandidateSet("records-scope", $"rev-{projectCount}", candidates);
+            },
+            guardStep: (step, _) =>
+            {
+                Assert.Contains(step.TargetDescriptor, new[] { "primary", "C" });
+                dispatchCount++;
+                return new PlanStepGuardResult(PlanStepGuardVerdict.Allow, "current owner facts", new[] { $"guard:{step.TargetDescriptor}" });
+            },
+            planPolicy: new AgentPlanPolicy
+            {
+                GoalDirectedContinuationEnabled = true,
+                AuthorizedTotalSteps = 8,
+                AuthorizedTotalConsultRounds = 12,
+            });
+
+        var first = driver.Drive();
+        Assert.Equal(RunDriveStatus.Completed, first.Status);
+        Assert.True(kernel.EffectReceipts.Count == 2,
+            $"receipts={kernel.EffectReceipts.Count}; consults={consults}; dispatches={dispatchCount}; reason={first.Reason}; status={driver.PlanExecution?.Status}; attempts={string.Join(',', driver.PlanExecution?.Attempts.Select(a => a.Status) ?? Array.Empty<PlanAttemptStatus>())}");
+        Assert.Equal(2, driver.CompletedSteps.Count);
+        Assert.Equal(3, consults);
+        Assert.Single(driver.RenewalsGranted.Where(record => record.Granted));
+        Assert.Equal(2, dispatchCount);
+        var execution = driver.PlanExecution;
+        Assert.NotNull(execution);
+        Assert.Equal(2, execution.Attempts.Count(attempt => attempt.Status == PlanAttemptStatus.Verified));
+        Assert.True(execution.Attempts.Any(attempt => attempt.EvidenceRefs.Contains("fact:A")
+            && attempt.EvidenceRefs.Contains("plan-source:records:revision:rev-1")),
+            string.Join(";", execution.Attempts.Select(attempt => string.Join(",", attempt.EvidenceRefs))));
+        Assert.True(execution.Attempts.Any(attempt => attempt.EvidenceRefs.Contains("fact:C")
+            && attempt.EvidenceRefs.Contains("plan-source:records:revision:rev-3")),
+            string.Join(";", execution.Attempts.Select(attempt => string.Join(",", attempt.EvidenceRefs))));
+        Assert.Contains(execution.BlockedEvidence, item => item.CandidateKey == "b" && item.Reason == "locked by owner");
+    }
+
+    [Fact]
+    public void Checkpoint_ContinuePlanResumesExactPosition_WithoutReplayingConsumedItem()
+    {
+        var postEnabled = false;
+        var postPulls = 0;
+        var consults = 0;
+        var resumedPosition = (PlanExecutionPosition?)null;
+        string? overviewStageExpectation = null;
+        var (kernel, driver) = ComposePlanWorld(
+            nextInput: expected => expected.Context == ObservationContext.External
+                ? new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0) })
+                : postEnabled
+                    ? new RunDriverInput.Observation(new[]
+                    {
+                        PostActionObservation("switch:primary@on", T1.AddSeconds(++postPulls)),
+                        TypedCheckedClaim("checked", T1.AddSeconds(postPulls)),
+                        TypedResourceClaim(T1.AddSeconds(postPulls)),
+                    })
+                    : null,
+            consultFactory: _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.CheckpointItem("review before action"),
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, "checkpoint resume", "checkpoint-plan", Version: 1, StageExpectation: "turn switch on"));
+                if (consults == 2)
+                {
+                    var position = ctx.PlanExecution!.Position;
+                    resumedPosition = position;
+                    overviewStageExpectation = ctx.ExecutionOverview?.PlanExecution?.StageExpectation;
+                    return new AgentDecision.ContinuePlan(ctx.DecisionId, position);
+                }
+                return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "verified"));
+            },
+            PlanContract(),
+            seedValue: "switch:primary@off");
+
+        postEnabled = true;
+        var result = driver.Drive();
+
+        Assert.True(result.Status == RunDriveStatus.Completed, $"status={result.Status}; reason={result.Reason}");
+        Assert.Equal(1, kernel.EffectReceipts.Count);
+        Assert.Equal(1, driver.CompletedSteps.Count);
+        Assert.Equal(3, consults);
+        Assert.NotNull(resumedPosition);
+        Assert.Equal(1, resumedPosition.ItemIndex);
+        Assert.Equal(1, resumedPosition.WorkUsed);
+        Assert.Equal("turn switch on", overviewStageExpectation);
+    }
+
+    [Fact]
+    public void ContinuePlan_WithWrongPosition_FailsClosedBeforeEffect()
+    {
+        var consults = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0) }),
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.CheckpointItem("pause"),
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, "exact position", "position-plan", Version: 1, StageExpectation: "turn switch on"));
+                var wrongPosition = ctx.PlanExecution!.Position with { ItemIndex = ctx.PlanExecution.Position.ItemIndex + 1 };
+                return new AgentDecision.ContinuePlan(ctx.DecisionId, wrongPosition);
+            },
+            PlanContract(),
+            seedValue: "switch:primary@off");
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, result.Status);
+        Assert.Equal("plan:resume-position-mismatch", result.Reason);
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.Equal(PlanExecutionStatus.Paused, driver.PlanExecution!.Status);
+    }
+
+    [Fact]
+    public void NoActionAfterCheckpoint_AbandonsPlanWithoutResumingIt()
+    {
+        var consults = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0) }),
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.CheckpointItem("pause"),
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, "no implicit resume", "no-resume-plan", Version: 1, StageExpectation: "turn switch on"));
+                return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "stop here",
+                    Renewal: new BudgetRenewalRequest(1, 0, "confirmed stopping point")));
+            },
+            PlanContract(totalSteps: 2),
+            planPolicy: new AgentPlanPolicy
+            {
+                HardCapTotalSteps = 4,
+                RenewalThresholdSteps = 2,
+            },
+            seedValue: "switch:primary@off");
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.Single(driver.RenewalsGranted.Where(record => record.Granted));
+        Assert.Equal(PlanExecutionStatus.Abandoned, driver.PlanExecution!.Status);
+        Assert.Equal("plan:replaced-by-no-action", driver.PlanExecution.InterruptionReason);
+    }
+
+    [Fact]
+    public void HigherPlanVersion_ReplacesPausedContentsWithoutDispatchingOldTail()
+    {
+        var consults = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0) }),
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.CheckpointItem("revise"),
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, "old content", "versioned-plan", Version: 1, StageExpectation: "old"));
+                if (consults == 2)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ObserveItem(null),
+                    }, "new content", "versioned-plan", Version: 2, StageExpectation: "new"));
+                return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "no action"));
+            },
+            PlanContract(),
+            seedValue: "switch:primary@off");
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.Equal(3, consults);
+        Assert.Equal(2, driver.PlanExecution!.Position.Version);
+        Assert.Equal(PlanExecutionStatus.Completed, driver.PlanExecution.Status);
+    }
+
+    [Fact]
+    public void ReusingPlanVersion_FailsClosed()
+    {
+        var consults = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0) }),
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.CheckpointItem("pause"),
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, "version one", "strict-version-plan", Version: 1, StageExpectation: "turn switch on"));
+                return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                {
+                    new PlanItem.ObserveItem(null),
+                }, "same version must not replace", "strict-version-plan", Version: 1, StageExpectation: "stale"));
+            },
+            PlanContract(),
+            seedValue: "switch:primary@off");
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, result.Status);
+        Assert.Equal("plan:version-must-increase", result.Reason);
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.Equal(PlanExecutionStatus.Paused, driver.PlanExecution!.Status);
+    }
+
+    [Fact]
+    public void LocalWorkExhaustion_CannotBeClearedByContinuePlan()
+    {
+        var consults = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0) }),
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ObserveItem(null),
+                        new PlanItem.ObserveItem(null),
+                    }, "bounded observations", "work-limit-plan", Version: 1,
+                        StageExpectation: "observe twice", MaxLocalOperations: 1));
+                return new AgentDecision.ContinuePlan(ctx.DecisionId, ctx.PlanExecution!.Position);
+            },
+            PlanContract(),
+            seedValue: "switch:primary@off");
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, result.Status);
+        Assert.Equal("plan:local-work-exhausted-requires-revision", result.Reason);
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.Equal(1, driver.PlanExecution!.Position.WorkUsed);
+        Assert.Equal(PlanExecutionStatus.Paused, driver.PlanExecution.Status);
+    }
+
+    [Fact]
+    public void UnknownCandidate_IsNotSkippedAsBlocked()
+    {
+        var consults = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0) }),
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ForEachItem("records", new PlanItem[]
+                        {
+                            new PlanItem.ActItem("$candidate", "$candidate", "tap", null),
+                        }, MaxIterations: 1, ContinueOnBlocked: true),
+                    }, "unknown must stop", "unknown-candidate-plan", Version: 1,
+                        StageExpectation: "process record", MaxLocalOperations: 4));
+                return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "stop after unknown"));
+            },
+            PlanContract(),
+            seedValue: "switch:primary@off",
+            projectPlanCandidates: _ => new PlanCandidateSet("records", "r1", new[]
+            {
+                new PlanCandidate("record-1", "switch", "primary", PlanCandidateDisposition.Unknown,
+                    new[] { "record:evidence:1" }, "status unavailable"),
+            }));
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.Empty(driver.PlanExecution!.BlockedEvidence);
+        Assert.Contains("plan:candidate-unknown:record-1", driver.PlanExecution.InterruptionReason);
+    }
+
+    [Fact]
+    public void GuardUnknown_StopsPlanBeforeNewEffect()
+    {
+        var consults = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0) }),
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, "guard unknown", "guard-unknown-plan", Version: 1, StageExpectation: "turn switch on"));
+                return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "stop on unknown"));
+            },
+            PlanContract(),
+            seedValue: "switch:primary@off",
+            guardStep: (_, _) => new PlanStepGuardResult(PlanStepGuardVerdict.Unknown, "current state unavailable"));
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.Contains(driver.PlanExecution!.Attempts, attempt => attempt.Status == PlanAttemptStatus.UnknownOutcome);
+    }
+
+    [Fact]
+    public void UnconfirmedDelivery_ContinuesVerificationWithoutRedispatch()
+    {
+        var (kernel, driver) = ComposePlanWorld(
+            expected => expected.Context == ObservationContext.External
+                ? new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0) })
+                : null,
+            _ => ctx => PlanDecision(ctx.DecisionId,
+                new PlanItem.ActItem("switch", "primary", "toggle", "on")),
+            PlanContract(),
+            seedValue: "switch:primary@off",
+            effectDriver: new UnknownDriver());
+
+        var first = driver.Drive();
+        Assert.Equal(RunDriveStatus.UnconfirmedDelivery, first.Status);
+        Assert.Single(kernel.EffectReceipts);
+        Assert.Contains(driver.PlanExecution!.Attempts, attempt => attempt.Status == PlanAttemptStatus.Unconfirmed);
+
+        var second = driver.Drive();
+        var third = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.WaitingForInput, second.Status);
+        Assert.Equal(RunDriveStatus.WaitingForInput, third.Status);
+        Assert.Single(kernel.EffectReceipts);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RecordBuyer_UsesRecordStateProjectionAndCurrentGuardThroughSamePlanDriver(bool conditional)
+    {
+        var recordStates = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["R17"] = "EvidencePending",
+            ["R22"] = "OwnerBlocked",
+        };
+        var projectCalls = 0;
+        var guardCalls = 0;
+        var consultCount = 0;
+        var observeCalls = 0;
+        var postActionCalls = 0;
+        UniKernel? observedKernel = null;
+        const string initialRecords = "record:R17@EvidencePending+record:R22@OwnerBlocked";
+        var contract = new ExecutionContract(
+            "records-v1",
+            "verify records after collecting missing evidence",
+            new HashSet<string>
+            {
+                UIWorldDoubles.Observed,
+                "record:R17.supplement",
+                "record:R17.status",
+            },
+            new HashSet<string> { "verify-record" },
+            new HashSet<string>(),
+            new[] { "record verification status" },
+            new[]
+            {
+                new RunObligation(
+                    "record-17-verified",
+                    RunObligationKind.Objective,
+                    "record:R17.status",
+                    "Verified",
+                    true),
+            },
+            MaxConsultations: 8,
+            MaxTotalSteps: 4,
+            TaskInstanceId: "records-task-17",
+            ProductSessionId: "records-session-17",
+            ContractRef: "records-contract-17");
+        var (kernel, driver) = ComposePlanWorld(
+            expected =>
+            {
+                if (expected.Context == ObservationContext.PostActionEffectFlow)
+                {
+                    postActionCalls++;
+                    // The effect callback only records that delivery happened.
+                    // The record owner independently reports the terminal state here.
+                    recordStates["R17"] = "Verified";
+                    var time = T1.AddSeconds(postActionCalls);
+                    return new RunDriverInput.Observation(new[]
+                    {
+                        PostActionObservation("record:R17@Verified+record:R22@OwnerBlocked", time),
+                        new ObservationProposal(
+                            new ObservationClaim("record:R17.status", "Verified"),
+                            IngressKind.Observation,
+                            ObservationContext.PostActionEffectFlow,
+                            new Provenance("record.owner", time, "scope:record:R17.status",
+                                new[] { "record-store:R17:verification-result" })),
+                    });
+                }
+
+                if (expected.Subjects?.Contains("record:R17.supplement", StringComparer.Ordinal) == true)
+                {
+                    observeCalls++;
+                    recordStates["R17"] = "EvidenceCollected";
+                    var time = T0.AddSeconds(10 + observeCalls);
+                    return new RunDriverInput.Observation(new[]
+                    {
+                        new ObservationProposal(
+                            new ObservationClaim("record:R17.supplement", "OwnerReceiptAttached"),
+                            IngressKind.Observation,
+                            ObservationContext.External,
+                            new Provenance("record.owner", time, "scope:record:R17.supplement",
+                                new[] { "record-store:R17:owner-receipt" })),
+                    });
+                }
+
+                return new RunDriverInput.Observation(new[]
+                {
+                    UIWorldDoubles.Observation(initialRecords, UIWorldDoubles.T0),
+                });
+            },
+            _ => ctx =>
+            {
+                consultCount++;
+                if (consultCount == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ForEachItem("verification-records", new PlanItem[]
+                        {
+                            conditional
+                                ? new PlanItem.IfItem("record.needs-receipt",
+                                    new PlanItem[] { new PlanItem.ObserveItem("record:R17.supplement") }, Array.Empty<PlanItem>())
+                                : new PlanItem.ObserveItem("record:R17.supplement"),
+                            new PlanItem.ActItem("$candidate", "$candidate", "verify-record", null),
+                        }, MaxIterations: 3, ContinueOnBlocked: true),
+                    }, "collect and verify record evidence", "record-buyer-plan", Version: 1,
+                        StageExpectation: "R17 verified; R22 owner lock retained", MaxLocalOperations: conditional ? 16 : 8));
+                var verifiedAttempt = ctx.PlanExecution?.Attempts.SingleOrDefault(
+                    attempt => attempt.Status == PlanAttemptStatus.Verified);
+                var completion = verifiedAttempt is null
+                    ? null
+                    : new CompletionEvidence("record owner result observed",
+                        new[] { $"plan-attempt:{verifiedAttempt.AttemptId}" });
+                return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId,
+                    "record verified", completion));
+            },
+            contract,
+            seedValue: initialRecords,
+            projectPlanCandidates: source =>
+            {
+                Assert.Equal("verification-records", source);
+                projectCalls++;
+                var candidates = new List<PlanCandidate>();
+                if (recordStates["R17"] != "Verified")
+                    candidates.Add(new PlanCandidate("record-17", "record", "R17",
+                        PlanCandidateDisposition.Ready, new[] { "record-ledger:R17:evidence-pending" }));
+                candidates.Add(new PlanCandidate("record-22", "record", "R22",
+                    PlanCandidateDisposition.Blocked,
+                    new[] { "owner-proof:R22:lease-locked" }, "record is locked by its owner"));
+                return new PlanCandidateSet("record-ledger:task-17",
+                    $"r17:{recordStates["R17"]}|r22:{recordStates["R22"]}", candidates);
+            },
+            evaluatePlanCondition: conditional ? (name, candidate) =>
+            {
+                Assert.Equal("record.needs-receipt", name);
+                Assert.Equal("record-17", candidate!.Key);
+                return new PlanConditionResult(recordStates["R17"] == "EvidencePending" ? PolicyTruth.Satisfied : PolicyTruth.Violated,
+                    "record-ledger:task-17", recordStates["R17"], new[] { "record-owner:R17:receipt-state" });
+            } : null,
+            guardStep: (step, _) =>
+            {
+                guardCalls++;
+                Assert.Equal("record", step.TargetRole);
+                Assert.Equal("R17", step.TargetDescriptor);
+                Assert.Equal("EvidenceCollected", recordStates["R17"]);
+                var currentEvidenceIds = observedKernel?.CurrentBelief?.EvidenceBasis?.ToArray() ?? Array.Empty<string>();
+                return new PlanStepGuardResult(PlanStepGuardVerdict.Allow,
+                    "record receipt is present and status remains actionable",
+                    new[] { "record-ledger:R17:state:EvidenceCollected" }.Concat(currentEvidenceIds).ToArray());
+            },
+            effectDriver: new CallbackDriver(_ =>
+            {
+                recordStates["R17"] = "EffectDispatched";
+            }));
+        observedKernel = kernel;
+
+        var result = driver.Drive();
+
+        Assert.True(result.Status == RunDriveStatus.Completed, result.Reason);
+        Assert.Single(kernel.EffectReceipts);
+        Assert.Equal("Verified", recordStates["R17"]);
+        Assert.Equal("Verified", kernel.CurrentBelief!.WorldState["record:R17.status"].Value);
+        Assert.Equal("OwnerBlocked", recordStates["R22"]);
+        Assert.Equal(1, guardCalls);
+        Assert.Equal(1, observeCalls);
+        Assert.Equal(1, postActionCalls);
+        Assert.True(projectCalls >= 2);
+        var attempt = Assert.Single(driver.PlanExecution!.Attempts);
+        var receipt = Assert.Single(kernel.EffectReceipts);
+        Assert.Equal(PlanAttemptStatus.Verified, attempt.Status);
+        Assert.Equal(receipt.ReceiptId, attempt.ReceiptId);
+        Assert.Contains("record-ledger:R17:evidence-pending", attempt.EvidenceRefs);
+        Assert.Contains("record-ledger:R17:state:EvidenceCollected", attempt.EvidenceRefs);
+        Assert.Contains(driver.PlanExecution.BlockedEvidence,
+            blocked => blocked.CandidateKey == "record-22"
+                && blocked.Reason == "record is locked by its owner"
+                && blocked.EvidenceRefs.Contains("owner-proof:R22:lease-locked"));
+    }
+
+    [Theory]
+    [InlineData(BudgetReviewOutcome.Replan)]
+    [InlineData(BudgetReviewOutcome.SubmitCompletion)]
+    [InlineData(BudgetReviewOutcome.CollectEvidence)]
+    public void ContinuePlan_RejectsReviewChoicesThatConflictWithResuming(
+        BudgetReviewOutcome outcome)
+    {
+        var consults = 0;
+        var postPulls = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            expected => expected.Context == ObservationContext.External
+                ? new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0) })
+                : new RunDriverInput.Observation(new[]
+                {
+                    PostActionObservation("switch:primary@on", T1.AddSeconds(++postPulls)),
+                    TypedCheckedClaim("checked", T1.AddSeconds(postPulls)),
+                    TypedResourceClaim(T1.AddSeconds(postPulls)),
+                }),
+            _ => ctx =>
+            {
+                consults++;
+                if (ctx.BudgetReview is not { Required: true } review)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, "review must choose a different continuation", "review-choice-plan", Version: 1,
+                        StageExpectation: "switch remains on", MaxLocalOperations: 5));
+
+                var assessment = new AgentProgressAssessment(review.ReviewId, "progress", "review plan",
+                    "remaining work", new[] { "switch verified" }, new[] { "fact:switch" },
+                    Rationale: "review decision is not a resume authorization");
+                return new AgentDecision.ContinuePlan(ctx.DecisionId, ctx.PlanExecution!.Position,
+                    new BudgetReviewResponse(review.ReviewId, outcome, assessment));
+            },
+            PlanContract(consultations: 8, totalSteps: 2),
+            seedValue: "switch:primary@off",
+            planPolicy: new AgentPlanPolicy
+            {
+                GoalDirectedContinuationEnabled = true,
+                AuthorizedTotalSteps = 8,
+                AuthorizedTotalConsultRounds = 12,
+            });
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.AgentDecisionFailed, result.Status);
+        Assert.Equal("plan:review-outcome-conflicts-with-resume", result.Reason);
+        Assert.Single(kernel.EffectReceipts);
+        Assert.Single(driver.CompletedSteps);
+        Assert.Equal(PlanExecutionStatus.Paused, driver.PlanExecution!.Status);
+    }
+
     // ==== V7 机械校验（malformed / unknown / 超预算 → 零 Effect）============
 
     [Fact]
     public void EmptyPlan_FailsClosed_ZeroEffects()
     {
         var (kernel, driver) = ComposePlanWorld(
-            _ => SeedObservation(),
+            _ => new RunDriverInput.Observation(new[]
+            {
+                UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
+            }),
             _ => ctx => PlanDecision(ctx.DecisionId),
             PlanContract());
         var result = driver.Drive();
@@ -267,7 +1133,10 @@ public sealed class KernelRunDriverPlanTests
     {
         var items = Enumerable.Repeat(new PlanItem.ObserveItem(null), 17).ToArray();
         var (kernel, driver) = ComposePlanWorld(
-            _ => SeedObservation(),
+            _ => new RunDriverInput.Observation(new[]
+            {
+                UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
+            }),
             _ => ctx => PlanDecision(ctx.DecisionId, items),
             PlanContract());
         var result = driver.Drive();
@@ -394,7 +1263,7 @@ public sealed class KernelRunDriverPlanTests
             },
             PlanContract());
         var result = driver.Drive();
-        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.True(result.Status == RunDriveStatus.TerminalNotProven, result.Reason);
         Assert.Equal(0, kernel.EffectReceipts.Count);
         Assert.Equal(2, externalPulls); // initial + plan-observe（P2 入证发生）
         Assert.Equal(2, consults);
@@ -632,5 +1501,392 @@ public sealed class KernelRunDriverPlanTests
         Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
         Assert.Equal(0, kernel.EffectReceipts.Count);
         Assert.Equal(2, consults);
+    }
+
+    [Fact]
+    public void ForEachActAlreadySatisfied_AdvancesBodyAndFinalizesAttempt()
+    {
+        var consults = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            expected => expected.Context == ObservationContext.External
+                ? new RunDriverInput.Observation(new[]
+                {
+                    UIWorldDoubles.Observation("switch:primary@on", UIWorldDoubles.T0),
+                })
+                : null,
+            _ => ctx =>
+            {
+                consults++;
+                return consults == 1
+                    ? new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ForEachItem("switches", new PlanItem[]
+                        {
+                            new PlanItem.ActItem("$candidate", "$candidate", "toggle", "on"),
+                        }, MaxIterations: 1),
+                    }, "consume already-satisfied switch", "foreach-e4", Version: 1,
+                        StageExpectation: "switch already on", MaxLocalOperations: 4))
+                    : new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "finished"));
+            },
+            PlanContract(),
+            seedValue: "switch:primary@on",
+            projectPlanCandidates: _ => new PlanCandidateSet("switches", "r1", new[]
+            {
+                new PlanCandidate("primary", "switch", "primary", PlanCandidateDisposition.Ready,
+                    new[] { "switch-source:primary" }),
+            }));
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Empty(kernel.EffectReceipts);
+        var attempt = Assert.Single(driver.PlanExecution!.Attempts);
+        Assert.Equal(PlanAttemptStatus.AlreadySatisfied, attempt.Status);
+        Assert.Null(attempt.ReceiptId);
+        Assert.Contains("switch-source:primary", attempt.EvidenceRefs);
+        Assert.Equal(2, consults);
+    }
+
+    [Fact]
+    public void GateRejection_UpdatesTheStartedPlanAttemptInsteadOfAppendingAnother()
+    {
+        var contract = PlanContract() with { ForbiddenEffects = new HashSet<string> { "toggle" } };
+        AgentDecisionContext? followupPlanContext = null;
+        var consults = 0;
+        var guardCalls = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            expected => expected.Context == ObservationContext.External
+                ? new RunDriverInput.Observation(new[]
+                {
+                    UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
+                })
+                : null,
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, "trigger gate rejection", "gate-rejection", Version: 1));
+                if (consults == 2)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, "inspect retained history", "after-gate-rejection", Version: 1));
+                return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "stop after rejection"));
+            },
+            contract,
+            seedValue: "switch:primary@off",
+            guardStep: (_, ctx) =>
+            {
+                guardCalls++;
+                followupPlanContext = ctx;
+                return guardCalls == 1
+                    ? new PlanStepGuardResult(PlanStepGuardVerdict.Allow, "allow through to gate")
+                    : new PlanStepGuardResult(PlanStepGuardVerdict.AlreadySatisfied, "inspect without dispatch");
+            });
+
+        var result = driver.Drive();
+
+        Assert.True(result.Status == RunDriveStatus.TerminalNotProven, result.Reason);
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.NotNull(followupPlanContext?.PlanExecution);
+        var attempt = Assert.Single(followupPlanContext!.PlanExecution!.Attempts);
+        Assert.Equal(PlanAttemptStatus.Rejected, attempt.Status);
+        Assert.Null(attempt.ReceiptId);
+        Assert.Equal("gate-rejection", attempt.Position.PlanId);
+    }
+
+    [Fact]
+    public void OrdinaryActGuardRejection_DoesNotLeakAttemptIntoNextPlanHistory()
+    {
+        AgentDecisionContext? ordinaryGuardContext = null;
+        AgentDecisionContext? planGuardContext = null;
+        var consults = 0;
+        var guardCalls = 0;
+        var (kernel, driver) = ComposePlanWorld(
+            expected => expected.Context == ObservationContext.External
+                ? new RunDriverInput.Observation(new[]
+                {
+                    UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
+                })
+                : new RunDriverInput.Observation(new[]
+                {
+                    UIWorldDoubles.Observation("switch:primary@off", T1),
+                }),
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Act(new AgentActionProposal(ctx.DecisionId,
+                        new[] { new AgentActionStep("switch", "primary", "toggle", "on") }, "ordinary act"));
+                if (consults == 2)
+                {
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, "start a clean plan history", "clean-history", Version: 1));
+                }
+                return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "done"));
+            },
+            PlanContract(),
+            seedValue: "switch:primary@off",
+            guardStep: (_, ctx) =>
+            {
+                if (guardCalls++ == 0)
+                {
+                    ordinaryGuardContext = ctx;
+                    return new PlanStepGuardResult(PlanStepGuardVerdict.Reject, "ordinary act blocked");
+                }
+                planGuardContext = ctx;
+                return new PlanStepGuardResult(PlanStepGuardVerdict.AlreadySatisfied, "inspect clean plan history");
+            });
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.Null(ordinaryGuardContext?.PlanExecution);
+        Assert.NotNull(planGuardContext?.PlanExecution);
+        Assert.Empty(planGuardContext!.PlanExecution!.Attempts);
+        Assert.Equal(3, consults);
+    }
+
+    [Fact]
+    public void FocusedControlRetries_KeepOneAttemptAndFinalizeItOnExhaustion()
+    {
+        var focus = new ControlDecision(ControlIntentKind.Observe, null, "switch:primary");
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[]
+            {
+                UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
+            }),
+            _ => ctx => PlanDecision(ctx.DecisionId,
+                new PlanItem.ActItem("switch", "primary", "toggle", "on")),
+            PlanContract(),
+            seedValue: "switch:primary@off",
+            controlPolicy: new SequenceControlPolicy(focus, focus, focus, focus));
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.GroundingFailed, result.Status);
+        Assert.Equal("focused-reobserve-exhausted", result.Reason);
+        Assert.Empty(kernel.EffectReceipts);
+        var attempt = Assert.Single(driver.PlanExecution!.Attempts);
+        Assert.Equal(PlanAttemptStatus.Rejected, attempt.Status);
+        Assert.Null(attempt.ReceiptId);
+    }
+
+    [Fact]
+    public void FocusedRetryGuardRejection_UpdatesOriginalStartedAttempt()
+    {
+        AgentDecisionContext? followupContext = null;
+        var consults = 0;
+        var guardCalls = 0;
+        var focus = new ControlDecision(ControlIntentKind.Observe, null, "switch:primary");
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[]
+            {
+                UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
+            }),
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, "observe then reject", "focus-guard-reject", Version: 1));
+                followupContext = ctx;
+                return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "stop"));
+            },
+            PlanContract(),
+            seedValue: "switch:primary@off",
+            controlPolicy: new SequenceControlPolicy(focus),
+            guardStep: (_, _) => ++guardCalls == 1
+                ? new PlanStepGuardResult(PlanStepGuardVerdict.Allow, "initially admissible")
+                : new PlanStepGuardResult(PlanStepGuardVerdict.Reject, "fresh guard rejected after focus"));
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.Equal(2, guardCalls);
+        var attempt = Assert.Single(followupContext!.PlanExecution!.Attempts);
+        Assert.Equal(PlanAttemptStatus.Rejected, attempt.Status);
+        Assert.Equal("fresh guard rejected after focus", attempt.Reason);
+        Assert.Null(attempt.ReceiptId);
+    }
+
+    [Fact]
+    public void MissingRootAfterBegin_FinalizesTheAttemptAsRejected()
+    {
+        AgentDecisionContext? followupContext = null;
+        var consults = 0;
+        var baseContract = PlanContract();
+        var contract = baseContract with
+        {
+            Scope = new HashSet<string>(baseContract.Scope.Append(WorldModel.CurrentContainerSubject), StringComparer.Ordinal),
+        };
+        var (kernel, driver) = ComposePlanWorld(
+            _ => new RunDriverInput.Observation(new[]
+            {
+                UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
+                UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0.AddSeconds(1)),
+                new ObservationProposal(
+                    new ObservationClaim(WorldModel.CurrentContainerSubject, "container:unknown-a"),
+                    IngressKind.Observation, ObservationContext.External,
+                    new Provenance("container.owner.a", UIWorldDoubles.T0, "scope:ui.container.current", new[] { "container-owner:a" })),
+                new ObservationProposal(
+                    new ObservationClaim(WorldModel.CurrentContainerSubject, "container:unknown-b"),
+                    IngressKind.Observation, ObservationContext.External,
+                    new Provenance("container.owner.b", UIWorldDoubles.T0.AddSeconds(2), "scope:ui.container.current", new[] { "container-owner:b" })),
+            }),
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ActItem("switch", "primary", "toggle", "on"),
+                    }, "missing root regression", "missing-root", Version: 1));
+                followupContext = ctx;
+                return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "stop"));
+            },
+            contract,
+            seedValue: "switch:primary@off",
+            associationStrategy: new SeparateEveryObservationAssociationStrategy());
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.True(kernel.CurrentBelief!.Containers!.Count > 1,
+            $"association fixture created {kernel.CurrentBelief.Containers.Count} container(s)");
+        var attempt = Assert.Single(followupContext!.PlanExecution!.Attempts);
+        Assert.Equal(PlanAttemptStatus.Rejected, attempt.Status);
+        Assert.Equal("no-single-root-container", attempt.Reason);
+        Assert.Null(attempt.ReceiptId);
+    }
+
+    [Fact]
+    public void AgentContextCompactsAttemptEvidenceRefs_WhileDriverAuditRemainsComplete()
+    {
+        var consults = 0;
+        AgentDecisionContext? completionContext = null;
+        var sourceRefs = Enumerable.Range(0, 24).Select(index => $"candidate-evidence:{index:D2}").ToArray();
+        var guardRefs = Enumerable.Range(0, 24).Select(index => $"guard-evidence:{index:D2}").ToArray();
+        var (_, driver) = ComposePlanWorld(
+            expected => expected.Context == ObservationContext.External
+                ? new RunDriverInput.Observation(new[]
+                {
+                    UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
+                })
+                : new RunDriverInput.Observation(new[]
+                {
+                    PostActionObservation("switch:primary@on", T1),
+                    TypedCheckedClaim("checked", T1),
+                    TypedResourceClaim(T1),
+                }),
+            _ => ctx =>
+            {
+                consults++;
+                if (consults == 1)
+                    return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                    {
+                        new PlanItem.ForEachItem("switches", new PlanItem[]
+                        {
+                            new PlanItem.ActItem("$candidate", "$candidate", "toggle", "on"),
+                        }, MaxIterations: 1),
+                    }, "toggle the selected switch", "compact-context", Version: 1,
+                        StageExpectation: "switch is on", MaxLocalOperations: 4));
+
+                completionContext = ctx;
+                var attempt = Assert.Single(ctx.PlanExecution!.Attempts,
+                    item => item.Status == PlanAttemptStatus.Verified);
+                return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId,
+                    "attest the verified plan action",
+                    new CompletionEvidence("switch is on", new[] { $"plan-attempt:{attempt.AttemptId}" })));
+            },
+            PlanContract(),
+            seedValue: "switch:primary@off",
+            projectPlanCandidates: _ => new PlanCandidateSet("switches", "rev-1", new[]
+            {
+                new PlanCandidate("primary", "switch", "primary", PlanCandidateDisposition.Ready, sourceRefs),
+            }),
+            guardStep: (_, _) => new PlanStepGuardResult(PlanStepGuardVerdict.Allow,
+                "current switch state permits toggle", guardRefs));
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.Completed, result.Status);
+        var auditAttempt = Assert.Single(driver.PlanExecution!.Attempts,
+            item => item.Status == PlanAttemptStatus.Verified);
+        Assert.All(sourceRefs.Concat(guardRefs), evidenceRef => Assert.Contains(evidenceRef, auditAttempt.EvidenceRefs));
+        var contextAttempt = Assert.Single(completionContext!.PlanExecution!.Attempts,
+            item => item.Status == PlanAttemptStatus.Verified);
+        Assert.Equal(new[] { $"plan-attempt:{auditAttempt.AttemptId}" }, contextAttempt.EvidenceRefs);
+        Assert.DoesNotContain(sourceRefs.Concat(guardRefs), evidenceRef => contextAttempt.EvidenceRefs.Contains(evidenceRef));
+    }
+
+    [Fact]
+    public void ForEachCompletionRequiresVerifiedAttemptAnchor_NotLinearStepAnchor()
+    {
+        (RunDriveResult Result, KernelRunDriver Driver) RunWithAnchor(bool usePlanAttempt)
+        {
+            var consults = 0;
+            var (_, driver) = ComposePlanWorld(
+                expected => expected.Context == ObservationContext.External
+                    ? new RunDriverInput.Observation(new[]
+                    {
+                        UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
+                    })
+                    : new RunDriverInput.Observation(new[]
+                    {
+                        PostActionObservation("switch:primary@on", T1),
+                        TypedCheckedClaim("checked", T1),
+                        TypedResourceClaim(T1),
+                    }),
+                _ => ctx =>
+                {
+                    consults++;
+                    if (consults == 1)
+                        return new AgentDecision.Plan(ctx.DecisionId, new AgentPlanProposal(new PlanItem[]
+                        {
+                            new PlanItem.ForEachItem("switches", new PlanItem[]
+                            {
+                                new PlanItem.ActItem("$candidate", "$candidate", "toggle", "on"),
+                            }, MaxIterations: 1),
+                        }, "verify switch candidate", "foreach-anchor", Version: 1,
+                            StageExpectation: "switch on", MaxLocalOperations: 4));
+
+                    var verifiedAttempt = Assert.Single(ctx.PlanExecution!.Attempts,
+                        attempt => attempt.Status == PlanAttemptStatus.Verified);
+                    var anchor = usePlanAttempt
+                        ? $"plan-attempt:{verifiedAttempt.AttemptId}"
+                        : "step:1.0";
+                    return new AgentDecision.NoAction(new AgentNoActionProposal(ctx.DecisionId, "attest exact action",
+                        new CompletionEvidence("foreach-anchor", new[] { anchor })));
+                },
+                PlanContract(),
+                seedValue: "switch:primary@off",
+                projectPlanCandidates: _ => new PlanCandidateSet("switches", "r1", new[]
+                {
+                    new PlanCandidate("primary", "switch", "primary", PlanCandidateDisposition.Ready,
+                        new[] { "switch-source:primary" }),
+                }));
+            return (driver.Drive(), driver);
+        }
+
+        var falseStepAnchor = RunWithAnchor(usePlanAttempt: false);
+        Assert.Equal(RunDriveStatus.AwaitingCompletionAdjudication, falseStepAnchor.Result.Status);
+        var failedAnchor = Assert.Single(falseStepAnchor.Driver.PendingCompletionDossier!.Value.Results);
+        Assert.Equal("step:1.0", failedAnchor.Anchor);
+        Assert.False(failedAnchor.Verified);
+
+        var verifiedAttemptAnchor = RunWithAnchor(usePlanAttempt: true);
+        Assert.True(verifiedAttemptAnchor.Result.Status == RunDriveStatus.Completed,
+            verifiedAttemptAnchor.Result.Reason);
     }
 }

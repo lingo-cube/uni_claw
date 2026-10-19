@@ -1,0 +1,8 @@
+{
+  "backup": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-plan002-handlers-grill-68no1bxs",
+  "before": {
+    "changes/RUNTIME-PLAN-002/state.md": "29d9d31690012b13deab66752fa963d92123425812d5059fdfbef2d85f939c21",
+    "changes/RUNTIME-PLAN-002/protocol-sketch.md": "7583a0de07b630e9c67d9ea9ef520209131c09c576f91bca6cbe296569c7b901",
+    "changes/RUNTIME-PLAN-002/discussion-reference.md": "034bb453d26e1b379d46b52a0a296dabd145cc97ef1f8487026404da58a1ad2d"
+  }
+}

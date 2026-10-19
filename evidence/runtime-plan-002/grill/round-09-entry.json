@@ -1,0 +1,11 @@
+{
+  "backup": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-plan002-round09-5toivdo4",
+  "before": {
+    "CONTEXT.md": "5e31a9239f048e26d70bee9d12d168ee55ef6fa0c5844e2659164b8b4d1fb927",
+    "changes/RUNTIME-PLAN-002/state.md": "03b2da240648eae13be6f85fe46e0e386637cc3f42aa1fc33ef891ce14a580d7",
+    "changes/RUNTIME-PLAN-002/flow-contract.md": "711c1d22441538b0580c2be96f375e2cb1bd560e8a2f3c05ba7da0b70149a350",
+    "changes/RUNTIME-PLAN-002/discussion-reference.md": "b179f0b490863f780ab8614efbcf9cef7e41fb1a272c69f55b24f02aa4d2c64f",
+    "changes/RUNTIME-PLAN-002/protocol-sketch.md": "6970696b50db0cc1e0f0b16798b54d22c832567b41d3f976adc62776d3dd5bef",
+    "changes/RUNTIME-PLAN-002/grill-round-08.md": "91d7abd3c72e7c02545ed2f147977019f90b8db01877dcd1b0142101aaec3888"
+  }
+}

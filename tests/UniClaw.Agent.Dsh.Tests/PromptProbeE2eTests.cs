@@ -45,6 +45,7 @@ public sealed class PromptProbeE2eTests
         StringComparer.Ordinal)
     {
         "uniagent-prod:product-prompt",
+        "uniagent-prod:skill:android-automotive-ui-testing",
     };
 
     [Fact]
@@ -53,6 +54,10 @@ public sealed class PromptProbeE2eTests
         if (!Available) return; // E2E gate: UNICLAW_DSH_E2E_BASE not set
 
         using var http = new HttpClient { BaseAddress = new Uri(BaseUrl!, UriKind.Absolute) };
+        await using var peer = new DshOpenedHttpPeer(new DshServiceEndpoint(http.BaseAddress));
+        var handshake = await peer.HandshakeAsync(
+            ProductHandshake.CreateRequest("prompt-probe-e2e", "prompt-probe-e2e"), CancellationToken.None);
+        Assert.True(handshake.Accepted, handshake.FailureReason);
         var credential = DshWebCredential.Mint(
             new DshServiceEndpoint(new Uri(BaseUrl!, UriKind.Absolute)));
         using var request = new HttpRequestMessage(HttpMethod.Get, "/api/uniclaw-agent/prompt-probe");
@@ -64,6 +69,7 @@ public sealed class PromptProbeE2eTests
         _output.WriteLine($"prompt-probe raw: {raw}");
         using var document = JsonDocument.Parse(raw);
         var root = document.RootElement;
+        Assert.Equal(handshake.DshSessionId, root.GetProperty("dshSessionId").GetString());
 
         Assert.True(root.TryGetProperty("recorded", out var recorded) && recorded.GetBoolean(),
             "probe not recorded — the session-scoped preset row did not assemble (is the preset row mounted?)");
@@ -79,8 +85,10 @@ public sealed class PromptProbeE2eTests
         _output.WriteLine($"prompt-probe contexts: [{string.Join(", ", contexts)}]");
 
         var leaks = sections.Where(name => !AllowedSections.Contains(name)).Order(StringComparer.Ordinal).ToArray();
+        Assert.Equal(AllowedSections.Order(StringComparer.Ordinal), sections.Order(StringComparer.Ordinal));
         Assert.True(leaks.Length == 0,
             "development-harness prompt sections leaked into the uniagent-prod preset scope: "
             + $"[{string.Join(", ", leaks)}]; allowed = [{string.Join(", ", AllowedSections)}]");
+        await peer.DetachAsync(CancellationToken.None);
     }
 }

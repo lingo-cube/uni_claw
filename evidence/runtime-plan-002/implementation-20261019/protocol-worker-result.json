@@ -1,0 +1,28 @@
+{
+  "dotnet": {
+    "command": "dotnet test tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj --no-restore",
+    "passed": 198,
+    "failed": 0,
+    "exitCode": 0,
+    "evidence": "protocol Worker tool execution; full output not redirected; final log to be captured if needed"
+  },
+  "node": {
+    "passed": 45,
+    "failed": 0,
+    "exitCode": 0,
+    "evidence": "runtime-plan-002-dsh-node-final.log"
+  },
+  "focusedTraversal": 13,
+  "promptRevision": 19,
+  "profileRevision": 19,
+  "promptHash": "2d8d723e013d0b98ffbaffc50715f76cf6da30b3a33c4e5130389c85471737a9",
+  "schemaHash": "70a957a9d44096d3fe2719f480cf797190e97d8898c3db01f529dc886cf1b658",
+  "closure": [
+    "canonical JSON schema generated",
+    "TypeScript generated",
+    "DSH schema mirror byte equal",
+    "product/DSH Prompt segment byte equal",
+    "both manifest checks passed"
+  ],
+  "retainedFailure": "First wrapper used shell readonly status and failed after Node TAP45/45; raw final node command exit0 independently confirmed"
+}

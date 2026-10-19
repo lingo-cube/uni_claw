@@ -1,0 +1,33 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.02]   Discovering: UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.05]   Discovered:  UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.05]   Starting:    UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.19]     UniClaw.Simulation.Tests.TraversalScenarioTests.EqualDepthSharedPageRechecksItsUpdatedReadOnlyObligation [FAIL]
+[xUnit.net 00:00:00.19]       Assert.Equal() Failure: Strings differ
+[xUnit.net 00:00:00.19]                  ↓ (pos 0)
+[xUnit.net 00:00:00.19]       Expected: "partial"
+[xUnit.net 00:00:00.19]       Actual:   "completed"
+[xUnit.net 00:00:00.19]                  ↑ (pos 0)
+[xUnit.net 00:00:00.19]       Stack Trace:
+[xUnit.net 00:00:00.19]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs(284,0): at UniClaw.Simulation.Tests.TraversalScenarioTests.EqualDepthSharedPageRechecksItsUpdatedReadOnlyObligation()
+[xUnit.net 00:00:00.19]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.19]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.20]   Finished:    UniClaw.Simulation.Tests
+  失败 UniClaw.Simulation.Tests.TraversalScenarioTests.EqualDepthSharedPageRechecksItsUpdatedReadOnlyObligation [130 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "partial"
+Actual:   "completed"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.TraversalScenarioTests.EqualDepthSharedPageRechecksItsUpdatedReadOnlyObligation() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs:line 284
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+测试运行失败。
+测试总数: 1
+     失败数: 1
+总时间: 0.6509 秒

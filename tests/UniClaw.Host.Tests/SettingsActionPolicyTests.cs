@@ -252,6 +252,25 @@ public sealed class SettingsActionPolicyTests
     }
 
     [Fact]
+    public void GuardDecision_PreservesBudgetReviewWhileRejectingForbiddenEffect()
+    {
+        var policy = Policy();
+        var context = Context();
+        var review = new BudgetReviewResponse("review-1", BudgetReviewOutcome.RequestRenewal);
+        var decision = new AgentDecision.Act(new AgentActionProposal(
+            context.DecisionId,
+            new[] { Step("Developer options") },
+            "model proposal"), review);
+
+        var guarded = SettingsActionGuard.GuardDecision(decision, context, policy, out var result);
+
+        var noAction = Assert.IsType<AgentDecision.NoAction>(guarded);
+        Assert.Same(review, noAction.ReviewResponse);
+        Assert.Equal(SettingsActionGuardVerdict.Reject, result!.Verdict);
+        Assert.Equal("forbidden-target", result.SemanticAction);
+    }
+
+    [Fact]
     public void MultiActProposal_IsRejectedBeforePolicyCanBeBypassed()
     {
         var policy = Policy();
@@ -269,6 +288,25 @@ public sealed class SettingsActionPolicyTests
         Assert.Null(guarded);
         Assert.Equal(SettingsActionGuardVerdict.Reject, result!.Verdict);
         Assert.Contains("multi-act", result.Reason);
+    }
+
+    [Fact]
+    public void FuturePlanTarget_IsCheckedOnlyWhenCurrentStepArrives()
+    {
+        var policy = Policy();
+        var root = Context(new ElementSummary("ui.element", "Network & internet", null, true, false, true, ElementEpistemic.Observed));
+        var child = Context(new ElementSummary("ui.element", "Navigate up", null, true, false, true, ElementEpistemic.Observed));
+        var plan = new AgentDecision.Plan(root.DecisionId, new AgentPlanProposal(new PlanItem[]
+        {
+            new PlanItem.ActItem("ui.element", "Network & internet", "tap", null),
+            new PlanItem.ActItem("ui.element", "Navigate up", "tap", null),
+        }, "current facts each step", "p-current", 1));
+        Assert.Same(plan, SettingsActionGuard.GuardDecision(plan, root, policy, out _, currentStepGuardInstalled: true));
+        var back = Step("Navigate up");
+        Assert.Equal(PlanStepGuardVerdict.Unknown, SettingsActionGuard.EvaluateCurrentStep(back, root, policy).Verdict);
+        Assert.Equal(PlanStepGuardVerdict.Allow, SettingsActionGuard.EvaluateCurrentStep(back, child, policy).Verdict);
+        var changed = Context(new ElementSummary("switch", "Navigate up", null, true, true, true, ElementEpistemic.Observed, "unchecked"));
+        Assert.Equal(PlanStepGuardVerdict.Reject, SettingsActionGuard.EvaluateCurrentStep(back, changed, policy).Verdict);
     }
 
     // ---- PRF-005（ADR-0041）：policy 升格产品声明面 + 消费方加载点执法 ----

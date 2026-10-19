@@ -64,6 +64,69 @@ public sealed class SettingsCoverageConfigTests
         }
     }
 
+    [Theory]
+    [InlineData("maxTotalSteps: 24\n  renewalThresholdSteps: 2")]
+    [InlineData("maxTotalSteps: 48")]
+    [InlineData("renewalThresholdSteps: 2")]
+    [InlineData("maxTotalSteps: 48\n  renewalThresholdSteps: 25")]
+    public void RenewalBounds_RejectMissingOrInvalidFinalLimitAndThreshold(string bounds)
+    {
+        AssertInvalid(MinimalConfig().Replace("maxSteps: 24", "maxSteps: 24\n  " + bounds), "bounds.maxTotalSteps");
+    }
+
+    [Fact]
+    public void GoalDirectedContinuation_LoadsExplicitModeAndAuthorizedTotalCeilings()
+    {
+        var yaml = MinimalConfig().Replace(
+            "  maxConsecutiveFailures: 3",
+            "  maxConsecutiveFailures: 3\n  goalDirectedContinuationEnabled: true\n  authorizedTotalSteps: 48\n  authorizedTotalConsultRounds: 40");
+        var path = WriteConfig(yaml);
+        try
+        {
+            var loaded = SettingsCoverageConfig.Load(path);
+            Assert.True(loaded.Bounds.GoalDirectedContinuationEnabled);
+            Assert.Equal(48, loaded.Bounds.AuthorizedTotalSteps);
+            Assert.Equal(40, loaded.Bounds.AuthorizedTotalConsultRounds);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void GoalDirectedContinuation_RejectsThresholdWithoutCorrectionReserve()
+    {
+        AssertInvalid(MinimalConfig().Replace("  maxConsecutiveFailures: 3",
+            "  maxConsecutiveFailures: 3\n  goalDirectedContinuationEnabled: true\n  renewalThresholdRounds: 1"),
+            "bounds.renewalThresholdRounds:must-reserve-review-and-correction");
+    }
+
+    [Fact]
+    public void GoalDirectedContinuation_RejectsInitialBudgetWithoutCorrectionReserve()
+    {
+        AssertInvalid(MinimalConfig().Replace("maxConsultRounds: 24", "maxConsultRounds: 1")
+            .Replace("  maxConsecutiveFailures: 3", "  maxConsecutiveFailures: 3\n  goalDirectedContinuationEnabled: true"),
+            "bounds.maxConsultRounds:must-reserve-review-and-correction");
+    }
+
+    [Fact]
+    public void GoalDirectedContinuation_LeavesLegacyYamlInLegacyMode()
+    {
+        var path = WriteConfig(MinimalConfig());
+        try
+        {
+            var loaded = SettingsCoverageConfig.Load(path);
+            Assert.False(loaded.Bounds.GoalDirectedContinuationEnabled);
+            Assert.Null(loaded.Bounds.AuthorizedTotalSteps);
+            Assert.Null(loaded.Bounds.AuthorizedTotalConsultRounds);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     [Fact]
     public void EvidenceOptions_AbsentSection_DefaultsToPersistBoth()
     {
@@ -213,8 +276,11 @@ public sealed class SettingsCoverageConfigTests
         Assert.Equal("UniClaw_Product_Tasks", config.Session.Workspace);
         Assert.True(config.Session.WorkspaceReuse);
         Assert.False(config.Session.AutoCloseTurn);
-        // SETTINGS-COVERAGE-003：动态前沿首轮预算。
-        Assert.Equal(new CoverageBounds(96, 112, 12, 4, 2), config.Bounds);
+        // ADR-0052：thresholds are review signals in goal-directed mode;
+        // the default profile declares no authorized total hard ceiling.
+        Assert.Equal(new CoverageBounds(96, 112, 12, 4, 2,
+            RenewalThresholdSteps: 20, RenewalThresholdRounds: 24,
+            GoalDirectedContinuationEnabled: true), config.Bounds);
         Assert.Equal(new CoverageRequirements(true, "all-visible", 1, 8, true, 1), config.Coverage);
         Assert.Equal(7, config.TargetPages.Count);
         Assert.Contains("Network & internet", config.TargetPages);

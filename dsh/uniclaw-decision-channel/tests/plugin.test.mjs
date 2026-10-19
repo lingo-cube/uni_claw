@@ -43,12 +43,22 @@ function submitTask(tool, payload, capabilitySelection) {
 /** Apply the plugin in HOST mode (routes + tool) against a fresh mock.
  * extraConfig merges into the host-row config (e.g. promptMount for tests
  * that assert the full per-turn prompt text). */
+let activeHarness = null
+test.afterEach(async () => {
+  if (activeHarness !== null) {
+    await call(activeHarness.routes, '/api/uniclaw-agent/detach', {})
+    activeHarness = null
+  }
+})
+
 function applyHost(harness, extraConfig = {}) {
+  activeHarness = harness
   // The session-scoped mount publishes the tool definition the host-mode
   // handshake registers into the agent scope (B1). In the real deployment both
   // rows are mounted; do the same here so the flow is exercised end to end.
   const sessionMount = mockCtx()
   plugin.apply(sessionMount.ctx, { sessionScoped: true })
+  harness.controller.inheritedPromptSections = sessionMount.controller.promptSections
   plugin.apply(harness.ctx, {
     workspaceRoot: TEST_WORKSPACE_ROOT,
     workspaceTitle: 'UniClaw test project',
@@ -97,11 +107,12 @@ function mockCtx({ visibleTools = ['submit_decision'], createdSession = 'session
       if (key === 'systemPrompt') return {
         section(record) { controller.promptSections.push(record); return record },
         getSectionOrder() { return 0 },
-        async assemble() {
+        async assemble({ scope } = {}) {
           return {
             // One empty section exercises the render-drop filter.
             sections: [
-              ...controller.promptSections.map(record => ({ name: record.name, text: 'non-empty' })),
+              ...(scope ? [...controller.inheritedPromptSections, ...controller.promptSections] : [])
+                .map(record => ({ name: record.name, text: record.text })),
               { name: 'deployment:persona-prefix', text: '   ' },
             ],
             contexts: [{ name: 'probe-context' }],
@@ -111,6 +122,9 @@ function mockCtx({ visibleTools = ['submit_decision'], createdSession = 'session
         },
       }
       if (key === 'workspaceRegistry') return {
+        async archiveSession(sessionId, options) {
+          controller.archivedSessions.push({ sessionId, options });
+        },
         async create(path, title) {
           controller.workspaceCreateCalls.push({ path, title })
           return { id: `workspace-${title}`, path, title }
@@ -125,8 +139,10 @@ function mockCtx({ visibleTools = ['submit_decision'], createdSession = 'session
     renameCalls: [],
     promptCalls: [],
     cancels: [],
+    archivedSessions: [],
     agentScopedRegistrations: [],
     promptSections: [],
+    inheritedPromptSections: [],
     async create(request) {
       controller.createCalls.push(request)
       sessionSeq += 1
@@ -227,7 +243,7 @@ test('apply registers five routes and the schema-derived tool', () => {
   }
   const tool = harness.ctx.tools.registered.find(t => t.name === 'submit_decision')
   assert.ok(tool)
-  assert.deepEqual([...tool.parameters.properties.task.properties.payload.properties.kind.enum].sort(), ['act', 'defer', 'noAction', 'policy', 'skip'])
+  assert.deepEqual([...tool.parameters.properties.task.properties.payload.properties.kind.enum].sort(), ['act', 'blocked', 'continuePlan', 'defer', 'noAction', 'plan', 'policy', 'skip'])
   assert.deepEqual(tool.parameters.required, ['task'])
   assert.deepEqual(tool.output.render({}, { accepted: true, reason: 'captured' }), [
     { type: 'text', text: 'submit_decision accepted: captured' },
@@ -254,7 +270,141 @@ test('Slow route returns assistant JSON text and accepts image content', async (
   const result = await slowPromise
   assert.equal(result.body.error, null)
   assert.match(result.body.text, /Succeeded/)
+  assert.deepEqual(harness.controller.archivedSessions, [{
+    sessionId: harness.controller.promptCalls[0].sessionId, options: { stopActivity: true },
+  }])
   await call(harness.routes, '/api/uniclaw-agent/detach', {})
+})
+
+for (const outcome of ['no-output', 'timeout', 'prompt-failure', 'abort', 'detach']) {
+  test(`Slow ${outcome} archives its isolated session and ignores late output`, async () => {
+    const harness = mockCtx()
+    applyHost(harness)
+    await call(harness.routes, '/api/uniclaw-agent/detach', {})
+    await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+    if (outcome === 'prompt-failure') harness.controller.prompt = async request => {
+      harness.controller.promptCalls.push(request)
+      throw new Error('transport rejected')
+    }
+    const pending = call(harness.routes, '/api/uniclaw-agent/slow', {
+      requestId: `slow-${outcome}`, prompt: 'observe current screen', turnTimeoutMs: 100,
+    })
+    for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++)
+      await new Promise(resolve => setTimeout(resolve, 1))
+    const sessionId = harness.controller.promptCalls[0].sessionId
+    if (outcome === 'no-output') emitTurnEnd(harness, sessionId)
+    if (outcome === 'abort' || outcome === 'detach')
+      await call(harness.routes, `/api/uniclaw-agent/${outcome}`, {})
+    const result = await pending
+    assert.equal(result.body.error?.code ?? result.body.error, {
+      'no-output': 'no-slow-result', 'timeout': 'turn-timeout',
+      'prompt-failure': 'prompt-failed', 'abort': 'turn-aborted', 'detach': 'turn-aborted',
+    }[outcome])
+    assert.deepEqual(harness.controller.archivedSessions, [{ sessionId, options: { stopActivity: true } }])
+    emitAssistantText(harness, sessionId, '{"status":"Succeeded","proposals":[{"subject":"late","value":"ignored"}]}')
+    emitTurnEnd(harness, sessionId)
+    await call(harness.routes, '/api/uniclaw-agent/detach', {})
+  })
+}
+
+test('Section mode rejects a session whose actual scope is missing the static instructions', async () => {
+  const harness = mockCtx()
+  applyHost(harness)
+  await call(harness.routes, '/api/uniclaw-agent/detach', {})
+  harness.controller.inheritedPromptSections = []
+  const result = await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  assert.equal(result.body.error.code, 'session-prompt-verification-failed')
+})
+
+test('Rejected misplaced renewal exposes the offending field and a corrected proposal is captured intact', async () => {
+  const harness = mockCtx()
+  applyHost(harness)
+  await call(harness.routes, '/api/uniclaw-agent/detach', {})
+  const handshake = await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  const consultation = call(harness.routes, '/api/uniclaw-agent/consult', {
+    requestId: 'renewal-correction', generation: 1,
+    productSessionId: 'product-A', productRunId: 'run-A', dshSessionId: handshake.body.dshSessionId,
+    context: { decisionId: 'renewal-correction-1', runId: 'run-A', phase: 'StepVerified' },
+  })
+  try {
+    for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++)
+      await new Promise(resolve => setTimeout(resolve, 1))
+    const tool = harness.ctx.tools.registered[0]
+    const renewal = { additionalSteps: 20, additionalRounds: 24, justification: 'verified progress' }
+    const payload = { kind: 'act', decisionId: 'renewal-correction-1',
+      proposal: { decisionId: 'renewal-correction-1', steps: [
+        { targetRole: 'ui.element', targetDescriptor: 'Navigate up', effectClass: 'tap' },
+      ] }, renewal }
+    const rejected = submitTask(tool, payload)
+    assert.equal(rejected.accepted, false)
+    assert.equal(rejected.reason, 'decision-schema-invalid')
+    const feedback = tool.output.render({}, rejected)[0].text
+    assert.match(feedback, /renewal.*(unknown|additional|allowed)|(?:unknown|additional).*renewal/i)
+    const corrected = { ...payload, proposal: { ...payload.proposal, renewal } }
+    delete corrected.renewal
+    assert.equal(submitTask(tool, corrected).accepted, true)
+    emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
+    const captured = await consultation
+    assert.deepEqual(captured.body.task.payload.proposal.renewal, renewal)
+    assert.equal(captured.body.task.payload.renewal, undefined)
+  } finally {
+    await call(harness.routes, '/api/uniclaw-agent/detach', {})
+    await consultation
+  }
+})
+
+test('Explicit budget review is validated and captured at the decision union top level', async () => {
+  const harness = mockCtx()
+  applyHost(harness)
+  await call(harness.routes, '/api/uniclaw-agent/detach', {})
+  const handshake = await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  const consultation = call(harness.routes, '/api/uniclaw-agent/consult', {
+    requestId: 'review-response', generation: 1,
+    productSessionId: 'product-A', productRunId: 'run-A', dshSessionId: handshake.body.dshSessionId,
+    context: { decisionId: 'review-response-1', runId: 'run-A', phase: 'StepVerified',
+      budgetReview: { reviewId: 'review-1', required: true },
+      executionOverview: { overviewId: 'overview-1', objective: 'inspect settings' } },
+  })
+  try {
+    for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++)
+      await new Promise(resolve => setTimeout(resolve, 1))
+    const tool = harness.ctx.tools.registered[0]
+    const response = { reviewId: 'review-1', outcome: 'RequestRenewal',
+      assessment: { overviewId: 'overview-1', judgment: 'advancing',
+        nextDirection: 'inspect the known menu', nextSegmentExpectation: 'capture visible state',
+        expectedObservableEvidence: ['visible state'], evidenceRefs: ['obs:1'], nextItemKey: 'root:observed-menu' },
+      renewal: { additionalSteps: 20, additionalRounds: 0, justification: 'known branch remains' } }
+    assert.match(harness.controller.promptCalls[0].content[0].text, /overview-1/)
+    assert.match(harness.controller.promptCalls[0].content[0].text, /review-1/)
+    assert.match(harness.controller.promptCalls[0].content[0].text, /本轮必须明确复核额度/)
+    const invalid = submitTask(tool, { kind: 'act', decisionId: 'review-response-1',
+      proposal: { decisionId: 'review-response-1', steps: [{ targetRole: 'button', effectClass: 'tap' }] },
+      reviewResponse: { ...response, outcome: 'Maybe' } })
+    assert.equal(invalid.accepted, false)
+    assert.equal(invalid.reason, 'decision-schema-invalid')
+    const { assessment, ...missingAssessment } = response
+    assert.equal(submitTask(tool, { kind: 'act', decisionId: 'review-response-1',
+      proposal: { decisionId: 'review-response-1', steps: [{ targetRole: 'button', effectClass: 'tap' }] },
+      reviewResponse: missingAssessment }).accepted, false)
+    const { renewal, ...missingRenewal } = response
+    assert.equal(submitTask(tool, { kind: 'act', decisionId: 'review-response-1',
+      proposal: { decisionId: 'review-response-1', steps: [{ targetRole: 'button', effectClass: 'tap' }] },
+      reviewResponse: missingRenewal }).accepted, false)
+    assert.equal(submitTask(tool, { kind: 'act', decisionId: 'review-response-1',
+      proposal: { decisionId: 'review-response-1', steps: [{ targetRole: 'button', effectClass: 'tap' }],
+        renewal: response.renewal }, reviewResponse: response }).accepted, false)
+    const valid = { kind: 'act', decisionId: 'review-response-1',
+      proposal: { decisionId: 'review-response-1', steps: [{ targetRole: 'button', effectClass: 'tap' }] },
+      reviewResponse: response }
+    assert.equal(submitTask(tool, valid).accepted, true)
+    emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
+    const captured = await consultation
+    assert.deepEqual(captured.body.task.payload.reviewResponse, response)
+    assert.equal(captured.body.task.payload.proposal.reviewResponse, undefined)
+  } finally {
+    await call(harness.routes, '/api/uniclaw-agent/detach', {})
+    await consultation
+  }
 })
 
 test('B2: product schemaHash != DSH-local artifact → attach refused', async () => {
@@ -414,6 +564,94 @@ test('B3: prose containing valid-looking JSON but no submit_decision → fail cl
   assert.equal(result.body.decision, null)
   assert.equal(result.body.error, 'no-submit-decision')
 })
+
+test('retry after no-submit keeps the original consultation decisionId', async () => {
+  const harness = mockCtx()
+  applyHost(harness)
+  await call(harness.routes, '/api/uniclaw-agent/detach', {})
+  const handshake = await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  const consultPromise = call(harness.routes, '/api/uniclaw-agent/consult', {
+    requestId: 'req-retry-context-1',
+    generation: 1,
+    productSessionId: 'product-A',
+    productRunId: 'run-A',
+    dshSessionId: handshake.body.dshSessionId,
+    turnTimeoutMs: 5000,
+    context: { decisionId: 'decision-retry-context-1', runId: 'run-A', phase: 'InitialPlanning' },
+  })
+  let consultationSettled = false
+  consultPromise.then(() => { consultationSettled = true })
+  try {
+    for (let i = 0; i < 50 && harness.controller.promptCalls.length < 1; i++)
+      await new Promise(resolve => setTimeout(resolve, 5))
+    assert.equal(harness.controller.promptCalls.length, 1)
+    emitTurnEnd(harness, handshake.body.dshSessionId)
+
+    for (let i = 0; i < 50 && harness.controller.promptCalls.length < 2; i++)
+      await new Promise(resolve => setTimeout(resolve, 5))
+    assert.equal(harness.controller.promptCalls.length, 2, 'the no-submit turn should start one retry')
+
+    const tool = harness.ctx.tools.registered.find(t => t.name === 'submit_decision')
+    const decisionId = 'decision-retry-context-1'
+    const submitted = submitTask(tool, {
+      kind: 'noAction', decisionId,
+      proposal: { decisionId, justification: 'retry uses the same consultation context' },
+    })
+    assert.equal(submitted.accepted, true, submitted.message ?? submitted.reason)
+    await new Promise(resolve => setTimeout(resolve, 10))
+    assert.equal(consultationSettled, false, 'HTTP consultation must wait for the retry physical turn/end')
+    emitTurnEnd(harness, handshake.body.dshSessionId)
+    const result = await consultPromise
+    assert.equal(result.body.error ?? null, null)
+    assert.equal(result.body.task.payload.decisionId, decisionId)
+    assert.equal(result.body.diagnostics.source, 'submit_decision_retry')
+  } finally {
+    emitTurnEnd(harness, handshake.body.dshSessionId)
+    await call(harness.routes, '/api/uniclaw-agent/detach', {})
+    await consultPromise
+  }
+})
+
+for (const retryFailure of ['prompt-error', 'deadline']) {
+  test(`retry ${retryFailure} preserves the physical turn fence until turn/end`, async () => {
+    const harness = mockCtx()
+    applyHost(harness)
+    await call(harness.routes, '/api/uniclaw-agent/detach', {})
+    const handshake = await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+    const prompt = harness.controller.prompt.bind(harness.controller)
+    harness.controller.prompt = async (...args) => {
+      const result = await prompt(...args)
+      if (retryFailure === 'prompt-error' && args[0].requestId.includes('-nudge-'))
+        throw new Error('simulated retry transport error after queueing')
+      return result
+    }
+    const body = {
+      requestId: `req-retry-${retryFailure}`, generation: 1,
+      productSessionId: 'product-A', productRunId: 'run-A',
+      dshSessionId: handshake.body.dshSessionId, turnTimeoutMs: 100,
+      context: { decisionId: `decision-${retryFailure}`, runId: 'run-A', phase: 'InitialPlanning' },
+    }
+    const consultation = call(harness.routes, '/api/uniclaw-agent/consult', body)
+    try {
+      for (let i = 0; i < 50 && harness.controller.promptCalls.length < 1; i++)
+        await new Promise(resolve => setTimeout(resolve, 5))
+      assert.equal(harness.controller.promptCalls.length, 1)
+      emitTurnEnd(harness, handshake.body.dshSessionId)
+      await consultation
+      assert.equal(harness.controller.promptCalls.length, 2)
+      const next = await call(harness.routes, '/api/uniclaw-agent/consult', {
+        ...body, requestId: body.requestId + '-next', generation: 2,
+        context: { ...body.context, decisionId: body.context.decisionId + '-next' },
+      })
+      assert.equal(next.body.error?.code, 'one-in-flight')
+      assert.equal(harness.controller.promptCalls.length, 2, 'no new physical prompt before retry turn/end')
+    } finally {
+      emitTurnEnd(harness, handshake.body.dshSessionId)
+      await call(harness.routes, '/api/uniclaw-agent/detach', {})
+      await consultation
+    }
+  })
+}
 
 test('B3: consultation prompt binds effectClass to runtime allowedEffects', async () => {
   const harness = mockCtx()
@@ -904,6 +1142,7 @@ test('PRF-009: skill path/name/revision/hash drift fails closed at boot', () => 
 
 test('PRF-009: per-turn fallback carries Skill guidance with the static prompt', async () => {
   const harness = mockCtx()
+  activeHarness = harness // This test mounts directly; still retire its retry in afterEach.
   const sessionMount = mockCtx()
   plugin.apply(sessionMount.ctx, { sessionScoped: true, promptMount: 'per-turn' })
   plugin.apply(harness.ctx, { workspaceRoot: TEST_WORKSPACE_ROOT, promptMount: 'per-turn' })
@@ -942,6 +1181,8 @@ test('PRF-003: preset mount registers the scoped product-prompt section; host mo
   assert.match(section.text, /You are the UniAgent decision component/)
   assert.match(section.text, /payload validates against the Product AgentDecision schema/)
   assert.match(section.text, /effectClass.*runtime token/i)
+  assert.match(section.text, /顶层提交 `reviewResponse/)
+  assert.match(section.text, /不是事实来源/)
   assert.equal(skillSection.name, 'uniagent-prod:skill:android-automotive-ui-testing')
   assert.equal(skillSection.order, 110)
   assert.match(skillSection.text, /有目的的探索/)
@@ -1012,15 +1253,14 @@ test('PRF-003: per-turn fallback mounts the full static text in every turn', asy
   await consultPromise
 })
 
-test('PRF-004: preset mount records the isolation-probe inventory; host route exposes it read-only', async () => {
+test('PRF-004: handshake records the actual session isolation-probe inventory; host route exposes it read-only', async () => {
   const harness = mockCtx()
   applyHost(harness)
-  // preset-row assembly is async — wait for the recorded inventory.
-  for (let i = 0; i < 50 && plugin.panelSnapshot().promptProbe === null; i++) {
-    await new Promise(resolve => setTimeout(resolve, 5))
-  }
+  await call(harness.routes, '/api/uniclaw-agent/detach', {})
+  const handshake = await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  assert.equal(handshake.body.accepted, true)
   const probe = plugin.panelSnapshot().promptProbe
-  assert.ok(probe, 'probe should be recorded after preset mount')
+  assert.ok(probe, 'probe should be recorded for the attached session')
   assert.equal(probe.error, undefined)
   assert.deepEqual(probe.sections, ['uniagent-prod:product-prompt', 'uniagent-prod:skill:android-automotive-ui-testing'])
   assert.deepEqual(probe.contexts, ['probe-context'])
@@ -1036,3 +1276,103 @@ test('PRF-004: preset mount records the isolation-probe inventory; host route ex
   assert.equal(body.recordedAt, probe.recordedAt)
 })
 
+
+test('ADR-0053: dynamic Plan and exact-position continuation use the same formal tool', async () => {
+  const harness = mockCtx()
+  applyHost(harness)
+  await call(harness.routes, '/api/uniclaw-agent/detach', {})
+  const handshake = await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  const tool = harness.ctx.tools.registered[0]
+  assert.ok(tool.parameters.properties.task.properties.payload.properties.position)
+  const position = { planId: 'p-menu', version: 1, itemIndex: 0, iteration: 1, bodyIndex: 2, candidateKey: 'entry:C', workUsed: 7, controlPath: '0.0.0:repeat:1/0.0.0:then:0' }
+  const payloads = [
+    { kind: 'plan', decisionId: 'plan-wire-1', proposal: { planId: 'p-menu', version: 1, maxLocalOperations: 30,
+      stageExpectation: 'inspect observed candidates', items: [{ kind: 'forEach', source: 'settings.root-navigation',
+        body: [{ kind: 'act', targetRole: '$candidate', targetDescriptor: '$candidate', effectClass: 'tap' },
+          { kind: 'observe' }, { kind: 'act', targetRole: 'ui.element', targetDescriptor: 'Navigate up', effectClass: 'tap' }],
+        maxIterations: 3, continueOnBlocked: true }, { kind: 'checkpoint', reason: 'review actual results' }] } },
+    { kind: 'continuePlan', decisionId: 'plan-wire-2', position },
+    { kind: 'plan', decisionId: 'plan-wire-3', proposal: { planId: 'p-conditional', version: 1, maxLocalOperations: 30,
+      items: [{ kind: 'repeat', maxIterations: 3, body: [{ kind: 'if', condition: 'records.need-evidence',
+        then: [{ kind: 'observe', subject: 'records.receipt' }], else: [] }] }] } },
+  ]
+  for (const [index, payload] of payloads.entries()) {
+    const consultation = call(harness.routes, '/api/uniclaw-agent/consult', {
+      requestId: `plan-wire-${index}`, generation: index + 1,
+      productSessionId: 'product-A', productRunId: 'run-A', dshSessionId: handshake.body.dshSessionId,
+      context: { decisionId: payload.decisionId, runId: 'run-A', phase: 'StepVerified',
+        ...(index === 1 ? { planExecution: { position, status: 'Paused' } } : {}) },
+    })
+    for (let i = 0; i < 50 && harness.controller.promptCalls.length <= index; i++)
+      await new Promise(resolve => setTimeout(resolve, 1))
+    if (index === 0) {
+      const bad = structuredClone(payload)
+      bad.proposal.items[0].body = [{ kind: 'forEach', source: 'settings.root-navigation', body: [], maxIterations: 2, continueOnBlocked: false }]
+      assert.equal(submitTask(tool, bad).accepted, false)
+    }
+    assert.equal(submitTask(tool, payload).accepted, true)
+    emitTurnEnd(harness, handshake.body.dshSessionId)
+    const captured = await consultation
+    assert.deepEqual(captured.body.task.payload, payload)
+  }
+  await call(harness.routes, '/api/uniclaw-agent/detach', {})
+})
+
+test('RUNTIME-PLAN-002: DSH accepts typed TraverseItem and rejects malformed operation bindings', async () => {
+  const harness = mockCtx()
+  applyHost(harness)
+  await call(harness.routes, '/api/uniclaw-agent/detach', {})
+  const handshake = await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  const tool = harness.ctx.tools.registered[0]
+  const payload = {
+    kind: 'plan', decisionId: 'traverse-plugin-1',
+    proposal: { planId: 'p-traverse', version: 1, maxLocalOperations: 24,
+      stageExpectation: 'inspect this observed menu',
+      items: [{ kind: 'traverse', source: 'settings.current-navigation', maxDepth: 0,
+        returnStep: { targetRole: 'Navigate up', effectClass: 'tap' },
+        rules: [
+          { ruleId: 'record', condition: 'always', operation: { operationId: 'read-current', kind: 'ReadOnly', step: null,
+            before: [{ handlerId: 'language-before', capabilityId: 'runtime.language-inspector', protocolVersion: '1.0', expectedLanguage: 'en', required: true, requirePass: false }],
+            afterVerified: [] } },
+          { ruleId: 'open', condition: 'candidate.openable', operation: { operationId: 'navigate-candidate', kind: 'Navigate',
+            step: { targetRole: 'menu item', targetDescriptor: '$candidate', effectClass: 'tap' }, before: [],
+            afterVerified: [{ handlerId: 'language-after', capabilityId: 'runtime.language-inspector', protocolVersion: '1.0', expectedLanguage: 'en', required: true, requirePass: true }] } },
+        ] }],
+    },
+  }
+  const consultation = call(harness.routes, '/api/uniclaw-agent/consult', {
+    requestId: 'traverse-plugin-request', generation: 1,
+    productSessionId: 'product-A', productRunId: 'run-A', dshSessionId: handshake.body.dshSessionId,
+    context: { decisionId: payload.decisionId, runId: 'run-A', phase: 'StepVerified' },
+  })
+  for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++)
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+  const badDepth = structuredClone(payload)
+  badDepth.proposal.items[0].maxDepth = 'zero'
+  assert.equal(submitTask(tool, badDepth).accepted, false, 'wrongly typed traversal bound is rejected')
+  const badVersion = structuredClone(payload)
+  badVersion.proposal.items[0].rules[0].operation.before[0].protocolVersion = '2.0'
+  assert.equal(submitTask(tool, badVersion).accepted, false, 'unsupported Language Inspection version is rejected')
+  const badBinding = structuredClone(payload)
+  badBinding.proposal.items[0].rules[0].operation.before[0].capabilityId = 'runtime.anything'
+  assert.equal(submitTask(tool, badBinding).accepted, false, 'unregistered capability binding is rejected')
+  const badReadOnly = structuredClone(payload)
+  badReadOnly.proposal.items[0].rules[0].operation.step = { targetRole: 'menu', effectClass: 'tap' }
+  assert.equal(submitTask(tool, badReadOnly).accepted, false, 'ReadOnly operation cannot carry an action step')
+  const emptyHandler = structuredClone(payload)
+  emptyHandler.proposal.items[0].rules[0].operation.before[0].handlerId = ''
+  assert.equal(submitTask(tool, emptyHandler).accepted, false, 'empty typed handler identity is rejected')
+  const duplicateHandler = structuredClone(payload)
+  duplicateHandler.proposal.items[0].rules[1].operation.afterVerified[0].handlerId = 'language-before'
+  assert.equal(submitTask(tool, duplicateHandler).accepted, false, 'handler identity is unique across rules and phases')
+  const reservedOperation = structuredClone(payload)
+  reservedOperation.proposal.items[0].rules[1].operation.operationId = '$return'
+  assert.equal(submitTask(tool, reservedOperation).accepted, false, 'runtime return operation identity is reserved')
+
+  assert.equal(submitTask(tool, payload).accepted, true)
+  emitTurnEnd(harness, handshake.body.dshSessionId)
+  const captured = await consultation
+  assert.deepEqual(captured.body.task.payload, payload)
+  await call(harness.routes, '/api/uniclaw-agent/detach', {})
+})

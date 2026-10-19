@@ -1,0 +1,9 @@
+# 真实嵌套页面事实诊断
+
+Expected：页面身份来自页面标题，当前页候选受同一每页及深度范围约束。Observed：Network & internet页被命名Internet，Internet页被命名T-Mobile；重复观察使maxEntriesPerPage1出现Internet与SIMs两个前沿。First divergence在Host XML页身份与ledger候选投影，非Kernel分支推进或Effect。
+
+假设按顺序验证：标题来源错误；Owner前沿混页/重置范围；模型遗漏入口。捕获XML直接确认toolbar.content-desc与第一行title不同，离线SettingsRouteKeyTests实际RED3/7→GREEN7/7。重复Observation公开Ledger反例RED1/1，修复后纳入全Host回归。模型本身也有未完整覆盖/未证完成的失败，不能把全部失败归成标题单因。
+
+修复仍是title×source×up元组；新增真实collapsing_toolbar来源，不把列表行或视口摘要当完整页标题。保持根页及旧无header回退、World事实及权限Owner不变。旧AGT-010的Security & privacy语料中，之前称其页标题为Settings实际取到列表行；当前测试改以该语料自身toolbar的Security & privacy验证，历史Change不追改冒称从未有误。
+
+每页候选数量从当前Run既有观察计算，只修正按capture重置的局部计数，没有新增事实权威；排除项审计投影保留。未把未知页标完成，未通过增加预算/放宽安全范围追PASS。全部旧5份Step、无Plan/无threshold状态保留；修复产物新建独立epoch。

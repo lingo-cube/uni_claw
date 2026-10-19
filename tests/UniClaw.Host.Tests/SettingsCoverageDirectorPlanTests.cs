@@ -350,6 +350,82 @@ public sealed class SettingsCoverageDirectorPlanTests
         Assert.Null(Assert.Single(director.ConsultLog).DeviationReason);
     }
 
+    [Theory]
+    [InlineData(AgentDecisionPhase.VerificationFailed)]
+    [InlineData(AgentDecisionPhase.StepRejected)]
+    public void FailedStep_AcceptsObservedBackRecovery_InsteadOfRepeatingCoverageTarget(AgentDecisionPhase phase)
+    {
+        var ledger = NormalRootLedger();
+        ledger.RecordObservation(RootRoute, new (string, string?)[]
+        {
+            ("ui.element", Entry), ("ui.element", "Navigate up"),
+        });
+        AgentDecisionContext? received = null;
+        var renewal = new BudgetRenewalRequest(20, 24, "verified progress; remaining work");
+        var director = new SettingsCoverageDirector(context =>
+        {
+            received = context;
+            return new AgentDecision.Act(new AgentActionProposal(context.DecisionId,
+                new[] { new AgentActionStep("ui.element", "Navigate up", "tap", null) },
+                "back out after failed verification", renewal));
+        }, ledger, Config());
+
+        var decision = director.Consult(Context() with
+        {
+            Phase = phase, FailureReason = "post-action-target-unique", FailedStepIndex = 0,
+        });
+
+        var act = Assert.IsType<AgentDecision.Act>(decision);
+        Assert.Equal("Navigate up", Assert.Single(act.Proposal.Steps).TargetDescriptor);
+        Assert.Equal(renewal, act.Proposal.Renewal);
+        Assert.Contains("recovery", received!.Objective, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("directive-target-mismatch", director.ConsultLog[^1].DeviationReason ?? "");
+        Assert.Equal("Navigate up", Assert.Single(director.AdoptedSteps).Step.TargetDescriptor);
+    }
+
+    [Fact]
+    public void FailedStep_ReobservationKeepsRecovery_ThenReturnsToNormalTraversal()
+    {
+        var ledger = NormalRootLedger();
+        ledger.RecordObservation(RootRoute, new (string, string?)[] { ("ui.element", Entry), ("ui.element", "Navigate up") });
+        var answers = new Queue<Func<AgentDecisionContext, AgentDecision>>();
+        answers.Enqueue(c => new AgentDecision.Defer(c.DecisionId, new ObserveSpec(null, 2)));
+        answers.Enqueue(c => new AgentDecision.Act(new AgentActionProposal(c.DecisionId,
+            new[] { new AgentActionStep("ui.element", "Navigate up", "tap", null) }, "recover")));
+        answers.Enqueue(c => new AgentDecision.Act(new AgentActionProposal(c.DecisionId,
+            new[] { new AgentActionStep("ui.element", Entry, "tap", null) }, "resume")));
+        var director = new SettingsCoverageDirector(c => answers.Dequeue()(c), ledger, Config());
+        Assert.IsType<AgentDecision.Defer>(director.Consult(Context() with
+        {
+            Phase = AgentDecisionPhase.VerificationFailed, FailureReason = "post-action-target-unique",
+        }));
+        // Kernel consumes FailureReason after a consultation and reuses StepVerified
+        // for a bounded Defer re-observation; it does not expose a separate phase.
+        var recovery = Assert.IsType<AgentDecision.Act>(director.Consult(Context("d-2")));
+        Assert.Equal("Navigate up", Assert.Single(recovery.Proposal.Steps).TargetDescriptor);
+        var resumed = Assert.IsType<AgentDecision.Act>(director.Consult(Context("d-3")));
+        Assert.Equal(Entry, Assert.Single(resumed.Proposal.Steps).TargetDescriptor);
+    }
+
+    [Theory]
+    [InlineData(false, null)]
+    [InlineData(true, "on")]
+    public void FailedStep_RejectsUnobservedOrStateChangingBackRecovery(bool visible, string? desiredState)
+    {
+        var ledger = NormalRootLedger();
+        if (visible)
+            ledger.RecordObservation(RootRoute, new (string, string?)[] { ("ui.element", Entry), ("ui.element", "Navigate up") });
+        var director = new SettingsCoverageDirector(c => new AgentDecision.Act(new AgentActionProposal(
+            c.DecisionId, new[] { new AgentActionStep("ui.element", "Navigate up", "tap", desiredState) }, "recover")),
+            ledger, Config());
+        var decision = director.Consult(Context() with
+        {
+            Phase = AgentDecisionPhase.VerificationFailed, FailureReason = "post-action-target-unique",
+        });
+        Assert.IsType<AgentDecision.Defer>(decision);
+        Assert.Empty(director.AdoptedSteps);
+    }
+
     [Fact]
     public void UnknownPage_AcceptsScrollRecovery_WhenContainerVisible()
     {
@@ -446,10 +522,8 @@ public sealed class SettingsCoverageDirectorPlanTests
             Assert.Single(director.ConsultLog).DeviationReason);
     }
 
-    // AGT-019 M5（Q6 裁决）：no-progress 双零窗口——新完成验证增量与
-    // frontier 计数增量同时为零持续窗口（保守初值：注入 3 / 硬停 5，
-    // 标定切片后冻结）→ 只注入事实计数（禁 Host 判语）；更高阈值机械
-    // 硬停兜底（bounded-stop 同族）。
+    // RUNTIME-OVERVIEW-001：no-progress 双零窗口只提供复核事实，不能由
+    // Host 计数替 Agent 作方向判断。
 
     [Fact]
     public void StagnantTraversal_InjectsNoProgressFacts_AfterWindow()
@@ -475,7 +549,7 @@ public sealed class SettingsCoverageDirectorPlanTests
     }
 
     [Fact]
-    public void StagnantTraversal_StopsBounded_AtHigherThreshold()
+    public void StagnantTraversal_ContinuesPastLegacyStopThreshold()
     {
         // 停滞硬停（bounded-stop:no-progress）在目标尝试上限（auto-skip）
         // 先行触发时退为后备——用非 enter 指令测试（obstacle 清障不计入
@@ -484,8 +558,9 @@ public sealed class SettingsCoverageDirectorPlanTests
         ledger.RecordObservation(RootRoute,
             new (string, string?)[] { ("ui.element", "CANCEL"), ("ui.element", "button1") });
         ledger.RecordPopupState("present");
+        var consultations = 0;
         var director = new SettingsCoverageDirector(
-            _ => Act("CANCEL"), ledger, Config(maxObstacleRetries: 10));
+            _ => { consultations++; return Act("CANCEL"); }, ledger, Config(maxObstacleRetries: 10));
         for (var i = 1; i <= 5; i++)
         {
             var result = director.Consult(Context($"d-{i}"));
@@ -495,8 +570,78 @@ public sealed class SettingsCoverageDirectorPlanTests
 
         var sixth = director.Consult(Context("d-6"));
 
-        Assert.IsType<AgentDecision.NoAction>(sixth);
-        Assert.Equal("bounded-stop:no-progress", director.TerminalJustification);
+        Assert.IsType<AgentDecision.Act>(sixth);
+        Assert.Equal(6, consultations);
+        Assert.Null(director.TerminalJustification);
+    }
+
+    [Fact]
+    public void MandatoryBudgetReview_UsesOneAgentCallAndPreservesReviewResponse()
+    {
+        var calls = 0;
+        var review = new BudgetReviewResponse("review-1", BudgetReviewOutcome.ContinueWithoutRenewal);
+        var config = Config() with
+        {
+            Bounds = Config().Bounds with { GoalDirectedContinuationEnabled = true, MaxDirectiveRetries = 3 },
+        };
+        var director = new SettingsCoverageDirector(
+            _ =>
+            {
+                calls++;
+                return new AgentDecision.Act(Assert.IsType<AgentDecision.Act>(Act(Entry)).Proposal, review);
+            }, NormalRootLedger(), config);
+        var context = Context("d-1") with
+        {
+            BudgetReview = new BudgetReview(
+                "review-1", Required: true, Attempt: 1, Strengthened: false,
+                SuggestedAdditionalSteps: 20, SuggestedAdditionalRounds: 23,
+                InitialSteps: 96, InitialRounds: 112, GrantedSteps: 96, GrantedRounds: 112,
+                StepsConsumed: 80, RoundsConsumed: 90, StepsRemaining: 16, RoundsRemaining: 22),
+        };
+
+        var decision = director.Consult(context);
+
+        var act = Assert.IsType<AgentDecision.Act>(decision);
+        Assert.Equal(1, calls);
+        Assert.Same(review, act.ReviewResponse);
+        Assert.Equal("budget-review", Assert.Single(director.ConsultLog).DirectiveKind);
+    }
+
+    [Fact]
+    public void GoalDirectedConsult_AllowsAgentToDeepenCurrentBranchWithOtherRootTargetsPending()
+    {
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(RootRoute,
+            new (string, string?)[] { ("ui.element", Entry), ("ui.element", "Battery") });
+        ledger.RecordStep(new CoverageStepRecord(
+            Index: 1, DecisionId: "enter-network", DshSessionId: null,
+            TargetRole: "ui.element", TargetDescriptor: Entry, EffectClass: "tap",
+            DesiredState: null, PreActionTargetUnique: true, ReceiptId: "receipt-network",
+            ReceiptOutcome: "ok", ReceiptCommand: "tap", RouteBefore: RootRoute,
+            RouteAfter: "android.settings|route:Network & internet", PostCaptureId: "capture-network",
+            Verified: true, FailureReason: null, Directive: "enter"));
+        ledger.RecordObservation("android.settings|route:Network & internet",
+            new (string, string?)[] { ("ui.element", "Wi-Fi") });
+
+        var calls = 0;
+        var config = Config() with
+        {
+            Bounds = Config().Bounds with { GoalDirectedContinuationEnabled = true },
+        };
+        var director = new SettingsCoverageDirector(
+            _ => { calls++; return Act("Wi-Fi"); }, ledger, config);
+
+        var decision = director.Consult(Context("d-1"));
+
+        var act = Assert.IsType<AgentDecision.Act>(decision);
+        Assert.Equal("Wi-Fi", act.Proposal.Steps.Single().TargetDescriptor);
+        Assert.Equal(1, calls);
+        Assert.Equal("goal-directed", Assert.Single(director.ConsultLog).DirectiveKind);
+        Assert.Null(director.ConsultLog[0].Directive);
+        Assert.Null(director.TerminalJustification);
+        Assert.Contains(SettingsCoverageOverviewProjector.Project(ledger, config).KnownItems,
+            item => item.Contains("[pending][dynamic-observation] Battery", StringComparison.Ordinal)
+                && item.Contains("discovered=true", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -504,19 +649,115 @@ public sealed class SettingsCoverageDirectorPlanTests
     {
         // TRAJECTORY-001：目标尝试上限——同目标派发超过 MaxTargetAttempts(3)
         // 次后自动跳过（零 Effect），下一轮选不同目标。
+        var config = Config() with
+        {
+            Coverage = new CoverageRequirements(true, "all-visible", 0, 2, true, 1),
+        };
         var director = new SettingsCoverageDirector(
-            _ => Act(Entry), NormalRootLedger(), Config());
+            _ => Act(Entry), NormalRootLedger(), config);
         // 前 3 次正常派发
         for (var i = 1; i <= 3; i++)
             Assert.NotNull(director.Consult(Context($"d-{i}")));
-        // 第 4 次触发 auto-skip → 返回 Defer（下一轮选不同目标）
-        var fourth = director.Consult(Context("d-4"));
-        Assert.IsType<AgentDecision.Defer>(fourth);
+        // 没有其他入口时诚实停止；跳过不能冒充重复进入或等待。
+        Assert.IsType<AgentDecision.NoAction>(director.Consult(Context("d-4")));
+        Assert.Null(director.ConsultLog[^1].DeviationReason);
         // 目标已被标记 skipped（justification 含目标名和 auto-skip 字样）
         Assert.Contains(director.ConsultLog, r =>
             (r.DirectiveKind == "skip" || r.DecisionKind == "skip")
             && (r.Justification ?? "").Contains("auto-skip")
             && (r.Justification ?? "").Contains(Entry));
+    }
+
+    [Fact]
+    public void TargetAttemptLimit_AtRoot_SelectsNextTargetInSameConsultation()
+    {
+        var ledger = NormalRootLedger();
+        ledger.RecordObservation(RootRoute,
+            new (string, string?)[] { ("ui.element", Entry), ("ui.element", "Apps") });
+        var config = Config() with { TargetPages = new[] { Entry, "Apps" } };
+        var director = new SettingsCoverageDirector(
+            context => Act(context.Objective.Contains("<Apps>", StringComparison.Ordinal) ? "Apps" : Entry),
+            ledger, config);
+        for (var i = 1; i <= 3; i++)
+            Assert.IsType<AgentDecision.Act>(director.Consult(Context($"d-{i}")));
+
+        var next = Assert.IsType<AgentDecision.Act>(director.Consult(Context("d-4")));
+
+        Assert.Equal("Apps", next.Proposal.Steps[0].TargetDescriptor);
+        Assert.Contains("<Apps>", director.ConsultLog[^1].Directive);
+        Assert.Contains(Entry, ledger.AgentSkippedTargets);
+    }
+
+    [Fact]
+    public void RejectedSkipMark_IsNotLoggedAsSuccessfulSkip()
+    {
+        var ledger = NormalRootLedger();
+        var director = new SettingsCoverageDirector(_ => Act(Entry), ledger, Config());
+        for (var i = 1; i <= 3; i++)
+            Assert.IsType<AgentDecision.Act>(director.Consult(Context($"d-{i}")));
+        Assert.True(ledger.TryMarkTargetReached(Entry, TargetCoverageMarkKind.ReachedOverlay, "d-arrival"));
+
+        Assert.IsType<AgentDecision.NoAction>(director.Consult(Context("d-4")));
+
+        Assert.Equal("bounded-stop:coverage-mark-conflict", director.TerminalJustification);
+        Assert.DoesNotContain(director.ConsultLog, record => record.DecisionKind == "skip");
+        Assert.Equal(TargetCoverageMarkKind.ReachedOverlay, ledger.TargetMarks[Entry].Kind);
+        Assert.Empty(ledger.AgentSkippedTargets);
+    }
+
+    [Fact]
+    public void DeclaredSwitchTargets_AreExcludedBeforeConsultingNextNavigation()
+    {
+        var config = Config() with
+        {
+            TargetPages = new[] { "Wi-Fi", "Bluetooth", "Apps" },
+            ActionPolicy = new SettingsActionPolicy(
+                SettingsActionPolicy.SupportedSchemaVersion, "test-policy", 1, true,
+                new HashSet<string> { "navigate", "back", "scroll" },
+                new HashSet<string> { "toggle:Wi-Fi", "toggle:Bluetooth" },
+                new HashSet<string> { "unknown-action" }, Array.Empty<string>(),
+                SettingsActionPolicy.RejectUnknown, "test-digest", "test"),
+        };
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(RootRoute, config.TargetPages.Select(target => ("ui.element", (string?)target)).ToArray());
+        string? receivedObjective = null;
+        var director = new SettingsCoverageDirector(context =>
+        {
+            receivedObjective = context.Objective;
+            return Act("Apps");
+        }, ledger, config);
+
+        var next = Assert.IsType<AgentDecision.Act>(director.Consult(Context()));
+
+        Assert.Equal("Apps", next.Proposal.Steps[0].TargetDescriptor);
+        Assert.Contains("<Apps>", receivedObjective);
+        Assert.Equal(new[] { "Bluetooth", "Wi-Fi" }, ledger.AgentSkippedTargets);
+        Assert.Single(director.AdoptedSteps);
+    }
+
+    [Theory]
+    [InlineData("ui.element", true)]
+    [InlineData("switch", false)]
+    public void ObservedSwitchTarget_IsExcludedEvenWhenNotDeclaredToggle(string role, bool checkable)
+    {
+        var config = Config() with { TargetPages = new[] { "Roaming", "Apps" } };
+        var ledger = new SettingsCoverageLedger();
+        ledger.RecordObservation(RootRoute, config.TargetPages.Select(target => ("ui.element", (string?)target)).ToArray());
+        var director = new SettingsCoverageDirector(_ => Act("Apps"), ledger, config);
+        var context = Context() with
+        {
+            Elements = new[]
+            {
+                new ElementSummary(role, "Roaming", null, true, checkable, true, ElementEpistemic.Observed),
+                new ElementSummary("ui.element", "Apps", null, true, false, true, ElementEpistemic.Observed),
+            },
+        };
+
+        var next = Assert.IsType<AgentDecision.Act>(director.Consult(context));
+
+        Assert.Equal("Apps", next.Proposal.Steps[0].TargetDescriptor);
+        Assert.Equal(new[] { "Roaming" }, ledger.AgentSkippedTargets);
+        Assert.DoesNotContain(director.AdoptedSteps, item => item.Step.TargetDescriptor == "Roaming");
     }
 
     // AGT-019 M2-②（B3）：局部视图默认形态——容器结构（含可滚动）与

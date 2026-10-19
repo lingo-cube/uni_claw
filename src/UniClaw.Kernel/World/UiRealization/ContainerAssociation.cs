@@ -29,6 +29,9 @@ public enum ContainerRelationKind
 
     /// <summary>Source overlays Target（graph relation，即使生命周期很短）。</summary>
     Overlays,
+
+    /// <summary>Source page navigates to the observed target page.</summary>
+    NavigatesTo,
 }
 
 /// <summary>
@@ -40,7 +43,27 @@ public sealed record ContainerRelation(
     ContainerRelationKind Kind,
     string SourceContainerId,
     string TargetContainerId,
-    IReadOnlyList<string> EvidenceBasis);
+    IReadOnlyList<string> EvidenceBasis,
+    string? Scope = null,
+    string? VerificationSourceRef = null,
+    string? SourceRevisionId = null,
+    string? TargetRevisionId = null);
+
+/// <summary>
+/// A navigation verified after the target observation was reconciled. Evidence
+/// references must identify the accepted observations that established the two
+/// page identities; VerificationSourceRef points to the independent post-action
+/// verification and is not an accepted observation evidence record.
+/// </summary>
+internal sealed record ObservedNavigation(
+    string SourceRevisionId,
+    string SourceContainerId,
+    string SourceObservationEvidenceId,
+    string TargetRevisionId,
+    string TargetContainerId,
+    string TargetObservationEvidenceId,
+    string Scope,
+    string VerificationSourceRef);
 
 /// <summary>
 /// AssociationDisposition 四分类（UWM-009 §13 / D6）：一次 Container

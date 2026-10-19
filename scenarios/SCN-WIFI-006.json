@@ -37,8 +37,8 @@
     "schemaVersion": 2,
     "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
     "executionDigest": "3860d1ec54225994504fa909570a0cc7e77fb294899627a8e324d143d61db740",
-    "runtimeSourceHash": "a663e68c6d919b5dbe1b43d616191658c42a8fb916b19370db988e44ee85450f",
-    "certifiedByChange": "AGT-020",
-    "certifiedAt": "2026-10-17"
+    "runtimeSourceHash": "2cf39a51cbf2295b53ecdbbcedc9a8296f4f8e3d7f6f3591af86a224255ea5f3",
+    "certifiedByChange": "RUNTIME-PLAN-002",
+    "certifiedAt": "2026-10-19"
   }
 }

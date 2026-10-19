@@ -1,0 +1,25 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.02]   Discovering: UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.04]   Discovered:  UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.05]   Starting:    UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.15]     UniClaw.Simulation.Tests.TraversalScenarioTests.FirstUnknownRulePreventsTheLaterNavigationRule [FAIL]
+[xUnit.net 00:00:00.15]       status=AgentDecisionFailed (expected TerminalNotProven); classification=none (expected none); effects=0 (expected 0); agentCalls=16 (expected 2); unconsumed=0 (expected 0); goal=none (expected none)
+[xUnit.net 00:00:00.15]       Stack Trace:
+[xUnit.net 00:00:00.15]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs(60,0): at UniClaw.Simulation.Tests.TraversalScenarioTests.FirstUnknownRulePreventsTheLaterNavigationRule()
+[xUnit.net 00:00:00.15]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.15]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.15]   Finished:    UniClaw.Simulation.Tests
+  失败 UniClaw.Simulation.Tests.TraversalScenarioTests.FirstUnknownRulePreventsTheLaterNavigationRule [90 ms]
+  错误消息:
+   status=AgentDecisionFailed (expected TerminalNotProven); classification=none (expected none); effects=0 (expected 0); agentCalls=16 (expected 2); unconsumed=0 (expected 0); goal=none (expected none)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.TraversalScenarioTests.FirstUnknownRulePreventsTheLaterNavigationRule() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs:line 60
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+测试运行失败。
+测试总数: 1
+     失败数: 1
+总时间: 0.6044 秒

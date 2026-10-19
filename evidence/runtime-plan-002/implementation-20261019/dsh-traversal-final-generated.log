@@ -1,0 +1,33 @@
+TAP version 13
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=e293016ef336…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 19, mount section); skill android-automotive-ui-testing@2 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash e293016ef336…, promptRevision 19, skill android-automotive-ui-testing@2)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=e293016ef336…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 19, mount section); skill android-automotive-ui-testing@2 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash e293016ef336…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# [uniclaw-decision-channel] consult captured { requestId: 'traverse-plugin-request', kind: 'plan', durationMs: 3 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# Subtest: RUNTIME-PLAN-002: DSH accepts typed TraverseItem and rejects malformed operation bindings
+ok 1 - RUNTIME-PLAN-002: DSH accepts typed TraverseItem and rejects malformed operation bindings
+  ---
+  duration_ms: 31.22375
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60102.680958

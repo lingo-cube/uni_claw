@@ -42,6 +42,9 @@ public sealed class SettingsCoverageDirector
     private string? _lastRoute;
     private string? _lastPopupState;
     private string? _lastAdoptedDirectiveKind;
+    // Failure context is consumed by Kernel after one consultation. Retain it
+    // only across that recovery's bounded Defer chain, never as a new Run phase.
+    private string? _stepRecoveryReason;
     private readonly Queue<string> _recentCycleFacts = new();
     // TRAJECTORY-001：目标尝试计数（跨周期持久，不分 verified 与否——
     // SIM 循环每步都 verified 但零推进，现有连续未验证检测抓不到交替模式）。
@@ -79,6 +82,9 @@ public sealed class SettingsCoverageDirector
     /// grounding 失败不产生 receipt，由 runner 对照 receipts 处理）。</summary>
     public IReadOnlyList<(string DecisionId, string? Directive, AgentActionStep Step)> AdoptedSteps => _adoptedSteps;
 
+    /// <summary>Set by the composition only when RunDriverInputs.GuardStep is wired.</summary>
+    public bool CurrentStepGuardInstalled { get; set; }
+
     public string? TerminalJustification => _terminalJustification;
 
     /// <summary>
@@ -92,7 +98,16 @@ public sealed class SettingsCoverageDirector
         _ledger.RecordConsultRound(context.DecisionId);
         SettingsActionGuardResult? guard = null;
         if (_config.ActionPolicy is { } actionPolicy)
-            decision = SettingsActionGuard.GuardDecision(decision, context, actionPolicy, out guard);
+        {
+            var original = decision;
+            decision = SettingsActionGuard.GuardDecision(decision, context, actionPolicy, out guard, CurrentStepGuardInstalled);
+            if (decision is null && ReviewResponseOf(original) is { } rejectedReview)
+                decision = new AgentDecision.NoAction(
+                    new AgentNoActionProposal(context.DecisionId, $"settings-policy:{guard?.Reason ?? "rejected"}"),
+                    rejectedReview);
+            else
+                decision = TransferReviewResponse(original, decision);
+        }
         foreach (var step in AdvisorySteps(decision))
             _adoptedSteps.Add((context.DecisionId, null, step));
         _log.Add(new ConsultRecord(
@@ -132,6 +147,15 @@ public sealed class SettingsCoverageDirector
         var snapshot = _ledger.Snapshot(_config);
         var directive = snapshot.NextDirective;
         var kind = snapshot.NextDirectiveKind;
+        // Popup clearance has its own typed present→absent evidence. Its
+        // dismissed button disappearing can fail the generic target check;
+        // that does not leave an unresolved navigation recovery behind.
+        var popupCleared = _lastAdoptedDirectiveKind == "obstacle"
+            && _lastPopupState == "present" && snapshot.PopupState == "absent";
+        if (popupCleared)
+            _stepRecoveryReason = null;
+        else if (context.Phase is AgentDecisionPhase.VerificationFailed or AgentDecisionPhase.StepRejected)
+            _stepRecoveryReason = context.FailureReason ?? context.Phase.ToString();
 
         // AGT-019 M5（Q6）：no-progress 双零窗口——事实计数（新完成验证
         // 增量与 frontier 计数增量同时为零才计停滞，避开合法长验证段误报）；
@@ -172,15 +196,9 @@ public sealed class SettingsCoverageDirector
                 Diagnostics: diagnostics,
                 RecentCycles: _recentCycleFacts.ToArray()),
         };
-        if (_stagnantConsults >= _config.Bounds.StagnationStopConsults)
-        {
-            _terminalJustification = "bounded-stop:no-progress";
-            _log.Add(new ConsultRecord(
-                context.DecisionId, context.Phase.ToString(), null, null,
-                "noAction", null, 0, "bounded-stop:no-progress"));
-            return new AgentDecision.NoAction(new AgentNoActionProposal(
-                context.DecisionId, "settings-coverage:bounded-stop:no-progress"));
-        }
+        // No-progress is evidence for Agent review, never a Host direction
+        // verdict. Keep the legacy threshold readable for config compatibility,
+        // but do not turn it into a bounded stop.
         // AGT-019 M5（B4）：注入阈值达成 → 停滞事实进协议字段
         // ConsultationProgress（取代 Slice A 的 Objective 文本注入——
         // 消冗余）；Progress 缺席（非 Kernel 正常组合）则诚实不造字段。
@@ -195,6 +213,33 @@ public sealed class SettingsCoverageDirector
                     SameRouteConsultations = _sameRouteConsults,
                 },
             };
+        }
+
+        // Goal-directed Host mode contributes facts and guards effects, while
+        // the Agent owns path choice and completion judgement. Every call is
+        // one consultation; Runtime owns any correction or budget review.
+        if (_config.Bounds.GoalDirectedContinuationEnabled)
+        {
+            var response = _underlying(context);
+            var guarded = response;
+            if (_config.ActionPolicy is { } reviewPolicy)
+            {
+                guarded = SettingsActionGuard.GuardDecision(response, context, reviewPolicy, out var reviewGuard, CurrentStepGuardInstalled);
+                if (guarded is null)
+                    guarded = new AgentDecision.NoAction(
+                        new AgentNoActionProposal(context.DecisionId,
+                            $"settings-policy:{reviewGuard?.Reason ?? "review-action-rejected"}"),
+                        ReviewResponseOf(response));
+                else
+                    guarded = TransferReviewResponse(response, guarded);
+            }
+            foreach (var step in AdvisorySteps(guarded))
+                _adoptedSteps.Add((context.DecisionId, null, step));
+            _log.Add(new ConsultRecord(
+                context.DecisionId, context.Phase.ToString(), null,
+                context.BudgetReview is { Required: true } ? "budget-review" : "goal-directed",
+                DecisionKind(guarded), null, 1, DecisionJustification(guarded)));
+            return guarded;
         }
 
         // AGT-009 §1：弹窗在场优先于一切普通遍历指令——先清障，弹窗回到
@@ -281,41 +326,50 @@ public sealed class SettingsCoverageDirector
             && !snapshot.Visible.Contains(_config.ScrollContainerDescriptor)
             && !_config.TargetPages.Any(snapshot.Visible.Contains)
             && !_ledger.DynamicRootFrontier(_config).Any(snapshot.Visible.Contains);
+        var recoveringFailedStep = _stepRecoveryReason is not null;
         if (snapshot.PopupState != "present"
-            && snapshot.CurrentRoute is not null
-            && snapshot.CurrentRoute == UnknownRouteIdentity
-            && (snapshot.StepsVerified == 0 || unknownRouteNeedsResample))
+            && (recoveringFailedStep || snapshot.CurrentRoute == UnknownRouteIdentity
+                && (snapshot.StepsVerified == 0 || unknownRouteNeedsResample)))
         {
             if (context.Phase == AgentDecisionPhase.DeferRoundsExhausted)
             {
-                _terminalJustification = "bounded-stop:unknown-page";
+                _terminalJustification = recoveringFailedStep
+                    ? "bounded-stop:step-recovery-exhausted" : "bounded-stop:unknown-page";
                 _log.Add(new ConsultRecord(
                     context.DecisionId, context.Phase.ToString(), null, null,
-                    "noAction", null, 0, "bounded-stop:unknown-page"));
+                    "noAction", null, 0, _terminalJustification));
                 return new AgentDecision.NoAction(new AgentNoActionProposal(
-                    context.DecisionId, "settings-coverage:bounded-stop:unknown-page"));
+                    context.DecisionId, $"settings-coverage:{_terminalJustification}"));
             }
             // AGT-019 M1（Q7 裁决）：处理不了的默认升级 UniAgent——路由不明
             // 是强制升级谓词之一。升级咨询给选项集 {再观察, back（配置了
             // 才给）, 滚动（容器可见才给）}；选项外的 Act/Plan/Policy 照拒、
             // 零 Effect（004-A2 等价执法，仍返回安全 Defer）。
             var scrollVisible = snapshot.Visible.Contains(_config.ScrollContainerDescriptor);
-            var backAvailable = _config.BackDescriptor is not null;
+            var backAvailable = _config.BackDescriptor is not null
+                && (!recoveringFailedStep || snapshot.Visible.Contains(_config.BackDescriptor));
             var options = new List<string> { "re-observe (return a Defer for one bounded re-observation)" };
             if (backAvailable)
                 options.Add($"back (tap '<{_config.BackDescriptor}>')");
             if (scrollVisible)
                 options.Add($"scroll (swipe up on '<{_config.ScrollContainerDescriptor}>')");
             options.Add("declare blocked with a reason (the run ends honestly as blocked)");
+            if (recoveringFailedStep)
+                options.Add("stop honestly (return noAction with the recovery limitation)");
+            var recoveryKind = recoveringFailedStep ? "failed-step-recovery" : "defer-unknown-page";
+            var recoveryReason = recoveringFailedStep
+                ? $"the previous action failed ({_stepRecoveryReason}); ordinary coverage traversal is paused for recovery"
+                : "the current page identity is unknown";
             _log.Add(new ConsultRecord(
                 context.DecisionId, context.Phase.ToString(),
-                $"Observe again: current page identity is unknown ('{UnknownRouteIdentity}').",
-                "defer-unknown-page", "defer", null, 1, null));
+                recoveringFailedStep ? recoveryReason
+                    : $"Observe again: current page identity is unknown ('{UnknownRouteIdentity}').",
+                recoveryKind, "defer", null, 1, _stepRecoveryReason));
             var observeContext = context with
             {
                 Objective = context.Objective
                     + "\n\nCOVERAGE DIRECTIVE (authoritative for this turn): "
-                    + "the current page identity is unknown."
+                    + recoveryReason + "."
                     + "\nChoose EXACTLY ONE recovery option: " + string.Join("; ", options) + "."
                     + "\nAny other Act, Plan, or Policy response is rejected without Effect."
             };
@@ -326,10 +380,17 @@ public sealed class SettingsCoverageDirector
                 StringComparison.Ordinal);
             if (agentDecision is AgentDecision.Defer && sameDecision)
                 return agentDecision;
+            if (recoveringFailedStep && agentDecision is AgentDecision.NoAction noAction && sameDecision)
+            {
+                _stepRecoveryReason = null;
+                _log[^1] = _log[^1] with { DecisionKind = "noAction", Justification = noAction.Proposal.Justification };
+                return agentDecision;
+            }
             // AGT-019 M1（Q1/B1）：blocked 诚实申报——同号即采纳透传，
             // Kernel 侧零 Effect 确定性终局（agent-blocked:{reason}）。
             if (agentDecision is AgentDecision.Blocked blockedAnswer && sameDecision)
             {
+                _stepRecoveryReason = null;
                 _log[^1] = _log[^1] with
                 {
                     DecisionKind = "blocked",
@@ -343,11 +404,25 @@ public sealed class SettingsCoverageDirector
                 && IsUnknownRouteRecoveryStep(act.Proposal.Steps[0], backAvailable, scrollVisible))
             {
                 var recovery = act.Proposal.Steps[0];
+                var guard = _config.ActionPolicy is { } recoveryPolicy
+                    ? SettingsActionGuard.Evaluate(recovery, context, recoveryPolicy) : null;
+                if (guard is not null && guard.Verdict != SettingsActionGuardVerdict.Allow)
+                {
+                    _log[^1] = _log[^1] with
+                    {
+                        DecisionKind = "defer", DeviationReason = $"policy-guard:{guard.SemanticAction}:{guard.Reason}",
+                        PolicyDigest = guard.PolicyDigest, GuardVerdict = guard.Verdict.ToString().ToUpperInvariant(),
+                    };
+                    return TransferReviewResponse(agentDecision,
+                        new AgentDecision.Defer(context.DecisionId, new ObserveSpec(null, 2)));
+                }
+                var location = recoveringFailedStep ? "during failed-step recovery" : "on the unknown page";
                 var recoveryDirective = recovery.EffectClass == "swipe-up"
-                    ? $"Scroll the container '<{_config.ScrollContainerDescriptor}>' on the unknown page."
-                    : $"Navigate back from the unknown page by tapping '<{_config.BackDescriptor}>'.";
+                    ? $"Scroll the container '<{_config.ScrollContainerDescriptor}>' {location}."
+                    : $"Navigate back {location} by tapping '<{_config.BackDescriptor}>'.";
                 _adoptedSteps.Add((context.DecisionId, recoveryDirective, recovery));
                 _log[^1] = _log[^1] with { Directive = recoveryDirective, DecisionKind = "act" };
+                _stepRecoveryReason = null;
                 return agentDecision;
             }
 
@@ -356,25 +431,68 @@ public sealed class SettingsCoverageDirector
             // Defer even when the agent times out, returns null, or proposes
             // Act/Plan/Policy outside {back, scroll}.
             var reason = agentDecision is null
-                ? "unknown-route-agent-no-response"
-                : "unknown-route-agent-response-rejected";
+                ? recoveringFailedStep ? "failed-step-agent-no-response" : "unknown-route-agent-no-response"
+                : recoveringFailedStep ? "failed-step-agent-response-rejected" : "unknown-route-agent-response-rejected";
             _log[^1] = _log[^1] with
             {
                 DecisionKind = DecisionKind(agentDecision),
                 DeviationReason = reason,
             };
-            return new AgentDecision.Defer(context.DecisionId,
-                new ObserveSpec(Subject: null, MaxRounds: 2));
+            return TransferReviewResponse(agentDecision, new AgentDecision.Defer(context.DecisionId,
+                new ObserveSpec(Subject: null, MaxRounds: 2)));
         }
 
 
-        // 覆盖完成后若不在根页，终局义务（end-on-route）要求先返回根页。
-        // TRAJECTORY-001 修复：当前页无可做目标但覆盖未完时，也要返回
-        // 上一级——剩余一级目标在根页上不可见，不回去就永远无法继续
-        //（defer-exhausted 真机实证：1/7 entered + 6 个目标等在根页）。
+        // 本地候选排除不是等待：写入成功后在同次咨询中重新选择。
+        // 每次迭代排除一个候选；账本拒绝写入则停止，不能伪造 skip 日志。
+        while (kind is "enter" or "nested-enter" or "re-enter")
+        {
+            var target = TargetOf(directive!);
+            if (target is null)
+                break;
+
+            var isSwitch = _config.ActionPolicy?.DeclaredTargetSwitchLabels.Any(label =>
+                string.Equals(label, target, StringComparison.OrdinalIgnoreCase)) == true
+                || (context.Elements ?? Array.Empty<ElementSummary>()).Any(element =>
+                    string.Equals(element.Text?.Trim(), target, StringComparison.OrdinalIgnoreCase)
+                    && (string.Equals(element.Role, "switch", StringComparison.OrdinalIgnoreCase)
+                        || element.Checkable == true));
+            _targetAttemptCounts.TryGetValue(target, out var attemptsForTarget);
+            if (!isSwitch)
+            {
+                attemptsForTarget++;
+                _targetAttemptCounts[target] = attemptsForTarget;
+            }
+            if (!isSwitch && attemptsForTarget <= MaxTargetAttempts)
+                break;
+
+            var reason = isSwitch
+                ? "switch-target: navigation on toggle control not guardable"
+                : $"auto-skip: {attemptsForTarget} attempts without coverage completion";
+            var evidence = isSwitch ? "switch-target" : $"target-attempts:{attemptsForTarget}";
+            if (!_ledger.TryMarkTargetSkipped(target, context.DecisionId, reason, new[] { evidence }))
+            {
+                _terminalJustification = "bounded-stop:coverage-mark-conflict";
+                _log.Add(new ConsultRecord(
+                    context.DecisionId, context.Phase.ToString(), directive, kind,
+                    "noAction", "coverage-mark-conflict", 0,
+                    $"coverage mark rejected for '{target}'; original mark preserved"));
+                return new AgentDecision.NoAction(new AgentNoActionProposal(
+                    context.DecisionId, $"settings-coverage:{_terminalJustification}"));
+            }
+            _log.Add(new ConsultRecord(
+                context.DecisionId, context.Phase.ToString(), directive, kind,
+                "skip", null, 0, reason + $"; target '{target}'"));
+            snapshot = _ledger.Snapshot(_config);
+            directive = snapshot.NextDirective;
+            kind = snapshot.NextDirectiveKind;
+        }
+
+        // 子页待办耗尽后返回；不得构造缺失的返回控件。
         if (directive is null
             && snapshot.CurrentRoute is not null
-            && snapshot.CurrentRoute != _config.RootRoute)
+            && snapshot.CurrentRoute != _config.RootRoute
+            && _config.BackDescriptor is not null)
         {
             directive = $"Return to the Settings root page by tapping '<{_config.BackDescriptor}>'.";
             kind = "back";
@@ -391,57 +509,6 @@ public sealed class SettingsCoverageDirector
                 "noAction", null, 0, justification));
             return new AgentDecision.NoAction(new AgentNoActionProposal(
                 context.DecisionId, $"settings-coverage:{justification}"));
-        }
-
-        // TRAJECTORY-001：目标尝试上限——同目标被派发 MaxTargetAttempts 次后
-        // 不再下发指令，直接标记跳过（零 Effect），遍历继续。这是在停滞
-        // 介入之前的**第一道防线**（比等 3 轮覆盖不变更快更准）。
-        // 同时：开关控件目标（policy 声明的 targeted toggle，如 Wi-Fi）
-        // 不能下发导航指令——guard 会以 "switch requires desiredState" 拒掉，
-        // 造成有效回答被丢弃 → no-response（真机实证根因）。
-        if (kind is "enter" or "nested-enter" or "re-enter")
-        {
-            var targetDesc = TargetOf(directive!);
-            if (targetDesc is not null)
-            {
-                // 开关控件：跳过（guard 会拒）
-                if (_config.ActionPolicy is { } ap
-                    && ap.DeclaredTargetSwitchLabels.Any(label =>
-                        string.Equals(label, targetDesc, StringComparison.OrdinalIgnoreCase)))
-                {
-                    _log.Add(new ConsultRecord(
-                        context.DecisionId, context.Phase.ToString(), directive, kind,
-                        "skip", null, 1,
-                        $"switch-target-skipped: '{targetDesc}' is a declared toggle; navigation tap would be guard-rejected"));
-                    if (!_ledger.AgentSkippedTargets.Contains(targetDesc))
-                        _ledger.TryMarkTargetSkipped(
-                            targetDesc, context.DecisionId,
-                            "switch-target: navigation on toggle control not guardable",
-                            new[] { "switch-target" });
-                    return new AgentDecision.Defer(context.DecisionId,
-                        new ObserveSpec(Subject: null, MaxRounds: 1,
-                            Purpose: "switch target skipped; next directive picks another"));
-                }
-                _targetAttemptCounts.TryGetValue(targetDesc, out var targetAttempts);
-                targetAttempts++;
-                _targetAttemptCounts[targetDesc] = targetAttempts;
-                if (targetAttempts > MaxTargetAttempts
-                    && !_ledger.AgentSkippedTargets.Contains(targetDesc))
-                {
-                    _ledger.TryMarkTargetSkipped(
-                        targetDesc, context.DecisionId,
-                        $"auto-skip: {targetAttempts} attempts without coverage completion",
-                        new[] { $"target-attempts:{targetAttempts}" });
-                    _log.Add(new ConsultRecord(
-                        context.DecisionId, context.Phase.ToString(), directive, kind,
-                        "skip", null, 1,
-                        $"auto-skip: target '{targetDesc}' attempted {targetAttempts}x without completion"));
-                    // 下一轮咨询会选不同目标（该目标已标记 skipped）
-                    return new AgentDecision.Defer(context.DecisionId,
-                        new ObserveSpec(Subject: null, MaxRounds: 1,
-                            Purpose: "auto-skip target; next directive picks another"));
-                }
-            }
         }
 
         var derived = context with
@@ -462,10 +529,15 @@ public sealed class SettingsCoverageDirector
         var attempts = 0;
         string? deviation = null;
         string? lastDeviation = null;
-        while (attempts <= _config.Bounds.MaxDirectiveRetries)
+        BudgetReviewResponse? lastReviewResponse = null;
+        var retryLimit = _config.Bounds.GoalDirectedContinuationEnabled
+            ? 0
+            : _config.Bounds.MaxDirectiveRetries;
+        while (attempts <= retryLimit)
         {
             attempts++;
             var decision = _underlying(derived);
+            lastReviewResponse = ReviewResponseOf(decision) ?? lastReviewResponse;
             // TRAJECTORY-001：Skip/Blocked 是零 Effect 介入裁决——在
             // adherence/guard/journal 之前直接透传（它们没有 action step，
             // 走 Act 管线会空引用）。Kernel 已有处理逻辑。
@@ -500,7 +572,11 @@ public sealed class SettingsCoverageDirector
                         context.DecisionId, context.Phase.ToString(), directive, kind,
                         decision is AgentDecision.Plan ? "plan" : "act",
                         lastDeviation, attempts, null, guard.PolicyDigest, "REJECT"));
-                    return null;
+                    return _config.Bounds.GoalDirectedContinuationEnabled
+                        && ReviewResponseOf(decision) is { } reviewResponse
+                            ? new AgentDecision.NoAction(new AgentNoActionProposal(
+                                context.DecisionId, $"settings-policy:{guard.SemanticAction}:{guard.Reason}"), reviewResponse)
+                            : null;
                 }
                 if (guard is { Verdict: SettingsActionGuardVerdict.NoAction })
                 {
@@ -508,7 +584,7 @@ public sealed class SettingsCoverageDirector
                         context.DecisionId, context.Phase.ToString(), directive, kind,
                         "noAction", null, attempts, guard.Reason, guard.PolicyDigest, "NO_ACTION"));
                     return new AgentDecision.NoAction(new AgentNoActionProposal(
-                        context.DecisionId, $"settings-policy:{guard.Reason}"));
+                        context.DecisionId, $"settings-policy:{guard.Reason}"), ReviewResponseOf(decision));
                 }
                 // Act 单步与受约束 Plan 的唯一 ActItem 都物化为 AgentActionStep
                 // 归属（归因/journal 路径不变；Plan 的执行由 driver 负责）。
@@ -537,7 +613,11 @@ public sealed class SettingsCoverageDirector
         _log.Add(new ConsultRecord(
             context.DecisionId, context.Phase.ToString(), directive, kind,
             null, deviation, attempts, null));
-        return null; // fail closed
+        return _config.Bounds.GoalDirectedContinuationEnabled
+            && lastReviewResponse is { } pendingReview
+                ? new AgentDecision.NoAction(new AgentNoActionProposal(
+                    context.DecisionId, $"settings-directive-rejected:{deviation ?? "unknown"}"), pendingReview)
+                : null; // fail closed
     }
 
     /// <summary>
@@ -623,8 +703,9 @@ public sealed class SettingsCoverageDirector
     /// back（tap 返回键，须已配置）或滚动（swipe-up 滚动容器，须容器
     /// 可见）；其余响应零 Effect（004-A2 等价，防漂移与幻影目标）。</summary>
     private bool IsUnknownRouteRecoveryStep(AgentActionStep step, bool backAvailable, bool scrollVisible) =>
-        backAvailable && IsTap(step) && step.TargetDescriptor == _config.BackDescriptor
-        || scrollVisible && step.EffectClass == "swipe-up" && step.TargetDescriptor == _config.ScrollContainerDescriptor;
+        step.DesiredState is null
+        && (backAvailable && IsTap(step) && step.TargetDescriptor == _config.BackDescriptor
+            || scrollVisible && step.EffectClass == "swipe-up" && step.TargetDescriptor == _config.ScrollContainerDescriptor);
 
     private static IEnumerable<AgentActionStep> AdvisorySteps(AgentDecision? decision) =>
         decision switch
@@ -661,6 +742,38 @@ public sealed class SettingsCoverageDirector
         null => null,
         _ => null,
     };
+
+    private static BudgetReviewResponse? ReviewResponseOf(AgentDecision? decision) => decision switch
+    {
+        AgentDecision.Act x => x.ReviewResponse,
+        AgentDecision.NoAction x => x.ReviewResponse,
+        AgentDecision.Defer x => x.ReviewResponse,
+        AgentDecision.Policy x => x.ReviewResponse,
+        AgentDecision.Plan x => x.ReviewResponse,
+        AgentDecision.ContinuePlan x => x.ReviewResponse,
+        AgentDecision.Blocked x => x.ReviewResponse,
+        AgentDecision.Skip x => x.ReviewResponse,
+        _ => null,
+    };
+
+    private static AgentDecision? TransferReviewResponse(AgentDecision? source, AgentDecision? destination)
+    {
+        var review = ReviewResponseOf(source);
+        if (review is null)
+            return destination;
+        return destination switch
+        {
+            AgentDecision.Act x => x with { ReviewResponse = review },
+            AgentDecision.NoAction x => x with { ReviewResponse = review },
+            AgentDecision.Defer x => x with { ReviewResponse = review },
+            AgentDecision.Policy x => x with { ReviewResponse = review },
+            AgentDecision.Plan x => x with { ReviewResponse = review },
+            AgentDecision.ContinuePlan x => x with { ReviewResponse = review },
+            AgentDecision.Blocked x => x with { ReviewResponse = review },
+            AgentDecision.Skip x => x with { ReviewResponse = review },
+            _ => destination,
+        };
+    }
 
     private static string? DecisionJustification(AgentDecision? decision) => decision switch
     {

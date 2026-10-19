@@ -1,0 +1,44 @@
+{
+  "id": "WI-RUNTIME-PLAN-002-SIMULATION",
+  "objective": "在SimulationHost/ScenarioRunner真实Kernel链执行持续Traversal专属验收，证明动态发现、handlers、暂停续行、安全与部分覆盖",
+  "scope": {
+    "write": [
+      "tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs",
+      "tests/UniClaw.Simulation.Tests/TraversalScenarioFixture.cs"
+    ],
+    "read_hints": [
+      "plans/runtime-plan-002.md",
+      "tests/UniClaw.Simulation.Tests/SimulationHost.cs",
+      "tests/UniClaw.Simulation.Tests/SimContract.cs",
+      "tests/UniClaw.Simulation.Tests/GoldenScenarioBundles.cs",
+      "src/UniClaw.Kernel/Runtime/TraversalExecution.cs"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "同一Plan中的TraverseItem走真实Evidence/World/Control/Assurance/Effect/Run链。外部Agent/观察/机械Effect可明确仿真，不能手抄Traversal算法来验收。"
+  },
+  "acceptance": [
+    "A1动态未预列子页/兄弟/返回；root-A-C及root-C-D先深后浅深度反例实际Effect轨迹覆盖D；环及不同义务",
+    "A2注册LanguageFormatInspector实例(Registry Resolve)经typed seam调用并验证操作前/后handler顺序；只读零Effect；Violation记录继续，RequirePass暂停，异常/失效/超时非Completed",
+    "A3缺失/矛盾post不后置或下一Effect；暂停重复只读查询无推进；明确ContinuePlan保留已发生动作及预算/游标；Recovery callback事实可观察",
+    "A4首项规则Unknown不当false、Blocked和越权零Effect、消失/返回失败/发现未穷尽/深度截断保留gap，待办空不Goal完成",
+    "A5预算/取消/能力失效/调用超时受控，不建第二Run，不复活终态",
+    "所有测试使用SimulationHost/ScenarioRunner，不直接kernel.Process/Act/Drive逐cycle；测试literal期望独立于实现",
+    "执行测试并提供日志及每项实际覆盖映射；若产品缺陷向Leader/执行Worker报告，不用弱化断言绕过"
+  ],
+  "forbidden": [
+    "共享代码库还有他人；不得回滚任何既有修改",
+    "只写两个指定新测试文件；Host/SimContract seams若需变动先请求Leader",
+    "不改scenarios历史期望/认证，不把execution.kind=none计为通过",
+    "不创建子Agent、不提交推送、不改模型设置/路由",
+    "不复制算法造helper测试代替真实链"
+  ],
+  "frozen_decisions": [
+    "changes/RUNTIME-PLAN-002/state.md D1-D19",
+    "plans/runtime-plan-002.md"
+  ],
+  "dependencies": [
+    "WI-RUNTIME-PLAN-002-EXECUTION"
+  ],
+  "status": "done"
+}

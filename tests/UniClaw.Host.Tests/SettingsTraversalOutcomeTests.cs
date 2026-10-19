@@ -25,7 +25,7 @@ public sealed class SettingsTraversalOutcomeTests
         var rootKey = SettingsTraversalLiveFeed.DeriveRouteKey(rootXml);
         var childKey = SettingsTraversalLiveFeed.DeriveRouteKey(childXml);
         Assert.StartsWith("android.settings|rk1:Settings|src=homepage_title|up=0", rootKey);
-        Assert.StartsWith("android.settings|rk1:Internet|src=title|up=1", childKey);
+        Assert.StartsWith("android.settings|rk1:Network & internet|src=collapsing_toolbar|up=1", childKey);
         Assert.NotEqual(rootKey, childKey);
     }
 

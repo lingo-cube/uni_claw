@@ -10,6 +10,89 @@ namespace UniClaw.Agent.Dsh.Tests;
 
 public sealed class ProtocolFoundationTests
 {
+    [Theory]
+    [InlineData("act")]
+    [InlineData("noAction")]
+    [InlineData("defer")]
+    public void Renewal_Survives_Decision_Wire_RoundTrip(string kind)
+    {
+        var renewal = new BudgetRenewalRequest(32, 40, "coverage progressing");
+        AgentDecision original = kind switch
+        {
+            "act" => new AgentDecision.Act(new AgentActionProposal("renewal-1",
+                new[] { new AgentActionStep("button", "Apps", "tap", null) }, null, Renewal: renewal)),
+            "noAction" => new AgentDecision.NoAction(new AgentNoActionProposal("renewal-1", "continue", Renewal: renewal)),
+            _ => new AgentDecision.Defer("renewal-1", new ObserveSpec("page", 1), renewal),
+        };
+        var options = ProductProtocolJson.CreateOptions();
+        var wire = JsonSerializer.Serialize(original, options);
+        var restored = JsonSerializer.Deserialize<AgentDecision>(wire, options);
+        var actual = restored switch
+        {
+            AgentDecision.Act act => act.Proposal.Renewal,
+            AgentDecision.NoAction noAction => noAction.Proposal.Renewal,
+            AgentDecision.Defer defer => defer.Renewal,
+            _ => null,
+        };
+        Assert.Equal(renewal, actual);
+        using var schema = JsonDocument.Parse(ProductProtocolSchema.Current.Json);
+        if (kind == "defer")
+        {
+            var deferSchema = schema.RootElement.GetProperty("$defs").GetProperty("AgentDecision")
+                .GetProperty("oneOf").EnumerateArray()
+                .Single(item => item.GetProperty("properties").GetProperty("kind").GetProperty("const").GetString() == "defer");
+            Assert.True(deferSchema.GetProperty("properties").TryGetProperty("renewal", out _));
+        }
+    }
+
+    [Fact]
+    public void Explicit_BudgetReviewResponse_RoundTrips_At_Top_Level_For_All_Wire_Kinds()
+    {
+        var response = new BudgetReviewResponse("review-17", BudgetReviewOutcome.RequestRenewal,
+            new AgentProgressAssessment("overview-17", "advancing", "open the discovered menu",
+                "inspect the menu and capture its visible state", ["observed menu state"], ["obs:17"],
+                DeclinedDimensions: ["rounds"], RetriggerCondition: "after the next evidence checkpoint",
+                NextItemKey: "root:observed-menu"),
+            new BudgetRenewalRequest(20, 0, "one new branch remains"));
+        var options = ProductProtocolJson.CreateOptions();
+        foreach (var original in Decisions().Select(row => (AgentDecision)row[0]!).Select(decision => decision switch
+        {
+            AgentDecision.Act act => act with { ReviewResponse = response },
+            AgentDecision.NoAction noAction => noAction with { ReviewResponse = response },
+            AgentDecision.Defer defer => defer with { ReviewResponse = response },
+            AgentDecision.Policy policy => policy with { ReviewResponse = response },
+            AgentDecision.Skip skip => skip with { ReviewResponse = response },
+            _ => decision,
+        }))
+        {
+            var wire = JsonSerializer.Serialize(original, options);
+            using var document = JsonDocument.Parse(wire);
+            Assert.True(document.RootElement.TryGetProperty("reviewResponse", out _));
+            Assert.Equal("RequestRenewal", document.RootElement.GetProperty("reviewResponse")
+                .GetProperty("outcome").GetString());
+            Assert.False(document.RootElement.TryGetProperty("proposal", out var proposal)
+                && proposal.TryGetProperty("reviewResponse", out _));
+            var restored = JsonSerializer.Deserialize<AgentDecision>(wire, options)!;
+            var actualResponse = restored switch
+            {
+                AgentDecision.Act act => act.ReviewResponse,
+                AgentDecision.NoAction noAction => noAction.ReviewResponse,
+                AgentDecision.Defer defer => defer.ReviewResponse,
+                AgentDecision.Policy policy => policy.ReviewResponse,
+                AgentDecision.Skip skip => skip.ReviewResponse,
+                _ => null,
+            };
+            Assert.Equal(response.ReviewId, actualResponse?.ReviewId);
+            Assert.Equal(response.Outcome, actualResponse?.Outcome);
+            Assert.Equal("root:observed-menu", actualResponse?.Assessment?.NextItemKey);
+            Assert.Equal(response.Renewal, actualResponse?.Renewal);
+            Assert.Equal(response.Assessment?.OverviewId, actualResponse?.Assessment?.OverviewId);
+            Assert.Equal(response.Assessment?.ExpectedObservableEvidence,
+                actualResponse?.Assessment?.ExpectedObservableEvidence);
+            Assert.Equal(response.Assessment?.EvidenceRefs, actualResponse?.Assessment?.EvidenceRefs);
+        }
+    }
+
     [Fact]
     public void Schema_IsDeterministic_AndHasHash()
     {
@@ -168,6 +251,12 @@ public sealed class ProtocolFoundationTests
     [InlineData("{\"kind\":\"policy\",\"decisionId\":\"d\",\"proposal\":{\"policyId\":\"p\",\"match\":[],\"actionTemplate\":{\"targetRole\":\"switch\",\"effectClass\":\"tap\"},\"termination\":[],\"guards\":[],\"maxApplications\":0}}")]
     [InlineData("{\"kind\":\"skip\",\"decisionId\":\"d\",\"target\":\"wifi\",\"reason\":\"blocked\",\"evidenceRefs\":[]}")]
     [InlineData("{\"kind\":\"skip\",\"decisionId\":\"d\",\"target\":\"wifi\",\"reason\":\"blocked\",\"evidenceRefs\":[\"\"]}")]
+    [InlineData("{\"kind\":\"act\",\"decisionId\":\"d\",\"proposal\":{\"decisionId\":\"d\",\"steps\":[{\"targetRole\":\"button\",\"effectClass\":\"tap\"}]},\"reviewResponse\":{\"reviewId\":\"r\",\"outcome\":\"Maybe\"}}")]
+    [InlineData("{\"kind\":\"noAction\",\"decisionId\":\"d\",\"proposal\":{\"decisionId\":\"d\",\"justification\":\"ok\"},\"reviewResponse\":{\"reviewId\":\"r\",\"outcome\":\"Replan\",\"unknown\":true}}")]
+    [InlineData("{\"kind\":\"noAction\",\"decisionId\":\"d\",\"proposal\":{\"decisionId\":\"d\",\"justification\":\"ok\"},\"reviewResponse\":{\"reviewId\":\"r\",\"outcome\":\"RequestRenewal\",\"renewal\":{\"additionalRounds\":2}}}")]
+    [InlineData("{\"kind\":\"act\",\"decisionId\":\"d\",\"proposal\":{\"decisionId\":\"d\",\"steps\":[{\"targetRole\":\"button\",\"effectClass\":\"tap\"}],\"renewal\":{\"additionalSteps\":20,\"additionalRounds\":0}},\"reviewResponse\":{\"reviewId\":\"r\",\"outcome\":\"RequestRenewal\",\"renewal\":{\"additionalSteps\":20,\"additionalRounds\":0}}}")]
+    [InlineData("{\"kind\":\"act\",\"decisionId\":\"d\",\"proposal\":{\"decisionId\":\"d\",\"steps\":[{\"targetRole\":\"button\",\"effectClass\":\"tap\"}]},\"reviewResponse\":{\"reviewId\":\"r\",\"outcome\":\"ContinueWithoutRenewal\"}}")]
+    [InlineData("{\"kind\":\"act\",\"decisionId\":\"d\",\"proposal\":{\"decisionId\":\"d\",\"steps\":[{\"targetRole\":\"button\",\"effectClass\":\"tap\"}]},\"reviewResponse\":{\"reviewId\":\"r\",\"outcome\":\"RequestRenewal\",\"assessment\":{\"overviewId\":\"o\",\"judgment\":\"progress\",\"expectedObservableEvidence\":[],\"evidenceRefs\":[]}}}")]
     public void Malformed_Decision_Payload_Is_Rejected(string payload)
     {
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<AgentDecision>(
@@ -185,6 +274,27 @@ public sealed class ProtocolFoundationTests
         Assert.Equal(1, maxRounds.GetProperty("minimum").GetInt32());
         Assert.Equal("integer", maxApplications.GetProperty("type").GetString());
         Assert.Equal(1, maxApplications.GetProperty("minimum").GetInt32());
+    }
+
+    [Fact]
+    public void Generated_Schema_Exposes_Explicit_BudgetReviewResponse_At_Union_Top_Level()
+    {
+        using var document = JsonDocument.Parse(ProductProtocolSchema.Current.Json);
+        var definitions = document.RootElement.GetProperty("$defs");
+        var response = definitions.GetProperty("BudgetReviewResponse");
+        Assert.Contains("outcome", response.GetProperty("required").EnumerateArray()
+            .Select(value => value.GetString()));
+        Assert.Contains("assessment", response.GetProperty("required").EnumerateArray()
+            .Select(value => value.GetString()));
+        Assert.Equal(new[] { "CollectEvidence", "ContinueWithoutRenewal", "Replan", "RequestRenewal", "SubmitCompletion" },
+            response.GetProperty("properties").GetProperty("outcome").GetProperty("enum").EnumerateArray()
+                .Select(value => value.GetString()).Order(StringComparer.Ordinal));
+        var act = definitions.GetProperty("AgentDecision").GetProperty("oneOf").EnumerateArray()
+            .Single(variant => variant.GetProperty("properties").GetProperty("kind")
+                .GetProperty("const").GetString() == "act");
+        Assert.Equal("BudgetReviewResponse",
+            act.GetProperty("properties").GetProperty("reviewResponse").GetProperty("anyOf")[0]
+                .GetProperty("$ref").GetString()!.Split('/').Last());
     }
 
     [Fact]
@@ -224,6 +334,10 @@ public sealed class ProtocolFoundationTests
         Assert.Contains("contextReferenceIndex", context.GetProperty("properties").EnumerateObject()
             .Select(property => property.Name));
         Assert.Contains("casePacket", context.GetProperty("properties").EnumerateObject()
+            .Select(property => property.Name));
+        Assert.Contains("executionOverview", context.GetProperty("properties").EnumerateObject()
+            .Select(property => property.Name));
+        Assert.Contains("budgetReview", context.GetProperty("properties").EnumerateObject()
             .Select(property => property.Name));
         var skip = document.RootElement.GetProperty("$defs").GetProperty("AgentDecision")
             .GetProperty("oneOf").EnumerateArray()

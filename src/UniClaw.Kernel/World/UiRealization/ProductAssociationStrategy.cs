@@ -10,8 +10,8 @@ namespace UniClaw.Kernel.World.UiRealization;
 /// 取逐字节精确匹配）：
 /// - <see cref="AssociationDispositionKind.Insufficient"/>：claim value
 ///   空/空白（无可判别内容），**或 claim subject 不是屏幕身份 subject**
-///   （D4：内容类 claim 不参与容器身份判别——否则每帧内容变化都铸新
-///   容器，与驱动器单根容器约束冲突）；
+///   （内容类 claim 不参与容器身份判别）；Host 必须为该 subject 提供稳定的
+///   页面上下文签名提示，滚动/视口变化保持签名不变，不同父级上下文使用不同签名；
 /// - <see cref="AssociationDispositionKind.New"/>：Previous 无 container，
 ///   或没有任何 container 的 signature 与当前 claim value 相等；
 /// - <see cref="AssociationDispositionKind.Matched"/>：恰有一个 container
@@ -21,10 +21,9 @@ namespace UniClaw.Kernel.World.UiRealization;
 ///   本 realization 自身不可达（同屏重看会走 Matched 不重铸），仅跨
 ///   realization 混用时可判达；Ambiguous 分支保留（词汇完整 + fail-safe
 ///   交 Authority gates）。
-/// 权衡存证：逐字节相等 ⇒ 屏幕内容任何变化（滚动/弹窗/条目顺序）=
-/// 新屏幕身份（identity 变异经 AssociationDecision 留痕可追溯）。
-/// 改进路径（归一化签名 / occurrence 重叠相似度）= 同 seam 的后续
-/// realization 迭代，不改本类型的语义边界。
+/// 身份边界：逐字节精确匹配的是 Host 提供的页面上下文签名提示，不是
+/// 原始屏幕内容；签名变化会进入 New 判别，同一签名只在唯一容器匹配时延续。
+/// 页面身份提示不能替代 WorldModel 的 identity minting 或 authority gates。
 /// Authority gates（evidence backing / contradiction-blocks-matched /
 /// prior-only blocked）在 WorldModel 边界强制；本类型无 authority。
 /// </summary>

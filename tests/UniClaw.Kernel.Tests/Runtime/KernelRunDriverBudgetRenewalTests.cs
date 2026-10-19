@@ -55,7 +55,8 @@ public sealed class KernelRunDriverBudgetRenewalTests
     private static (UniKernel Kernel, KernelRunDriver Driver, AgentPlanPolicy Plan) Compose(
         Func<AgentDecisionContext, AgentDecision?> consult,
         ExecutionContract contract,
-        AgentPlanPolicy? plan = null)
+        AgentPlanPolicy? plan = null,
+        Func<ExecutionOverviewProjection?>? projectExecutionOverview = null)
     {
         plan ??= new AgentPlanPolicy();
         var effects = new EffectBoundary(new OkDriver());
@@ -71,6 +72,7 @@ public sealed class KernelRunDriverBudgetRenewalTests
         {
             NextInput = _ => SeedObservation(),
             ConsultAgent = consult,
+            ProjectExecutionOverview = projectExecutionOverview,
         };
         var driver = new KernelRunDriver(kernel, plan, inputs);
         Assert.True(kernel.AdmitContract(contract).Accepted);
@@ -290,6 +292,385 @@ public sealed class KernelRunDriverBudgetRenewalTests
         Assert.Equal("consult-budget-exhausted", result.Reason);
         Assert.Equal(1, consults);
         Assert.Empty(kernel.EffectReceipts);
+    }
+
+    [Fact]
+    public void GoalDirectedReview_IsProactive_UsesInitialCeilingAndExplicitCorrelation()
+    {
+        var contexts = new List<AgentDecisionContext>();
+        var reviewed = false;
+        var (kernel, driver, _) = Compose(ctx =>
+        {
+            contexts.Add(ctx);
+            if (ctx.BudgetReview is { } review)
+            {
+                reviewed = true;
+                var assessment = new AgentProgressAssessment(
+                    ctx.ExecutionOverview!.OverviewId, "progressing", "continue", "inspect remaining branch",
+                    new[] { "settings-page-visible" }, new[] { "event:1" });
+                return new AgentDecision.Defer(ctx.DecisionId, new ObserveSpec(null, 1),
+                    ReviewResponse: new BudgetReviewResponse(review.ReviewId,
+                        BudgetReviewOutcome.RequestRenewal, assessment,
+                        new BudgetRenewalRequest(review.SuggestedAdditionalSteps,
+                            review.SuggestedAdditionalRounds, "next branch")));
+            }
+            if (reviewed) return new AgentDecision.Blocked(ctx.DecisionId, "test-stop-after-proof");
+            return new AgentDecision.Defer(ctx.DecisionId, new ObserveSpec(null, 1));
+        }, RenewalContract(consultations: 112, totalSteps: 96), new AgentPlanPolicy
+        {
+            GoalDirectedContinuationEnabled = true,
+            RenewalThresholdRounds = 112,
+            RenewalThresholdSteps = 96,
+        });
+
+        driver.Drive();
+
+        var reviewContext = Assert.Single(contexts.Where(c => c.BudgetReview is not null));
+        Assert.True(reviewContext.BudgetReview!.Required);
+        Assert.Equal(20, reviewContext.BudgetReview.SuggestedAdditionalSteps);
+        Assert.Equal(23, reviewContext.BudgetReview.SuggestedAdditionalRounds);
+        var grant = Assert.Single(driver.RenewalsGranted.Where(r => r.Granted));
+        Assert.Equal(reviewContext.BudgetReview.ReviewId, grant.ReviewId);
+        Assert.Equal(20, grant.AdditionalSteps);
+        Assert.Equal(23, grant.AdditionalRounds);
+        Assert.Equal(112, reviewContext.ExecutionOverview!.InitialRounds);
+        Assert.Equal(reviewContext.BudgetReview.RoundsRemaining, reviewContext.ExecutionOverview.RoundsRemaining);
+        Assert.Equal(kernel.RunId, reviewContext.ExecutionOverview.RunId);
+        var nextOverview = contexts.Last().ExecutionOverview!;
+        Assert.Equal(reviewContext.Objective, nextOverview.PreviousSegmentExpectation);
+        Assert.Equal("inspect remaining branch", nextOverview.CurrentSegmentExpectation);
+        Assert.Null(contexts.Last().RenewalWindow);
+    }
+
+    [Fact]
+    public void GoalDirectedReview_GivesOneCorrectionThenAuditsIncompleteWithoutGrant()
+    {
+        var contexts = new List<AgentDecisionContext>();
+        var (kernel, driver, _) = Compose(ctx =>
+        {
+            contexts.Add(ctx);
+            // Deliberately omit the mandatory explicit review response.
+            return new AgentDecision.Defer(ctx.DecisionId, new ObserveSpec(null, 1));
+        }, RenewalContract(consultations: 5, totalSteps: 20), new AgentPlanPolicy
+        {
+            GoalDirectedContinuationEnabled = true,
+        });
+
+        for (var i = 0; i < 8 && !driver.RenewalsGranted.Any(r => !r.ReviewComplete); i++)
+            driver.Drive();
+
+        Assert.Equal(2, contexts.Count(c => c.BudgetReview is not null));
+        var incomplete = Assert.Single(driver.RenewalsGranted.Where(r => !r.ReviewComplete));
+        Assert.Equal("renewal:review-incomplete", incomplete.RejectionReason);
+        Assert.False(incomplete.Granted);
+        Assert.Equal(kernel.RunId, contexts.First(c => c.BudgetReview is not null).RunId);
+    }
+
+    [Fact]
+    public void GoalDirectedReview_TwoTotalNoResponsesAreIncomplete_ThenRuntimeContinuesNormally()
+    {
+        var contexts = new List<AgentDecisionContext>();
+        var (kernel, driver, _) = Compose(ctx =>
+        {
+            contexts.Add(ctx);
+            return ctx.BudgetReview is null
+                ? new AgentDecision.Blocked(ctx.DecisionId, "test-stop-after-incomplete")
+                : null;
+        }, RenewalContract(consultations: 5, totalSteps: 20), new AgentPlanPolicy
+        {
+            GoalDirectedContinuationEnabled = true,
+            RenewalThresholdRounds = 5,
+        });
+
+        driver.Drive();
+
+        Assert.Equal(2, contexts.Count(c => c.BudgetReview is not null));
+        var incomplete = Assert.Single(driver.RenewalsGranted.Where(r => !r.ReviewComplete));
+        Assert.False(incomplete.Granted);
+        Assert.Equal("renewal:review-incomplete", incomplete.RejectionReason);
+        Assert.Equal(kernel.RunId, contexts[0].RunId);
+    }
+
+    [Fact]
+    public void GoalDirectedContinuation_CanPassLegacy256WithoutAuthorizedCap()
+    {
+        var contexts = new List<AgentDecisionContext>();
+        var sourceVersion = 0;
+        var completedReviews = 0;
+        var (kernel, driver, _) = Compose(ctx =>
+        {
+            contexts.Add(ctx);
+            if (ctx.BudgetReview is { } review)
+            {
+                completedReviews++;
+                if (completedReviews > 260)
+                    return new AgentDecision.Blocked(ctx.DecisionId, "test-complete");
+                var fact = $"owner-fact-{sourceVersion}";
+                var assessment = new AgentProgressAssessment(
+                    ctx.ExecutionOverview!.OverviewId, "new owner fact", "next branch", "inspect newly observed item",
+                    new[] { "new item" }, new[] { fact });
+                return new AgentDecision.Plan(ctx.DecisionId,
+                    new AgentPlanProposal(new PlanItem[] { new PlanItem.ControlItem(PlanControlKind.Replan, "new fact") }, "replan from new fact"),
+                    new BudgetReviewResponse(review.ReviewId, BudgetReviewOutcome.RequestRenewal, assessment,
+                        new BudgetRenewalRequest(0, 1, "new source fact")));
+            }
+            return new AgentDecision.Plan(ctx.DecisionId,
+                new AgentPlanProposal(new PlanItem[] { new PlanItem.ControlItem(PlanControlKind.Replan, "continue") }, "continue"));
+        }, RenewalContract(consultations: 2, totalSteps: 1), new AgentPlanPolicy
+        {
+            GoalDirectedContinuationEnabled = true,
+            RenewalThresholdRounds = 1,
+        }, projectExecutionOverview: () =>
+        {
+            sourceVersion++;
+            return new ExecutionOverviewProjection("branch-a", new[] { "item-a" }, Array.Empty<string>(),
+                Array.Empty<string>(), "inspect item", null, new[] { $"owner-fact-{sourceVersion}" }, $"revision-{sourceVersion}",
+                ProgressFactKeys: new[] { $"stable-progress-{sourceVersion}" });
+        });
+        driver.Drive();
+
+        Assert.True(completedReviews > 256, $"reviews={completedReviews}, calls={contexts.Count}, last={driver.Drive()}");
+        Assert.True(driver.RenewalsGranted.Count(r => r.Granted) > 256);
+        Assert.Equal(kernel.RunId, contexts[0].RunId);
+        Assert.True(contexts.Last().Progress!.RoundsUsed > 256);
+    }
+
+    [Fact]
+    public void GoalDirectedReview_RepeatRouteWithOnlyNewObservationRefsIsRejected_AndReplanKeepsSegmentUsage()
+    {
+        var contexts = new List<AgentDecisionContext>();
+        var sourceVersion = 0;
+        var reviews = 0;
+        var (kernel, driver, _) = Compose(ctx =>
+        {
+            contexts.Add(ctx);
+            if (ctx.BudgetReview is { } review)
+            {
+                reviews++;
+                var assessment = new AgentProgressAssessment(
+                    ctx.ExecutionOverview!.OverviewId, "no verified progress", "settings.general", "continue same route",
+                    new[] { "settings.general" }, new[] { $"observation-{sourceVersion}" });
+                return new AgentDecision.Plan(ctx.DecisionId,
+                    new AgentPlanProposal(new PlanItem[] { new PlanItem.ControlItem(PlanControlKind.Replan, "same route") }, "replan"),
+                    new BudgetReviewResponse(review.ReviewId, BudgetReviewOutcome.RequestRenewal, assessment,
+                        new BudgetRenewalRequest(0, 1, "same route again")));
+            }
+            return new AgentDecision.Plan(ctx.DecisionId,
+                new AgentPlanProposal(new PlanItem[] { new PlanItem.ControlItem(PlanControlKind.Replan, "continue") }, "continue"));
+        }, RenewalContract(consultations: 2, totalSteps: 1), new AgentPlanPolicy
+        {
+            GoalDirectedContinuationEnabled = true,
+            RenewalThresholdRounds = 1,
+        }, projectExecutionOverview: () =>
+        {
+            sourceVersion++;
+            return new ExecutionOverviewProjection("settings.general", new[] { "settings.general" }, Array.Empty<string>(),
+                Array.Empty<string>(), "inspect same route", "no new verified items", new[] { $"observation-{sourceVersion}" },
+                $"revision-{sourceVersion}", ProgressFactKeys: new[] { "stable:settings.general:verified-none" });
+        });
+
+        driver.Drive();
+
+        Assert.True(reviews >= 2);
+        Assert.Single(driver.RenewalsGranted.Where(r => r.Granted));
+        Assert.Contains(driver.RenewalsGranted,
+            r => r.RejectionReason == "renewal:repeat-route-without-new-evidence");
+        var secondReview = contexts.Last(c => c.BudgetReview is not null);
+        Assert.Equal(1, secondReview.ExecutionOverview!.SegmentRoundsConsumed);
+        Assert.Equal(2, secondReview.ExecutionOverview.RoundsConsumed);
+        Assert.Equal(kernel.RunId, secondReview.ExecutionOverview.RunId);
+    }
+
+    [Fact]
+    public void GoalDirectedReview_ReappearingOldFactsDoNotFundAnotherSegment()
+    {
+        var reviews = 0;
+        var sourceVersion = 0;
+        var (_, driver, _) = Compose(ctx =>
+        {
+            if (ctx.BudgetReview is not { } review || ++reviews > 4)
+                return new AgentDecision.Blocked(ctx.DecisionId, "end probe");
+            return new AgentDecision.Plan(ctx.DecisionId,
+                new AgentPlanProposal(new PlanItem[] { new PlanItem.ControlItem(PlanControlKind.Replan, "retry") }, "retry"),
+                new BudgetReviewResponse(review.ReviewId, BudgetReviewOutcome.RequestRenewal,
+                    new AgentProgressAssessment(ctx.ExecutionOverview!.OverviewId, "known facts", "same route",
+                        "inspect existing page", new[] { "existing page" }, new[] { "owner:known-page" }),
+                    new BudgetRenewalRequest(0, 1, "same route")));
+        }, RenewalContract(consultations: 2, totalSteps: 1), new AgentPlanPolicy
+        {
+            GoalDirectedContinuationEnabled = true, RenewalThresholdRounds = 2,
+        }, projectExecutionOverview: () => new ExecutionOverviewProjection(
+            "same branch", Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>(), null, null,
+            new[] { $"observation:{++sourceVersion}" },
+            ProgressFactKeys: new[] { sourceVersion % 2 == 1 ? "known:a" : "known:b" }));
+
+        driver.Drive();
+
+        Assert.Equal(2, driver.RenewalsGranted.Count(record => record.Granted));
+        Assert.Contains(driver.RenewalsGranted,
+            record => record.RejectionReason == "renewal:repeat-route-without-new-evidence");
+    }
+
+    [Fact]
+    public void GoalDirectedReview_RewordingDoesNotRenewButGroundedNewItemCan()
+    {
+        var reviews = 0;
+        var (_, driver, _) = Compose(ctx =>
+        {
+            if (ctx.BudgetReview is not { } review || ++reviews > 4)
+                return new AgentDecision.Blocked(ctx.DecisionId, "end probe");
+            return new AgentDecision.Plan(ctx.DecisionId,
+                new AgentPlanProposal(new PlanItem[] { new PlanItem.ControlItem(PlanControlKind.Replan, "retry") }, "retry"),
+                new BudgetReviewResponse(review.ReviewId, BudgetReviewOutcome.RequestRenewal,
+                    new AgentProgressAssessment(ctx.ExecutionOverview!.OverviewId, "no new facts", $"different words {reviews}",
+                        "inspect pending item", new[] { "verified pending item" }, new[] { "owner:pending" },
+                        NextItemKey: reviews == 2 ? "pending:b" : "pending:a"),
+                    new BudgetRenewalRequest(0, 1, "bounded inspection")));
+        }, RenewalContract(consultations: 2, totalSteps: 1), new AgentPlanPolicy
+        {
+            GoalDirectedContinuationEnabled = true, RenewalThresholdRounds = 2,
+        }, projectExecutionOverview: () => new ExecutionOverviewProjection(
+            "same branch", Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>(), null, null,
+            new[] { "owner:pending" }, ProgressFactKeys: new[] { "pending:known" },
+            ActionableItems: new Dictionary<string, ActionableItem>
+            {
+                ["pending:a"] = new(new[] { "owner:pending" }, new[] { "pending:known" }), ["pending:b"] = new(new[] { "owner:pending" }, new[] { "pending:known" }),
+            }));
+
+        driver.Drive();
+
+        Assert.Equal(2, driver.RenewalsGranted.Count(record => record.Granted));
+        Assert.Contains(driver.RenewalsGranted,
+            record => record.RejectionReason == "renewal:repeat-route-without-new-evidence");
+    }
+
+    [Theory]
+    [InlineData(false, 1)]
+    [InlineData(true, 4)]
+    public void GoalDirectedReview_OnlyRelatedProgressCanRepeatedlyFundSameItem(bool relatedProgress, int expectedGrants)
+    {
+        var reviews = 0;
+        var projectionVersion = 0;
+        var (_, driver, _) = Compose(ctx =>
+        {
+            if (ctx.BudgetReview is not { } review || ++reviews > 4)
+                return new AgentDecision.Blocked(ctx.DecisionId, "end probe");
+            return new AgentDecision.Plan(ctx.DecisionId,
+                new AgentPlanProposal(new PlanItem[] { new PlanItem.ControlItem(PlanControlKind.Replan, "retry") }, "retry"),
+                new BudgetReviewResponse(review.ReviewId, BudgetReviewOutcome.RequestRenewal,
+                    new AgentProgressAssessment(ctx.ExecutionOverview!.OverviewId, "unrelated facts changed", "same item",
+                        "inspect a", new[] { "item a" }, new[] { "owner:a" }, NextItemKey: "pending:a"),
+                    new BudgetRenewalRequest(0, 1, "retry a")));
+        }, RenewalContract(consultations: 2, totalSteps: 1), new AgentPlanPolicy
+        {
+            GoalDirectedContinuationEnabled = true, RenewalThresholdRounds = 2,
+        }, projectExecutionOverview: () => new ExecutionOverviewProjection(
+            "branch", Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>(), null, null,
+            new[] { "owner:a" }, ProgressFactKeys: new[] { "known:a", $"unrelated:b:{++projectionVersion}" },
+            ActionableItems: new Dictionary<string, ActionableItem>
+            { ["pending:a"] = new(new[] { "owner:a" }, new[] { relatedProgress ? $"known:a:{projectionVersion}" : "known:a" }) }));
+
+        driver.Drive();
+
+        Assert.Equal(expectedGrants, driver.RenewalsGranted.Count(record => record.Granted));
+        if (!relatedProgress)
+            Assert.Contains(driver.RenewalsGranted,
+                record => record.RejectionReason == "renewal:repeat-route-without-new-evidence");
+    }
+
+    [Fact]
+    public void GoalDirectedReview_RejectsItemMissingFromCurrentOwnerProjection()
+    {
+        var (_, driver, _) = Compose(ctx => new AgentDecision.Defer(ctx.DecisionId, new ObserveSpec(null, 1),
+            ReviewResponse: new BudgetReviewResponse(ctx.BudgetReview!.ReviewId, BudgetReviewOutcome.RequestRenewal,
+                new AgentProgressAssessment(ctx.ExecutionOverview!.OverviewId, "continue", "new branch", "inspect",
+                    new[] { "page" }, new[] { "owner:pending" }, NextItemKey: "invented-or-closed"),
+                new BudgetRenewalRequest(0, 1, "continue"))),
+            RenewalContract(consultations: 2, totalSteps: 1), new AgentPlanPolicy
+            {
+                GoalDirectedContinuationEnabled = true, RenewalThresholdRounds = 2,
+            }, projectExecutionOverview: () => new ExecutionOverviewProjection(
+                "branch", Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>(), null, null,
+                new[] { "owner:pending" }, ActionableItems: new Dictionary<string, ActionableItem>
+                { ["pending:a"] = new(new[] { "owner:pending" }, new[] { "pending:known" }) }));
+
+        driver.Drive();
+
+        Assert.DoesNotContain(driver.RenewalsGranted, record => record.Granted);
+        Assert.Contains(driver.RenewalsGranted,
+            record => record.RejectionReason == "renewal:next-item-not-actionable");
+    }
+
+    [Fact]
+    public void GoalDirectedReview_StepOnlyGrantDoesNotOpenAnotherReviewWithOneRoundLeft()
+    {
+        var contexts = new List<AgentDecisionContext>();
+        var (_, driver, _) = Compose(ctx =>
+        {
+            contexts.Add(ctx);
+            return new AgentDecision.Plan(ctx.DecisionId,
+                new AgentPlanProposal(new PlanItem[] { new PlanItem.ControlItem(PlanControlKind.Replan, "continue") }, "continue"),
+                ctx.BudgetReview is { } review ? new BudgetReviewResponse(review.ReviewId,
+                    BudgetReviewOutcome.RequestRenewal, new AgentProgressAssessment(ctx.ExecutionOverview!.OverviewId,
+                        "continue", "inspect", "new evidence", new[] { "new observation" }, new[] { "owner:1" }),
+                    new BudgetRenewalRequest(1, 0, "steps only")) : null);
+        }, RenewalContract(consultations: 2, totalSteps: 1), new AgentPlanPolicy
+        {
+            GoalDirectedContinuationEnabled = true, RenewalThresholdRounds = 2,
+        });
+
+        driver.Drive();
+
+        Assert.Equal(2, contexts.Count);
+        Assert.Single(contexts.Where(context => context.BudgetReview is not null));
+        Assert.Single(driver.RenewalsGranted.Where(record => record.Granted));
+    }
+
+    [Fact]
+    public void GoalDirectedReview_ExplicitLowThresholdStillReservesPaidCorrection()
+    {
+        var contexts = new List<AgentDecisionContext>();
+        var (_, driver, _) = Compose(ctx =>
+        {
+            contexts.Add(ctx);
+            return new AgentDecision.Plan(ctx.DecisionId,
+                new AgentPlanProposal(new PlanItem[] { new PlanItem.ControlItem(PlanControlKind.Replan, "continue") }, "continue"));
+        }, RenewalContract(consultations: 5, totalSteps: 20), new AgentPlanPolicy
+        {
+            GoalDirectedContinuationEnabled = true, RenewalThresholdRounds = 1,
+        });
+
+        driver.Drive();
+
+        var reviewContexts = contexts.Where(context => context.BudgetReview is not null).ToArray();
+        Assert.Equal(new[] { 1, 2 }, reviewContexts.Select(context => context.BudgetReview!.Attempt));
+        // Context accounting already includes the current paid consultation.
+        Assert.Equal(1, reviewContexts[0].BudgetReview!.RoundsRemaining);
+        Assert.Equal(0, reviewContexts[1].BudgetReview!.RoundsRemaining);
+        Assert.Equal(5, contexts.Count);
+        Assert.Single(driver.RenewalsGranted.Where(record => !record.ReviewComplete));
+    }
+
+    [Fact]
+    public void GoalDirectedReview_RespectsExplicitAuthorizedFinalTotal()
+    {
+        var (kernel, driver, _) = Compose(context => context.BudgetReview is { } review
+            ? new AgentDecision.Defer(context.DecisionId, new ObserveSpec(null, 1),
+                ReviewResponse: new BudgetReviewResponse(review.ReviewId, BudgetReviewOutcome.RequestRenewal,
+                    new AgentProgressAssessment(context.ExecutionOverview!.OverviewId, "continue", "next branch",
+                        "observe allowed branch", new[] { "fresh branch observation" }, new[] { "event:1" }),
+                    new BudgetRenewalRequest(20, 0, "next branch")))
+            : new AgentDecision.Blocked(context.DecisionId, "end probe"),
+            RenewalContract(consultations: 112, totalSteps: 96), new AgentPlanPolicy
+            {
+                GoalDirectedContinuationEnabled = true, RenewalThresholdSteps = 96,
+                AuthorizedTotalSteps = 100,
+            });
+        driver.Drive();
+        var record = Assert.Single(driver.RenewalsGranted);
+        Assert.False(record.Granted);
+        Assert.Equal("renewal:hardcap-exceeded:steps", record.RejectionReason);
+        Assert.Equal(96, kernel.RunView!.MaxTotalSteps);
     }
 
     // ==== A4：契约 View 零变化（record 相等锚定）=============================

@@ -504,6 +504,15 @@ internal sealed record RunOptions
 /// </summary>
 internal sealed record SeamOverrides
 {
+    // RUNTIME-PLAN-002: explicit external projections/typed inspection seam. All
+    // product owners, driver and effect verification remain the real modules.
+    public Func<UniClaw.Kernel.UniKernel, string, UniClaw.Kernel.Runtime.TraversalObservation?>? TraversalProjection { get; init; }
+    public Func<UniClaw.Kernel.Runtime.PlanLanguageHandler, bool>? CanBindPlanLanguage { get; init; }
+    public Func<UniClaw.Kernel.Runtime.PlanLanguageHandler, UniClaw.Kernel.Runtime.PlanHandlerInput,
+        UniClaw.Kernel.Capability.Finding?>? InspectPlanLanguage { get; init; }
+    public Action<UniClaw.Kernel.Runtime.TraversalRecoveryFacts>? ObserveTraversalRecovery { get; init; }
+    public TimeSpan? PlanHandlerTimeout { get; init; }
+
     /// <summary>容器 association 策略（默认 SeedingAssociationStrategy）。</summary>
     public UniClaw.Kernel.World.UiRealization.IAssociationStrategy? Association { get; init; }
 

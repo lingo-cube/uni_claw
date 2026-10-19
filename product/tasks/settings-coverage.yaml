@@ -8,12 +8,16 @@ session:
 bounds:
   maxSteps: 96
   maxConsultRounds: 112
+  # ADR-0052：Runtime主动复核；20%建议以初始额度为基数，正常推进可逐笔续授。
+  # 若任务另有真实授权总上限，显式配置authorizedTotalSteps/authorizedTotalConsultRounds。
+  goalDirectedContinuationEnabled: true
+  renewalThresholdSteps: 20
+  renewalThresholdRounds: 24
   maxScrolls: 12
   maxConsecutiveFailures: 4
   maxDirectiveRetries: 2
   # AGT-019 M5（Q6）：no-progress 双零窗口（新发现+新完成验证同零）。
-  # 保守初值：注入 3 / 硬停 5——标定切片（pass5 病态 90+/96 vs 合法
-  # 重入 repeatedEntries=1）完成后冻结；硬停与 bounded-stop 同族。
+  # 新策略中计数只触发事实注入与加强复核，不能单独作目标失败判断。
   stagnationInjectConsults: 3
   stagnationStopConsults: 5
 coverage:

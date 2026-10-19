@@ -160,8 +160,8 @@ cycle 调用 Kernel 操作面（ADR-0019）。
 - **Budget Origin（ADR-0050，PROTOCOL-FIX-003）**：admission 确定性记录预算
   来源 valueOrigin ∈ {configured, default}，作为 Contract View 沿载留痕字段
   （同内容 View 不变）。契约预算 = 初始额度（起跑分配），不是终止测度——
-  终止性由 policy HardCap 结构保证；续授走 P25 通道，不构成 contract
-  mutation（契约不可变原则不破）。
+  资源按逐笔明确复核和已声明授权边界执法（ADR-0052部分替代ADR-0050）；
+  无独立有限边界时不保证固定步数停机。续授走P25，不构成contract mutation。
 - **Status**：P1 proposal/admission 的进程内语义 verified；canonical UniAgent
   producer 的跨边 admission、完整 Task/Session identity 仍是 known gap；ADR-0019
   只锁合法激活后的 driver，不扩张 P1；activation 由 P24 独立负责。
@@ -911,8 +911,7 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   reference、`decisionBoundaryId`、consultation correlation id（往返必配）+ 有界上下文（objective、
   capability 面、当前相关 world 状态、pending obligations）；返回侧为 proposal
   + 同 correlation id。不得携带 dshSessionId。
-- **Ordering**：只在 decision boundary；同一 boundary 可以在 Contract/Policy
-  HardCap 内重复发起逻辑咨询。每次新的逻辑咨询必须生成独立的
+- **Ordering**：只在 decision boundary；同一boundary可以在当前获批额度及已声明资源授权边界内重复发起逻辑咨询（ADR-0052）。每次新的逻辑咨询必须生成独立的
   `consultationCorrelationId`；同一逻辑咨询的 transport retry 沿用原 correlation
   并返回同一结果。没有 boundary 的 duplicate / late 调用对调用方是违规。
 - **Idempotency / Failure**：no-response、invalid、correlation 失配、越权
@@ -924,17 +923,30 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   校验因当前缺少 owning model，明确延后 Phase 6，不得将 Phase 1 的最小检查表述
   为完整授权校验。Kernel 不重判语义。
 - **Absence/Failure**：seam 不可用 → fail closed，不猜测。
-- **Budget Renewal（ADR-0050，PROTOCOL-FIX-003）**：policy 配置 HardCap /
-  RenewalThreshold 时，driver 进决策边界检查剩余额度 ≤ 阈值（步数/轮次各自
-  独立）→ 本次咨询上下文携带续授窗口标记；UniAgent 可在 Act / NoAction /
-  Defer（含 DeferRoundsExhausted 终问——闭合"有步数没轮次开口"死锁角）附
-  续授提案；规则侧校验 已授 + 提案 ≤ HardCap，拒续仅留痕、按无续授继续
-  （拒续/触顶 → 既有 budget-exhausted 诚实终局）。轻记账 = driver 消耗态 +
-  每笔续授 P25 留痕（决策 id、量、依据、授/拒）+ 审计投影；不进 canonical
-  Run State（不变量 36 精神），不是 contract mutation，不新增协议边。
+- **Budget Review / Renewal（ADR-0052部分替代ADR-0050）**：Runtime在资源阈值到达时
+  主动发起关联同Run/Contract、当前overview与复核号的明确复核，预留作答和一次
+  纠正所需咨询资源；不得到轮次归零后凭空免费咨询。UniAgent显式选择继续、调整、
+  补证或提交完成判断；需要资源时提交下一段方向、可观察证据与数量提案，Runtime
+  检查相关性、规则及明确授权边界后记录授拒。同一决定重放不重复加额。默认建议
+  为ceil(本Run初始额度×20%)，步数/轮次独立，非必授且不按累计复利。漏答最多
+  一次正常计费纠正，仍漏答记录复核未完成而不授额，不伪装目标失败或明确拒续。
+  Goal模式至少预留两次咨询；配置初始轮次或显式轮次阈值低于2时拒绝装配，Driver触发阈值保底2。
+  仅剩1轮（如仅续步数后）不再新开无法纠正的强制复核，仍按原预算正常记账。
+  Owner以ActionableItems稳定事项键投影当前未闭合事项的sourceFactRefs及相关progressFactKeys；
+  Agent用NextItemKey引用当前事项，Runtime只校验本次投影身份/来源。每个事项的已资助成果键在Run内累计，
+  同事项换措辞、旧状态重现或其他事项新增事实均不能充当本事项的新依据；未资助的当前事项可获一次有界尝试。
+  导航位置不当作成果，事项与成果由既有Owner提供，Runtime不解析文字判断路线等价。
+  正常推进可逐笔持续复核；偏差或同路线无新成果须提供相关历史、原预期与实际
+  对照，并由Agent解释调整。无任务依据的固定256步不能替代语义判断；明确授权
+  边界仍执行。overview只读关联World/任务/Runtime事实，Agent评估独立，不迁移
+  Assurance/Outcome或Effect许可权威。不进canonical Run State，不是Contract mutation，
+  不新增协议边；legacy有限HardCap策略仅在显式旧模式继续兼容。
+- **Composable Plan（ADR-0053）**：同一P25通道接收带稳定PlanId、正版本、阶段预期和局部工作界限的Plan；当前可执行段为具体Act/Observe/Control、候选ForEach、命名条件If、有界Repeat及Checkpoint的有限块组合；静态结构深度/节点数受限，不开放自引用递归、动态代码或任意跳转。条件名称由装配声明，既有Owner按当前事实/候选返回三态及scope/revision/证据；Unknown不选Else，条件不授予许可。候选由既有Owner提供语义范围、revision、稳定事项键、三态处置及来源；不携带定位或Effect许可。每轮重读候选，逐动作以当前事实校验并经过Control、grounding、Assurance、Effect及验证。只有显式允许且有来源证明的安全Blocked可留证继续；Unknown/冲突及既有Policy Guard Unknown仍回Agent。
+  Runtime在动作对账后的安全边界记录版本/位置、局部工作、候选与实际attempt/receipt/验证关联，块帧保留父位置、候选与重复次数，ControlPath区分嵌套分支；条件求值保留原来源及执行位置审计。阈值/检查点让出后只接受精确引用当前位置全部字段的ContinuePlan恢复；授额不选择下一段，NoAction仍终局评估并废弃旧Plan，Act不暗中续旧Plan。修改形成更高版本接替未执行内容，旧提案、尝试及消耗保留；同版本续行不重置工作量。循环节点不能用重复item index作唯一完成锚，新增plan-attempt:ID仅匹配已验证实际尝试。Driver审计保留完整来源证据；咨询attempt的EvidenceRefs可投影为该真实plan-attempt引用，身份/位置/状态/receipt/原因及Owner受阻来源不省略，不能以引用存在替代Verified。Plan耗尽/候选暂空不是完成证明。同实例续行不等于跨进程或在途Effect自动恢复，文件咨询journal仅为咨询证据。
+- **Continuous Traversal / operation handlers（RUNTIME-PLAN-002，D1-D19）**：P25 Plan追加有界`traverse`项（source、1..16有序rules、0..16 maxDepth、returnStep），每个operation独立声明ReadOnly/Navigate及before/afterVerified有序handlers（每时机≤8）。首片只绑定既有Language Inspection@1.0 typed协议，不增加Handler Registry或任意Execute。ControlLoop拥有Traversal游标/探索/返回，driver仅协调原Owner链；World引用视图不包含Run进度。每次Effect仍须独立验证后才执行成功后置；只读处理零额外点击。调用完成、能力领域结果、显式requirePass继续条件与Goal证明分开。Run记录操作输入/结果、handler关联、暂停与最终覆盖缺口；状态查询只读，沿用ContinuePlan精确位置，Recovery经Control接收执行事实且不盲重发。正式字段及边界见[执行契约](../../../changes/RUNTIME-PLAN-002/execution-contract.md)，实际验收见[Change](../../../changes/RUNTIME-PLAN-002/state.md)；不重标001历史成绩或宣称全UI穷尽。
 - **Status**：外部语义已 HUMAN_SELECTED；当前最小 journal 已落地：四元组 key 为
   `runId + contractViewRef + decisionBoundaryId + consultationCorrelationId`；同
-  correlation transport retry 回放原结果且不消耗 HardCap，新的 semantic consultation
+  correlation transport retry回放原结果且不重复消耗咨询额度，新的 semantic consultation
   才计数；timeout/no-response 持久化并 fail-closed。Decision Context / Decision
   Package 的完整 scope/capability/risk/budget 校验仍是 TRACER_HYPOTHESIS（H14，
   roadmap Phase 6）。

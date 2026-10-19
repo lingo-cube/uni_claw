@@ -35,9 +35,10 @@ public sealed class PolicyProtocolTests
         Assert.Equal("decision-x-1", decision.DecisionId);
         Assert.Equal("pol-1", decision.Proposal.PolicyId);
         // 封闭 union（Act/NoAction/Defer/Policy + AGT-009 Plan + AGT-019
-        // Blocked + TRAJECTORY-001 Skip——均经 RUN-004 D3/D7 修订通道）
+        // Blocked + TRAJECTORY-001 Skip + RUNTIME-PLAN-001 ContinuePlan——
+        // 均经 RUN-004 D3/D7 修订通道）
         Assert.Equal(
-            new[] { "Act", "Blocked", "Defer", "NoAction", "Plan", "Policy", "Skip" },
+            new[] { "Act", "Blocked", "ContinuePlan", "Defer", "NoAction", "Plan", "Policy", "Skip" },
             typeof(AgentDecision).GetNestedTypes().Select(t => t.Name).OrderBy(n => n, StringComparer.Ordinal));
     }
 
@@ -248,6 +249,14 @@ public sealed class PolicyProtocolTests
             new ContainerBelief(new ContainerIdentity("ctr-b"), Array.Empty<string>()),
         });
         Assert.Equal("no-active-lease", PolicyLease.TryDerive(multi).Rejection);
+        var activeMulti = multi with
+        {
+            WorldState = new Dictionary<string, WorldClaim>
+            {
+                [WorldModel.CurrentContainerSubject] = new("ctr-b", "ev-current"),
+            },
+        };
+        Assert.Equal("ctr-b", PolicyLease.TryDerive(activeMulti).Lease!.RootContainerId);
 
         // 唯一 root + 合法 identity → 绑定（ref = 容器身份；内容变化不参战）
         var single = Revision(containers: new[]

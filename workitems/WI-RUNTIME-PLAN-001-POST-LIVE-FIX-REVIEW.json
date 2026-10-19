@@ -1,0 +1,44 @@
+{
+  "id": "WI-RUNTIME-PLAN-001-POST-LIVE-FIX-REVIEW",
+  "objective": "Independently review only the post-live baseline fixes and measurement harness delta",
+  "scope": {
+    "write": [
+      "evidence/runtime-plan-001/review/post-live-fix-review.md"
+    ],
+    "read_hints": [
+      "evidence/runtime-plan-001/protocol/baseline-failure-diagnosis.md",
+      "evidence/runtime-plan-001/protocol/retry-context-fix.md",
+      "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+      "tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverNavigationGraphTests.cs",
+      "dsh/uniclaw-decision-channel/src/index.js",
+      "dsh/uniclaw-decision-channel/tests/plugin.test.mjs",
+      "tests/UniClaw.Host.Dsh.Tests/RuntimePlanComparisonLiveTests.cs",
+      "evidence/runtime-plan-001/comparison/collect_metrics.py"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "新Worker未参与作者工作；沿既有Kernel驱动/Owner边界核对设计和实际调用链。两轴顺序完成，Owner限制仅一个Worker。"
+  },
+  "contract_refs": [
+    "changes/RUNTIME-PLAN-001/implementation-contract.md",
+    "docs/adr/0053-composable-product-plan-with-bounded-local-execution.md"
+  ],
+  "acceptance": [
+    "规格轴：缺失/错误/范围溢出，引用已接受要求和实际文件行/后果",
+    "规范轴：职责/协议/共享dirty增量及气味启发式，区分硬规则与判断建议",
+    "审查实际最终代码和最小反例，不把旧报告或未运行现场验收当证明"
+  ],
+  "forbidden": [
+    "不改任何产品/测试/Prompt/配置，仅写独立评审证据",
+    "不创建子Agent、不换模型、不运行重型测试/设备/真实模型",
+    "不提交推送/清理/重置；不重开ADR-0052；不重复Q1-Q9/D10决策"
+  ],
+  "frozen_decisions": [
+    "RUNTIME-PLAN-001 D1-D10",
+    "implementation-contract.md"
+  ],
+  "required_skills": [
+    "code-review"
+  ],
+  "status": "done"
+}

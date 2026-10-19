@@ -1,0 +1,28 @@
+{
+  "scope": {
+    "write": [],
+    "read_hints": [
+      "evidence/runtime-plan-002/implementation-20261019/review-3/delta.patch",
+      "plans/runtime-plan-002.md",
+      "changes/RUNTIME-PLAN-002/execution-contract.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "对本会话相对入口dirty快照的增量独立只读评审，不把001和其他既有改动算本次；源码固定review-1快照，Leader独立处置发现。"
+  },
+  "acceptance": [
+    "给出可定位到具体文件/行为的发现，区分硬违反和判断；无发现如实说明",
+    "不运行模型/设备、不写产品文件，返回简洁证据与缺口"
+  ],
+  "forbidden": [
+    "共享代码库还有他人，不回滚修改；只读评审不修代码",
+    "不把旧001失败重标本Change，不以旧passing代替新验收",
+    "不改验收/设计、不创建子Agent、不提交推送"
+  ],
+  "frozen_decisions": [
+    "changes/RUNTIME-PLAN-002/state.md D1-D19"
+  ],
+  "status": "done",
+  "id": "WI-RUNTIME-PLAN-002-REVIEW-STANDARDS",
+  "objective": "独立评审持续Traversal增量的STANDARDS轴"
+}

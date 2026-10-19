@@ -1,0 +1,27 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.02]   Discovering: UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.04]   Discovered:  UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.04]   Starting:    UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.15]     UniClaw.Simulation.Tests.TraversalScenarioTests.EffectOutsideTheAcceptedContractIsRejectedBeforeDelivery [FAIL]
+[xUnit.net 00:00:00.15]       Assert.Contains() Failure: Filter not matched in collection
+[xUnit.net 00:00:00.15]       Collection: []
+[xUnit.net 00:00:00.15]       Stack Trace:
+[xUnit.net 00:00:00.15]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs(144,0): at UniClaw.Simulation.Tests.TraversalScenarioTests.EffectOutsideTheAcceptedContractIsRejectedBeforeDelivery()
+[xUnit.net 00:00:00.15]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.15]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.15]   Finished:    UniClaw.Simulation.Tests
+  失败 UniClaw.Simulation.Tests.TraversalScenarioTests.EffectOutsideTheAcceptedContractIsRejectedBeforeDelivery [86 ms]
+  错误消息:
+   Assert.Contains() Failure: Filter not matched in collection
+Collection: []
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.TraversalScenarioTests.EffectOutsideTheAcceptedContractIsRejectedBeforeDelivery() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs:line 144
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+测试运行失败。
+测试总数: 1
+     失败数: 1
+总时间: 0.6024 秒

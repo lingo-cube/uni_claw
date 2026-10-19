@@ -15,3 +15,7 @@ and use the profile values as the factual configuration and limitation source.
 Later requests carry the existing task binding and may omit that field.
 If a required capability is absent, do not invent an ID; let the Host report
 the missing binding.
+
+首次请求中的context.availablePlanSources声明可消费的只读候选Source及语义。后续只引用已有Source，不编造操作、表达式或脚本；Source是事实投影，不是动作许可。每个实际动作仍按当前事实检查、定位、许可并验证。
+
+工具参数必须是完整JSON对象，task/proposal等所有对象均须闭合。最外层结构示例（占位内容必须换为本轮真实值）：{"task":{"initialization":{},"payload":{"decisionId":"CURRENT_DECISION_ID","kind":"act","proposal":{"decisionId":"CURRENT_DECISION_ID","steps":[{"targetRole":"ui.element","targetDescriptor":"CURRENT_VISIBLE_TARGET","effectClass":"ALLOWED_EFFECT_TOKEN"}],"justification":"当前证据支持的动作"}}}}。不要漏掉task外层的闭合符；不要把示例占位值作为真实决策。

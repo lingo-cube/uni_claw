@@ -1,0 +1,14 @@
+{
+  "result": "PASS_DOCUMENT_CHECKS_ONLY",
+  "accepted": [
+    "D12",
+    "D13",
+    "D14"
+  ],
+  "pending": [
+    "Q15",
+    "Q16"
+  ],
+  "hook_facts": "existing constrained GuardStep and dedicated post-commit; no general operation handler binding",
+  "product_changes": false
+}

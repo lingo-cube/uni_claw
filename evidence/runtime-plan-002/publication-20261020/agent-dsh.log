@@ -1,0 +1,13 @@
+  正在确定要还原的项目…
+  已还原 /private/tmp/uniclaw-runtime-publish-check-1792425959/src/UniClaw.Agent.Dsh/UniClaw.Agent.Dsh.csproj (用时 87 毫秒)。
+  已还原 /private/tmp/uniclaw-runtime-publish-check-1792425959/tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj (用时 100 毫秒)。
+  3 个项目(共 5 个)是最新的，无法还原。
+  UniClaw.Core -> /private/tmp/uniclaw-runtime-publish-check-1792425959/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/tmp/uniclaw-runtime-publish-check-1792425959/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Agent -> /private/tmp/uniclaw-runtime-publish-check-1792425959/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+  UniClaw.Agent.Dsh -> /private/tmp/uniclaw-runtime-publish-check-1792425959/src/UniClaw.Agent.Dsh/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll
+  UniClaw.Agent.Dsh.Tests -> /private/tmp/uniclaw-runtime-publish-check-1792425959/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll
+/private/tmp/uniclaw-runtime-publish-check-1792425959/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:   198，已跳过:     0，总计:   198，持续时间: 3 s - UniClaw.Agent.Dsh.Tests.dll (net10.0)

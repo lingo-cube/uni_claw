@@ -58,6 +58,9 @@ public sealed class DshSlowConsult
             + "Answer with exactly one JSON object and no markdown: "
             + "{\"status\":\"Succeeded\",\"semanticDisposition\":\"Supported|Contradicted|Unknown\","
             + "\"proposals\":[{\"subject\":\"<claim subject>\",\"value\":\"<observed value>\"}]}. "
+            + "Propose only values directly supported by the supplied evidence. "
+            + "If the claim cannot be determined, use semanticDisposition Unknown and proposals []. "
+            + "Never turn uncertainty into a literal unknown claim value or guess route identifiers from OCR labels. "
             + $"Target control: {request.Target}. Claim under question: {request.ClaimSubject} "
             + $"(field: {request.ClaimField}). Trigger reason: {request.Reason}."
             + fastNote;

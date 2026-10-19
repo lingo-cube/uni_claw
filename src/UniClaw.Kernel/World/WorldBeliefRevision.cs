@@ -94,3 +94,12 @@ public sealed record WorldBeliefRevision(
     IReadOnlyList<ContainerRelation>? Relations = null,
     IReadOnlyList<OccurrenceBelief>? Occurrences = null,
     IReadOnlyList<LogicalItemBelief>? LogicalItems = null);
+
+/// <summary>Read-only navigation graph projection for one revision and scope.</summary>
+public sealed record WorldGraphProjection(
+    string SourceRevisionId,
+    string Scope,
+    string? CurrentContainerId,
+    IReadOnlyList<ContainerBelief> Nodes,
+    IReadOnlyList<ContainerRelation> Edges,
+    IReadOnlyList<string> Unknown);

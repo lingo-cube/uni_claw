@@ -1,0 +1,111 @@
+{
+  "checks": [
+    {
+      "name": "head-preserved",
+      "passed": true,
+      "actual": "2225c642006e85290a6e98db82348a94fe3a66f8"
+    },
+    {
+      "name": "all-entry-files-preserved",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "001-history-and-ADR0053-unchanged",
+      "passed": true,
+      "actual": {
+        "checked": 2809,
+        "changed": []
+      }
+    },
+    {
+      "name": "historical-scenario-identities-expectations-carriers-and-none-bytes-unchanged",
+      "passed": true,
+      "actual": {
+        "changed": [],
+        "carriers": {
+          "golden-bundle": 20,
+          "none": 8
+        }
+      }
+    },
+    {
+      "name": "schema-mirror-and-hash",
+      "passed": true,
+      "actual": "e293016ef3360412f9c560e306f9ee200007d2a7578a9e0be7585ca0fa045057"
+    },
+    {
+      "name": "prompt-mirror-manifest-hash",
+      "passed": true,
+      "actual": {
+        "revision": 19,
+        "hash": "9ba8c3830538f564e2fdfb5b6c6c2f0f0a12b19542a728b4522c009559fa6639"
+      }
+    },
+    {
+      "name": "manifest-schema-hash",
+      "passed": true,
+      "actual": {
+        "protocolVersion": "uniclaw.agent.protocol.v1",
+        "schemaVersion": "uniclaw.agent.schema.v1",
+        "schemaHash": "e293016ef3360412f9c560e306f9ee200007d2a7578a9e0be7585ca0fa045057"
+      }
+    },
+    {
+      "name": "profile-pin",
+      "passed": true,
+      "actual": {
+        "revision": 19,
+        "promptHash": "9ba8c3830538f564e2fdfb5b6c6c2f0f0a12b19542a728b4522c009559fa6639"
+      }
+    },
+    {
+      "name": "shared-routing-contract-unchanged:model-routing.yaml",
+      "passed": true,
+      "actual": "758797b758ad87a3fa5791e273892d2c9efdaf1a639fe84ed826a1f7cdee0cbb"
+    },
+    {
+      "name": "shared-routing-contract-unchanged:.agents/skills/uniflow/SKILL.md",
+      "passed": true,
+      "actual": "ec9efcf6153b2f4ba94b544db24a40528a82605f1be0a0c97de6f413fd7dfd8e"
+    },
+    {
+      "name": "shared-routing-contract-unchanged:schemas/work-item.schema.json",
+      "passed": true,
+      "actual": "120e7cf32bc82dadbcb3e46713372dddec021c44fb1d614768ab36b27fc422c1"
+    },
+    {
+      "name": "review-3-source-snapshot-matches-current",
+      "passed": true,
+      "actual": {
+        "files": 45,
+        "drift": []
+      }
+    },
+    {
+      "name": "certified-final-source-hash-matches-current",
+      "passed": true,
+      "actual": "2cf39a51cbf2295b53ecdbbcedc9a8296f4f8e3d7f6f3591af86a224255ea5f3"
+    },
+    {
+      "name": "diff-whitespace",
+      "passed": true,
+      "actual": ""
+    },
+    {
+      "name": "unrelated-entry-bytes-preserved",
+      "passed": true,
+      "actual": {
+        "changedOwnedFiles": 51,
+        "unrelatedChanges": []
+      }
+    },
+    {
+      "name": "no-unexpected-new-tracked-edits",
+      "passed": true,
+      "actual": []
+    }
+  ],
+  "failures": [],
+  "passed": true
+}

@@ -5,9 +5,8 @@ namespace UniClaw.Host.SettingsCoverage;
 
 public sealed record CoverageSessionConfig(string TaskTitle, string Workspace, bool WorkspaceReuse, bool AutoCloseTurn);
 
-/// <summary>AGT-019 M5（Q6）：StagnationInjectConsults / StagnationStopConsults =
-/// no-progress 双零窗口的注入/硬停阈值（保守初值 3/5，标定切片后冻结；
-/// 硬停兜底与 bounded-stop 同族）。</summary>
+/// <summary>AGT-019 M5（Q6）：停滞阈值用于 no-progress 事实注入。旧模式
+/// 保留滚动额度和旧终止兼容字段；goal-directed模式仅尊重明确的授权总上限。</summary>
 public sealed record CoverageBounds(
     int MaxSteps,
     int MaxConsultRounds,
@@ -15,7 +14,14 @@ public sealed record CoverageBounds(
     int MaxConsecutiveFailures,
     int MaxDirectiveRetries,
     int StagnationInjectConsults = 3,
-    int StagnationStopConsults = 5);
+    int StagnationStopConsults = 5,
+    int? MaxTotalSteps = null,
+    int? MaxTotalConsultRounds = null,
+    int RenewalThresholdSteps = 0,
+    int RenewalThresholdRounds = 0,
+    bool GoalDirectedContinuationEnabled = false,
+    int? AuthorizedTotalSteps = null,
+    int? AuthorizedTotalConsultRounds = null);
 
 public sealed record CoverageRequirements(
     bool RootPage,
@@ -58,7 +64,8 @@ public sealed record DynamicRootEntriesConfig(
 }
 
 /// <summary>非根页动态子入口策略。只消费真实 observation 中可安全导航的
-/// ui.element；switch、返回、滚动容器和 framework control 继续留在 skip ledger。</summary>
+/// ui.element；switch、返回、滚动容器和 framework control 继续留在 skip ledger。
+/// MaxDepth计入一级页之后的nested-enter层数：1允许一级页进入其子页。</summary>
 public sealed record DynamicNestedEntriesConfig(
     bool Enabled = false,
     int MaxDepth = 1,
@@ -289,8 +296,54 @@ public sealed record SettingsCoverageConfig(
         // AGT-019 M5：可选（缺省 3/5——保守初值，标定后冻结）。
         var stagnationInject = document.OptionalInt(["bounds", "stagnationInjectConsults"], minimum: 1) ?? 3;
         var stagnationStop = document.OptionalInt(["bounds", "stagnationStopConsults"], minimum: 1) ?? 5;
+        var totalSteps = document.OptionalInt(["bounds", "maxTotalSteps"], minimum: 1);
+        var totalRounds = document.OptionalInt(["bounds", "maxTotalConsultRounds"], minimum: 1);
+        var thresholdSteps = document.OptionalInt(["bounds", "renewalThresholdSteps"], minimum: 1);
+        var thresholdRounds = document.OptionalInt(["bounds", "renewalThresholdRounds"], minimum: 1);
+        var goalDirectedContinuation = document.OptionalBool(["bounds", "goalDirectedContinuationEnabled"]) ?? false;
+        var authorizedTotalSteps = document.OptionalInt(["bounds", "authorizedTotalSteps"], minimum: 1);
+        var authorizedTotalRounds = document.OptionalInt(["bounds", "authorizedTotalConsultRounds"], minimum: 1);
+        if (goalDirectedContinuation)
+        {
+            if (maxConsultRounds < 2)
+                throw new InvalidOperationException($"config-invalid:bounds.maxConsultRounds:must-reserve-review-and-correction [{path}]");
+            if (thresholdRounds is < 2)
+                throw new InvalidOperationException($"config-invalid:bounds.renewalThresholdRounds:must-reserve-review-and-correction [{path}]");
+            ValidateGoalDirectedThreshold(thresholdSteps, maxSteps, "renewalThresholdSteps", path);
+            ValidateGoalDirectedThreshold(thresholdRounds, maxConsultRounds, "renewalThresholdRounds", path);
+        }
+        else
+        {
+            ValidateRenewalDimension(totalSteps, maxSteps, thresholdSteps, "maxTotalSteps", path);
+            ValidateRenewalDimension(totalRounds, maxConsultRounds, thresholdRounds, "maxTotalConsultRounds", path);
+        }
+        ValidateAuthorizedTotal(authorizedTotalSteps, maxSteps, "authorizedTotalSteps", path);
+        ValidateAuthorizedTotal(authorizedTotalRounds, maxConsultRounds, "authorizedTotalConsultRounds", path);
         return new CoverageBounds(maxSteps, maxConsultRounds, maxScrolls, maxConsecutiveFailures,
-            maxDirectiveRetries, stagnationInject, stagnationStop);
+            maxDirectiveRetries, stagnationInject, stagnationStop,
+            totalSteps, totalRounds, thresholdSteps ?? 0, thresholdRounds ?? 0,
+            goalDirectedContinuation, authorizedTotalSteps, authorizedTotalRounds);
+    }
+
+    private static void ValidateAuthorizedTotal(int? total, int initial, string name, string path)
+    {
+        if (total is { } limit && limit < initial)
+            throw new InvalidOperationException($"config-invalid:bounds.{name}:below-initial-allocation [{path}]");
+    }
+
+    private static void ValidateGoalDirectedThreshold(int? threshold, int initial, string name, string path)
+    {
+        // Goal-directed mode treats this as a review signal (including the
+        // default ~20% threshold), not as a renewal hard-cap declaration.
+        if (threshold is { } value && value >= initial)
+            throw new InvalidOperationException($"config-invalid:bounds.{name}:must-be-below-initial-allocation [{path}]");
+    }
+
+    private static void ValidateRenewalDimension(int? total, int initial, int? threshold, string name, string path)
+    {
+        if ((total is null) != (threshold is null)
+            || total is { } limit && (limit <= initial || threshold > initial))
+            throw new InvalidOperationException($"config-invalid:bounds.{name}:renewal-requires-total-above-initial-and-threshold-within-initial [{path}]");
     }
 
     private static CoverageRequirements ValidateCoverage(YamlDocument document, string path)

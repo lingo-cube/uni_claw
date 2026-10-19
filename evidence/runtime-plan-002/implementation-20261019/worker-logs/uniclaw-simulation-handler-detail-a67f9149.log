@@ -1,0 +1,50 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.06]   Discovered:  UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.06]   Starting:    UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.19]     UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.MissingRequiredBindingFailsBeforeReadOnlyHandlerOrEffect [FAIL]
+[xUnit.net 00:00:00.19]       Assert.IsType() Failure: Value is null
+[xUnit.net 00:00:00.19]       Expected: typeof(UniClaw.Kernel.Runtime.TraversalExecutionView)
+[xUnit.net 00:00:00.19]       Actual:   null
+[xUnit.net 00:00:00.19]       Stack Trace:
+[xUnit.net 00:00:00.19]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/HandlerTraversalScenarioTests.cs(199,0): at UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.MissingRequiredBindingFailsBeforeReadOnlyHandlerOrEffect()
+[xUnit.net 00:00:00.19]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.19]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.26]     UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.LifecycleCancellationWhileTraversalIsActiveDoesNotDispatchHandlerOrEffect [FAIL]
+[xUnit.net 00:00:00.26]       status=CancelledWithoutSafeStopPath (expected CancelledWithoutSafeStopPath); classification=none (expected none); effects=0 (expected 0); agentCalls=0 (expected 1); unconsumed=0 (expected 0); goal=none (expected none); traversal=null
+[xUnit.net 00:00:00.26]       Stack Trace:
+[xUnit.net 00:00:00.26]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/HandlerTraversalScenarioTests.cs(229,0): at UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.LifecycleCancellationWhileTraversalIsActiveDoesNotDispatchHandlerOrEffect()
+[xUnit.net 00:00:00.26]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.26]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.27]   Finished:    UniClaw.Simulation.Tests
+  失败 UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.MissingRequiredBindingFailsBeforeReadOnlyHandlerOrEffect [105 ms]
+  错误消息:
+   Assert.IsType() Failure: Value is null
+Expected: typeof(UniClaw.Kernel.Runtime.TraversalExecutionView)
+Actual:   null
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.MissingRequiredBindingFailsBeforeReadOnlyHandlerOrEffect() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/HandlerTraversalScenarioTests.cs:line 199
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  已通过 UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.TypedReturnUnknownAndInvocationFailuresKeepDistinctRuntimeSemantics(resultKind: "exception", expectedCallStatus: Failed, expectedRunStatus: "AgentDecisionFailed") [23 ms]
+  已通过 UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.TypedReturnUnknownAndInvocationFailuresKeepDistinctRuntimeSemantics(resultKind: "unavailable", expectedCallStatus: Unavailable, expectedRunStatus: "AgentDecisionFailed") [7 ms]
+  已通过 UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.TypedReturnUnknownAndInvocationFailuresKeepDistinctRuntimeSemantics(resultKind: "unknown", expectedCallStatus: Completed, expectedRunStatus: "TerminalNotProven") [9 ms]
+  已通过 UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.TypedReturnUnknownAndInvocationFailuresKeepDistinctRuntimeSemantics(resultKind: "null", expectedCallStatus: Failed, expectedRunStatus: "AgentDecisionFailed") [4 ms]
+  已通过 UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.TypedReturnUnknownAndInvocationFailuresKeepDistinctRuntimeSemantics(resultKind: "timeout", expectedCallStatus: TimedOut, expectedRunStatus: "AgentDecisionFailed") [5 ms]
+  已通过 UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.RequirePassUnknownAfterNavigationPausesAndExplicitContinueDoesNotRepeatEffect [19 ms]
+  失败 UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.LifecycleCancellationWhileTraversalIsActiveDoesNotDispatchHandlerOrEffect [5 ms]
+  错误消息:
+   status=CancelledWithoutSafeStopPath (expected CancelledWithoutSafeStopPath); classification=none (expected none); effects=0 (expected 0); agentCalls=0 (expected 1); unconsumed=0 (expected 0); goal=none (expected none); traversal=null
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.LifecycleCancellationWhileTraversalIsActiveDoesNotDispatchHandlerOrEffect() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/HandlerTraversalScenarioTests.cs:line 229
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  已通过 UniClaw.Simulation.Tests.HandlerTraversalScenarioTests.RegisteredInspectorViolationIsRecordedAndReadOnlyBeforeAfterOrderIsPreserved [9 ms]
+
+测试运行失败。
+测试总数: 9
+     通过数: 7
+     失败数: 2
+总时间: 0.8325 秒

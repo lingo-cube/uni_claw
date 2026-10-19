@@ -4,6 +4,8 @@
 
 本 ADR 收口字段与流程完备性建议中的 Owner 裁决。它修订 P25 的重复咨询语义，补充有限 ContractRevision、Cancel command、GoalEvaluation delivery 的边界；Memory 仍保持 deferred。它仅替代 ADR-0046 关于“同一 decision boundary 最多一次”的重复次数规则，不改变 ADR-0046 的其他边界定义。
 
+> 2026-10-18：§3及相关consequences对有限累计HardCap的必需依赖，由accepted ADR-0052部分替代；P25独立correlation、transport幂等、语义咨询计费及其他生命周期决定继续有效。
+
 ## Decision
 
 ### 1. 启动必须消费显式身份 binding

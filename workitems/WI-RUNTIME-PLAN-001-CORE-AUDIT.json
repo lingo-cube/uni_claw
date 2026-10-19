@@ -1,0 +1,34 @@
+{
+  "id": "WI-RUNTIME-PLAN-001-CORE-AUDIT",
+  "objective": "定位首个动态Plan贯穿切片的最小核心改动并提交可实施建议",
+  "scope": {
+    "write": [
+      "evidence/runtime-plan-001/core-audit.md"
+    ],
+    "read_hints": [
+      "src/UniClaw.Kernel/Runtime/",
+      "tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs",
+      "src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs",
+      "plans/runtime-plan-001.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "ADR-0053已获实施授权；现有内核只有线性Plan，需动态候选、受阻留证、检查点原位续行。Leader负责契约冻结及集成。"
+  },
+  "acceptance": [
+    "给出准确调用链/复用测试组合缝及最小公共类型建议",
+    "说明当前逐步guard/续行/attempt证据的具体缺口及受影响方法",
+    "证据文件可供后续实现Worker独立执行，不修改产品源码或已冻结决定"
+  ],
+  "forbidden": [
+    "不得创建子Agent",
+    "不得修改其他文件",
+    "不得运行构建/测试/设备或提交推送",
+    "不得重新裁决Q1-Q9/D10或添加Settings特判到Kernel"
+  ],
+  "frozen_decisions": [
+    "ADR-0053",
+    "RUNTIME-PLAN-001 D1-D10"
+  ],
+  "status": "done"
+}

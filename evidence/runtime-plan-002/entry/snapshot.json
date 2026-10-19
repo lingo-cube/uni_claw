@@ -1,0 +1,15 @@
+{
+  "base": "2225c642006e85290a6e98db82348a94fe3a66f8",
+  "backup": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-plan-graph-change-eg56_e2g",
+  "before": {
+    "changes/RUNTIME-PLAN-001/state.md": "d14137b74731c39cf601452fe9e650d1c4c1aec466e661d53b6115e333f9aa06",
+    "changes/INDEX.md": "08fc6c8abc73c6f8eda8a3ac2a9c89a08ef6b5e9321710cc51b41174654dd8de"
+  },
+  "scope": [
+    "changes/RUNTIME-PLAN-002/state.md",
+    "changes/RUNTIME-PLAN-002/discussion-reference.md",
+    "changes/RUNTIME-PLAN-001/state.md",
+    "changes/INDEX.md",
+    "evidence/runtime-plan-002/"
+  ]
+}

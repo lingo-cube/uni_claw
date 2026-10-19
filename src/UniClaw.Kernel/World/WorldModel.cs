@@ -101,6 +101,140 @@ public sealed class WorldModel
     public IReadOnlyList<ClaimEvolutionDecision> ClaimEvolutionLog => _claimEvolutionLog;
 
     /// <summary>
+    /// Append a verified navigation relation after both endpoint observations
+    /// have already been reconciled. Attempt/intent context and P22 priors are
+    /// insufficient. Returns false when any revision, page identity, accepted
+    /// observation, scope, or verification reference fails validation; duplicate
+    /// registrations are idempotent.
+    /// </summary>
+    internal bool RecordObservedNavigation(ObservedNavigation navigation)
+    {
+        ArgumentNullException.ThrowIfNull(navigation);
+        var current = Current;
+        if (current is null
+            || string.IsNullOrWhiteSpace(navigation.Scope)
+            || string.IsNullOrWhiteSpace(navigation.VerificationSourceRef)
+            || navigation.SourceContainerId == navigation.TargetContainerId)
+            return false;
+
+        var sourceRevision = _revisionHistory.FirstOrDefault(
+            revision => revision.RevisionId == navigation.SourceRevisionId);
+        var targetRevision = _revisionHistory.FirstOrDefault(
+            revision => revision.RevisionId == navigation.TargetRevisionId);
+        if (sourceRevision is null || targetRevision is null
+            || sourceRevision.RevisionNumber >= targetRevision.RevisionNumber)
+            return false;
+
+        static string? CurrentContainer(WorldBeliefRevision revision) =>
+            revision.WorldState.TryGetValue(WorldModel.CurrentContainerSubject, out var claim)
+                ? claim.Value
+                : null;
+
+        static ContainerBelief? FindContainer(WorldBeliefRevision revision, string id) =>
+            revision.Containers?.SingleOrDefault(container => container.Identity.ContainerId == id);
+
+        static bool ObservationEstablishesPage(
+            WorldBeliefRevision revision, ContainerBelief container, string evidenceId)
+        {
+            var signatureSubject = WorldModel.SignatureSubjectPrefix + container.Identity.ContainerId;
+            return revision.EvidenceBasis.Contains(evidenceId)
+                && container.EvidenceBasis.Contains(evidenceId)
+                && revision.WorldState.TryGetValue(signatureSubject, out var signature)
+                && signature.EvidenceId == evidenceId;
+        }
+
+        var source = FindContainer(sourceRevision, navigation.SourceContainerId);
+        var target = FindContainer(targetRevision, navigation.TargetContainerId);
+        if (source is null || target is null
+            || !ObservationEstablishesPage(sourceRevision, source,
+                navigation.SourceObservationEvidenceId)
+            || !ObservationEstablishesPage(targetRevision, target,
+                navigation.TargetObservationEvidenceId)
+            || CurrentContainer(sourceRevision) != navigation.SourceContainerId
+            || CurrentContainer(targetRevision) != navigation.TargetContainerId
+            || FindContainer(current, navigation.SourceContainerId) is null
+            || FindContainer(current, navigation.TargetContainerId) is null)
+            return false;
+
+        var relations = current.Relations?.ToImmutableList()
+            ?? ImmutableList<ContainerRelation>.Empty;
+        if (relations.Any(relation => relation.Kind == ContainerRelationKind.NavigatesTo
+            && relation.SourceContainerId == navigation.SourceContainerId
+            && relation.TargetContainerId == navigation.TargetContainerId
+            && relation.Scope == navigation.Scope
+            && relation.EvidenceBasis.Contains(navigation.SourceObservationEvidenceId)
+            && relation.EvidenceBasis.Contains(navigation.TargetObservationEvidenceId)))
+            return true;
+
+        // New edges may only be registered while the verified destination is
+        // still the current world anchor. Historical evidence supports replay,
+        // but cannot be repackaged as a fresh current navigation.
+        if (CurrentContainer(current) != navigation.TargetContainerId)
+            return false;
+
+        var number = current.RevisionNumber + 1;
+        var revision = new WorldBeliefRevision(
+            RevisionId: $"rev-{number}",
+            ParentRevisionId: current.RevisionId,
+            RevisionNumber: number,
+            WorldState: current.WorldState,
+            WorldGraph: current.WorldGraph,
+            EvidenceBasis: current.EvidenceBasis,
+            FreshnessBasis: current.FreshnessBasis,
+            Uncertainty: current.Uncertainty,
+            Conflicts: current.Conflicts,
+            Containers: current.Containers,
+            Relations: relations.Add(new ContainerRelation(
+                ContainerRelationKind.NavigatesTo,
+                navigation.SourceContainerId,
+                navigation.TargetContainerId,
+                new[] { navigation.SourceObservationEvidenceId, navigation.TargetObservationEvidenceId },
+                navigation.Scope,
+                navigation.VerificationSourceRef,
+                navigation.SourceRevisionId,
+                navigation.TargetRevisionId)),
+            Occurrences: current.Occurrences,
+            LogicalItems: current.LogicalItems);
+
+        PublishRevision(revision);
+        return true;
+    }
+
+    /// <summary>
+    /// Produce a read-only graph view. Historical nodes remain visible as world
+    /// facts, while only same-scope navigation edges are included. The current
+    /// anchor comes from this revision's owner-derived current-container claim.
+    /// </summary>
+    internal WorldGraphProjection DeriveGraphProjection(string sourceRevisionId, string scope)
+    {
+        ArgumentNullException.ThrowIfNull(sourceRevisionId);
+        ArgumentNullException.ThrowIfNull(scope);
+        var revision = _revisionHistory.FirstOrDefault(item => item.RevisionId == sourceRevisionId);
+        if (revision is null)
+            return new WorldGraphProjection(sourceRevisionId, scope, null,
+                Array.Empty<ContainerBelief>(), Array.Empty<ContainerRelation>(),
+                new[] { "source-revision-unknown" });
+
+        string? anchor = revision.WorldState.TryGetValue(CurrentContainerSubject, out var currentClaim)
+            ? currentClaim.Value
+            : null;
+        var nodes = revision.Containers ?? Array.Empty<ContainerBelief>();
+        if (anchor is null || nodes.All(node => node.Identity.ContainerId != anchor))
+            anchor = null;
+        var edges = (revision.Relations ?? Array.Empty<ContainerRelation>())
+            .Where(relation => relation.Kind == ContainerRelationKind.NavigatesTo
+                && relation.Scope == scope)
+            .ToArray();
+        var unknown = new List<string> { "navigation-graph-is-observation-bounded" };
+        if (anchor is null)
+            unknown.Add("current-anchor-unavailable");
+        if (edges.Length == 0)
+            unknown.Add("no-navigation-edge-observed-in-scope");
+        return new WorldGraphProjection(
+            revision.RevisionId, scope, anchor, nodes, edges, unknown);
+    }
+
+    /// <summary>
     /// WMP-001 internal instrumentation attachment. UniKernel calls this at the
     /// existing composition seam; no Product Runtime caller-facing interface is
     /// added and the metrics never influence domain decisions.
@@ -546,6 +680,10 @@ public sealed class WorldModel
         foreach (var relation in proposal.Relations)
         {
             scannedEntries++;
+            // NavigatesTo has a separate post-verification authority gate below;
+            // an association strategy proposal cannot assert successful travel.
+            if (relation.Kind == ContainerRelationKind.NavigatesTo)
+                continue;
             if (relation.SupportingEvidenceIds.Count == 0
                 || !relation.SupportingEvidenceIds.All(IsValidEvidence)
                 || !IsKnownContainer(relation.SourceContainerId)

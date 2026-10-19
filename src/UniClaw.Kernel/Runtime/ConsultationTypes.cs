@@ -1,4 +1,5 @@
 using UniClaw.Kernel.Evidence;
+using UniClaw.Kernel.World;
 
 namespace UniClaw.Kernel.Runtime;
 
@@ -84,6 +85,125 @@ public sealed record RenewalWindow(
     int ThresholdSteps,
     int ThresholdRounds);
 
+/// <summary>Goal-directed review trigger and correction state for this consultation.</summary>
+public sealed record BudgetReview(
+    string ReviewId,
+    bool Required,
+    int Attempt,
+    bool Strengthened,
+    int SuggestedAdditionalSteps,
+    int SuggestedAdditionalRounds,
+    int InitialSteps,
+    int InitialRounds,
+    int GrantedSteps,
+    int GrantedRounds,
+    int StepsConsumed,
+    int RoundsConsumed,
+    int StepsRemaining,
+    int RoundsRemaining);
+
+/// <summary>Explicit outcome of a Runtime-requested budget review.</summary>
+public enum BudgetReviewOutcome
+{
+    ContinueWithoutRenewal,
+    RequestRenewal,
+    Replan,
+    SubmitCompletion,
+    CollectEvidence,
+}
+
+public sealed record BudgetReviewResponse(
+    string ReviewId,
+    BudgetReviewOutcome Outcome,
+    AgentProgressAssessment? Assessment = null,
+    BudgetRenewalRequest? Renewal = null);
+
+/// <summary>Agent assessment, advisory and separate from Runtime/source facts.</summary>
+public sealed record AgentProgressAssessment(
+    string OverviewId,
+    string Judgment,
+    string? NextDirection,
+    string? NextSegmentExpectation,
+    IReadOnlyList<string> ExpectedObservableEvidence,
+    IReadOnlyList<string> EvidenceRefs,
+    IReadOnlyList<string>? DeclinedDimensions = null,
+    string? RetriggerCondition = null,
+    string? Deviation = null,
+    string? Rationale = null,
+    string? NextItemKey = null);
+
+/// <summary>Owner-projected open item and its stable progress facts, not an Agent verdict.</summary>
+public sealed record ActionableItem(
+    IReadOnlyList<string> SourceFactRefs,
+    IReadOnlyList<string> ProgressFactKeys);
+
+/// <summary>Explicit Host/World/Progress projection supplied for one consultation.</summary>
+public sealed record ExecutionOverviewProjection(
+    string? CurrentBranch,
+    IReadOnlyList<string> KnownItems,
+    IReadOnlyList<string> Unknowns,
+    IReadOnlyList<string> Blockers,
+    string? PreviousSegmentExpectation,
+    string? PreviousSegmentActual,
+    IReadOnlyList<string> SourceFactRefs,
+    string? ProjectionRevision = null,
+    WorldGraphProjection? WorldGraph = null,
+    IReadOnlyList<string>? ProgressFactKeys = null,
+    // Only the source owner decides which items remain actionable. Keys are
+    // stable within the Run; values reference this projection's source facts.
+    IReadOnlyDictionary<string, ActionableItem>? ActionableItems = null);
+
+/// <summary>Read-only execution overview. Runtime budget facts are composed with explicit owner projection.</summary>
+public sealed record ExecutionOverview(
+    string OverviewId,
+    string RunId,
+    string ContractVersion,
+    string Objective,
+    int InitialSteps,
+    int InitialRounds,
+    int GrantedSteps,
+    int GrantedRounds,
+    int StepsConsumed,
+    int RoundsConsumed,
+    int StepsRemaining,
+    int RoundsRemaining,
+    int SegmentStepsConsumed,
+    int SegmentRoundsConsumed,
+    ExecutionOverviewProjection? Projection,
+    int PreviousSegmentStepsConsumed = 0,
+    int PreviousSegmentRoundsConsumed = 0,
+    string? PreviousSegmentExpectation = null,
+    string? PreviousSegmentActual = null,
+    string? CurrentSegmentExpectation = null,
+    string? CurrentSegmentActual = null,
+    IReadOnlyList<BudgetReviewHistoryEntry>? RelevantHistory = null,
+    int PreviousOverviewStepsConsumed = 0,
+    int PreviousOverviewRoundsConsumed = 0,
+    int StepsConsumedSincePreviousOverview = 0,
+    int RoundsConsumedSincePreviousOverview = 0,
+    int NewlyVerifiedStepsSincePreviousOverview = 0,
+    IReadOnlyList<string>? NewSourceFactRefsSincePreviousOverview = null,
+    IReadOnlyList<string>? NewlyKnownItemsSincePreviousOverview = null,
+    IReadOnlyList<string>? NewlyUnknownItemsSincePreviousOverview = null,
+    int SegmentStepsVerified = 0,
+    PlanExecutionOverview? PlanExecution = null);
+
+public sealed record BudgetReviewHistoryEntry(
+    string ReviewId,
+    BudgetReviewOutcome? Outcome,
+    string? Expectation,
+    string? Actual,
+    int StepsConsumed,
+    int RoundsConsumed,
+    int StepsGranted,
+    int RoundsGranted,
+    bool Complete,
+    string? NextDirection = null,
+    IReadOnlyList<string>? EvidenceRefs = null,
+    string? ProjectionRevision = null,
+    IReadOnlyList<string>? ProgressFactKeys = null,
+    string? NextItemKey = null);
+
 /// <summary>
 /// PROTOCOL-FIX-003（ADR-0050 §3 轻记账）— 续授留痕（P25 决策 id、量、
 /// 依据 + 授/拒结果）。driver ephemeral 记账（不进 canonical Run State，
@@ -95,7 +215,9 @@ public sealed record BudgetRenewalRecord(
     int AdditionalRounds,
     string? Justification,
     bool Granted,
-    string? RejectionReason);
+    string? RejectionReason,
+    string? ReviewId = null,
+    bool ReviewComplete = true);
 
 /// <summary>完成自证载荷（裁决⑧：核验后信 + 人为终极裁定）。</summary>
 public sealed record CompletionEvidence(

@@ -200,6 +200,12 @@ function deref(schema, node, depth = 0) {
 function normalizeToSchema(value, schemaNode, rootSchema) {
   const node = deref(rootSchema, schemaNode)
   if (value === null || value === undefined) return value
+  if (node.anyOf !== undefined) {
+    const branch = node.anyOf.map(candidate => deref(rootSchema, candidate))
+      .find(candidate => candidate.type === (Array.isArray(value) ? 'array' : typeof value))
+      ?? node.anyOf[0]
+    return normalizeToSchema(value, branch, rootSchema)
+  }
   if (typeof value === 'string') {
     if ((node.type === 'object' || node.type === 'array' || node.oneOf !== undefined)
         && (value.trimStart().startsWith('{') || value.trimStart().startsWith('['))) {
@@ -250,6 +256,7 @@ function typeMatches(value, expected) {
   switch (expected) {
     case 'object': return typeof value === 'object' && value !== null && !Array.isArray(value)
     case 'array': return Array.isArray(value)
+    case 'null': return value === null
     case 'string': return typeof value === 'string'
     case 'boolean': return typeof value === 'boolean'
     case 'number': return typeof value === 'number'
@@ -261,19 +268,35 @@ function typeMatches(value, expected) {
 function validateToSchema(value, schemaNode, rootSchema, path, errors) {
   const node = deref(rootSchema, schemaNode)
   if (node === null || typeof node !== 'object' || Object.keys(node).length === 0) return true
+  if (node.anyOf !== undefined) {
+    for (const branch of node.anyOf) {
+      const branchErrors = []
+      if (validateToSchema(value, branch, rootSchema, path, branchErrors)) return true
+    }
+    errors.push(`${path || 'value'}: no anyOf branch matched`)
+    return false
+  }
   if (node.oneOf !== undefined) {
     const firstBranchErrors = []
+    let matchingKindErrors
     for (const branch of node.oneOf) {
       const branchErrors = []
       validateToSchema(value, branch, rootSchema, path, branchErrors)
       if (branchErrors.length === 0) return true
+      if (value?.kind !== undefined && deref(rootSchema, branch).properties?.kind?.const === value.kind)
+        matchingKindErrors = branchErrors
       if (firstBranchErrors.length === 0) firstBranchErrors.push(...branchErrors.slice(0, 2))
     }
-    errors.push(`${path || 'decision'}: ${firstBranchErrors[0] ?? 'no oneOf branch matched'}`)
+    errors.push(`${path || 'decision'}: ${(matchingKindErrors ?? firstBranchErrors)[0] ?? 'no oneOf branch matched'}`)
     return false
   }
   if (node.const !== undefined && value !== node.const) {
     errors.push(`${path || 'value'}: expected const ${JSON.stringify(node.const)}, got ${JSON.stringify(value)}`)
+    return false
+  }
+  if (node.type === 'string' && typeof value === 'string' && node.minLength !== undefined
+      && value.length < node.minLength) {
+    errors.push(`${path || 'value'}: requires at least ${node.minLength} characters`)
     return false
   }
   if (node.enum !== undefined && !node.enum.includes(value)) {
@@ -293,6 +316,14 @@ function validateToSchema(value, schemaNode, rootSchema, path, errors) {
     return false
   }
   if (node.type === 'array' && Array.isArray(value) && node.items !== undefined) {
+    if (node.minItems !== undefined && value.length < node.minItems) {
+      errors.push(`${path || 'value'}: requires at least ${node.minItems} items`)
+      return false
+    }
+    if (node.maxItems !== undefined && value.length > node.maxItems) {
+      errors.push(`${path || 'value'}: allows at most ${node.maxItems} items`)
+      return false
+    }
     value.forEach((item, index) => validateToSchema(item, node.items, rootSchema, `${path}[${index}]`, errors))
   }
   if (node.type === 'object' && typeof value === 'object' && value !== null && !Array.isArray(value)) {
@@ -329,10 +360,21 @@ function validateCompletionAnchors(decision, errors) {
   }
   for (const [index, anchor] of checklist.entries()) {
     if (typeof anchor !== 'string'
-      || !/^(?:step:\d+\.\d+|dispatch:\S+|obs:\S+)$/.test(anchor)) {
-      errors.push(`decision.proposal.completion.checklist[${index}]: expected step:N.M, dispatch:ID, or obs:ID anchor`)
+      || !/^(?:step:\d+\.\d+|dispatch:\S+|obs:\S+|plan-attempt:\S+)$/.test(anchor)) {
+      errors.push(`decision.proposal.completion.checklist[${index}]: expected step:N.M, dispatch:ID, obs:ID, or plan-attempt:ID anchor`)
     }
   }
+}
+
+function validateBudgetReviewDecision(decision, errors) {
+  const response = decision?.reviewResponse
+  if (response === undefined || response === null) return
+  if (decision?.proposal?.renewal != null || decision?.renewal != null)
+    errors.push('decision.reviewResponse: cannot be combined with a legacy renewal field')
+  if (response.outcome === 'RequestRenewal' && response.renewal == null)
+    errors.push('decision.reviewResponse.renewal: required when outcome is RequestRenewal')
+  if (response.outcome !== 'RequestRenewal' && response.renewal != null)
+    errors.push('decision.reviewResponse.renewal: only valid when outcome is RequestRenewal')
 }
 
 /** Derive the common Agent task envelope parameter map from the artifact. */
@@ -342,12 +384,14 @@ function toolParametersFromSchema(artifact) {
   const kinds = []
   let requiresSpec = false
   let requiresProposal = false
+  let requiresReviewResponse = false
   for (const branch of branches) {
     const resolved = deref(artifact.schema, branch)
     const kind = resolved.properties?.kind?.const ?? resolved.const
     if (kind !== undefined && !kinds.includes(kind)) kinds.push(kind)
     if (resolved.properties?.spec !== undefined) requiresSpec = true
     if (resolved.properties?.proposal !== undefined) requiresProposal = true
+    if (resolved.properties?.reviewResponse !== undefined) requiresReviewResponse = true
   }
   const payloadProperties = {
     kind: {
@@ -356,11 +400,20 @@ function toolParametersFromSchema(artifact) {
       description: `AgentDecision kind (derived from the generated Product protocol artifact, schemaHash ${artifact.schemaHash.slice(0, 12)}…)`,
     },
     decisionId: { type: 'string', description: 'Correlation id; MUST equal context.decisionId.' },
+    ...(branches.some(branch => deref(artifact.schema, branch).properties?.position !== undefined)
+      ? { position: { type: 'object', additionalProperties: true, description: 'Exact current context.planExecution.position; required only for continuePlan.' } } : {}),
+    ...(branches.some(branch => deref(artifact.schema, branch).properties?.reason !== undefined)
+      ? { reason: { type: 'string', description: 'Explicit blocked or skip reason.' } } : {}),
+    ...(branches.some(branch => deref(artifact.schema, branch).properties?.target !== undefined)
+      ? { target: { type: 'string' }, evidenceRefs: { type: 'array', items: { type: 'string' } } } : {}),
     ...(requiresProposal
-      ? { proposal: { type: 'object', additionalProperties: true, description: 'act/noAction/policy proposal payload (exact Product schema shape).' } }
+      ? { proposal: { type: 'object', additionalProperties: true, description: 'act/noAction/policy/plan proposal payload (exact Product schema shape).' } }
       : {}),
     ...(requiresSpec
       ? { spec: { type: 'object', additionalProperties: true, description: 'defer ObserveSpec {subject, maxRounds} (exact Product schema shape).' } }
+      : {}),
+    ...(requiresReviewResponse
+      ? { reviewResponse: { type: 'object', additionalProperties: true, description: 'Explicit response to context.budgetReview; exact Product schema shape and top-level placement.' } }
       : {}),
   }
   const capabilitySelection = {
@@ -554,6 +607,11 @@ function consultationPrompt(request, artifact, promptArtifact, skillArtifact, pr
   const allowedEffectsInstruction = allowedEffects.length > 0
     ? `Allowed effectClass tokens for this decision (copy exactly, case-sensitive): ${JSON.stringify(allowedEffects)}.`
     : 'The exact effectClass tokens are the values in context.allowedEffects; copy one of those values.'
+  const review = request.context?.budgetReview
+  const overview = request.context?.executionOverview
+  const reviewInstruction = review?.required === true
+    ? `【本轮必须明确复核额度${review.attempt === 2 ? '；这是上次漏答后唯一一次纠正，仍正常消耗咨询额度' : ''}】本轮submit_decision的task.payload顶层必须含reviewResponse，不能只提交普通act/defer。reviewId逐字使用${JSON.stringify(review.reviewId)}，assessment.overviewId逐字使用${JSON.stringify(overview?.overviewId)}。先按当前overview对照最近获批区间的原预期、实际、新发现与阻碍，再选择ContinueWithoutRenewal/RequestRenewal/Replan/SubmitCompletion/CollectEvidence。assessment必须为对象，含judgment、nextDirection、nextSegmentExpectation、expectedObservableEvidence字符串数组、evidenceRefs字符串数组；说明不续哪些维度及何时需要再复核。需要资源时，若overview.projection.actionableItems存在，assessment.nextItemKey必须逐字选用其中的事项键；旧事项仅换措辞不构成新依据。renewal只放reviewResponse内，包含整数additionalSteps和additionalRounds（不用的维度写0）及justification；本次建议量分别为${review.suggestedAdditionalSteps}步/${review.suggestedAdditionalRounds}轮，可依下一段工作说明调整。其他outcome不带renewal。不得省略assessment或复用旧reviewId，不得同时写legacy proposal.renewal。复核判断不扩大目标/权限，也不证明未知范围已完成。`
+    : null
   // PRF-003: static identity / output discipline / payload shapes live in the
   // versioned prompt artifact. In section mount they ride the session system
   // prompt (registered by the preset row); in per-turn fallback they lead the
@@ -562,6 +620,9 @@ function consultationPrompt(request, artifact, promptArtifact, skillArtifact, pr
     `This is the CURRENT consultation turn. The current Product DecisionId is ${request.context.decisionId}.`,
     'Ignore decisionIds from all previous turns in this task session; they are historical and must not be reused.',
     allowedEffectsInstruction,
+    ...(reviewInstruction === null ? [] : [reviewInstruction]),
+    ...(request.context?.planExecution?.status === 'Paused'
+      ? ['原Plan已在安全边界暂停。若沿用，提交kind=continuePlan并逐字复制context.planExecution.position全部字段；获授资源本身不选择继续。若修改内容，提交同PlanId更高version的新Plan接替未执行部分。NoAction终局评估并废弃原Plan，Act单独执行而不暗中拼接旧Plan。'] : []),
     '',
     '=== AgentDecisionContext (JSON) ===',
     JSON.stringify(request.context, null, 2),
@@ -636,7 +697,7 @@ export function apply(ctx, config) {
     output: {
       schema: {
         type: 'object',
-        properties: { accepted: { type: 'boolean' }, reason: { type: 'string' } },
+        properties: { accepted: { type: 'boolean' }, reason: { type: 'string' }, message: { type: 'string' } },
         additionalProperties: false,
       },
       // DSH tool output renderers return content blocks. Returning a bare
@@ -646,7 +707,8 @@ export function apply(ctx, config) {
         type: 'text',
         text: value && value.accepted
           ? `submit_decision accepted: ${value.reason ?? ''}`
-          : `submit_decision rejected: ${value && value.reason ? value.reason : 'unknown'}`,
+          : `submit_decision rejected: ${value && value.reason ? value.reason : 'unknown'}`
+            + (value?.message ? `; ${value.message}` : ''),
       }],
     },
     execute: (args) => {
@@ -688,7 +750,11 @@ export function apply(ctx, config) {
         const errors = []
         if (pending.lastError === null) {
           validateToSchema(normalized, artifact.schema.$defs.AgentDecision, artifact.schema, 'decision', errors)
-          if (errors.length === 0) validateCompletionAnchors(normalized, errors)
+          if (errors.length === 0) {
+            validateBudgetReviewDecision(normalized, errors)
+            if (errors.length === 0) validateTraversalSemantics(normalized, errors)
+            if (errors.length === 0) validateCompletionAnchors(normalized, errors)
+          }
         }
         if (errors.length === 0 && pending.lastError === null) {
           pending.captured = {
@@ -716,7 +782,7 @@ export function apply(ctx, config) {
             requestId: pending.requestId, decisionId: pending.decisionId, code: pending.lastError.code,
           })
         }
-        return { accepted: false, reason: pending.lastError.code }
+        return { accepted: false, reason: pending.lastError.code, message: pending.lastError.message }
       }
       if (pending.timer !== null) clearTimeout(pending.timer)
       const resolve = pending.resolve
@@ -759,7 +825,6 @@ export function apply(ctx, config) {
       }
       if (type === 'turn/end') {
         if (slowPending.timer !== null) clearTimeout(slowPending.timer)
-        state.slowPending = null
         slowPending.resolve(slowPending.text === null
           ? { ok: false, error: { code: 'no-slow-result', message: `model finished without structured SlowResult text${event.data?.reason ? ` (${JSON.stringify(event.data.reason).slice(0, 240)})` : ''}` } }
           : { ok: true, text: slowPending.text })
@@ -824,13 +889,8 @@ export function apply(ctx, config) {
       ? undefined
       : `uniagent-prod: tool "${exec.name}" is not in the frozen capability manifest [submit_decision]`))
 
-    // PRF-003 / Q11(a): mount the static product prompt as a scoped
-    // system-prompt section of this preset (sessions joining uniagent-prod
-    // inherit it; dev/harness sections stay in other scopes). Live probe
-    // finding (PRF-004): registration must go through ctx.inject(...) — the
-    // scoped-service pattern the MCP client uses for server instructions;
-    // a bare ctx.get('systemPrompt').section() does not reach the
-    // preset-scope assembly.
+    // The preset owns the static sections. Verify their inheritance by
+    // assembling the actual Agent scope at handshake, not the global scope.
     if (promptMount !== 'per-turn') {
       ctx.inject(['systemPrompt'], (inner) => {
       const systemPrompt = inner.systemPrompt
@@ -853,34 +913,8 @@ export function apply(ctx, config) {
 
       })
     }
-    // PRF-004 — isolation probe (independent of prompt mount mode): assemble
-    // this preset scope's prompt inputs once at mount and record the
-    // inventory (names only) for the host-row read-only route. This is the
-    // mechanical evidence for "the product session sees only product prompt
-    // inputs" — never trust it, probe it.
-    ctx.inject(['systemPrompt'], (inner) => {
-      const systemPrompt = inner.systemPrompt
-      if (typeof systemPrompt.assemble !== 'function') return
-      systemPrompt.assemble({}).then(
-        (assembly) => {
-          state.promptProbe = {
-            recordedAt: new Date().toISOString(),
-            // Render drops empty sections; list only sections that carry
-            // text, so the inventory reflects what the model can receive.
-            sections: (assembly.sections ?? [])
-              .filter(s => typeof s.text === 'string' && s.text.trim().length > 0)
-              .map(s => s.name),
-            contexts: (assembly.contexts ?? []).map(c => c.name),
-            tools: (assembly.tools ?? []).map(t => t.name),
-            variables: Object.keys(assembly.variables ?? {}).sort(),
-          }
-          log(`prompt probe recorded: sections=[${state.promptProbe.sections.join(', ')}] contexts=[${state.promptProbe.contexts.join(', ')}] tools=${state.promptProbe.tools.length}`)
-        },
-        (error) => {
-          state.promptProbe = { error: String(error?.message ?? error) }
-          log(`prompt probe FAILED: ${state.promptProbe.error}`)
-        })
-    })
+    // Probe after resolving the actual session Agent. assemble({}) inspects
+    // only global providers and cannot prove what a preset child receives.
 
     log(`session-scoped submit_decision published for agent-scope registration (schemaHash ${artifact.schemaHash.slice(0, 12)}…, promptRevision ${promptArtifact.revision}, skill ${skillArtifact.name}@${skillArtifact.revision})`)
     return
@@ -900,8 +934,8 @@ export function apply(ctx, config) {
         return json(200, { recorded: false })
       if (state.promptProbe.error !== undefined)
         return json(200, { recorded: true, error: state.promptProbe.error })
-      const { recordedAt, sections, contexts, tools, variables } = state.promptProbe
-      return json(200, { recorded: true, recordedAt, sections, contexts, tools, variables })
+      const { recordedAt, dshSessionId, sections, contexts, tools, variables } = state.promptProbe
+      return json(200, { recorded: true, recordedAt, dshSessionId, sections, contexts, tools, variables })
     },
   })
 
@@ -1040,6 +1074,35 @@ export function apply(ctx, config) {
         }
       }
 
+      try {
+        const agent = await resolveSessionAgent(ctx, dshSessionId)
+        const systemPrompt = ctx.get('systemPrompt')
+        if (!agent || typeof systemPrompt?.assemble !== 'function')
+          throw new Error('actual session prompt assembly unavailable')
+        const assembly = await systemPrompt.assemble({ scope: agent })
+        const sections = (assembly.sections ?? []).filter(s => typeof s.text === 'string' && s.text.trim().length > 0)
+        state.promptProbe = {
+          recordedAt: new Date().toISOString(), dshSessionId,
+          sections: sections.map(s => s.name),
+          contexts: (assembly.contexts ?? []).map(c => c.name),
+          tools: (assembly.tools ?? []).map(t => t.name),
+          variables: Object.keys(assembly.variables ?? {}).sort(),
+        }
+        if (promptMount === 'section') {
+          for (const [name, text] of [
+            ['uniagent-prod:product-prompt', promptArtifact.staticText],
+            [`uniagent-prod:skill:${skillArtifact.name}`, skillArtifact.guidance],
+          ]) {
+            if (!sections.some(section => section.name === name && section.text === text))
+              throw new Error(`actual session is missing the complete static section: ${name}`)
+          }
+        }
+      } catch (error) {
+        state.promptProbe = { error: String(error?.message ?? error) }
+        state.attached = null
+        return fail(200, 'session-prompt-verification-failed', state.promptProbe.error)
+      }
+
       if (state.attached === null || state.attached.productRunId !== productRunId)
         state.initialCapabilitySelectionSettled = false
       state.attached = { productSessionId, productRunId, dshSessionId }
@@ -1085,67 +1148,89 @@ export function apply(ctx, config) {
         ? Math.min(body.turnTimeoutMs, MAX_TURN_TIMEOUT_MS) : DEFAULT_TURN_TIMEOUT_MS
       let settled
       const completion = new Promise(resolve => { settled = resolve })
+      if (workspaceRegistry === undefined || typeof workspaceRegistry.archiveSession !== 'function')
+        return fail(500, 'workspace-archive-unavailable', 'slow requires session archival support')
       let slowSessionId
-      try {
-        const workspaceDir = workspacePath(`slow-${body.requestId}`)
-        mkdirSync(workspaceDir, { recursive: true })
-        if (workspaceRegistry === undefined || typeof workspaceRegistry.create !== 'function') {
-          return fail(500, 'workspace-registry-unavailable', 'the host workspace registry is not available to this plugin')
-        }
-        const workspace = await workspaceRegistry.create(workspaceDir, workspaceTitle)
-        const created = await controller.create({ agentPreset: 'uniclaw-slow', workspaceId: workspace.id })
-        slowSessionId = typeof created === 'string' ? created : (created && (created.sessionId ?? created.id))
-        if (typeof slowSessionId !== 'string' || slowSessionId.length === 0)
-          return fail(200, 'dsh-session-create-failed', 'slow session identity missing')
-        if (typeof controller.rename === 'function') {
-          await controller.rename({ sessionId: slowSessionId, title: slowSessionTitle })
-        }
-      } catch (error) {
-        return fail(200, 'dsh-session-create-failed', String(error && error.message ? error.message : error))
-      }
-      const slowPending = { requestId: body.requestId, sessionId: slowSessionId, resolve: settled, text: null, timer: null }
+      const slowPending = { requestId: body.requestId, sessionId: null, resolve: settled, text: null, timer: null }
       state.slowPending = slowPending
-      recordEvent('slow-start', { requestId: body.requestId })
-      slowPending.timer = setTimeout(() => {
-        if (state.slowPending === slowPending) {
-          state.slowPending = null
-          recordEvent('slow-failed', { requestId: body.requestId, code: 'turn-timeout' })
-          settled({ ok: false, error: { code: 'turn-timeout', message: `slow turn deadline elapsed (${timeoutMs}ms)` } })
-        }
-      }, timeoutMs)
       try {
-        if (body.model !== null && typeof body.model === 'object'
-          && typeof body.model.provider === 'string' && typeof body.model.model === 'string'
-          && typeof controller.selectModel === 'function') {
-          await controller.selectModel({ sessionId: slowSessionId,
-            provider: body.model.provider, model: body.model.model })
+        try {
+          const workspaceDir = workspacePath(attached.productSessionId)
+          mkdirSync(workspaceDir, { recursive: true })
+          if (workspaceRegistry === undefined || typeof workspaceRegistry.create !== 'function') {
+            return fail(500, 'workspace-registry-unavailable', 'the host workspace registry is not available to this plugin')
+          }
+          const workspace = await workspaceRegistry.create(workspaceDir, workspaceTitle)
+          const created = await controller.create({ agentPreset: 'uniclaw-slow', workspaceId: workspace.id })
+          slowSessionId = typeof created === 'string' ? created : (created && (created.sessionId ?? created.id))
+          if (typeof slowSessionId !== 'string' || slowSessionId.length === 0)
+            return fail(200, 'dsh-session-create-failed', 'slow session identity missing')
+          slowPending.sessionId = slowSessionId
+          if (typeof controller.rename === 'function') {
+            await controller.rename({ sessionId: slowSessionId, title: slowSessionTitle })
+          }
+        } catch (error) {
+          return fail(200, 'dsh-session-create-failed', String(error && error.message ? error.message : error))
         }
-        const content = [{ type: 'text', text: body.prompt }]
-        if (body.image !== null && typeof body.image === 'object'
-          && body.image.mediaType === 'image/png' && typeof body.image.data === 'string'
-          && body.image.data.length > 0) {
-          content.push({ type: 'image', mediaType: 'image/png', data: body.image.data,
-            ...(typeof body.image.name === 'string' && body.image.name.length > 0
-              ? { name: body.image.name } : {}) })
+        if (state.slowPending !== slowPending || state.attached !== attached)
+          return fail(200, 'turn-aborted', 'slow cancelled during session creation')
+        recordEvent('slow-start', { requestId: body.requestId })
+        slowPending.timer = setTimeout(() => {
+          if (state.slowPending === slowPending) {
+            recordEvent('slow-failed', { requestId: body.requestId, code: 'turn-timeout' })
+            settled({ ok: false, error: { code: 'turn-timeout', message: `slow turn deadline elapsed (${timeoutMs}ms)` } })
+          }
+        }, timeoutMs)
+        try {
+          if (body.model !== null && typeof body.model === 'object'
+            && typeof body.model.provider === 'string' && typeof body.model.model === 'string'
+            && typeof controller.selectModel === 'function') {
+            await controller.selectModel({ sessionId: slowSessionId,
+              provider: body.model.provider, model: body.model.model })
+          }
+          if (state.slowPending !== slowPending || state.attached !== attached)
+            return fail(200, 'turn-aborted', 'slow cancelled before prompt')
+          const content = [{ type: 'text', text: body.prompt }]
+          if (body.image !== null && typeof body.image === 'object'
+            && body.image.mediaType === 'image/png' && typeof body.image.data === 'string'
+            && body.image.data.length > 0) {
+            content.push({ type: 'image', mediaType: 'image/png', data: body.image.data,
+              ...(typeof body.image.name === 'string' && body.image.name.length > 0
+                ? { name: body.image.name } : {}) })
+          }
+          await controller.prompt({ requestId: `${body.requestId}-${Date.now()}`,
+            sessionId: slowSessionId, mode: 'queue', content }, AbortSignal.timeout(timeoutMs))
+        } catch (error) {
+          if (state.slowPending === slowPending) {
+            if (slowPending.timer !== null) clearTimeout(slowPending.timer)
+          }
+          return fail(200, 'prompt-failed', String(error && error.message ? error.message : error))
         }
-        await controller.prompt({ requestId: `${body.requestId}-${Date.now()}`,
-          sessionId: slowSessionId, mode: 'queue', content }, AbortSignal.timeout(timeoutMs))
-      } catch (error) {
-        if (state.slowPending === slowPending) {
-          if (slowPending.timer !== null) clearTimeout(slowPending.timer)
-          state.slowPending = null
+        const captured = await completion
+        if (captured.ok !== true) {
+          recordEvent('slow-failed', { requestId: body.requestId, code: captured.error.code })
+          return json(200, { requestId: body.requestId, text: null,
+            error: captured.error.code, diagnostics: captured.error })
         }
-        return fail(200, 'prompt-failed', String(error && error.message ? error.message : error))
+        recordEvent('slow-complete', { requestId: body.requestId })
+        return json(200, { requestId: body.requestId, text: captured.text,
+          error: null, diagnostics: { source: 'assistant/message' } })
+      } finally {
+        if (slowPending.timer !== null) clearTimeout(slowPending.timer)
+        try {
+          if (slowSessionId) {
+            // Durable archive also stops activity, including late model output.
+            // Every request keeps an isolated context and a recoverable transcript.
+            await workspaceRegistry.archiveSession(slowSessionId, { stopActivity: true })
+            recordEvent('slow-session-archived', { requestId: body.requestId, sessionId: slowSessionId })
+          }
+        } catch (error) {
+          recordEvent('slow-session-cleanup-failed', { requestId: body.requestId, sessionId: slowSessionId })
+          return fail(200, 'slow-session-cleanup-failed', String(error && error.message ? error.message : error))
+        } finally {
+          if (state.slowPending === slowPending) state.slowPending = null
+        }
       }
-      const captured = await completion
-      if (captured.ok !== true) {
-        recordEvent('slow-failed', { requestId: body.requestId, code: captured.error.code })
-        return json(200, { requestId: body.requestId, text: null,
-          error: captured.error.code, diagnostics: captured.error })
-      }
-      recordEvent('slow-complete', { requestId: body.requestId })
-      return json(200, { requestId: body.requestId, text: captured.text,
-        error: null, diagnostics: { source: 'assistant/message' } })
     },
   })
 
@@ -1277,8 +1362,11 @@ export function apply(ctx, config) {
       // TRAJECTORY-001: no-submit-decision retry — if the agent finished its
       // turn without calling submit_decision, re-prompt once before failing.
       // This is at the HTTP endpoint level (safe: event handlers untouched).
-      if (captured.ok !== true && captured.error.code === 'no-submit-decision') {
+      if (captured.ok !== true && captured.error.code === 'no-submit-decision'
+        && context.budgetReview?.required !== true
+        && state.attached === attached && state.pending === null && state.activeTurn === null) {
         log('consult retry', { requestId: body.requestId, reason: 'no-submit-decision' })
+        let retryPending = null
         try {
           // Reset pending state for the retry
           state.pending = null
@@ -1286,9 +1374,12 @@ export function apply(ctx, config) {
           activeTurn.resolveTurnEnd()
           // Create fresh pending for the retry
           let retrySettled
+          let resolveRetryTurnEnd
           const retryCompletion = new Promise(resolve => { retrySettled = resolve })
-          state.pending = {
+          const retryTurnEnd = new Promise(resolve => { resolveRetryTurnEnd = resolve })
+          state.pending = retryPending = {
             requestId: body.requestId,
+            decisionId: context.decisionId,
             resolve: retrySettled,
             captured: null,
             lastError: null,
@@ -1296,8 +1387,8 @@ export function apply(ctx, config) {
           }
           const retryTurn = {
             sessionId: attached.dshSessionId,
-            turnEnd: new Promise(resolve => {}),
-            resolveTurnEnd: () => {},
+            turnEnd: retryTurnEnd,
+            resolveTurnEnd: resolveRetryTurnEnd,
             pending: state.pending,
           }
           state.activeTurn = retryTurn
@@ -1315,8 +1406,11 @@ export function apply(ctx, config) {
           ])
           if (retryCaptured.ok === true) {
             // Retry succeeded! Use the retry result
-            if (state.pending !== null) { state.pending = null }
-            if (state.activeTurn !== null) { state.activeTurn = null }
+            await Promise.race([
+              retryTurn.turnEnd,
+              new Promise(resolve => setTimeout(resolve, timeoutMs)),
+            ])
+            if (state.pending === retryTurn.pending) state.pending = null
             const retryDurationMs = Date.now() - startedAt
             log('consult retry captured', { requestId: body.requestId, kind: retryCaptured.task.payload.kind, durationMs: retryDurationMs })
             return json(200, {
@@ -1326,13 +1420,11 @@ export function apply(ctx, config) {
               diagnostics: { durationMs: retryDurationMs, source: 'submit_decision_retry', schemaHash: artifact.schemaHash },
             })
           }
-          // Retry also failed; fall through to normal failure path
-          if (state.pending !== null) { state.pending = null }
-          if (state.activeTurn !== null) { state.activeTurn = null }
+          // Ending the semantic request does not prove the physical turn ended.
+          if (state.pending === retryPending) state.pending = null
         } catch (retryError) {
-          // Retry mechanism failed entirely; clean up and fall through
-          if (state.pending !== null) { state.pending = null }
-          if (state.activeTurn !== null) { state.activeTurn = null }
+          if (state.pending === retryPending) state.pending = null
+          // turn/end or explicit retirement owns the active physical fence.
         }
       }
       const durationMs = Date.now() - startedAt
@@ -1512,4 +1604,37 @@ export function apply(ctx, config) {
   }
 
   log(`registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash ${artifact.schemaHash.slice(0, 12)}…)`)
+}
+
+// JSON Schema cannot express uniqueness across handler bindings nested under
+// different traversal rules/phases, so enforce these traversal-wide identities
+// at the plugin consumer boundary as well as in the typed producer codec.
+function validateTraversalSemantics(decision, errors) {
+  if (decision?.kind !== 'plan') return
+  const visitItems = items => {
+    if (!Array.isArray(items)) return
+    for (const item of items) {
+      if (!item || typeof item !== 'object') continue
+      if (item.kind === 'traverse') {
+        const ruleIds = new Set()
+        const operationIds = new Set()
+        const handlerIds = new Set()
+        for (const rule of item.rules ?? []) {
+          if (ruleIds.has(rule.ruleId)) errors.push(`traverse ruleId '${rule.ruleId}' must be unique`)
+          ruleIds.add(rule.ruleId)
+          const operation = rule.operation
+          if (operationIds.has(operation.operationId)) errors.push(`traverse operationId '${operation.operationId}' must be unique`)
+          operationIds.add(operation.operationId)
+          if (operation.operationId === '$return') errors.push("traverse operationId '$return' is reserved")
+          for (const handler of [...(operation.before ?? []), ...(operation.afterVerified ?? [])]) {
+            if (handlerIds.has(handler.handlerId)) errors.push(`traverse handlerId '${handler.handlerId}' must be unique across the traversal`)
+            handlerIds.add(handler.handlerId)
+          }
+        }
+      } else if (item.kind === 'forEach') visitItems(item.body)
+      else if (item.kind === 'if') { visitItems(item.then); visitItems(item.else) }
+      else if (item.kind === 'repeat') visitItems(item.body)
+    }
+  }
+  visitItems(decision.proposal?.items)
 }

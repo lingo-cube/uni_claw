@@ -49,6 +49,8 @@ public sealed class SettingsCoverageScenarioTests
     /// </summary>
     private sealed class SimulatedSettingsWorld
     {
+        public bool EnableNestedPlanFixture { get; init; }
+        private readonly Stack<string> _returnRoutes = new();
         private int _captureCounter;
         private int _scrollOffset;
         private int _transitionalCycles;
@@ -85,7 +87,9 @@ public sealed class SettingsCoverageScenarioTests
             .Concat(new[] { ("Navigate up", 0, 40, 150, 190) })
             .ToArray()!;
 
-        private string[] CurrentEntries => _scrollOffset == 0 ? VisiblePages : ScrolledPages;
+        private string[] CurrentEntries => EnableNestedPlanFixture && Route != RootRoute
+            ? Route == "android.settings|route:Network & internet" ? new[] { "Connection details" } : Array.Empty<string>()
+            : _scrollOffset == 0 ? VisiblePages : ScrolledPages;
 
         public string TapAt(int x, int y)
         {
@@ -100,11 +104,12 @@ public sealed class SettingsCoverageScenarioTests
             if (region.Descriptor == "Navigate up")
             {
                 if (Route != RootRoute)
-                    Route = RootRoute;
+                    Route = EnableNestedPlanFixture && _returnRoutes.Count > 0 ? _returnRoutes.Pop() : RootRoute;
                 return "Navigate up";
             }
-            if (Route == RootRoute)
+            if (Route == RootRoute || EnableNestedPlanFixture)
             {
+                if (EnableNestedPlanFixture) _returnRoutes.Push(Route);
                 Route = $"android.settings|route:{region.Descriptor}";
                 if (_popupArmed)
                 {
@@ -172,8 +177,18 @@ public sealed class SettingsCoverageScenarioTests
                     clickable: false, bounds: "[200,80][1040,180]"));
                 builder.Append(Node("com.android.settings:id/content_parent", "android.widget.ScrollView",
                     text: null, scrollable: true, clickable: false, bounds: "[0,250][1080,1800]"));
-                builder.Append(Node("", "android.widget.LinearLayout", text: $"{title} content",
-                    clickable: true, bounds: "[0,300][1080,440]"));
+                if (EnableNestedPlanFixture)
+                {
+                    for (var i = 0; i < CurrentEntries.Length; i++)
+                        builder.Append(Node("", "android.widget.LinearLayout", text: CurrentEntries[i],
+                            clickable: true, bounds: $"[0,{260 + i * 150}][{Width},{260 + i * 150 + 140}]"));
+                    builder.Append(Node("com.android.settings:id/record_only_switch", "android.widget.Switch",
+                        text: "Record only setting", clickable: true, bounds: "[0,600][1080,740]")
+                        .Replace("checkable=\"false\"", "checkable=\"true\"", StringComparison.Ordinal));
+                }
+                else
+                    builder.Append(Node("", "android.widget.LinearLayout", text: $"{title} content",
+                        clickable: true, bounds: "[0,300][1080,440]"));
             }
             builder.Append("</hierarchy>");
             return builder.ToString();
@@ -415,6 +430,163 @@ public sealed class SettingsCoverageScenarioTests
             EffectDriver: new SimulatedEffectDriver(world)));
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost(bool rule, bool observeAfterCoverage)
+    {
+        var original = SettingsCoverageConfig.LoadDefault();
+        var config = ConfigWith() with
+        {
+            Bounds = original.Bounds with { MaxSteps = 16, MaxConsultRounds = 16,
+                RenewalThresholdSteps = 1, RenewalThresholdRounds = 2 },
+            Coverage = new CoverageRequirements(true, "all-visible", 0, 0, true, 0),
+            TargetPages = new[] { "Network & internet", "Connected devices" },
+            ActionPolicy = original.ActionPolicy, ActionPolicyRequired = true,
+        };
+        var world = new SimulatedSettingsWorld();
+        var consults = 0;
+        var consultFailures = new List<string?>();
+        var runRoot = Path.Combine(Path.GetTempPath(), "composable-host-" + Guid.NewGuid().ToString("N"));
+        var result = SettingsCoverageRunner.Run(runRoot, new SettingsCoverageRunner.Options(
+            "emulator-sim", new LivePerception.LiveAssets("emulator-sim", "wifi-settings", "/nonexistent", "/nonexistent", "/nonexistent"),
+            config, context =>
+            {
+                if (++consults > 1)
+                {
+                    consultFailures.Add(context.FailureReason);
+                    return new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId, "scoped target entries and returns verified"));
+                }
+                var items = rule ? new PlanItem[]
+                {
+                    new PlanItem.ForEachItem(SettingsPlanFacts.RootNavigationSource, new PlanItem[]
+                    {
+                        new PlanItem.ActItem("$candidate", "$candidate", "tap", null),
+                        new PlanItem.ObserveItem(null),
+                        new PlanItem.ActItem("ui.element", "Navigate up", "tap", null),
+                    }, 2),
+                } : config.TargetPages.SelectMany(target => new PlanItem[]
+                {
+                    new PlanItem.ActItem("ui.element", target, "tap", null),
+                    new PlanItem.ObserveItem(null),
+                    new PlanItem.ActItem("ui.element", "Navigate up", "tap", null),
+                }).ToArray();
+                if (observeAfterCoverage)
+                    items = items.Concat(Enumerable.Repeat<PlanItem>(new PlanItem.ObserveItem(null), 4)).ToArray();
+                return new AgentDecision.Plan(context.DecisionId, new AgentPlanProposal(items, "scoped host plan", "host-plan", 1, "two root entries", 30));
+            }, ViewportWidth: Width, ViewportHeight: Height, FeedNext: world.Next,
+            CurrentCaptureId: () => world.CurrentCaptureId, EffectDriver: new SimulatedEffectDriver(world), UseCoverageDirector: false));
+        if (observeAfterCoverage)
+            Assert.DoesNotContain(consultFailures, reason => reason?.Contains("STAGNATION INTERVENTION", StringComparison.Ordinal) == true);
+        Assert.Equal(RunDriveStatus.Completed, result.Status);
+        Assert.Equal("CoverageComplete", result.Report.Status);
+        Assert.Equal(4, result.Steps.Count(step => step.Verified));
+        Assert.Equal(2, consults);
+        Assert.All(result.Steps, step => Assert.DoesNotContain("unattributed", step.DecisionId));
+        Assert.Equal(4, result.Steps.Select(step => step.ReceiptId).Distinct().Count());
+        using var guards = JsonDocument.Parse(File.ReadAllText(Path.Combine(result.RunDir, "current-step-guards.json")));
+        Assert.Equal(4, guards.RootElement.GetArrayLength());
+        Assert.True(File.Exists(Path.Combine(result.RunDir, "consultations.journal.jsonl")));
+    }
+
+    [Fact]
+    public void ConditionalPlan_VisitsNewChildAndReturnsBeforeContinuingRootWithoutUiNamesInPlan()
+    {
+        var original = SettingsCoverageConfig.LoadDefault();
+        var config = ConfigWith() with
+        {
+            Bounds = original.Bounds with { MaxSteps = 16, MaxConsultRounds = 16,
+                RenewalThresholdSteps = 1, RenewalThresholdRounds = 2 },
+            Coverage = new CoverageRequirements(true, "all-visible", 0, 0, true, 0),
+            TargetPages = new[] { "Network & internet", "Connected devices" },
+            DynamicRootEntries = new DynamicRootEntriesConfig(false),
+            DynamicNestedEntries = new DynamicNestedEntriesConfig(true, 1, 1),
+            ActionPolicy = original.ActionPolicy, ActionPolicyRequired = true,
+        };
+        var world = new SimulatedSettingsWorld { EnableNestedPlanFixture = true };
+        var consults = 0;
+        var runRoot = Path.Combine(Path.GetTempPath(), "conditional-ui-host-" + Guid.NewGuid().ToString("N"));
+        var result = SettingsCoverageRunner.Run(runRoot, new SettingsCoverageRunner.Options(
+            "emulator-sim", new LivePerception.LiveAssets("emulator-sim", "wifi-settings", "/nonexistent", "/nonexistent", "/nonexistent"),
+            config, context =>
+            {
+                if (++consults > 1)
+                {
+                    Assert.Null(context.FailureReason);
+                    return new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId, "scoped pages and controls observed"));
+                }
+                Assert.Contains(SettingsPlanFacts.HasNavigationCondition, context.AvailablePlanConditions!.Keys);
+                return new AgentDecision.Plan(context.DecisionId, new AgentPlanProposal(new PlanItem[]
+                {
+                    new PlanItem.RepeatItem(new PlanItem[]
+                    {
+                        new PlanItem.IfItem(SettingsPlanFacts.HasNavigationCondition,
+                            new PlanItem[]
+                            {
+                                new PlanItem.ForEachItem(SettingsPlanFacts.CurrentNavigationSource,
+                                    new PlanItem[] { new PlanItem.ActItem("$candidate", "$candidate", "tap", null) }, 1),
+                            },
+                            new PlanItem[]
+                            {
+                                new PlanItem.IfItem(SettingsPlanFacts.AtRootCondition,
+                                    new PlanItem[] { new PlanItem.ControlItem(PlanControlKind.Replan, "evaluate scoped results") },
+                                    new PlanItem[] { new PlanItem.ActItem("ui.element", "Navigate up", "tap", null) }),
+                            }),
+                    }, 10),
+                }, "discover current-page navigation and return; record controls through owner observations", "conditional-ui", MaxLocalOperations: 80));
+            }, ViewportWidth: Width, ViewportHeight: Height, FeedNext: world.Next,
+            CurrentCaptureId: () => world.CurrentCaptureId, EffectDriver: new SimulatedEffectDriver(world), UseCoverageDirector: false));
+        Assert.Equal(RunDriveStatus.Completed, result.Status);
+        Assert.Equal("CoverageComplete", result.Report.Status);
+        Assert.Equal(new[] { "Network & internet", "Connection details", "Navigate up", "Navigate up", "Connected devices", "Navigate up" },
+            result.Steps.Where(step => step.Verified).Select(step => step.TargetDescriptor));
+        Assert.DoesNotContain(result.Steps, step => step.TargetDescriptor == "Record only setting");
+        Assert.Equal(2, consults); // one strategy, then completion assessment
+        Assert.Equal(RootRoute, world.Route);
+        using var recorded = JsonDocument.Parse(File.ReadAllText(Path.Combine(result.RunDir, "coverage-observed-elements.json")));
+        Assert.Contains(recorded.RootElement.EnumerateArray(), item => item.GetProperty("role").GetString() == "switch"
+            && item.GetProperty("descriptor").GetString() == "Record only setting");
+        using var planTrace = JsonDocument.Parse(File.ReadAllText(Path.Combine(result.RunDir, "plan-execution.json")));
+        Assert.Contains(planTrace.RootElement.GetProperty("conditionEvaluations").EnumerateArray(), item =>
+            item.GetProperty("condition").GetString() == SettingsPlanFacts.AtRootCondition
+            && item.GetProperty("result").GetProperty("evidenceRefs").GetArrayLength() > 0);
+    }
+
+    [Fact]
+    public void ConfiguredRenewal_ReachesRunner_AndKeepsFinalTotalBounded()
+    {
+        var path = WriteTempConfig(4, 4, 1);
+        File.WriteAllText(path, File.ReadAllText(path).Replace("maxConsultRounds: 30",
+            "maxConsultRounds: 3\n  maxTotalSteps: 12\n  maxTotalConsultRounds: 20\n  renewalThresholdSteps: 2\n  renewalThresholdRounds: 2"));
+        var windows = new List<RenewalWindow?>();
+        var result = RunScenario(context =>
+        {
+            windows.Add(context.RenewalWindow);
+            var decision = ModelConsult(context);
+            if (context.RenewalWindow is { Open: true } window && decision is AgentDecision.Act act)
+                return act with { Proposal = act.Proposal with { Renewal = new BudgetRenewalRequest(
+                    Math.Min(2, window.HardCapSteps - window.GrantedSteps),
+                    Math.Min(4, window.HardCapRounds - window.GrantedRounds), "coverage progressing") } };
+            return decision;
+        }, SettingsCoverageConfig.Load(path));
+        Assert.Contains(windows, window => window is { Open: true, HardCapSteps: 8, HardCapRounds: 17 });
+        Assert.InRange(result.Steps.Count, 5, 12);
+        Assert.InRange(windows.Count, 4, 20);
+        using var facts = JsonDocument.Parse(File.ReadAllText(Path.Combine(result.RunDir, "facts.json")));
+        var renewals = facts.RootElement.GetProperty("budgetRenewals").EnumerateArray().ToArray();
+        Assert.Contains(renewals, grant => grant.GetProperty("granted").GetBoolean());
+        Assert.True(renewals.Where(grant => grant.GetProperty("granted").GetBoolean())
+            .Sum(grant => grant.GetProperty("additionalSteps").GetInt32()) <= 8);
+        using var bridge = JsonDocument.Parse(File.ReadAllText(Path.Combine(result.RunDir, "consult-bridge.json")));
+        Assert.Contains(bridge.RootElement.GetProperty("exchanges").EnumerateArray(), exchange =>
+            exchange.GetProperty("decision").ValueKind == JsonValueKind.Object
+            && exchange.GetProperty("decision").GetProperty("renewal").ValueKind == JsonValueKind.Object
+            && exchange.GetProperty("effectiveDecision").GetProperty("renewal").GetProperty("additionalRounds").GetInt32() == 4);
+        File.Delete(path);
+    }
+
     [Fact]
     public void WriteEvidenceFile_PersistsPayloadUnderCaptureId()
     {
@@ -627,6 +799,19 @@ public sealed class SettingsCoverageScenarioTests
     }
 
     [Fact]
+    public void GoalDirectedCompletion_RequiresDeclaredCoverageEvidenceBeyondRootPresence()
+    {
+        var config = ConfigWith();
+        config = config with { Bounds = config.Bounds with { GoalDirectedContinuationEnabled = true } };
+        var result = RunScenario(context => new AgentDecision.NoAction(
+            new AgentNoActionProposal(context.DecisionId, "known todo is empty; claim completion")), config);
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.StartsWith("task-evidence-unproven:", result.Reason);
+        Assert.NotEmpty(result.Report.UncoveredItems);
+        Assert.Empty(result.Steps);
+    }
+
+    [Fact]
     public void FullCoverageMission_CompletesWithTraceableSteps()
     {
         var result = RunScenario(ModelConsult);
@@ -634,7 +819,8 @@ public sealed class SettingsCoverageScenarioTests
         Assert.True(result.Status == RunDriveStatus.Completed,
             $"{result.Status}({result.Reason}) divergence={result.Report.FirstDivergence}");
         Assert.Equal("Completion", result.Outcome);
-        Assert.Equal("CoverageComplete", result.Report.Status);
+        Assert.True(result.Report.Status == "CoverageComplete",
+            $"{result.Status}/{result.Reason}: {JsonSerializer.Serialize(result.Report)}; run={result.RunDir}");
         Assert.Equal(1.0, result.Report.CoverageRate, 5);
         Assert.Equal(1.0, result.Report.StepSuccessRate, 5);
         Assert.Empty(result.Report.UncoveredItems);
@@ -709,7 +895,7 @@ public sealed class SettingsCoverageScenarioTests
     /// <summary>
     /// AGT-010 §3 验收 4：滚动到底（内容不变）确定性背书——列表已在底部时
     /// swipe 不改变视口内容 → 滚动验证失败（post-action-content-transition
-    /// 如实 false）→ 连续失败有界停止（bounded-stop:max-consecutive-failures，
+    /// 如实 false）→ 有界恢复耗尽后停止（bounded-stop:step-recovery-exhausted，
     /// 不盲重试、不伪装完成）。真机 d1/d3/d4 实录分支的确定性复刻。
     /// </summary>
     [Fact]
@@ -732,7 +918,7 @@ public sealed class SettingsCoverageScenarioTests
 
         // 撞名已修（RouteKey）不再挡路；挡路的是诚实的滚动验证：内容不变 = 未生效
         Assert.Equal("BoundedStop", result.Report.Status);
-        Assert.Equal("bounded-stop:max-consecutive-failures", result.Consults[^1].Justification);
+        Assert.Equal("bounded-stop:step-recovery-exhausted", result.Consults[^1].Justification);
         var swipes = result.Steps.Where(s => s.EffectClass == "swipe-up").ToList();
         Assert.True(swipes.Count >= 1, "至少一次滚动尝试");
         Assert.All(swipes, s =>

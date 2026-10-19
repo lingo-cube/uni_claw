@@ -69,7 +69,12 @@ public sealed record AgentDecisionContext(
     string? DecisionBoundaryId = null,
     Heartbeat? Heartbeat = null,
     IReadOnlyList<ContextReferenceEntry>? ContextReferenceIndex = null,
-    CasePacket? CasePacket = null);
+    CasePacket? CasePacket = null,
+    ExecutionOverview? ExecutionOverview = null,
+    BudgetReview? BudgetReview = null,
+    PlanExecutionView? PlanExecution = null,
+    IReadOnlyDictionary<string, string>? AvailablePlanSources = null,
+    IReadOnlyDictionary<string, string>? AvailablePlanConditions = null);
 
 /// <summary>
 /// obligation 的非权威摘要视图（P7 派生投影，只读）。
@@ -94,7 +99,7 @@ public sealed record AgentActionProposal(
     string DecisionId,
     IReadOnlyList<AgentActionStep> Steps,
     string? Justification,
-    // PROTOCOL-FIX-003（ADR-0050 D3）：续授提案（窗口开启时可附；规则侧封顶）。
+    // PROTOCOL-FIX-003（ADR-0050 D3）：续授提案（legacy path；goal-directed review uses top-level ReviewResponse.Renewal）。
     BudgetRenewalRequest? Renewal = null);
 
 /// <summary>
@@ -126,9 +131,9 @@ public sealed record AgentNoActionProposal(
 /// </summary>
 public abstract record AgentDecision
 {
-    public sealed record Act(AgentActionProposal Proposal) : AgentDecision;
+    public sealed record Act(AgentActionProposal Proposal, BudgetReviewResponse? ReviewResponse = null) : AgentDecision;
 
-    public sealed record NoAction(AgentNoActionProposal Proposal) : AgentDecision;
+    public sealed record NoAction(AgentNoActionProposal Proposal, BudgetReviewResponse? ReviewResponse = null) : AgentDecision;
 
     /// <summary>
     /// RUN-004：再观察一轮（有界，SR-067/068）。DecisionId = 咨询关联号
@@ -140,7 +145,8 @@ public abstract record AgentDecision
         ObserveSpec Spec,
         // PROTOCOL-FIX-003（ADR-0050 D3）：续授提案——DeferRoundsExhausted
         // 终问可携带（闭合"有步数没轮次开口"死锁角；规则侧校验封顶）。
-        BudgetRenewalRequest? Renewal = null) : AgentDecision;
+        BudgetRenewalRequest? Renewal = null,
+        BudgetReviewResponse? ReviewResponse = null) : AgentDecision;
 
     /// <summary>
     /// RUN-005 Slice A（FROZEN v0.3 §2）：L2 policy proposal——Agent 给规则，
@@ -150,7 +156,7 @@ public abstract record AgentDecision
     ///（Defer 先例）——FROZEN §2 sketch 未显式画出该参数，但 §9 V6e 与
     /// 基线 D2 要求其存在，此处为两条款的合并落形，非词汇扩展。
     /// </summary>
-    public sealed record Policy(string DecisionId, PolicyProposal Proposal) : AgentDecision;
+    public sealed record Policy(string DecisionId, PolicyProposal Proposal, BudgetReviewResponse? ReviewResponse = null) : AgentDecision;
 
     /// <summary>
     /// AGT-009（§11）：advisory 抽象遍历计划——高层策略进入既有执行链的
@@ -162,7 +168,13 @@ public abstract record AgentDecision
     /// 咨询预算，不重新获得新预算）。
     /// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
     /// </summary>
-    public sealed record Plan(string DecisionId, AgentPlanProposal Proposal) : AgentDecision;
+    public sealed record Plan(string DecisionId, AgentPlanProposal Proposal, BudgetReviewResponse? ReviewResponse = null) : AgentDecision;
+
+    /// <summary>Explicitly resumes the exact paused Plan position.</summary>
+    public sealed record ContinuePlan(
+        string DecisionId,
+        PlanExecutionPosition Position,
+        BudgetReviewResponse? ReviewResponse = null) : AgentDecision;
 
     /// <summary>
     /// AGT-019 M1（Q1 裁决；RUN-004 D3/D7 修订通道，G4 DEFERRED 先例）：
@@ -172,7 +184,7 @@ public abstract record AgentDecision
     /// 同族）。DecisionId 回带同律（D2 防串话；Defer/Policy/Plan 先例）。
     /// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
     /// </summary>
-    public sealed record Blocked(string DecisionId, string Reason) : AgentDecision;
+    public sealed record Blocked(string DecisionId, string Reason, BudgetReviewResponse? ReviewResponse = null) : AgentDecision;
 
     /// <summary>
     /// TRAJECTORY-001：Agent 主动跳过一个目标。它是零 Effect 的决策结果；
@@ -182,7 +194,8 @@ public abstract record AgentDecision
         string DecisionId,
         string Target,
         string Reason,
-        IReadOnlyList<string> EvidenceRefs) : AgentDecision;
+        IReadOnlyList<string> EvidenceRefs,
+        BudgetReviewResponse? ReviewResponse = null) : AgentDecision;
 }
 
 /// <summary>
@@ -220,6 +233,30 @@ public abstract record PlanItem
         string EffectClass,
         string? DesiredState) : PlanItem;
 
+    /// <summary>Continuous bounded menu traversal; Control owns exploration, each
+    /// navigation reuses the original effect and independent verification chain.</summary>
+    public sealed record TraverseItem(
+        string Source,
+        IReadOnlyList<TraversalRule> Rules,
+        int MaxDepth,
+        AgentActionStep ReturnStep) : PlanItem;
+
+    /// <summary>Re-evaluates an owner-projected candidate set at each iteration.</summary>
+    public sealed record ForEachItem(
+        string Source,
+        IReadOnlyList<PlanItem> Body,
+        int MaxIterations,
+        bool ContinueOnBlocked = false) : PlanItem;
+
+    /// <summary>Branches only on an owner-projected declared condition; unknown never selects Else.</summary>
+    public sealed record IfItem(string Condition, IReadOnlyList<PlanItem> Then, IReadOnlyList<PlanItem> Else) : PlanItem;
+
+    /// <summary>Repeats a finite block with fresh facts; no self-reference or arbitrary jump.</summary>
+    public sealed record RepeatItem(IReadOnlyList<PlanItem> Body, int MaxIterations) : PlanItem;
+
+    /// <summary>Pauses after this item is consumed and requests an explicit continuation decision.</summary>
+    public sealed record CheckpointItem(string? Reason) : PlanItem;
+
     /// <summary>
     /// 记录或补证（record-only）：零 Effect，也不能单独宣告任务完成
     ///（Settings record-only 结果由既有 coverage ledger 记录）。
@@ -238,4 +275,8 @@ public abstract record PlanItem
 /// </summary>
 public sealed record AgentPlanProposal(
     IReadOnlyList<PlanItem> Items,
-    string? Justification);
+    string? Justification,
+    string? PlanId = null,
+    int Version = 1,
+    string? StageExpectation = null,
+    int MaxLocalOperations = 128);

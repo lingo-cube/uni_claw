@@ -9,6 +9,7 @@ WorldBelief、Run progress truth、Assurance Judgment 或 effect delivery
 
 | 文件 | 职责 |
 |---|---|
+| `TraversalControl.cs` | Control所有的有界探索/返回/深度和义务游标；经Run保存进度，不投递Effect |
 | `ControlLoop.cs` | control intent 权威本体（不变量 21） |
 | `ControlIntent.cs` | intent 的 typed 形状（跨 Product T2 只传 immutable command） |
 | `ControlPolicy.cs` | 控制策略词汇 |

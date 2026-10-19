@@ -237,6 +237,9 @@ public sealed class HostRunner
                 {
                     NextInput = NextInputAfterCommit,
                     ConsultationJournal = consultationJournal,
+                    GuardStep = (step, context) => options.SettingsActionPolicy is { } currentPolicy
+                        ? SettingsActionGuard.EvaluateCurrentStep(step, context, currentPolicy)
+                        : new PlanStepGuardResult(PlanStepGuardVerdict.Allow, "no additional Settings policy configured"),
                     ConsultAgent = context =>
                     {
                         var policy = options.SettingsActionPolicy;
@@ -266,7 +269,7 @@ public sealed class HostRunner
                         SettingsActionGuardResult? guardResult = null;
                         var guarded = policy is null
                             ? decision
-                            : SettingsActionGuard.GuardDecision(decision, projected, policy, out guardResult);
+                            : SettingsActionGuard.GuardDecision(decision, projected, policy, out guardResult, currentStepGuardInstalled: true);
                         if (guardResult is not null)
                             policyGuardResults.Add(guardResult);
                         consultations.Add(new
@@ -331,6 +334,7 @@ public sealed class HostRunner
                     break;
             }
 
+            WriteText(runDir, "plan-execution.json", TryJson(driver.PlanExecution));
             TryBindLanguageInspection();
             if (options.LanguageInspection is { Required: true } && languageInspection is null)
                 throw new InvalidOperationException("language-inspection-required-capability-not-bound");

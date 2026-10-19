@@ -1,0 +1,9 @@
+{
+  "backup": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-plan002-protocol-sketch-eodvumyu",
+  "before": {
+    "changes/RUNTIME-PLAN-002/state.md": "58d833fb0033d14ec7f01a3b6399da39d65f79c52e488ce0e257b9b0f8069b8d",
+    "changes/RUNTIME-PLAN-002/discussion-reference.md": "92c2cd951930f905916a9d5a266869db74ce740ab7c5ece33dd3c0ac1b4d6b38",
+    "evidence/runtime-plan-002/verify-docs.py": "d991c58d3c2329054f1dba1254ca48af8fd09bcd67990834789b5dd00564cb0b"
+  },
+  "authorization": "Owner请求展示协议格式，仅展示候选字段，不冻结正式wire或实施产品"
+}

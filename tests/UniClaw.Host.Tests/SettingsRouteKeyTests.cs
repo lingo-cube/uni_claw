@@ -49,19 +49,29 @@ public sealed class SettingsRouteKeyTests
         "android.settings|rk1:Settings|src=homepage_title|up=0";
 
     [Fact]
-    public void CollidingPage_RouteKey_DiffersFromRoot()
+    public void PageHeader_TakesPrecedenceOverListRowPreviouslyMisreadAsTitle()
     {
-        // 撞名现场：Security & privacy 页标题 = "Settings"（android:id/title），
-        // 与根页同标题——多信号（src/up/sc）必须区分
+        // 旧现场把列表行 Settings 误作页标题；真实页标题来自 toolbar。
         var colliding = SettingsTraversalLiveFeed.DeriveRouteKey(
             File.ReadAllText(Corpus("capture-7323abdbfd054a2288c276092a25f7e8")));
         var root = SettingsTraversalLiveFeed.DeriveRouteKey(
             File.ReadAllText(Corpus("capture-4a7726969f964b1494297485d0b0d986")));
 
-        Assert.Equal("Settings", ExtractTitle(colliding));
+        Assert.Equal("Security & privacy", ExtractTitle(colliding));
         Assert.Equal("Settings", ExtractTitle(root)); // 标题相同（撞名成立）
         Assert.NotEqual(root, colliding); // 身份不同（去撞名）
-        Assert.Equal("android.settings|rk1:Settings|src=title|up=1", colliding);
+        Assert.Equal("android.settings|rk1:Security & privacy|src=collapsing_toolbar|up=1", colliding);
+    }
+
+    [Theory]
+    [InlineData("network-page", "Network & internet")]
+    [InlineData("internet-page", "Internet")]
+    public void CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(string capture, string title)
+    {
+        var xml = File.ReadAllText(Path.Combine(RepoRoot(), "evidence", "runtime-plan-001",
+            "composition-20261018", "route-corpus", capture + ".xml"));
+        Assert.Equal($"android.settings|rk1:{title}|src=collapsing_toolbar|up=1",
+            SettingsTraversalLiveFeed.DeriveRouteKey(xml));
     }
 
     [Fact]

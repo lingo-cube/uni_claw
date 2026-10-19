@@ -1,0 +1,8 @@
+{
+  "kind": "PROTOCOL_EXAMPLE_SYNTAX_ONLY",
+  "json_examples": 5,
+  "json_syntax": "PASS",
+  "formal_codec_compatibility": "UNSUPPORTED_NEW_TRAVERSE_AND_POSITION_REF",
+  "schema_frozen": false,
+  "implementation_started": false
+}

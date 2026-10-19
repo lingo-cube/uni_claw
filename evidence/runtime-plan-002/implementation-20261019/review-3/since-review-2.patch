@@ -1,0 +1,694 @@
+--- review-2/src/UniClaw.Kernel/Control/TraversalControl.cs
++++ review-3/src/UniClaw.Kernel/Control/TraversalControl.cs
+@@ -184,6 +184,7 @@
+ 
+     public bool Returned(Work work, string? currentContainerId)
+     {
++        if (currentContainerId is not null) _currentContainerId = currentContainerId;
+         var expected = work.ExpectedReturnContainerId;
+         if (expected is null || currentContainerId != expected)
+         {
+@@ -197,7 +198,6 @@
+             var child = _path.Pop();
+             _activePath.Remove(child.ContainerId);
+         }
+-        _currentContainerId = currentContainerId;
+         _expectedReturnContainerId = null;
+         return true;
+     }
+--- review-2/src/UniClaw.Kernel/Runtime/KernelRunDriver.cs
++++ review-3/src/UniClaw.Kernel/Runtime/KernelRunDriver.cs
+@@ -3115,7 +3115,8 @@
+             case AgentDecision.ContinuePlan resume:
+                 if (!_planPaused || _activePlanProposal is null || _planItems is null)
+                     return "plan:not-paused";
+-                if (_planInterruptionReason == "plan:local-work-exhausted")
++                if (_planInterruptionReason is "plan:local-work-exhausted"
++                    or "traversal:local-work-exhausted")
+                     return "plan:local-work-exhausted-requires-revision";
+                 if (_planInterruptionReason is "traversal:navigation-already-satisfied-requires-revision"
+                     or "traversal:navigation-cycle")
+--- review-2/tests/UniClaw.Simulation.Tests/HandlerTraversalScenarioTests.cs
++++ review-3/tests/UniClaw.Simulation.Tests/HandlerTraversalScenarioTests.cs
+@@ -47,21 +47,29 @@
+             operationRecord.TemplateId == "inspect-menu" && operationRecord.Completed
+             && operationRecord.ObservedState == "unchecked");
+         Assert.Equal(0, traversal.KnownRemainingWork);
+-    }
+-
+-    [Fact]
+-    public void RequirePassUnknownAfterNavigationPausesAndExplicitContinueDoesNotRepeatEffect()
++        var consultationsBeforeRepeat = execution.Host.Consultations.Calls.Count;
++        var effectsBeforeRepeat = execution.Host.EffectDeliveryCount;
++        var terminalRepeat = execution.Host.DriveOnce();
++        Assert.Equal(RunDriveStatus.TerminalNotProven, terminalRepeat.Status);
++        Assert.Equal(consultationsBeforeRepeat, execution.Host.Consultations.Calls.Count);
++        Assert.Equal(effectsBeforeRepeat, execution.Host.EffectDeliveryCount);
++    }
++
++    [Fact]
++    public void RequirePassPauseCanResumeAfterInspectionPassWithoutRepeatingNavigation()
+     {
+         var after = TraversalScenarioFixture.EnglishHandler("after-required", requirePass: true);
+         var operation = TraversalScenarioFixture.NavigationOperation("open-settings",
+             after: new[] { after });
+         var agentCalls = 0;
++        var inspectorCalls = 0;
+         var recovery = new List<UniClaw.Kernel.Runtime.TraversalRecoveryFacts>();
+         var scenario = TraversalScenarioFixture.Create(
+             new[]
+             {
+                 new TraversalScenarioFixture.Page("root", new[] { TraversalScenarioFixture.Link("设置") }),
+                 new TraversalScenarioFixture.Page("settings", new[] { TraversalScenarioFixture.Back() }),
++                new TraversalScenarioFixture.Page("root", new[] { TraversalScenarioFixture.Link("设置") }),
+             },
+             TraversalScenarioFixture.NavigationRules(operation),
+             agentOverride: context =>
+@@ -70,11 +78,24 @@
+                 if (context.Phase == AgentDecisionPhase.InitialPlanning)
+                     return TraversalScenarioFixture.Decide(context,
+                         TraversalScenarioFixture.NavigationRules(operation));
+-                if (agentCalls == 2 || agentCalls == 4) return null;
+-                return new AgentDecision.ContinuePlan(context.DecisionId, context.PlanExecution!.Position);
++                if (agentCalls == 2) return null;
++                if (agentCalls == 3)
++                    return new AgentDecision.ContinuePlan(context.DecisionId, context.PlanExecution!.Position);
++                return new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId,
++                    "traversal complete"));
++            },
++            inspectOverride: (_, input) =>
++            {
++                inspectorCalls++;
++                // This tests a later typed retry result in the simulation seam;
++                // the real adapter correctly reports Unknown when the original
++                // target is absent from the post-navigation container.
++                return inspectorCalls == 1
++                    ? Finding(input, FindingDisposition.Unknown, CapabilityStatus.Unknown)
++                    : Finding(input, FindingDisposition.Pass, CapabilityStatus.Completed);
+             },
+             recoveryObserver: recovery.Add,
+-            expectedOverride: new ScenarioExpectation("WaitingForInput", null, 1, 4, 0, null));
++            expectedOverride: new ScenarioExpectation("TerminalNotProven", null, 2, 4, 0, null));
+         var phased = scenario.Options with { Phased = true };
+ 
+         var pending = ScenarioRunner.Run(scenario.Bundle, phased);
+@@ -89,26 +110,40 @@
+             && record.Result?.Disposition == FindingDisposition.Unknown);
+         Assert.Contains(recovery, facts => facts.Traversal.PauseReason == "traversal:handler-require-pass"
+             && facts.Attempts.Count > 0);
++        var consultsBeforeQuery = pending.Host.Consultations.Calls.Count;
++        var effectsBeforeQuery = pending.Host.EffectDeliveryCount;
++        var query1 = pending.Host.Driver.TraversalExecution;
++        var query2 = pending.Host.Driver.TraversalExecution;
++        Assert.Same(query1, query2);
++        Assert.Equal(consultsBeforeQuery, pending.Host.Consultations.Calls.Count);
++        Assert.Equal(effectsBeforeQuery, pending.Host.EffectDeliveryCount);
+ 
+         var continued = pending.Host.DriveOnce();
+-        Assert.Equal(RunDriveStatus.WaitingForInput, continued.Status);
+-        Assert.Equal(1, pending.Host.Facts.EffectReceipts.Count);
+-        Assert.Single(scenario.Effects.Effects);
+-        Assert.DoesNotContain(scenario.Effects.Effects.Skip(1), effect => effect.Descriptor == "设置");
++        Assert.Equal(RunDriveStatus.TerminalNotProven, continued.Status);
++        Assert.Equal(2, pending.Host.Facts.EffectReceipts.Count);
++        Assert.Equal(new[] { "设置", "Back" }, scenario.Effects.Effects.Select(effect => effect.Descriptor));
+         var finalReport = ScenarioRunner.FinalizePhased(scenario.Bundle, pending.Host);
+         Assert.True(finalReport.AcceptancePassed,
+             ScenarioReport.DescribeAcceptance(scenario.Bundle, finalReport) + "; traversal="
+             + System.Text.Json.JsonSerializer.Serialize(pending.Host.KernelCore.TraversalExecution));
+         Assert.Equal(4, finalReport.AgentConsultations);
+-        Assert.Equal(1, finalReport.EffectDeliveries);
++        Assert.Equal(2, finalReport.EffectDeliveries);
++        var resumed = Assert.IsType<TraversalExecutionView>(pending.Host.KernelCore.TraversalExecution);
++        Assert.Equal(PlanExecutionStatus.Completed, resumed.Status);
++        var afterRecords = resumed.Handlers.Where(record => record.Phase == "AfterVerified").ToArray();
++        Assert.Equal(2, afterRecords.Length);
++        Assert.Equal(afterRecords[0].OperationId, afterRecords[1].OperationId);
++        Assert.Equal(FindingDisposition.Unknown, afterRecords[0].Result!.Disposition);
++        Assert.Equal(FindingDisposition.Pass, afterRecords[1].Result!.Disposition);
++        Assert.True(resumed.WorkUsed > paused.WorkUsed);
+     }
+ 
+     [Theory]
+     [InlineData("unknown", PlanHandlerCallStatus.Completed, "TerminalNotProven")]
+-    [InlineData("unavailable", PlanHandlerCallStatus.Unavailable, "AgentDecisionFailed")]
+-    [InlineData("null", PlanHandlerCallStatus.Failed, "AgentDecisionFailed")]
+-    [InlineData("exception", PlanHandlerCallStatus.Failed, "AgentDecisionFailed")]
+-    [InlineData("timeout", PlanHandlerCallStatus.TimedOut, "AgentDecisionFailed")]
++    [InlineData("unavailable", PlanHandlerCallStatus.Unavailable, "WaitingForInput")]
++    [InlineData("null", PlanHandlerCallStatus.Failed, "WaitingForInput")]
++    [InlineData("exception", PlanHandlerCallStatus.Failed, "WaitingForInput")]
++    [InlineData("timeout", PlanHandlerCallStatus.TimedOut, "WaitingForInput")]
+     public void TypedReturnUnknownAndInvocationFailuresKeepDistinctRuntimeSemantics(
+         string resultKind, PlanHandlerCallStatus expectedCallStatus, string expectedRunStatus)
+     {
+@@ -116,6 +151,7 @@
+         var operation = TraversalScenarioFixture.ReadOnlyOperation("inspect-result",
+             before: new[] { handler });
+         var expectedConsultations = 2;
++        var agentCalls = 0;
+         var scenario = TraversalScenarioFixture.Create(
+             new[] { new TraversalScenarioFixture.Page("root", new[]
+             {
+@@ -138,7 +174,7 @@
+             },
+             canBindOverride: _ => true,
+             agentOverride: resultKind == "unknown" ? null : context =>
+-                context.Phase == AgentDecisionPhase.InitialPlanning
++                ++agentCalls == 1
+                     ? TraversalScenarioFixture.Decide(context, new[]
+                         { new TraversalRule("inspect-result-rule", "readOnly", operation) })
+                     : null,
+@@ -164,6 +200,8 @@
+         else
+         {
+             Assert.Equal(PlanExecutionStatus.Paused, traversal.Status);
++            Assert.Null(traversal.EndReason);
++            Assert.Equal("traversal:awaiting-decision", execution.Report.Reason);
+             Assert.Equal("traversal:handler-" + expectedCallStatus.ToString().ToLowerInvariant(),
+                 traversal.PauseReason);
+         }
+@@ -175,6 +213,264 @@
+             Assert.Equal("InvalidOperationException", record.Reason);
+     }
+ 
++    [Fact]
++    public void MissingRequiredBindingFailsBeforeReadOnlyHandlerOrEffect()
++    {
++        var handler = TraversalScenarioFixture.EnglishHandler("required-before");
++        var operation = TraversalScenarioFixture.NavigationOperation("open-required",
++            before: new[] { handler });
++        var scenario = TraversalScenarioFixture.Create(
++            new[] { new TraversalScenarioFixture.Page("root", new[]
++            {
++                TraversalScenarioFixture.Link("Settings"),
++            }) },
++            TraversalScenarioFixture.NavigationRules(operation),
++            canBindOverride: _ => false,
++            expectedOverride: new ScenarioExpectation("AgentDecisionFailed", null, 0, 1, 0, null));
++
++        var execution = ScenarioRunner.Run(scenario.Bundle, scenario.Options);
++
++        Assert.True(execution.Report.AcceptancePassed,
++            ScenarioReport.DescribeAcceptance(scenario.Bundle, execution.Report));
++        Assert.Empty(scenario.Effects.Effects);
++        Assert.Empty(execution.Host.Facts.EffectReceipts);
++        Assert.Null(execution.Host.KernelCore.TraversalExecution);
++    }
++
++    [Fact]
++    public void RequiredAfterHandlerWithoutTypedAdapterIsRejectedBeforeNavigation()
++    {
++        var after = TraversalScenarioFixture.EnglishHandler("required-after");
++        var operation = TraversalScenarioFixture.NavigationOperation("open-before-null-adapter",
++            after: new[] { after });
++        var scenario = TraversalScenarioFixture.Create(
++            new[] { new TraversalScenarioFixture.Page("root", new[]
++            {
++                TraversalScenarioFixture.Link("Settings"),
++            }) },
++            TraversalScenarioFixture.NavigationRules(operation),
++            canBindOverride: _ => true,
++            expectedOverride: new ScenarioExpectation("AgentDecisionFailed", null, 0, 1, 0, null));
++        var options = scenario.Options with
++        {
++            Seams = scenario.Options.Seams! with { InspectPlanLanguage = null },
++        };
++
++        var execution = ScenarioRunner.Run(scenario.Bundle, options);
++
++        Assert.True(execution.Report.AcceptancePassed,
++            ScenarioReport.DescribeAcceptance(scenario.Bundle, execution.Report));
++        Assert.Empty(scenario.Effects.Effects);
++        Assert.Empty(execution.Host.Facts.EffectReceipts);
++        Assert.Null(execution.Host.KernelCore.TraversalExecution);
++    }
++
++    [Fact]
++    public void RequiredBindingThatDisappearsAtInvocationPausesAfterTheSingleNavigation()
++    {
++        var after = TraversalScenarioFixture.EnglishHandler("required-after-runtime");
++        var operation = TraversalScenarioFixture.NavigationOperation("navigate-required-after",
++            after: new[] { after });
++        var bindCalls = 0;
++        var agentCalls = 0;
++        var recovery = new List<UniClaw.Kernel.Runtime.TraversalRecoveryFacts>();
++        var scenario = TraversalScenarioFixture.Create(
++            new[]
++            {
++                new TraversalScenarioFixture.Page("root", new[] { TraversalScenarioFixture.Link("Settings") }),
++                new TraversalScenarioFixture.Page("settings", new[] { TraversalScenarioFixture.Back() }),
++            },
++            TraversalScenarioFixture.NavigationRules(operation),
++            canBindOverride: _ => ++bindCalls == 1,
++            agentOverride: context => ++agentCalls == 1
++                ? TraversalScenarioFixture.Decide(context, TraversalScenarioFixture.NavigationRules(operation))
++                : null,
++            recoveryObserver: recovery.Add,
++            expectedOverride: new ScenarioExpectation("WaitingForInput", null, 1, 2, 0, null));
++
++        var execution = ScenarioRunner.Run(scenario.Bundle, scenario.Options);
++
++        Assert.True(execution.Report.AcceptancePassed,
++            ScenarioReport.DescribeAcceptance(scenario.Bundle, execution.Report) + "; traversal="
++            + System.Text.Json.JsonSerializer.Serialize(execution.Host.KernelCore.TraversalExecution));
++        Assert.Equal(new[] { "Settings" }, scenario.Effects.Effects.Select(effect => effect.Descriptor));
++        Assert.Single(execution.Host.Facts.EffectReceipts);
++        var traversal = Assert.IsType<TraversalExecutionView>(execution.Host.KernelCore.TraversalExecution);
++        var record = Assert.Single(traversal.Handlers);
++        Assert.Equal(PlanHandlerCallStatus.Unavailable, record.Status);
++        Assert.Equal("AfterVerified", record.Phase);
++        Assert.Equal("traversal:handler-unavailable", traversal.PauseReason);
++        Assert.Contains(recovery, facts => facts.Traversal.PauseReason == "traversal:handler-unavailable");
++        Assert.Contains(traversal.Operations!, operationRecord => !operationRecord.Completed);
++    }
++
++    [Fact]
++    public void OptionalBindingUnavailableIsRecordedAndReadOnlyWorkContinues()
++    {
++        var before = TraversalScenarioFixture.EnglishHandler("optional-before", required: false);
++        var operation = TraversalScenarioFixture.ReadOnlyOperation("optional-inspection",
++            before: new[] { before });
++        var scenario = TraversalScenarioFixture.Create(
++            new[] { new TraversalScenarioFixture.Page("root", new[]
++            {
++                TraversalScenarioFixture.ReadOnlyTarget("menuItem", "Settings"),
++            }) },
++            new[] { new TraversalRule("optional-rule", "readOnly", operation) },
++            canBindOverride: _ => false,
++            expectedOverride: new ScenarioExpectation("TerminalNotProven", null, 0, 2, 0, null));
++
++        var execution = ScenarioRunner.Run(scenario.Bundle, scenario.Options);
++
++        Assert.True(execution.Report.AcceptancePassed,
++            ScenarioReport.DescribeAcceptance(scenario.Bundle, execution.Report));
++        Assert.Empty(scenario.Effects.Effects);
++        var traversal = Assert.IsType<TraversalExecutionView>(execution.Host.KernelCore.TraversalExecution);
++        var handlerRecord = Assert.Single(traversal.Handlers);
++        Assert.Equal(PlanHandlerCallStatus.Unavailable, handlerRecord.Status);
++        Assert.Equal("binding-unavailable", handlerRecord.Reason);
++        Assert.Contains(traversal.Operations!, operationRecord => operationRecord.Completed);
++    }
++
++    [Fact]
++    public void NavigationAndReadOnlyOperationsKeepDistinctInvocationAndRevisionBindings()
++    {
++        var navBefore = TraversalScenarioFixture.EnglishHandler("nav-before");
++        var navAfter = TraversalScenarioFixture.EnglishHandler("nav-after");
++        var readBefore = TraversalScenarioFixture.EnglishHandler("read-before");
++        var readAfter = TraversalScenarioFixture.EnglishHandler("read-after");
++        var navigation = TraversalScenarioFixture.NavigationOperation("navigate-settings",
++            new[] { navBefore }, new[] { navAfter });
++        var readOnly = TraversalScenarioFixture.ReadOnlyOperation("inspect-setting",
++            new[] { readBefore }, new[] { readAfter });
++        var rules = new[]
++        {
++            new TraversalRule("navigate-rule", "navigation", navigation),
++            new TraversalRule("read-rule", "readOnly", readOnly),
++        };
++        var scenario = TraversalScenarioFixture.Create(
++            new[]
++            {
++                new TraversalScenarioFixture.Page("root", new[]
++                {
++                    TraversalScenarioFixture.Link("Settings"),
++                    TraversalScenarioFixture.ReadOnlyTarget("menuItem", "Root label"),
++                }),
++                new TraversalScenarioFixture.Page("settings", new[] { TraversalScenarioFixture.Back() }),
++                new TraversalScenarioFixture.Page("root", new[]
++                {
++                    TraversalScenarioFixture.Link("Settings"),
++                    TraversalScenarioFixture.ReadOnlyTarget("menuItem", "Root label"),
++                }),
++            }, rules,
++            expectedOverride: new ScenarioExpectation("TerminalNotProven", null, 2, 2, 0, null));
++
++        var execution = ScenarioRunner.Run(scenario.Bundle, scenario.Options);
++
++        Assert.True(execution.Report.AcceptancePassed,
++            ScenarioReport.DescribeAcceptance(scenario.Bundle, execution.Report) + "; traversal="
++            + System.Text.Json.JsonSerializer.Serialize(execution.Host.KernelCore.TraversalExecution));
++        Assert.Equal(new[] { "Settings", "Back" }, scenario.Effects.Effects.Select(effect => effect.Descriptor));
++        var traversal = Assert.IsType<TraversalExecutionView>(execution.Host.KernelCore.TraversalExecution);
++        var navRecords = traversal.Handlers.Where(record => record.HandlerId is "nav-before" or "nav-after").ToArray();
++        Assert.Collection(navRecords,
++            record => Assert.Equal("Before", record.Phase),
++            record => Assert.Equal("AfterVerified", record.Phase));
++        Assert.Equal(navRecords[0].OperationId, navRecords[1].OperationId);
++        Assert.NotEqual(navRecords[0].SourceRevisionId, navRecords[1].SourceRevisionId);
++        Assert.Equal("navigate-settings", Assert.Single(traversal.Operations!.Where(operation =>
++            operation.TemplateId == "navigate-settings")).TemplateId);
++        Assert.Contains(traversal.Handlers, record => record.HandlerId == "read-before");
++        Assert.Contains(traversal.Handlers, record => record.HandlerId == "read-after");
++        var readOperationIds = traversal.Handlers.Where(record => record.HandlerId.StartsWith("read-", StringComparison.Ordinal))
++            .Select(record => record.OperationId).Distinct().ToArray();
++        Assert.Single(readOperationIds);
++        Assert.NotEqual(navRecords[0].OperationId, readOperationIds[0]);
++        Assert.Equal(2, traversal.Handlers.Select(record => record.OperationId).Distinct().Count());
++    }
++
++    [Fact]
++    public void LocalWorkBudgetStopsBeforeInvokingARequiredHandler()
++    {
++        var before = TraversalScenarioFixture.EnglishHandler("budget-before");
++        var operation = TraversalScenarioFixture.ReadOnlyOperation("budgeted-read", before: new[] { before });
++        var rule = new TraversalRule("budget-rule", "readOnly", operation);
++        var agentCalls = 0;
++        var recovery = new List<UniClaw.Kernel.Runtime.TraversalRecoveryFacts>();
++        var scenario = TraversalScenarioFixture.Create(
++            new[] { new TraversalScenarioFixture.Page("root", new[]
++            {
++                TraversalScenarioFixture.ReadOnlyTarget("menuItem", "Settings"),
++            }) },
++            new[] { rule }, maxOperations: 1,
++            agentOverride: context => ++agentCalls == 1
++                ? TraversalScenarioFixture.Decide(context, new[] { rule }, maxOperations: 1)
++                : new AgentDecision.ContinuePlan(context.DecisionId, context.PlanExecution!.Position),
++            recoveryObserver: recovery.Add,
++            expectedOverride: new ScenarioExpectation("AgentDecisionFailed", null, 0, 2, 0, null));
++
++        var execution = ScenarioRunner.Run(scenario.Bundle, scenario.Options);
++
++        Assert.True(execution.Report.AcceptancePassed,
++            ScenarioReport.DescribeAcceptance(scenario.Bundle, execution.Report) + "; traversal="
++            + System.Text.Json.JsonSerializer.Serialize(execution.Host.KernelCore.TraversalExecution));
++        Assert.Empty(scenario.Effects.Effects);
++        var traversal = Assert.IsType<TraversalExecutionView>(execution.Host.KernelCore.TraversalExecution);
++        Assert.Equal("traversal:local-work-exhausted", traversal.PauseReason);
++        Assert.Empty(traversal.Handlers);
++        Assert.Contains(traversal.Operations!, operationRecord => !operationRecord.Completed);
++        Assert.True(traversal.KnownRemainingWork >= 1);
++        Assert.Contains("plan:local-work-exhausted-requires-revision", execution.Report.Reason,
++            StringComparison.Ordinal);
++        Assert.True(traversal.WorkUsed > 0);
++        Assert.Equal(Assert.Single(recovery).Traversal.WorkUsed, traversal.WorkUsed);
++    }
++
++    [Fact]
++    public void LifecycleCancellationDuringMissingPostEvidencePreservesEffectWithoutClaimingVerification()
++    {
++        var handler = TraversalScenarioFixture.EnglishHandler("after-cancel");
++        var operation = TraversalScenarioFixture.NavigationOperation("open-before-cancel",
++            after: new[] { handler });
++        var scenario = TraversalScenarioFixture.Create(
++            new[] { new TraversalScenarioFixture.Page("root", new[]
++            {
++                TraversalScenarioFixture.Link("Settings"),
++            }) },
++            TraversalScenarioFixture.NavigationRules(operation),
++            expectedOverride: new ScenarioExpectation("CancelledWithoutSafeStopPath", null, 1, 1, 0, null));
++        var phased = scenario.Options with { Phased = true };
++
++        var pending = ScenarioRunner.Run(scenario.Bundle, phased);
++
++        Assert.False(pending.Report.AcceptancePassed);
++        Assert.StartsWith("PhasedPending:", pending.Report.Reason, StringComparison.Ordinal);
++        Assert.Equal("post-action-evidence", pending.Host.RecordedDriveResults[^1].Reason);
++        Assert.Single(pending.Host.Facts.EffectReceipts);
++        var cancel = new ScenarioStimulus.CancelRequest("cancel-after-delivery")
++        {
++            StimulusId = "cancel-after-delivery",
++            VirtualTime = new DateTimeOffset(2026, 10, 19, 2, 1, 0, TimeSpan.Zero),
++        };
++        Assert.True(pending.Host.SubmitStimulus(cancel));
++
++        var cancelled = pending.Host.DriveOnce();
++        Assert.Equal(RunDriveStatus.CancelledWithoutSafeStopPath, cancelled.Status);
++        var report = ScenarioRunner.FinalizePhased(scenario.Bundle, pending.Host);
++
++        Assert.True(report.AcceptancePassed,
++            ScenarioReport.DescribeAcceptance(scenario.Bundle, report) + "; traversal="
++            + System.Text.Json.JsonSerializer.Serialize(pending.Host.KernelCore.TraversalExecution));
++        Assert.Single(scenario.Effects.Effects);
++        Assert.Single(pending.Host.Facts.EffectReceipts);
++        Assert.Contains(cancel.StimulusId, report.ConsumedStimulusIds);
++        var traversal = Assert.IsType<TraversalExecutionView>(pending.Host.KernelCore.TraversalExecution);
++        Assert.Equal(PlanExecutionStatus.Abandoned, traversal.Status);
++        Assert.Contains("cancel-after-delivery", traversal.EndReason, StringComparison.Ordinal);
++        Assert.Contains(traversal.Gaps, gap => gap.Reason == "verification-interrupted-by-cancel");
++        Assert.Contains(traversal.Operations!, record => !record.Completed);
++        Assert.DoesNotContain(traversal.Handlers, record => record.Phase == "AfterVerified");
++    }
++
+     private static Finding Finding(PlanHandlerInput input, FindingDisposition disposition, CapabilityStatus status) =>
+         new("sim-handler-finding", new CapabilityCorrelation(input.RunId,
+             operationId: input.OperationId, domainCorrelation: input.SourceRevisionId),
+--- review-2/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs
++++ review-3/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs
+@@ -1,4 +1,5 @@
+ using UniClaw.Kernel.Effects;
++using UniClaw.Kernel.Capability;
+ using UniClaw.Kernel.Runtime;
+ using UniClaw.Kernel.World;
+ using Xunit;
+@@ -283,4 +284,250 @@
+         Assert.Equal(2, traversal.Handlers.Count(handler => handler.HandlerId == "switch-language"));
+         Assert.Equal("completed", traversal.EndReason);
+     }
++
++    [Fact]
++    public void ReturnToUnexpectedContainerPausesWithoutAnotherEffect()
++    {
++        var scenario = TraversalScenarioFixture.Create(
++            new[]
++            {
++                new TraversalScenarioFixture.Page("root", new[] { TraversalScenarioFixture.Link("A") }),
++                new TraversalScenarioFixture.Page("A", new[]
++                {
++                    TraversalScenarioFixture.Link("C"), TraversalScenarioFixture.Back(),
++                }),
++                new TraversalScenarioFixture.Page("C", new[] { TraversalScenarioFixture.Back() }),
++                new TraversalScenarioFixture.Page("unexpected", new[] { TraversalScenarioFixture.Back() }),
++            },
++            TraversalScenarioFixture.NavigationRules(
++                TraversalScenarioFixture.NavigationOperation("visit-link")),
++            expectedOverride: new ScenarioExpectation("TerminalNotProven", null, 3, 2, 0, null),
++            continuePaused: _ => false);
++
++        var execution = ScenarioRunner.Run(scenario.Bundle, scenario.Options);
++
++        Assert.True(execution.Report.AcceptancePassed,
++            ScenarioReport.DescribeAcceptance(scenario.Bundle, execution.Report) + "; traversal="
++            + System.Text.Json.JsonSerializer.Serialize(execution.Host.KernelCore.TraversalExecution));
++        Assert.Equal(new[] { "A", "C", "Back" }, scenario.Effects.Effects.Select(effect => effect.Descriptor));
++        Assert.Equal(3, execution.Host.Facts.EffectReceipts.Count);
++        var traversal = Assert.IsType<TraversalExecutionView>(execution.Host.KernelCore.TraversalExecution);
++        Assert.Equal("traversal:return-failed", traversal.PauseReason);
++        Assert.Contains(traversal.Gaps, gap => gap.Reason == "return-target-not-current");
++        Assert.Equal(execution.Host.Facts.CurrentWorldClaims[WorldModel.CurrentContainerSubject],
++            traversal.CurrentContainerId);
++    }
++
++    [Fact]
++    public void MissingAfterVerifiedTargetStopsLaterHandlerAndSiblingEffect()
++    {
++        var seenHandlers = new List<string>();
++        var agentCalls = 0;
++        var required = TraversalScenarioFixture.EnglishHandler("require-after-target", requirePass: true);
++        var later = TraversalScenarioFixture.EnglishHandler("must-not-run-after-target");
++        var operation = TraversalScenarioFixture.NavigationOperation("open-settings",
++            after: new[] { required, later });
++        var scenario = TraversalScenarioFixture.Create(
++            new[]
++            {
++                new TraversalScenarioFixture.Page("root", new[]
++                {
++                    TraversalScenarioFixture.Link("Settings"),
++                    TraversalScenarioFixture.Link("More"),
++                }),
++                new TraversalScenarioFixture.Page("settings", new[]
++                {
++                    TraversalScenarioFixture.Link("Details"),
++                }),
++            },
++            TraversalScenarioFixture.NavigationRules(operation),
++            agentOverride: context =>
++            {
++                agentCalls++;
++                return context.Phase == AgentDecisionPhase.InitialPlanning
++                    ? TraversalScenarioFixture.Decide(context,
++                        TraversalScenarioFixture.NavigationRules(operation))
++                    : null;
++            },
++            expectedOverride: new ScenarioExpectation("WaitingForInput", null, 1, 2, 0, null),
++            inspectObserver: (handler, input) => seenHandlers.Add(handler.HandlerId));
++        var phased = scenario.Options with { Phased = true };
++
++        var pending = ScenarioRunner.Run(scenario.Bundle, phased);
++
++        Assert.False(pending.Report.AcceptancePassed);
++        Assert.StartsWith("PhasedPending:", pending.Report.Reason, StringComparison.Ordinal);
++        Assert.Equal(2, agentCalls);
++        Assert.Single(scenario.Effects.Effects);
++        Assert.Single(pending.Host.Facts.EffectReceipts);
++        Assert.Equal(new[] { "require-after-target" }, seenHandlers);
++        var traversal = Assert.IsType<TraversalExecutionView>(pending.Host.KernelCore.TraversalExecution);
++        Assert.Contains(traversal.Handlers, handler => handler.HandlerId == "require-after-target"
++            && handler.Phase == "AfterVerified"
++            && handler.Result?.Disposition == FindingDisposition.Unknown);
++        Assert.DoesNotContain(traversal.Handlers, handler => handler.HandlerId == "must-not-run-after-target");
++        Assert.Equal("traversal:handler-require-pass", traversal.PauseReason);
++        var consultations = pending.Host.Consultations.Calls.Count;
++        var deliveries = pending.Host.EffectDeliveryCount;
++        var queried = pending.Host.Driver.TraversalExecution;
++        Assert.Same(queried, pending.Host.Driver.TraversalExecution);
++        Assert.Equal(consultations, pending.Host.Consultations.Calls.Count);
++        Assert.Equal(deliveries, pending.Host.EffectDeliveryCount);
++        Assert.Single(scenario.Effects.Effects);
++    }
++
++    [Fact]
++    public void ContradictoryAfterVerifiedFindingStopsLaterHandler()
++    {
++        var inspected = new List<string>();
++        var agentCalls = 0;
++        var required = TraversalScenarioFixture.EnglishHandler("require-pass", requirePass: true);
++        var later = TraversalScenarioFixture.EnglishHandler("later-after-handler");
++        var operation = TraversalScenarioFixture.ReadOnlyOperation("inspect-current-target",
++            after: new[] { required, later });
++        var scenario = TraversalScenarioFixture.Create(
++            new[] { new TraversalScenarioFixture.Page("root", new[]
++            {
++                TraversalScenarioFixture.ReadOnlyTarget("menuItem", "Settings"),
++            }) },
++            new[] { new TraversalRule("inspect", "readOnly", operation) },
++            agentOverride: context =>
++            {
++                agentCalls++;
++                return context.Phase == AgentDecisionPhase.InitialPlanning
++                    ? TraversalScenarioFixture.Decide(context,
++                        new[] { new TraversalRule("inspect", "readOnly", operation) })
++                    : null;
++            },
++            inspectOverride: (handler, input) =>
++            {
++                inspected.Add(handler.HandlerId);
++                var correlation = new CapabilityCorrelation(input.RunId, operationId: input.OperationId,
++                    domainCorrelation: input.SourceRevisionId);
++                return new Finding("simulated-contradictory-post", correlation, handler.ProtocolVersion,
++                    handler.CapabilityId, FindingDisposition.Violation, CapabilityStatus.Completed,
++                    "simulated verified result contradicts the required pass condition");
++            },
++            expectedOverride: new ScenarioExpectation("WaitingForInput", null, 0, 2, 0, null));
++        var phased = scenario.Options with { Phased = true };
++
++        var pending = ScenarioRunner.Run(scenario.Bundle, phased);
++
++        Assert.False(pending.Report.AcceptancePassed);
++        Assert.StartsWith("PhasedPending:", pending.Report.Reason, StringComparison.Ordinal);
++        Assert.Equal(2, agentCalls);
++        Assert.Empty(scenario.Effects.Effects);
++        Assert.Empty(pending.Host.Facts.EffectReceipts);
++        Assert.Equal(new[] { "require-pass" }, inspected);
++        var traversal = Assert.IsType<TraversalExecutionView>(pending.Host.KernelCore.TraversalExecution);
++        Assert.Single(traversal.Handlers);
++        Assert.Equal(FindingDisposition.Violation, traversal.Handlers[0].Result!.Disposition);
++        Assert.Equal("traversal:handler-require-pass", traversal.PauseReason);
++    }
++
++    [Fact]
++    public void MissingPostActionObservationWaitsWithoutAfterHandlerOrSiblingEffect()
++    {
++        var inspectedHandlers = new List<string>();
++        var after = TraversalScenarioFixture.EnglishHandler("after-verified");
++        var operation = TraversalScenarioFixture.NavigationOperation("open-settings",
++            after: new[] { after });
++        var scenario = TraversalScenarioFixture.Create(
++            new[] { new TraversalScenarioFixture.Page("root", new[]
++            {
++                TraversalScenarioFixture.Link("Settings"),
++                TraversalScenarioFixture.Link("More"),
++            }) },
++            TraversalScenarioFixture.NavigationRules(operation),
++            expectedOverride: new ScenarioExpectation("WaitingForInput", null, 1, 1, 0, null),
++            inspectObserver: (handler, _) => inspectedHandlers.Add(handler.HandlerId));
++
++        var execution = ScenarioRunner.Run(scenario.Bundle, scenario.Options);
++
++        Assert.True(execution.Report.AcceptancePassed,
++            ScenarioReport.DescribeAcceptance(scenario.Bundle, execution.Report));
++        Assert.Single(scenario.Effects.Effects);
++        Assert.Single(execution.Host.Facts.EffectReceipts);
++        Assert.Empty(inspectedHandlers);
++        var traversal = Assert.IsType<TraversalExecutionView>(execution.Host.KernelCore.TraversalExecution);
++        Assert.Empty(traversal.Handlers);
++        Assert.Equal("post-action-evidence", execution.Report.Reason);
++        Assert.Empty(scenario.Effects.Effects.Skip(1));
++    }
++
++    [Fact]
++    public void ContradictoryNavigationPostIsRejectedBeforeAfterHandlerOrNextEffect()
++    {
++        var inspectedHandlers = new List<string>();
++        var after = TraversalScenarioFixture.EnglishHandler("must-not-inspect-unverified-target");
++        var operation = TraversalScenarioFixture.NavigationOperation("open-A", after: new[] { after });
++        var scenario = TraversalScenarioFixture.Create(
++            new[]
++            {
++                new TraversalScenarioFixture.Page("root", new[]
++                {
++                    TraversalScenarioFixture.Link("A"),
++                    TraversalScenarioFixture.Link("B"),
++                }),
++                new TraversalScenarioFixture.Page("root", new[]
++                {
++                    TraversalScenarioFixture.Link("B"),
++                }),
++            },
++            TraversalScenarioFixture.NavigationRules(operation),
++            expectedOverride: new ScenarioExpectation("TerminalNotProven", null, 1, 2, 0, null),
++            inspectObserver: (handler, _) => inspectedHandlers.Add(handler.HandlerId));
++
++        var execution = ScenarioRunner.Run(scenario.Bundle, scenario.Options);
++
++        Assert.True(execution.Report.AcceptancePassed,
++            ScenarioReport.DescribeAcceptance(scenario.Bundle, execution.Report) + "; traversal="
++            + System.Text.Json.JsonSerializer.Serialize(execution.Host.KernelCore.TraversalExecution));
++        Assert.Single(scenario.Effects.Effects);
++        Assert.Single(execution.Host.Facts.EffectReceipts);
++        Assert.Empty(inspectedHandlers);
++        var verification = Assert.Single(execution.Host.Facts.PostActionVerifications);
++        Assert.False(verification.IsVerified);
++        Assert.Equal("post-action-target-unique", verification.RejectionReason);
++        var attempt = Assert.Single(execution.Host.Consultations.Calls.Last().PlanExecution!.Attempts);
++        Assert.Equal(PlanAttemptStatus.Rejected, attempt.Status);
++        var traversal = Assert.IsType<TraversalExecutionView>(execution.Host.KernelCore.TraversalExecution);
++        Assert.Equal(PlanExecutionStatus.Abandoned, traversal.Status);
++        Assert.Equal("traversal:step-chain-failed", traversal.EndReason);
++        Assert.Empty(traversal.Handlers);
++    }
++
++    [Fact]
++    public void StaleTraversalProjectionCannotDispatchAnEffect()
++    {
++        var scenario = TraversalScenarioFixture.Create(
++            new[] { new TraversalScenarioFixture.Page("root", new[]
++            {
++                TraversalScenarioFixture.Link("A"),
++            }) },
++            TraversalScenarioFixture.NavigationRules(
++                TraversalScenarioFixture.NavigationOperation("visit-stale-projection")),
++            expectedOverride: new ScenarioExpectation("TerminalNotProven", null, 0, 2, 0, null),
++            continuePaused: _ => false,
++            projectionOverride: (kernel, source) =>
++            {
++                var observation = new TraversalScenarioFixture.EffectCapture().Project(kernel, source);
++                return observation is null ? null : observation with
++                {
++                    Graph = observation.Graph with { SourceRevisionId = "revision:not-current" },
++                };
++            });
++
++        var execution = ScenarioRunner.Run(scenario.Bundle, scenario.Options);
++
++        Assert.True(execution.Report.AcceptancePassed,
++            ScenarioReport.DescribeAcceptance(scenario.Bundle, execution.Report) + "; traversal="
++            + System.Text.Json.JsonSerializer.Serialize(execution.Host.KernelCore.TraversalExecution));
++        Assert.Empty(scenario.Effects.Effects);
++        Assert.Empty(execution.Host.Facts.EffectReceipts);
++        Assert.Equal("evidence-insufficient", execution.Report.Reason);
++        var traversal = Assert.IsType<TraversalExecutionView>(execution.Host.KernelCore.TraversalExecution);
++        Assert.Equal("traversal:stale-or-unassociated-projection", traversal.PauseReason);
++        Assert.Contains(traversal.Gaps, gap => gap.Reason == "traversal:stale-or-unassociated-projection");
++    }
+ }

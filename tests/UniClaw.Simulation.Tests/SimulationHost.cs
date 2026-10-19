@@ -247,7 +247,16 @@ internal sealed class SimulationHost
         var driver = new KernelRunDriver(kernel, planPolicy, new RunDriverInputs
         {
             NextInput = feed.Next,
+            PollCancellation = seams?.TraversalProjection is null ? null : feed.TryTakeCancellation,
             ConsultAgent = journal.Consult,
+            AvailablePlanSources = seams?.TraversalProjection is null ? null
+                : new Dictionary<string, string> { ["sim.menu"] = "World-backed deterministic menu classification" },
+            ProjectTraversal = seams?.TraversalProjection is null ? null
+                : source => seams.TraversalProjection(kernel, source),
+            CanBindPlanLanguage = seams?.CanBindPlanLanguage,
+            InspectPlanLanguage = seams?.InspectPlanLanguage,
+            ObserveTraversalRecovery = seams?.ObserveTraversalRecovery,
+            PlanHandlerTimeout = seams?.PlanHandlerTimeout ?? TimeSpan.FromSeconds(2),
         });
 
         var host = new SimulationHost(

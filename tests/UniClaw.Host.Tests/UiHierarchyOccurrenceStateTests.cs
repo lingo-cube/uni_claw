@@ -11,6 +11,43 @@ namespace UniClaw.Host.Tests;
 public sealed class UiHierarchyOccurrenceStateTests
 {
     [Fact]
+    public void MultipleRememberedPages_AnchorNewHierarchyToCurrentPage()
+    {
+        var evidence = new EvidenceLedger();
+        var world = new WorldModel(new HashSet<string> { "ui.screen", "ui.node.*" },
+            new ProductAssociationStrategy(), new UiHierarchyOccurrenceStrategy());
+        void Accept(ObservationProposal proposal)
+        {
+            var (admission, record) = evidence.Admit(proposal);
+            Assert.Equal(AdmissionDecision.Accepted, admission.Decision);
+            world.Reconcile(record!, world.JudgeRelevance(record!));
+        }
+        var time = DateTimeOffset.Parse("2026-10-18T00:00:00Z");
+        Accept(new ObservationProposal(new ObservationClaim("ui.screen", "root"),
+            IngressKind.Observation, ObservationContext.External,
+            new Provenance("host.live.settings", time, "scope:root", new[] { "test" })));
+        Accept(new ObservationProposal(new ObservationClaim("ui.screen", "root/child"),
+            IngressKind.Observation, ObservationContext.External,
+            new Provenance("host.live.settings", time.AddSeconds(1), "scope:child", new[] { "test" })));
+        const string xml = """
+            <hierarchy><node index="0" text="" content-desc="Navigate up" resource-id="android:id/up"
+            class="android.widget.ImageButton" package="com.android.settings" clickable="true" enabled="true"
+            checkable="false" scrollable="false" bounds="[0,0][120,120]"/></hierarchy>
+            """;
+        var parsed = UiAutomatorDump.ParseHierarchyObservation(xml,
+            new UiAutomatorDump.UiHierarchyParseContext("multi-page", time.AddSeconds(2), "device", "run", 35,
+                ObservationCycleId: "cycle-2", Capabilities: new HierarchyCapabilities(
+                    HierarchyCapability.SemanticText | HierarchyCapability.ContentDescription)));
+        foreach (var proposal in TypedHierarchyProposalProjector.Project(parsed.Observation!, ObservationContext.External))
+            Accept(proposal);
+        Assert.Equal(2, world.Current!.Containers!.Count);
+        var active = world.Current.WorldState[WorldModel.CurrentContainerSubject].Value;
+        var occurrence = Assert.Single(world.Current.Occurrences!);
+        Assert.Equal(active, occurrence.OwningContainerId);
+        Assert.Single(world.DeriveSlice(active).Occurrences);
+    }
+
+    [Fact]
     public void ExactUncheckedSwitch_RemainsAvailableToControlPolicy()
     {
         const string xml = """

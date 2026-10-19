@@ -1,0 +1,10 @@
+{
+  "round": 6,
+  "decision": "D5=status query during execution; return result only at execution end",
+  "frontier": "Q6 pending",
+  "round_documents_checked": 6,
+  "links_checked": 5,
+  "checker_initial_failure": "literal 待敲定 absent although contract remains RESOLVE; removed prose-specific assertion, no acceptance change",
+  "final_check": "PASS_DOCUMENT_CHECKS_ONLY",
+  "implementation_started": false
+}

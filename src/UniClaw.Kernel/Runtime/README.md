@@ -18,6 +18,8 @@ State 发出）。
 | `RunDriverInputs.cs` | 驱动输入（observation/cancel/unexpected 的 typed 形状） |
 | `AgentDecision.cs` | Agent 决策缝词汇（proposal/disposition） |
 | `AgentPlanPolicy.cs` | 决策计划策略（FROZEN v0.3.1 咨询缝词汇） |
+| `TraversalExecution.cs` | 持续遍历World引用投影、操作级typed语言handler、调用/状态/报告及Recovery事实交接词汇 |
+| `PlanExecution.cs` | 计划候选/守卫投影、明确续行位置、逐动作尝试及阻碍证据视图 |
 | `PolicyProtocol.cs` / `PolicyRuntime.cs` | 策略求值协议与运行时（Slice A/B；求值机制面保持 internal） |
 | `ConsultationTypes.cs` | 咨询缝 typed 词汇 |
 | `ConsultationJournal.cs` | P25 四元组 journal seam、semantic count 与 fail-closed replay |
@@ -34,3 +36,7 @@ State 发出）。
   ADR-0026（buyer-driven 泛化）；
 - 被组装的六域：`../Evidence/` `../World/` `../Run/` `../Control/`
   `../Assurance/` `../Effects/` 各 README。
+
+## RUNTIME-PLAN-002 持续遍历
+
+`PlanItem.TraverseItem`复用原Plan/ContinuePlan。ControlLoop持有Control/TraversalControl；KernelRunDriver协调当前World投影、typed语言handler和原StepAct→StepVerify链。RunModel记录TraversalExecutionView和历史，状态查询读Owner记录，暂停不产生最终报告。ReadOnly仅记录/检查，Navigate始终经原许可/验证；发现不足/深度/排除/未知在报告中保留，不推出Goal完成。字段、输入关联及协议生成闭包见[正式执行契约](../../../changes/RUNTIME-PLAN-002/execution-contract.md)。

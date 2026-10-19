@@ -31,9 +31,10 @@ public static class ProductProtocolSchemaGenerator
         typeof(ConsultationBudget), typeof(CompletionEvidence), typeof(PolicyProgressState),
         typeof(Heartbeat), typeof(HeartbeatWorldModel), typeof(HeartbeatKernel),
         typeof(HeartbeatTraversal), typeof(HeartbeatEvent), typeof(ContextReferenceEntry),
-        typeof(CasePacket),
+        typeof(CasePacket), typeof(BudgetReviewResponse), typeof(AgentProgressAssessment),
         typeof(CapabilitySelectionPayload), typeof(AgentTaskInitialization),
-        typeof(AgentTaskEnvelope),
+        typeof(AgentTaskEnvelope), typeof(AgentPlanProposal), typeof(PlanItem),
+        typeof(PlanExecutionPosition), typeof(PlanExecutionView), typeof(TraversalExecutionView),
     };
 
     public static ProductProtocolSchema Generate()
@@ -163,6 +164,11 @@ public static class ProductProtocolSchemaGenerator
 
     private static JsonObject Ref(Type type) => new() { ["$ref"] = $"#/$defs/{type.Name}" };
 
+    private static JsonObject NullableRef(Type type) => new()
+    {
+        ["anyOf"] = new JsonArray(Ref(type), new JsonObject { ["type"] = "null" }),
+    };
+
     private static JsonNode Canonicalize(JsonNode node)
     {
         if (node is JsonObject obj)
@@ -201,6 +207,19 @@ public static class ProductProtocolSchemaGenerator
                 schema = new JsonObject
                 {
                     ["oneOf"] = new JsonArray(
+                        DecisionBranch("plan", "proposal", typeof(AgentPlanProposal)),
+                        DecisionBranch("continuePlan", "position", typeof(PlanExecutionPosition)),
+                        new JsonObject
+                        {
+                            ["type"] = "object", ["properties"] = new JsonObject
+                            {
+                                ["kind"] = new JsonObject { ["const"] = "blocked" },
+                                ["decisionId"] = new JsonObject { ["type"] = "string" },
+                                ["reason"] = new JsonObject { ["type"] = "string", ["minLength"] = 1 },
+                                ["reviewResponse"] = NullableRef(typeof(BudgetReviewResponse)),
+                            }, ["required"] = new JsonArray("kind", "decisionId", "reason"),
+                            ["additionalProperties"] = false,
+                        },
                         new JsonObject
                         {
                             ["type"] = "object", ["properties"] = new JsonObject
@@ -208,6 +227,7 @@ public static class ProductProtocolSchemaGenerator
                                 ["kind"] = new JsonObject { ["const"] = "act" },
                                 ["decisionId"] = new JsonObject { ["type"] = "string" },
                                 ["proposal"] = Ref(typeof(AgentActionProposal)),
+                                ["reviewResponse"] = NullableRef(typeof(BudgetReviewResponse)),
                             }, ["required"] = new JsonArray("kind", "decisionId", "proposal"),
                             ["additionalProperties"] = false,
                         },
@@ -218,6 +238,7 @@ public static class ProductProtocolSchemaGenerator
                                 ["kind"] = new JsonObject { ["const"] = "policy" },
                                 ["decisionId"] = new JsonObject { ["type"] = "string" },
                                 ["proposal"] = Ref(typeof(PolicyProposal)),
+                                ["reviewResponse"] = NullableRef(typeof(BudgetReviewResponse)),
                             }, ["required"] = new JsonArray("kind", "decisionId", "proposal"),
                             ["additionalProperties"] = false,
                         },
@@ -228,6 +249,7 @@ public static class ProductProtocolSchemaGenerator
                                 ["kind"] = new JsonObject { ["const"] = "noAction" },
                                 ["decisionId"] = new JsonObject { ["type"] = "string" },
                                 ["proposal"] = Ref(typeof(AgentNoActionProposal)),
+                                ["reviewResponse"] = NullableRef(typeof(BudgetReviewResponse)),
                             }, ["required"] = new JsonArray("kind", "decisionId", "proposal"),
                             ["additionalProperties"] = false,
                         },
@@ -238,6 +260,12 @@ public static class ProductProtocolSchemaGenerator
                                 ["kind"] = new JsonObject { ["const"] = "defer" },
                                 ["decisionId"] = new JsonObject { ["type"] = "string" },
                                 ["spec"] = Ref(typeof(ObserveSpec)),
+                                ["renewal"] = new JsonObject
+                                {
+                                    ["anyOf"] = new JsonArray(Ref(typeof(BudgetRenewalRequest)),
+                                        new JsonObject { ["type"] = "null" }),
+                                },
+                                ["reviewResponse"] = NullableRef(typeof(BudgetReviewResponse)),
                             }, ["required"] = new JsonArray("kind", "decisionId", "spec"),
                             ["additionalProperties"] = false,
                         },
@@ -254,10 +282,107 @@ public static class ProductProtocolSchemaGenerator
                                     ["type"] = "array", ["minItems"] = 1,
                                     ["items"] = new JsonObject { ["type"] = "string" },
                                 },
+                                ["reviewResponse"] = NullableRef(typeof(BudgetReviewResponse)),
                             },
                             ["required"] = new JsonArray("kind", "decisionId", "target", "reason", "evidenceRefs"),
                             ["additionalProperties"] = false,
                         })
+                };
+            }
+            else if (type == typeof(PlanItem))
+            {
+                var act = TaggedPlanItem(typeof(PlanItem.ActItem), "act");
+                var observe = TaggedPlanItem(typeof(PlanItem.ObserveItem), "observe");
+                var control = TaggedPlanItem(typeof(PlanItem.ControlItem), "control");
+                var checkpoint = TaggedPlanItem(typeof(PlanItem.CheckpointItem), "checkpoint");
+                var loop = TaggedPlanItem(typeof(PlanItem.ForEachItem), "forEach");
+                loop["properties"]!["body"] = PlanBlockSchema(allowEmpty: false);
+                var branch = TaggedPlanItem(typeof(PlanItem.IfItem), "if");
+                branch["properties"]!["condition"]!["minLength"] = 1;
+                branch["properties"]!["then"] = PlanBlockSchema(allowEmpty: true);
+                branch["properties"]!["else"] = PlanBlockSchema(allowEmpty: true);
+                var repeat = TaggedPlanItem(typeof(PlanItem.RepeatItem), "repeat");
+                repeat["properties"]!["body"] = PlanBlockSchema(allowEmpty: false);
+                repeat["properties"]!["maxIterations"]!["minimum"] = 1;
+                var traverse = TaggedPlanItem(typeof(PlanItem.TraverseItem), "traverse");
+                traverse["properties"]!["source"]!["minLength"] = 1;
+                traverse["properties"]!["rules"]!["minItems"] = 1;
+                traverse["properties"]!["rules"]!["maxItems"] = 16;
+                traverse["properties"]!["maxDepth"]!["minimum"] = 0;
+                traverse["properties"]!["maxDepth"]!["maximum"] = 16;
+                schema = new JsonObject { ["oneOf"] = new JsonArray(act, observe, control, checkpoint, loop, branch, repeat, traverse) };
+            }
+            else if (type == typeof(TraversalOperation))
+            {
+                EnsureDefinition(typeof(PlanLanguageHandler));
+                EnsureDefinition(typeof(AgentActionStep));
+                var handlers = new JsonObject { ["type"] = "array", ["maxItems"] = 8,
+                    ["items"] = Ref(typeof(PlanLanguageHandler)) };
+                schema = new JsonObject
+                {
+                    ["oneOf"] = new JsonArray(
+                        new JsonObject
+                        {
+                            ["type"] = "object",
+                            ["properties"] = new JsonObject
+                            {
+                                ["operationId"] = new JsonObject { ["type"] = "string", ["minLength"] = 1 },
+                                ["kind"] = new JsonObject { ["const"] = "ReadOnly" },
+                                ["step"] = new JsonObject { ["type"] = "null" },
+                                ["before"] = handlers.DeepClone(),
+                                ["afterVerified"] = handlers.DeepClone(),
+                            },
+                            ["required"] = new JsonArray("operationId", "kind", "step", "before", "afterVerified"),
+                            ["additionalProperties"] = false,
+                        },
+                        new JsonObject
+                        {
+                            ["type"] = "object",
+                            ["properties"] = new JsonObject
+                            {
+                                ["operationId"] = new JsonObject { ["type"] = "string", ["minLength"] = 1 },
+                                ["kind"] = new JsonObject { ["const"] = "Navigate" },
+                                ["step"] = Ref(typeof(AgentActionStep)),
+                                ["before"] = handlers.DeepClone(),
+                                ["afterVerified"] = handlers.DeepClone(),
+                            },
+                            ["required"] = new JsonArray("operationId", "kind", "step", "before", "afterVerified"),
+                            ["additionalProperties"] = false,
+                        })
+                };
+            }
+            else if (type == typeof(PlanLanguageHandler))
+            {
+                schema = new JsonObject
+                {
+                    ["type"] = "object",
+                    ["properties"] = new JsonObject
+                    {
+                        ["handlerId"] = new JsonObject { ["type"] = "string", ["minLength"] = 1 },
+                        ["capabilityId"] = new JsonObject { ["const"] = "runtime.language-inspector" },
+                        ["protocolVersion"] = new JsonObject { ["const"] = "1.0" },
+                        ["expectedLanguage"] = new JsonObject { ["type"] = "string", ["minLength"] = 1 },
+                        ["required"] = new JsonObject { ["type"] = "boolean" },
+                        ["requirePass"] = new JsonObject { ["type"] = "boolean" },
+                    },
+                    ["required"] = new JsonArray("handlerId", "capabilityId", "protocolVersion", "expectedLanguage", "required", "requirePass"),
+                    ["additionalProperties"] = false,
+                };
+            }
+            else if (type == typeof(TraversalRule))
+            {
+                EnsureDefinition(typeof(TraversalOperation));
+                schema = new JsonObject
+                {
+                    ["type"] = "object",
+                    ["properties"] = new JsonObject
+                    {
+                        ["ruleId"] = new JsonObject { ["type"] = "string", ["minLength"] = 1 },
+                        ["condition"] = new JsonObject { ["type"] = "string", ["minLength"] = 1 },
+                        ["operation"] = Ref(typeof(TraversalOperation)),
+                    },
+                    ["required"] = new JsonArray("ruleId", "condition", "operation"),
+                    ["additionalProperties"] = false,
                 };
             }
             else if (type == typeof(PolicyPredicate))
@@ -339,8 +464,11 @@ public static class ProductProtocolSchemaGenerator
                     }
                     properties[ToCamelCase(property.Name)] = propertySchema;
                     var propertyNullability = nullability.Create(property);
-                    if (Nullable.GetUnderlyingType(property.PropertyType) is null
+                    if ((type == typeof(BudgetReviewResponse)
+                            && property.Name == nameof(BudgetReviewResponse.Assessment))
+                        || (Nullable.GetUnderlyingType(property.PropertyType) is null
                         && propertyNullability.ReadState != NullabilityState.Nullable)
+                       )
                         required.Add(ToCamelCase(property.Name));
                 }
                 schema = new JsonObject
@@ -349,12 +477,80 @@ public static class ProductProtocolSchemaGenerator
                     ["properties"] = properties,
                     ["additionalProperties"] = false,
                 };
+                if (type == typeof(AgentPlanProposal))
+                {
+                    required.Add("planId");
+                    properties["planId"]!["minLength"] = 1;
+                    properties["version"]!["minimum"] = 1;
+                    properties["maxLocalOperations"]!["minimum"] = 1;
+                    properties["items"]!["minItems"] = 1;
+                    properties["items"]!["maxItems"] = 16;
+                }
+            if (type == typeof(PlanItem.TraverseItem))
+            {
+                properties["source"]!["minLength"] = 1;
+                properties["rules"]!["minItems"] = 1;
+                properties["rules"]!["maxItems"] = 16;
+                properties["maxDepth"]!["minimum"] = 0;
+                properties["maxDepth"]!["maximum"] = 16;
+            }
+                if (type == typeof(PlanExecutionPosition))
+                {
+                    properties["planId"]!["minLength"] = 1;
+                    properties["version"]!["minimum"] = 1;
+                    foreach (var field in new[] { "itemIndex", "iteration", "bodyIndex", "workUsed" })
+                        properties[field]!["minimum"] = 0;
+                }
                 if (required.Count > 0)
                     ((JsonObject)schema)["required"] = required;
             }
 
             _building.Remove(type);
             Definitions[type.Name] = schema;
+        }
+
+        private static JsonObject DecisionBranch(string kind, string field, Type payload) => new()
+        {
+            ["type"] = "object", ["properties"] = new JsonObject
+            {
+                ["kind"] = new JsonObject { ["const"] = kind },
+                ["decisionId"] = new JsonObject { ["type"] = "string" },
+                [field] = Ref(payload),
+                ["reviewResponse"] = NullableRef(typeof(BudgetReviewResponse)),
+            },
+            ["required"] = new JsonArray("kind", "decisionId", field), ["additionalProperties"] = false,
+        };
+
+        private static JsonObject PlanBlockSchema(bool allowEmpty) => new()
+        {
+            ["type"] = "array", ["minItems"] = allowEmpty ? 0 : 1, ["maxItems"] = 16,
+            ["items"] = Ref(typeof(PlanItem)),
+        };
+
+        private JsonObject TaggedPlanItem(Type type, string kind)
+        {
+            EnsureDefinition(type);
+            var schema = (JsonObject)Definitions[type.Name]!.DeepClone();
+            var properties = (JsonObject)schema["properties"]!;
+            if (type == typeof(PlanItem.ControlItem))
+            {
+                properties["control"] = properties["kind"]!.DeepClone();
+                properties.Remove("kind");
+                if (schema["required"] is JsonArray oldRequired)
+                    for (var i = 0; i < oldRequired.Count; i++)
+                        if (oldRequired[i]!.GetValue<string>() == "kind") oldRequired[i] = "control";
+            }
+            properties["kind"] = new JsonObject { ["const"] = kind };
+            var required = schema["required"] as JsonArray;
+            if (required is null) schema["required"] = required = new JsonArray();
+            required.Add("kind");
+            if (type == typeof(PlanItem.ForEachItem))
+            {
+                properties["source"]!["minLength"] = 1;
+                properties["maxIterations"]!["minimum"] = 1;
+                required.Remove(required.FirstOrDefault(node => node?.GetValue<string>() == "continueOnBlocked"));
+            }
+            return schema;
         }
 
         private JsonNode SchemaFor(Type type)

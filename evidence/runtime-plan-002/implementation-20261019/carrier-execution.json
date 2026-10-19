@@ -1,0 +1,236 @@
+{
+  "executedCarriers": 20,
+  "notExecutedLibraryEntries": 8,
+  "sourceHash": "2cf39a51cbf2295b53ecdbbcedc9a8296f4f8e3d7f6f3591af86a224255ea5f3",
+  "log": "simulation-tests-final.log",
+  "scenarios": [
+    {
+      "scenario": "SCN-BARRIER-001",
+      "executionKind": "golden-bundle",
+      "carrier": "wifi-two-step-toggle-menu",
+      "test": "TwoStepBarrierTests.TwoStep_EvidenceBetweenSteps_SecondEffectAllowed_TerminalCompletion",
+      "source": "tests/UniClaw.Simulation.Tests/TwoStepBarrierTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.TwoStepBarrierTests.TwoStep_EvidenceBetweenSteps_SecondEffectAllowed_TerminalCompletion [20 ms]"
+    },
+    {
+      "scenario": "SCN-BARRIER-002",
+      "executionKind": "golden-bundle",
+      "carrier": "wifi-two-step-missing-middle",
+      "test": "TwoStepBarrierTests.TwoStep_MissingMiddleEvidence_SecondEffectBlocked_BySerializationBarrier",
+      "source": "tests/UniClaw.Simulation.Tests/TwoStepBarrierTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.TwoStepBarrierTests.TwoStep_MissingMiddleEvidence_SecondEffectBlocked_BySerializationBarrier [15 ms]"
+    },
+    {
+      "scenario": "SCN-BARRIER-003",
+      "executionKind": "golden-bundle",
+      "carrier": "wifi-two-step-contradictory-post",
+      "test": "TwoStepBarrierTests.TwoStep_PostActionContradictsDesiredState_SecondEffectBlocked",
+      "source": "tests/UniClaw.Simulation.Tests/TwoStepBarrierTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.TwoStepBarrierTests.TwoStep_PostActionContradictsDesiredState_SecondEffectBlocked [10 ms]"
+    },
+    {
+      "scenario": "SCN-PERC-001",
+      "executionKind": "none",
+      "actual": "not-executed-as-library-carrier",
+      "countedAsPass": false
+    },
+    {
+      "scenario": "SCN-PERC-002",
+      "executionKind": "none",
+      "actual": "not-executed-as-library-carrier",
+      "countedAsPass": false
+    },
+    {
+      "scenario": "SCN-PERC-003",
+      "executionKind": "none",
+      "actual": "not-executed-as-library-carrier",
+      "countedAsPass": false
+    },
+    {
+      "scenario": "SCN-PERC-004",
+      "executionKind": "none",
+      "actual": "not-executed-as-library-carrier",
+      "countedAsPass": false
+    },
+    {
+      "scenario": "SCN-PERC-005",
+      "executionKind": "none",
+      "actual": "not-executed-as-library-carrier",
+      "countedAsPass": false
+    },
+    {
+      "scenario": "SCN-PERC-006",
+      "executionKind": "none",
+      "actual": "not-executed-as-library-carrier",
+      "countedAsPass": false
+    },
+    {
+      "scenario": "SCN-PERC-007",
+      "executionKind": "none",
+      "actual": "not-executed-as-library-carrier",
+      "countedAsPass": false
+    },
+    {
+      "scenario": "SCN-PERC-008",
+      "executionKind": "none",
+      "actual": "not-executed-as-library-carrier",
+      "countedAsPass": false
+    },
+    {
+      "scenario": "SCN-POLICY-001",
+      "executionKind": "golden-bundle",
+      "carrier": "policy-immediate-termination",
+      "test": "PolicyScenarioTests.P1_ImmediateTermination_ZeroApplications_Succeeds",
+      "source": "tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.PolicyScenarioTests.P1_ImmediateTermination_ZeroApplications_Succeeds [20 ms]"
+    },
+    {
+      "scenario": "SCN-POLICY-002",
+      "executionKind": "golden-bundle",
+      "carrier": "policy-repeated-application",
+      "test": "PolicyScenarioTests.P2_RepeatedApplications_ClaimEvolution_ToSuccess",
+      "source": "tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.PolicyScenarioTests.P2_RepeatedApplications_ClaimEvolution_ToSuccess [151 ms]"
+    },
+    {
+      "scenario": "SCN-POLICY-003",
+      "executionKind": "golden-bundle",
+      "carrier": "policy-no-match",
+      "test": "PolicyScenarioTests.P3_OutOfDirectionDomain_NoMatch_Reconsult",
+      "source": "tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.PolicyScenarioTests.P3_OutOfDirectionDomain_NoMatch_Reconsult [9 ms]"
+    },
+    {
+      "scenario": "SCN-POLICY-004",
+      "executionKind": "golden-bundle",
+      "carrier": "policy-bounds-exhausted",
+      "test": "PolicyScenarioTests.P4_BoundsExhausted_AfterOneApplication",
+      "source": "tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.PolicyScenarioTests.P4_BoundsExhausted_AfterOneApplication [21 ms]"
+    },
+    {
+      "scenario": "SCN-POLICY-005",
+      "executionKind": "golden-bundle",
+      "carrier": "policy-guard-violated",
+      "test": "PolicyScenarioTests.P5_GuardViolated_AfterConsecutiveUnchangedRounds",
+      "source": "tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.PolicyScenarioTests.P5_GuardViolated_AfterConsecutiveUnchangedRounds [26 ms]"
+    },
+    {
+      "scenario": "SCN-POLICY-006",
+      "executionKind": "golden-bundle",
+      "carrier": "policy-guard-unknown",
+      "test": "PolicyScenarioTests.P6_ConflictedClaim_GuardUnknown_FailClosed",
+      "source": "tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.PolicyScenarioTests.P6_ConflictedClaim_GuardUnknown_FailClosed [25 ms]"
+    },
+    {
+      "scenario": "SCN-POLICY-007",
+      "executionKind": "golden-bundle",
+      "carrier": "policy-verification-failure",
+      "test": "PolicyScenarioTests.P7_VerificationFailureMidway_VoidsPolicy_ExistingTransition",
+      "source": "tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.PolicyScenarioTests.P7_VerificationFailureMidway_VoidsPolicy_ExistingTransition [11 ms]"
+    },
+    {
+      "scenario": "SCN-POLICY-008",
+      "executionKind": "golden-bundle",
+      "carrier": "policy-lease-drift",
+      "test": "PolicyScenarioTests.P8_LeaseIdentityDrift_BetweenApplications_ZeroNewEffect",
+      "source": "tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.PolicyScenarioTests.P8_LeaseIdentityDrift_BetweenApplications_ZeroNewEffect [18 ms]"
+    },
+    {
+      "scenario": "SCN-POLICY-009",
+      "executionKind": "golden-bundle",
+      "carrier": "policy-forbidden-effect",
+      "test": "PolicyScenarioTests.P9_ForbiddenEffectClass_RejectedAtConsultation",
+      "source": "tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.PolicyScenarioTests.P9_ForbiddenEffectClass_RejectedAtConsultation [13 ms]"
+    },
+    {
+      "scenario": "SCN-POLICY-010",
+      "executionKind": "golden-bundle",
+      "carrier": "policy-budget-exceeds",
+      "test": "PolicyScenarioTests.P10_PolicyBudgetExceedsContract_Rejected",
+      "source": "tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.PolicyScenarioTests.P10_PolicyBudgetExceedsContract_Rejected [10 ms]"
+    },
+    {
+      "scenario": "SCN-POLICY-011",
+      "executionKind": "golden-bundle",
+      "carrier": "policy-unknown-ast",
+      "test": "PolicyScenarioTests.P11_UnknownAstNode_Rejected",
+      "source": "tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.PolicyScenarioTests.P11_UnknownAstNode_Rejected [24 ms]"
+    },
+    {
+      "scenario": "SCN-WIFI-001",
+      "executionKind": "golden-bundle",
+      "carrier": "wifi-off-to-on",
+      "test": "DeterministicScenarioTests.S1_OffToOn_OneAuthorizedEffect_VerifiedTerminalOutcome",
+      "source": "tests/UniClaw.Simulation.Tests/DeterministicScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.DeterministicScenarioTests.S1_OffToOn_OneAuthorizedEffect_VerifiedTerminalOutcome [26 ms]"
+    },
+    {
+      "scenario": "SCN-WIFI-002",
+      "executionKind": "golden-bundle",
+      "carrier": "wifi-already-on",
+      "test": "DeterministicScenarioTests.S2_AlreadyOn_ZeroEffect_TerminalCompletion",
+      "source": "tests/UniClaw.Simulation.Tests/DeterministicScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.DeterministicScenarioTests.S2_AlreadyOn_ZeroEffect_TerminalCompletion [11 ms]"
+    },
+    {
+      "scenario": "SCN-WIFI-003",
+      "executionKind": "golden-bundle",
+      "carrier": "wifi-off-to-on",
+      "test": "DeterministicScenarioTests.S3_DuplicateActivation_SinglePrimaryRun",
+      "source": "tests/UniClaw.Simulation.Tests/DeterministicScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.DeterministicScenarioTests.S3_DuplicateActivation_SinglePrimaryRun [18 ms]"
+    },
+    {
+      "scenario": "SCN-WIFI-004",
+      "executionKind": "golden-bundle",
+      "carrier": "wifi-missing-post-action",
+      "test": "DeterministicScenarioTests.S4_MissingPostActionStimulus_LegalWaiting_NoSecondEffect_NoTerminalSuccess",
+      "source": "tests/UniClaw.Simulation.Tests/DeterministicScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.DeterministicScenarioTests.S4_MissingPostActionStimulus_LegalWaiting_NoSecondEffect_NoTerminalSuccess [8 ms]"
+    },
+    {
+      "scenario": "SCN-WIFI-005",
+      "executionKind": "golden-bundle",
+      "carrier": "wifi-cancel-late",
+      "test": "DeterministicScenarioTests.S5_WaitingCancelThenLateStimulus_ZeroLateEffect_NoRevival",
+      "source": "tests/UniClaw.Simulation.Tests/DeterministicScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.DeterministicScenarioTests.S5_WaitingCancelThenLateStimulus_ZeroLateEffect_NoRevival [14 ms]"
+    },
+    {
+      "scenario": "SCN-WIFI-006",
+      "executionKind": "golden-bundle",
+      "carrier": "wifi-off-to-on-generated",
+      "test": "GeneratedScenarioTests.GeneratedWiFiOffToOn_IsEquivalentToRecorded",
+      "source": "tests/UniClaw.Simulation.Tests/GeneratedScenarioTests.cs",
+      "actual": "passed",
+      "evidence": "已通过 UniClaw.Simulation.Tests.GeneratedScenarioTests.GeneratedWiFiOffToOn_IsEquivalentToRecorded [48 ms]"
+    }
+  ]
+}

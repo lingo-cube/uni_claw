@@ -87,6 +87,16 @@ internal sealed class ScenarioStimulusFeed
         }
     }
 
+    // Lifecycle input stays deliverable while traversal waits for a decision or
+    // processes only read-only work; ordinary observations are never dequeued here.
+    public RunDriverInput.Cancel? TryTakeCancellation()
+    {
+        if (!_pending.TryPeek(out var next) || next is not ScenarioStimulus.CancelRequest cancel) return null;
+        _pending.Dequeue();
+        _consumed.Add(cancel.StimulusId);
+        return new RunDriverInput.Cancel(cancel.Reason, cancel.VirtualTime);
+    }
+
     public IReadOnlyList<string> Consumed => _consumed;
     public IReadOnlyList<string> Unexpected => _unexpected;
 

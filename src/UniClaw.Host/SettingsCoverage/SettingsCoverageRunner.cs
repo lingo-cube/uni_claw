@@ -15,6 +15,7 @@ using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
 using UniClaw.Host.Capability;
+using UniClaw.Host.Runtime;
 
 namespace UniClaw.Host.SettingsCoverage;
 
@@ -64,7 +65,8 @@ public sealed class SettingsCoverageRunner
         UniClaw.Kernel.Capability.CapabilityRegistry? RuntimeIntegrationCapabilities = null,
         // 认知测试缝：false 时直接采用 UnderlyingConsult 的建议，仍经同一
         // Kernel grounding/assurance/effect 链；默认 true 保持 coverage director。
-        bool UseCoverageDirector = true);
+        bool UseCoverageDirector = true,
+        Func<RunDriverInput.Cancel?>? PollCancellation = null);
 
     public sealed record StepArtifact(
         int Index,
@@ -109,7 +111,9 @@ public sealed class SettingsCoverageRunner
         IReadOnlyList<AgentActionStep> Steps,
         string? SkipTarget = null,
         string? SkipReason = null,
-        IReadOnlyList<string>? EvidenceRefs = null);
+        IReadOnlyList<string>? EvidenceRefs = null,
+        BudgetRenewalRequest? Renewal = null,
+        BudgetReviewResponse? ReviewResponse = null);
 
     public static RunResult Run(string runRoot, Options options)
     {
@@ -138,17 +142,20 @@ public sealed class SettingsCoverageRunner
         var evidenceDir = options.FeedNext is null
             ? Path.Combine(runDir, "evidence")
             : null;
+        var acquisitionPreflight = System.Diagnostics.Stopwatch.StartNew();
         var liveFeed = options.FeedNext is null
             ? new SettingsTraversalLiveFeed(
                 clock, options.Live, evidenceDir,
                 evidenceSettings.PersistScreenshots, evidenceSettings.PersistHierarchies,
                 coverageConfig: config, uniPerceptionFetch: options.SlowConsult)
             : null;
+        acquisitionPreflight.Stop();
         if (liveFeed is not null)
             WriteText(runDir, "environment-preflight.json", TryJson(new
             {
                 schemaVersion = "uniclaw.environment-preflight.v1",
                 visionServiceWarmup = liveFeed.EnvironmentPreflight,
+                preflightElapsedMilliseconds = acquisitionPreflight.Elapsed.TotalMilliseconds,
                 formalFlowStartedAfterPreflight = true,
             }));
         var feedNext = options.FeedNext ?? liveFeed!.Next;
@@ -185,7 +192,18 @@ public sealed class SettingsCoverageRunner
                 clock: () => clock.Now);
             var effectBoundary = new EffectBoundary(delivery, new FileExecutionJournal(journalPath));
             var metrics = new RuntimeStageMetrics();
-            var planPolicy = new AgentPlanPolicy();
+            var planPolicy = new AgentPlanPolicy
+            {
+                // The existing policy caps cumulative *additional* grants;
+                // task configuration declares the final total, including the initial budget.
+                HardCapTotalSteps = config.Bounds.MaxTotalSteps - config.Bounds.MaxSteps,
+                HardCapConsultations = config.Bounds.MaxTotalConsultRounds - config.Bounds.MaxConsultRounds,
+                RenewalThresholdSteps = config.Bounds.RenewalThresholdSteps,
+                RenewalThresholdRounds = config.Bounds.RenewalThresholdRounds,
+                GoalDirectedContinuationEnabled = config.Bounds.GoalDirectedContinuationEnabled,
+                AuthorizedTotalSteps = config.Bounds.AuthorizedTotalSteps,
+                AuthorizedTotalConsultRounds = config.Bounds.AuthorizedTotalConsultRounds,
+            };
             var traceScope = RunTraceFactory.BeginRun(new RunCorrelation("host:v0-settings-coverage"));
             var evidenceLedger = new EvidenceLedger();
             kernel = new UniKernel(
@@ -194,6 +212,7 @@ public sealed class SettingsCoverageRunner
 
             // ---- NextInput 包装缝：观察/回执交错记账 -----------------------
             LanguageInspectionPostCommit? languageInspection = null;
+            LanguageInspectionBinding? traversalLanguageBinding = null;
             var capabilityProfilesInjected = false;
             void TryBindLanguageInspection()
             {
@@ -211,10 +230,22 @@ public sealed class SettingsCoverageRunner
                     kernel.RunId,
                     request,
                     selection);
+                traversalLanguageBinding = binding;
                 if (binding is not null)
                     languageInspection = new LanguageInspectionPostCommit(
                         binding, Path.Combine(runDir, "language-findings.json"));
             }
+            var traversalInspection = new TraversalLanguageInspection(kernel, evidenceLedger, () =>
+            {
+                TryBindLanguageInspection();
+                var lifecycle = options.RuntimeIntegrationCapabilities?.Facts.LastOrDefault(fact =>
+                    fact.CapabilityId == UniClaw.Kernel.Capability.LanguageInspectionProtocol.CapabilityId)?.Lifecycle;
+                return lifecycle is UniClaw.Kernel.Capability.CapabilityLifecycle.Registered
+                    or UniClaw.Kernel.Capability.CapabilityLifecycle.Ready
+                    or UniClaw.Kernel.Capability.CapabilityLifecycle.Active
+                        ? traversalLanguageBinding : null;
+            });
+            var materializedSteps = new List<(string DecisionId, string? Directive, AgentActionStep Step)>();
             var interleave = new InterleaveBookkeeper(
                 kernel,
                 feedNext,
@@ -223,16 +254,107 @@ public sealed class SettingsCoverageRunner
                 journal,
                 config,
                 TryBindLanguageInspection,
-                () => languageInspection);
+                () => languageInspection,
+                () => journal.Drain(materializedSteps));
             director.SyncBeforeSnapshot = interleave.SyncNow;
             // AGT-009：feed 的有界 Slow 咨询投影目标 = 当前 run kernel。
             if (liveFeed is not null)
                 liveFeed.KernelProvider = () => kernel;
+            using var consultationJournal = new FileConsultationJournal(Path.Combine(runDir, "consultations.journal.jsonl"));
+            var currentStepGuards = new List<object>();
+            var candidateProjections = new List<object>();
+            director.CurrentStepGuardInstalled = true;
             var driver = new KernelRunDriver(
                 kernel, planPolicy,
                 new RunDriverInputs
                 {
                     NextInput = interleave.WrappedNext,
+                    PollCancellation = options.PollCancellation,
+                    ConsultationJournal = consultationJournal,
+                    AvailablePlanSources = SettingsPlanFacts.SourceDescriptions.Concat(new[]
+                    {
+                        new KeyValuePair<string, string>(SettingsTraversalProjection.Source,
+                            "持续菜单遍历；readOnly/navigation来自当前World目标与任务显式分类，未分类为Unknown；live发现穷尽未证明，报告部分覆盖。"),
+                    }).ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal),
+                    ProjectTraversal = source => SettingsTraversalProjection.Project(source, kernel, config),
+                    CanBindPlanLanguage = traversalInspection.CanBind,
+                    InspectPlanLanguage = traversalInspection.Inspect,
+                    ObserveTraversalRecovery = facts => WriteText(runDir, "traversal-recovery.json", TryJson(facts)),
+                    AvailablePlanConditions = SettingsPlanFacts.ConditionDescriptions,
+                    EvaluatePlanCondition = (condition, _) =>
+                    {
+                        journal.Drain(materializedSteps);
+                        interleave.SyncNow();
+                        return SettingsPlanFacts.EvaluateCondition(condition, ledger, config);
+                    },
+                    ProjectPlanCandidates = source =>
+                    {
+                        journal.Drain(materializedSteps);
+                        interleave.SyncNow();
+                        var facts = SettingsPlanFacts.Project(source, ledger, config);
+                        candidateProjections.Add(new { source, facts });
+                        return facts;
+                    },
+                    GuardStep = (step, context) =>
+                    {
+                        journal.Drain(materializedSteps);
+                        interleave.SyncNow();
+                        var constraint = config.ActionPolicy is { } policy
+                            ? SettingsActionGuard.EvaluateCurrentStep(step, context, policy)
+                            : new PlanStepGuardResult(PlanStepGuardVerdict.Allow, "no additional Settings policy configured");
+                        constraint = constraint with
+                        {
+                            EvidenceRefs = (constraint.EvidenceRefs ?? Array.Empty<string>())
+                                .Concat(kernel.CurrentBelief?.EvidenceBasis.AsEnumerable() ?? Enumerable.Empty<string>())
+                                .Distinct(StringComparer.Ordinal).ToArray(),
+                        };
+                        currentStepGuards.Add(new { context.DecisionId, step, constraint, context.Screen });
+                        if (constraint.Verdict == PlanStepGuardVerdict.Allow)
+                            materializedSteps.Add((context.DecisionId,
+                                options.UseCoverageDirector ? director.ConsultLog.LastOrDefault()?.Directive : null, step));
+                        return constraint;
+                    },
+                    CheckTaskEvidenceBarrier = config.Bounds.GoalDirectedContinuationEnabled
+                        ? () =>
+                        {
+                            journal.Drain(materializedSteps);
+                            interleave.SyncNow();
+                            var report = ledger.Report(config);
+                            return report.UncoveredItems.Count == 0 ? null
+                                : string.Join(",", report.UncoveredItems);
+                        }
+                        : null,
+                    ProjectExecutionOverview = () =>
+                    {
+                        // Flush accepted observation/verification facts before projecting;
+                        // Agent, audit history and final report consume this same snapshot.
+                        // Preserve receipt/verification -> post-observation
+                        // ordering. Discovery after a verified swipe depends on
+                        // this same ledger sequence, as does review freshness.
+                        journal.Drain(materializedSteps);
+                        interleave.SyncNow();
+                        var projection = SettingsCoverageOverviewProjector.Project(ledger, config);
+                        var graph = kernel.ProjectWorldGraph($"{kernel.RunId}:{kernel.RunView?.Version}");
+                        var navigationFacts = graph?.Edges.Select(edge =>
+                            $"navigation:{edge.SourceContainerId}>{edge.TargetContainerId}").ToArray()
+                            ?? Array.Empty<string>();
+                        var actionableItems = projection.ActionableItems?.ToDictionary(
+                            entry => entry.Key, entry => entry.Value, StringComparer.Ordinal);
+                        if (actionableItems?.TryGetValue("explore:unobserved-scope", out var exploration) == true)
+                            actionableItems["explore:unobserved-scope"] = exploration with
+                            {
+                                ProgressFactKeys = exploration.ProgressFactKeys.Concat(navigationFacts)
+                                    .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
+                            };
+                        return projection with
+                        {
+                            WorldGraph = graph,
+                            ActionableItems = actionableItems,
+                            ProgressFactKeys = (projection.ProgressFactKeys ?? Array.Empty<string>())
+                                .Concat(navigationFacts)
+                                .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
+                        };
+                    },
                     MarkTargetCoverage = request =>
                     {
                         // Agent Skip is a zero-Effect owner mark. Duplicate or
@@ -262,7 +384,7 @@ public sealed class SettingsCoverageRunner
                         var decision = rawDecision;
                         if (!options.UseCoverageDirector)
                         {
-                            journal.Drain(director.AdoptedSteps);
+                            journal.Drain(materializedSteps);
                             interleave.SyncNow();
                             decision = director.RecordAdvisoryDecision(projected, decision);
                         }
@@ -280,10 +402,18 @@ public sealed class SettingsCoverageRunner
 
             var admission = kernel.AdmitContract(new ExecutionContract(
                 Version: "v0",
-                Objective: "Traverse the Android Settings menu for coverage per the configured plan: "
-                    + "enter every configured first-level entry, discover and enter at least one "
-                    + "scroll-only entry, verify back navigation and repeated entry, and end on the "
-                    + "Settings root page. Choose every target only from the current semantic hierarchy.",
+                Objective: "Traverse Android Settings within the current device, account, permissions and system state. "
+                    + "Enter every configured first-level target: " + string.Join("; ", config.TargetPages) + ". "
+                    + $"Required evidence: rootPage={config.Coverage.RootPage}, "
+                    + $"scrollDiscoveredEntries={config.Coverage.ScrollDiscoveredEntries}, "
+                    + $"secondLevelPages={config.Coverage.SecondLevelPages}, "
+                    + $"backNavigation={config.Coverage.BackNavigation}, repeatedEntries={config.Coverage.RepeatedEntries}. "
+                    + (config.DynamicRootEntriesSettings.AllVisible
+                        ? "Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. " : "")
+                    + (config.DynamicNestedEntriesSettings.IsActive
+                        ? "Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. " : "")
+                    + "End on the observed Settings root. Select every action from the current semantic hierarchy. "
+                    + "A configured scope result never proves all possible UI states exhaustive.",
                 Scope: scope,
                 AllowedEffects: new HashSet<string>(StringComparer.Ordinal) { "tap", "swipe-up" },
                 ForbiddenEffects: config.ActionPolicy is { } actionPolicy
@@ -317,8 +447,9 @@ public sealed class SettingsCoverageRunner
 
             driver.Activate();
             RunDriveResult drive = default!;
-            var driveCap = config.Bounds.MaxConsultRounds * 2 + 8;
-            for (var i = 0; i < driveCap; i++)
+            // Semantic/resource limits are enforced by Runtime. A second loop
+            // cap computed from the initial grant would silently undo renewal.
+            while (true)
             {
                 drive = driver.Drive();
                 if (drive.Status is not RunDriveStatus.WaitingForInput)
@@ -335,7 +466,7 @@ public sealed class SettingsCoverageRunner
             TryBindLanguageInspection();
             if (languageInspectionRequest is { Required: true } && languageInspection is null)
                 throw new InvalidOperationException("language-inspection-required-capability-not-bound");
-            journal.Drain(director.AdoptedSteps);
+            journal.Drain(materializedSteps);
 
             // ---- 产物落盘 ---------------------------------------------------
             WriteText(runDir, "trace.json", TryJson(traceScope.FinalizeArtifact()));
@@ -346,7 +477,23 @@ public sealed class SettingsCoverageRunner
             var steps = journal.Artifacts();
             var report = ledger.Report(config);
             WriteText(runDir, "coverage-steps.json", TryJson(steps));
+            WriteText(runDir, "plan-execution.json", TryJson(driver.PlanExecution));
+            WriteText(runDir, "traversal-execution.json", TryJson(kernel.TraversalExecution));
+            WriteText(runDir, "plan-candidate-projections.json", TryJson(candidateProjections));
+            WriteText(runDir, "current-step-guards.json", TryJson(currentStepGuards));
             WriteText(runDir, "coverage-report.json", TryJson(report));
+            WriteText(runDir, "coverage-observed-elements.json", TryJson(ledger.ObservedElements));
+            WriteText(runDir, "world-navigation.json", TryJson(
+                kernel.ProjectWorldGraph($"{kernel.RunId}:{kernel.RunView?.Version}")));
+            WriteText(runDir, "execution-overviews.json", TryJson(
+                consultBridge.Select(exchange => new
+                {
+                    exchange.Context.DecisionId,
+                    exchange.Context.ExecutionOverview,
+                    exchange.Context.BudgetReview,
+                    exchange.Decision,
+                    exchange.EffectiveDecision,
+                }).ToArray()));
             WriteText(runDir, "consult-bridge.json", TryJson(new
             {
                 schemaVersion = "uniclaw.settings-coverage-consult-bridge.v1",
@@ -375,6 +522,7 @@ public sealed class SettingsCoverageRunner
                 reason = drive.Reason,
                 outcome = drive.Outcome?.Classification.ToString(),
                 delivered = drive.DeliveredEffects,
+                budgetRenewals = driver.RenewalsGranted,
                 receipts = receipts.Select(r => r.Outcome.ToString()).ToArray(),
                 terminal = kernel.IsRunTerminal,
                 coverageStatus = report.Status,
@@ -472,6 +620,7 @@ public sealed class SettingsCoverageRunner
         private readonly SettingsCoverageConfig _config;
         private readonly Action _tryBindLanguageInspection;
         private readonly Func<LanguageInspectionPostCommit?> _languageInspection;
+        private readonly Action _flushVerifiedSteps;
         private string? _lastCycleRoute;
         private int _syncedReceipts;
         private bool _observedOnce;
@@ -491,7 +640,8 @@ public sealed class SettingsCoverageRunner
             CoverageStepJournal journal,
             SettingsCoverageConfig config,
             Action tryBindLanguageInspection,
-            Func<LanguageInspectionPostCommit?> languageInspection)
+            Func<LanguageInspectionPostCommit?> languageInspection,
+            Action flushVerifiedSteps)
         {
             _kernel = kernel;
             _feedNext = feedNext;
@@ -501,10 +651,16 @@ public sealed class SettingsCoverageRunner
             _config = config;
             _tryBindLanguageInspection = tryBindLanguageInspection;
             _languageInspection = languageInspection;
+            _flushVerifiedSteps = flushVerifiedSteps;
         }
 
         public RunDriverInput? WrappedNext(ObservationDirective directive)
         {
+            // Plan Observe can follow verification without another Agent/guard
+            // callback. Reconcile that completed receipt before judging progress;
+            // never drain the receipt while its post-action verification awaits.
+            if (directive.Context == ObservationContext.External)
+                _flushVerifiedSteps();
             InspectPendingAfterCommit();
             // (a) 上一周期已处理完毕：其 route + 当前 belief 的可见 occurrences
             // 入账本（occurrences 为该屏 grounded 景观）。
@@ -541,6 +697,11 @@ public sealed class SettingsCoverageRunner
         private RunDriverInput.Interruption? TryBuildInterruption()
         {
             var snapshot = _ledger.Snapshot(_config);
+            // A completed scoped goal at its required root is awaiting the
+            // Agent's terminal judgment, not evidence of a stalled traversal.
+            if (snapshot.CoverageComplete
+                && string.Equals(snapshot.CurrentRoute, _config.RootRoute, StringComparison.Ordinal))
+                return null;
             var frontier = _ledger.DynamicRootFrontier(_config).Count
                 + _ledger.DynamicNestedFrontier(_config).Count;
             // TRAJECTORY-001 验收修复（D3 裁决落法）：进度指纹 = (已进入/到达
@@ -550,12 +711,16 @@ public sealed class SettingsCoverageRunner
             // 指纹是 present/absent 交替，相等条件会每轮清零计数器——
             // 验收轮实证复发根因）。停滞 = 覆盖事实无变化，与画面交替正交。
             // D3 补充执法口径：单步粒度上"清障验证不算 Coverage Progress"
-            // 由 SettingsCoverageLedger.CountsAsCoverageProgress 裁定
-            // （obstacle 类 Verified 步骤不计入进度轴）；本指纹走 TargetMarks
-            // 计数，天然不把清障步骤算作覆盖推进——两处口径一致。
-            var entered = _ledger.TargetMarks.Values.Count(mark =>
-                mark.Kind is TargetCoverageMarkKind.RouteEntered
-                    or TargetCoverageMarkKind.ReachedOverlay);
+            // 由 SettingsCoverageLedger.CountsAsCoverageProgress 裁定。
+            // 复用Owner已验证的真实根页进入，再并入显式到达/overlay标记；
+            // 同页清障不成为新进入，重复进入也不增加此去重计数。
+            var entered = _ledger.EnteredRootDescriptors(_config)
+                .Except(_ledger.AgentSkippedTargets, StringComparer.Ordinal)
+                .Union(_ledger.TargetMarks.Values
+                    .Where(mark => mark.Kind is TargetCoverageMarkKind.RouteEntered
+                        or TargetCoverageMarkKind.ReachedOverlay)
+                    .Select(mark => mark.Target), StringComparer.Ordinal)
+                .Count();
             var progress = (entered, frontier);
             if (ShouldIncrementStagnation(_lastProgress, progress))
                 _stagnantCycles++;
@@ -897,22 +1062,27 @@ public sealed class SettingsCoverageRunner
         {
             null => null,
             AgentDecision.Act act => new ConsultDecisionArtifact(
-                "act", act.Proposal.Justification, act.Proposal.Steps),
+                "act", act.Proposal.Justification, act.Proposal.Steps, Renewal: act.Proposal.Renewal,
+                ReviewResponse: act.ReviewResponse),
             AgentDecision.Plan plan => new ConsultDecisionArtifact(
                 "plan", plan.Proposal.Justification, plan.Proposal.Items
                     .OfType<PlanItem.ActItem>()
                     .Select(item => new AgentActionStep(item.TargetRole, item.TargetDescriptor,
                         item.EffectClass, item.DesiredState))
-                    .ToArray()),
+                    .ToArray(), ReviewResponse: plan.ReviewResponse),
             AgentDecision.NoAction noAction => new ConsultDecisionArtifact(
-                "noAction", noAction.Proposal.Justification, Array.Empty<AgentActionStep>()),
-            AgentDecision.Defer => new ConsultDecisionArtifact(
-                "defer", null, Array.Empty<AgentActionStep>()),
-            AgentDecision.Policy => new ConsultDecisionArtifact(
-                "policy", null, Array.Empty<AgentActionStep>()),
+                "noAction", noAction.Proposal.Justification, Array.Empty<AgentActionStep>(), Renewal: noAction.Proposal.Renewal,
+                ReviewResponse: noAction.ReviewResponse),
+            AgentDecision.Defer defer => new ConsultDecisionArtifact(
+                "defer", null, Array.Empty<AgentActionStep>(), Renewal: defer.Renewal,
+                ReviewResponse: defer.ReviewResponse),
+            AgentDecision.Policy policy => new ConsultDecisionArtifact(
+                "policy", null, Array.Empty<AgentActionStep>(), ReviewResponse: policy.ReviewResponse),
             AgentDecision.Skip skip => new ConsultDecisionArtifact(
                 "skip", null, Array.Empty<AgentActionStep>(),
-                skip.Target, skip.Reason, skip.EvidenceRefs),
+                skip.Target, skip.Reason, skip.EvidenceRefs, ReviewResponse: skip.ReviewResponse),
+            AgentDecision.Blocked blocked => new ConsultDecisionArtifact(
+                "blocked", blocked.Reason, Array.Empty<AgentActionStep>(), ReviewResponse: blocked.ReviewResponse),
             _ => new ConsultDecisionArtifact("unknown", null, Array.Empty<AgentActionStep>()),
         };
 }

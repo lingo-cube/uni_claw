@@ -17,6 +17,8 @@ Product Host 的组合根：装配 Kernel 六个 Product T2 责任域与 Capabil
 | `UiAutomatorDump.cs` | uiautomator XML → Observation claims（PER-009，producer=platform.uiautomator） |
 | `FrameOccurrenceStrategy.cs` / `ScreenFrameOccurrenceStrategy.cs` / `UiHierarchyOccurrenceStrategy.cs` | World Model 观察推导策略（SIM-002 G1：产品能力独立成件） |
 | `SettingsTraversalLiveFeed.cs` | Settings 遍历 buyer 的真机观察 feed |
+| `CurrentPageAnchor.cs` | 读取World当前交互锚点，历史页面不参与当前控件归属 |
+| `SettingsPageIdentity.cs` | 从观察及进入上下文生成稳定页面签名提示，canonical身份仍由World铸造 |
 | `HostUtilities.cs` | 组合根共享工具（devtest feed 提取的产品化） |
 
 ### Capability/ — 能力组合根
@@ -45,6 +47,8 @@ Product Host 的组合根：装配 Kernel 六个 Product T2 责任域与 Capabil
 | `SettingsCoverageDirector.cs` | 覆盖遍历 director：ConsultAgent 缝上的计划执法者（AGT-005） |
 | `SettingsCoverageRunner.cs` | 可配置、有界、可追溯的 Settings 菜单覆盖遍历 runner（AGT-005） |
 | `CoverageEvent.cs` | Owner-owned 覆盖事件流、TargetCoverageMarked 与回放游标 |
+| `SettingsPlanFacts.cs` | 由已有观察/覆盖账本投影当前根页候选、范围及来源；不驱动动作、不授予许可、不证明范围穷尽（ADR-0053） |
+| `SettingsCoverageOverviewProjector.cs` | 由既有账本投影全局待办、验证、未知及稳定事实键；无新增可变权威 |
 | `Geometry.cs` | TRAJECTORY-001 D5 几何工具箱：Rect / 遮挡判据（中心点）/ uiAutomator bounds 解析（只做信号输入，不改 Ledger） |
 | `SettingsCoverageConfig.cs` / `SettingsCoverageLedger.cs` / `SettingsActionPolicy.cs` | 遍历配置 / 台账（含可选 dynamicRootEntries/all-visible frontier、visited、结构性 skip reason）/ 动作策略 |
 
@@ -59,3 +63,7 @@ transport/模型解析进 `../UniClaw.Host.Dsh/`；新能力注册 = 既有组�
 - HOST-001 spec；ADR-0031（host-neutral query core）、ADR-0035/0036；
 - 被装配方：`../UniClaw.Kernel/README.md` 全维度导览；
 - DSH realization：`../UniClaw.Host.Dsh/README.md`。
+
+## RUNTIME-PLAN-002 菜单买方接线
+
+`SettingsCoverage/SettingsTraversalProjection.cs`从当前World图/occurrence形成引用视图，只把任务明确分类的入口标为navigation，泛化clickable保持Unknown；live发现穷尽不作无依据声明。`Capability/TraversalLanguageInspection.cs`通过既有task binding调用注册的ILanguageInspector，输入仅为当前目标文字标签，原目标缺失给出typed Unknown，不替换目标；运行态生命周期失效使binding不可用。SettingsCoverageRunner把两条缝接入同一KernelRunDriver，并保存traversal-execution/traversal-recovery事实。

@@ -1,0 +1,15 @@
+{
+  "kind": "NODE_DISPATCH_PROTOCOL_REVIEW",
+  "json_examples": 6,
+  "json_syntax": "PASS",
+  "formal_compatibility": "NOT_SUPPORTED",
+  "new_semantics_unresolved": [
+    "node matching",
+    "matched candidate binding",
+    "record handler",
+    "navigation classification",
+    "conflict and unknown handling"
+  ],
+  "existing_reuse": "ActItem fields only; ObserveItem is observation acquisition, not generic record",
+  "implementation_started": false
+}
