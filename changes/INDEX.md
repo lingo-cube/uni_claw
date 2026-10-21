@@ -2,12 +2,11 @@
 
 > 派生索引：列出所有 lifecycle_state ≠ closed 的 change。
 > 再生：`python3 tools/gen-open-changes.py`（GATE-001 P-E′；一致性执法二期）。
-> 统计：238 changes · 7 open。
+> 统计：221 changes · 6 open。
 
 | change | lifecycle_state | disposition | depth | title |
 |---|---|---|---|---|
 | AGT-019 | implementing | none | decision-heavy | AGT-019 — Agent 异常升级与观察机制 |
-| JEV-NODE-BENCH-001 | verify | BLOCKED | standard | JEV-NODE-BENCH-001 — 已知视觉节点问题的Jev配对测试集 |
 | RUN-006 | implementing | none | standard | RUN-006 — 全遍历真机轮（AGT-019 机制 live 验证） |
 | RUNTIME-PLAN-001 | RESOLVE | none | decision-heavy | RUNTIME-PLAN-001 — 可组合产品Plan与有界本地展开实施 |
 | SETTINGS-COVERAGE-003 | verified | blocked | decision-heavy | SETTINGS-COVERAGE-003 — 动态前沿驱动的 Android Settings 可达界面遍历 |
