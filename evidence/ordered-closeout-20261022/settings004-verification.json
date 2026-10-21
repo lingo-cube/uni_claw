@@ -1,0 +1,44 @@
+{
+  "change": "SETTINGS-COVERAGE-004",
+  "date": "2026-10-22",
+  "level": "DETERMINISTIC",
+  "method": "existing two public Host test classes --no-build --no-restore; current 53-result TRX; reuse frozen ENG-OPT-001 8-project full solution TRX",
+  "expected": "unknown page consults Agent; unsafe proposals rejected; real/namespaced popup classified; Host/full solution tests green",
+  "actual": {
+    "focused_total": 53,
+    "focused_passed": 53,
+    "focused_failed": 0,
+    "latest_full_total": 2024,
+    "full_test_date": "2026-10-22 local / 2026-10-21 UTC",
+    "full_rerun_in_this_slice": false
+  },
+  "acceptance": {
+    "A1": [
+      "UnknownPage_DeferPath_StillWorks: underlying delegate invoked, Defer record retained",
+      "historical live-fix summary unknown decisions -7/-8 retained"
+    ],
+    "A2": [
+      "UnknownPage_RejectsAgentActWithoutEffect: ordinary Act becomes safe Defer, reject reason retained",
+      "AGT-019 Owner Q7 explicitly extended old only-Defer rule: configured back/observed scroll and honest blocked are allowed under existing guard; corresponding positive/negative cases also pass; this closeout introduces no new permission"
+    ],
+    "A3": [
+      "RealPopupXml_ClassifiesPresent",
+      "SettingsNamespacedPopupIds_ClassifyPresent"
+    ],
+    "A4": [
+      "settings004-current.trx 53/53",
+      "../eng-opt-001/final-tests/results.json 2024/2024 and original per-project TRX"
+    ]
+  },
+  "sources": {
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs": "f9633222d5f8195e2784a55026a41793afeb8cb4374cc640ef3b81ed7a5f1511",
+    "tests/UniClaw.Host.Tests/SettingsCoverageDirectorPlanTests.cs": "08835e348b0d29fd1b244a27faaad6c2297213b67a4f22ec69a14e5adba20881",
+    "tests/UniClaw.Host.Tests/SettingsPopupClassifierTests.cs": "0333ab5c1848b6a10dab0b212230ff0fd2ea3a5f9f91867f5dc524179b3f579a"
+  },
+  "limits": [
+    "No all-tree coverage requirement added to this bounded repair",
+    "Original live-fix runs are targeted branch evidence, not traversal completion",
+    "No new device action or model call in this particular 004 evidence slice",
+    "Old 1541 test claim not re-labelled as freshly rerun; current frozen 2024 TRX used separately"
+  ]
+}

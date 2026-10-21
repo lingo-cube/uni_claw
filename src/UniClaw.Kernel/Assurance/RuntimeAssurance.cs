@@ -16,7 +16,7 @@ namespace UniClaw.Kernel.Assurance;
 /// 不拥有 Tactical Hypothesis、Run State、WorldBelief、canonical binding
 /// 或 mechanical dispatch。
 /// </summary>
-public sealed class RuntimeAssurance
+public sealed partial class RuntimeAssurance
 {
     private readonly IFreshnessEvaluator _freshnessEvaluator;
     private readonly Dictionary<string, int> _failedAtRevisionNumber = new();
@@ -46,120 +46,6 @@ public sealed class RuntimeAssurance
     /// <summary>现实 Effect 的 post-action verification 留痕（internal tracer seam）。</summary>
     internal IReadOnlyList<PostActionEffectVerification> PostActionVerificationLog =>
         _postActionVerificationLogView;
-
-    internal PostActionEffectVerification RecordPostActionVerification(
-        PostActionEffectVerification verification)
-    {
-        ArgumentNullException.ThrowIfNull(verification);
-        _postActionVerifications.Add(verification);
-        return verification;
-    }
-
-    /// <summary>
-    /// 不变量 43 的 Assurance 执法点：正确 context 的输入本身不构成验证。
-    /// 必须至少有 accepted Evidence、完成一次 reconciliation，并在当前 scoped
-    /// Slice 中重新观察到唯一目标；有 DesiredState 时还必须与其相等。
-    /// </summary>
-    internal PostActionEffectVerification VerifyPostActionEffect(
-        PostActionEffectVerificationInput input)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-
-        var candidates = input.Slice.Occurrences
-            .Where(o => o.Role == input.Target.Role
-                && (input.Target.SemanticDescriptor is null
-                    || o.SemanticDescriptor == input.Target.SemanticDescriptor))
-            .ToList();
-        var observedState = candidates.Count == 1 ? candidates[0].State : null;
-        // A navigation tap legitimately removes the tapped row from the new
-        // hierarchy.  The old target is only allowed to disappear when the
-        // caller proved it was unique before dispatch and the route fingerprint
-        // changed across the post-action reconciliation.  This keeps a stale
-        // or incomplete hierarchy fail-closed while making multi-step
-        // navigation verifiable.
-        var targetObservedOrNavigationTransition = candidates.Count == 1
-            || input.TargetDisappearedAfterRouteChange;
-        // PER-014 R3：DesiredState 已是 typed CheckedState 值域；occurrence
-        // presentation state 经严格映射比较（Unknown 不判 satisfied，零折叠）。
-        var observedChecked = CheckedSemantics.FromPresentation(observedState);
-        var checks = new List<AssuranceCheck>
-        {
-            new("post-action-evidence-accepted", input.ProcessedObservations.Any(
-                r => r.Admission.Decision == AdmissionDecision.Accepted)),
-            new("post-action-reconciled", input.ProcessedObservations.Any(
-                r => r.ResultingRevision is not null)),
-            new("post-action-target-unique", targetObservedOrNavigationTransition),
-            new("post-action-desired-state-satisfied",
-                input.Target.DesiredState is null
-                || (observedChecked is { } observed && observed == input.Target.DesiredState)),
-        };
-        if (input.TargetDisappearedAfterRouteChange)
-            checks.Add(new AssuranceCheck("post-action-navigation-transition", true));
-        // PROTOCOL-FIX-002 / ADR-0049：判定对照物 = 显式期望谓词求值（非
-        // 身份连续、非 effect-class 硬编码）。RouteStable：路由证据两侧均在
-        // 场且相等；ContentChanged：可见内容集变化证据为 true；StateBecomes：
-        // 目标应处于何态（"present" = 可观察在位，navigation transition 合法
-        // 移除目标时豁免）。证据缺席不判满足（fail closed）。
-        if (input.Expected.Changes.Contains(ChangePredicate.RouteStable))
-            checks.Add(new AssuranceCheck("post-action-route-unchanged",
-                input.Change is { } change
-                && change.RouteBefore is not null
-                && change.RouteAfter is not null
-                && string.Equals(change.RouteBefore, change.RouteAfter, StringComparison.Ordinal)));
-        if (input.Expected.Changes.Contains(ChangePredicate.ContentChanged))
-            checks.Add(new AssuranceCheck("post-action-content-transition",
-                input.Change?.VisibleContentChanged == true));
-        if (input.Expected.States.Count > 0)
-            checks.Add(new AssuranceCheck("post-action-expected-state",
-                input.Expected.States.All(s => ExpectedStateSatisfied(s, input))));
-        var failed = checks.FirstOrDefault(c => !c.Passed)?.Name;
-        var rejection = failed == "post-action-desired-state-satisfied"
-            ? "post-action-desired-state-not-satisfied"
-            : failed;
-        var judgment = new PostActionEffectVerification(
-            input.Slice.SourceRevisionId,
-            input.Target,
-            IsVerified: rejection is null,
-            checks,
-            rejection);
-        _postActionVerifications.Add(judgment);
-        return judgment;
-    }
-
-    /// <summary>
-    /// 状态型期望谓词求值（PROTOCOL-FIX-002 / ADR-0049）。subject = 验证目标
-    /// role 时：occurrence presentation state 经 <see cref="CheckedSemantics"/>
-    /// 严格映射后与期望值比较（映射不出 = Unknown，不判满足，fail closed）；
-    /// 保留字 "present" = 可观察在位（恰一匹配 occurrence；navigation
-    /// transition 合法移除目标时由导航证明豁免）；其余 subject → Slice
-    /// ScopedClaims 的 claim value 严格相等。
-    /// </summary>
-    private static bool ExpectedStateSatisfied(
-        StateBecomes expectation,
-        PostActionEffectVerificationInput input)
-    {
-        if (expectation.Value == "present")
-        {
-            if (input.TargetDisappearedAfterRouteChange)
-                return true;
-            return input.Slice.Occurrences.Count(o =>
-                o.Role == expectation.Subject
-                && (input.Target.SemanticDescriptor is null
-                    || o.SemanticDescriptor == input.Target.SemanticDescriptor)) == 1;
-        }
-
-        if (expectation.Subject == input.Target.Role)
-        {
-            return CheckedSemantics.FromPresentation(
-                input.Slice.Occurrences.FirstOrDefault(
-                    o => o.Role == expectation.Subject)?.State) is { } observed
-                && Enum.TryParse<CheckedState>(expectation.Value, out var expected)
-                && observed == expected;
-        }
-
-        return input.Slice.ScopedClaims.TryGetValue(expectation.Subject, out var claim)
-            && claim == expectation.Value;
-    }
 
     /// <summary>
     /// Action-local judgment（Target §19 输入；ADR-0009 目标序

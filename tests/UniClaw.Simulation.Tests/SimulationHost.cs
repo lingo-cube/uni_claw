@@ -255,6 +255,7 @@ internal sealed class SimulationHost
                 : source => seams.TraversalProjection(kernel, source),
             CanBindPlanLanguage = seams?.CanBindPlanLanguage,
             InspectPlanLanguage = seams?.InspectPlanLanguage,
+            InspectPlanLanguageAsync = seams?.InspectPlanLanguageAsync,
             ObserveTraversalRecovery = seams?.ObserveTraversalRecovery,
             PlanHandlerTimeout = seams?.PlanHandlerTimeout ?? TimeSpan.FromSeconds(2),
         });
@@ -271,18 +272,21 @@ internal sealed class SimulationHost
     }
 
     /// <summary>
-    /// D21 phased 驱动面：包裹一次 Driver.Drive()，记录结果并在 run terminal
+    /// D21 phased 驱动面：包裹一次异步持续驱动，记录结果并在 run terminal
     /// 后标记 seam 观测（late-call 建模——SIM-004 起经 ConsultationJournal，
     /// 对任意 realization 同律）。测试不得直接调用 Driver.Drive。
     /// </summary>
-    public RunDriveResult DriveOnce()
+    public async Task<RunDriveResult> DriveOnceAsync(CancellationToken cancellationToken = default)
     {
-        var result = Driver.Drive();
+        var result = await Driver.DriveAsync(cancellationToken).ConfigureAwait(false);
         _recordedDriveResults.Add(result);
         if (KernelCore.IsRunTerminal)
             Consultations.MarkTerminal();
         return result;
     }
+
+    /// <summary>同步兼容桥；新异步调用者应使用 DriveOnceAsync。</summary>
+    public RunDriveResult DriveOnce() => DriveOnceAsync().GetAwaiter().GetResult();
 
     /// <summary>D21：运行期补充 stimulus（包裹 Feed.Submit；重复 id → false）。</summary>
     public bool SubmitStimulus(ScenarioStimulus stimulus)

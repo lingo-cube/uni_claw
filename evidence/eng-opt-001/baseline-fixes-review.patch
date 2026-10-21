@@ -1,0 +1,133 @@
+--- a/src/UniClaw.Agent/README.md
++++ b/src/UniClaw.Agent/README.md
+@@ -55,6 +55,7 @@
+ | `Profile/ProductProfile.cs` | 产品 realization profile 身份（不含 provider/model） |
+ | `Profile/UniAgentProfile.cs` | host-neutral profile 加载结果（身份+模型角色声明，PRF-002） |
+ | `Profile/UniAgentProfileYaml.cs` | 产品 profile loader（身份漂移/角色值域 fail-closed，PRF-002） |
++| `Profile/ProfileIdentityRenderer.cs` | 从产品 Profile 只读生成身份与职责表达；不引入宿主绑定 |
+ | `Profile/ProfileYamlDocument.cs` | 产品侧共享 YAML 子集解析器（双 loader 共用，PRF-002） |
+ 
+ `../UniClaw.Agent.Dsh/` 是 DSH realization/adapter（绑定 loader/模型
+--- a/src/UniClaw.Host/README.md
++++ b/src/UniClaw.Host/README.md
+@@ -56,6 +56,7 @@
+ | `SettingsPlanFacts.cs` | 由已有观察/覆盖账本投影当前根页候选、范围及来源；不驱动动作、不授予许可、不证明范围穷尽（ADR-0053） |
+ | `SettingsCoverageOverviewProjector.cs` | 由既有账本投影全局待办、验证、未知及稳定事实键；无新增可变权威 |
+ | `Geometry.cs` | TRAJECTORY-001 D5 几何工具箱：Rect / 遮挡判据（中心点）/ uiAutomator bounds 解析（只做信号输入，不改 Ledger） |
++| `SettingsNavigationScope.cs` | 将任务声明的路由范围投影为导航约束；不替代 Kernel 授权 |
+ | `SettingsCoverageConfig.cs` / `SettingsCoverageLedger.cs` / `SettingsActionPolicy.cs` | 遍历配置 / 台账（含可选 dynamicRootEntries/all-visible frontier、visited、结构性 skip reason）/ 动作策略 |
+ 
+ ## 变更规则
+--- a/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj
++++ b/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj
+@@ -20,13 +20,15 @@
+ 
+   <ItemGroup>
+     <Compile Include="..\UniClaw.Kernel.Tests\Runtime\PageObservationExecutionTests.cs" Link="PageObservationExecutionTests.cs" />
+-    <Compile Include="..\UniClaw.Host.Dsh.Tests\PlanGenerationSemanticAssertions.cs" Link="PlanGenerationSemanticAssertions.cs" />
+     <!-- 同一 Product Runtime artifact（RFS-001 / baseline §24.8：Simulation Host
+          与 Product Host 复用同一 Product Runtime modules；本测试项目即
+          Phase 1 的独立 Simulation composition root） -->
+     <ProjectReference Include="..\..\src\UniClaw.Kernel\UniClaw.Kernel.csproj" />
+     <ProjectReference Include="..\..\src\UniClaw.Agent\UniClaw.Agent.csproj" />
+-    <ProjectReference Include="..\..\src\UniClaw.Agent.Dsh\UniClaw.Agent.Dsh.csproj" />
+   </ItemGroup>
+ 
++  <ItemGroup>
++    <!-- DSH codec integration consumes the existing deterministic simulation seam. -->
++    <InternalsVisibleTo Include="UniClaw.Host.Dsh.Tests" />
++  </ItemGroup>
+ </Project>
+--- a/tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj
++++ b/tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj
+@@ -17,5 +17,6 @@
+   </ItemGroup>
+   <ItemGroup>
+     <ProjectReference Include="..\..\src\UniClaw.Host.Dsh\UniClaw.Host.Dsh.csproj" />
++    <ProjectReference Include="..\UniClaw.Simulation.Tests\UniClaw.Simulation.Tests.csproj" />
+   </ItemGroup>
+ </Project>
+--- a/docs/analysis/ui-automation-test-function-reuse-inventory-2026-10-20.md
++++ b/docs/analysis/ui-automation-test-function-reuse-inventory-2026-10-20.md
+@@ -1,4 +1,7 @@
+ # Agnes + YOLO + Jev UI 自动化测试：详细功能清单与当前代码复用评估
++
++> Status: COMPLETE / READ_ONLY_INVENTORY
++> Authority: NONE
+ 
+ 日期：2026-10-20。状态：只读盘点完成，方案待评审。Authority：NONE。关联：`UI-TEST-REUSE-001`。
+ 
+@@ -208,7 +211,7 @@
+ | S18 宿主决策接入 | [DecisionChannel](../../src/UniClaw.Agent.Dsh/DecisionChannel.cs)；[DshAgentAdapter](../../src/UniClaw.Agent.Dsh/DshAgentAdapter.cs#L93)；[DshOpenedHttpPeer](../../src/UniClaw.Agent.Dsh/DshOpenedHttpPeer.cs)；[DSH 插件](../../dsh/uniclaw-decision-channel/src/index.js#L904) | [生命周期测试](../../tests/UniClaw.Agent.Dsh.Tests/AdapterLifecycleTests.cs)；[会话复用](../../tests/UniClaw.Agent.Dsh.Tests/SessionReuseTests.cs)；[协议闭包](../../tests/UniClaw.Agent.Dsh.Tests/DecisionChannelClosureTests.cs) |
+ | S19 Assurance 与终局 | [动作后验证](../../src/UniClaw.Kernel/Assurance/RuntimeAssurance.cs#L58)；[动作前检查](../../src/UniClaw.Kernel/Assurance/RuntimeAssurance.cs#L178)；[终局判断](../../src/UniClaw.Kernel/Assurance/RuntimeAssurance.cs#L292) | [效果谓词测试](../../tests/UniClaw.Kernel.Tests/Assurance/ExpectedEffectTests.cs)；[滑动验证测试](../../tests/UniClaw.Kernel.Tests/Assurance/ScrollVerificationTests.cs) |
+ | S20 产品角色与工件 | [UniAgentProfile](../../src/UniClaw.Agent/Profile/UniAgentProfile.cs#L41)；[ProductProfile](../../src/UniClaw.Agent/Profile/ProductProfile.cs#L3)；[产品 Skill](../../product/skills/android-automotive-ui-testing/guidance.md)；[DshModelManagement](../../src/UniClaw.Agent.Dsh/DshModelManagement.cs#L45)；[UniAgent.Evaluate](../../src/UniClaw.Agent/UniAgent.cs#L38) | [Profile 测试](../../tests/UniClaw.Agent.Tests/UniAgentProfileYamlTests.cs)；[模型管理测试](../../tests/UniClaw.Agent.Dsh.Tests/DshModelManagementTests.cs)；[初始化 envelope](../../src/UniClaw.Host.Dsh/InitializationEnvelope.cs#L21) |
+-| S21 Plan 与遍历 | [KernelRunDriver](../../src/UniClaw.Kernel/Runtime/KernelRunDriver.cs#L356)；[PlanExecution](../../src/UniClaw.Kernel/Runtime/PlanExecution.cs#L3)；[TraversalExecution](../../src/UniClaw.Kernel/Runtime/TraversalExecution.cs#L9)；[DSH codec](../../src/UniClaw.Agent.Dsh/DecisionJsonConverters.cs#L636) | [Plan 测试](../../tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs)；[遍历测试](../../tests/UniClaw.Kernel.Tests/Runtime/TraversalExecutionTests.cs)；[预算复核](../../tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverBudgetRenewalTests.cs)；[生成计划仿真消费](../../tests/UniClaw.Simulation.Tests/PlanGenerationKernelConsumerTests.cs) |
++| S21 Plan 与遍历 | [KernelRunDriver](../../src/UniClaw.Kernel/Runtime/KernelRunDriver.cs#L356)；[PlanExecution](../../src/UniClaw.Kernel/Runtime/PlanExecution.cs#L3)；[TraversalExecution](../../src/UniClaw.Kernel/Runtime/TraversalExecution.cs#L9)；[DSH codec](../../src/UniClaw.Agent.Dsh/DecisionJsonConverters.cs#L636) | [Plan 测试](../../tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs)；[遍历测试](../../tests/UniClaw.Kernel.Tests/Runtime/TraversalExecutionTests.cs)；[预算复核](../../tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverBudgetRenewalTests.cs)；[DSH 协议与计划仿真消费](../../tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs) |
+ | S22 单 Run 报告 | [gen-run-report.py](../../tools/gen-run-report.py#L184)；[写 JSON/Markdown](../../tools/gen-run-report.py#L994)；[RuntimeToolHost](../../src/UniClaw.Host.Dsh/RuntimeToolHost.cs#L195) | [报告消费测试](../../tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostTests.cs)；报告是源数据投影，不是第二结果 Owner |
+ | S23 Settings 覆盖 | [SettingsCoverageLedger](../../src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.cs#L3)；[Runner](../../src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs#L32)；[ActionPolicy](../../src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs#L8)；[TraversalProjection](../../src/UniClaw.Host/SettingsCoverage/SettingsTraversalProjection.cs) | [覆盖账本测试](../../tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs)；[场景测试](../../tests/UniClaw.Host.Tests/SettingsCoverageScenarioTests.cs)；[配置样例](../../product/tasks/settings-coverage.yaml) |
+ | S24 咨询账本 | [ConsultationJournal](../../src/UniClaw.Kernel/Runtime/ConsultationJournal.cs#L31)；[FileConsultationJournal](../../src/UniClaw.Host/Runtime/FileConsultationJournal.cs#L16) | [幂等/冲突测试](../../tests/UniClaw.Kernel.Tests/Runtime/ConsultationJournalTests.cs)；[文件往返](../../tests/UniClaw.Host.Tests/FileConsultationJournalTests.cs) |
+--- a/tests/UniClaw.Agent.Dsh.Tests/ObserverProjectionTests.cs
++++ b/tests/UniClaw.Agent.Dsh.Tests/ObserverProjectionTests.cs
+@@ -108,11 +108,11 @@
+             profile.ModelRoles);
+ 
+         // DSH 侧：provider/model/baseUrl 只在绑定文件（CAP-007 语义）。
+-        // 2026-10-06 所有者指令：默认模型 deepseek-flash（deepseek-official
+-        // 直连）；CAP-012 D9：专线按 docs/agents/test-emulator.md 注册 3081。
++        // 2026-10-20 所有者授权：默认选择 CommandCode Flash；
++        // CAP-012 D9：专线按 docs/agents/test-emulator.md 注册 3081。
+         var bindings = UniagentDshBindingsYaml.LoadDefault();
+-        Assert.Equal("deepseekFlash", bindings.SelectedModelKey);
+-        Assert.Equal(new ModelConfiguration("deepseek-official", "deepseek-flash"), bindings.Model);
++        Assert.Equal("commandcodeFlash", bindings.SelectedModelKey);
++        Assert.Equal(new ModelConfiguration("commandcode", "deepseek/deepseek-v4.1-flash"), bindings.Model);
+         Assert.Equal("http://127.0.0.1:3081/", bindings.Service.BaseUri.ToString());
+     }
+ 
+--- a/tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs
++++ b/tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs
+@@ -40,7 +40,7 @@
+                      "schemaHash":"<hash>","profileId":"uniagent-prod","profileVersion":"1",
+                      "capabilityManifestHash":"<manifest>"},
+          "reportedCapabilities":{"capabilities":["submit_decision"]},
+-         "artifacts":{"promptHash":"28dda7e96ffde4eb44c45677f8a103f20305d85ef1a13eb076596a2b17d09e6e",
++         "artifacts":{"promptHash":"<prompt>",
+                       "skill":{"name":"android-automotive-ui-testing","revision":4,
+                                "sha256":"3271ed614ae6dc590b6f4c454fc1251b8976044c92a2a5556ce773fbca0aa21a"}},
+          "dshSessionId":"dsh-9"}
+@@ -53,7 +53,8 @@
+         var handler = new ScriptedHandler((_, _) => Task.FromResult(Json(HttpStatusCode.OK,
+             HandshakeBody
+                 .Replace("<hash>", expected.Protocol.SchemaHash)
+-                .Replace("<manifest>", expected.Protocol.CapabilityManifestHash))));
++                .Replace("<manifest>", expected.Protocol.CapabilityManifestHash)
++                .Replace("<prompt>", UniAgentProfileYaml.LoadDefault().Assembly!.PromptManifest!.Hash))));
+         await using var peer = new DshOpenedHttpPeer(
+             new DshServiceEndpoint(new Uri("http://127.0.0.1:3080/", UriKind.Absolute)),
+             credential: Credential(), handler: handler);
+@@ -224,7 +225,8 @@
+                 return Json(HttpStatusCode.OK,
+                     HandshakeBody
+                         .Replace("<hash>", expected.Protocol.SchemaHash)
+-                        .Replace("<manifest>", expected.Protocol.CapabilityManifestHash));
++                        .Replace("<manifest>", expected.Protocol.CapabilityManifestHash)
++                .Replace("<prompt>", UniAgentProfileYaml.LoadDefault().Assembly!.PromptManifest!.Hash));
+             }
+ 
+             consultBody = await request.Content!.ReadAsStringAsync();
+--- a/tests/UniClaw.Simulation.Tests/PlanGenerationKernelConsumerTests.cs
++++ b/tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs
+@@ -2,11 +2,11 @@
+ using UniClaw.Agent.Dsh;
+ using UniClaw.Kernel.Effects;
+ using UniClaw.Kernel.Runtime;
+-using UniClaw.Host.Dsh.Tests;
++using UniClaw.Simulation.Tests;
+ using Xunit;
+ using Xunit.Abstractions;
+ 
+-namespace UniClaw.Simulation.Tests;
++namespace UniClaw.Host.Dsh.Tests;
+ 
+ /// <summary>Consumes actual saved DSH decisions through the official codec and existing Kernel simulation seam.</summary>
+ public sealed class PlanGenerationKernelConsumerTests(ITestOutputHelper output)

@@ -45,7 +45,7 @@ public sealed record PlanHandlerInput(
     string ContainerId,
     PlanCandidate Target,
     string? TargetContainerId = null);
-public enum PlanHandlerCallStatus { Completed, Unavailable, Failed, Skipped, TimedOut }
+public enum PlanHandlerCallStatus { Completed, Unavailable, Failed, Skipped, TimedOut, Running, Cancelled }
 public sealed record PlanHandlerRecord(
     string OperationId,
     string HandlerId,
@@ -53,7 +53,8 @@ public sealed record PlanHandlerRecord(
     string SourceRevisionId,
     PlanHandlerCallStatus Status,
     Finding? Result,
-    string? Reason);
+    string? Reason,
+    string? CallId = null);
 /// <summary>Run-owned input/result association for a concrete zero-effect or
 /// navigation operation. ObservedState is a snapshot reference to World evidence,
 /// never a new World fact or independent completion proof.</summary>

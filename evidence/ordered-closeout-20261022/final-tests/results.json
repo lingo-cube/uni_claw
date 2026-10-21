@@ -1,0 +1,58 @@
+[
+  {
+    "assembly": "uniclaw.host.tests",
+    "total": 410,
+    "passed": 410,
+    "failed": 0,
+    "trx": "ordered-final_net10.0_20261022004437.trx"
+  },
+  {
+    "assembly": "uniclaw.agent.dsh.tests",
+    "total": 212,
+    "passed": 212,
+    "failed": 0,
+    "trx": "ordered-final_net10.0_20261022004415.trx"
+  },
+  {
+    "assembly": "uniclaw.agent.tests",
+    "total": 36,
+    "passed": 36,
+    "failed": 0,
+    "trx": "ordered-final_net10.0_20261022004406.trx"
+  },
+  {
+    "assembly": "uniclaw.simulation.tests",
+    "total": 252,
+    "passed": 252,
+    "failed": 0,
+    "trx": "ordered-final_net10.0_20261022004407.trx"
+  },
+  {
+    "assembly": "uniclaw.core.tests",
+    "total": 14,
+    "passed": 14,
+    "failed": 0,
+    "trx": "ordered-final_net10.0_20261022004405.trx"
+  },
+  {
+    "assembly": "uniclaw.kernel.tests",
+    "total": 1037,
+    "passed": 1037,
+    "failed": 0,
+    "trx": "ordered-final_net10.0_20261022004410.trx"
+  },
+  {
+    "assembly": "uniclaw.filesystemrealization.tests",
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "trx": "ordered-final_net10.0_20261022004404.trx"
+  },
+  {
+    "assembly": "uniclaw.host.dsh.tests",
+    "total": 56,
+    "passed": 56,
+    "failed": 0,
+    "trx": "ordered-final_net10.0_20261022004438.trx"
+  }
+]

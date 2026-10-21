@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="de8ff32d-4b0d-4985-9773-da1ced942340" name="@frandeMac-mini 2026-10-21 22:35:51" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T22:35:51.0461430+08:00" queuing="2026-10-21T22:35:51.0461430+08:00" start="2026-10-21T22:35:50.4203120+08:00" finish="2026-10-21T22:35:51.0483200+08:00" />
+  <TestSettings name="default" id="9ec5dba7-f0ae-4620-930d-722b49018edf">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-21_22_35_51" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="36214e76-5e07-4fd8-83a7-ca19698d9d4e" testId="dfc8f833-dcee-a849-b3f4-5bccd2f76bd3" testName="UniClaw.Kernel.Tests.DocsMetadataTests.Architecture_DeclaresFrozenAuthority" computerName="frandeMac-mini" duration="00:00:00.0030609" startTime="2026-10-21T22:35:50.8664890+08:00" endTime="2026-10-21T22:35:50.8664890+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="36214e76-5e07-4fd8-83a7-ca19698d9d4e" />
+    <UnitTestResult executionId="970f93ce-bcb5-4286-91f6-58357f1ca9c2" testId="282aadce-59ed-d51b-a0fc-744cf60c018b" testName="UniClaw.Kernel.Tests.ProductHostClosureTests.ProductProjects_DoNotReferenceSimulationProjects" computerName="frandeMac-mini" duration="00:00:00.0013715" startTime="2026-10-21T22:35:50.8822410+08:00" endTime="2026-10-21T22:35:50.8822410+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="970f93ce-bcb5-4286-91f6-58357f1ca9c2" />
+    <UnitTestResult executionId="c7c8de2e-0b2b-437b-8789-a847f2dc3c6c" testId="6d2af1db-f6cb-b33a-32dd-5c4b19944143" testName="UniClaw.Kernel.Tests.SourceReadmeOwnershipTests.SourceFiles_AreRegistered_InDimensionReadme" computerName="frandeMac-mini" duration="00:00:00.0087309" startTime="2026-10-21T22:35:50.8558480+08:00" endTime="2026-10-21T22:35:50.8558540+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c7c8de2e-0b2b-437b-8789-a847f2dc3c6c">
+      <Output>
+        <ErrorInfo>
+          <Message>维度 README 登记违规（198 个源文件受检，ARCH-DOC-022 执法）：
+src/UniClaw.Host/SettingsCoverage/SettingsNavigationScope.cs: 未在归属 README src/UniClaw.Host/README.md 中点名
+src/UniClaw.Agent/Profile/ProfileIdentityRenderer.cs: 未在归属 README src/UniClaw.Agent/README.md 中点名</Message>
+          <StackTrace>   at UniClaw.Kernel.Tests.SourceReadmeOwnershipTests.SourceFiles_AreRegistered_InDimensionReadme() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/SourceReadmeOwnershipTests.cs:line 96
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="ea68ea6e-d241-4a0c-86c9-10f1d2deee14" testId="cc050c86-6c9b-2443-03fa-7a635a7528c7" testName="UniClaw.Kernel.Tests.ProductHostClosureTests.Solution_SimulationTestProjectIsSeparateCompositionRoot" computerName="frandeMac-mini" duration="00:00:00.0008068" startTime="2026-10-21T22:35:50.8832190+08:00" endTime="2026-10-21T22:35:50.8832190+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ea68ea6e-d241-4a0c-86c9-10f1d2deee14">
+      <Output>
+        <ErrorInfo>
+          <Message>Simulation Host 须恰好引用两个产品 csproj（Kernel + Agent，无其他）：实际为 [../../src/UniClaw.Kernel/UniClaw.Kernel.csproj, ../../src/UniClaw.Agent/UniClaw.Agent.csproj, ../../src/UniClaw.Agent.Dsh/UniClaw.Agent.Dsh.csproj]</Message>
+          <StackTrace>   at UniClaw.Kernel.Tests.ProductHostClosureTests.Solution_SimulationTestProjectIsSeparateCompositionRoot() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/ProductHostClosureTests.cs:line 185
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="9203b975-8e55-42b3-8d90-176164710cd9" testId="41d3b3c9-072f-7534-42e3-d7efba51c694" testName="UniClaw.Kernel.Tests.DocsMetadataTests.Adr_FilenamesFollowPattern" computerName="frandeMac-mini" duration="00:00:00.0002526" startTime="2026-10-21T22:35:50.8665850+08:00" endTime="2026-10-21T22:35:50.8665850+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9203b975-8e55-42b3-8d90-176164710cd9" />
+    <UnitTestResult executionId="ec4b8b46-b5c7-4c25-85d8-3d3f1033ed3b" testId="cdd51f95-1923-ff5c-e05f-de5e4dcb0168" testName="UniClaw.Kernel.Tests.ProductHostClosureTests.ProductSources_ContainNoSimulationIdentifiers" computerName="frandeMac-mini" duration="00:00:00.0393887" startTime="2026-10-21T22:35:50.8808470+08:00" endTime="2026-10-21T22:35:50.8808470+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ec4b8b46-b5c7-4c25-85d8-3d3f1033ed3b" />
+    <UnitTestResult executionId="ee5b6ff2-6327-4152-bb6b-582281e9d7c6" testId="8c2c74c2-8f62-f185-b2de-95d896596ff9" testName="UniClaw.Kernel.Tests.DocsMetadataTests.AnalysisAndDesign_DeclareStatusAndNoneAuthority_NoFrozenWords" computerName="frandeMac-mini" duration="00:00:00.0216830" startTime="2026-10-21T22:35:50.8633610+08:00" endTime="2026-10-21T22:35:50.8633610+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ee5b6ff2-6327-4152-bb6b-582281e9d7c6">
+      <Output>
+        <ErrorInfo>
+          <Message>docs 分类学违规（docs/README.md §2/§3）：
+docs/analysis/ui-automation-test-function-reuse-inventory-2026-10-20.md: 缺 '&gt; Status:' 头
+docs/analysis/ui-automation-test-function-reuse-inventory-2026-10-20.md: 缺 '&gt; Authority:' 头</Message>
+          <StackTrace>   at UniClaw.Kernel.Tests.DocsMetadataTests.AnalysisAndDesign_DeclareStatusAndNoneAuthority_NoFrozenWords() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/DocsMetadataTests.cs:line 61
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="16c52227-76bd-4da0-902a-b34b4844a9a5" testId="28ee76dc-cdf0-bf32-d62f-f80847193367" testName="UniClaw.Kernel.Tests.DocsMetadataTests.Prd_DeclaresLockedOrAccepted" computerName="frandeMac-mini" duration="00:00:00.0000915" startTime="2026-10-21T22:35:50.8666840+08:00" endTime="2026-10-21T22:35:50.8666840+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="16c52227-76bd-4da0-902a-b34b4844a9a5" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Kernel.Tests.ProductHostClosureTests.ProductProjects_DoNotReferenceSimulationProjects" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="282aadce-59ed-d51b-a0fc-744cf60c018b">
+      <Execution id="970f93ce-bcb5-4286-91f6-58357f1ca9c2" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.ProductHostClosureTests" name="ProductProjects_DoNotReferenceSimulationProjects" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.DocsMetadataTests.Architecture_DeclaresFrozenAuthority" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="dfc8f833-dcee-a849-b3f4-5bccd2f76bd3">
+      <Execution id="36214e76-5e07-4fd8-83a7-ca19698d9d4e" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.DocsMetadataTests" name="Architecture_DeclaresFrozenAuthority" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.SourceReadmeOwnershipTests.SourceFiles_AreRegistered_InDimensionReadme" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="6d2af1db-f6cb-b33a-32dd-5c4b19944143">
+      <Execution id="c7c8de2e-0b2b-437b-8789-a847f2dc3c6c" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.SourceReadmeOwnershipTests" name="SourceFiles_AreRegistered_InDimensionReadme" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.DocsMetadataTests.Prd_DeclaresLockedOrAccepted" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="28ee76dc-cdf0-bf32-d62f-f80847193367">
+      <Execution id="16c52227-76bd-4da0-902a-b34b4844a9a5" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.DocsMetadataTests" name="Prd_DeclaresLockedOrAccepted" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.DocsMetadataTests.Adr_FilenamesFollowPattern" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="41d3b3c9-072f-7534-42e3-d7efba51c694">
+      <Execution id="9203b975-8e55-42b3-8d90-176164710cd9" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.DocsMetadataTests" name="Adr_FilenamesFollowPattern" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.DocsMetadataTests.AnalysisAndDesign_DeclareStatusAndNoneAuthority_NoFrozenWords" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="8c2c74c2-8f62-f185-b2de-95d896596ff9">
+      <Execution id="ee5b6ff2-6327-4152-bb6b-582281e9d7c6" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.DocsMetadataTests" name="AnalysisAndDesign_DeclareStatusAndNoneAuthority_NoFrozenWords" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.ProductHostClosureTests.Solution_SimulationTestProjectIsSeparateCompositionRoot" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="cc050c86-6c9b-2443-03fa-7a635a7528c7">
+      <Execution id="ea68ea6e-d241-4a0c-86c9-10f1d2deee14" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.ProductHostClosureTests" name="Solution_SimulationTestProjectIsSeparateCompositionRoot" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.ProductHostClosureTests.ProductSources_ContainNoSimulationIdentifiers" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="cdd51f95-1923-ff5c-e05f-de5e4dcb0168">
+      <Execution id="ec4b8b46-b5c7-4c25-85d8-3d3f1033ed3b" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.ProductHostClosureTests" name="ProductSources_ContainNoSimulationIdentifiers" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="dfc8f833-dcee-a849-b3f4-5bccd2f76bd3" executionId="36214e76-5e07-4fd8-83a7-ca19698d9d4e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="282aadce-59ed-d51b-a0fc-744cf60c018b" executionId="970f93ce-bcb5-4286-91f6-58357f1ca9c2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6d2af1db-f6cb-b33a-32dd-5c4b19944143" executionId="c7c8de2e-0b2b-437b-8789-a847f2dc3c6c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cc050c86-6c9b-2443-03fa-7a635a7528c7" executionId="ea68ea6e-d241-4a0c-86c9-10f1d2deee14" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="41d3b3c9-072f-7534-42e3-d7efba51c694" executionId="9203b975-8e55-42b3-8d90-176164710cd9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cdd51f95-1923-ff5c-e05f-de5e4dcb0168" executionId="ec4b8b46-b5c7-4c25-85d8-3d3f1033ed3b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8c2c74c2-8f62-f185-b2de-95d896596ff9" executionId="ee5b6ff2-6327-4152-bb6b-582281e9d7c6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="28ee76dc-cdf0-bf32-d62f-f80847193367" executionId="16c52227-76bd-4da0-902a-b34b4844a9a5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="8" executed="8" passed="5" failed="3" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Kernel.Tests
+[xUnit.net 00:00:00.08]   Discovered:  UniClaw.Kernel.Tests
+[xUnit.net 00:00:00.08]   Starting:    UniClaw.Kernel.Tests
+[xUnit.net 00:00:00.11]       维度 README 登记违规（198 个源文件受检，ARCH-DOC-022 执法）：
+[xUnit.net 00:00:00.11]       src/UniClaw.Host/SettingsCoverage/SettingsNavigationScope.cs: 未在归属 README src/UniClaw.Host/README.md 中点名
+[xUnit.net 00:00:00.11]       src/UniClaw.Agent/Profile/ProfileIdentityRenderer.cs: 未在归属 README src/UniClaw.Agent/README.md 中点名
+[xUnit.net 00:00:00.11]       Stack Trace:
+[xUnit.net 00:00:00.11]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/SourceReadmeOwnershipTests.cs(96,0): at UniClaw.Kernel.Tests.SourceReadmeOwnershipTests.SourceFiles_AreRegistered_InDimensionReadme()
+[xUnit.net 00:00:00.11]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.11]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.12]       docs 分类学违规（docs/README.md §2/§3）：
+[xUnit.net 00:00:00.12]       docs/analysis/ui-automation-test-function-reuse-inventory-2026-10-20.md: 缺 '&gt; Status:' 头
+[xUnit.net 00:00:00.12]       docs/analysis/ui-automation-test-function-reuse-inventory-2026-10-20.md: 缺 '&gt; Authority:' 头
+[xUnit.net 00:00:00.12]       Stack Trace:
+[xUnit.net 00:00:00.12]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/DocsMetadataTests.cs(61,0): at UniClaw.Kernel.Tests.DocsMetadataTests.AnalysisAndDesign_DeclareStatusAndNoneAuthority_NoFrozenWords()
+[xUnit.net 00:00:00.12]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.12]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.14]       Simulation Host 须恰好引用两个产品 csproj（Kernel + Agent，无其他）：实际为 [../../src/UniClaw.Kernel/UniClaw.Kernel.csproj, ../../src/UniClaw.Agent/UniClaw.Agent.csproj, ../../src/UniClaw.Agent.Dsh/UniClaw.Agent.Dsh.csproj]
+[xUnit.net 00:00:00.14]       Stack Trace:
+[xUnit.net 00:00:00.14]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/ProductHostClosureTests.cs(185,0): at UniClaw.Kernel.Tests.ProductHostClosureTests.Solution_SimulationTestProjectIsSeparateCompositionRoot()
+[xUnit.net 00:00:00.14]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.14]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.14]   Finished:    UniClaw.Kernel.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-21T22:35:50.8550930+08:00">
+        <Text>[xUnit.net 00:00:00.11]     UniClaw.Kernel.Tests.SourceReadmeOwnershipTests.SourceFiles_AreRegistered_InDimensionReadme [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-21T22:35:50.8634050+08:00">
+        <Text>[xUnit.net 00:00:00.12]     UniClaw.Kernel.Tests.DocsMetadataTests.AnalysisAndDesign_DeclareStatusAndNoneAuthority_NoFrozenWords [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-21T22:35:50.8833050+08:00">
+        <Text>[xUnit.net 00:00:00.14]     UniClaw.Kernel.Tests.ProductHostClosureTests.Solution_SimulationTestProjectIsSeparateCompositionRoot [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

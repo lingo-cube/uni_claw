@@ -1,0 +1,12 @@
+{
+  "checkedProductFiles": 480,
+  "changedProductFiles": [],
+  "coreSequencePresent": [
+    "docs/analysis/world-observation-recovery-grill-2026-10-21.md",
+    "changes/WORLD-OBSERVATION-001/state.md"
+  ],
+  "decisions": "Q1=A,Q2=A,Q3=A,Q4=A",
+  "newChangeState": "persisted",
+  "indexIncludesChange": true,
+  "implementationStarted": false
+}

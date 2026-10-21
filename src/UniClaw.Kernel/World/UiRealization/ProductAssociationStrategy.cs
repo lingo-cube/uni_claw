@@ -49,7 +49,8 @@ public sealed class ProductAssociationStrategy : IAssociationStrategy
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        if (input.Current.Claim.Subject != ScreenIdentitySubject)
+        var isPageIdentity = input.Current.Claim.Subject == PageObservationCodec.IdentitySubject;
+        if (input.Current.Claim.Subject != ScreenIdentitySubject && !isPageIdentity)
             return new AssociationProposal(
                 AssociationDispositionKind.Insufficient,
                 MatchedContainerId: null,
@@ -57,7 +58,9 @@ public sealed class ProductAssociationStrategy : IAssociationStrategy
                 Relations: Array.Empty<ProposedRelation>(),
                 Reason: "not-screen-identity-claim");
 
-        var value = input.Current.Claim.Value;
+        var value = isPageIdentity && PageObservationCodec.TryReadIdentity(input.Current.Claim.Value, out var page)
+            ? page!.Signature
+            : input.Current.Claim.Value;
         if (string.IsNullOrWhiteSpace(value))
             return new AssociationProposal(
                 AssociationDispositionKind.Insufficient,

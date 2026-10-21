@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\UniClaw.Kernel.Tests\Runtime\PageObservationExecutionTests.cs" Link="PageObservationExecutionTests.cs" />
     <!-- 同一 Product Runtime artifact（RFS-001 / baseline §24.8：Simulation Host
          与 Product Host 复用同一 Product Runtime modules；本测试项目即
          Phase 1 的独立 Simulation composition root） -->
@@ -26,4 +27,8 @@
     <ProjectReference Include="..\..\src\UniClaw.Agent\UniClaw.Agent.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- DSH codec integration consumes the existing deterministic simulation seam. -->
+    <InternalsVisibleTo Include="UniClaw.Host.Dsh.Tests" />
+  </ItemGroup>
 </Project>

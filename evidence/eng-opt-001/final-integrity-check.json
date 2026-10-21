@@ -1,0 +1,22 @@
+[
+  {
+    "manifest": "ownership-source-hashes.json",
+    "files": 6,
+    "mismatches": []
+  },
+  {
+    "manifest": "assurance-source-hashes.json",
+    "files": 5,
+    "mismatches": []
+  },
+  {
+    "manifest": "coverage-source-hashes.json",
+    "files": 7,
+    "mismatches": []
+  },
+  {
+    "manifest": "historical-runtime-paths.json",
+    "files": 164,
+    "mismatches": []
+  }
+]

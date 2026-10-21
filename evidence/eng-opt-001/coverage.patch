@@ -1,0 +1,900 @@
+--- /dev/null
++++ b/src/UniClaw.Host/SettingsCoverage/CoverageDirective.cs
+@@ -0,0 +1,72 @@
++using UniClaw.Kernel.Runtime;
++
++namespace UniClaw.Host.SettingsCoverage;
++
++internal enum CoverageDirectiveKind { Enter, ReEnter, NestedEnter, Scroll, Back, Obstacle }
++
++/// <summary>Selection facts are independent of the text shown to the Agent.</summary>
++internal sealed record CoverageDirective(CoverageDirectiveKind Kind, string? TargetDescriptor, string Text)
++{
++    public string KindName => Kind switch
++    {
++        CoverageDirectiveKind.Enter => "enter",
++        CoverageDirectiveKind.ReEnter => "re-enter",
++        CoverageDirectiveKind.NestedEnter => "nested-enter",
++        CoverageDirectiveKind.Scroll => "scroll",
++        CoverageDirectiveKind.Back => "back",
++        CoverageDirectiveKind.Obstacle => "obstacle",
++        _ => "unknown",
++    };
++
++    public bool MatchesRecordedStep(CoverageStepRecord step) => Kind switch
++    {
++        CoverageDirectiveKind.Scroll => step.EffectClass is "swipe-up" or "swipe-down",
++        CoverageDirectiveKind.Enter or CoverageDirectiveKind.ReEnter or CoverageDirectiveKind.NestedEnter
++            or CoverageDirectiveKind.Back or CoverageDirectiveKind.Obstacle =>
++            step.EffectClass is "tap" or "click" && step.TargetDescriptor == TargetDescriptor,
++        _ => false,
++    };
++}
++
++internal sealed record CoverageStepAttribution(
++    string DecisionId, string? Directive, AgentActionStep Step, CoverageDirective? SelectedDirective = null);
++
++/// <summary>Compatibility reader for historical text-only records. New selected
++/// directives never pass through this parser; unknown legacy text retains its
++/// historical interpretation instead of manufacturing new selection facts.</summary>
++internal static class LegacyCoverageDirective
++{
++    public static bool IsObstacle(string? text) => text is not null
++        && (text.StartsWith("Clear the popup", StringComparison.Ordinal)
++            || text.StartsWith("Dismiss the popup", StringComparison.Ordinal));
++
++    public static bool Matches(SettingsCoverageConfig config, CoverageStepRecord step)
++    {
++        if (step.Directive is not { } text) return true;
++        var descriptor = Descriptor(text);
++        return Kind(text) switch
++        {
++            "scroll" => step.EffectClass is "swipe-up" or "swipe-down",
++            "back" => step.EffectClass is "tap" or "click" && step.TargetDescriptor == config.BackDescriptor,
++            "enter" or "re-enter" or "nested-enter" => step.EffectClass is "tap" or "click"
++                && step.TargetDescriptor == descriptor,
++            _ => true,
++        };
++    }
++
++    private static string? Descriptor(string text)
++    {
++        var start = text.IndexOf('<');
++        var end = text.IndexOf('>');
++        return start >= 0 && end > start ? text[(start + 1)..end] : null;
++    }
++
++    private static string? Kind(string text)
++    {
++        if (text.Contains("Scroll", StringComparison.Ordinal)) return "scroll";
++        if (text.StartsWith("Return to", StringComparison.Ordinal)) return "back";
++        if (text.Contains(" again", StringComparison.Ordinal)) return "re-enter";
++        if (text.StartsWith("Enter", StringComparison.Ordinal)) return "enter";
++        return null;
++    }
++}
+--- a/src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.cs
++++ b/src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.cs
+@@ -17,7 +17,10 @@
+     string? PostCaptureId,
+     bool Verified,
+     string? FailureReason,
+-    string? Directive);
++    string? Directive)
++{
++    internal CoverageDirective? SelectedDirective { get; init; }
++}
+ 
+ public sealed record CoverageItem(string Requirement, string Detail, bool Covered, string? Evidence);
+ 
+@@ -52,16 +55,18 @@
+     string? PopupState = null,              // AGT-009：最新弹窗分类声明（present/absent/null=无声明）
+     IReadOnlyList<string>? VisibleDescriptors = null) // AGT-009：最新观察的可见 descriptor（清障目标发现）
+ {
++    internal CoverageDirective? SelectedDirective { get; init; }
++
+     /// <summary>AGT-009：可见 descriptor（无观察时为空集，不返回 null）。</summary>
+     public IReadOnlyList<string> Visible => VisibleDescriptors ?? Array.Empty<string>();
+ }
+ 
+-public sealed class SettingsCoverageLedger
++public sealed partial class SettingsCoverageLedger
+ {
+     /// <summary>
+     /// TRAJECTORY-001 D3 裁决（M5 进度轴组合）：清障验证不算 Coverage
+-    /// Progress。obstacle 类 directive（"Clear the popup" / "Dismiss the
+-    /// popup" 前缀）的步骤即使 Verified=true 也不计入覆盖进度轴——
++    /// Progress。新记录依指令种类判定，历史文本经兼容读取；obstacle
++    /// 步骤即使 Verified=true 也不计入覆盖进度轴——
+     /// RUN-006 实证：弹窗循环里每个清障 tap 都"验证成功"，若计入进度轴
+     /// 会把零覆盖推进误报为有进展。StepsVerified 保留为事实字段（不受此
+     /// 裁决影响）。停滞判定消费方：Runner 的 InterleaveBookkeeper 进度
+@@ -71,9 +76,8 @@
+     {
+         if (!step.Verified)
+             return false;
+-        if (step.Directive is { } directive
+-            && (directive.StartsWith("Clear the popup", StringComparison.Ordinal)
+-                || directive.StartsWith("Dismiss the popup", StringComparison.Ordinal)))
++        if (step.SelectedDirective is { Kind: CoverageDirectiveKind.Obstacle }
++            || step.SelectedDirective is null && LegacyCoverageDirective.IsObstacle(step.Directive))
+             return false;
+         return true;
+     }
+@@ -336,8 +340,7 @@
+             || (config.Termination.OnConsecutiveFailures && maxConsecutiveFailuresReached
+                 && !config.Bounds.GoalDirectedContinuationEnabled);
+ 
+-        string? directive = null;
+-        string? directiveKind = null;
++        CoverageDirective? directive = null;
+         if (!coverageComplete && !terminated)
+         {
+             // The scroll-attempt limit constrains only further swipes. Preserve
+@@ -346,7 +349,7 @@
+                 || config.Bounds.GoalDirectedContinuationEnabled && maxScrollsReached;
+             var backSatisfied = items.First(item => item.Requirement == "back-navigation").Covered;
+             var repeatedSatisfied = items.First(item => item.Requirement == "repeated-entry").Covered;
+-            (directive, directiveKind) = NextDirective(config, scrollSatisfied, backSatisfied, repeatedSatisfied, currentRoute);
++            directive = NextDirective(config, scrollSatisfied, backSatisfied, repeatedSatisfied, currentRoute);
+         }
+ 
+         return new CoverageSnapshot(
+@@ -357,10 +360,10 @@
+             MaxConsultRoundsReached: maxConsultRoundsReached,
+             CurrentRoute: currentRoute,
+             StepsVerified: _steps.Count(entry => entry.Step.Verified),
+-            NextDirective: directive,
+-            NextDirectiveKind: directiveKind,
++            NextDirective: directive?.Text,
++            NextDirectiveKind: directive?.KindName,
+             PopupState: LatestPopupState,
+-            VisibleDescriptors: CurrentVisibleDescriptors()?.ToList());
++            VisibleDescriptors: CurrentVisibleDescriptors()?.ToList()) { SelectedDirective = directive };
+     }
+ 
+     public CoverageReport Report(SettingsCoverageConfig config)
+@@ -618,112 +621,6 @@
+         return (items, backVerified, enteredPages, scrollCandidates, _lastVerifiedScrollSequence, rootSeen, secondLevelRoutes.ToList());
+     }
+ 
+-    private (string? Directive, string? Kind) NextDirective(
+-        SettingsCoverageConfig config,
+-        bool scrollSatisfied,
+-        bool backSatisfied,
+-        bool repeatedSatisfied,
+-        string? currentRoute)
+-    {
+-        var enteredPages = EnteredPagesSnapshot(config);
+-        var visible = CurrentVisibleDescriptors();
+-        if (visible is null)
+-            return (null, null); // 尚无根页观察：等待，不指挥
+-
+-        // AGT-019 Q4 skip-first：同轮可见候选双源（NativeRid 在场）优先，
+-        // 单源跳过不丢弃；OrderBy 稳定排序保确定性（同输入同指令）。
+-        var dualSource = CurrentDualSourceDescriptors();
+-        string? ByConfidence(IEnumerable<string> candidates, Func<string, bool> eligible) =>
+-            candidates.Where(eligible)
+-                .OrderBy(descriptor => dualSource.Contains(descriptor) ? 0 : 1)
+-                .FirstOrDefault();
+-
+-        // 深度遍历只接受配置中显式声明的 parent > child；未知 UI 不会被提升为目标。
+-        if (config.DeepTraversalSettings.Enabled && currentRoute is not null && !IsRoot(config, currentRoute))
+-        {
+-            var currentPage = RoutePage(currentRoute);
+-            var nestedParents = NestedTargets(config);
+-            if (currentPage is not null && nestedParents.ContainsKey(currentPage)
+-                && nestedParents[currentPage].Any(child => !NestedWasEntered(config, currentPage, child)))
+-            {
+-                var child = ByConfidence(
+-                    nestedParents[currentPage],
+-                    child => !NestedWasEntered(config, currentPage, child) && visible.Contains(child));
+-                if (child is not null)
+-                    return ($"Enter the nested Settings entry '<{child}>' by tapping it.", "nested-enter");
+-            }
+-        }
+-
+-        if (config.DynamicNestedEntriesSettings.IsActive && currentRoute is not null && !IsRoot(config, currentRoute))
+-        {
+-            var nested = ByConfidence(
+-                DynamicNestedFrontier(config)
+-                    .Where(key => key.StartsWith(currentRoute + ">", StringComparison.Ordinal))
+-                    .Select(key => key[(currentRoute.Length + 1)..]),
+-                visible.Contains);
+-            if (nested is not null)
+-                return ($"Enter the dynamically discovered nested Settings entry '<{nested}>' by tapping it.", "nested-enter");
+-        }
+-
+-        // 离开根页时返回；nested 页面同样 fail closed 地只允许配置的 back。
+-        if (currentRoute is not null && !IsRoot(config, currentRoute))
+-            return ($"Return to the Settings root page by tapping '<{config.BackDescriptor}>'", "back");
+-
+-        // 只指挥当前可见的目标（不可见目标经滚动露出后再指挥）。
+-        var firstNotEntered = ByConfidence(
+-            config.TargetPages,
+-            page => !enteredPages.Contains(page) && visible.Contains(page));
+-        if (firstNotEntered is not null)
+-            return ($"Enter the Settings first-level entry '<{firstNotEntered}>' by tapping it.", "enter");
+-
+-        if (config.DynamicRootEntriesSettings.AllVisible)
+-        {
+-            var dynamic = ByConfidence(DynamicRootFrontier(config), visible.Contains);
+-            if (dynamic is not null)
+-                return ($"Enter the dynamically discovered Settings entry '<{dynamic}>' by tapping it.", "enter");
+-        }
+-
+-        if (!scrollSatisfied)
+-        {
+-            // 已发现的滚动候选优先进入；无候选且滚动预算未尽则继续滚动；
+-            // 预算尽 = 覆盖被阻塞（bounded stop）。
+-            var allEntered = AllEnteredDescriptors(config);
+-            // AGT-007 加固：进入验证失败过的候选不再重试（真机实证：底部
+-            // 候选可能因路由指纹碰撞永远无法验证进入，重试只会耗尽失败预算）。
+-            var failedCandidates = FailedEntryDescriptors(config);
+-            var candidate = ByConfidence(
+-                ScrollCandidates(config),
+-                descriptor => !allEntered.Contains(descriptor)
+-                    && !failedCandidates.Contains(descriptor)
+-                    && visible.Contains(descriptor));
+-            if (candidate is not null)
+-                return ($"Enter the scroll-discovered Settings entry '<{candidate}>' by tapping it.", "enter");
+-            if (_scrollAttempts < config.Bounds.MaxScrolls)
+-                return ($"Scroll the Settings list down with swipe-up on '<{config.ScrollContainerDescriptor}>'", "scroll");
+-            return (null, null);
+-        }
+-
+-        if (!repeatedSatisfied)
+-        {
+-            var firstEntered = config.TargetPages
+-                .FirstOrDefault(page => enteredPages.Contains(page)
+-                    && !IsAgentSkipped(page) && visible.Contains(page));
+-            if (firstEntered is not null)
+-                return ($"Enter '<{firstEntered}>' again to verify repeated entry.", "re-enter");
+-        }
+-
+-        if (config.DeepTraversalSettings.Enabled)
+-        {
+-            var pendingParent = NestedTargets(config)
+-                .FirstOrDefault(pair => pair.Value.Any(child => !NestedWasEntered(config, pair.Key, child))
+-                    && visible.Contains(pair.Key));
+-            if (!string.IsNullOrWhiteSpace(pendingParent.Key))
+-                return ($"Re-enter the Settings page '<{pendingParent.Key}>' to inspect explicit nested entries.", "re-enter");
+-        }
+-
+-        return (null, null);
+-    }
+-
+     private bool NestedWasEntered(SettingsCoverageConfig config, string parent, string child)
+     {
+         foreach (var (_, step) in _steps)
+@@ -1114,40 +1011,10 @@
+         return null;
+     }
+ 
+-    private bool DirectiveMatches(SettingsCoverageConfig config, CoverageStepRecord step)
+-    {
+-        if (step.Directive is null)
+-            return true;
+-        var kind = DirectiveKind(step.Directive);
+-        var descriptor = DirectiveDescriptor(step.Directive);
+-        return kind switch
+-        {
+-            "scroll" => step.EffectClass is "swipe-up" or "swipe-down",
+-            "back" => IsTapOrClick(step.EffectClass) && step.TargetDescriptor == config.BackDescriptor,
+-            "enter" or "re-enter" or "nested-enter" => IsTapOrClick(step.EffectClass) && step.TargetDescriptor == descriptor,
+-            _ => true,
+-        };
+-    }
+-
+-    private static string? DirectiveDescriptor(string directive)
+-    {
+-        var start = directive.IndexOf('<');
+-        var end = directive.IndexOf('>');
+-        return start >= 0 && end > start ? directive[(start + 1)..end] : null;
+-    }
+-
+-    private static string? DirectiveKind(string directive)
+-    {
+-        if (directive.Contains("Scroll", StringComparison.Ordinal))
+-            return "scroll";
+-        if (directive.StartsWith("Return to", StringComparison.Ordinal))
+-            return "back";
+-        if (directive.Contains(" again", StringComparison.Ordinal))
+-            return "re-enter";
+-        if (directive.StartsWith("Enter", StringComparison.Ordinal))
+-            return "enter";
+-        return null;
+-    }
++    private bool DirectiveMatches(SettingsCoverageConfig config, CoverageStepRecord step) =>
++        step.SelectedDirective is { } directive
++            ? directive.MatchesRecordedStep(step)
++            : LegacyCoverageDirective.Matches(config, step);
+ 
+     private bool IsRoot(SettingsCoverageConfig config, string route) =>
+         string.Equals(route, config.RootRoute, StringComparison.Ordinal)
+--- /dev/null
++++ b/src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.Directives.cs
+@@ -0,0 +1,111 @@
++namespace UniClaw.Host.SettingsCoverage;
++
++public sealed partial class SettingsCoverageLedger
++{
++    private CoverageDirective? NextDirective(
++        SettingsCoverageConfig config,
++        bool scrollSatisfied,
++        bool backSatisfied,
++        bool repeatedSatisfied,
++        string? currentRoute)
++    {
++        var enteredPages = EnteredPagesSnapshot(config);
++        var visible = CurrentVisibleDescriptors();
++        if (visible is null)
++            return null; // 尚无根页观察：等待，不指挥
++
++        // AGT-019 Q4 skip-first：同轮可见候选双源（NativeRid 在场）优先，
++        // 单源跳过不丢弃；OrderBy 稳定排序保确定性（同输入同指令）。
++        var dualSource = CurrentDualSourceDescriptors();
++        string? ByConfidence(IEnumerable<string> candidates, Func<string, bool> eligible) =>
++            candidates.Where(eligible)
++                .OrderBy(descriptor => dualSource.Contains(descriptor) ? 0 : 1)
++                .FirstOrDefault();
++
++        // 深度遍历只接受配置中显式声明的 parent > child；未知 UI 不会被提升为目标。
++        if (config.DeepTraversalSettings.Enabled && currentRoute is not null && !IsRoot(config, currentRoute))
++        {
++            var currentPage = RoutePage(currentRoute);
++            var nestedParents = NestedTargets(config);
++            if (currentPage is not null && nestedParents.ContainsKey(currentPage)
++                && nestedParents[currentPage].Any(child => !NestedWasEntered(config, currentPage, child)))
++            {
++                var child = ByConfidence(
++                    nestedParents[currentPage],
++                    child => !NestedWasEntered(config, currentPage, child) && visible.Contains(child));
++                if (child is not null)
++                    return new CoverageDirective(CoverageDirectiveKind.NestedEnter, child, $"Enter the nested Settings entry '<{child}>' by tapping it.");
++            }
++        }
++
++        if (config.DynamicNestedEntriesSettings.IsActive && currentRoute is not null && !IsRoot(config, currentRoute))
++        {
++            var nested = ByConfidence(
++                DynamicNestedFrontier(config)
++                    .Where(key => key.StartsWith(currentRoute + ">", StringComparison.Ordinal))
++                    .Select(key => key[(currentRoute.Length + 1)..]),
++                visible.Contains);
++            if (nested is not null)
++                return new CoverageDirective(CoverageDirectiveKind.NestedEnter, nested, $"Enter the dynamically discovered nested Settings entry '<{nested}>' by tapping it.");
++        }
++
++        // 离开根页时返回；nested 页面同样 fail closed 地只允许配置的 back。
++        if (currentRoute is not null && !IsRoot(config, currentRoute))
++            return new CoverageDirective(CoverageDirectiveKind.Back, config.BackDescriptor, $"Return to the Settings root page by tapping '<{config.BackDescriptor}>'");
++
++        // 只指挥当前可见的目标（不可见目标经滚动露出后再指挥）。
++        var firstNotEntered = ByConfidence(
++            config.TargetPages,
++            page => !enteredPages.Contains(page) && visible.Contains(page));
++        if (firstNotEntered is not null)
++            return new CoverageDirective(CoverageDirectiveKind.Enter, firstNotEntered, $"Enter the Settings first-level entry '<{firstNotEntered}>' by tapping it.");
++
++        if (config.DynamicRootEntriesSettings.AllVisible)
++        {
++            var dynamic = ByConfidence(DynamicRootFrontier(config), visible.Contains);
++            if (dynamic is not null)
++                return new CoverageDirective(CoverageDirectiveKind.Enter, dynamic, $"Enter the dynamically discovered Settings entry '<{dynamic}>' by tapping it.");
++        }
++
++        if (!scrollSatisfied)
++        {
++            // 已发现的滚动候选优先进入；无候选且滚动预算未尽则继续滚动；
++            // 预算尽 = 覆盖被阻塞（bounded stop）。
++            var allEntered = AllEnteredDescriptors(config);
++            // AGT-007 加固：进入验证失败过的候选不再重试（真机实证：底部
++            // 候选可能因路由指纹碰撞永远无法验证进入，重试只会耗尽失败预算）。
++            var failedCandidates = FailedEntryDescriptors(config);
++            var candidate = ByConfidence(
++                ScrollCandidates(config),
++                descriptor => !allEntered.Contains(descriptor)
++                    && !failedCandidates.Contains(descriptor)
++                    && visible.Contains(descriptor));
++            if (candidate is not null)
++                return new CoverageDirective(CoverageDirectiveKind.Enter, candidate, $"Enter the scroll-discovered Settings entry '<{candidate}>' by tapping it.");
++            if (_scrollAttempts < config.Bounds.MaxScrolls)
++                return new CoverageDirective(CoverageDirectiveKind.Scroll, config.ScrollContainerDescriptor, $"Scroll the Settings list down with swipe-up on '<{config.ScrollContainerDescriptor}>'");
++            return null;
++        }
++
++        if (!repeatedSatisfied)
++        {
++            var firstEntered = config.TargetPages
++                .FirstOrDefault(page => enteredPages.Contains(page)
++                    && !IsAgentSkipped(page) && visible.Contains(page));
++            if (firstEntered is not null)
++                return new CoverageDirective(CoverageDirectiveKind.ReEnter, firstEntered, $"Enter '<{firstEntered}>' again to verify repeated entry.");
++        }
++
++        if (config.DeepTraversalSettings.Enabled)
++        {
++            var pendingParent = NestedTargets(config)
++                .FirstOrDefault(pair => pair.Value.Any(child => !NestedWasEntered(config, pair.Key, child))
++                    && visible.Contains(pair.Key));
++            if (!string.IsNullOrWhiteSpace(pendingParent.Key))
++                return new CoverageDirective(CoverageDirectiveKind.ReEnter, pendingParent.Key, $"Re-enter the Settings page '<{pendingParent.Key}>' to inspect explicit nested entries.");
++        }
++
++        return null;
++    }
++
++}
+--- a/src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs
++++ b/src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs
+@@ -26,14 +26,17 @@
+         int Attempts,
+         string? Justification,
+         string? PolicyDigest = null,
+-        string? GuardVerdict = null);
++        string? GuardVerdict = null)
++    {
++        internal CoverageDirective? SelectedDirective { get; init; }
++    }
+ 
+     private readonly Func<AgentDecisionContext, AgentDecision?> _underlying;
+     private readonly SettingsCoverageLedger _ledger;
+     private readonly SettingsCoverageConfig _config;
+     private readonly SettingsCoverageRunner.CoverageStepJournal? _stepJournal;
+     private readonly List<ConsultRecord> _log = new();
+-    private readonly List<(string DecisionId, string? Directive, AgentActionStep Step)> _adoptedSteps = new();
++    private readonly List<CoverageStepAttribution> _adoptedSteps = new();
+     private string? _terminalJustification;
+     private int _obstacleAttempts;
+     private (int StepsVerified, int Frontier)? _lastProgressSignal;
+@@ -41,7 +44,7 @@
+     private int _sameRouteConsults;
+     private string? _lastRoute;
+     private string? _lastPopupState;
+-    private string? _lastAdoptedDirectiveKind;
++    private CoverageDirectiveKind? _lastAdoptedDirectiveKind;
+     // Failure context is consumed by Kernel after one consultation. Retain it
+     // only across that recovery's bounded Defer chain, never as a new Run phase.
+     private string? _stepRecoveryReason;
+@@ -80,7 +83,8 @@
+ 
+     /// <summary>已采纳 Act 步骤（按采纳顺序；与 dispatch 顺序一一对应——
+     /// grounding 失败不产生 receipt，由 runner 对照 receipts 处理）。</summary>
+-    public IReadOnlyList<(string DecisionId, string? Directive, AgentActionStep Step)> AdoptedSteps => _adoptedSteps;
++    public IReadOnlyList<(string DecisionId, string? Directive, AgentActionStep Step)> AdoptedSteps =>
++        _adoptedSteps.Select(item => (item.DecisionId, item.Directive, item.Step)).ToArray();
+ 
+     /// <summary>Set by the composition only when RunDriverInputs.GuardStep is wired.</summary>
+     public bool CurrentStepGuardInstalled { get; set; }
+@@ -109,7 +113,7 @@
+                 decision = TransferReviewResponse(original, decision);
+         }
+         foreach (var step in AdvisorySteps(decision))
+-            _adoptedSteps.Add((context.DecisionId, null, step));
++            _adoptedSteps.Add(new(context.DecisionId, null, step));
+         _log.Add(new ConsultRecord(
+             context.DecisionId,
+             context.Phase.ToString(),
+@@ -140,17 +144,18 @@
+         ArgumentNullException.ThrowIfNull(context);
+         // 咨询开始 = 上一步骤的 verification 已可用：先把已配对的 receipts
+         // 连同 verification/归属写入账本，快照才能反映最新覆盖进度。
+-        _stepJournal?.Drain(_adoptedSteps);
++        _stepJournal?.DrainAttributed(_adoptedSteps);
+         SyncBeforeSnapshot?.Invoke();
+         _ledger.RecordConsultRound(context.DecisionId);
+ 
+         var snapshot = _ledger.Snapshot(_config);
+         var directive = snapshot.NextDirective;
+         var kind = snapshot.NextDirectiveKind;
++        var selectedDirective = snapshot.SelectedDirective;
+         // Popup clearance has its own typed present→absent evidence. Its
+         // dismissed button disappearing can fail the generic target check;
+         // that does not leave an unresolved navigation recovery behind.
+-        var popupCleared = _lastAdoptedDirectiveKind == "obstacle"
++        var popupCleared = _lastAdoptedDirectiveKind == CoverageDirectiveKind.Obstacle
+             && _lastPopupState == "present" && snapshot.PopupState == "absent";
+         if (popupCleared)
+             _stepRecoveryReason = null;
+@@ -234,7 +239,7 @@
+                     guarded = TransferReviewResponse(response, guarded);
+             }
+             foreach (var step in AdvisorySteps(guarded))
+-                _adoptedSteps.Add((context.DecisionId, null, step));
++                _adoptedSteps.Add(new(context.DecisionId, null, step));
+             _log.Add(new ConsultRecord(
+                 context.DecisionId, context.Phase.ToString(), null,
+                 context.BudgetReview is { Required: true } ? "budget-review" : "goal-directed",
+@@ -267,7 +272,7 @@
+             // back）关闭对话框继续遍历。不匹配 → 诚实落入既有 obstacle
+             // 清障逻辑（不猜）。
+             if (priorPopupState == "absent"
+-                && _lastAdoptedDirectiveKind is "enter" or "nested-enter" or "re-enter"
++                && _lastAdoptedDirectiveKind is CoverageDirectiveKind.Enter or CoverageDirectiveKind.NestedEnter or CoverageDirectiveKind.ReEnter
+                 && _adoptedSteps.Count > 0
+                 && _adoptedSteps[^1].Step.TargetDescriptor is { } arrivalTarget
+                 && _dialogTitleSource?.Invoke() is { Length: > 0 } dialogTitle
+@@ -294,6 +299,7 @@
+                 directive =
+                     $"Clear the popup overlay by tapping '<{obstacle}>' before resuming traversal.";
+                 kind = "obstacle";
++                selectedDirective = new(CoverageDirectiveKind.Obstacle, obstacle, directive);
+             }
+             else if (_config.BackDescriptor is not null)
+             {
+@@ -302,6 +308,7 @@
+                     $"Dismiss the popup overlay by tapping '<{_config.BackDescriptor}>' (back). "
+                     + "Confirm-side buttons are not allowed for this task.";
+                 kind = "obstacle";
++                selectedDirective = new(CoverageDirectiveKind.Obstacle, _config.BackDescriptor, directive);
+             }
+             else
+             {
+@@ -420,8 +427,12 @@
+                 var recoveryDirective = recovery.EffectClass == "swipe-up"
+                     ? $"Scroll the container '<{_config.ScrollContainerDescriptor}>' {location}."
+                     : $"Navigate back {location} by tapping '<{_config.BackDescriptor}>'.";
+-                _adoptedSteps.Add((context.DecisionId, recoveryDirective, recovery));
+-                _log[^1] = _log[^1] with { Directive = recoveryDirective, DecisionKind = "act" };
++                var recoverySelection = new CoverageDirective(
++                    recovery.EffectClass == "swipe-up" ? CoverageDirectiveKind.Scroll : CoverageDirectiveKind.Back,
++                    recovery.TargetDescriptor, recoveryDirective);
++                _adoptedSteps.Add(new(context.DecisionId, recoveryDirective, recovery, recoverySelection));
++                _log[^1] = _log[^1] with
++                { Directive = recoveryDirective, DecisionKind = "act", SelectedDirective = recoverySelection };
+                 _stepRecoveryReason = null;
+                 return agentDecision;
+             }
+@@ -447,7 +458,7 @@
+         // 每次迭代排除一个候选；账本拒绝写入则停止，不能伪造 skip 日志。
+         while (kind is "enter" or "nested-enter" or "re-enter")
+         {
+-            var target = TargetOf(directive!);
++            var target = selectedDirective?.TargetDescriptor;
+             if (target is null)
+                 break;
+ 
+@@ -486,6 +497,7 @@
+             snapshot = _ledger.Snapshot(_config);
+             directive = snapshot.NextDirective;
+             kind = snapshot.NextDirectiveKind;
++            selectedDirective = snapshot.SelectedDirective;
+         }
+ 
+         // 子页待办耗尽后返回；不得构造缺失的返回控件。
+@@ -496,6 +508,7 @@
+         {
+             directive = $"Return to the Settings root page by tapping '<{_config.BackDescriptor}>'.";
+             kind = "back";
++            selectedDirective = new(CoverageDirectiveKind.Back, _config.BackDescriptor, directive);
+         }
+ 
+         if (directive is null)
+@@ -558,7 +571,7 @@
+             AgentActionStep? adoptedStep = null;
+             deviation = decision is null
+                 ? "no-response"
+-                : ValidateAdherence(decision, directive, kind!, out adoptedStep);
++                : ValidateAdherence(decision, selectedDirective!, kind!, out adoptedStep);
+             var adopted = adoptedStep;
+             if (deviation is null)
+             {
+@@ -588,9 +601,9 @@
+                 }
+                 // Act 单步与受约束 Plan 的唯一 ActItem 都物化为 AgentActionStep
+                 // 归属（归因/journal 路径不变；Plan 的执行由 driver 负责）。
+-                _adoptedSteps.Add((context.DecisionId, directive, adopted!));
++                _adoptedSteps.Add(new(context.DecisionId, directive, adopted!, selectedDirective));
+                 // TRAJECTORY-001 D2：记录采纳指令 kind（到达判据之一）。
+-                _lastAdoptedDirectiveKind = kind;
++                _lastAdoptedDirectiveKind = selectedDirective!.Kind;
+                 _log.Add(new ConsultRecord(
+                     context.DecisionId, context.Phase.ToString(), directive, kind,
+                     decision is AgentDecision.Plan ? "plan" : "act",
+@@ -602,7 +615,7 @@
+                         _ => null,
+                     },
+                     guard?.PolicyDigest,
+-                    guard?.Verdict.ToString().ToUpperInvariant()));
++                    guard?.Verdict.ToString().ToUpperInvariant()) { SelectedDirective = selectedDirective });
+                 return decision;
+             }
+             lastDeviation = deviation;
+@@ -628,7 +641,7 @@
+     /// → deviation，fail closed 零 Effect。被采纳的 ActItem 经
+     /// <paramref name="adopted"/> 物化为 AgentActionStep（归因/journal 不变）。
+     /// </summary>
+-    private string? ValidateAdherence(AgentDecision decision, string directive, string kind, out AgentActionStep? adopted)
++    private string? ValidateAdherence(AgentDecision decision, CoverageDirective directive, string kind, out AgentActionStep? adopted)
+     {
+         adopted = null;
+         if (decision is AgentDecision.Plan plan)
+@@ -657,7 +670,7 @@
+                 return "plan-requires-single-act";
+             if (actStep.DesiredState is not null)
+                 return "plan-act-must-not-carry-desiredState";
+-            var actDeviation = ValidateStepAgainstDirective(actStep, directive, kind);
++            var actDeviation = ValidateStepAgainstDirective(actStep, directive);
+             if (actDeviation is not null)
+                 return $"plan-{actDeviation}";
+             adopted = actStep;
+@@ -670,27 +683,27 @@
+         var step = actDecision.Proposal.Steps[0];
+         if (step.DesiredState is not null)
+             return "directive-step-must-not-carry-desiredState";
+-        var deviation = ValidateStepAgainstDirective(step, directive, kind);
++        var deviation = ValidateStepAgainstDirective(step, directive);
+         if (deviation is null)
+             adopted = step;
+         return deviation;
+     }
+ 
+     /// <summary>单步与 directive 的匹配规则（Act 与 Plan ActItem 同律）。</summary>
+-    private string? ValidateStepAgainstDirective(AgentActionStep step, string directive, string kind) =>
+-        kind switch
+-        {
+-            "enter" or "re-enter" or "nested-enter" => IsTap(step) && step.TargetDescriptor == TargetOf(directive)
++    private string? ValidateStepAgainstDirective(AgentActionStep step, CoverageDirective directive) =>
++        directive.Kind switch
++        {
++            CoverageDirectiveKind.Enter or CoverageDirectiveKind.ReEnter or CoverageDirectiveKind.NestedEnter => IsTap(step) && step.TargetDescriptor == directive.TargetDescriptor
+                 ? null
+                 : $"directive-target-mismatch:{step.TargetDescriptor ?? "<null>"}",
+-            "scroll" => step.EffectClass == "swipe-up"
++            CoverageDirectiveKind.Scroll => step.EffectClass == "swipe-up"
+                 && step.TargetDescriptor == _config.ScrollContainerDescriptor
+                 ? null
+                 : $"directive-scroll-mismatch:{step.EffectClass}:{step.TargetDescriptor ?? "<null>"}",
+-            "back" => IsTap(step) && step.TargetDescriptor == _config.BackDescriptor
++            CoverageDirectiveKind.Back => IsTap(step) && step.TargetDescriptor == _config.BackDescriptor
+                 ? null
+                 : $"directive-back-mismatch:{step.TargetDescriptor ?? "<null>"}",
+-            "obstacle" => IsTap(step) && step.TargetDescriptor == TargetOf(directive)
++            CoverageDirectiveKind.Obstacle => IsTap(step) && step.TargetDescriptor == directive.TargetDescriptor
+                 ? null
+                 : $"directive-obstacle-mismatch:{step.TargetDescriptor ?? "<null>"}",
+             _ => "unknown-directive-kind",
+@@ -784,13 +797,6 @@
+         _ => null,
+     };
+ 
+-    private static string? TargetOf(string directive)
+-    {
+-        var start = directive.IndexOf('<');
+-        var end = directive.IndexOf('>');
+-        return start >= 0 && end > start ? directive[(start + 1)..end] : null;
+-    }
+-
+     /// <summary>
+     /// TRAJECTORY-001 D2 — 对话框标题与 directive 目标的模糊匹配：小写化、
+     /// "&" 归一为 "and"、按非字母数字切词；词集交集/并集（Jaccard）≥ 50%
+--- a/src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs
++++ b/src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs
+@@ -89,7 +89,11 @@
+         string? PostCaptureId,
+         bool Verified,
+         string? FailureReason,
+-        IReadOnlyList<KeyValuePair<string, bool>> Checks);
++        IReadOnlyList<KeyValuePair<string, bool>> Checks)
++    {
++        public string? DirectiveKind { get; init; }
++        public string? DirectiveTargetDescriptor { get; init; }
++    }
+ 
+     public sealed record RunResult(
+         string RunDir,
+@@ -262,7 +266,7 @@
+                     or UniClaw.Kernel.Capability.CapabilityLifecycle.Active
+                         ? traversalLanguageBinding : null;
+             });
+-            var materializedSteps = new List<(string DecisionId, string? Directive, AgentActionStep Step)>();
++            var materializedSteps = new List<CoverageStepAttribution>();
+             var interleave = new InterleaveBookkeeper(
+                 kernel,
+                 feedNext,
+@@ -272,7 +276,7 @@
+                 config,
+                 TryBindLanguageInspection,
+                 () => languageInspection,
+-                () => journal.Drain(materializedSteps));
++                () => journal.DrainAttributed(materializedSteps));
+             director.SyncBeforeSnapshot = interleave.SyncNow;
+             // AGT-009：feed 的有界 Slow 咨询投影目标 = 当前 run kernel。
+             if (liveFeed is not null)
+@@ -303,13 +307,13 @@
+                     AvailablePlanConditions = SettingsPlanFacts.ConditionDescriptions,
+                     EvaluatePlanCondition = (condition, _) =>
+                     {
+-                        journal.Drain(materializedSteps);
++                        journal.DrainAttributed(materializedSteps);
+                         interleave.SyncNow();
+                         return SettingsPlanFacts.EvaluateCondition(condition, ledger, config);
+                     },
+                     ProjectPlanCandidates = source =>
+                     {
+-                        journal.Drain(materializedSteps);
++                        journal.DrainAttributed(materializedSteps);
+                         interleave.SyncNow();
+                         var facts = SettingsPlanFacts.Project(source, ledger, config);
+                         candidateProjections.Add(new { source, facts });
+@@ -317,7 +321,7 @@
+                     },
+                     GuardStep = (step, context) =>
+                     {
+-                        journal.Drain(materializedSteps);
++                        journal.DrainAttributed(materializedSteps);
+                         interleave.SyncNow();
+                         var constraint = config.NavigationScope is not null || config.ActionPolicy is not null
+                             ? SettingsActionGuard.EvaluateCurrentStep(step, context, config)
+@@ -330,14 +334,16 @@
+                         };
+                         currentStepGuards.Add(new { context.DecisionId, step, constraint, context.Screen });
+                         if (constraint.Verdict == PlanStepGuardVerdict.Allow)
+-                            materializedSteps.Add((context.DecisionId,
+-                                options.UseCoverageDirector ? director.ConsultLog.LastOrDefault()?.Directive : null, step));
++                        {
++                            var selection = options.UseCoverageDirector ? director.ConsultLog.LastOrDefault() : null;
++                            materializedSteps.Add(new(context.DecisionId, selection?.Directive, step, selection?.SelectedDirective));
++                        }
+                         return constraint;
+                     },
+                     CheckTaskEvidenceBarrier = config.Bounds.GoalDirectedContinuationEnabled
+                         ? () =>
+                         {
+-                            journal.Drain(materializedSteps);
++                            journal.DrainAttributed(materializedSteps);
+                             interleave.SyncNow();
+                             var report = ledger.Report(config);
+                             return report.UncoveredItems.Count == 0 ? null
+@@ -351,7 +357,7 @@
+                         // Preserve receipt/verification -> post-observation
+                         // ordering. Discovery after a verified swipe depends on
+                         // this same ledger sequence, as does review freshness.
+-                        journal.Drain(materializedSteps);
++                        journal.DrainAttributed(materializedSteps);
+                         interleave.SyncNow();
+                         var projection = SettingsCoverageOverviewProjector.Project(ledger, config);
+                         var graph = kernel.ProjectWorldGraph($"{kernel.RunId}:{kernel.RunView?.Version}");
+@@ -404,7 +410,7 @@
+                         var decision = rawDecision;
+                         if (!options.UseCoverageDirector)
+                         {
+-                            journal.Drain(materializedSteps);
++                            journal.DrainAttributed(materializedSteps);
+                             interleave.SyncNow();
+                             decision = director.RecordAdvisoryDecision(projected, decision);
+                         }
+@@ -486,7 +492,7 @@
+             TryBindLanguageInspection();
+             if (languageInspectionRequest is { Required: true } && languageInspection is null)
+                 throw new InvalidOperationException("language-inspection-required-capability-not-bound");
+-            journal.Drain(materializedSteps);
++            journal.DrainAttributed(materializedSteps);
+ 
+             // ---- 产物落盘 ---------------------------------------------------
+             WriteText(runDir, "trace.json", TryJson(traceScope.FinalizeArtifact()));
+@@ -957,7 +963,7 @@
+         private readonly Func<string?>? _sessionIdAccessor;
+         private readonly List<StepArtifact> _artifacts = new();
+         private readonly List<(EffectReceipt Receipt, string? RouteBefore, string? RouteAfter, string? PostCaptureId)> _pending = new();
+-        private readonly List<(string DecisionId, string? Directive, AgentActionStep Step)> _attributionQueue = new();
++        private readonly List<CoverageStepAttribution> _attributionQueue = new();
+         private int _consumedVerifications;
+         private int _queuedAdoptedCount;
+ 
+@@ -977,7 +983,11 @@
+             EffectReceipt receipt, string? routeBefore, string? routeAfter, string? postCaptureId) =>
+             _pending.Add((receipt, routeBefore, routeAfter, postCaptureId));
+ 
+-        public void Drain(IReadOnlyList<(string DecisionId, string? Directive, AgentActionStep Step)> adoptedSteps)
++        public void Drain(IReadOnlyList<(string DecisionId, string? Directive, AgentActionStep Step)> adoptedSteps) =>
++            DrainAttributed(adoptedSteps.Select(item =>
++                new CoverageStepAttribution(item.DecisionId, item.Directive, item.Step)).ToArray());
++
++        internal void DrainAttributed(IReadOnlyList<CoverageStepAttribution> adoptedSteps)
+         {
+             // 归属队列增量同步：新采纳步骤按序入队（消费式匹配需要移除）。
+             while (_queuedAdoptedCount < adoptedSteps.Count)
+@@ -1023,7 +1033,11 @@
+                     PostCaptureId: fact.PostCaptureId,
+                     Verified: verification?.IsVerified == true,
+                     FailureReason: verification?.RejectionReason ?? fact.Receipt.Reason,
+-                    Checks: checks);
++                    Checks: checks)
++                {
++                    DirectiveKind = attribution?.SelectedDirective?.KindName,
++                    DirectiveTargetDescriptor = attribution?.SelectedDirective?.TargetDescriptor,
++                };
+                 _artifacts.Add(artifact);
+                 _ledger.RecordStep(new CoverageStepRecord(
+                     artifact.Index, artifact.DecisionId, artifact.DshSessionId,
+@@ -1032,7 +1046,8 @@
+                     artifact.PreActionTargetUnique, artifact.ReceiptId, artifact.ReceiptOutcome,
+                     artifact.ReceiptCommand,
+                     artifact.RouteBefore, artifact.RouteAfter, artifact.PostCaptureId,
+-                    artifact.Verified, artifact.FailureReason, artifact.Directive));
++                    artifact.Verified, artifact.FailureReason, artifact.Directive)
++                    { SelectedDirective = attribution?.SelectedDirective });
+             }
+             _pending.Clear();
+         }
+@@ -1041,7 +1056,7 @@
+         /// (role, descriptor, effectClass) 相等消费（匹配即移除——重复进入
+         /// 同目标的第二次步骤归属到第二次咨询）；无 verification 的
+         /// （Unconfirmed 提前终止）按队首归属。</summary>
+-        private (string DecisionId, string? Directive, AgentActionStep Step)? Attribute(
++        private CoverageStepAttribution? Attribute(
+             EffectReceipt receipt,
+             PostActionEffectVerification? verification)
+         {
+--- a/src/UniClaw.Host/README.md
++++ b/src/UniClaw.Host/README.md
+@@ -56,6 +56,8 @@
+ | `SettingsPlanFacts.cs` | 由已有观察/覆盖账本投影当前根页候选、范围及来源；不驱动动作、不授予许可、不证明范围穷尽（ADR-0053） |
+ | `SettingsCoverageOverviewProjector.cs` | 由既有账本投影全局待办、验证、未知及稳定事实键；无新增可变权威 |
+ | `Geometry.cs` | TRAJECTORY-001 D5 几何工具箱：Rect / 遮挡判据（中心点）/ uiAutomator bounds 解析（只做信号输入，不改 Ledger） |
++| `CoverageDirective.cs` | 覆盖指令的种类/目标事实与历史文本兼容读取；不授予执行权 |
++| `SettingsCoverageLedger.Directives.cs` | 同一覆盖账本内的指令选择；提示文字不参与新执行链的语义判断 |
+ | `SettingsNavigationScope.cs` | 将任务声明的路由范围投影为导航约束；不替代 Kernel 授权 |
+ | `SettingsCoverageConfig.cs` / `SettingsCoverageLedger.cs` / `SettingsActionPolicy.cs` | 遍历配置 / 台账（含可选 dynamicRootEntries/all-visible frontier、visited、结构性 skip reason）/ 动作策略 |
+ 
+--- /dev/null
++++ b/tests/UniClaw.Host.Tests/SettingsCoverage/CoverageDirectiveSemanticsTests.cs
+@@ -0,0 +1,56 @@
++using UniClaw.Host.SettingsCoverage;
++using UniClaw.Kernel.Assurance;
++using UniClaw.Kernel.Control;
++using UniClaw.Kernel.Effects;
++using UniClaw.Kernel.Runtime;
++using System.Text.Json;
++using Xunit;
++
++namespace UniClaw.Host.Tests.SettingsCoverage;
++
++public sealed class CoverageDirectiveSemanticsTests
++{
++    [Theory]
++    [InlineData("Volume > media")]
++    [InlineData("Scroll settings")]
++    public void EntryLabelCannotChangeDirectiveMeaning(string target)
++    {
++        var config = Config(target);
++        var ledger = new SettingsCoverageLedger();
++        ledger.RecordObservation(config.RootRoute, new[] { ("ui.element", (string?)target) });
++        var verification = new PostActionEffectVerification("rev-after",
++            new TargetSpec("ui.element", target, "tap"), true,
++            new[] { new AssuranceCheck("post-action-target-unique", true) }, null);
++        var journal = new SettingsCoverageRunner.CoverageStepJournal(ledger, () => new[] { verification }, null);
++        var director = new SettingsCoverageDirector(context => new AgentDecision.Act(
++            new AgentActionProposal(context.DecisionId,
++                new[] { new AgentActionStep("ui.element", target, "tap", null) }, "follow selected entry")),
++            ledger, config, journal);
++
++        Assert.IsType<AgentDecision.Act>(director.Consult(Context("enter")));
++        journal.Enqueue(new EffectReceipt("receipt", "intent", "binding", "occurrence", "rev-before", 1,
++            DispatchOutcome.DeliveryCompleted, "fixture-delivered", DateTimeOffset.UnixEpoch),
++            config.RootRoute, "android.settings|route:child", "capture-after");
++        ledger.RecordObservation("android.settings|route:child", new[] { ("ui.element", (string?)"Navigate up") });
++        director.Consult(Context("after"));
++
++        Assert.Null(ledger.Report(config).FirstDivergence);
++        Assert.Equal(1, ledger.Report(config).StepsVerified);
++        using var saved = JsonDocument.Parse(JsonSerializer.Serialize(
++            Assert.Single(journal.Artifacts()), new JsonSerializerOptions(JsonSerializerDefaults.Web)));
++        Assert.True(saved.RootElement.TryGetProperty("directiveKind", out var kind));
++        Assert.Equal("enter", kind.GetString());
++        Assert.Equal(target, saved.RootElement.GetProperty("directiveTargetDescriptor").GetString());
++    }
++
++    private static SettingsCoverageConfig Config(string target) => new(
++        ConfigVersion: "1", Session: new("directive test", "workspace", true, false),
++        Bounds: new(8, 8, 4, 3, 0),
++        Coverage: new(true, "all-visible", 0, 0, false, 0),
++        TargetPages: new[] { target }, Termination: new(true, true, true, true),
++        RootRoute: "android.settings|route:Settings", ScrollContainerDescriptor: "list", BackDescriptor: "Navigate up");
++
++    private static AgentDecisionContext Context(string decisionId) => new(
++        decisionId, "run", "contract", "inspect settings", new HashSet<string> { "tap", "swipe-up" },
++        new Dictionary<string, ClaimSummary>(), Array.Empty<AgentObligationView>(), AgentDecisionPhase.StepVerified);
++}

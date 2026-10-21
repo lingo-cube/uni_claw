@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="f29cd58f-d034-425f-a588-a3fd3ade6e9a" name="@frandeMac-mini 2026-10-21 22:50:26" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T22:50:26.1539400+08:00" queuing="2026-10-21T22:50:26.1539400+08:00" start="2026-10-21T22:50:25.5796500+08:00" finish="2026-10-21T22:50:26.1560740+08:00" />
+  <TestSettings name="default" id="2e03d9f6-fc60-45c2-b382-c9d35f9bc204">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-21_22_50_26" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="3980af7e-ed0c-4cf5-9b3f-685ca43e9268" testId="3e008de7-694c-e2be-3130-b0bcf8e9ae5c" testName="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A2_ProductSession_RestartRecovers" computerName="frandeMac-mini" duration="00:00:00.0024174" startTime="2026-10-21T22:50:25.9819620+08:00" endTime="2026-10-21T22:50:25.9819620+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3980af7e-ed0c-4cf5-9b3f-685ca43e9268" />
+    <UnitTestResult executionId="a9056aa9-0ff8-4208-a180-02975eb12619" testId="dccec682-b29f-8817-0fcc-e141b03a84cd" testName="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A3_TaskInstance_BindSecondSession_Throws" computerName="frandeMac-mini" duration="00:00:00.0002181" startTime="2026-10-21T22:50:25.9848740+08:00" endTime="2026-10-21T22:50:25.9848740+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a9056aa9-0ff8-4208-a180-02975eb12619" />
+    <UnitTestResult executionId="cbda7bdb-f7c1-4cde-8328-499e6eb41d2c" testId="2b786fe6-a5b3-1f46-a92e-9a4c8ce6d843" testName="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A1_TaskInstance_CreateIdempotent" computerName="frandeMac-mini" duration="00:00:00.0019626" startTime="2026-10-21T22:50:25.9843230+08:00" endTime="2026-10-21T22:50:25.9843230+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cbda7bdb-f7c1-4cde-8328-499e6eb41d2c" />
+    <UnitTestResult executionId="64226efa-0512-4139-bed2-9290377a6b19" testId="cb694256-1bcb-683a-1d71-ab6c7560a6dc" testName="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A2_TaskInstance_RestartRecovers" computerName="frandeMac-mini" duration="00:00:00.0005053" startTime="2026-10-21T22:50:25.9853950+08:00" endTime="2026-10-21T22:50:25.9853950+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="64226efa-0512-4139-bed2-9290377a6b19" />
+    <UnitTestResult executionId="04bd530b-c1e9-4567-b933-74f84da8e764" testId="0ee5c76c-2111-b474-f218-44640839286a" testName="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A1_ProductSession_CreateIdempotent_1To1" computerName="frandeMac-mini" duration="00:00:00.0002004" startTime="2026-10-21T22:50:25.9821790+08:00" endTime="2026-10-21T22:50:25.9821790+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="04bd530b-c1e9-4567-b933-74f84da8e764" />
+    <UnitTestResult executionId="07d446fe-916f-4319-953e-6687f9047edd" testId="820ebaa4-d242-c986-9469-864b874908ff" testName="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A3_TaskInstance_BindSession_Idempotent" computerName="frandeMac-mini" duration="00:00:00.0003161" startTime="2026-10-21T22:50:25.9846510+08:00" endTime="2026-10-21T22:50:25.9846510+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="07d446fe-916f-4319-953e-6687f9047edd" />
+    <UnitTestResult executionId="3f314ce6-2b6a-4c78-bfb9-868c580ef2b6" testId="160b4c87-5ea8-1bc3-552a-fb224eacfbd4" testName="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A4_ProductSession_BindSecondRun_Throws" computerName="frandeMac-mini" duration="00:00:00.0106515" startTime="2026-10-21T22:50:25.9797060+08:00" endTime="2026-10-21T22:50:25.9797130+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3f314ce6-2b6a-4c78-bfb9-868c580ef2b6" />
+    <UnitTestResult executionId="ba97bbaa-faa3-4b83-9035-3f6389fb6c61" testId="4c204686-707d-2789-8433-877d20c4bf8f" testName="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A4_ProductSession_BindRun_Idempotent" computerName="frandeMac-mini" duration="00:00:00.0001587" startTime="2026-10-21T22:50:25.9823410+08:00" endTime="2026-10-21T22:50:25.9823410+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ba97bbaa-faa3-4b83-9035-3f6389fb6c61" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A3_TaskInstance_BindSession_Idempotent" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="820ebaa4-d242-c986-9469-864b874908ff">
+      <Execution id="07d446fe-916f-4319-953e-6687f9047edd" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RuntimeIdentityStoreTests" name="A3_TaskInstance_BindSession_Idempotent" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A4_ProductSession_BindRun_Idempotent" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="4c204686-707d-2789-8433-877d20c4bf8f">
+      <Execution id="ba97bbaa-faa3-4b83-9035-3f6389fb6c61" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RuntimeIdentityStoreTests" name="A4_ProductSession_BindRun_Idempotent" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A1_ProductSession_CreateIdempotent_1To1" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="0ee5c76c-2111-b474-f218-44640839286a">
+      <Execution id="04bd530b-c1e9-4567-b933-74f84da8e764" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RuntimeIdentityStoreTests" name="A1_ProductSession_CreateIdempotent_1To1" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A2_TaskInstance_RestartRecovers" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="cb694256-1bcb-683a-1d71-ab6c7560a6dc">
+      <Execution id="64226efa-0512-4139-bed2-9290377a6b19" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RuntimeIdentityStoreTests" name="A2_TaskInstance_RestartRecovers" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A2_ProductSession_RestartRecovers" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="3e008de7-694c-e2be-3130-b0bcf8e9ae5c">
+      <Execution id="3980af7e-ed0c-4cf5-9b3f-685ca43e9268" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RuntimeIdentityStoreTests" name="A2_ProductSession_RestartRecovers" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A4_ProductSession_BindSecondRun_Throws" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="160b4c87-5ea8-1bc3-552a-fb224eacfbd4">
+      <Execution id="3f314ce6-2b6a-4c78-bfb9-868c580ef2b6" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RuntimeIdentityStoreTests" name="A4_ProductSession_BindSecondRun_Throws" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A3_TaskInstance_BindSecondSession_Throws" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="dccec682-b29f-8817-0fcc-e141b03a84cd">
+      <Execution id="a9056aa9-0ff8-4208-a180-02975eb12619" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RuntimeIdentityStoreTests" name="A3_TaskInstance_BindSecondSession_Throws" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RuntimeIdentityStoreTests.A1_TaskInstance_CreateIdempotent" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="2b786fe6-a5b3-1f46-a92e-9a4c8ce6d843">
+      <Execution id="cbda7bdb-f7c1-4cde-8328-499e6eb41d2c" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RuntimeIdentityStoreTests" name="A1_TaskInstance_CreateIdempotent" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="3e008de7-694c-e2be-3130-b0bcf8e9ae5c" executionId="3980af7e-ed0c-4cf5-9b3f-685ca43e9268" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dccec682-b29f-8817-0fcc-e141b03a84cd" executionId="a9056aa9-0ff8-4208-a180-02975eb12619" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2b786fe6-a5b3-1f46-a92e-9a4c8ce6d843" executionId="cbda7bdb-f7c1-4cde-8328-499e6eb41d2c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cb694256-1bcb-683a-1d71-ab6c7560a6dc" executionId="64226efa-0512-4139-bed2-9290377a6b19" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0ee5c76c-2111-b474-f218-44640839286a" executionId="04bd530b-c1e9-4567-b933-74f84da8e764" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="820ebaa4-d242-c986-9469-864b874908ff" executionId="07d446fe-916f-4319-953e-6687f9047edd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="160b4c87-5ea8-1bc3-552a-fb224eacfbd4" executionId="3f314ce6-2b6a-4c78-bfb9-868c580ef2b6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4c204686-707d-2789-8433-877d20c4bf8f" executionId="ba97bbaa-faa3-4b83-9035-3f6389fb6c61" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="8" executed="8" passed="8" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Host.Tests
+[xUnit.net 00:00:00.06]   Discovered:  UniClaw.Host.Tests
+[xUnit.net 00:00:00.06]   Starting:    UniClaw.Host.Tests
+[xUnit.net 00:00:00.09]   Finished:    UniClaw.Host.Tests
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

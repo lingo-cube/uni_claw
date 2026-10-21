@@ -25,13 +25,23 @@ public sealed class UniAgentProfileYamlTests
     }
 
     private const string ValidProfile = """
-        schemaVersion: "uniagent.profile/v1"
+        schemaVersion: "uniagent.profile/v2"
         profileId: uniagent-prod
         profileVersion: "1"
         profileRevision: 1
         identity:
           name: UniAgent
           description: test
+        charter:
+          role: Test role
+          responsibilities:
+            - Own the test objective
+          boundaries:
+            - Do not invent authority
+          planningPrinciples:
+            - Use current evidence
+          skillUse:
+            - Follow declared skills
         capabilities:
           - submit_decision
         modelRoles:
@@ -51,6 +61,33 @@ public sealed class UniAgentProfileYamlTests
         return path;
     }
 
+    private static (string ProfilePath, string PromptDirectory) WriteProfileWithPromptFixture(
+        string profileContent, string directoryName)
+    {
+        var repoRoot = RepoRoot();
+        var promptDirectory = Path.Combine(repoRoot, "product/prompt", directoryName);
+        Directory.CreateDirectory(promptDirectory);
+        var sourceDirectory = Path.Combine(repoRoot, "product/prompt/uniagent-prod");
+        var manifestPath = Path.Combine(sourceDirectory, "manifest.json");
+        File.Copy(manifestPath, Path.Combine(promptDirectory, "manifest.json"));
+        using var digest = new MemoryStream();
+        digest.Write(File.ReadAllBytes(manifestPath));
+        using var manifest = JsonDocument.Parse(File.ReadAllText(manifestPath));
+        foreach (var segment in manifest.RootElement.GetProperty("segments").EnumerateArray())
+        {
+            var name = segment.GetString()!;
+            var source = Path.Combine(sourceDirectory, name);
+            File.Copy(source, Path.Combine(promptDirectory, name));
+            digest.Write(File.ReadAllBytes(source));
+        }
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(digest.ToArray()))
+            .ToLowerInvariant();
+        File.WriteAllText(Path.Combine(promptDirectory, "prompt-hash.txt"), hash);
+        var assembly = $"assembly:\n  promptManifest:\n    path: product/prompt/{directoryName}\n    hash: {hash}\n";
+        var profilePath = WriteFixture(profileContent.Replace("profileRevision: 1", "profileRevision: 1\n" + assembly));
+        return (profilePath, promptDirectory);
+    }
+
     [Fact]
     public void Repo_Profile_Loads_With_Declared_Roles()
     {
@@ -65,6 +102,109 @@ public sealed class UniAgentProfileYamlTests
                 new ModelRoleDeclaration("slow.semantic.visual", Required: false),
             },
             profile.ModelRoles);
+    }
+
+    [Fact]
+    public void Repo_Profile_Charter_Is_Rendered_As_IdentityPrompt()
+    {
+        var profile = UniAgentProfileYaml.LoadDefault();
+        var identityPath = Path.Combine(RepoRoot(), "product/prompt/uniagent-prod/01-identity.txt");
+
+        Assert.Equal(ProfileIdentityRenderer.Render(profile.Charter), File.ReadAllText(identityPath));
+    }
+
+    [Fact]
+    public void Missing_Charter_FailsClosed()
+    {
+        var path = WriteFixture(ValidProfile.Replace(
+            "charter:\n  role: Test role\n  responsibilities:\n    - Own the test objective\n"
+            + "  boundaries:\n    - Do not invent authority\n  planningPrinciples:\n    - Use current evidence\n"
+            + "  skillUse:\n    - Follow declared skills\n",
+            ""));
+        try
+        {
+            var error = Assert.Throws<InvalidOperationException>(() => UniAgentProfileYaml.Load(path));
+            Assert.Contains("charter", error.Message, StringComparison.Ordinal);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Empty_Charter_Section_FailsClosed()
+    {
+        var path = WriteFixture(ValidProfile.Replace(
+            "role: Test role", "role: \"\""));
+        try
+        {
+            var error = Assert.Throws<InvalidOperationException>(() => UniAgentProfileYaml.Load(path));
+            Assert.Contains("charter", error.Message, StringComparison.Ordinal);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Empty_Charter_List_FailsClosed()
+    {
+        var path = WriteFixture(ValidProfile.Replace(
+            "responsibilities:\n    - Own the test objective", "responsibilities: []"));
+        try
+        {
+            var error = Assert.Throws<InvalidOperationException>(() => UniAgentProfileYaml.Load(path));
+            Assert.Contains("charter.responsibilities", error.Message, StringComparison.Ordinal);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void CharterConstructor_CopiesInputArrays()
+    {
+        var responsibilities = new[] { "Keep the objective" };
+        var boundaries = new[] { "Do not invent authority" };
+        var principles = new[] { "Use current evidence" };
+        var skillUse = new[] { "Use declared skills" };
+        var charter = new ProfileCharter("Agent role", responsibilities, boundaries, principles, skillUse);
+
+        responsibilities[0] = "Mutated after construction";
+
+        Assert.Equal("Keep the objective", Assert.Single(charter.Responsibilities));
+    }
+
+    [Fact]
+    public void LoadedCharterLists_AreNotBackedByMutableArrays()
+    {
+        var charter = UniAgentProfileYaml.LoadDefault().Charter;
+
+        Assert.IsNotType<string[]>(charter.Responsibilities);
+        Assert.Throws<NotSupportedException>(
+            () => ((IList<string>)charter.Responsibilities)[0] = "Mutated at runtime");
+        Assert.StartsWith("Advance the stated objective", charter.Responsibilities[0], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Loader_RejectsCharterDriftWithAValidPromptHash()
+    {
+        var fixture = WriteProfileWithPromptFixture(
+            ValidProfile.Replace("role: Test role", "role: Changed test role"),
+            "fixture-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var error = Assert.Throws<InvalidOperationException>(() => UniAgentProfileYaml.Load(fixture.ProfilePath));
+            Assert.True(error.Message.Contains("identity-charter-mismatch", StringComparison.Ordinal), error.Message);
+        }
+        finally
+        {
+            File.Delete(fixture.ProfilePath);
+            Directory.Delete(fixture.PromptDirectory, recursive: true);
+        }
     }
 
     [Fact]
@@ -101,10 +241,10 @@ public sealed class UniAgentProfileYamlTests
     }
 
     [Fact]
-    public void SchemaVersion_Drift_FailsClosed()
+    public void Legacy_V1_Profile_IsRejected()
     {
         var path = WriteFixture(ValidProfile.Replace(
-            "uniagent.profile/v1", "uniagent.profile/v0"));
+            "uniagent.profile/v2", "uniagent.profile/v1"));
         try
         {
             var error = Assert.Throws<InvalidOperationException>(() => UniAgentProfileYaml.Load(path));
@@ -139,7 +279,7 @@ public sealed class UniAgentProfileYamlTests
         var profile = UniAgentProfileYaml.LoadDefault();
 
         // RUNTIME-PLAN-002：持续遍历/typed handlers提示词及生成Schema装配随动。
-        Assert.Equal(19, profile.Revision);
+        Assert.Equal(26, profile.Revision);
         Assert.NotNull(profile.Assembly);
         Assert.NotNull(profile.Assembly!.PromptManifest);
         Assert.Equal("product/prompt/uniagent-prod", profile.Assembly.PromptManifest!.Path);
@@ -154,8 +294,8 @@ public sealed class UniAgentProfileYamlTests
 
         var skill = Assert.Single(profile.AllowedSkillRefs!);
         Assert.Equal("android-automotive-ui-testing", skill.Name);
-        // AGT-019 声明面随动：guidance 增补弹窗/停滞处置纪律 → revision 2。
-        Assert.Equal(2, skill.Revision);
+        // RUNTIME-PLAN-004: 泛化计划生成指导 → revision 4。
+        Assert.Equal(4, skill.Revision);
         Assert.Equal("product/skills/android-automotive-ui-testing", skill.Path);
         Assert.Equal(64, skill.Sha256.Length);
     }
@@ -182,7 +322,7 @@ public sealed class UniAgentProfileYamlTests
     {
         var path = WriteFixture(ValidProfile.Replace(
             "profileRevision: 1",
-            "profileRevision: 1\nallowedSkillRefs:\n  android-automotive-ui-testing:\n    revision: 2\n    path: product/skills/android-automotive-ui-testing\n    sha256: " + new string('a', 64)));
+            "profileRevision: 1\nallowedSkillRefs:\n  android-automotive-ui-testing:\n    revision: 4\n    path: product/skills/android-automotive-ui-testing\n    sha256: " + new string('a', 64)));
         try
         {
             var error = Assert.Throws<InvalidOperationException>(() => UniAgentProfileYaml.Load(path));

@@ -1,0 +1,34 @@
+  UniClaw.Core -> /private/tmp/uniclaw-eng-opt-001-review/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/tmp/uniclaw-eng-opt-001-review/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Host -> /private/tmp/uniclaw-eng-opt-001-review/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/PageIdentityRecoveryTests.cs(48,24): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(249,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(262,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(728,45): warning CS8620: 由于引用类型的可为 null 性差异，(string, string, string)[] 类型的实参不能用于 void SettingsCoverageLedger.RecordObservation(string route, IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> visibleOccurrences) 中 IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> 类型的形参 visibleOccurrences。 [/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/WorldCaptureIsolationTests.cs(39,38): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+  UniClaw.Host.Tests -> /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.09]     UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(target: "Volume > media") [FAIL]
+[xUnit.net 00:00:00.09]     UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(target: "Scroll settings") [FAIL]
+  失败 UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(target: "Volume > media") [15 ms]
+  错误消息:
+   Assert.IsType() Failure: Value is null
+Expected: typeof(UniClaw.Kernel.Runtime.AgentDecision+Act)
+Actual:   null
+  堆栈跟踪:
+     at UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(String target) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsCoverage/CoverageDirectiveSemanticsTests.cs:line 29
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  失败 UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(target: "Scroll settings") [4 ms]
+  错误消息:
+   Assert.Null() Failure: Value is not null
+Expected: null
+Actual:   "step 0 decision enter: deviation-from-directive"
+  堆栈跟踪:
+     at UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(String target) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsCoverage/CoverageDirectiveSemanticsTests.cs:line 36
+   at InvokeStub_CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/eng-opt-001/coverage/coverage-labels-before-red-retry.trx
+
+失败!  - 失败:     2，通过:     0，已跳过:     0，总计:     2，持续时间: 18 ms - UniClaw.Host.Tests.dll (net10.0)

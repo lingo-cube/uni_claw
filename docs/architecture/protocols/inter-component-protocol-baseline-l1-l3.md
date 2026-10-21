@@ -206,6 +206,16 @@ cycle 调用 Kernel 操作面（ADR-0019）。
   两义已由 ING-006 rename（`ObservationProposal`）消除——2026-09-09
   模型挑战裁决执行完毕，baseline 不动。
 
+- **Semantic Perception执行扩展（JEV-SEMANTIC-CAP-001）**：L1新增兼容
+  `ObserveSemanticsAsync`，旧marker默认返回Unsupported，协议版本按R6保留1.0。
+  输入将当前/前页观察、已记录操作、调用方预期意图分区；当前capture/cycle/
+  session/space/新鲜度及全部依据显式关联。输出的观察/页面关系/预期符合性
+  独立；观察与符合性矛盾时保留观察、标记Conflicted。只有观察可投影成
+  `ui.semantic.page`（camelCase的SemanticPageClaim），携带全部父EvidenceIds
+  和源叶闭包，经原P2/P3进入World。PageKey仅类别，不是ContainerId；
+  ExpectedMatch/预期文字/动作成功不入观察，P22不接收这些字段。完整字段
+  与输入/失败界见感知组件基线§7.1和本Change execution-contract.md。
+
 ### P3 Accepted Evidence Record（Evidence Ledger → World Model）
 
 - **Producer**：Evidence Ledger（admission 通过时唯一创建；内容寻址
@@ -250,6 +260,11 @@ cycle 调用 Kernel 操作面（ADR-0019）。
   显式拒绝）。
 - **Reference Realization**：`Slice` / `WorldModel.DeriveSlice` /
   `IsSliceValid` / `Assurance.FreshnessJudgment`。
+- **WRC-003 realization（2026-10-20）**：World 的图消费投影同时携带按 scope
+  派生的同页 `ViewportTransitions`；它们引用已验证操作及 accepted 前后观察，
+  不属于跨页导航边。位移由 World 从重叠观察计算，缺少有效配准时为空并保留
+  原因。P22 仍只是 prior，回执不能单独证明位移，Replay 不能创建 canonical
+  关系。该载荷由实际重放/重建买方消费，不扩张 Slice 为完整 World DTO。
 - **Status**：verified（FRS-007，2026-09-09：known gap 消除——freshness
   sufficiency 经 Assurance Freshness Judgment 落地（ADR-0010）；Slice
   validity 保持 currency 派生）。
@@ -943,7 +958,8 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   不新增协议边；legacy有限HardCap策略仅在显式旧模式继续兼容。
 - **Composable Plan（ADR-0053）**：同一P25通道接收带稳定PlanId、正版本、阶段预期和局部工作界限的Plan；当前可执行段为具体Act/Observe/Control、候选ForEach、命名条件If、有界Repeat及Checkpoint的有限块组合；静态结构深度/节点数受限，不开放自引用递归、动态代码或任意跳转。条件名称由装配声明，既有Owner按当前事实/候选返回三态及scope/revision/证据；Unknown不选Else，条件不授予许可。候选由既有Owner提供语义范围、revision、稳定事项键、三态处置及来源；不携带定位或Effect许可。每轮重读候选，逐动作以当前事实校验并经过Control、grounding、Assurance、Effect及验证。只有显式允许且有来源证明的安全Blocked可留证继续；Unknown/冲突及既有Policy Guard Unknown仍回Agent。
   Runtime在动作对账后的安全边界记录版本/位置、局部工作、候选与实际attempt/receipt/验证关联，块帧保留父位置、候选与重复次数，ControlPath区分嵌套分支；条件求值保留原来源及执行位置审计。阈值/检查点让出后只接受精确引用当前位置全部字段的ContinuePlan恢复；授额不选择下一段，NoAction仍终局评估并废弃旧Plan，Act不暗中续旧Plan。修改形成更高版本接替未执行内容，旧提案、尝试及消耗保留；同版本续行不重置工作量。循环节点不能用重复item index作唯一完成锚，新增plan-attempt:ID仅匹配已验证实际尝试。Driver审计保留完整来源证据；咨询attempt的EvidenceRefs可投影为该真实plan-attempt引用，身份/位置/状态/receipt/原因及Owner受阻来源不省略，不能以引用存在替代Verified。Plan耗尽/候选暂空不是完成证明。同实例续行不等于跨进程或在途Effect自动恢复，文件咨询journal仅为咨询证据。
-- **Continuous Traversal / operation handlers（RUNTIME-PLAN-002，D1-D19）**：P25 Plan追加有界`traverse`项（source、1..16有序rules、0..16 maxDepth、returnStep），每个operation独立声明ReadOnly/Navigate及before/afterVerified有序handlers（每时机≤8）。首片只绑定既有Language Inspection@1.0 typed协议，不增加Handler Registry或任意Execute。ControlLoop拥有Traversal游标/探索/返回，driver仅协调原Owner链；World引用视图不包含Run进度。每次Effect仍须独立验证后才执行成功后置；只读处理零额外点击。调用完成、能力领域结果、显式requirePass继续条件与Goal证明分开。Run记录操作输入/结果、handler关联、暂停与最终覆盖缺口；状态查询只读，沿用ContinuePlan精确位置，Recovery经Control接收执行事实且不盲重发。正式字段及边界见[执行契约](../../../changes/RUNTIME-PLAN-002/execution-contract.md)，实际验收见[Change](../../../changes/RUNTIME-PLAN-002/state.md)；不重标001历史成绩或宣称全UI穷尽。
+- **Continuous Traversal / operation handlers（RUNTIME-PLAN-002，D1-D19）**：P25 Plan追加有界`traverse`项（source、1..16有序rules、0..16 maxDepth、returnStep），规则条件随对应source说明声明并仅对当前候选求值；全局If条件仍单独由availablePlanConditions声明，两个目录不混用（RUNTIME-PLAN-005澄清）。每个operation独立声明ReadOnly/Navigate及before/afterVerified有序handlers（每时机≤8）。首片只绑定既有Language Inspection@1.0 typed协议，不增加Handler Registry或任意Execute。ControlLoop拥有Traversal游标/探索/返回，driver仅协调原Owner链；World引用视图不包含Run进度。每次Effect仍须独立验证后才执行成功后置；只读处理零额外点击。调用完成、能力领域结果、显式requirePass继续条件与Goal证明分开。Run记录操作输入/结果、handler关联、暂停与最终覆盖缺口；状态查询只读，沿用ContinuePlan精确位置，Recovery经Control接收执行事实且不盲重发。正式字段及边界见[执行契约](../../../changes/RUNTIME-PLAN-002/execution-contract.md)，实际验收见[Change](../../../changes/RUNTIME-PLAN-002/state.md)；不重标001历史成绩或宣称全UI穷尽。
+- **Ordered asynchronous handlers（RUNTIME-PLAN-003）**：Plan输入不增加异步控制流；既有typed语言检查通过执行适配返回awaitable结果。Run按callId记录Running与单一终态；driver在等待中让出并可恢复，持续异步入口在完成/截止/取消后接回同一操作/handler位置，不因等待咨询或重复扣调用预算。前置顺序、原动作独立验证与后置顺序保持；取消请求不宣称物理停止，迟到结果不回写Owner。语言领域协议与Finding权威不变，见[异步契约](../../../changes/RUNTIME-PLAN-003/execution-contract.md)。
 - **Status**：外部语义已 HUMAN_SELECTED；当前最小 journal 已落地：四元组 key 为
   `runId + contractViewRef + decisionBoundaryId + consultationCorrelationId`；同
   correlation transport retry回放原结果且不重复消耗咨询额度，新的 semantic consultation
@@ -992,3 +1008,17 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
 - **②（Contract version 取代）**：方向已由 baseline §24.6 细化（Grant →
   UniAgent Proposal → Run Model admission → 新 immutable Contract View
   generation；旧 View 不改写）；完整 supersession 语义仍待 multi-run buyer。
+
+
+### P27 Observation Need（World Model → Control Loop）
+
+WORLD-OBSERVATION-001以Settings身份不足为实际buyer启用既有ObservationNeed领域概念。Producer=World reconciliation；Consumer=Control Observation Recovery；driver仅转送，不成为新Owner。
+
+- `ObservationNeed(SourceRevisionId, CaptureEvidenceId, Capture, Kind)`：Kind当前为identity-disambiguation，只表达缺失信息，不指定模型、provider或算法。SourceRevisionId指need首次产生revision；普通内容revision不重建请求。Capture含capture/cycle/session/time/space及同capture观察布局；CaptureEvidenceId是P2已采信source记录。
+- P2/P3复用普通ObservationProposal/EvidenceRecord；当前源载荷`ui.page.capture`=`PageCaptureObservation`，补证载荷`ui.page.identity`=`PageIdentityObservation`。正式严格JSON codec=`PageObservationCodec`，未知字段、非法相关性/坐标/重复项拒绝。补证必须具备当前capture的derived graph和实际已观察标题/布局；Signature是上下文提示，PageKey、预期和confidence均不作为身份。IAssociationStrategy提案仍过World authority gates。
+- WorldBeliefRevision表达不可变CurrentPageObservation；未确认时保留ownerless结构及need。新capture替换当前观察，旧capture补证仅保留历史证据，不恢复；当前capture确认后仅在新revision提供有该capture证据的已归属元素。普通内容Insufficient不撤销页面。
+- Control在既有ObservationDirective附带Need与RemainingBudget，并选择观察深度。等待位置关联原phase/attempt/receipt，跨Drive续用原deadline及run补证子配额；换capture不续预算。超时/不足保持未知，返回既有GroundingFailed/VerificationFailed与Recovery/任务策略，不构成Run失败或默认Back。Effect Gate不请求或等待模型。
+- P23当前UI grounding及P11绑定消费对未确认capture不授权UI动作；无capture的既有ownerless用途及不依赖页面身份的非UI查询兼容。导航投影未知时不提供旧anchor用于Traversal。
+- 补证采信不等于到达。Assurance另验本次dispatch之后的capture及effect谓词，Traversal只在verified后推进；已投递点击不重发，step/round/plan预算不重置。未知、错相关性、迟到、重复、取消不得越过该顺序。
+
+不扩张Agent AGT-002协议或P22意图；本边为World信息需求，观察/语义已有正式消费缝继续复用。

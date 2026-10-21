@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="721a0eb4-34e9-46d9-97cd-17e646ab9de4" name="@frandeMac-mini 2026-10-21 22:53:12" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T22:53:12.7808070+08:00" queuing="2026-10-21T22:53:12.7808070+08:00" start="2026-10-21T22:53:12.1250710+08:00" finish="2026-10-21T22:53:12.7910140+08:00" />
+  <TestSettings name="default" id="22c0f3ac-5362-414b-ad0b-5e132133ca52">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-21_22_53_12" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="e0cace10-c3e3-4a79-85fc-87568801f0b1" testId="d4155a4e-819b-f8d4-e24c-6b00a0f97c72" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrigger_StructuralVisualConflict_Predicted" computerName="frandeMac-mini" duration="00:00:00.0000197" startTime="2026-10-21T22:53:12.6369050+08:00" endTime="2026-10-21T22:53:12.6369050+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e0cace10-c3e3-4a79-85fc-87568801f0b1" />
+    <UnitTestResult executionId="24db2f0f-729e-4266-b23c-6a0b59b5e5a5" testId="c8d5da96-7fb6-e94c-8dd3-ac4ed6bf3ad1" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrigger_NoXml_Predicted" computerName="frandeMac-mini" duration="00:00:00.0000162" startTime="2026-10-21T22:53:12.6368860+08:00" endTime="2026-10-21T22:53:12.6368860+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="24db2f0f-729e-4266-b23c-6a0b59b5e5a5" />
+    <UnitTestResult executionId="71b752d5-d245-4275-940c-aaabe9fc3d01" testId="51f86955-7089-532e-cdc5-6fb24660ed7b" testName="UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(capture: &quot;network-page&quot;, title: &quot;Network &amp; internet&quot;)" computerName="frandeMac-mini" duration="00:00:00.0003562" startTime="2026-10-21T22:53:12.5176300+08:00" endTime="2026-10-21T22:53:12.5176300+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="71b752d5-d245-4275-940c-aaabe9fc3d01" />
+    <UnitTestResult executionId="cb09e9ef-2fe2-4854-8aad-6f5fde474ec5" testId="afb1a739-adb9-e7c6-80d8-185104e125c2" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.WhitelistedResourceId_ClassifiesPresent_EvenUnderHostPackage" computerName="frandeMac-mini" duration="00:00:00.0000189" startTime="2026-10-21T22:53:12.6365490+08:00" endTime="2026-10-21T22:53:12.6365490+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cb09e9ef-2fe2-4854-8aad-6f5fde474ec5" />
+    <UnitTestResult executionId="1f4100ba-74fa-425e-9b54-8a4f40a84332" testId="6aad7ac3-5cce-4593-5d65-874023801c31" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupProposal_NullState_ProducesNoProposal" computerName="frandeMac-mini" duration="00:00:00.0000209" startTime="2026-10-21T22:53:12.6368960+08:00" endTime="2026-10-21T22:53:12.6368960+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1f4100ba-74fa-425e-9b54-8a4f40a84332" />
+    <UnitTestResult executionId="ae1afbc4-89a1-44c0-8104-53efa930fc82" testId="0ddc885a-841c-8766-7ec5-fb4566d19332" testName="UniClaw.Host.Tests.SettingsRouteKeyTests.ViewportDigest_StableForSameViewport_ChangesOnScroll" computerName="frandeMac-mini" duration="00:00:00.0053995" startTime="2026-10-21T22:53:12.5164520+08:00" endTime="2026-10-21T22:53:12.5164590+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ae1afbc4-89a1-44c0-8104-53efa930fc82" />
+    <UnitTestResult executionId="732c3624-70aa-40ac-9d1a-c3183885115f" testId="e55a351a-19fa-6972-72fa-ad9d99eabc7c" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowRequest_BuildsFromTrigger_WithBoundedContext" computerName="frandeMac-mini" duration="00:00:00.0010140" startTime="2026-10-21T22:53:12.6365580+08:00" endTime="2026-10-21T22:53:12.6365580+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="732c3624-70aa-40ac-9d1a-c3183885115f" />
+    <UnitTestResult executionId="de2b5ac6-9147-4e5d-a400-07e2950f3b85" testId="33af13fe-b2d8-b0c8-6a08-c66fc81d38c5" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrace_FormatCarriesStatusAndProjection" computerName="frandeMac-mini" duration="00:00:00.0004158" startTime="2026-10-21T22:53:12.6365820+08:00" endTime="2026-10-21T22:53:12.6365820+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="de2b5ac6-9147-4e5d-a400-07e2950f3b85" />
+    <UnitTestResult executionId="a1ec80e9-8f72-4c34-9d24-c190f8e559b7" testId="78a5a09c-cb08-f648-f43c-ef558b06a679" testName="UniClaw.Host.Tests.SettingsRouteKeyTests.TitlelessPage_FallsBackToUnknownIdentity" computerName="frandeMac-mini" duration="00:00:00.0002670" startTime="2026-10-21T22:53:12.5185570+08:00" endTime="2026-10-21T22:53:12.5185570+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a1ec80e9-8f72-4c34-9d24-c190f8e559b7" />
+    <UnitTestResult executionId="d6509d6c-0c98-4ed4-aa28-7970b7c4d4b8" testId="00a3b729-da30-ceae-89f5-c815c06ffebc" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.SettingsNamespacedPopupIds_ClassifyPresent" computerName="frandeMac-mini" duration="00:00:00.0000245" startTime="2026-10-21T22:53:12.6365190+08:00" endTime="2026-10-21T22:53:12.6365190+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d6509d6c-0c98-4ed4-aa28-7970b7c4d4b8" />
+    <UnitTestResult executionId="39677629-76c2-4bc4-9586-3a5158d69b11" testId="d908e975-2c91-5b6f-565e-89aef5184c7e" testName="UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent" computerName="frandeMac-mini" duration="00:00:00.0015234" startTime="2026-10-21T22:53:12.5232440+08:00" endTime="2026-10-21T22:53:12.5232440+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="39677629-76c2-4bc4-9586-3a5158d69b11">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.FileNotFoundException : Could not find file '/private/tmp/uniclaw-eng-opt-001-review/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-8357c152d8a84516bcd27fb459e3ab8b.xml'.</Message>
+          <StackTrace>   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 133
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="60b80c50-22ef-4927-8220-802bb0d69a80" testId="69a1382c-7938-a564-3f84-a9a87c748a0c" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrigger_PopupStreakAndSemanticUnclear_Predicted" computerName="frandeMac-mini" duration="00:00:00.0000980" startTime="2026-10-21T22:53:12.6365380+08:00" endTime="2026-10-21T22:53:12.6365380+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="60b80c50-22ef-4927-8220-802bb0d69a80" />
+    <UnitTestResult executionId="c8aae5a7-47f1-4663-8fa2-9907e0c52655" testId="6a6c4dab-4691-7907-91dc-b39417fe5ca3" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.RealPopupXml_ClassifiesPresent" computerName="frandeMac-mini" duration="00:00:00.0001356" startTime="2026-10-21T22:53:12.6364720+08:00" endTime="2026-10-21T22:53:12.6364720+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c8aae5a7-47f1-4663-8fa2-9907e0c52655" />
+    <UnitTestResult executionId="6c13c309-fc0c-4dc5-953f-5c73a291140f" testId="1e1e937b-a290-09fd-c7e0-c5362d8247b7" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.NullXml_YieldsNoClaim" computerName="frandeMac-mini" duration="00:00:00.0000160" startTime="2026-10-21T22:53:12.6365740+08:00" endTime="2026-10-21T22:53:12.6365740+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6c13c309-fc0c-4dc5-953f-5c73a291140f" />
+    <UnitTestResult executionId="ab76e5ee-7f23-497f-8a0b-b2c0fb7d8d3c" testId="56056fec-1840-aaa7-a2c8-e4d922aaa5f4" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.UnparseableXml_YieldsNoClaim" computerName="frandeMac-mini" duration="00:00:00.0003431" startTime="2026-10-21T22:53:12.6369130+08:00" endTime="2026-10-21T22:53:12.6369130+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ab76e5ee-7f23-497f-8a0b-b2c0fb7d8d3c" />
+    <UnitTestResult executionId="1914034e-0b70-4409-8345-d6083062a884" testId="e4ea2a33-ff4a-e500-c2df-3f85acc26820" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupProposal_IsAdmittedByKernelP2_WhenInScope" computerName="frandeMac-mini" duration="00:00:00.1169323" startTime="2026-10-21T22:53:12.6270310+08:00" endTime="2026-10-21T22:53:12.6270310+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1914034e-0b70-4409-8345-d6083062a884" />
+    <UnitTestResult executionId="c7bed35f-d9fa-4d90-b03d-bd29d647b9aa" testId="73b48b5c-b074-7a95-4ed4-a30d2e41f5e3" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.HostPackageRoot_WithoutWhitelist_ClassifiesAbsent" computerName="frandeMac-mini" duration="00:00:00.0000186" startTime="2026-10-21T22:53:12.6365290+08:00" endTime="2026-10-21T22:53:12.6365290+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c7bed35f-d9fa-4d90-b03d-bd29d647b9aa" />
+    <UnitTestResult executionId="b14248e0-84a7-47c5-87b3-e9e63bcd2319" testId="166c67da-90c5-fff8-f34c-0dc168ad7f9a" testName="UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(capture: &quot;internet-page&quot;, title: &quot;Internet&quot;)" computerName="frandeMac-mini" duration="00:00:00.0007904" startTime="2026-10-21T22:53:12.5175360+08:00" endTime="2026-10-21T22:53:12.5175360+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b14248e0-84a7-47c5-87b3-e9e63bcd2319" />
+    <UnitTestResult executionId="12f4f9f3-5c8a-44ba-99c4-c3381717a7fa" testId="36d17251-0832-efa2-18fa-11ddbbd602de" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.RealNormalSettingsXml_ClassifiesAbsent" computerName="frandeMac-mini" duration="00:00:00.0007530" startTime="2026-10-21T22:53:12.6278100+08:00" endTime="2026-10-21T22:53:12.6278100+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="12f4f9f3-5c8a-44ba-99c4-c3381717a7fa" />
+    <UnitTestResult executionId="14b6e77c-6c7d-4879-b079-163513a9ce46" testId="744450a8-8f23-b376-1e84-3c582dcb35ed" testName="UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable" computerName="frandeMac-mini" duration="00:00:00.0012793" startTime="2026-10-21T22:53:12.5257320+08:00" endTime="2026-10-21T22:53:12.5257320+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="14b6e77c-6c7d-4879-b079-163513a9ce46">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.FileNotFoundException : Could not find file '/private/tmp/uniclaw-eng-opt-001-review/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-50483045782c406b9c67d483be26e220.xml'.</Message>
+          <StackTrace>   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.&lt;&gt;c.&lt;RootPage_AcrossScrollStates_RouteKeyStable&gt;b__6_0(String c) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 82
+   at System.Linq.Enumerable.ArraySelectIterator`2.MoveNext()
+   at System.Collections.Generic.HashSet`1.UnionWith(IEnumerable`1 other)
+   at System.Collections.Generic.HashSet`1..ctor(IEnumerable`1 collection, IEqualityComparer`1 comparer)
+   at System.Linq.Enumerable.DistinctIterator`1.ToList()
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 81
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="0715aa6f-5df6-4523-9d40-e45feb81652d" testId="ddd4e485-b0aa-1b79-adcf-ae6dc6a853e5" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupProposal_EntersCycleBatch_WithProvenanceShape" computerName="frandeMac-mini" duration="00:00:00.0012026" startTime="2026-10-21T22:53:12.6365660+08:00" endTime="2026-10-21T22:53:12.6365660+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0715aa6f-5df6-4523-9d40-e45feb81652d" />
+    <UnitTestResult executionId="8d3b7aac-ca8c-4531-9fac-8134a500ad2f" testId="5d35c32e-e873-52b7-9b4e-16b6d1b52fbf" testName="UniClaw.Host.Tests.SettingsRouteKeyTests.PageHeader_TakesPrecedenceOverListRowPreviouslyMisreadAsTitle" computerName="frandeMac-mini" duration="00:00:00.0008171" startTime="2026-10-21T22:53:12.5182820+08:00" endTime="2026-10-21T22:53:12.5182820+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8d3b7aac-ca8c-4531-9fac-8134a500ad2f" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Tests.SettingsRouteKeyTests.PageHeader_TakesPrecedenceOverListRowPreviouslyMisreadAsTitle" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="5d35c32e-e873-52b7-9b4e-16b6d1b52fbf">
+      <Execution id="8d3b7aac-ca8c-4531-9fac-8134a500ad2f" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsRouteKeyTests" name="PageHeader_TakesPrecedenceOverListRowPreviouslyMisreadAsTitle" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(capture: &quot;network-page&quot;, title: &quot;Network &amp; internet&quot;)" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="51f86955-7089-532e-cdc5-6fb24660ed7b">
+      <Execution id="71b752d5-d245-4275-940c-aaabe9fc3d01" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsRouteKeyTests" name="CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrace_FormatCarriesStatusAndProjection" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="33af13fe-b2d8-b0c8-6a08-c66fc81d38c5">
+      <Execution id="de2b5ac6-9147-4e5d-a400-07e2950f3b85" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="SlowTrace_FormatCarriesStatusAndProjection" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowRequest_BuildsFromTrigger_WithBoundedContext" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="e55a351a-19fa-6972-72fa-ad9d99eabc7c">
+      <Execution id="732c3624-70aa-40ac-9d1a-c3183885115f" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="SlowRequest_BuildsFromTrigger_WithBoundedContext" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.RealPopupXml_ClassifiesPresent" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="6a6c4dab-4691-7907-91dc-b39417fe5ca3">
+      <Execution id="c8aae5a7-47f1-4663-8fa2-9907e0c52655" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="RealPopupXml_ClassifiesPresent" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.WhitelistedResourceId_ClassifiesPresent_EvenUnderHostPackage" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="afb1a739-adb9-e7c6-80d8-185104e125c2">
+      <Execution id="cb09e9ef-2fe2-4854-8aad-6f5fde474ec5" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="WhitelistedResourceId_ClassifiesPresent_EvenUnderHostPackage" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.SettingsNamespacedPopupIds_ClassifyPresent" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="00a3b729-da30-ceae-89f5-c815c06ffebc">
+      <Execution id="d6509d6c-0c98-4ed4-aa28-7970b7c4d4b8" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="SettingsNamespacedPopupIds_ClassifyPresent" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrigger_StructuralVisualConflict_Predicted" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="d4155a4e-819b-f8d4-e24c-6b00a0f97c72">
+      <Execution id="e0cace10-c3e3-4a79-85fc-87568801f0b1" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="SlowTrigger_StructuralVisualConflict_Predicted" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.NullXml_YieldsNoClaim" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="1e1e937b-a290-09fd-c7e0-c5362d8247b7">
+      <Execution id="6c13c309-fc0c-4dc5-953f-5c73a291140f" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="NullXml_YieldsNoClaim" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(capture: &quot;internet-page&quot;, title: &quot;Internet&quot;)" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="166c67da-90c5-fff8-f34c-0dc168ad7f9a">
+      <Execution id="b14248e0-84a7-47c5-87b3-e9e63bcd2319" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsRouteKeyTests" name="CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrigger_NoXml_Predicted" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="c8d5da96-7fb6-e94c-8dd3-ac4ed6bf3ad1">
+      <Execution id="24db2f0f-729e-4266-b23c-6a0b59b5e5a5" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="SlowTrigger_NoXml_Predicted" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrigger_PopupStreakAndSemanticUnclear_Predicted" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="69a1382c-7938-a564-3f84-a9a87c748a0c">
+      <Execution id="60b80c50-22ef-4927-8220-802bb0d69a80" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="SlowTrigger_PopupStreakAndSemanticUnclear_Predicted" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.HostPackageRoot_WithoutWhitelist_ClassifiesAbsent" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="73b48b5c-b074-7a95-4ed4-a30d2e41f5e3">
+      <Execution id="c7bed35f-d9fa-4d90-b03d-bd29d647b9aa" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="HostPackageRoot_WithoutWhitelist_ClassifiesAbsent" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="d908e975-2c91-5b6f-565e-89aef5184c7e">
+      <Execution id="39677629-76c2-4bc4-9586-3a5158d69b11" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsRouteKeyTests" name="RouteKey_And_ViewportDigest_AreIndependent" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="744450a8-8f23-b376-1e84-3c582dcb35ed">
+      <Execution id="14b6e77c-6c7d-4879-b079-163513a9ce46" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsRouteKeyTests" name="RootPage_AcrossScrollStates_RouteKeyStable" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupProposal_EntersCycleBatch_WithProvenanceShape" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="ddd4e485-b0aa-1b79-adcf-ae6dc6a853e5">
+      <Execution id="0715aa6f-5df6-4523-9d40-e45feb81652d" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="PopupProposal_EntersCycleBatch_WithProvenanceShape" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupProposal_NullState_ProducesNoProposal" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="6aad7ac3-5cce-4593-5d65-874023801c31">
+      <Execution id="1f4100ba-74fa-425e-9b54-8a4f40a84332" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="PopupProposal_NullState_ProducesNoProposal" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.RealNormalSettingsXml_ClassifiesAbsent" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="36d17251-0832-efa2-18fa-11ddbbd602de">
+      <Execution id="12f4f9f3-5c8a-44ba-99c4-c3381717a7fa" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="RealNormalSettingsXml_ClassifiesAbsent" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupProposal_IsAdmittedByKernelP2_WhenInScope" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="e4ea2a33-ff4a-e500-c2df-3f85acc26820">
+      <Execution id="1914034e-0b70-4409-8345-d6083062a884" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="PopupProposal_IsAdmittedByKernelP2_WhenInScope" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsRouteKeyTests.TitlelessPage_FallsBackToUnknownIdentity" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="78a5a09c-cb08-f648-f43c-ef558b06a679">
+      <Execution id="a1ec80e9-8f72-4c34-9d24-c190f8e559b7" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsRouteKeyTests" name="TitlelessPage_FallsBackToUnknownIdentity" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.UnparseableXml_YieldsNoClaim" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="56056fec-1840-aaa7-a2c8-e4d922aaa5f4">
+      <Execution id="ab76e5ee-7f23-497f-8a0b-b2c0fb7d8d3c" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="UnparseableXml_YieldsNoClaim" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsRouteKeyTests.ViewportDigest_StableForSameViewport_ChangesOnScroll" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="0ddc885a-841c-8766-7ec5-fb4566d19332">
+      <Execution id="ae1afbc4-89a1-44c0-8104-53efa930fc82" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsRouteKeyTests" name="ViewportDigest_StableForSameViewport_ChangesOnScroll" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="d4155a4e-819b-f8d4-e24c-6b00a0f97c72" executionId="e0cace10-c3e3-4a79-85fc-87568801f0b1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c8d5da96-7fb6-e94c-8dd3-ac4ed6bf3ad1" executionId="24db2f0f-729e-4266-b23c-6a0b59b5e5a5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="51f86955-7089-532e-cdc5-6fb24660ed7b" executionId="71b752d5-d245-4275-940c-aaabe9fc3d01" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="afb1a739-adb9-e7c6-80d8-185104e125c2" executionId="cb09e9ef-2fe2-4854-8aad-6f5fde474ec5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6aad7ac3-5cce-4593-5d65-874023801c31" executionId="1f4100ba-74fa-425e-9b54-8a4f40a84332" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0ddc885a-841c-8766-7ec5-fb4566d19332" executionId="ae1afbc4-89a1-44c0-8104-53efa930fc82" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e55a351a-19fa-6972-72fa-ad9d99eabc7c" executionId="732c3624-70aa-40ac-9d1a-c3183885115f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="33af13fe-b2d8-b0c8-6a08-c66fc81d38c5" executionId="de2b5ac6-9147-4e5d-a400-07e2950f3b85" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="78a5a09c-cb08-f648-f43c-ef558b06a679" executionId="a1ec80e9-8f72-4c34-9d24-c190f8e559b7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="00a3b729-da30-ceae-89f5-c815c06ffebc" executionId="d6509d6c-0c98-4ed4-aa28-7970b7c4d4b8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d908e975-2c91-5b6f-565e-89aef5184c7e" executionId="39677629-76c2-4bc4-9586-3a5158d69b11" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="69a1382c-7938-a564-3f84-a9a87c748a0c" executionId="60b80c50-22ef-4927-8220-802bb0d69a80" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6a6c4dab-4691-7907-91dc-b39417fe5ca3" executionId="c8aae5a7-47f1-4663-8fa2-9907e0c52655" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1e1e937b-a290-09fd-c7e0-c5362d8247b7" executionId="6c13c309-fc0c-4dc5-953f-5c73a291140f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="56056fec-1840-aaa7-a2c8-e4d922aaa5f4" executionId="ab76e5ee-7f23-497f-8a0b-b2c0fb7d8d3c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e4ea2a33-ff4a-e500-c2df-3f85acc26820" executionId="1914034e-0b70-4409-8345-d6083062a884" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="73b48b5c-b074-7a95-4ed4-a30d2e41f5e3" executionId="c7bed35f-d9fa-4d90-b03d-bd29d647b9aa" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="166c67da-90c5-fff8-f34c-0dc168ad7f9a" executionId="b14248e0-84a7-47c5-87b3-e9e63bcd2319" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="36d17251-0832-efa2-18fa-11ddbbd602de" executionId="12f4f9f3-5c8a-44ba-99c4-c3381717a7fa" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="744450a8-8f23-b376-1e84-3c582dcb35ed" executionId="14b6e77c-6c7d-4879-b079-163513a9ce46" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ddd4e485-b0aa-1b79-adcf-ae6dc6a853e5" executionId="0715aa6f-5df6-4523-9d40-e45feb81652d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5d35c32e-e873-52b7-9b4e-16b6d1b52fbf" executionId="8d3b7aac-ca8c-4531-9fac-8134a500ad2f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="22" executed="22" passed="20" failed="2" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Host.Tests
+[xUnit.net 00:00:00.05]   Discovered:  UniClaw.Host.Tests
+[xUnit.net 00:00:00.05]   Starting:    UniClaw.Host.Tests
+[xUnit.net 00:00:00.08]       System.IO.FileNotFoundException : Could not find file '/private/tmp/uniclaw-eng-opt-001-review/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-8357c152d8a84516bcd27fb459e3ab8b.xml'.
+[xUnit.net 00:00:00.08]       Stack Trace:
+[xUnit.net 00:00:00.08]            at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+[xUnit.net 00:00:00.08]            at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+[xUnit.net 00:00:00.08]            at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+[xUnit.net 00:00:00.08]            at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+[xUnit.net 00:00:00.08]            at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+[xUnit.net 00:00:00.08]            at System.IO.File.ReadAllText(String path, Encoding encoding)
+[xUnit.net 00:00:00.08]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs(133,0): at UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent()
+[xUnit.net 00:00:00.08]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.08]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.08]       System.IO.FileNotFoundException : Could not find file '/private/tmp/uniclaw-eng-opt-001-review/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-50483045782c406b9c67d483be26e220.xml'.
+[xUnit.net 00:00:00.08]       Stack Trace:
+[xUnit.net 00:00:00.08]            at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+[xUnit.net 00:00:00.08]            at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+[xUnit.net 00:00:00.08]            at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+[xUnit.net 00:00:00.08]            at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+[xUnit.net 00:00:00.08]            at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+[xUnit.net 00:00:00.08]            at System.IO.File.ReadAllText(String path, Encoding encoding)
+[xUnit.net 00:00:00.08]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs(82,0): at UniClaw.Host.Tests.SettingsRouteKeyTests.&lt;&gt;c.&lt;RootPage_AcrossScrollStates_RouteKeyStable&gt;b__6_0(String c)
+[xUnit.net 00:00:00.08]            at System.Linq.Enumerable.ArraySelectIterator`2.MoveNext()
+[xUnit.net 00:00:00.08]            at System.Collections.Generic.HashSet`1.UnionWith(IEnumerable`1 other)
+[xUnit.net 00:00:00.08]            at System.Collections.Generic.HashSet`1..ctor(IEnumerable`1 collection, IEqualityComparer`1 comparer)
+[xUnit.net 00:00:00.08]            at System.Linq.Enumerable.DistinctIterator`1.ToList()
+[xUnit.net 00:00:00.08]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs(81,0): at UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable()
+[xUnit.net 00:00:00.08]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.08]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.19]   Finished:    UniClaw.Host.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-21T22:53:12.5227280+08:00">
+        <Text>[xUnit.net 00:00:00.08]     UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-21T22:53:12.5234030+08:00">
+        <Text>[xUnit.net 00:00:00.08]     UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

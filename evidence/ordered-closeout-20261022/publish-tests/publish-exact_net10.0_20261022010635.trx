@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="724f2486-4914-4b85-a9a8-277416123a6e" name="@frandeMac-mini 2026-10-22 01:06:34" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T01:06:34.0658490+08:00" queuing="2026-10-22T01:06:34.0658490+08:00" start="2026-10-22T01:06:32.9609460+08:00" finish="2026-10-22T01:06:34.0716390+08:00" />
+  <TestSettings name="default" id="fa52687f-46ba-4494-afdd-9ff185c5160d">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-22_01_06_34" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="b89a4f36-6d8f-4493-bc0c-3d3ae2d957df" testId="cc2f9161-2e61-7c0d-82c7-cbffb151bd02" testName="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S3_ClaimCorrectionAppendsAndNeverMutatesPreviousClaim" computerName="frandeMac-mini" duration="00:00:00.0073059" startTime="2026-10-22T01:06:33.5265330+08:00" endTime="2026-10-22T01:06:33.5265330+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b89a4f36-6d8f-4493-bc0c-3d3ae2d957df" />
+    <UnitTestResult executionId="33e3269b-ddf6-43a9-962e-ef42829a44e3" testId="648e6f38-1bd2-0f61-67d8-ee01d98a1d0e" testName="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S7_UnknownAttemptStaysUnknownWhenLateFeedbackIsAppended" computerName="frandeMac-mini" duration="00:00:00.0089313" startTime="2026-10-22T01:06:33.5379850+08:00" endTime="2026-10-22T01:06:33.5379860+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="33e3269b-ddf6-43a9-962e-ef42829a44e3" />
+    <UnitTestResult executionId="c861d4ff-0058-47b7-87a9-73c6d7be3488" testId="9b0df8fb-5877-7903-d96f-9278a271bfad" testName="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S5_ResourceVersionBasisIsNonSliceAndDispatchableWhenCanonical" computerName="frandeMac-mini" duration="00:00:00.0019754" startTime="2026-10-22T01:06:33.4978280+08:00" endTime="2026-10-22T01:06:33.4978280+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c861d4ff-0058-47b7-87a9-73c6d7be3488" />
+    <UnitTestResult executionId="7ebc804d-dc32-400c-a69a-f56e5072431d" testId="212add1a-0791-2430-4609-929032627a99" testName="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.Closure_TracerAssemblyReferencesOnlyCoreAmongUniClawAssemblies" computerName="frandeMac-mini" duration="00:00:00.0106914" startTime="2026-10-22T01:06:33.5203930+08:00" endTime="2026-10-22T01:06:33.5203930+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7ebc804d-dc32-400c-a69a-f56e5072431d" />
+    <UnitTestResult executionId="1b8dcd77-7ec8-4623-b296-67030c1542f2" testId="5491e409-218f-e49b-e56d-fcb5166907b8" testName="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S2_NewListingDoesNotOverwriteOverlappingHistory" computerName="frandeMac-mini" duration="00:00:00.0070657" startTime="2026-10-22T01:06:33.4974570+08:00" endTime="2026-10-22T01:06:33.4974570+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1b8dcd77-7ec8-4623-b296-67030c1542f2" />
+    <UnitTestResult executionId="d1411235-1a9d-41d3-af39-c28b2b4efdb2" testId="811f1991-7ca1-8692-149a-97ac75647af9" testName="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S8_EquivalentOrderPreservesOnlyTheRequiredSemantics" computerName="frandeMac-mini" duration="00:00:00.0041510" startTime="2026-10-22T01:06:33.5057870+08:00" endTime="2026-10-22T01:06:33.5057870+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d1411235-1a9d-41d3-af39-c28b2b4efdb2" />
+    <UnitTestResult executionId="e067f43b-f351-4578-972b-b2bf855a937a" testId="436c4553-160f-4359-2679-43f520daf1f6" testName="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S6_ChangedResourceProjectsStaleWithoutRebindingHistory" computerName="frandeMac-mini" duration="00:00:00.0020934" startTime="2026-10-22T01:06:33.5380550+08:00" endTime="2026-10-22T01:06:33.5380550+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e067f43b-f351-4578-972b-b2bf855a937a" />
+    <UnitTestResult executionId="69b43e7a-6bd4-410b-bd36-0719078d7006" testId="f9aa5ab1-0bc1-d274-409e-bc34d6ff8d5f" testName="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S1_InitialListingProjectsSliceAndEvidence" computerName="frandeMac-mini" duration="00:00:00.0062623" startTime="2026-10-22T01:06:33.4898270+08:00" endTime="2026-10-22T01:06:33.4898340+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="69b43e7a-6bd4-410b-bd36-0719078d7006" />
+    <UnitTestResult executionId="3505d0af-1dee-40e9-960e-455f42bec673" testId="fa38d4e8-0a46-e5dd-620f-bcdba2125144" testName="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S4_FileIdentityIsWorldOwnedAndStableAcrossListings" computerName="frandeMac-mini" duration="00:00:00.0027453" startTime="2026-10-22T01:06:33.5058610+08:00" endTime="2026-10-22T01:06:33.5058610+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3505d0af-1dee-40e9-960e-455f42bec673" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S7_UnknownAttemptStaysUnknownWhenLateFeedbackIsAppended" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-publish-tree-_xqmkld7/tests/uniclaw.filesystemrealization.tests/bin/debug/net10.0/uniclaw.filesystemrealization.tests.dll" id="648e6f38-1bd2-0f61-67d8-ee01d98a1d0e">
+      <Execution id="33e3269b-ddf6-43a9-962e-ef42829a44e3" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-publish-tree-_xqmkld7/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests" name="S7_UnknownAttemptStaysUnknownWhenLateFeedbackIsAppended" />
+    </UnitTest>
+    <UnitTest name="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S8_EquivalentOrderPreservesOnlyTheRequiredSemantics" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-publish-tree-_xqmkld7/tests/uniclaw.filesystemrealization.tests/bin/debug/net10.0/uniclaw.filesystemrealization.tests.dll" id="811f1991-7ca1-8692-149a-97ac75647af9">
+      <Execution id="d1411235-1a9d-41d3-af39-c28b2b4efdb2" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-publish-tree-_xqmkld7/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests" name="S8_EquivalentOrderPreservesOnlyTheRequiredSemantics" />
+    </UnitTest>
+    <UnitTest name="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S2_NewListingDoesNotOverwriteOverlappingHistory" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-publish-tree-_xqmkld7/tests/uniclaw.filesystemrealization.tests/bin/debug/net10.0/uniclaw.filesystemrealization.tests.dll" id="5491e409-218f-e49b-e56d-fcb5166907b8">
+      <Execution id="1b8dcd77-7ec8-4623-b296-67030c1542f2" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-publish-tree-_xqmkld7/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests" name="S2_NewListingDoesNotOverwriteOverlappingHistory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S3_ClaimCorrectionAppendsAndNeverMutatesPreviousClaim" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-publish-tree-_xqmkld7/tests/uniclaw.filesystemrealization.tests/bin/debug/net10.0/uniclaw.filesystemrealization.tests.dll" id="cc2f9161-2e61-7c0d-82c7-cbffb151bd02">
+      <Execution id="b89a4f36-6d8f-4493-bc0c-3d3ae2d957df" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-publish-tree-_xqmkld7/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests" name="S3_ClaimCorrectionAppendsAndNeverMutatesPreviousClaim" />
+    </UnitTest>
+    <UnitTest name="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S6_ChangedResourceProjectsStaleWithoutRebindingHistory" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-publish-tree-_xqmkld7/tests/uniclaw.filesystemrealization.tests/bin/debug/net10.0/uniclaw.filesystemrealization.tests.dll" id="436c4553-160f-4359-2679-43f520daf1f6">
+      <Execution id="e067f43b-f351-4578-972b-b2bf855a937a" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-publish-tree-_xqmkld7/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests" name="S6_ChangedResourceProjectsStaleWithoutRebindingHistory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.Closure_TracerAssemblyReferencesOnlyCoreAmongUniClawAssemblies" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-publish-tree-_xqmkld7/tests/uniclaw.filesystemrealization.tests/bin/debug/net10.0/uniclaw.filesystemrealization.tests.dll" id="212add1a-0791-2430-4609-929032627a99">
+      <Execution id="7ebc804d-dc32-400c-a69a-f56e5072431d" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-publish-tree-_xqmkld7/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests" name="Closure_TracerAssemblyReferencesOnlyCoreAmongUniClawAssemblies" />
+    </UnitTest>
+    <UnitTest name="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S5_ResourceVersionBasisIsNonSliceAndDispatchableWhenCanonical" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-publish-tree-_xqmkld7/tests/uniclaw.filesystemrealization.tests/bin/debug/net10.0/uniclaw.filesystemrealization.tests.dll" id="9b0df8fb-5877-7903-d96f-9278a271bfad">
+      <Execution id="c861d4ff-0058-47b7-87a9-73c6d7be3488" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-publish-tree-_xqmkld7/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests" name="S5_ResourceVersionBasisIsNonSliceAndDispatchableWhenCanonical" />
+    </UnitTest>
+    <UnitTest name="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S4_FileIdentityIsWorldOwnedAndStableAcrossListings" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-publish-tree-_xqmkld7/tests/uniclaw.filesystemrealization.tests/bin/debug/net10.0/uniclaw.filesystemrealization.tests.dll" id="fa38d4e8-0a46-e5dd-620f-bcdba2125144">
+      <Execution id="3505d0af-1dee-40e9-960e-455f42bec673" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-publish-tree-_xqmkld7/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests" name="S4_FileIdentityIsWorldOwnedAndStableAcrossListings" />
+    </UnitTest>
+    <UnitTest name="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests.S1_InitialListingProjectsSliceAndEvidence" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-publish-tree-_xqmkld7/tests/uniclaw.filesystemrealization.tests/bin/debug/net10.0/uniclaw.filesystemrealization.tests.dll" id="f9aa5ab1-0bc1-d274-409e-bc34d6ff8d5f">
+      <Execution id="69b43e7a-6bd4-410b-bd36-0719078d7006" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-publish-tree-_xqmkld7/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.FileSystemRealization.Tests.FileSystemRealizationTests" name="S1_InitialListingProjectsSliceAndEvidence" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="cc2f9161-2e61-7c0d-82c7-cbffb151bd02" executionId="b89a4f36-6d8f-4493-bc0c-3d3ae2d957df" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="648e6f38-1bd2-0f61-67d8-ee01d98a1d0e" executionId="33e3269b-ddf6-43a9-962e-ef42829a44e3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9b0df8fb-5877-7903-d96f-9278a271bfad" executionId="c861d4ff-0058-47b7-87a9-73c6d7be3488" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="212add1a-0791-2430-4609-929032627a99" executionId="7ebc804d-dc32-400c-a69a-f56e5072431d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5491e409-218f-e49b-e56d-fcb5166907b8" executionId="1b8dcd77-7ec8-4623-b296-67030c1542f2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="811f1991-7ca1-8692-149a-97ac75647af9" executionId="d1411235-1a9d-41d3-af39-c28b2b4efdb2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="436c4553-160f-4359-2679-43f520daf1f6" executionId="e067f43b-f351-4578-972b-b2bf855a937a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f9aa5ab1-0bc1-d274-409e-bc34d6ff8d5f" executionId="69b43e7a-6bd4-410b-bd36-0719078d7006" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fa38d4e8-0a46-e5dd-620f-bcdba2125144" executionId="3505d0af-1dee-40e9-960e-455f42bec673" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="9" executed="9" passed="9" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.FileSystemRealization.Tests
+[xUnit.net 00:00:00.06]   Discovered:  UniClaw.FileSystemRealization.Tests
+[xUnit.net 00:00:00.06]   Starting:    UniClaw.FileSystemRealization.Tests
+[xUnit.net 00:00:00.16]   Finished:    UniClaw.FileSystemRealization.Tests
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

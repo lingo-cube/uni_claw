@@ -1,0 +1,102 @@
+[
+  {
+    "sessionId": "session-a789e614-d373-4a84-ab64-278c14df4e5d",
+    "requestIds": [
+      "page-identity:capture-7e40fe9ee37a45d4b1a5d062166cd712:e76b97da1bfe484da7a846c400eef509"
+    ],
+    "requests": [
+      "live-high-xml-final/dsh-2-request.json"
+    ],
+    "headers": [
+      {
+        "type": "request/header",
+        "time": 1792595350478,
+        "config": {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash",
+          "reasoningEffort": "high"
+        }
+      }
+    ]
+  },
+  {
+    "sessionId": "session-3e7cc065-7c3c-4dea-865e-a81bf4e52909",
+    "requestIds": [
+      "page-identity:capture-d8f5b2d78a2c45cd928d80a0fcfc9320:09263941c6b2481b8af0feb0af83797e"
+    ],
+    "requests": [
+      "live-high-final/dsh-6-request.json"
+    ],
+    "headers": [
+      {
+        "type": "request/header",
+        "time": 1792595290440,
+        "config": {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash",
+          "reasoningEffort": "high"
+        }
+      }
+    ]
+  },
+  {
+    "sessionId": "session-8973e07b-b64f-44ff-9e1b-470f75fa0dd1",
+    "requestIds": [
+      "page-identity:live-no-xml-1:acf8501004454072adeb7a92abb6893d"
+    ],
+    "requests": [
+      "live-high-final/dsh-5-request.json"
+    ],
+    "headers": [
+      {
+        "type": "request/header",
+        "time": 1792595249660,
+        "config": {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash",
+          "reasoningEffort": "high"
+        }
+      }
+    ]
+  },
+  {
+    "sessionId": "session-cd575c9a-fa03-4394-af7f-b1a4d73ba686",
+    "requestIds": [
+      "page-identity:capture-4d5d0bb351774816a68532c9de7c539a:575e6379389d45e89509eaccb8601d0a"
+    ],
+    "requests": [
+      "live-high-final/dsh-3-request.json"
+    ],
+    "headers": [
+      {
+        "type": "request/header",
+        "time": 1792595230225,
+        "config": {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash",
+          "reasoningEffort": "high"
+        }
+      }
+    ]
+  },
+  {
+    "sessionId": "session-57ceb48e-419f-4509-bdf3-01ec2110f545",
+    "requestIds": [
+      "page-identity:capture-c937704653284574b2edf9dafd5d3c6b:bbcdba20da3c400eb55c533ce46f4842"
+    ],
+    "requests": [
+      "live-high-final/dsh-2-request.json"
+    ],
+    "headers": [
+      {
+        "type": "request/header",
+        "time": 1792595209818,
+        "config": {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash",
+          "reasoningEffort": "high"
+        }
+      }
+    ]
+  }
+]

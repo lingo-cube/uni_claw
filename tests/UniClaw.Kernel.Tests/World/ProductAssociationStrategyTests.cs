@@ -25,7 +25,7 @@ public sealed class ProductAssociationStrategyTests
         new ObservationClaim("ui.screen", value),
         IngressKind.Observation,
         ObservationContext.External,
-        new Provenance("uiw005-test", T0, "scope:live.frame", new[] { $"uiw005:{seq}" }));
+        new Provenance("uiw005-test", T0.AddSeconds(seq), $"scope:live.frame:{seq}", new[] { $"uiw005:{seq}" }));
 
     private static AssociationInput Input(string claimValue, WorldBeliefRevision? previous = null)
         => new(previous, FrameEvidence(claimValue, seq: 0), Transition: null);

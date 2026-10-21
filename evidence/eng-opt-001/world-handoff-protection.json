@@ -1,0 +1,40 @@
+{
+  "world_final_files": 72,
+  "changed": [
+    "scenarios/SCN-BARRIER-001.json",
+    "scenarios/SCN-BARRIER-002.json",
+    "scenarios/SCN-BARRIER-003.json",
+    "scenarios/SCN-POLICY-001.json",
+    "scenarios/SCN-POLICY-002.json",
+    "scenarios/SCN-POLICY-003.json",
+    "scenarios/SCN-POLICY-004.json",
+    "scenarios/SCN-POLICY-005.json",
+    "scenarios/SCN-POLICY-006.json",
+    "scenarios/SCN-POLICY-007.json",
+    "scenarios/SCN-POLICY-008.json",
+    "scenarios/SCN-POLICY-009.json",
+    "scenarios/SCN-POLICY-010.json",
+    "scenarios/SCN-POLICY-011.json",
+    "scenarios/SCN-WIFI-001.json",
+    "scenarios/SCN-WIFI-002.json",
+    "scenarios/SCN-WIFI-003.json",
+    "scenarios/SCN-WIFI-004.json",
+    "scenarios/SCN-WIFI-005.json",
+    "scenarios/SCN-WIFI-006.json",
+    "src/UniClaw.Host/README.md",
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs",
+    "src/UniClaw.Kernel/UniKernel.cs",
+    "src/UniClaw.Kernel/World/WorldModel.cs",
+    "tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs",
+    "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj"
+  ],
+  "allowed_overlap": [
+    "src/UniClaw.Host/README.md",
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs",
+    "src/UniClaw.Kernel/UniKernel.cs",
+    "src/UniClaw.Kernel/World/WorldModel.cs",
+    "tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs",
+    "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj"
+  ],
+  "unexpected_changes": []
+}

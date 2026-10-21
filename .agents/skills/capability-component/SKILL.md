@@ -157,9 +157,9 @@ L3  realization / adapter              永不实现 L1！只经缝注入数据�
   CAP-009 known gap。
 - `fast.yolo` / `fast.ocr` 为声明性依赖锚点（description-only，理由：确定性本地
   资产、无实例语义；协议词汇待独立 change 冻结）——CAP-009 记录。
-- 感知协议负载词汇（SemanticObservationProposal / PerceptionAssessment）未实现
-  ——uni.perception 的 L2（UniPerceptionCapability）当前实现双协议 marker +
-  健康聚合；负载词汇由下一个感知买方驱动冻结。
+- 语义执行载荷已在JEV-SEMANTIC-CAP-001实现；uni.perception的L2承担语义
+  执行执法与健康聚合。UI元素执行仍是marker，后续由真实买方驱动冻结；
+  canonical字段及边界见感知组件基线§7.1，不在Skill复制协议。
 
 ## 剖面消费（agent 表达模板，D9 裁决）
 

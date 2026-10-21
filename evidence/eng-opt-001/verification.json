@@ -1,0 +1,169 @@
+{
+  "change": "ENG-OPT-001",
+  "date": "2026-10-22",
+  "status": "PASS_SCOPED",
+  "level": [
+    "CONTRACT",
+    "DETERMINISTIC",
+    "SCENARIO"
+  ],
+  "acceptance": [
+    {
+      "acceptance": 1,
+      "method": "核对原World会话完成/idle及72文件交接指纹；WRC双轴Review+当前19/5测试；Identity双轴Review+Store8测试",
+      "expected": "重叠写入结束，按各原任务Acceptance收口，证据级别不混用",
+      "actual": "WORLD-OBSERVATION-001、WRC-003、RUNTIME-IDENTITY-001原范围closed；World实机证据由原Owner提供，Leader未重复声称新实机运行",
+      "evidence": [
+        "world-handoff-protection.json",
+        "wrc-independent-review.md",
+        "identity-close-review.md",
+        "../../changes/WORLD-OBSERVATION-001/evidence/verification-summary.json"
+      ]
+    },
+    {
+      "acceptance": 2,
+      "method": "保存入口/优化前快照；隔离候选与当前共享树分别验证；最终dotnet test UniClaw.Kernel.slnx --no-restore",
+      "expected": "整合失败已归因及修正，当前8测试项目无失败；保留并行修改与失败尝试",
+      "actual": "候选2005/2005，当前基线2014/2014，最终2024/2024；DSH消费5测试迁出Simulation后总量保持；4项旧整合失败已修正",
+      "evidence": [
+        "entry-status.txt",
+        "entry-hashes.json",
+        "optimization-entry-hashes.json",
+        "baseline-local-only.patch",
+        "current-baseline/results.json",
+        "final-tests/results.json",
+        "final-tests.txt"
+      ]
+    },
+    {
+      "acceptance": 3,
+      "method": "公开Admit/CanonicalRecords/RevisionHistory路径RED→GREEN；补比较器反例；当前完整.NET回归",
+      "expected": "输入别名不能改变canonical，World读取不可写，原比较语义保持",
+      "actual": "Run4+Evidence2+World2回归通过；比较器初审缺陷已修复；最终Kernel1037/1037通过",
+      "evidence": [
+        "ownership.patch",
+        "ownership-source-hashes.json",
+        "run-set-comparer-red.txt",
+        "run-set-comparer-green.txt",
+        "ownership-green.txt",
+        "ownership-world-green.txt",
+        "final-tests/results.json"
+      ]
+    },
+    {
+      "acceptance": 4,
+      "method": "双轴审查最小事实投影与Assurance定案顺序；原66项相关测试及最终.NET整合",
+      "expected": "typed/页面/时序定案归Assurance，原正负及Unknown路径保持",
+      "actual": "66/66相关测试通过，最终整合通过；Kernel不传World聚合、不再依赖ADB分类函数；无公有协议扩展",
+      "evidence": [
+        "assurance.patch",
+        "assurance-source-hashes.json",
+        "assurance-relocation.txt",
+        "review.md",
+        "final-tests/results.json"
+      ]
+    },
+    {
+      "acceptance": 5,
+      "method": "Coverage两标签公开消费链及产物RED→GREEN；导航本地链接解析；历史164文件路径/hash比较",
+      "expected": "当前决策用结构化指令事实，目录/职责可导航，未迁移资料可复现",
+      "actual": "旧实现2反例失败，新实现相关77项通过；JSON保存种类/目标；导航0失效，历史164份0变化；物理迁移因旧证据路径约束留待独立决策",
+      "evidence": [
+        "coverage-labels-before-red-retry.txt",
+        "coverage-artifact-red.txt",
+        "coverage-artifact-green.txt",
+        "coverage.patch",
+        "coverage-source-hashes.json",
+        "navigation-links.json",
+        "historical-runtime-protection.json"
+      ]
+    },
+    {
+      "acceptance": 6,
+      "method": "逐切片双轴Review；scenario_certify --check；scenario-coverage使用最终Simulation TRX；gen-protocol-machine --check；最终指纹/格式检查",
+      "expected": "变更/审查/运行证据分开，场景与协议一致，范围及残留明确，无发布与并行源码丢失",
+      "actual": "独立Review最终0阻塞；28场景通过(20认证+8描述)，认证0违规、场景预期无变化；7机器生成物及图审计通过；源码指纹匹配、历史资料未变；无提交/推送/新设备模型调用",
+      "evidence": [
+        "review.md",
+        "scenario-final-check.txt",
+        "scenario-coverage-final.txt",
+        "scenario-semantics-check.json",
+        "protocol-final-check.txt",
+        "final-integrity-check.json",
+        "shared-tree-diff-check.txt",
+        "open-change-disposition.md"
+      ]
+    }
+  ],
+  "limits": [
+    "3 real-model opt-in Facts returned without internal live execution; xUnit Passed is not live-model evidence",
+    "World real-device/model evidence inherited from its original Owner; no new root device/model run",
+    "No claim that all languages/plugins/external environments or whole Settings tree passed",
+    "Existing build warnings retained",
+    "No commit or push; unrelated dirty changes preserved"
+  ],
+  "residuals": [
+    "historical artifact physical migration with old-path compatibility",
+    "Driver state cluster and RuntimeHttpServer use-case splits",
+    "Host authoring/Provider naming pending actual buyer scope",
+    "Unclosed prior changes retain their own Acceptance"
+  ],
+  "test_projects": [
+    {
+      "assembly": "uniclaw.agent.tests",
+      "total": 36,
+      "passed": 36,
+      "failed": 0,
+      "trx": "eng-opt-final_net10.0_20261021235447.trx"
+    },
+    {
+      "assembly": "uniclaw.core.tests",
+      "total": 14,
+      "passed": 14,
+      "failed": 0,
+      "trx": "eng-opt-final_net10.0_20261021235446.trx"
+    },
+    {
+      "assembly": "uniclaw.kernel.tests",
+      "total": 1037,
+      "passed": 1037,
+      "failed": 0,
+      "trx": "eng-opt-final_net10.0_20261021235451.trx"
+    },
+    {
+      "assembly": "uniclaw.filesystemrealization.tests",
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "trx": "eng-opt-final_net10.0_20261021235445.trx"
+    },
+    {
+      "assembly": "uniclaw.simulation.tests",
+      "total": 252,
+      "passed": 252,
+      "failed": 0,
+      "trx": "eng-opt-final_net10.0_20261021235454.trx"
+    },
+    {
+      "assembly": "uniclaw.agent.dsh.tests",
+      "total": 212,
+      "passed": 212,
+      "failed": 0,
+      "trx": "eng-opt-final_net10.0_20261021235458.trx"
+    },
+    {
+      "assembly": "uniclaw.host.dsh.tests",
+      "total": 56,
+      "passed": 56,
+      "failed": 0,
+      "trx": "eng-opt-final_net10.0_20261021235517.trx"
+    },
+    {
+      "assembly": "uniclaw.host.tests",
+      "total": 408,
+      "passed": 408,
+      "failed": 0,
+      "trx": "eng-opt-final_net10.0_20261021235516.trx"
+    }
+  ]
+}

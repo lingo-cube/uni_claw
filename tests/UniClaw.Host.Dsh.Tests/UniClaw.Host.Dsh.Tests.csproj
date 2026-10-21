@@ -17,5 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\UniClaw.Host.Dsh\UniClaw.Host.Dsh.csproj" />
+    <ProjectReference Include="..\UniClaw.Simulation.Tests\UniClaw.Simulation.Tests.csproj" />
   </ItemGroup>
 </Project>

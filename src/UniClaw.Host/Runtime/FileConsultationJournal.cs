@@ -278,6 +278,7 @@ internal sealed class FilePlanItemJsonConverter : JsonConverter<PlanItem>
         return root.GetProperty("$kind").GetString() switch
         {
             nameof(PlanItem.ActItem) => payload.Deserialize<PlanItem.ActItem>(options)!,
+            nameof(PlanItem.TraverseItem) => payload.Deserialize<PlanItem.TraverseItem>(options)!,
             nameof(PlanItem.ObserveItem) => payload.Deserialize<PlanItem.ObserveItem>(options)!,
             nameof(PlanItem.ControlItem) => payload.Deserialize<PlanItem.ControlItem>(options)!,
             nameof(PlanItem.ForEachItem) => payload.Deserialize<PlanItem.ForEachItem>(options)!,
@@ -289,7 +290,7 @@ internal sealed class FilePlanItemJsonConverter : JsonConverter<PlanItem>
     }
     public override void Write(Utf8JsonWriter writer, PlanItem value, JsonSerializerOptions options)
     {
-        if (value is not (PlanItem.ActItem or PlanItem.ObserveItem or PlanItem.ControlItem
+        if (value is not (PlanItem.ActItem or PlanItem.TraverseItem or PlanItem.ObserveItem or PlanItem.ControlItem
             or PlanItem.ForEachItem or PlanItem.CheckpointItem or PlanItem.IfItem or PlanItem.RepeatItem)) throw new JsonException("unknown durable PlanItem type");
         writer.WriteStartObject();
         writer.WriteString("$kind", value.GetType().Name);

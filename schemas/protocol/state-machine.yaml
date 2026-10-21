@@ -139,6 +139,17 @@ machines:
           - GateRejected
           - UnconfirmedDelivery
           - CancelledWithoutSafeStopPath
+      # 操作前/验证后的只读handler等待，不产生新Effect或咨询；
+      # 有界截止/取消后从原位置协调，等待本身不伪装本地工作进展。
+      - id: R-T18
+        from: acting
+        to: acting
+        trigger:
+          event: await-handler-completion
+        guard: 已提交typed只读handler且尚无终态；原操作/handler位置保留，完成/截止/取消后串行接回
+        await: external
+        emits:
+          - WaitingForHandler
       - id: R-T12
         from: verifying
         to: recovering
@@ -653,6 +664,15 @@ edges:
     payload_ref:
       type: record
       name: UniClaw.Kernel.World.UiRealization.CurrentGroundingView
+  - id: P27
+    kind: edge
+    status: keep
+    title_anchor: "### P27 Observation Need（World Model → Control Loop）"
+    from: world-model
+    to: control-loop
+    payload_ref:
+      type: record
+      name: UniClaw.Kernel.World.ObservationNeed
   - id: P26
     kind: edge
     status: keep

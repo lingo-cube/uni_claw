@@ -1,0 +1,17 @@
+{
+  "note": "Concurrent edits observed after frozen snapshot; no certification of new paths. P1 source patterns reconfirmed at exit.",
+  "paths": [
+    "src/UniClaw.Host/CurrentPageAnchor.cs",
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs",
+    "src/UniClaw.Host/SettingsCoverage/SettingsTraversalProjection.cs",
+    "src/UniClaw.Host/SettingsTraversalLiveFeed.cs",
+    "src/UniClaw.Host/UiHierarchyOccurrenceStrategy.cs",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+    "src/UniClaw.Kernel/Runtime/RunDriverInputs.cs",
+    "src/UniClaw.Kernel/UniKernel.cs",
+    "src/UniClaw.Kernel/World/UiRealization/ProductAssociationStrategy.cs",
+    "src/UniClaw.Kernel/World/WorldBeliefRevision.cs",
+    "src/UniClaw.Kernel/World/WorldModel.cs",
+    "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs"
+  ]
+}

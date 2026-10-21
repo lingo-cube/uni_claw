@@ -33,6 +33,9 @@ public sealed class UiHierarchyOccurrenceStrategy : IUiObservationStrategy
     }
 
     private readonly Dictionary<string, Dictionary<int, NodeFields>> _captures = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string?> _captureOwners = new(StringComparer.Ordinal);
+    private string? _activeCaptureId;
+    private DateTimeOffset _latestCaptureTime;
 
     public IReadOnlyList<ProposedOccurrence> Derive(EvidenceRecord record, WorldBeliefRevision? previous)
     {
@@ -46,6 +49,23 @@ public sealed class UiHierarchyOccurrenceStrategy : IUiObservationStrategy
         if (record.Provenance.Hierarchy is not { } hierarchy)
             return previous?.Occurrences?.Select(Copy).ToArray() ?? Array.Empty<ProposedOccurrence>();
 
+        var pageObservation = previous?.CurrentPageObservation;
+        if (pageObservation is not null && (hierarchy.CaptureId != pageObservation.Capture.CaptureId
+            || hierarchy.ObservationCycleId != pageObservation.Capture.ObservationCycleId
+            || hierarchy.SessionCorrelation != pageObservation.Capture.SessionCorrelation
+            || hierarchy.CaptureTimestamp != pageObservation.Capture.CaptureTime))
+            return previous?.Occurrences?.Select(Copy).ToArray() ?? Array.Empty<ProposedOccurrence>();
+        var owner = pageObservation?.ContainerId ?? CurrentPageAnchor.Resolve(previous);
+        // Late fields remain historical evidence. They must not rebuild a retired
+        // capture under the current page, including a later viewport of the same page.
+        if (hierarchy.CaptureTimestamp < _latestCaptureTime
+            || (_captures.ContainsKey(hierarchy.CaptureId) && _activeCaptureId != hierarchy.CaptureId)
+            || (_captureOwners.TryGetValue(hierarchy.CaptureId, out var captureOwner) && captureOwner != owner
+                && !(captureOwner is null && pageObservation?.ContainerId == owner)))
+            return previous?.Occurrences?.Select(Copy).ToArray() ?? Array.Empty<ProposedOccurrence>();
+        _activeCaptureId = hierarchy.CaptureId;
+        _latestCaptureTime = hierarchy.CaptureTimestamp;
+        _captureOwners.TryAdd(hierarchy.CaptureId, owner);
         var nodes = _captures.GetValueOrDefault(hierarchy.CaptureId);
         if (nodes is null)
         {
@@ -57,12 +77,12 @@ public sealed class UiHierarchyOccurrenceStrategy : IUiObservationStrategy
         Apply(node, hierarchy.Field, record.Claim.Value);
         nodes[hierarchy.NodeLocalIndex] = node;
 
-        var owner = CurrentPageAnchor.Resolve(previous);
         return Build(nodes, owner, hierarchy.Space);
     }
 
     private static ProposedOccurrence Copy(OccurrenceBelief o) => new(
-        o.OwningContainerId, o.Role, o.SemanticDescriptor, o.State, o.Locator, o.Native, o.Space);
+        o.OwningContainerId, o.Role, o.SemanticDescriptor, o.State, o.Locator, o.Native, o.Space)
+        { SupportingEvidenceIds = o.EvidenceBasis };
 
     private static IReadOnlyList<ProposedOccurrence> FrameOccurrence(
         EvidenceRecord record, WorldBeliefRevision? previous)
@@ -135,7 +155,7 @@ public sealed class UiHierarchyOccurrenceStrategy : IUiObservationStrategy
             if (node.Scrollable == true)
             {
                 result.Add(new ProposedOccurrence(owner, "scrollable",
-                    node.ResourceId ?? label, null,
+                    string.IsNullOrWhiteSpace(node.ResourceId) ? ScrollableDescriptor(pair.Key, nodes) : node.ResourceId, null,
                     TryBounds(node.Bounds, space), null, space));
                 continue;
             }
@@ -157,6 +177,23 @@ public sealed class UiHierarchyOccurrenceStrategy : IUiObservationStrategy
                 TryBounds(node.Bounds, space), native, space));
         }
         return result;
+    }
+
+    // A resource-less list must not be named after its first visible child:
+    // that name changes precisely when scrolling succeeds. This is a bounded
+    // hierarchy descriptor, not a canonical container or LogicalItem identity.
+    private static string ScrollableDescriptor(int index, IReadOnlyDictionary<int, NodeFields> nodes)
+    {
+        var path = new Stack<string>();
+        var visited = new HashSet<int>();
+        while (nodes.TryGetValue(index, out var node) && visited.Add(index))
+        {
+            var ordinal = nodes.Count(p => p.Key < index && p.Value.ParentIndex == node.ParentIndex && p.Value.Class == node.Class);
+            path.Push($"{node.Class ?? "node"}[{ordinal}]");
+            if (node.ParentIndex is not { } parent) break;
+            index = parent;
+        }
+        return "hierarchy-scrollable:" + string.Join('/', path);
     }
 
     private static string? FindContextText(

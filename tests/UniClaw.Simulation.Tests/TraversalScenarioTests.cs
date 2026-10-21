@@ -1,5 +1,6 @@
 using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Capability;
+using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.World;
 using Xunit;
@@ -530,4 +531,102 @@ public sealed class TraversalScenarioTests
         Assert.Equal("traversal:stale-or-unassociated-projection", traversal.PauseReason);
         Assert.Contains(traversal.Gaps, gap => gap.Reason == "traversal:stale-or-unassociated-projection");
     }
+
+    [Fact]
+    public void ValidWorldPageOutsideTraversalPathPausesBeforeConsumingItsCandidates()
+    {
+        var injected = false;
+        var issuedPlan = false;
+        string? traversalPage = null;
+        string? worldPage = null;
+        string? recoveryPause = null;
+        PlanExecutionStatus? recoveryStatus = null;
+        var projectedSurpriseCandidate = false;
+        var rules = TraversalScenarioFixture.NavigationRules(
+            TraversalScenarioFixture.NavigationOperation("visit-link"));
+        TraversalScenarioFixture.Scenario? scenario = null;
+        scenario = TraversalScenarioFixture.Create(
+            new[]
+            {
+                new TraversalScenarioFixture.Page("root", new[]
+                {
+                    new TraversalScenarioFixture.MenuEntry("menuItem", "Ambiguous", Traverse: true,
+                        Disposition: PlanCandidateDisposition.Unknown, Reason: "ambiguous-current-page-entry"),
+                }),
+            },
+            rules,
+            maxDepth: 2,
+            expectedOverride: new ScenarioExpectation("TerminalNotProven", null, 0, 3, 0, null),
+            agentOverride: context =>
+            {
+                if (!issuedPlan)
+                {
+                    issuedPlan = true;
+                    return TraversalScenarioFixture.Decide(context, rules, maxDepth: 2);
+                }
+
+                if (context.PlanExecution?.Traversal is { Status: PlanExecutionStatus.Paused } traversal)
+                {
+                    if (!injected)
+                    {
+                        injected = true;
+                        var kernel = scenario!.Effects.CurrentKernel!;
+                        traversalPage = kernel.CurrentBelief!.WorldState[WorldModel.CurrentContainerSubject].Value;
+                        kernel.Process(Observation("ui.screen", "unrelated", 30, kernel.CurrentBelief!.WorldState["ui.screen"].EstablishingProducer!));
+                        worldPage = kernel.CurrentBelief!.WorldState[WorldModel.CurrentContainerSubject].Value;
+                        kernel.Process(Observation("ui.screen.route", "unrelated", 31, kernel.CurrentBelief!.WorldState["ui.screen.route"].EstablishingProducer!));
+                        kernel.Process(Observation("menu.ready", System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            Complete = true,
+                            Items = new[]
+                            {
+                                new
+                                {
+                                    Role = "menuItem", Descriptor = "Surprise", Traverse = true,
+                                    ReadOnly = false, State = (string?)null,
+                                    Disposition = PlanCandidateDisposition.Ready, Reason = (string?)null,
+                                },
+                            },
+                        }), 32, kernel.CurrentBelief!.WorldState["menu.ready"].EstablishingProducer!));
+                        projectedSurpriseCandidate = scenario.Effects.Project(kernel,
+                            TraversalScenarioFixture.Source)?.Candidates.Any(candidate =>
+                                candidate.Target.TargetDescriptor == "Surprise") == true;
+                        // The external observation is accepted while the traversal is paused;
+                        // resume will request a fresh, pure projection of this new World.
+                        return new AgentDecision.ContinuePlan(context.DecisionId, context.PlanExecution.Position);
+                    }
+
+                    recoveryPause = traversal.PauseReason;
+                    recoveryStatus = traversal.Status;
+                }
+
+                return new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId,
+                    "stop after the World page leaves the active traversal path"));
+            });
+
+        var activeScenario = scenario ?? throw new InvalidOperationException("scenario was not created");
+        var execution = ScenarioRunner.Run(activeScenario.Bundle, activeScenario.Options);
+
+        Assert.True(injected, "the paused recovery boundary should accept the later World observation");
+        Assert.NotNull(traversalPage);
+        Assert.NotNull(worldPage);
+        Assert.NotEqual(traversalPage, worldPage);
+        Assert.True(projectedSurpriseCandidate, "the new World revision must project an executable Surprise candidate");
+        Assert.Empty(activeScenario.Effects.Effects);
+        Assert.Empty(execution.Host.Facts.EffectReceipts);
+        Assert.Equal("traversal:control-path-current-page-mismatch", recoveryPause);
+        Assert.Equal(PlanExecutionStatus.Paused, recoveryStatus);
+        Assert.True(execution.Report.AcceptancePassed,
+            ScenarioReport.DescribeAcceptance(activeScenario.Bundle, execution.Report) + "; traversal="
+            + System.Text.Json.JsonSerializer.Serialize(execution.Host.KernelCore.TraversalExecution));
+        var traversal = Assert.IsType<TraversalExecutionView>(execution.Host.KernelCore.TraversalExecution);
+        Assert.Equal(worldPage, traversal.CurrentContainerId);
+        Assert.Contains(traversal.Gaps, gap => gap.Reason == "control-path-current-page-mismatch");
+        Assert.DoesNotContain(traversal.Operations, operation => operation.TargetKey?.EndsWith(":Surprise", StringComparison.Ordinal) == true);
+    }
+
+    private static ObservationProposal Observation(string subject, string value, int second, string producer) => new(
+        new ObservationClaim(subject, value), IngressKind.Observation, ObservationContext.External,
+        new Provenance(producer, new DateTimeOffset(2026, 10, 20, 0, 0, second, TimeSpan.Zero),
+            $"scope:{subject}", new[] { $"capture:{subject}:{second}" }));
 }

@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="cd8b6703-db1b-49ce-9b5d-1b7918146375" name="@frandeMac-mini 2026-10-21 23:23:57" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T23:23:57.8720220+08:00" queuing="2026-10-21T23:23:57.8720220+08:00" start="2026-10-21T23:23:57.3062680+08:00" finish="2026-10-21T23:23:57.8746770+08:00" />
+  <TestSettings name="default" id="57ef3145-ce72-4d6b-bdf1-02c68aa024fd">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-21_23_23_57" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="b45bc66b-16f2-49a4-8361-cc11fe5e9e66" testId="39ce1551-1b65-4cee-9c70-99735191df10" testName="UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.EveryPublishedOwnerLogRejectsExternalWrites" computerName="frandeMac-mini" duration="00:00:00.0001286" startTime="2026-10-21T23:23:57.7142500+08:00" endTime="2026-10-21T23:23:57.7142500+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b45bc66b-16f2-49a4-8361-cc11fe5e9e66">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.True() Failure
+Expected: True
+Actual:   False</Message>
+          <StackTrace>   at UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.AssertReadOnly[T](IReadOnlyList`1 view) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/World/WorldReadViewOwnershipTests.cs:line 46
+   at UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.EveryPublishedOwnerLogRejectsExternalWrites() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/World/WorldReadViewOwnershipTests.cs:line 35
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="ab8aef37-86d8-4655-a786-4f0b2400bd48" testId="f25e9fb0-cfd1-583c-c48c-9ed841c4e751" testName="UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.PublishedHistoryCannotClearCurrentBeliefAndStillTracksOwnerAppends" computerName="frandeMac-mini" duration="00:00:00.0156712" startTime="2026-10-21T23:23:57.7131650+08:00" endTime="2026-10-21T23:23:57.7131720+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ab8aef37-86d8-4655-a786-4f0b2400bd48">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.True() Failure
+Expected: True
+Actual:   False</Message>
+          <StackTrace>   at UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.AssertReadOnly[T](IReadOnlyList`1 view) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/World/WorldReadViewOwnershipTests.cs:line 46
+   at UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.PublishedHistoryCannotClearCurrentBeliefAndStillTracksOwnerAppends() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/World/WorldReadViewOwnershipTests.cs:line 22
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.EveryPublishedOwnerLogRejectsExternalWrites" storage="/users/fran/documents/code/spacex/uni_claw/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="39ce1551-1b65-4cee-9c70-99735191df10">
+      <Execution id="b45bc66b-16f2-49a4-8361-cc11fe5e9e66" />
+      <TestMethod codeBase="/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests" name="EveryPublishedOwnerLogRejectsExternalWrites" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.PublishedHistoryCannotClearCurrentBeliefAndStillTracksOwnerAppends" storage="/users/fran/documents/code/spacex/uni_claw/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="f25e9fb0-cfd1-583c-c48c-9ed841c4e751">
+      <Execution id="ab8aef37-86d8-4655-a786-4f0b2400bd48" />
+      <TestMethod codeBase="/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests" name="PublishedHistoryCannotClearCurrentBeliefAndStillTracksOwnerAppends" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="39ce1551-1b65-4cee-9c70-99735191df10" executionId="b45bc66b-16f2-49a4-8361-cc11fe5e9e66" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f25e9fb0-cfd1-583c-c48c-9ed841c4e751" executionId="ab8aef37-86d8-4655-a786-4f0b2400bd48" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="2" executed="2" passed="0" failed="2" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.02]   Discovering: UniClaw.Kernel.Tests
+[xUnit.net 00:00:00.07]   Discovered:  UniClaw.Kernel.Tests
+[xUnit.net 00:00:00.07]   Starting:    UniClaw.Kernel.Tests
+[xUnit.net 00:00:00.10]       Assert.True() Failure
+[xUnit.net 00:00:00.10]       Expected: True
+[xUnit.net 00:00:00.10]       Actual:   False
+[xUnit.net 00:00:00.10]       Stack Trace:
+[xUnit.net 00:00:00.10]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/World/WorldReadViewOwnershipTests.cs(46,0): at UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.AssertReadOnly[T](IReadOnlyList`1 view)
+[xUnit.net 00:00:00.10]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/World/WorldReadViewOwnershipTests.cs(22,0): at UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.PublishedHistoryCannotClearCurrentBeliefAndStillTracksOwnerAppends()
+[xUnit.net 00:00:00.10]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.10]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.10]       Assert.True() Failure
+[xUnit.net 00:00:00.10]       Expected: True
+[xUnit.net 00:00:00.10]       Actual:   False
+[xUnit.net 00:00:00.10]       Stack Trace:
+[xUnit.net 00:00:00.10]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/World/WorldReadViewOwnershipTests.cs(46,0): at UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.AssertReadOnly[T](IReadOnlyList`1 view)
+[xUnit.net 00:00:00.10]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/World/WorldReadViewOwnershipTests.cs(35,0): at UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.EveryPublishedOwnerLogRejectsExternalWrites()
+[xUnit.net 00:00:00.10]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.10]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.10]   Finished:    UniClaw.Kernel.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-21T23:23:57.7124980+08:00">
+        <Text>[xUnit.net 00:00:00.10]     UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.PublishedHistoryCannotClearCurrentBeliefAndStillTracksOwnerAppends [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-21T23:23:57.7142390+08:00">
+        <Text>[xUnit.net 00:00:00.10]     UniClaw.Kernel.Tests.World.WorldReadViewOwnershipTests.EveryPublishedOwnerLogRejectsExternalWrites [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

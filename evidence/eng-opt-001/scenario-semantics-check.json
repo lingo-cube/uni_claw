@@ -1,0 +1,5 @@
+{
+  "method": "compare HEAD/current excluding certification metadata",
+  "files": 28,
+  "semantic_changes": []
+}

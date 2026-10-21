@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using UniClaw.Kernel.Diagnostics;
 using UniClaw.Kernel.Evidence;
@@ -13,7 +14,7 @@ namespace UniClaw.Kernel.World;
 /// Reconciliation 只接受 accepted Evidence；plan / expectation / goal /
 /// hypothesis / intent 没有进入本类型的任何输入路径（不变量 16，验收 7）。
 /// </summary>
-public sealed class WorldModel
+public sealed partial class WorldModel
 {
     /// <summary>CurrentContainer claim subject（WorldState 语义，UWM-009 §23；subject 约定 = realization）。</summary>
     public const string CurrentContainerSubject = "ui.container.current";
@@ -33,6 +34,15 @@ public sealed class WorldModel
     private readonly Dictionary<string, int> _activeDemandCountsByItem = new(StringComparer.Ordinal);
     private readonly List<ContinuityDecision> _continuityLog = new();
     private readonly List<ClaimEvolutionDecision> _claimEvolutionLog = new();
+    private readonly ReadOnlyCollection<WorldBeliefRevision> _revisionHistoryView;
+    private readonly ReadOnlyCollection<RelevanceJudgment> _relevanceLogView;
+    private readonly ReadOnlyCollection<AssociationDecision> _associationLogView;
+    private readonly ReadOnlyCollection<ContinuityDemand> _continuityDemandsView;
+    private readonly ReadOnlyCollection<ContinuityDecision> _continuityLogView;
+    private readonly ReadOnlyCollection<ClaimEvolutionDecision> _claimEvolutionLogView;
+    // Current-page eligibility is independent from aggregate freshness and from
+    // the establishing EvidenceId retained by a same-value reaffirmation.
+    private DateTimeOffset? _latestPageObservationTime;
     private readonly Dictionary<WorldBeliefRevision, WorldRevisionIndex> _revisionIndexes =
         new(ReferenceEqualityComparer.Instance);
     private RuntimeStageMetrics? _performanceMetrics;
@@ -59,6 +69,12 @@ public sealed class WorldModel
         _associationStrategy = associationStrategy;
         _observationStrategy = observationStrategy;
         _continuityStrategy = continuityStrategy;
+        _revisionHistoryView = _revisionHistory.AsReadOnly();
+        _relevanceLogView = _relevanceLog.AsReadOnly();
+        _associationLogView = _associationLog.AsReadOnly();
+        _continuityDemandsView = _continuityDemands.AsReadOnly();
+        _continuityLogView = _continuityLog.AsReadOnly();
+        _claimEvolutionLogView = _claimEvolutionLog.AsReadOnly();
     }
 
     /// <summary>Current WorldBelief（首次 Reconciliation 前为 null）。</summary>
@@ -66,10 +82,10 @@ public sealed class WorldModel
         _revisionHistory.Count == 0 ? null : _revisionHistory[^1];
 
     /// <summary>revision 历史（append-only 只读依据；被取代的 revision 保留为历史）。</summary>
-    public IReadOnlyList<WorldBeliefRevision> RevisionHistory => _revisionHistory;
+    public IReadOnlyList<WorldBeliefRevision> RevisionHistory => _revisionHistoryView;
 
     /// <summary>每次 relevance 判定的留痕。</summary>
-    public IReadOnlyList<RelevanceJudgment> RelevanceLog => _relevanceLog;
+    public IReadOnlyList<RelevanceJudgment> RelevanceLog => _relevanceLogView;
 
     /// <summary>
     /// 每次 Container Association 判定的留痕（owner-internal append-only，
@@ -77,20 +93,20 @@ public sealed class WorldModel
     /// decision context 的可引用载体——供未来 Trace/Replay 引用，
     /// 不进 revision aggregate，不构成第二 truth）。
     /// </summary>
-    public IReadOnlyList<AssociationDecision> AssociationLog => _associationLog;
+    public IReadOnlyList<AssociationDecision> AssociationLog => _associationLogView;
 
     /// <summary>
     /// Continuity demand registry（owner-internal、非 revision 化，ADR-0014）：
     /// List + 只读视图；demand 状态变化不产生 revision（P-UW-32）。
     /// </summary>
-    public IReadOnlyList<ContinuityDemand> ContinuityDemands => _continuityDemands;
+    public IReadOnlyList<ContinuityDemand> ContinuityDemands => _continuityDemandsView;
 
     /// <summary>
     /// 每次 continuity adjudication 判定的留痕（owner-internal append-only，
     /// 同 AssociationLog 先例；含 demand correlation 与 proposed/effective
     /// outcome，不进 revision aggregate、不构成第二 truth）。
     /// </summary>
-    public IReadOnlyList<ContinuityDecision> ContinuityLog => _continuityLog;
+    public IReadOnlyList<ContinuityDecision> ContinuityLog => _continuityLogView;
 
     /// <summary>
     /// 每次 claim evolution 判定的留痕（CLE-001 / ADR-0016，owner-internal
@@ -98,7 +114,7 @@ public sealed class WorldModel
     /// Revise 均留痕（subject 历代 value / evidence 可溯源，D2「不静默
     /// 覆盖」三件套之一）；不进 revision aggregate、不构成第二 truth。
     /// </summary>
-    public IReadOnlyList<ClaimEvolutionDecision> ClaimEvolutionLog => _claimEvolutionLog;
+    public IReadOnlyList<ClaimEvolutionDecision> ClaimEvolutionLog => _claimEvolutionLogView;
 
     /// <summary>
     /// Append a verified navigation relation after both endpoint observations
@@ -194,7 +210,10 @@ public sealed class WorldModel
                 navigation.SourceRevisionId,
                 navigation.TargetRevisionId)),
             Occurrences: current.Occurrences,
-            LogicalItems: current.LogicalItems);
+            LogicalItems: current.LogicalItems)
+        { ViewportTransitions = current.ViewportTransitions,
+          CurrentPageObservation = current.CurrentPageObservation,
+          ObservationNeed = current.ObservationNeed };
 
         PublishRevision(revision);
         return true;
@@ -231,7 +250,8 @@ public sealed class WorldModel
         if (edges.Length == 0)
             unknown.Add("no-navigation-edge-observed-in-scope");
         return new WorldGraphProjection(
-            revision.RevisionId, scope, anchor, nodes, edges, unknown);
+            revision.RevisionId, scope, anchor, nodes, edges, unknown)
+        { ViewportTransitions = revision.ViewportTransitions.Where(t => t.Scope == scope).ToImmutableArray() };
     }
 
     /// <summary>
@@ -315,7 +335,10 @@ public sealed class WorldModel
             parent.FreshnessBasis,
             new Uncertainty(remaining.Length),
             remaining,
-            parent.Containers, parent.Relations, parent.Occurrences, parent.LogicalItems);
+            parent.Containers, parent.Relations, parent.Occurrences, parent.LogicalItems)
+        { ViewportTransitions = parent.ViewportTransitions,
+          CurrentPageObservation = parent.CurrentPageObservation,
+          ObservationNeed = parent.ObservationNeed };
 
         _claimEvolutionLog.Add(new ClaimEvolutionDecision(
             revision.RevisionId, subject, ClaimEvolutionKind.Revise,
@@ -402,6 +425,35 @@ public sealed class WorldModel
 
         // P-UW-16 owner 侧执法：裸 spatial subject（无 SpatialFrame）不得进入 belief
         ValidateSpatialSubject(record.Claim.Subject);
+        var identityObservation = record.Claim.Subject == ProductAssociationStrategy.ScreenIdentitySubject;
+        var pageCapture = record.Claim.Subject == PageObservationCodec.CaptureSubject
+            && PageObservationCodec.TryReadCapture(record.Claim.Value, out var capturePayload) ? capturePayload : null;
+        var pageIdentity = record.Claim.Subject == PageObservationCodec.IdentitySubject
+            && PageObservationCodec.TryReadIdentity(record.Claim.Value, out var identityPayload) ? identityPayload : null;
+        var pageIdentityObservation = record.Claim.Subject == PageObservationCodec.IdentitySubject;
+        var pageCaptureObservation = record.Claim.Subject == PageObservationCodec.CaptureSubject;
+        var pageCaptureInvalid = pageCaptureObservation && (pageCapture is null
+            || pageCapture.CaptureTime != record.Provenance.CaptureTime
+            || parent?.CurrentPageObservation is { } activePage
+                && pageCapture.SessionCorrelation != activePage.Capture.SessionCorrelation);
+        var pageCaptureHistorical = pageCapture is not null && parent?.CurrentPageObservation is { } priorCapture
+            && pageCapture.CaptureTime < priorCapture.Capture.CaptureTime;
+        var historical = identityObservation
+            && _latestPageObservationTime is { } latestObservation
+            && record.Provenance.CaptureTime < latestObservation;
+        var semanticObservation = record.Claim.Subject == SemanticPageSubject;
+        string? semanticReason = null;
+        var semanticContainer = semanticObservation ? SemanticContainer(record, parent, out semanticReason) : null;
+        var pageIdentityValid = pageIdentity is not null && parent?.CurrentPageObservation is { } currentCapture
+            && PageObservationEvidence.Matches(pageIdentity, currentCapture, record)
+            && !(parent.Conflicts.Any(c => c.Subject == PageObservationCodec.IdentitySubject + ":" + currentCapture.Capture.CaptureId)
+                && parent.ObservationNeed?.CaptureEvidenceId == currentCapture.EvidenceId);
+        var pageIdentityContradicts = pageIdentityValid && parent?.CurrentPageObservation?.ContainerId is { } establishedPage
+            && parent.WorldState.TryGetValue(SignatureSubjectPrefix + establishedPage, out var establishedSignature)
+            && establishedSignature.Value != pageIdentity!.Signature;
+        var applicable = !pageIdentityContradicts && !historical && !pageCaptureHistorical && !pageCaptureInvalid && semanticReason is null
+            && (!pageIdentityObservation || pageIdentityValid)
+            && !(identityObservation && parent?.CurrentPageObservation is not null);
 
         var state = PersistentRevisionDictionary<string, WorldClaim>.Next(
             parent?.WorldState as PersistentRevisionDictionary<string, WorldClaim>,
@@ -484,7 +536,14 @@ public sealed class WorldModel
             copiedEntries++;
         }
 
-        ApplyClaim(record.Claim.Subject, record.Claim.Value, record.EvidenceId);
+        var conflictsBeforeObservation = conflicts.Count;
+        if (applicable && pageCapture is null && pageIdentity is null)
+            ApplyClaim(record.Claim.Subject, record.Claim.Value, record.EvidenceId);
+        if (applicable && pageIdentity is not null)
+            ApplyDerivedClaim(ProductAssociationStrategy.ScreenIdentitySubject, pageIdentity.Signature, record.EvidenceId);
+        var observationConflicts = conflicts.Count > conflictsBeforeObservation;
+        if (applicable && !observationConflicts && semanticContainer is not null)
+            ApplyClaim(semanticContainer + ".semantic.page", record.Claim.Value, record.EvidenceId);
 
         // Container Association（UWM-009 §9 合法输入冻结：accepted evidence +
         // previous revision + P22 prior；Authority gates 见 Associate）
@@ -492,21 +551,40 @@ public sealed class WorldModel
             ?? (parent?.Containers?.ToImmutableList() ?? ImmutableList<ContainerBelief>.Empty);
         var relations = parent?.Relations as ImmutableList<ContainerRelation>
             ?? (parent?.Relations?.ToImmutableList() ?? ImmutableList<ContainerRelation>.Empty);
+        string? associatedContainer = null;
+        IReadOnlyList<OccurrenceBelief>? occurrences = parent?.Occurrences;
         if (_associationStrategy is not null)
         {
             var decision = Associate(
                 record, transitionContext, parent,
                 ref containers, ref relations,
                 ref scannedEntries, ref copiedEntries,
-                out var currentContainerId);
+                out var currentContainerId,
+                historical || pageCaptureHistorical ? "historical-observation"
+                    : pageCaptureInvalid ? "invalid-page-capture"
+                    : identityObservation && parent?.CurrentPageObservation is not null ? "unscoped-screen-observation"
+                    : pageIdentityContradicts ? "conflicting-page-identity"
+                    : pageIdentityObservation && !pageIdentityValid ? "page-identity-correlation-invalid"
+                    : semanticReason ?? (identityObservation && observationConflicts ? "conflicting-observation"
+                    : semanticObservation ? "auxiliary-semantic-observation" : null));
+            associatedContainer = currentContainerId;
             if (currentContainerId is not null)
             {
                 // CurrentContainer / signature 是 owner-derived WorldState claims
                 // （UWM-009 §23：CurrentContainer 属 WorldState，不属 graph）
                 ApplyDerivedClaim(CurrentContainerSubject, currentContainerId, record.EvidenceId);
-                ApplyDerivedClaim(SignatureSubjectPrefix + currentContainerId, record.Claim.Value, record.EvidenceId);
+                ApplyDerivedClaim(SignatureSubjectPrefix + currentContainerId,
+                    pageIdentity?.Signature ?? record.Claim.Value, record.EvidenceId);
             }
             _associationLog.Add(decision);
+        }
+        if (pageIdentityValid && associatedContainer is not null && parent?.CurrentPageObservation is { } confirmed)
+        {
+            occurrences = (parent.Occurrences ?? Array.Empty<OccurrenceBelief>())
+                .Where(o => o.EvidenceBasis.Contains(confirmed.EvidenceId))
+                .Select((o, index) => o with { OccurrenceId = MintOccurrenceIdentity(record.EvidenceId, index),
+                    OwningContainerId = associatedContainer })
+                .ToImmutableArray();
         }
 
         // UIW-003（UWM-009 v0.3 §35 / ADR-0015）：ObservationOccurrence 是
@@ -515,22 +593,60 @@ public sealed class WorldModel
         // （内容派生、确定性）；EvidenceBasis = {该 EvidenceId}。无 strategy →
         // null（旧语义不变）。LogicalItem belief 跨 evidence revision 延续
         //（continuity 是例外路径，ADR-0015）。
-        IReadOnlyList<OccurrenceBelief>? occurrences = parent?.Occurrences;
-        if (_observationStrategy is not null)
+        var proposedPageCaptureOccurrences = pageCapture is not null && applicable
+            ? PageObservationEvidence.ToOwnerlessOccurrences(pageCapture)
+            : null;
+        if (proposedPageCaptureOccurrences is not null)
+        {
+            occurrences = proposedPageCaptureOccurrences
+                .Select((proposal, index) => new OccurrenceBelief(
+                    MintOccurrenceIdentity(record.EvidenceId, index), proposal.OwningContainerId,
+                    proposal.Role, proposal.SemanticDescriptor, new[] { record.EvidenceId },
+                    proposal.State, proposal.Locator, proposal.Native, proposal.Space))
+                .ToImmutableArray();
+            copiedEntries += occurrences.Count;
+        }
+        else if (_observationStrategy is not null && applicable && !semanticObservation
+            && !pageIdentityObservation
+            && !(identityObservation && observationConflicts))
         {
             var proposed = _observationStrategy.Derive(record, parent);
+            IReadOnlyList<string> OccurrenceBasis(ProposedOccurrence proposal)
+            {
+                var ids = proposal.SupportingEvidenceIds ?? new[] { record.EvidenceId };
+                if (ids.Count == 0 || ids.Any(id => id != record.EvidenceId && parent?.EvidenceBasis.Contains(id) != true))
+                    throw new InvalidOperationException("Occurrence supporting evidence is not accepted world evidence");
+                // Attach the accepted capture boundary to current hierarchy
+                // structure, so later identity recovery can rebind only that
+                // capture while retaining the original hierarchy evidence.
+                if (parent?.CurrentPageObservation is { } page && record.Provenance.Hierarchy is { } h
+                    && h.CaptureId == page.Capture.CaptureId
+                    && h.ObservationCycleId == page.Capture.ObservationCycleId
+                    && h.SessionCorrelation == page.Capture.SessionCorrelation
+                    && h.CaptureTimestamp == page.Capture.CaptureTime)
+                    return ids.Append(page.EvidenceId).Distinct(StringComparer.Ordinal).ToImmutableArray();
+                return ids.Distinct(StringComparer.Ordinal).ToImmutableArray();
+            }
             scannedEntries += proposed.Count;
             occurrences = proposed
                 .Select((proposed, index) => new OccurrenceBelief(
                     MintOccurrenceIdentity(record.EvidenceId, index),
                     proposed.OwningContainerId, proposed.Role, proposed.SemanticDescriptor,
-                    new[] { record.EvidenceId },
+                    OccurrenceBasis(proposed),
                     State: proposed.State,
                     Locator: proposed.Locator,
                     Native: proposed.Native,
                     Space: proposed.Space))
                 .ToImmutableArray();
             copiedEntries += occurrences.Count;
+        }
+        if (pageIdentityContradicts && parent?.CurrentPageObservation is { } contradicted)
+        {
+            conflicts = conflicts.Add(new Conflict(PageObservationCodec.IdentitySubject + ":" + contradicted.Capture.CaptureId,
+                parent.WorldState[SignatureSubjectPrefix + contradicted.ContainerId!].Value,
+                pageIdentity!.Signature, parent.WorldState[SignatureSubjectPrefix + contradicted.ContainerId!].EvidenceId,
+                record.EvidenceId));
+            occurrences = (parent.Occurrences ?? []).Select(o => o with { OwningContainerId = (string?)null }).ToImmutableArray();
         }
         var logicalItems = parent?.LogicalItems;
 
@@ -553,9 +669,26 @@ public sealed class WorldModel
             Containers: containers,
             Relations: relations,
             Occurrences: occurrences,
-            LogicalItems: logicalItems);
+            LogicalItems: logicalItems)
+        { ViewportTransitions = parent?.ViewportTransitions ?? ImmutableArray<ViewportTransition>.Empty,
+          CurrentPageObservation = pageIdentityContradicts && parent?.CurrentPageObservation is { } contradictedObservation
+              ? contradictedObservation with { ContainerId = null }
+              : pageCapture is not null && applicable
+              ? new PageObservationState(pageCapture, record.EvidenceId, associatedContainer)
+              : pageIdentity is not null && parent?.CurrentPageObservation is { } priorObservation
+                  ? priorObservation with { ContainerId = associatedContainer ?? priorObservation.ContainerId }
+                  : parent?.CurrentPageObservation,
+          ObservationNeed = pageIdentityContradicts && parent?.CurrentPageObservation is { } conflictedObservation
+              ? new ObservationNeed($"rev-{number}", conflictedObservation.EvidenceId, conflictedObservation.Capture)
+              : pageCapture is not null && applicable && associatedContainer is null
+              ? new ObservationNeed($"rev-{number}", record.EvidenceId, pageCapture)
+              : pageIdentity is not null && associatedContainer is not null ? null : parent?.ObservationNeed };
 
         PublishRevision(revision);
+        if (identityObservation && applicable)
+            _latestPageObservationTime = record.Provenance.CaptureTime;
+        if (associatedContainer is not null)
+            _containerObservations[associatedContainer] = record;
         RecordReconcilePerformance(
             operationStart, allocationStart, scannedEntries, copiedEntries,
             outputEntries: 1);
@@ -612,11 +745,18 @@ public sealed class WorldModel
         ref ImmutableList<ContainerRelation> relations,
         ref long scannedEntries,
         ref long copiedEntries,
-        out string? currentContainerId)
+        out string? currentContainerId,
+        string? ineligibleReason = null)
     {
         currentContainerId = null;
         var proposal = _associationStrategy!.Propose(new AssociationInput(parent, record, transitionContext));
         var number = (parent?.RevisionNumber ?? 0) + 1;
+
+        if (ineligibleReason is not null)
+            return new AssociationDecision($"rev-{number}", record.EvidenceId,
+                transitionContext?.AttemptCorrelation, transitionContext?.Strength,
+                proposal.Kind, AssociationDispositionKind.Insufficient, null, null,
+                proposal.Candidates.ToArray(), $"authority-blocked:{ineligibleReason}");
 
         var effective = proposal.Kind;
         string? matchedId = null;
@@ -659,7 +799,9 @@ public sealed class WorldModel
         else if (proposal.Kind == AssociationDispositionKind.New)
         {
             scannedEntries += proposal.Candidates.Sum(c => c.SupportingEvidenceIds.Count);
-            var backed = proposal.Candidates.Any(c => c.SupportingEvidenceIds.Contains(record.EvidenceId));
+            var backed = proposal.Candidates.Any(c => c.SupportingEvidenceIds.Contains(record.EvidenceId)
+                && c.ContradictingEvidenceIds.Count == 0
+                && c.SupportingEvidenceIds.All(IsValidEvidence));
             if (!backed)
             {
                 effective = AssociationDispositionKind.Insufficient;
@@ -1150,7 +1292,10 @@ public sealed class WorldModel
             parent.WorldState, parent.WorldGraph, parent.EvidenceBasis,
             parent.FreshnessBasis, parent.Uncertainty, parent.Conflicts,
             parent.Containers, parent.Relations,
-            parent.Occurrences, logicalItems);
+            parent.Occurrences, logicalItems)
+        { ViewportTransitions = parent.ViewportTransitions,
+          CurrentPageObservation = parent.CurrentPageObservation,
+          ObservationNeed = parent.ObservationNeed };
         PublishRevision(revision, parentIndex);
         return revision;
     }
@@ -1187,6 +1332,10 @@ public sealed class WorldModel
             return new CurrentGroundingView(
                 current?.RevisionId ?? string.Empty,
                 OwningContainerId: null,
+                CurrentCandidateSetResultKind.ScopeProjectionUnavailable,
+                Array.Empty<CandidateOccurrenceFact>());
+        if (current.CurrentPageObservation is { ContainerId: null })
+            return new CurrentGroundingView(current.RevisionId, null,
                 CurrentCandidateSetResultKind.ScopeProjectionUnavailable,
                 Array.Empty<CandidateOccurrenceFact>());
 
@@ -1302,10 +1451,14 @@ public sealed class WorldModel
         var targetOccurrence = occurrenceId is null
             ? null
             : IndexFor(current).OccurrencesById.GetValueOrDefault(occurrenceId);
+        if (current.CurrentPageObservation is { ContainerId: null })
+            targetOccurrence = null;
         var view = new BindingView(
             current.RevisionId,
             current.RevisionNumber,
-            HasTargetSubjectClaim: subject is not null && current.WorldState.ContainsKey(subject),
+            HasTargetSubjectClaim: subject is not null && current.WorldState.ContainsKey(subject)
+                && !(current.CurrentPageObservation is { ContainerId: null }
+                    && (subject.StartsWith("ui.", StringComparison.Ordinal) || subject == "live.frame")),
             HasTargetOccurrence: targetOccurrence is not null,
             TargetOccurrenceLocator: targetOccurrence?.Locator,
             TargetOccurrenceNative: targetOccurrence?.Native,

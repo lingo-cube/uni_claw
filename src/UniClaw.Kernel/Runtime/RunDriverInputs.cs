@@ -1,5 +1,6 @@
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Capability;
+using UniClaw.Kernel.World;
 
 namespace UniClaw.Kernel.Runtime;
 
@@ -74,7 +75,9 @@ public enum ObservationDepth
 public sealed record ObservationDirective(
     ObservationContext Context,
     ObservationDepth Depth = ObservationDepth.Normal,
-    IReadOnlyList<string>? Subjects = null);
+    IReadOnlyList<string>? Subjects = null,
+    ObservationNeed? Need = null,
+    TimeSpan? RemainingBudget = null);
 
 /// <summary>
 /// internal run driver 的最小 concrete 外部 seam（delegate 形态；非冻结公共
@@ -132,9 +135,16 @@ public sealed class RunDriverInputs
     /// <summary>Explicit cross-domain typed inspection adapter; no registry dispatch.</summary>
     public Func<PlanLanguageHandler, PlanHandlerInput, Finding?>? InspectPlanLanguage { get; init; }
 
+    /// <summary>Asynchronous typed adapter for the same existing inspection protocol.</summary>
+    public Func<PlanLanguageHandler, PlanHandlerInput, CancellationToken, ValueTask<Finding?>>? InspectPlanLanguageAsync { get; init; }
+
     /// <summary>Maximum wait for one read-only typed inspection. Late results
     /// have no Owner write authority and are not accepted after this deadline.</summary>
     public TimeSpan PlanHandlerTimeout { get; init; } = TimeSpan.FromSeconds(2);
+
+    /// <summary>Control subquota; never replenishes Effect, consultation or plan budgets.</summary>
+    public TimeSpan ObservationRecoveryTimeout { get; init; } = TimeSpan.FromSeconds(5);
+    public int MaxObservationRecoveryRequests { get; init; } = 4;
 
     /// <summary>Control Loop Recovery receives execution facts; strategy remains there.</summary>
     public Action<TraversalRecoveryFacts>? ObserveTraversalRecovery { get; init; }

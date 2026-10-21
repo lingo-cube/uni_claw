@@ -38,13 +38,13 @@ public sealed class InitializationEnvelopeTests
             Assert.Equal("run-1", root.GetProperty("firstRunId").GetString());
             // 五要素齐备：profile/协议/工件修订 + Skill 快照 + 模型路由。
             // ADR-0052：明确复核、overview与提示词装配随动。
-            Assert.Equal(19, root.GetProperty("runtimeProfileRevision").GetInt32());
+            Assert.Equal(26, root.GetProperty("runtimeProfileRevision").GetInt32());
             Assert.Equal(64, root.GetProperty("protocolSchemaHash").GetString()!.Length);
-            Assert.Equal(19, root.GetProperty("productPromptRevision").GetInt32());
+            Assert.Equal(25, root.GetProperty("productPromptRevision").GetInt32());
             Assert.Equal(1, root.GetProperty("safetyPolicyRevision").GetInt32());
             Assert.Equal("android-automotive-ui-testing", root.GetProperty("skill").GetProperty("name").GetString());
-            // AGT-019 声明面随动：skill revision 2（guidance 弹窗/停滞纪律）。
-            Assert.Equal(2, root.GetProperty("skill").GetProperty("revision").GetInt32());
+            // RUNTIME-PLAN-004: 计划生成Skill revision 4。
+            Assert.Equal(4, root.GetProperty("skill").GetProperty("revision").GetInt32());
             Assert.Equal(64, root.GetProperty("skill").GetProperty("sha256").GetString()!.Length);
             Assert.Equal("deepseek-official", root.GetProperty("modelRoute").GetProperty("provider").GetString());
             Assert.Equal("deepseek-flash", root.GetProperty("modelRoute").GetProperty("model").GetString());

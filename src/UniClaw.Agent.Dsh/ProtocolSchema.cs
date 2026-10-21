@@ -131,6 +131,7 @@ public static class ProductProtocolSchemaGenerator
                 case "integer":
                 case "number": return "number";
                 case "boolean": return "boolean";
+                case "null": return "null";
                 case "array": return $"Array<{TypeScriptFor(schema.GetProperty("items"))}>";
                 case "object":
                     var properties = schema.TryGetProperty("properties", out var props)

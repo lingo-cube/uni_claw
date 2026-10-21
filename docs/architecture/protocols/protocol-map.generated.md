@@ -15,9 +15,9 @@
 | consultation-journal | pending | 3 | 4 | completed, rejected | ∅ |
 | contract-view | admitted | 3 | 2 | frozen | ∅ |
 | judgment | pending | 3 | 2 | consumed | ∅ |
-| run | created | 10 | 17 | closed, terminal | ∅ |
+| run | created | 10 | 18 | closed, terminal | ∅ |
 
-## 协议边表（44 条；P## 协议边 / O## wire·宿主边 / G## known gap）
+## 协议边表（45 条；P## 协议边 / O## wire·宿主边 / G## known gap）
 
 | id | kind | status | 方向 | 载荷 | 基线锚 |
 |---|---|---|---|---|---|
@@ -65,3 +65,4 @@
 | P24 | edge | keep | uni-agent → uni-kernel | record UniClaw.Kernel.Runtime.ActivationResult | #### P24 Legal Run Activation（Runtime activation path → Uni Kernel internal run driver） |
 | P25 | edge | keep | uni-kernel → uni-agent | record UniClaw.Kernel.Runtime.AgentDecision | #### P25 Agent Decision Consultation（Uni Kernel internal driver → UniAgent realization，外部 seam） |
 | P26 | edge | keep | uni-kernel → simulation-host | record UniClaw.Kernel.Trace.RunTraceArtifact | #### P26 Sealed Trace → ScenarioStimulus（测试 / 治理侧，非产品内边） |
+| P27 | edge | keep | world-model → control-loop | record UniClaw.Kernel.World.ObservationNeed | ### P27 Observation Need（World Model → Control Loop） |

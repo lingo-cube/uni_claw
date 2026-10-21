@@ -1,0 +1,1 @@
+CSC : error CS0006: 未能找到元数据文件“/tmp/uniclaw-eng-opt-001-review/src/UniClaw.Core/obj/Debug/net10.0/ref/UniClaw.Core.dll” [/tmp/uniclaw-eng-opt-001-review/src/UniClaw.Kernel/UniClaw.Kernel.csproj]

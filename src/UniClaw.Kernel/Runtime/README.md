@@ -19,6 +19,7 @@ State 发出）。
 | `AgentDecision.cs` | Agent 决策缝词汇（proposal/disposition） |
 | `AgentPlanPolicy.cs` | 决策计划策略（FROZEN v0.3.1 咨询缝词汇） |
 | `TraversalExecution.cs` | 持续遍历World引用投影、操作级typed语言handler、调用/状态/报告及Recovery事实交接词汇 |
+| `PlanLanguageHandlerCall.cs` | 单个typed语言handler的机械异步生命周期、协作取消与迟到异常观察；无Owner写权限 |
 | `PlanExecution.cs` | 计划候选/守卫投影、明确续行位置、逐动作尝试及阻碍证据视图 |
 | `PolicyProtocol.cs` / `PolicyRuntime.cs` | 策略求值协议与运行时（Slice A/B；求值机制面保持 internal） |
 | `ConsultationTypes.cs` | 咨询缝 typed 词汇 |
@@ -40,3 +41,5 @@ State 发出）。
 ## RUNTIME-PLAN-002 持续遍历
 
 `PlanItem.TraverseItem`复用原Plan/ContinuePlan。ControlLoop持有Control/TraversalControl；KernelRunDriver协调当前World投影、typed语言handler和原StepAct→StepVerify链。RunModel记录TraversalExecutionView和历史，状态查询读Owner记录，暂停不产生最终报告。ReadOnly仅记录/检查，Navigate始终经原许可/验证；发现不足/深度/排除/未知在报告中保留，不推出Goal完成。字段、输入关联及协议生成闭包见[正式执行契约](../../../changes/RUNTIME-PLAN-002/execution-contract.md)。
+
+RUNTIME-PLAN-003增加typed异步语言适配。`Drive`在等待调用时可恢复地返回`WaitingForHandler`；`DriveAsync`等待完成/截止/取消后接回原位置，真实外部输入等待仍原样返回。Run按callId记录Running及单一终态，状态查询不推进。业务Finding及原逐动作验证语义不变，见[异步执行契约](../../../changes/RUNTIME-PLAN-003/execution-contract.md)。

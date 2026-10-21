@@ -55,6 +55,7 @@ RuntimeOutcome envelope 出（Kernel `Outcome/`）。除此之外零依赖。
 | `Profile/ProductProfile.cs` | 产品 realization profile 身份（不含 provider/model） |
 | `Profile/UniAgentProfile.cs` | host-neutral profile 加载结果（身份+模型角色声明，PRF-002） |
 | `Profile/UniAgentProfileYaml.cs` | 产品 profile loader（身份漂移/角色值域 fail-closed，PRF-002） |
+| `Profile/ProfileIdentityRenderer.cs` | 从产品 Profile 只读生成身份与职责表达；不引入宿主绑定 |
 | `Profile/ProfileYamlDocument.cs` | 产品侧共享 YAML 子集解析器（双 loader 共用，PRF-002） |
 
 `../UniClaw.Agent.Dsh/` 是 DSH realization/adapter（绑定 loader/模型

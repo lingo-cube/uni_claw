@@ -1,0 +1,38 @@
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.08]     UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent [FAIL]
+[xUnit.net 00:00:00.08]     UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable [FAIL]
+  失败 UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent [1 ms]
+  错误消息:
+   System.IO.FileNotFoundException : Could not find file '/private/tmp/uniclaw-eng-opt-001-review/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-8357c152d8a84516bcd27fb459e3ab8b.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 133
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失败 UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable [1 ms]
+  错误消息:
+   System.IO.FileNotFoundException : Could not find file '/private/tmp/uniclaw-eng-opt-001-review/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-50483045782c406b9c67d483be26e220.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.<>c.<RootPage_AcrossScrollStates_RouteKeyStable>b__6_0(String c) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 82
+   at System.Linq.Enumerable.ArraySelectIterator`2.MoveNext()
+   at System.Collections.Generic.HashSet`1.UnionWith(IEnumerable`1 other)
+   at System.Collections.Generic.HashSet`1..ctor(IEnumerable`1 collection, IEqualityComparer`1 comparer)
+   at System.Linq.Enumerable.DistinctIterator`1.ToList()
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 81
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/eng-opt-001/baseline/host-fixture-complete.trx
+
+失败!  - 失败:     2，通过:    20，已跳过:     0，总计:    22，持续时间: 126 ms - UniClaw.Host.Tests.dll (net10.0)

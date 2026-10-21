@@ -1,0 +1,178 @@
+[
+  {
+    "file": "solution-baseline-final_net10.0_20261021225349.trx",
+    "assembly": "/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.agent.dsh.tests/bin/debug/net10.0/uniclaw.agent.dsh.tests.dll",
+    "counters": {
+      "total": "206",
+      "executed": "206",
+      "passed": "206",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  },
+  {
+    "file": "solution-baseline-final_net10.0_20261021225343.trx",
+    "assembly": "/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.agent.tests/bin/debug/net10.0/uniclaw.agent.tests.dll",
+    "counters": {
+      "total": "36",
+      "executed": "36",
+      "passed": "36",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  },
+  {
+    "file": "solution-baseline-final_net10.0_20261021225342.trx",
+    "assembly": "/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.dsh.tests/bin/debug/net10.0/uniclaw.host.dsh.tests.dll",
+    "counters": {
+      "total": "56",
+      "executed": "56",
+      "passed": "56",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  },
+  {
+    "file": "solution-baseline-final_net10.0_20261021225345.trx",
+    "assembly": "/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll",
+    "counters": {
+      "total": "14",
+      "executed": "14",
+      "passed": "14",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  },
+  {
+    "file": "solution-baseline-final_net10.0_20261021225344.trx",
+    "assembly": "/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.filesystemrealization.tests/bin/debug/net10.0/uniclaw.filesystemrealization.tests.dll",
+    "counters": {
+      "total": "9",
+      "executed": "9",
+      "passed": "9",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  },
+  {
+    "file": "solution-baseline-final_net10.0_20261021225408.trx",
+    "assembly": "/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll",
+    "counters": {
+      "total": "406",
+      "executed": "406",
+      "passed": "406",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  },
+  {
+    "file": "solution-baseline-final_net10.0_20261021225346.trx",
+    "assembly": "/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll",
+    "counters": {
+      "total": "252",
+      "executed": "252",
+      "passed": "252",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  },
+  {
+    "file": "solution-baseline-final_net10.0_20261021225347.trx",
+    "assembly": "/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll",
+    "counters": {
+      "total": "1026",
+      "executed": "1026",
+      "passed": "1026",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  }
+]

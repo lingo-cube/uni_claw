@@ -18,16 +18,16 @@
 - 可替换性（R5）钉在这两个 L1 面上：消费闭包只写
   `ISemanticPerception + IUiElementPerception`
   （`tests/UniClaw.Kernel.Tests/Capability/PerceptionProtocolReplaceabilityTests.cs`）；
-- 协议**负载词汇**（SemanticObservationProposal / PerceptionAssessment）
-  尚未冻结——留给下一个真实感知买方驱动（CAP-009 out-of-scope），本目录
-  与 Capability 面均不预造。
+- 语义执行载荷已由JEV-SEMANTIC-CAP-001冻结：`SemanticPerceptionRequest` /
+  `SemanticObservationProposal` / `PerceptionAssessment`位于Capability面。
+  既有L1兼容默认方法返回Unsupported；UI元素协议仍为marker。
 
 ## 2. UniPerception：双协议的 union 组件
 
 [`UniPerceptionCapability`](../Capability/UniPerceptionCapability.cs)
 同时实现两个协议接口，是感知能力的 L2 组合实现（capability id
 `uni.perception`，CompositeProductPerception，依赖 fast.yolo / fast.ocr /
-slow.text）。身份 = 双协议；现实语义责任 = **健康聚合 owner**
+slow.text）。身份 = 双协议；现实语义责任 = **语义执行执法与健康聚合 owner**
 （`ICapabilityHealthCheckable`，买方为真机运行时诊断）；实例注册经组合根
 （Host `PerceptionCapabilityComposition`），生命周期纯内存常驻
 （RL1：Registered 即稳态）。
@@ -46,6 +46,11 @@ slow.text）。身份 = 双协议；现实语义责任 = **健康聚合 owner**
 
 替换 Slow realization（OpenCode ⇄ replay ⇄ 未来的真件）只动 adapter +
 组合根，消费方零改动（R5，同 §1 测试执法）。
+
+`SemanticObservationProjector`只将有依据的当前页面含义投影为`ui.semantic.page`，
+保留全部已咨询父证据与源叶闭包；关系及预期评估只在执行结果中表达，不造
+页面身份、导航边或效果证明。Jev传输位于Host/Perception而非Kernel。
+Fast内部两个strategy接口按PER-022收为internal；公开live构造入口保留。
 
 ## 4. 采集/传输面（provider 契约侧）
 
@@ -70,8 +75,7 @@ slow.text）。身份 = 双协议；现实语义责任 = **健康聚合 owner**
 
 ## 6. 方向（我们要做的）
 
-1. **协议负载词汇冻结**（SemanticObservationProposal / PerceptionAssessment）
-   ——由下一个真实感知买方驱动，独立 change；
+1. **UI元素执行载荷**——仍待真实买方驱动，语义执行已在本轮实现；
 2. **slow.visual 实例化**——visual 接线后从 description-only 转实例注册；
 3. **fast.yolo / fast.ocr 独立能力协议词汇**——fast 能力独立 change 冻结；
 4. provider 侧扩展点（detect/recognize 并行、替代推理后端、OCR 模型对照）

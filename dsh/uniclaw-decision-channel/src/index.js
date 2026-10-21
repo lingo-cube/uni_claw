@@ -71,7 +71,7 @@ const SCHEMA_PATH = join(PACKAGE_ROOT, 'schema', 'product-protocol.schema.json')
 const SCHEMA_HASH_PATH = join(PACKAGE_ROOT, 'schema', 'schema-hash.txt')
 const DEFAULT_SKILL_PATH = 'skill/android-automotive-ui-testing'
 const DEFAULT_SKILL_NAME = 'android-automotive-ui-testing'
-const DEFAULT_SKILL_REVISION = 2
+const DEFAULT_SKILL_REVISION = 4
 
 function loadSchemaArtifact() {
   const schema = JSON.parse(readFileSync(SCHEMA_PATH, 'utf8'))
@@ -595,6 +595,7 @@ function loadPromptArtifactAt(root, schemaArtifact) {
       + 'regenerate via tools/prompt-manifest-hash.py and bump promptRevision')
   return {
     revision: manifest.promptRevision,
+    sha256: computed,
     segments,
     staticText: segments.join('\n\n'),
   }
@@ -801,6 +802,21 @@ export function apply(ctx, config) {
     },
   }
 
+  // Request-local Slow override. Do not change the default model/effort or
+  // any other session; only the isolated active Slow request may consume it.
+  ctx.on('agent/request', async (payload, next) => {
+    const resolved = await next()
+    const pending = state.slowPending
+    if (pending === null || pending.reasoningEffort == null
+      || String(payload.agent?.session?.id ?? '') !== pending.sessionId) return resolved
+    const actual = { ...resolved, reasoningEffort: pending.reasoningEffort }
+    pending.actualReasoningEffort = actual.reasoningEffort
+    recordEvent('slow-request-config', { requestId: pending.requestId,
+      sessionId: pending.sessionId, provider: actual.provider, model: actual.model,
+      reasoningEffort: actual.reasoningEffort })
+    return actual
+  })
+
   // ---- session journal watch: B3 — turn end WITHOUT capture is a failure.
   ctx.on('session/event', (session, event) => {
     const attached = state.attached
@@ -835,18 +851,36 @@ export function apply(ctx, config) {
     const pending = state.pending
     const activeTurn = state.activeTurn
     const type = event && typeof event.type === 'string' ? event.type : ''
-      if (type === 'turn/end' && pending !== null && pending.captured === null) {
-      // The model finished its turn without calling submit_decision. Prose is
-      // trajectory evidence only — NEVER promoted to a Product decision.
-      pending.captured = {
-        ok: false,
-        error: pending.lastError ?? { code: 'no-submit-decision', message: 'model finished the turn without calling submit_decision' },
-      }
-      if (pending.timer !== null) clearTimeout(pending.timer)
-      state.pending = null
-      pending.resolve(pending.captured)
-    }
     if (type === 'turn/end' && activeTurn !== null && activeTurn.sessionId === session.id) {
+      if (pending !== null && pending === activeTurn.pending && pending.captured === null) {
+        // Only the active physical turn for this pending consultation can
+        // settle it. Provider turn errors stay adapter diagnostics; no prose or
+        // malformed stream content is promoted into a Product decision.
+        const reason = event.data?.reason
+        const providerError = reason?.kind === 'error' && reason.error !== null
+          && typeof reason.error === 'object'
+          && typeof reason.error.code === 'string' && reason.error.code.length > 0
+          && typeof reason.error.message === 'string' && reason.error.message.length > 0
+          ? { code: reason.error.code, message: reason.error.message, source: 'turn-end' }
+          : null
+        pending.captured = {
+          ok: false,
+          error: pending.lastError ?? providerError
+            ?? { code: 'no-submit-decision', message: 'model finished the turn without calling submit_decision' },
+        }
+        if (providerError !== null) {
+          recordEvent('consult-turn-error', {
+            requestId: pending.requestId,
+            decisionId: pending.decisionId,
+            dshSessionId: session.id,
+            code: providerError.code,
+            message: providerError.message,
+          })
+        }
+        if (pending.timer !== null) clearTimeout(pending.timer)
+        state.pending = null
+        pending.resolve(pending.captured)
+      }
       if (state.activeTurn === activeTurn) state.activeTurn = null
       activeTurn.resolveTurnEnd()
     }
@@ -978,6 +1012,24 @@ export function apply(ctx, config) {
         return fail(200, 'handshake-rejected',
           `schema-hash-mismatch:product=${expected.schemaHash.slice(0, 12)}…:dsh-local=${artifact.schemaHash.slice(0, 12)}…`)
       }
+
+      // Adapter-only realization pins: compare against boot-loaded artifacts
+      // before allocating a DSH session or exposing any model call.
+      const pins = body.expectedArtifacts
+      const validHash = value => typeof value === 'string' && /^[0-9a-f]{64}$/i.test(value)
+      if (pins === null || typeof pins !== 'object'
+          || !validHash(pins.promptHash)
+          || pins.skill === null || typeof pins.skill !== 'object'
+          || typeof pins.skill.name !== 'string' || pins.skill.name.length === 0
+          || !Number.isInteger(pins.skill.revision) || pins.skill.revision < 1
+          || !validHash(pins.skill.sha256)) {
+        return fail(200, 'handshake-rejected', 'artifact-pins-missing-or-malformed')
+      }
+      if (pins.promptHash.toLowerCase() !== promptArtifact.sha256.toLowerCase())
+        return fail(200, 'handshake-rejected', 'prompt-artifact-pin-mismatch')
+      if (pins.skill.name !== skillArtifact.name || pins.skill.revision !== skillArtifact.revision
+          || pins.skill.sha256.toLowerCase() !== skillArtifact.sha256.toLowerCase())
+        return fail(200, 'handshake-rejected', 'skill-artifact-pin-mismatch')
 
       // The Product client sends its requested capability manifest as
       // `expectedCapabilities`; accept the historical `reportedCapabilities`
@@ -1121,6 +1173,10 @@ export function apply(ctx, config) {
         reportedCapabilities: { capabilities: CAPABILITIES },
         runtimeCapabilities: EXPECTED_SESSION_TOOLS,
         runtimePreset: AGENT_PRESET_ID,
+        artifacts: {
+          promptHash: promptArtifact.sha256,
+          skill: { name: skillArtifact.name, revision: skillArtifact.revision, sha256: skillArtifact.sha256 },
+        },
         dshSessionId,
       })
     },
@@ -1135,6 +1191,8 @@ export function apply(ctx, config) {
       if (body === null) return fail(400, 'gateway/bad-request', 'slow body must be a JSON object')
       const attached = state.attached
       if (attached === null) return fail(200, 'channel-not-attached', 'handshake required before slow')
+      if (body.reasoningEffort != null && body.reasoningEffort !== 'high')
+        return fail(400, 'gateway/bad-request', 'explicit slow reasoningEffort must be high')
       if (typeof body.requestId !== 'string' || body.requestId.length === 0
         || typeof body.prompt !== 'string' || body.prompt.length === 0) {
         return fail(400, 'gateway/bad-request', 'slow requires requestId and prompt')
@@ -1151,7 +1209,8 @@ export function apply(ctx, config) {
       if (workspaceRegistry === undefined || typeof workspaceRegistry.archiveSession !== 'function')
         return fail(500, 'workspace-archive-unavailable', 'slow requires session archival support')
       let slowSessionId
-      const slowPending = { requestId: body.requestId, sessionId: null, resolve: settled, text: null, timer: null }
+      const slowPending = { requestId: body.requestId, sessionId: null, resolve: settled, text: null, timer: null,
+        reasoningEffort: body.reasoningEffort ?? null, actualReasoningEffort: null }
       state.slowPending = slowPending
       try {
         try {
@@ -1212,9 +1271,12 @@ export function apply(ctx, config) {
           return json(200, { requestId: body.requestId, text: null,
             error: captured.error.code, diagnostics: captured.error })
         }
+        if (slowPending.reasoningEffort !== null && slowPending.actualReasoningEffort !== slowPending.reasoningEffort)
+          return fail(200, 'reasoning-effort-unproven', 'Slow request did not attest the requested effort')
         recordEvent('slow-complete', { requestId: body.requestId })
         return json(200, { requestId: body.requestId, text: captured.text,
-          error: null, diagnostics: { source: 'assistant/message' } })
+          error: null, diagnostics: { source: 'assistant/message',
+            ...(slowPending.actualReasoningEffort === null ? {} : { reasoningEffort: slowPending.actualReasoningEffort }) } })
       } finally {
         if (slowPending.timer !== null) clearTimeout(slowPending.timer)
         try {
@@ -1362,10 +1424,11 @@ export function apply(ctx, config) {
       // TRAJECTORY-001: no-submit-decision retry — if the agent finished its
       // turn without calling submit_decision, re-prompt once before failing.
       // This is at the HTTP endpoint level (safe: event handlers untouched).
-      if (captured.ok !== true && captured.error.code === 'no-submit-decision'
+      const providerTurnFailure = captured.ok !== true && captured.error.source === 'turn-end'
+      if (captured.ok !== true && (captured.error.code === 'no-submit-decision' || providerTurnFailure)
         && context.budgetReview?.required !== true
         && state.attached === attached && state.pending === null && state.activeTurn === null) {
-        log('consult retry', { requestId: body.requestId, reason: 'no-submit-decision' })
+        log('consult retry', { requestId: body.requestId, reason: providerTurnFailure ? captured.error.code : 'no-submit-decision' })
         let retryPending = null
         try {
           // Reset pending state for the retry
@@ -1392,12 +1455,17 @@ export function apply(ctx, config) {
             pending: state.pending,
           }
           state.activeTurn = retryTurn
-          // Send the nudge
+          // Send the existing single nudge. Include a provider turn error as
+          // feedback while keeping the original consultation context, identity,
+          // model selection and authorization in force.
+          const nudgeText = providerTurnFailure
+            ? `The previous DSH turn failed before submit_decision. Provider error code: ${captured.error.code}. Provider error: ${captured.error.message}. Keep the original decisionId ${context.decisionId}, consultation context, and authorization unchanged. Submit one complete valid decision with submit_decision now; do not expand scope or invent fields.`
+            : 'You did not call submit_decision. You MUST call the submit_decision tool NOW to submit your decision for this consultation. Do not respond with text only.'
           await controller.prompt({
             requestId: `${body.requestId}-nudge-${Date.now()}`,
             sessionId: attached.dshSessionId,
             mode: 'queue',
-            content: [{ type: 'text', text: 'You did not call submit_decision. You MUST call the submit_decision tool NOW to submit your decision for this consultation. Do not respond with text only.' }],
+            content: [{ type: 'text', text: nudgeText }],
           }, AbortSignal.timeout(30000))
           // Wait for the retry to produce a result (up to 30s)
           const retryCaptured = await Promise.race([
@@ -1430,7 +1498,10 @@ export function apply(ctx, config) {
       const durationMs = Date.now() - startedAt
       if (captured.ok !== true) {
         recordEvent('consult-failed', {
-          requestId: body.requestId, code: captured.error.code, durationMs,
+          requestId: body.requestId, code: captured.error.code,
+          ...(typeof captured.error.message === 'string' ? { message: captured.error.message } : {}),
+          ...(captured.error.source === 'turn-end' ? { source: captured.error.source } : {}),
+          durationMs,
         })
         log('consult failed', { requestId: body.requestId, code: captured.error.code, durationMs })
         return json(200, {
@@ -1473,6 +1544,18 @@ export function apply(ctx, config) {
     fetch: async (request) => {
       const body = await readJson(request)
       if (body === null) return fail(400, 'gateway/bad-request', 'abort body must be a JSON object')
+      if (body.slowRequestId != null) {
+        const slow = state.slowPending
+        if (typeof body.slowRequestId !== 'string' || slow?.requestId !== body.slowRequestId)
+          return json(200, { aborted: false, reason: 'stale-slow-request' })
+        if (slow.timer !== null) clearTimeout(slow.timer)
+        state.slowPending = null
+        slow.resolve({ ok: false, error: { code: 'turn-aborted', message: 'correlated Slow cancellation' } })
+        if (slow.sessionId && controller !== undefined && typeof controller.cancel === 'function')
+          controller.cancel({ sessionId: slow.sessionId })
+        recordEvent('slow-abort', { requestId: body.slowRequestId, sessionId: slow.sessionId })
+        return json(200, { aborted: true })
+      }
       recordEvent('abort')
       retirePending()
       if (state.slowPending !== null) {

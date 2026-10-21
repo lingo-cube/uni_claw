@@ -1,0 +1,4 @@
+  正在确定要还原的项目…
+  已还原 /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj (用时 3.32 秒)。
+  已还原 /Users/fran/Documents/Code/spacex/uni_claw/evidence/ordered-closeout-20261022/live-runner/LiveRunner.csproj (用时 3.32 秒)。
+  7 个项目(共 9 个)是最新的，无法还原。

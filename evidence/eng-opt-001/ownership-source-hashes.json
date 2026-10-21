@@ -1,0 +1,8 @@
+{
+  "src/UniClaw.Kernel/Run/RunModel.cs": "99a2c0627a2217ded94151d3e4ffd1d41f9fa22ef6732aab954c2ad46d6eba21",
+  "src/UniClaw.Kernel/Evidence/EvidenceLedger.cs": "667a4beeff5abb8fb7d35a8766b37bf3bf1487bf2699d2a0fde28d0c1cf5a64b",
+  "src/UniClaw.Kernel/World/WorldModel.cs": "6db64bb4ee40b07b17516c2cb3a51d6290fa801397a48e04fac3572316e858f6",
+  "tests/UniClaw.Kernel.Tests/Run/ContractOwnershipTests.cs": "93acd538e3009aac3c3011bebdae6d4ea3eaa4d706bd7596ced5f60433997686",
+  "tests/UniClaw.Kernel.Tests/Evidence/EvidenceOwnershipTests.cs": "cab9eb37820ea9607a1f5219f2eed091e37a7aaf5dd8bbd1715beb08df9d8b5d",
+  "tests/UniClaw.Kernel.Tests/World/WorldReadViewOwnershipTests.cs": "e7c3fbc68aa38782ab00b55326cb6fc704991b40ae8770e9df2e3d6347afab85"
+}

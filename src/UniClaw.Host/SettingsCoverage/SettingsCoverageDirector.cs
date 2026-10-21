@@ -26,14 +26,17 @@ public sealed class SettingsCoverageDirector
         int Attempts,
         string? Justification,
         string? PolicyDigest = null,
-        string? GuardVerdict = null);
+        string? GuardVerdict = null)
+    {
+        internal CoverageDirective? SelectedDirective { get; init; }
+    }
 
     private readonly Func<AgentDecisionContext, AgentDecision?> _underlying;
     private readonly SettingsCoverageLedger _ledger;
     private readonly SettingsCoverageConfig _config;
     private readonly SettingsCoverageRunner.CoverageStepJournal? _stepJournal;
     private readonly List<ConsultRecord> _log = new();
-    private readonly List<(string DecisionId, string? Directive, AgentActionStep Step)> _adoptedSteps = new();
+    private readonly List<CoverageStepAttribution> _adoptedSteps = new();
     private string? _terminalJustification;
     private int _obstacleAttempts;
     private (int StepsVerified, int Frontier)? _lastProgressSignal;
@@ -41,7 +44,7 @@ public sealed class SettingsCoverageDirector
     private int _sameRouteConsults;
     private string? _lastRoute;
     private string? _lastPopupState;
-    private string? _lastAdoptedDirectiveKind;
+    private CoverageDirectiveKind? _lastAdoptedDirectiveKind;
     // Failure context is consumed by Kernel after one consultation. Retain it
     // only across that recovery's bounded Defer chain, never as a new Run phase.
     private string? _stepRecoveryReason;
@@ -80,7 +83,8 @@ public sealed class SettingsCoverageDirector
 
     /// <summary>已采纳 Act 步骤（按采纳顺序；与 dispatch 顺序一一对应——
     /// grounding 失败不产生 receipt，由 runner 对照 receipts 处理）。</summary>
-    public IReadOnlyList<(string DecisionId, string? Directive, AgentActionStep Step)> AdoptedSteps => _adoptedSteps;
+    public IReadOnlyList<(string DecisionId, string? Directive, AgentActionStep Step)> AdoptedSteps =>
+        _adoptedSteps.Select(item => (item.DecisionId, item.Directive, item.Step)).ToArray();
 
     /// <summary>Set by the composition only when RunDriverInputs.GuardStep is wired.</summary>
     public bool CurrentStepGuardInstalled { get; set; }
@@ -109,7 +113,7 @@ public sealed class SettingsCoverageDirector
                 decision = TransferReviewResponse(original, decision);
         }
         foreach (var step in AdvisorySteps(decision))
-            _adoptedSteps.Add((context.DecisionId, null, step));
+            _adoptedSteps.Add(new(context.DecisionId, null, step));
         _log.Add(new ConsultRecord(
             context.DecisionId,
             context.Phase.ToString(),
@@ -140,17 +144,18 @@ public sealed class SettingsCoverageDirector
         ArgumentNullException.ThrowIfNull(context);
         // 咨询开始 = 上一步骤的 verification 已可用：先把已配对的 receipts
         // 连同 verification/归属写入账本，快照才能反映最新覆盖进度。
-        _stepJournal?.Drain(_adoptedSteps);
+        _stepJournal?.DrainAttributed(_adoptedSteps);
         SyncBeforeSnapshot?.Invoke();
         _ledger.RecordConsultRound(context.DecisionId);
 
         var snapshot = _ledger.Snapshot(_config);
         var directive = snapshot.NextDirective;
         var kind = snapshot.NextDirectiveKind;
+        var selectedDirective = snapshot.SelectedDirective;
         // Popup clearance has its own typed present→absent evidence. Its
         // dismissed button disappearing can fail the generic target check;
         // that does not leave an unresolved navigation recovery behind.
-        var popupCleared = _lastAdoptedDirectiveKind == "obstacle"
+        var popupCleared = _lastAdoptedDirectiveKind == CoverageDirectiveKind.Obstacle
             && _lastPopupState == "present" && snapshot.PopupState == "absent";
         if (popupCleared)
             _stepRecoveryReason = null;
@@ -234,7 +239,7 @@ public sealed class SettingsCoverageDirector
                     guarded = TransferReviewResponse(response, guarded);
             }
             foreach (var step in AdvisorySteps(guarded))
-                _adoptedSteps.Add((context.DecisionId, null, step));
+                _adoptedSteps.Add(new(context.DecisionId, null, step));
             _log.Add(new ConsultRecord(
                 context.DecisionId, context.Phase.ToString(), null,
                 context.BudgetReview is { Required: true } ? "budget-review" : "goal-directed",
@@ -267,7 +272,7 @@ public sealed class SettingsCoverageDirector
             // back）关闭对话框继续遍历。不匹配 → 诚实落入既有 obstacle
             // 清障逻辑（不猜）。
             if (priorPopupState == "absent"
-                && _lastAdoptedDirectiveKind is "enter" or "nested-enter" or "re-enter"
+                && _lastAdoptedDirectiveKind is CoverageDirectiveKind.Enter or CoverageDirectiveKind.NestedEnter or CoverageDirectiveKind.ReEnter
                 && _adoptedSteps.Count > 0
                 && _adoptedSteps[^1].Step.TargetDescriptor is { } arrivalTarget
                 && _dialogTitleSource?.Invoke() is { Length: > 0 } dialogTitle
@@ -294,6 +299,7 @@ public sealed class SettingsCoverageDirector
                 directive =
                     $"Clear the popup overlay by tapping '<{obstacle}>' before resuming traversal.";
                 kind = "obstacle";
+                selectedDirective = new(CoverageDirectiveKind.Obstacle, obstacle, directive);
             }
             else if (_config.BackDescriptor is not null)
             {
@@ -302,6 +308,7 @@ public sealed class SettingsCoverageDirector
                     $"Dismiss the popup overlay by tapping '<{_config.BackDescriptor}>' (back). "
                     + "Confirm-side buttons are not allowed for this task.";
                 kind = "obstacle";
+                selectedDirective = new(CoverageDirectiveKind.Obstacle, _config.BackDescriptor, directive);
             }
             else
             {
@@ -420,8 +427,12 @@ public sealed class SettingsCoverageDirector
                 var recoveryDirective = recovery.EffectClass == "swipe-up"
                     ? $"Scroll the container '<{_config.ScrollContainerDescriptor}>' {location}."
                     : $"Navigate back {location} by tapping '<{_config.BackDescriptor}>'.";
-                _adoptedSteps.Add((context.DecisionId, recoveryDirective, recovery));
-                _log[^1] = _log[^1] with { Directive = recoveryDirective, DecisionKind = "act" };
+                var recoverySelection = new CoverageDirective(
+                    recovery.EffectClass == "swipe-up" ? CoverageDirectiveKind.Scroll : CoverageDirectiveKind.Back,
+                    recovery.TargetDescriptor, recoveryDirective);
+                _adoptedSteps.Add(new(context.DecisionId, recoveryDirective, recovery, recoverySelection));
+                _log[^1] = _log[^1] with
+                { Directive = recoveryDirective, DecisionKind = "act", SelectedDirective = recoverySelection };
                 _stepRecoveryReason = null;
                 return agentDecision;
             }
@@ -447,7 +458,7 @@ public sealed class SettingsCoverageDirector
         // 每次迭代排除一个候选；账本拒绝写入则停止，不能伪造 skip 日志。
         while (kind is "enter" or "nested-enter" or "re-enter")
         {
-            var target = TargetOf(directive!);
+            var target = selectedDirective?.TargetDescriptor;
             if (target is null)
                 break;
 
@@ -486,6 +497,7 @@ public sealed class SettingsCoverageDirector
             snapshot = _ledger.Snapshot(_config);
             directive = snapshot.NextDirective;
             kind = snapshot.NextDirectiveKind;
+            selectedDirective = snapshot.SelectedDirective;
         }
 
         // 子页待办耗尽后返回；不得构造缺失的返回控件。
@@ -496,6 +508,7 @@ public sealed class SettingsCoverageDirector
         {
             directive = $"Return to the Settings root page by tapping '<{_config.BackDescriptor}>'.";
             kind = "back";
+            selectedDirective = new(CoverageDirectiveKind.Back, _config.BackDescriptor, directive);
         }
 
         if (directive is null)
@@ -558,7 +571,7 @@ public sealed class SettingsCoverageDirector
             AgentActionStep? adoptedStep = null;
             deviation = decision is null
                 ? "no-response"
-                : ValidateAdherence(decision, directive, kind!, out adoptedStep);
+                : ValidateAdherence(decision, selectedDirective!, kind!, out adoptedStep);
             var adopted = adoptedStep;
             if (deviation is null)
             {
@@ -588,9 +601,9 @@ public sealed class SettingsCoverageDirector
                 }
                 // Act 单步与受约束 Plan 的唯一 ActItem 都物化为 AgentActionStep
                 // 归属（归因/journal 路径不变；Plan 的执行由 driver 负责）。
-                _adoptedSteps.Add((context.DecisionId, directive, adopted!));
+                _adoptedSteps.Add(new(context.DecisionId, directive, adopted!, selectedDirective));
                 // TRAJECTORY-001 D2：记录采纳指令 kind（到达判据之一）。
-                _lastAdoptedDirectiveKind = kind;
+                _lastAdoptedDirectiveKind = selectedDirective!.Kind;
                 _log.Add(new ConsultRecord(
                     context.DecisionId, context.Phase.ToString(), directive, kind,
                     decision is AgentDecision.Plan ? "plan" : "act",
@@ -602,7 +615,7 @@ public sealed class SettingsCoverageDirector
                         _ => null,
                     },
                     guard?.PolicyDigest,
-                    guard?.Verdict.ToString().ToUpperInvariant()));
+                    guard?.Verdict.ToString().ToUpperInvariant()) { SelectedDirective = selectedDirective });
                 return decision;
             }
             lastDeviation = deviation;
@@ -628,7 +641,7 @@ public sealed class SettingsCoverageDirector
     /// → deviation，fail closed 零 Effect。被采纳的 ActItem 经
     /// <paramref name="adopted"/> 物化为 AgentActionStep（归因/journal 不变）。
     /// </summary>
-    private string? ValidateAdherence(AgentDecision decision, string directive, string kind, out AgentActionStep? adopted)
+    private string? ValidateAdherence(AgentDecision decision, CoverageDirective directive, string kind, out AgentActionStep? adopted)
     {
         adopted = null;
         if (decision is AgentDecision.Plan plan)
@@ -657,7 +670,7 @@ public sealed class SettingsCoverageDirector
                 return "plan-requires-single-act";
             if (actStep.DesiredState is not null)
                 return "plan-act-must-not-carry-desiredState";
-            var actDeviation = ValidateStepAgainstDirective(actStep, directive, kind);
+            var actDeviation = ValidateStepAgainstDirective(actStep, directive);
             if (actDeviation is not null)
                 return $"plan-{actDeviation}";
             adopted = actStep;
@@ -670,27 +683,27 @@ public sealed class SettingsCoverageDirector
         var step = actDecision.Proposal.Steps[0];
         if (step.DesiredState is not null)
             return "directive-step-must-not-carry-desiredState";
-        var deviation = ValidateStepAgainstDirective(step, directive, kind);
+        var deviation = ValidateStepAgainstDirective(step, directive);
         if (deviation is null)
             adopted = step;
         return deviation;
     }
 
     /// <summary>单步与 directive 的匹配规则（Act 与 Plan ActItem 同律）。</summary>
-    private string? ValidateStepAgainstDirective(AgentActionStep step, string directive, string kind) =>
-        kind switch
+    private string? ValidateStepAgainstDirective(AgentActionStep step, CoverageDirective directive) =>
+        directive.Kind switch
         {
-            "enter" or "re-enter" or "nested-enter" => IsTap(step) && step.TargetDescriptor == TargetOf(directive)
+            CoverageDirectiveKind.Enter or CoverageDirectiveKind.ReEnter or CoverageDirectiveKind.NestedEnter => IsTap(step) && step.TargetDescriptor == directive.TargetDescriptor
                 ? null
                 : $"directive-target-mismatch:{step.TargetDescriptor ?? "<null>"}",
-            "scroll" => step.EffectClass == "swipe-up"
+            CoverageDirectiveKind.Scroll => step.EffectClass == "swipe-up"
                 && step.TargetDescriptor == _config.ScrollContainerDescriptor
                 ? null
                 : $"directive-scroll-mismatch:{step.EffectClass}:{step.TargetDescriptor ?? "<null>"}",
-            "back" => IsTap(step) && step.TargetDescriptor == _config.BackDescriptor
+            CoverageDirectiveKind.Back => IsTap(step) && step.TargetDescriptor == _config.BackDescriptor
                 ? null
                 : $"directive-back-mismatch:{step.TargetDescriptor ?? "<null>"}",
-            "obstacle" => IsTap(step) && step.TargetDescriptor == TargetOf(directive)
+            CoverageDirectiveKind.Obstacle => IsTap(step) && step.TargetDescriptor == directive.TargetDescriptor
                 ? null
                 : $"directive-obstacle-mismatch:{step.TargetDescriptor ?? "<null>"}",
             _ => "unknown-directive-kind",
@@ -783,13 +796,6 @@ public sealed class SettingsCoverageDirector
         AgentDecision.Skip skip => skip.Reason,
         _ => null,
     };
-
-    private static string? TargetOf(string directive)
-    {
-        var start = directive.IndexOf('<');
-        var end = directive.IndexOf('>');
-        return start >= 0 && end > start ? directive[(start + 1)..end] : null;
-    }
 
     /// <summary>
     /// TRAJECTORY-001 D2 — 对话框标题与 directive 目标的模糊匹配：小写化、

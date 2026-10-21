@@ -1,0 +1,36 @@
+============================================================
+ Scenario Library Coverage Report (truth: eng-opt-final_net10.0_20261021235454.trx)
+============================================================
+ Total: 28 scenarios
+
+── By Status (derived from TRX) ──
+  failing            0   0%
+  not-implemented    0   0%
+  passing           28  ████████████████████ 100%
+  pending-env        0   0%
+
+  Pass rate: 28/28 = 100%
+
+── By Capability ──
+  activation-idempotency         1/1 passing
+  ambiguity-safety               1/1 passing
+  desired-state-satisfaction     1/1 passing
+  effect-verification            3/3 passing
+  evidence-deduplication         1/1 passing
+  evidence-revision              4/4 passing
+  policy-protocol                11/11 passing
+  safe-stop                      1/1 passing
+  serial-verification-barrier    4/4 passing
+  terminal-distinction           1/1 passing
+
+── By Source ──
+  component-test        11
+  recorded               8 (refs: SR-104, SR-105, SR-134, SR-001, SR-007, SR-047, SR-052, SR-067)
+  synthetic              9 (refs: SR-001, SR-009, SR-017, SR-012, SR-022, SR-056, SR-063, SR-086)
+
+── Golden Certification (SIM-002 G2) ──
+  certified by ENG-OPT-001: 20 scenarios
+  uncertified descriptive scenarios: 8 (SCN-PERC-001, SCN-PERC-002, SCN-PERC-003, SCN-PERC-004, SCN-PERC-005, SCN-PERC-006, SCN-PERC-007, SCN-PERC-008)
+  truth chain verified against eng-opt-final_net10.0_20261021235454.trx: 28 scenarios, 20 certified + 8 descriptive
+
+============================================================

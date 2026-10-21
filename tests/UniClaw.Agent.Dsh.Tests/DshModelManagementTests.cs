@@ -23,6 +23,11 @@ public sealed class DshModelManagementTests
     private static UniAgentProfile Profile() => new(
         UniagentProdProfile.Current,
         Revision: 1,
+        Charter: new ProfileCharter("test decision agent",
+            new[] { "advance the stated objective" },
+            new[] { "do not claim execution authority" },
+            new[] { "use available evidence" },
+            new[] { "apply explicitly assembled skills only" }),
         ModelRoles: new[]
         {
             new ModelRoleDeclaration(LogicalProfileId.AgentDecision.Value, Required: true),

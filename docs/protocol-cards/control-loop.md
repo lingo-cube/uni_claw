@@ -18,3 +18,4 @@
 | P5 | edge | track | run-model → control-loop | record UniClaw.Kernel.Run.RunState | ### P5 Run Snapshot（Run Model → Control Loop） |
 | P6 | edge | keep | run-model → control-loop | record UniClaw.Kernel.Run.ExecutionContractView | ### P6 Execution Contract View（Run Model → Control Loop / Assurance） |
 | P21 | edge | track | memory-system → control-loop | — | ### P21 Memory Recall（placeholder，Memory System → Agent / Control / World Model） |
+| P27 | edge | keep | world-model → control-loop | record UniClaw.Kernel.World.ObservationNeed | ### P27 Observation Need（World Model → Control Loop） |

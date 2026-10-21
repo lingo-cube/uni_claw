@@ -1,0 +1,7 @@
+{
+  "tested_candidate_tree": "4925e53bebe07770158b86dc96dca75c69a2c808",
+  "final_source_config_schema_scenario_inputs_checked": 154,
+  "drift": [],
+  "source_whitespace_check": "pass",
+  "note": "Recorded patches and command output retain original whitespace; Markdown historical hard breaks retained."
+}

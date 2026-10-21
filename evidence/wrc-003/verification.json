@@ -1,0 +1,121 @@
+{
+  "change": "WRC-003",
+  "status": "CLOSED_SCOPE_VERIFIED",
+  "level": "SCENARIO",
+  "method": "Product boundary RED/GREEN, KernelRunDriver replay, project regression, schema/certification/coverage, browser observation",
+  "expected": "Product owns operation-linked transforms; replay consumes them; unknown stays explicit",
+  "actual": {
+    "kernel-reviewed-final": {
+      "passed": 981,
+      "total": 981,
+      "failed": 0,
+      "trx": "evidence/wrc-003/kernel-reviewed-final.trx"
+    },
+    "host-reviewed": {
+      "passed": 370,
+      "total": 370,
+      "failed": 0,
+      "trx": "evidence/wrc-003/host-reviewed.trx"
+    },
+    "agent-dsh-full": {
+      "passed": 201,
+      "total": 201,
+      "failed": 0,
+      "trx": "evidence/wrc-003/agent-dsh-full.trx"
+    },
+    "simulation-reviewed": {
+      "passed": 244,
+      "total": 244,
+      "failed": 0,
+      "trx": "evidence/wrc-003/simulation-reviewed.trx"
+    }
+  },
+  "passedTotal": 1796,
+  "independentReview": "PASS_STANDARDS_AND_SPEC_20261021",
+  "scenarioNonCertificationFieldsUnchanged": true,
+  "scenarioCertificationOnlyFiles": [
+    "scenarios/SCN-BARRIER-001.json",
+    "scenarios/SCN-BARRIER-002.json",
+    "scenarios/SCN-BARRIER-003.json",
+    "scenarios/SCN-POLICY-001.json",
+    "scenarios/SCN-POLICY-002.json",
+    "scenarios/SCN-POLICY-003.json",
+    "scenarios/SCN-POLICY-004.json",
+    "scenarios/SCN-POLICY-005.json",
+    "scenarios/SCN-POLICY-006.json",
+    "scenarios/SCN-POLICY-007.json",
+    "scenarios/SCN-POLICY-008.json",
+    "scenarios/SCN-POLICY-009.json",
+    "scenarios/SCN-POLICY-010.json",
+    "scenarios/SCN-POLICY-011.json",
+    "scenarios/SCN-WIFI-001.json",
+    "scenarios/SCN-WIFI-002.json",
+    "scenarios/SCN-WIFI-003.json",
+    "scenarios/SCN-WIFI-004.json",
+    "scenarios/SCN-WIFI-005.json",
+    "scenarios/SCN-WIFI-006.json"
+  ],
+  "sourceHashes": {
+    "CONTEXT.md": "316f56defe84742b90b1dc28afc45f83ca66e91b4388f110a2b77593cc4aafa4",
+    "src/UniClaw.Host/UiHierarchyOccurrenceStrategy.cs": "95a236ba6c01347c0bbb8230310c0828943599f27973dba3cd9c7d27a1ac82b0",
+    "src/UniClaw.Kernel/UniKernel.cs": "090cd10f1d19a14f3fedd4f387ff71ac436d4357caa3e012e41415b85d64c069",
+    "src/UniClaw.Kernel/World/WorldModel.cs": "28052ae8d219c5f18c5ca3cfb3d2e08c9946302fa90539cc223f60c0ec841989",
+    "src/UniClaw.Kernel/World/WorldModel.Viewports.cs": "58ca7a04f13b76a38224da0bbc9c84ca0bf9e3a2d88535ac2ca213a3f7240622",
+    "src/UniClaw.Kernel/World/ViewportTransition.cs": "c6337e7b6c97728b570023e732f895c7a98b16b5916a44aa01f5e854791ad315",
+    "src/UniClaw.Kernel/World/WorldBeliefRevision.cs": "5dc784369c9cb767af6410ba9196c0cf0dae5c42dcf6bfa8ceb5e766dc277b91",
+    "src/UniClaw.Kernel/World/SpatialLocator.cs": "e19f88c17b1fe84b0e2ee328416daecb3dd9c1db01d5d10005ac42c53cc80115",
+    "src/UniClaw.Kernel/World/UiRealization/UiEntityModel.cs": "c869fa35591e85d48d4391730c3e5abba519fed6e56a8fd7f1250bccacac5d4f",
+    "src/UniClaw.Kernel/World/README.md": "86c418bcb278d3d57941939275776299a228e6b20bd4f5ebdf9d3a93eea82e65",
+    "tests/UniClaw.Kernel.Tests/World/WorldViewportTransitionTests.cs": "c379bc3f778864919bbbfb8724c0327d2c32c71b47183853ddc4b2d68851ca12",
+    "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs": "6ef42c0783be8b84acd63f95c6d1c0b083e118bb012099970a633c6c07f6acca",
+    "tests/UniClaw.Host.Tests/WorldCaptureIsolationTests.cs": "d84d7425716fb617ec14d25a9cacd7a3b6265b457700f49af691ba499a4beb22",
+    "tests/UniClaw.Host.Tests/WorldOperationReplayTests.cs": "e8437562376f9891681b5b0b3bb45e54471e93755b3afbeff822af64e30fa469",
+    "tests/UniClaw.Host.Tests/WorldOperationReplayReport.cs": "6fe0299f0f4f858b12bd91cccce94d529e1099ba772003b331e645147f1f053d",
+    "docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md": "c2134b7214665d848cdeb507afa140e3460c2b38dad7b527f9d5839e39dc0e12",
+    "schemas/agt-002/product-protocol.schema.json": "bbf1a33880f14874980b6f43198b0fb5e88ae0414d73aee4833b92dca4415f07",
+    "schemas/agt-002/product-protocol.d.ts": "12be3028fe4a6619eb948fa19e5ec5ac621204988e0952bafd125866d95f2317",
+    "dsh/uniclaw-decision-channel/schema/product-protocol.schema.json": "bbf1a33880f14874980b6f43198b0fb5e88ae0414d73aee4833b92dca4415f07",
+    "dsh/uniclaw-decision-channel/schema/schema-hash.txt": "0e5a52f0fc930fd59cbff44339277893f8e4c8aed343ffe2d0f1279214186f0f",
+    "scenarios/SCN-BARRIER-001.json": "5db42cc32b1c184af7b44270d499145f207954b7cf4543abc345a7269a0793ed",
+    "scenarios/SCN-BARRIER-002.json": "0394ad5a2751ba2714a5d92fe20b637bdbff030e7a2dc31160ef056d5107fc37",
+    "scenarios/SCN-BARRIER-003.json": "6fc27913e1a79c42afdd48ff00f7f1caa1c3434c752b9947422312fd3f23e46d",
+    "scenarios/SCN-POLICY-001.json": "c3b48f4707ef55bb4ba4131b605c2cda447b3ee3fcab1c1e938bf83cce1b1e2f",
+    "scenarios/SCN-POLICY-002.json": "9a6bfc3397fafb8a4bd296b55191366d6856f4773a7216d458d6c3c848048e25",
+    "scenarios/SCN-POLICY-003.json": "a1a6c8c908cad6c7ebcfdadececd67883c0b88878a1ccefd853002e0d7640c1d",
+    "scenarios/SCN-POLICY-004.json": "5a52c064523a4c4f58570bb6fc0cfc71e056f2293bd41bcdcfecb10c739e9a87",
+    "scenarios/SCN-POLICY-005.json": "9e00615a23c033c08d52842571857421f626a05e0318cdbf309afa910b7bd514",
+    "scenarios/SCN-POLICY-006.json": "05a4912b901b4a4326a17c987021327117d6335e48430dd31a31dfdd4e79d02e",
+    "scenarios/SCN-POLICY-007.json": "8d7ff8d4666072ab059d5b595e9e88c062dcc59e18ca1e177c9c2ec1bd34aa6a",
+    "scenarios/SCN-POLICY-008.json": "50a267d0b95422a7bbadcb7e25e1a627e890c89d6228cf7c9bf45886b170c175",
+    "scenarios/SCN-POLICY-009.json": "9c5396ea722eb4949b8b19896216bb9219190db8abec3d8af14206e6c3210047",
+    "scenarios/SCN-POLICY-010.json": "33a68995212ef441f54740513c7fdd1e9364d667d2a2879dfd7109c103ab74fb",
+    "scenarios/SCN-POLICY-011.json": "fb26b15016c6ac8db63e0c25ca1febc78056805d553e2b866d0d4ce82993aa34",
+    "scenarios/SCN-WIFI-001.json": "72d4d63ce3f64148dca76401fe5a5dc4b9ca013cb43756277374199cf2c160dc",
+    "scenarios/SCN-WIFI-002.json": "b0ebd0111ec32b51636720bdaf85b415f49d58e829edb3d28ee5620e07fcd8c7",
+    "scenarios/SCN-WIFI-003.json": "4529c97f1f8cfd9a9bc237cdcef3a1d44bb83aedd3e2a186096f71bac77a6c47",
+    "scenarios/SCN-WIFI-004.json": "9be2e1cc60698d436c2a745b7b819d097278d112f6bd9492c1c2950cec39383d",
+    "scenarios/SCN-WIFI-005.json": "4159aa6d77bbf4eb7dc31d7c77f85c5753eed6adfbf571ca0e09270b7c811843",
+    "scenarios/SCN-WIFI-006.json": "028090c6ca99b51da0b6b36b7e4a4e90bd682cecb2e733330adbda4846ff8623"
+  },
+  "environmentEvidence": false,
+  "replayLimits": [
+    "External page and dispatch inputs are deterministic replacements",
+    "TerminalNotProven is preserved",
+    "Translation only; overlapping scroll regions are unknown",
+    "Recorded Apps/Devopts transforms remain unknown"
+  ],
+  "followup20261021": {
+    "review": "evidence/eng-opt-001/wrc-independent-review.md",
+    "kernelViewport": {
+      "passed": 19,
+      "total": 19,
+      "trx": "evidence/eng-opt-001/wrc-current/wrc-current.trx"
+    },
+    "hostReplayIsolation": {
+      "passed": 5,
+      "total": 5,
+      "trx": "evidence/eng-opt-001/wrc-current/wrc-host-fixed-snapshot.trx"
+    },
+    "note": "Followup used frozen snapshot with parallel overlay; original full-project results retained as historical, not rerun claims."
+  }
+}

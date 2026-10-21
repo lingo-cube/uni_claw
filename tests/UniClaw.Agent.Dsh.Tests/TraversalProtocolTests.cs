@@ -66,6 +66,44 @@ public sealed class TraversalProtocolTests
             .GetProperty("properties").GetProperty("protocolVersion").GetProperty("const").GetString());
     }
 
+    [Fact]
+    public void Generated_TypeScript_Expresses_ReadOnly_Step_As_Required_Null()
+    {
+        var generated = ProductProtocolSchemaGenerator.GenerateTypeScript();
+
+        Assert.Contains("kind: 'ReadOnly'", generated);
+        Assert.Contains("step: null", generated);
+        Assert.DoesNotContain("kind: 'ReadOnly'; operationId: string; step: unknown", generated);
+    }
+
+    [Theory]
+    [InlineData(PlanHandlerCallStatus.Running)]
+    [InlineData(PlanHandlerCallStatus.Cancelled)]
+    public void Async_Handler_Call_Association_And_Status_RoundTrip(PlanHandlerCallStatus status)
+    {
+        var record = new PlanHandlerRecord("op-read", "lang-before", "Before", "world-r1",
+            status, null, status == PlanHandlerCallStatus.Cancelled ? "run-cancelled" : null,
+            "call-async-1");
+        var traversal = TraversalViewWithFinding() with { Handlers = [record] };
+        var context = Context("async-handler-view") with
+        {
+            PlanExecution = new PlanExecutionView(
+                new PlanExecutionPosition("plan-traverse", 1, 0, 0, 0, null, 3),
+                PlanExecutionStatus.Active, null, null, [], [], Traversal: traversal),
+        };
+        var options = ProductProtocolJson.CreateOptions();
+        var wire = JsonSerializer.Serialize(context, options);
+        var read = JsonSerializer.Deserialize<AgentDecisionContext>(wire, options)!;
+        var actual = Assert.Single(read.PlanExecution!.Traversal!.Handlers);
+        Assert.Equal(record, actual);
+        using var document = JsonDocument.Parse(wire);
+        var handler = document.RootElement.GetProperty("planExecution").GetProperty("traversal")
+            .GetProperty("handlers")[0];
+        Assert.Equal(status.ToString(), handler.GetProperty("status").GetString());
+        Assert.Equal("call-async-1", handler.GetProperty("callId").GetString());
+        Assert.False(handler.TryGetProperty("result", out _));
+    }
+
     [Theory]
     [InlineData("missing source", "source")]
     [InlineData("wrong maxDepth type", "maxDepth-type")]

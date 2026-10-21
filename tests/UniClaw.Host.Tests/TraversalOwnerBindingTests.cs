@@ -17,15 +17,15 @@ namespace UniClaw.Host.Tests;
 [Collection("SettingsCoverageConfigSerial")]
 public sealed class TraversalOwnerBindingTests
 {
-    private static (UniKernel Kernel, EvidenceLedger Evidence) Kernel(string label = "中文")
+    private static (UniKernel Kernel, EvidenceLedger Evidence) Kernel(string label = "中文", string? hierarchy = null, string? route = null)
     {
-        var world = new WorldModel(new HashSet<string> { "ui.screen", "ui.node.*" },
+        var world = new WorldModel(new HashSet<string> { "ui.screen", "ui.screen.route", "ui.node.*" },
             new ProductAssociationStrategy(), new UiHierarchyOccurrenceStrategy());
         var scope = RunTraceFactory.BeginDisabled(new RunCorrelation("traversal-binding"));
         var evidence = new EvidenceLedger();
         var kernel = new UniKernel(evidence, world, scope.Trace, new RunModel());
         Assert.True(kernel.AdmitContract(new ExecutionContract("v1", "inspect labels",
-            new HashSet<string> { "ui.screen", "ui.node.*" }, new HashSet<string> { "tap" },
+            new HashSet<string> { "ui.screen", "ui.screen.route", "ui.node.*" }, new HashSet<string> { "tap" },
             new HashSet<string>(), new[] { "read-only" },
             TaskInstanceId: "task-traversal-binding", ProductSessionId: "session-traversal-binding",
             ContractRef: "contract-traversal-binding")).Accepted);
@@ -33,7 +33,11 @@ public sealed class TraversalOwnerBindingTests
         kernel.Process(new ObservationProposal(new ObservationClaim("ui.screen", "root"),
             IngressKind.Observation, ObservationContext.External,
             new Provenance("host.live.settings", time, "scope:root", new[] { "fixture" })));
-        var xml = $"""
+        if (route is not null)
+            kernel.Process(new ObservationProposal(new ObservationClaim("ui.screen.route", route),
+                IngressKind.Observation, ObservationContext.External,
+                new Provenance("host.live.settings", time, "scope:route", new[] { "fixture" })));
+        var xml = hierarchy ?? $"""
             <hierarchy><node index="0" text="{label}" resource-id="id/switch"
             class="android.widget.Switch" package="com.android.settings" clickable="true" enabled="true"
             checkable="true" checked="false" scrollable="false" bounds="[0,0][120,120]"/></hierarchy>
@@ -44,6 +48,32 @@ public sealed class TraversalOwnerBindingTests
         foreach (var proposal in TypedHierarchyProposalProjector.Project(parsed.Observation!, ObservationContext.External))
             kernel.Process(proposal);
         return (kernel, evidence);
+    }
+
+    [Fact]
+    public async Task TypedAsyncAdapter_PreservesFinding_AndHonorsPreInvocationCancellation()
+    {
+        var (kernel, evidence) = Kernel();
+        var registry = RuntimeIntegrationCapabilityComposition.RegisterLanguageInspector();
+        var binding = LanguageInspectionBindingFactory.Create(registry, kernel.RunId,
+            new LanguageInspectionTaskRequest(true, "en", FixedCapabilityId: LanguageInspectionProtocol.CapabilityId));
+        var adapter = new TraversalLanguageInspection(kernel, evidence, () => binding);
+        var handler = new PlanLanguageHandler("label", LanguageInspectionProtocol.CapabilityId, "1.0", "en");
+        var observation = SettingsTraversalProjection.Project(SettingsTraversalProjection.Source, kernel,
+            SettingsCoverageConfig.LoadDefault())!;
+        var input = new PlanHandlerInput(kernel.RunId, "async-label", "Before",
+            observation.Graph.SourceRevisionId, observation.Graph.CurrentContainerId!,
+            Assert.Single(observation.Candidates).Target);
+
+        var result = await adapter.InspectAsync(handler, input, CancellationToken.None);
+        Assert.Equal(FindingDisposition.Violation, result!.Disposition);
+        Assert.Equal(CapabilityStatus.Completed, result.Status);
+        Assert.Equal("async-label", result.Correlation.OperationId);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+            await adapter.InspectAsync(handler, input, cancelled.Token));
+        Assert.Empty(kernel.EffectReceipts);
     }
 
     [Fact]
@@ -111,6 +141,76 @@ public sealed class TraversalOwnerBindingTests
         var result = adapter.Inspect(handler, new PlanHandlerInput(kernel.RunId, "read-resource-label", "Before",
             observation.Graph.SourceRevisionId, observation.Graph.CurrentContainerId!, target));
         Assert.Equal(FindingDisposition.Unknown, result!.Disposition);
+        Assert.Empty(kernel.EffectReceipts);
+    }
+
+    private const string ScopeHierarchy = """
+        <hierarchy>
+        <node index="0" text="Heading" class="android.widget.TextView" clickable="false" enabled="true" bounds="[0,0][120,40]"/>
+        <node index="1" text="Network &amp; internet" class="android.widget.Button" clickable="true" enabled="true" bounds="[0,40][120,80]"/>
+        <node index="2" text="Connection details" class="android.widget.Button" clickable="true" enabled="true" bounds="[0,80][120,120]"/>
+        <node index="3" text="Unknown action" class="android.widget.Button" clickable="true" enabled="true" bounds="[0,120][120,160]"/>
+        <node index="4" text="Airplane mode" class="android.widget.Switch" clickable="true" enabled="true" checkable="true" checked="false" bounds="[0,160][120,200]"/>
+        </hierarchy>
+        """;
+
+    [Fact]
+    public void ConfiguredRootScope_BlocksOtherActionsWithoutTreatingThemAsNavigation()
+    {
+        var (kernel, _) = Kernel(hierarchy: ScopeHierarchy, route: "root");
+        var original = SettingsCoverageConfig.LoadDefault();
+        var config = original with { RootRoute = "root", TargetPages = new[] { "Network & internet" },
+            DynamicRootEntries = new DynamicRootEntriesConfig(), DynamicNestedEntries = new DynamicNestedEntriesConfig() };
+        var projection = SettingsTraversalProjection.Project(SettingsTraversalProjection.Source, kernel, config)!;
+        Assert.DoesNotContain(projection.Candidates, c => c.Target.TargetDescriptor == "Heading");
+        var navigation = Assert.Single(projection.Candidates.Where(c => c.Target.TargetDescriptor == "Network & internet"));
+        Assert.Equal(PolicyTruth.Satisfied, navigation.Conditions["navigation"]);
+        var excluded = Assert.Single(projection.Candidates.Where(c => c.Target.TargetDescriptor == "Unknown action"));
+        Assert.Equal(PlanCandidateDisposition.Blocked, excluded.Target.Disposition);
+        Assert.Equal("outside-task-navigation-scope", excluded.Target.Reason);
+        var readOnly = Assert.Single(projection.Candidates.Where(c => c.Target.TargetRole == "switch"));
+        Assert.Equal(PlanCandidateDisposition.Ready, readOnly.Target.Disposition);
+        Assert.Equal(PolicyTruth.Satisfied, readOnly.Conditions["readOnly"]);
+        Assert.False(projection.DiscoveryComplete);
+        Assert.Empty(kernel.EffectReceipts);
+    }
+
+    [Fact]
+    public void ChildPage_DoesNotInheritRootTargetClassification_AndDisabledNestedScopeIsBlocked()
+    {
+        var (kernel, _) = Kernel(hierarchy: ScopeHierarchy, route: "child");
+        var config = SettingsCoverageConfig.LoadDefault() with { RootRoute = "root",
+            TargetPages = new[] { "Network & internet" }, DeepTraversal = new DeepTraversalConfig(),
+            DynamicRootEntries = new DynamicRootEntriesConfig(), DynamicNestedEntries = new DynamicNestedEntriesConfig() };
+        var projection = SettingsTraversalProjection.Project(SettingsTraversalProjection.Source, kernel, config)!;
+        Assert.All(projection.Candidates.Where(c => c.Target.TargetRole != "switch"), candidate =>
+        {
+            Assert.Equal(PlanCandidateDisposition.Blocked, candidate.Target.Disposition);
+            Assert.Equal(PolicyTruth.Violated, candidate.Conditions["navigation"]);
+        });
+        Assert.Equal(PolicyTruth.Satisfied, Assert.Single(projection.Candidates.Where(c =>
+            c.Target.TargetRole == "switch")).Conditions["readOnly"]);
+        Assert.Empty(kernel.EffectReceipts);
+    }
+
+    [Theory]
+    [InlineData("root")]
+    [InlineData("child")]
+    [InlineData(null)]
+    public void DynamicOrUnobservedScope_DoesNotCertifyUnclassifiedAction(string? route)
+    {
+        var (kernel, _) = Kernel(hierarchy: ScopeHierarchy, route: route);
+        var config = SettingsCoverageConfig.LoadDefault() with { RootRoute = "root",
+            TargetPages = new[] { "Network & internet" },
+            DynamicRootEntries = new DynamicRootEntriesConfig(true, "all-visible"),
+            DynamicNestedEntries = new DynamicNestedEntriesConfig(true, 1, 1) };
+        var projection = SettingsTraversalProjection.Project(SettingsTraversalProjection.Source, kernel, config)!;
+        var unknown = Assert.Single(projection.Candidates.Where(c => c.Target.TargetDescriptor == "Unknown action"));
+        Assert.Equal(PlanCandidateDisposition.Ready, unknown.Target.Disposition);
+        Assert.Equal(PolicyTruth.Unknown, unknown.Conditions["navigation"]);
+        if (route != "root")
+            Assert.Equal(PolicyTruth.Unknown, Assert.Single(projection.Candidates.Where(c =>
+                c.Target.TargetDescriptor == "Network & internet")).Conditions["navigation"]);
         Assert.Empty(kernel.EffectReceipts);
     }
 

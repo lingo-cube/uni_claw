@@ -1,0 +1,22 @@
+{
+  "contract_alias": {
+    "path": "src/UniClaw.Kernel/Run/RunModel.cs",
+    "still_present": true
+  },
+  "evidence_alias": {
+    "path": "src/UniClaw.Kernel/Evidence/EvidenceLedger.cs",
+    "still_present": true
+  },
+  "world_list_escape": {
+    "path": "src/UniClaw.Kernel/World/WorldModel.cs",
+    "still_present": true
+  },
+  "external_typed_judgment": {
+    "path": "src/UniClaw.Kernel/UniKernel.cs",
+    "still_present": true
+  },
+  "assurance_record_only": {
+    "path": "src/UniClaw.Kernel/Assurance/RuntimeAssurance.cs",
+    "still_present": true
+  }
+}

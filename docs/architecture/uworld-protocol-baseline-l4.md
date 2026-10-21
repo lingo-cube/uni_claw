@@ -807,6 +807,8 @@ WorldModel → Observation Control 的外部协议边：
 DEFER — NO CURRENT BUYER
 ```
 
+2026-10-21 WORLD-OBSERVATION-001启用实际Settings buyer：最小外部边P27与观察载荷见组件间协议基线P27；正式codec为PageObservationCodec。World输出当前capture的identity-disambiguation need，Control在原执行位置有界调度，Perception只产提案。未知capture不沿用旧页元素归属；World确认后Assurance另验到达，Traversal才推进。验收状态以Change证据为准；启用协议不等于真实样例已通过。上述defer为v0.1历史依据，其余未购买的信息需求仍deferred。
+
 ---
 
 # 16. Fast / Slow Perception Boundary

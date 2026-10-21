@@ -93,7 +93,13 @@ public sealed record WorldBeliefRevision(
     IReadOnlyList<ContainerBelief>? Containers = null,
     IReadOnlyList<ContainerRelation>? Relations = null,
     IReadOnlyList<OccurrenceBelief>? Occurrences = null,
-    IReadOnlyList<LogicalItemBelief>? LogicalItems = null);
+    IReadOnlyList<LogicalItemBelief>? LogicalItems = null)
+{
+    public PageObservationState? CurrentPageObservation { get; init; }
+    public ObservationNeed? ObservationNeed { get; init; }
+    public IReadOnlyList<ViewportTransition> ViewportTransitions { get; init; } =
+        System.Collections.Immutable.ImmutableArray<ViewportTransition>.Empty;
+}
 
 /// <summary>Read-only navigation graph projection for one revision and scope.</summary>
 public sealed record WorldGraphProjection(
@@ -102,4 +108,8 @@ public sealed record WorldGraphProjection(
     string? CurrentContainerId,
     IReadOnlyList<ContainerBelief> Nodes,
     IReadOnlyList<ContainerRelation> Edges,
-    IReadOnlyList<string> Unknown);
+    IReadOnlyList<string> Unknown)
+{
+    public IReadOnlyList<ViewportTransition> ViewportTransitions { get; init; } =
+        System.Collections.Immutable.ImmutableArray<ViewportTransition>.Empty;
+}

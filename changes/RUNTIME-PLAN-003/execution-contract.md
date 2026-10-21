@@ -1,0 +1,33 @@
+# 有序异步 handler 工程契约
+
+日期：2026-10-20。实施依据为003 state A1-A6及002已冻结领域语义。本次扩展的是既有语言检查的执行机制，ILanguageInspector的业务判据、期望来源、白名单和Finding不改变，不注册新能力。
+
+## 输入与typed接缝
+
+Agent继续使用原Plan/traverse/operation/before/afterVerified/PlanLanguageHandler，不新增async字段、不允许任意能力字符串执行。RunDriverInputs增加语言检查专用异步适配，接收现有binding、PlanHandlerInput与CancellationToken，返回awaitable Finding；优先异步适配，保留同步接缝兼容。Host的确定性语言Inspector可适配为已完成的awaitable；真正延迟实现必须使用异步缝。同步兼容桥允许在线程池运行旧回调，但driver不得再同步Wait整段handler耗时。
+
+输入在调用开始时固定。异步完成不从后台直接读取并改写Run/World/Control。完成结果仍校验原Run、具体operation、World revision、CapabilityId和协议版本关联；恢复及下一Effect按原链重新核对当前事实和授权。
+
+## 协调与持续执行
+
+保留可恢复Drive，handler未完成时返回明确的合法等待分类，Traversal仍Active，不PausePlan、不咨询、不重复扣调用预算或重新提交。增加持续异步驱动入口，等待完成/截止/取消后从原phase与handler索引恢复。它不把真实缺外部观察的WaitingForInput吞成无限等待。Host及Simulation实际入口必须使用持续异步路径，保留既有同步入口时仅作兼容调用者桥，不能把pending当终局。
+
+等待期间原Run canonical视图可读，不调用Drive。执行写入由单个协调路径串行完成；完成回调至多唤醒，不持有Owner写权限。driver只协调，Traversal/Recovery策略仍归Control Loop。
+
+## 运行记录与终态
+
+PlanHandlerRecord追加可选callId以兼容旧记录；新调用均有唯一callId，关联具体operation、handler及phase；operation已有Run/Plan/version关联。重检是新尝试/新callId，不复用旧调用。调用前保存Running；同一callId更新为单一终态，保留运行历史快照，不让Running与Completed被解释为两次检查。
+
+PlanHandlerCallStatus兼容追加Running及Cancelled，原Completed/Unavailable/Failed/Skipped/TimedOut语义保持。领域Violation/Unknown与调用生命周期分离，required/requirePass仍按002原约定。超时后的同一必需调用不能靠ContinuePlan隐式重提，沿用明确修订边界。
+
+超时/取消先关闭逻辑调用并请求协作取消；请求不等于物理停止。迟到任务只做异常观察/资源释放，不追加Finding、改变终态或触发Effect。Run取消、放弃/替换、等待期间输入失效的安全退出均清理在途关联，不能让旧结果进入新version。
+
+截止衡量本地执行机制取得typed结果的完整交接：包括异步适配及其完成处理，完成时刻先发布，随后才向协调者暴露完成任务。它不是provider内部或远端的finished-at时间；底层已产生结果、但尚未完成本地交接时，仍可诚实关闭为调用TimedOut，不将其表述为领域检查不符合。该交接在截止前完成时，即使稍后才再次Drive消费也保留Completed；截止后交回则不回写终态。本次不添加不可观测的远端完成时间承诺。
+
+## 顺序与验收
+
+before[i]结束并满足声明的继续条件后才启动before[i+1]；全before结束后操作。Navigate经原强制独立验证后才开始afterVerified；ReadOnly零Effect。未通过requirePass暂停仍按原恢复规则重检/修订，不因异步改变领域判断。
+
+真实Kernel/Simulation场景至少证明：延迟Running可查询且不推进；有序完成自动接回；等待不咨询/重扣/重提交；动作验证屏障；超时及取消后迟到不写入；同步/异步同计划；修订及已验证动作不重放。协议层覆盖新增记录状态/关联的producer→codec→consumer与Schema/TypeScript一致性，生成/镜像/hash更新沿现有工具。
+
+跨进程恢复、并行handler、远端通用job协议和新能力不在本Change范围。具体远端jobId/轮询属于该能力未来的typed适配，不进入通用PlanTree。

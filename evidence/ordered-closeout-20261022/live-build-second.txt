@@ -1,0 +1,15 @@
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Agent -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+  UniClaw.Host -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+  UniClaw.Agent.Dsh -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent.Dsh/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll
+  UniClaw.Simulation.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll
+  UniClaw.Host.Dsh -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host.Dsh/bin/Debug/net10.0/UniClaw.Host.Dsh.dll
+  UniClaw.Host.Dsh.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll
+  LiveRunner -> /Users/fran/Documents/Code/spacex/uni_claw/evidence/ordered-closeout-20261022/live-runner/bin/Debug/net10.0/LiveRunner.dll
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:03.25

@@ -7,6 +7,87 @@ namespace UniClaw.Host.Tests;
 public sealed class FileConsultationJournalTests
 {
     [Fact]
+    public void TraversePlan_ReloadsThroughPublicJournalWithoutReorderingRulesOrHandlers()
+    {
+        var directory = Directory.CreateTempSubdirectory("traverse-journal-").FullName;
+        var path = Path.Combine(directory, "consultations.jsonl");
+        var key = new ConsultationKey("run-traverse", "view-1", "boundary-1", "decision-traverse-1");
+        var firstBefore = new PlanLanguageHandler("before-first", "runtime.language-inspector", "1.0", "en",
+            Required: false, RequirePass: true);
+        var secondBefore = new PlanLanguageHandler("before-second", "runtime.language-inspector", "1.0", "fr",
+            Required: true, RequirePass: false);
+        var firstAfter = new PlanLanguageHandler("after-first", "runtime.language-inspector", "1.0", "en",
+            Required: true, RequirePass: false);
+        var secondAfter = new PlanLanguageHandler("after-second", "runtime.language-inspector", "1.0", "de",
+            Required: false, RequirePass: true);
+        var readFirst = new PlanLanguageHandler("readonly-first", "runtime.language-inspector", "1.0", "zh",
+            Required: true, RequirePass: true);
+        var readSecond = new PlanLanguageHandler("readonly-second", "runtime.language-inspector", "1.0", "ja",
+            Required: false, RequirePass: false);
+        var traverse = new PlanItem.TraverseItem(
+            "settings.menu",
+            new TraversalRule[]
+            {
+                new("navigate-first", "navigation", new TraversalOperation(
+                    "open-candidate", TraversalOperationKind.Navigate,
+                    new AgentActionStep("$candidate", "$candidate", "tap", null),
+                    new[] { firstBefore, secondBefore }, new[] { firstAfter, secondAfter })),
+                new("inspect-second", "readOnly", new TraversalOperation(
+                    "inspect-current", TraversalOperationKind.ReadOnly, null,
+                    new[] { readFirst, readSecond }, Array.Empty<PlanLanguageHandler>())),
+            },
+            MaxDepth: 1,
+            ReturnStep: new AgentActionStep("ui.element", "Navigate up", "tap", null));
+
+        try
+        {
+            using (var journal = new FileConsultationJournal(path))
+            {
+                journal.Reserve(key, "fp-traverse");
+                journal.Complete(key, "fp-traverse", new AgentDecision.Plan("decision-traverse-1",
+                    new AgentPlanProposal(new PlanItem[] { traverse }, "bounded traversal", "plan-traverse", 3,
+                        "visit configured entries and return", MaxLocalOperations: 12)));
+            }
+
+            using var restored = new FileConsultationJournal(path);
+            var entry = restored.Find(key);
+            Assert.NotNull(entry);
+            Assert.Equal(ConsultationJournalStatus.Completed, entry.Status);
+            var plan = Assert.IsType<AgentDecision.Plan>(entry.Decision);
+            Assert.Equal("decision-traverse-1", plan.DecisionId);
+            Assert.Equal("plan-traverse", plan.Proposal.PlanId);
+            Assert.Equal(3, plan.Proposal.Version);
+            Assert.Equal(12, plan.Proposal.MaxLocalOperations);
+
+            var actual = Assert.IsType<PlanItem.TraverseItem>(Assert.Single(plan.Proposal.Items));
+            Assert.Equal("settings.menu", actual.Source);
+            Assert.Equal(1, actual.MaxDepth);
+            Assert.Equal(new AgentActionStep("ui.element", "Navigate up", "tap", null), actual.ReturnStep);
+            Assert.Equal(new[] { "navigate-first", "inspect-second" }, actual.Rules.Select(rule => rule.RuleId));
+            Assert.Equal(new[] { "navigation", "readOnly" }, actual.Rules.Select(rule => rule.Condition));
+
+            var navigation = actual.Rules[0].Operation;
+            Assert.Equal("open-candidate", navigation.OperationId);
+            Assert.Equal(TraversalOperationKind.Navigate, navigation.Kind);
+            Assert.Equal(new AgentActionStep("$candidate", "$candidate", "tap", null), navigation.Step);
+            Assert.Equal(new[] { firstBefore, secondBefore }, navigation.Before);
+            Assert.Equal(new[] { firstAfter, secondAfter }, navigation.AfterVerified);
+
+            var readOnly = actual.Rules[1].Operation;
+            Assert.Equal("inspect-current", readOnly.OperationId);
+            Assert.Equal(TraversalOperationKind.ReadOnly, readOnly.Kind);
+            Assert.Null(readOnly.Step);
+            Assert.Equal(new[] { readFirst, readSecond }, readOnly.Before);
+            Assert.Empty(readOnly.AfterVerified);
+            Assert.Equal(1, restored.ConsumedCount("run-traverse", "view-1"));
+        }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
     public void DynamicPlanAndExplicitContinuation_ReloadWithoutLosingPositionOrBody()
     {
         var directory = Directory.CreateTempSubdirectory("plan-journal-").FullName;

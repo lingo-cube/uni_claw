@@ -8,7 +8,11 @@ Judgment（权威表见基线 §10）。
 
 | 文件 | 职责 |
 |---|---|
+| `PageObservation.cs` | 当前capture/身份证据严格codec、不可变观察状态及World派生ObservationNeed |
 | `WorldModel.cs` | belief/reconciliation 权威本体（不变量 14-15） |
+| `WorldModel.Semantics.cs` | 将有当前身份观察/capture依据的accepted页面语义投影到既有容器；不以类别铸造身份 |
+| `WorldModel.Viewports.cs` | 已验证滚动的观察关联、accepted 重叠锚配准与未知原因（WRC-003） |
+| `ViewportTransition.cs` | 操作回执关联的前后观察、可选空间变换和对应锚 |
 | `WorldBeliefRevision.cs` | 显式冲突：同 subject 既存 belief 遭遇不相容 accepted evidence |
 | `WorldRevisionIndex.cs` | revision 索引 |
 | `PersistentRevisionCollections.cs` | revision 持久化集合 |
@@ -31,6 +35,17 @@ dependency boundary）：`UiEntityModel`、`ContainerAssociation`、
 `ProductAssociationStrategy`。presentation 再观察修订不冲突（ADR-0016）。
 
 ## 变更规则
+
+WORLD-SEMANTICS-002：当前 `ui.screen` 的历史观察不回退当前claim/身份；
+同帧身份声明冲突不推进关联。语义观察沿P2/P3进入，须明确引用当前身份观察并
+匹配其capture，才能作为容器scoped claim进入Slice；PageKey只是类别，不能
+mint/merge身份或创建导航边。普通状态claim的冲突/权威裁决机制保持独立。
+
+WRC-003：`WorldBeliefRevision.ViewportTransitions` 保留同页滚动观察关联；
+`WorldGraphProjection` 按 scope 派生这些关系，既有导航 `Edges` 语义不变。
+Kernel 仅在实际 dispatch 事后验证成功后登记，World 以 accepted 前后观察
+计算位移。证据不足保留未知；对应锚不是 LogicalItem identity，历史内容
+坐标不是当前可执行 locator。
 
 belief/reconciliation/世界投影语义进本目录；UI realization 细节进
 `UiRealization/`；定位与 delivery 锚只定义形状，执行归 Effect Boundary。

@@ -1,0 +1,41 @@
+[
+  {
+    "path": "tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs",
+    "entrySelectedLines": [
+      "\"artifacts\":{\"promptHash\":\"28dda7e96ffde4eb44c45677f8a103f20305d85ef1a13eb076596a2b17d09e6e\","
+    ],
+    "currentSameAsEntry": false,
+    "note": "DshOpenedHttpPeerTests adds only scoped high/cancel test; Simulation csproj adds only shared execution-test Compile link; existing fixture/reference retained."
+  },
+  {
+    "path": "tests/UniClaw.Agent.Dsh.Tests/ObserverProjectionTests.cs",
+    "entrySelectedLines": [
+      "Assert.Equal(\"deepseekFlash\", bindings.SelectedModelKey);",
+      "new ModelConfiguration(\"opencode-go\", \"deepseek-flash\"), TestEndpoint, \"deepseekFlash\");"
+    ],
+    "currentSameAsEntry": true,
+    "note": "unchanged from implementation entry"
+  },
+  {
+    "path": "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj",
+    "entrySelectedLines": [
+      "<ProjectReference Include=\"..\\..\\src\\UniClaw.Kernel\\UniClaw.Kernel.csproj\" />",
+      "<ProjectReference Include=\"..\\..\\src\\UniClaw.Agent\\UniClaw.Agent.csproj\" />",
+      "<ProjectReference Include=\"..\\..\\src\\UniClaw.Agent.Dsh\\UniClaw.Agent.Dsh.csproj\" />"
+    ],
+    "currentSameAsEntry": false,
+    "note": "DshOpenedHttpPeerTests adds only scoped high/cancel test; Simulation csproj adds only shared execution-test Compile link; existing fixture/reference retained."
+  },
+  {
+    "path": "product/profiles/uniagent-prod.yaml",
+    "entrySelectedLines": [],
+    "currentSameAsEntry": true,
+    "note": "unchanged from implementation entry"
+  },
+  {
+    "path": "product/prompt/uniagent-prod/manifest.json",
+    "entrySelectedLines": [],
+    "currentSameAsEntry": true,
+    "note": "unchanged from implementation entry"
+  }
+]

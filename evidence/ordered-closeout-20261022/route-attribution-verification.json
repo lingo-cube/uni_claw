@@ -1,0 +1,53 @@
+{
+  "change": "SETTINGS-COVERAGE-007",
+  "date": "2026-10-22",
+  "level": "DETERMINISTIC",
+  "method": {
+    "red": "public Runner same-capture fixture with original product implementation; route-attribution-red.trx",
+    "green": "same-capture minimal enter/back + unconfirmed capture + original 21-step scenario; then direct new-capture negative; final full solution and supplementary Host-only run",
+    "reviews": "independent Standards and Spec, fixed two-file tar and precise patch"
+  },
+  "expected": "verified steps retain before/after routes; coverage only consumes confirmed same-capture World; no old identity borrowed when new capture has no route; no duplicate or unauthorized effects",
+  "actual": {
+    "initial_red": "entered 0/8 after first verified navigation; original malformed route attribution reproduced",
+    "minimal_green": 3,
+    "new_capture_negative_green": 1,
+    "full_solution_before_last_negative": {
+      "projects": 8,
+      "passed": 2026,
+      "failed": 0
+    },
+    "final_host_supplement": {
+      "passed": 411,
+      "failed": 0
+    },
+    "source_changes": 2,
+    "product_kernel_world_effect_changes": 0
+  },
+  "evidence": [
+    "route-attribution-before.tar.gz",
+    "route-attribution.patch",
+    "route-attribution-candidate-hashes.json",
+    "route-attribution-red.txt",
+    "route-attribution-red.trx",
+    "route-attribution-green.txt",
+    "route-attribution-minimal-green.trx",
+    "route-new-capture-green.trx",
+    "final-tests/results.json",
+    "host-final-supplement.trx",
+    "scenario-check.txt",
+    "protocol-check.txt",
+    "route-attribution-review.md"
+  ],
+  "limits": [
+    "Expanded confirmed-page fixture failed separately at third-page identity; preserved rather than declared stable across all pages",
+    "No new post-fix device/model run; original bounded live run had 3 receipts and 2 verified steps, ended page-identity-observation-exhausted",
+    "Fix connectivity selected as navigation is a separate unresolved classification risk; no permission broadening or label bypass in this change",
+    "No natural heartbeat/casePacket event occurred in original live run, so H7 remains unverified",
+    "3 real-model opt-in test bodies were not run by default full suite"
+  ],
+  "sources": {
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs": "a486a23597de1ddb11c0883fddcb93227a09a9df2bcf28d303b57177f33a7c8e",
+    "tests/UniClaw.Host.Tests/SettingsCoverageScenarioTests.cs": "89eca5121a2127231470587b16e0abb5c5a6432f300eca20fe2e654016cd96d2"
+  }
+}

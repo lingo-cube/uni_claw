@@ -52,6 +52,8 @@ public sealed class TraversalExecutionTests
         Action<DispatchRequest>? delivered = null,
         Func<PlanLanguageHandler, bool>? canBind = null,
         Func<PlanLanguageHandler, PlanHandlerInput, Finding?>? inspect = null,
+        Func<PlanLanguageHandler, PlanHandlerInput, CancellationToken, ValueTask<Finding?>>? inspectAsync = null,
+        TimeSpan? handlerTimeout = null,
         Func<RunDriverInput.Cancel?>? pollCancellation = null,
         Func<AgentActionStep, AgentDecisionContext, PlanStepGuardResult>? guard = null)
     {
@@ -77,6 +79,8 @@ public sealed class TraversalExecutionTests
             },
             CanBindPlanLanguage = canBind,
             InspectPlanLanguage = inspect,
+            InspectPlanLanguageAsync = inspectAsync,
+            PlanHandlerTimeout = handlerTimeout ?? TimeSpan.FromSeconds(2),
             GuardStep = guard,
         };
         var driver = new KernelRunDriver(kernel, plan, inputs);
@@ -137,6 +141,387 @@ public sealed class TraversalExecutionTests
     }
 
     [Fact]
+    public async Task DelayedAsyncHandler_IsRecordedRunningThenResumesInPlace()
+    {
+        var firstCompletion = new TaskCompletionSource<Finding?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondCompletion = new TaskCompletionSource<Finding?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var calls = new List<string>();
+        var inputs = new Dictionary<string, PlanHandlerInput>();
+        var firstHandler = new PlanLanguageHandler("handler-1", "runtime.language-inspector", "1.0", "English");
+        var secondHandler = new PlanLanguageHandler("handler-2", "runtime.language-inspector", "1.0", "English");
+        var operation = new TraversalOperation("inspect", TraversalOperationKind.ReadOnly, null,
+            new[] { firstHandler, secondHandler }, Array.Empty<PlanLanguageHandler>());
+        var (kernel, driver, _) = Compose(
+            revision => CurrentObservation(revision, CurrentContainer(revision)),
+            context => context.DecisionId.EndsWith("-1", StringComparison.Ordinal)
+                ? Plan(context, operation)
+                : new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId, "done")),
+            canBind: _ => true,
+            inspectAsync: (binding, input, _) =>
+            {
+                calls.Add(binding.HandlerId);
+                inputs[binding.HandlerId] = input;
+                if (binding.HandlerId == secondHandler.HandlerId)
+                {
+                    secondStarted.TrySetResult();
+                    return new ValueTask<Finding?>(secondCompletion.Task);
+                }
+                return new ValueTask<Finding?>(firstCompletion.Task);
+            });
+
+        var pending = driver.Drive();
+
+        Assert.True(pending.Status == RunDriveStatus.WaitingForHandler,
+            $"{pending.Status}:{pending.Reason}; {System.Text.Json.JsonSerializer.Serialize(driver.TraversalExecution)}");
+        var running = Assert.Single(driver.TraversalExecution!.Handlers);
+        Assert.Equal(firstHandler.HandlerId, running.HandlerId);
+        Assert.Equal(PlanHandlerCallStatus.Running, running.Status);
+        Assert.NotNull(running.CallId);
+        Assert.Equal(new[] { firstHandler.HandlerId }, calls);
+        Assert.Empty(kernel.EffectReceipts);
+
+        var continuation = driver.DriveAsync();
+        Assert.False(continuation.IsCompleted);
+        firstCompletion.SetResult(new Finding("english", new CapabilityCorrelation(kernel.RunId!,
+            domainCorrelation: inputs[firstHandler.HandlerId].SourceRevisionId,
+            operationId: inputs[firstHandler.HandlerId].OperationId),
+            firstHandler.ProtocolVersion, firstHandler.CapabilityId, FindingDisposition.Pass,
+            CapabilityStatus.Completed, "matched"));
+        await secondStarted.Task;
+        Assert.Equal(new[] { firstHandler.HandlerId, secondHandler.HandlerId }, calls);
+        Assert.Collection(driver.TraversalExecution!.Handlers,
+            first => Assert.Equal(PlanHandlerCallStatus.Completed, first.Status),
+            second => Assert.Equal(PlanHandlerCallStatus.Running, second.Status));
+        secondCompletion.SetResult(new Finding("english", new CapabilityCorrelation(kernel.RunId!,
+            domainCorrelation: inputs[secondHandler.HandlerId].SourceRevisionId,
+            operationId: inputs[secondHandler.HandlerId].OperationId),
+            secondHandler.ProtocolVersion, secondHandler.CapabilityId, FindingDisposition.Pass,
+            CapabilityStatus.Completed, "matched"));
+
+        var resumed = await continuation;
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, resumed.Status);
+        Assert.Equal(new[] { firstHandler.HandlerId, secondHandler.HandlerId }, calls);
+        Assert.Collection(driver.TraversalExecution!.Handlers,
+            first =>
+            {
+                Assert.Equal(running.CallId, first.CallId);
+                Assert.Equal(PlanHandlerCallStatus.Completed, first.Status);
+            },
+            second => Assert.Equal(PlanHandlerCallStatus.Completed, second.Status));
+        Assert.Empty(kernel.EffectReceipts);
+    }
+
+    [Fact]
+    public async Task Drive_ConsumesCompletedPendingHandlerWithoutResubmitting()
+    {
+        var completion = new TaskCompletionSource<Finding?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var calls = 0;
+        var handler = new PlanLanguageHandler("handler", "runtime.language-inspector", "1.0", "English");
+        var operation = new TraversalOperation("inspect", TraversalOperationKind.ReadOnly, null,
+            new[] { handler }, Array.Empty<PlanLanguageHandler>());
+        var (kernel, driver, _) = Compose(
+            revision => CurrentObservation(revision, CurrentContainer(revision)),
+            context => context.DecisionId.EndsWith("-1", StringComparison.Ordinal)
+                ? Plan(context, operation)
+                : new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId, "done")),
+            canBind: _ => true,
+            inspectAsync: (_, _, _) =>
+            {
+                calls++;
+                return new ValueTask<Finding?>(completion.Task);
+            });
+
+        Assert.Equal(RunDriveStatus.WaitingForHandler, driver.Drive().Status);
+        var running = Assert.Single(driver.TraversalExecution!.Handlers);
+        completion.SetResult(new Finding("english", new CapabilityCorrelation(kernel.RunId!,
+            domainCorrelation: running.SourceRevisionId, operationId: running.OperationId),
+            handler.ProtocolVersion, handler.CapabilityId, FindingDisposition.Pass,
+            CapabilityStatus.Completed, "matched"));
+
+        var resumed = driver.Drive();
+        var wait = System.Diagnostics.Stopwatch.StartNew();
+        while (resumed.Status == RunDriveStatus.WaitingForHandler && wait.Elapsed < TimeSpan.FromSeconds(1))
+        {
+            await Task.Delay(1);
+            resumed = driver.Drive();
+        }
+
+        Assert.NotEqual(RunDriveStatus.WaitingForHandler, resumed.Status);
+        Assert.Equal(RunDriveStatus.TerminalNotProven, resumed.Status);
+        Assert.Equal(1, calls);
+        Assert.Equal(PlanHandlerCallStatus.Completed, Assert.Single(driver.TraversalExecution!.Handlers).Status);
+    }
+
+    [Fact]
+    public async Task Timeout_ClosesCallAndDoesNotResubmitOnDrive()
+    {
+        var completion = new TaskCompletionSource<Finding?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var calls = 0;
+        var handler = new PlanLanguageHandler("handler", "runtime.language-inspector", "1.0", "English");
+        var operation = new TraversalOperation("inspect", TraversalOperationKind.ReadOnly, null,
+            new[] { handler }, Array.Empty<PlanLanguageHandler>());
+        var (kernel, driver, _) = Compose(
+            revision => CurrentObservation(revision, CurrentContainer(revision)),
+            context => context.DecisionId.EndsWith("-1", StringComparison.Ordinal)
+                ? Plan(context, operation)
+                : new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId, "done")),
+            canBind: _ => true,
+            inspectAsync: (_, _, _) =>
+            {
+                calls++;
+                return new ValueTask<Finding?>(completion.Task);
+            },
+            handlerTimeout: TimeSpan.FromMilliseconds(25));
+
+        Assert.Equal(RunDriveStatus.WaitingForHandler, driver.Drive().Status);
+        var timedOut = await driver.DriveAsync();
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, timedOut.Status);
+        Assert.Equal(1, calls);
+        Assert.Equal(PlanHandlerCallStatus.TimedOut, Assert.Single(driver.TraversalExecution!.Handlers).Status);
+        completion.SetException(new InvalidOperationException("late-fault"));
+        Assert.Equal(PlanHandlerCallStatus.TimedOut, Assert.Single(driver.TraversalExecution.Handlers).Status);
+        Assert.Empty(kernel.EffectReceipts);
+    }
+
+    [Fact]
+    public async Task CompletionAfterDeadline_IsTimedOutEvenWhenDriveConsumesAfterward()
+    {
+        var completion = new TaskCompletionSource<Finding?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var handler = new PlanLanguageHandler("handler", "runtime.language-inspector", "1.0", "English");
+        var operation = new TraversalOperation("inspect", TraversalOperationKind.ReadOnly, null,
+            new[] { handler }, Array.Empty<PlanLanguageHandler>());
+        var (kernel, driver, _) = Compose(
+            revision => CurrentObservation(revision, CurrentContainer(revision)),
+            context => context.DecisionId.EndsWith("-1", StringComparison.Ordinal)
+                ? Plan(context, operation)
+                : new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId, "done")),
+            canBind: _ => true,
+            inspectAsync: (_, _, _) => new ValueTask<Finding?>(completion.Task),
+            handlerTimeout: TimeSpan.FromMilliseconds(25));
+
+        Assert.Equal(RunDriveStatus.WaitingForHandler, driver.Drive().Status);
+        var running = Assert.Single(driver.TraversalExecution!.Handlers);
+        await Task.Delay(60);
+        completion.SetResult(new Finding("english", new CapabilityCorrelation(kernel.RunId!,
+            domainCorrelation: running.SourceRevisionId, operationId: running.OperationId),
+            handler.ProtocolVersion, handler.CapabilityId, FindingDisposition.Pass,
+            CapabilityStatus.Completed, "late"));
+
+        driver.Drive();
+
+        Assert.Equal(PlanHandlerCallStatus.TimedOut, Assert.Single(driver.TraversalExecution!.Handlers).Status);
+        Assert.Empty(kernel.EffectReceipts);
+    }
+
+    [Fact]
+    public async Task CompletionBeforeDeadline_RemainsCompletedWhenDriveConsumesLater()
+    {
+        var completion = new TaskCompletionSource<Finding?>();
+        var handler = new PlanLanguageHandler("handler", "runtime.language-inspector", "1.0", "English");
+        var operation = new TraversalOperation("inspect", TraversalOperationKind.ReadOnly, null,
+            new[] { handler }, Array.Empty<PlanLanguageHandler>());
+        var (kernel, driver, _) = Compose(
+            revision => CurrentObservation(revision, CurrentContainer(revision)),
+            context => context.DecisionId.EndsWith("-1", StringComparison.Ordinal)
+                ? Plan(context, operation)
+                : new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId, "done")),
+            canBind: _ => true,
+            inspectAsync: (_, input, _) => new ValueTask<Finding?>(completion.Task),
+            handlerTimeout: TimeSpan.FromMilliseconds(80));
+
+        Assert.Equal(RunDriveStatus.WaitingForHandler, driver.Drive().Status);
+        var running = Assert.Single(driver.TraversalExecution!.Handlers);
+        completion.SetResult(new Finding("english", new CapabilityCorrelation(kernel.RunId!,
+            domainCorrelation: running.SourceRevisionId, operationId: running.OperationId),
+            handler.ProtocolVersion, handler.CapabilityId, FindingDisposition.Pass,
+            CapabilityStatus.Completed, "on-time"));
+        await completion.Task;
+        await Task.Delay(120);
+
+        driver.Drive();
+
+        Assert.Equal(PlanHandlerCallStatus.Completed, Assert.Single(driver.TraversalExecution!.Handlers).Status);
+        Assert.Empty(kernel.EffectReceipts);
+    }
+
+    [Fact]
+    public async Task DriveAsyncCancellation_UsesRunCancelPathAndIgnoresLateCompletion()
+    {
+        var completion = new TaskCompletionSource<Finding?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var handler = new PlanLanguageHandler("handler", "runtime.language-inspector", "1.0", "English");
+        var operation = new TraversalOperation("inspect", TraversalOperationKind.ReadOnly, null,
+            new[] { handler }, Array.Empty<PlanLanguageHandler>());
+        var (kernel, driver, _) = Compose(
+            revision => CurrentObservation(revision, CurrentContainer(revision)),
+            context => context.DecisionId.EndsWith("-1", StringComparison.Ordinal)
+                ? Plan(context, operation)
+                : new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId, "done")),
+            canBind: _ => true,
+            inspectAsync: (_, _, _) => new ValueTask<Finding?>(completion.Task));
+
+        Assert.Equal(RunDriveStatus.WaitingForHandler, driver.Drive().Status);
+        var running = Assert.Single(driver.TraversalExecution!.Handlers);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        var result = await driver.DriveAsync(cancellation.Token);
+
+        Assert.Equal(RunDriveStatus.CancelledWithoutSafeStopPath, result.Status);
+        Assert.Equal(PlanHandlerCallStatus.Cancelled, Assert.Single(driver.TraversalExecution!.Handlers).Status);
+        completion.SetResult(new Finding("english", new CapabilityCorrelation(kernel.RunId!,
+            domainCorrelation: running.SourceRevisionId, operationId: running.OperationId),
+            handler.ProtocolVersion, handler.CapabilityId, FindingDisposition.Pass,
+            CapabilityStatus.Completed, "late"));
+        Assert.Equal(PlanHandlerCallStatus.Cancelled, Assert.Single(driver.TraversalExecution.Handlers).Status);
+        Assert.Empty(kernel.EffectReceipts);
+    }
+
+    [Fact]
+    public void RequirePassFailure_PausesAndRechecksWithANewCallId()
+    {
+        var consults = 0;
+        var calls = 0;
+        var handler = new PlanLanguageHandler("handler", "runtime.language-inspector", "1.0", "English",
+            Required: true, RequirePass: true);
+        var operation = new TraversalOperation("inspect", TraversalOperationKind.ReadOnly, null,
+            new[] { handler }, Array.Empty<PlanLanguageHandler>());
+        var (kernel, driver, _) = Compose(
+            revision => CurrentObservation(revision, CurrentContainer(revision)),
+            context =>
+            {
+                consults++;
+                if (consults == 1) return Plan(context, operation);
+                if (consults == 2)
+                    return new AgentDecision.ContinuePlan(context.DecisionId, context.PlanExecution!.Position);
+                return new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId, "done"));
+            },
+            canBind: _ => true,
+            inspectAsync: (_, input, _) =>
+            {
+                calls++;
+                var passed = calls > 1;
+                return ValueTask.FromResult<Finding?>(new Finding("english",
+                    new CapabilityCorrelation(input.RunId, domainCorrelation: input.SourceRevisionId,
+                        operationId: input.OperationId), handler.ProtocolVersion, handler.CapabilityId,
+                    passed ? FindingDisposition.Pass : FindingDisposition.Unknown,
+                    passed ? CapabilityStatus.Completed : CapabilityStatus.Unknown,
+                    passed ? "matched" : "not-proven"));
+            });
+
+        var result = driver.Drive();
+
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
+        Assert.Equal(3, consults);
+        Assert.Equal(2, calls);
+        var records = driver.TraversalExecution!.Handlers;
+        Assert.Equal(2, records.Count);
+        Assert.NotEqual(records[0].CallId, records[1].CallId);
+        Assert.All(records, record => Assert.Equal(PlanHandlerCallStatus.Completed, record.Status));
+        Assert.Equal(FindingDisposition.Pass, records[^1].Result!.Disposition);
+        Assert.Empty(kernel.EffectReceipts);
+    }
+
+    [Fact]
+    public async Task ConcurrentDriveEntries_AreRejectedWhileAsyncHandlerIsPending()
+    {
+        var completion = new TaskCompletionSource<Finding?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var handlerStarted = new TaskCompletionSource<PlanHandlerInput>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var calls = 0;
+        var handler = new PlanLanguageHandler("handler", "runtime.language-inspector", "1.0", "English");
+        var operation = new TraversalOperation("inspect", TraversalOperationKind.ReadOnly, null,
+            new[] { handler }, Array.Empty<PlanLanguageHandler>());
+        var (kernel, driver, _) = Compose(
+            revision => CurrentObservation(revision, CurrentContainer(revision)),
+            context => context.DecisionId.EndsWith("-1", StringComparison.Ordinal)
+                ? Plan(context, operation)
+                : new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId, "done")),
+            canBind: _ => true,
+            inspectAsync: (_, input, _) =>
+            {
+                Interlocked.Increment(ref calls);
+                handlerStarted.TrySetResult(input);
+                return new ValueTask<Finding?>(completion.Task);
+            });
+
+        var firstDrive = driver.DriveAsync();
+        var input = await handlerStarted.Task;
+        var before = Assert.IsType<TraversalExecutionView>(driver.TraversalExecution);
+        Assert.Equal(PlanHandlerCallStatus.Running, Assert.Single(before.Handlers).Status);
+
+        var competingDrive = driver.Drive();
+        var competingDriveAsync = driver.DriveAsync();
+        var whilePending = Assert.IsType<TraversalExecutionView>(driver.TraversalExecution);
+        Assert.Equal(before.WorkUsed, whilePending.WorkUsed);
+        Assert.Equal(1, Volatile.Read(ref calls));
+        Assert.Equal(PlanHandlerCallStatus.Running, Assert.Single(whilePending.Handlers).Status);
+        Assert.Empty(kernel.EffectReceipts);
+
+        completion.SetResult(new Finding("english", new CapabilityCorrelation(kernel.RunId!,
+            domainCorrelation: input.SourceRevisionId, operationId: input.OperationId),
+            handler.ProtocolVersion, handler.CapabilityId, FindingDisposition.Pass,
+            CapabilityStatus.Completed, "matched"));
+        var firstResult = await firstDrive;
+        var competingAsyncResult = await competingDriveAsync;
+
+        Assert.Equal(RunDriveStatus.UnexpectedInput, competingDrive.Status);
+        Assert.Equal("drive-in-progress", competingDrive.Reason);
+        Assert.Equal(RunDriveStatus.UnexpectedInput, competingAsyncResult.Status);
+        Assert.Equal("drive-in-progress", competingAsyncResult.Reason);
+        Assert.Equal(RunDriveStatus.TerminalNotProven, firstResult.Status);
+        Assert.Equal(1, Volatile.Read(ref calls));
+        Assert.Equal(PlanHandlerCallStatus.Completed, Assert.Single(driver.TraversalExecution!.Handlers).Status);
+    }
+
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    public void OptionalRequirePassUnavailable_NavigateRemainsPausedWithoutEffect(bool canBind, bool hasAdapter)
+    {
+        var handler = new PlanLanguageHandler("optional", "runtime.language-inspector", "1.0", "English",
+            Required: false, RequirePass: true);
+        var consults = 0;
+        var operation = new TraversalOperation("navigate", TraversalOperationKind.Navigate,
+            new AgentActionStep("switch", "entry", "tap", null),
+            new[] { handler }, Array.Empty<PlanLanguageHandler>());
+        var (kernel, driver, _) = Compose(
+            revision => CurrentObservation(revision, CurrentContainer(revision)),
+            context => ++consults == 1 ? Plan(context, operation, maxDepth: 1) : null!,
+            canBind: _ => canBind,
+            inspect: hasAdapter ? (_, _) => throw new InvalidOperationException("must-not-invoke") : null);
+
+        driver.Drive();
+
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.Equal("traversal:handler-require-pass", driver.TraversalExecution!.PauseReason);
+        Assert.Equal(PlanHandlerCallStatus.Unavailable,
+            Assert.Single(driver.TraversalExecution.Handlers).Status);
+    }
+
+    [Fact]
+    public void OptionalNonBlockingRuntimeBindingFailure_DoesNotPauseTraversal()
+    {
+        var handler = new PlanLanguageHandler("optional", "runtime.language-inspector", "1.0", "English",
+            Required: false, RequirePass: false);
+        var consults = 0;
+        var operation = new TraversalOperation("inspect", TraversalOperationKind.ReadOnly, null,
+            new[] { handler }, Array.Empty<PlanLanguageHandler>());
+        var (kernel, driver, _) = Compose(
+            revision => CurrentObservation(revision, CurrentContainer(revision)),
+            context => ++consults == 1 ? Plan(context, operation) : null!,
+            canBind: _ => throw new InvalidOperationException("binding-check-failed"),
+            inspect: (_, _) => throw new InvalidOperationException("must-not-invoke"));
+
+        driver.Drive();
+
+        Assert.Empty(kernel.EffectReceipts);
+        Assert.Equal("completed", driver.TraversalExecution!.EndReason);
+        Assert.Null(driver.TraversalExecution.PauseReason);
+        Assert.Equal(PlanHandlerCallStatus.Failed, Assert.Single(driver.TraversalExecution.Handlers).Status);
+    }
+
+    [Fact]
     public void IncompleteDiscovery_ProcessesVisibleReadOnlyThenReportsPartial()
     {
         var (kernel, driver, _) = Compose(revision => CurrentObservation(revision, CurrentContainer(revision), complete: false), context =>
@@ -155,7 +540,7 @@ public sealed class TraversalExecutionTests
     }
 
     [Fact]
-    public void NoResponsePause_QueryAndLaterContinuePreserveReadOnlyWork()
+    public async Task NoResponsePause_QueryAndLaterContinuePreserveReadOnlyWork()
     {
         var bindCalls = 0;
         var consults = 0;
@@ -196,7 +581,7 @@ public sealed class TraversalExecutionTests
         Assert.Equal(before, queried);
         Assert.Equal(2, consults);
 
-        var resumed = driver.Drive();
+        var resumed = await driver.DriveAsync();
         Assert.True(resumed.Status == RunDriveStatus.TerminalNotProven,
             $"{resumed.Status}:{resumed.Reason}; position={System.Text.Json.JsonSerializer.Serialize(driver.PlanExecution)}");
         Assert.Equal(4, consults);

@@ -10,6 +10,7 @@ DSH 是 dual full realizations）：模型 binding 注入、决策通道传输�
 
 | 文件 | 职责 |
 |---|---|
+| `DshSemanticPerception.cs` | 既有SemanticPerception供货缝的DSH慢模型实现；请求high并核对实际请求回执，零World写权 |
 | `DshModelManagement.cs` | Model Management 缺省（借用 DSH）realization：产品声明+DSH 绑定双输入 → ModelManagement 快照注入（CAP-006；PRF-002） |
 | `UniagentDshBindings.cs` | DSH realization 绑定加载结果（CAP-007 modelSelection+service；PRF-002） |
 | `UniagentDshBindingsYaml.cs` | DSH 绑定 loader（`.dsh/product/uniagent-prod-bindings.yaml`；PRF-002 接替 UniagentProdYaml 的绑定半部，产品半部在 `../UniClaw.Agent/Profile/`） |

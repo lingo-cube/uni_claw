@@ -22,7 +22,8 @@ internal sealed record HumanGroundTruthElement(
     string GroundTruthId,
     string Role,
     string SemanticDescriptor,
-    NormalizedRegion Bounds);
+    NormalizedRegion Bounds,
+    string? State = null);
 
 internal sealed record HumanGroundTruthSet(
     string CaptureId,
@@ -90,6 +91,9 @@ internal enum WorldDivergenceKind
     WrongParent,
     FrameMismatch,
     OutOfCoverage,
+    BoundsMismatch,
+    WrongState,
+    Unexpected,
 }
 
 internal sealed record WorldDivergence(
@@ -271,23 +275,42 @@ internal sealed class WorldReconstruction
                     "duplicate");
         }
 
-        var actualKeys = occurrences
-            .Select(item => SemanticKey(item.Role, item.SemanticDescriptor))
-            .ToHashSet(StringComparer.Ordinal);
+        // Multiset matching: one actual occurrence cannot satisfy two identical
+        // labels. GT is rounded to six decimal places; no pixel-size tolerance.
+        var remaining = occurrences.ToList();
         for (var index = 0; index < expected.Count; index++)
         {
-            var key = SemanticKey(expected[index].Role, expected[index].SemanticDescriptor);
-            if (!actualKeys.Contains(key))
+            var item = expected[index];
+            var key = SemanticKey(item.Role, item.SemanticDescriptor);
+            var match = remaining.Where(o => SemanticKey(o.Role, o.SemanticDescriptor) == key)
+                .OrderBy(o => BoundsError(o.Locator!, item.Bounds))
+                .ThenBy(o => o.State == item.State ? 0 : 1)
+                .ThenBy(o => o.OccurrenceId, StringComparer.Ordinal).FirstOrDefault();
+            if (match is null)
                 return new WorldDivergence(
                     WorldDivergenceKind.Missing,
                     index,
                     key,
                     "present",
                     "missing");
+            if (BoundsError(match.Locator!, item.Bounds) > .000001)
+                return new WorldDivergence(WorldDivergenceKind.BoundsMismatch, index, key,
+                    item.Bounds.ToString(), match.Locator!.ToString());
+            if (match.State != item.State)
+                return new WorldDivergence(WorldDivergenceKind.WrongState, index, key,
+                    item.State ?? "<unknown>", match.State ?? "<unknown>");
+            remaining.Remove(match);
         }
 
+        if (remaining.Count > 0)
+            return new WorldDivergence(WorldDivergenceKind.Unexpected, expected.Count,
+                SemanticKey(remaining[0].Role, remaining[0].SemanticDescriptor), "absent", "present");
         return null;
     }
+
+    private static double BoundsError(SpatialLocator actual, NormalizedRegion expected) =>
+        new[] { Math.Abs(actual.X1 - expected.X1), Math.Abs(actual.Y1 - expected.Y1),
+            Math.Abs(actual.X2 - expected.X2), Math.Abs(actual.Y2 - expected.Y2) }.Max();
 
     private static string SemanticKey(string role, string? descriptor) =>
         $"{role}|{descriptor ?? "<missing-descriptor>"}";

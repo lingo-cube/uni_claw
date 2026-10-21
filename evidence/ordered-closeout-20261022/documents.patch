@@ -1,0 +1,204 @@
+--- a/changes/ARCH-DOC-024/state.md
++++ b/changes/ARCH-DOC-024/state.md
+@@ -1,5 +1,5 @@
+ # ARCH-DOC-024 — 组件分级与工程化管理审查及 P0/P1/P2 优化建议
+-lifecycle_state: persisted · disposition: none · depth: standard · base: working-tree
++lifecycle_state: implemented · disposition: none · depth: standard · base: working-tree
+ 
+ ## Intent（WHAT/WHY）
+ 
+@@ -13,7 +13,7 @@
+ ## Decisions
+ 
+ - 依现行产品架构基线、协议基线、仓库职责基线和 CONTEXT.md 读取，不创建第二套组件拓扑。
+-- 本 Change 只持久化分析，不进入 IMPLEMENT。
++- 本 Change 只持久化分析，不实施产品优化；2026-10-22文档收口沿文档自身的Review/Verify推进。
+ - 场景 28/28 与 Kernel 测试只证明已覆盖范围，不证明真机、跨进程或完整产品生命周期。
+ - 保留工作树已有未提交改动。
+ 
+@@ -21,9 +21,9 @@
+ 
+ 1. 分析文档列出组件分级、职责/authority、工程化管理现状和证据边界。
+ 2. 文档给出可执行、可验收的 P0/P1/P2 建议。
+-3. 当前现场验证命令与结果准确记录。
++3. 验证命令与结果按执行日期准确记录；本轮文档核验与历史整合测试分开，不冒充全套重跑。
+ 4. 未修改产品代码、测试、场景和协议状态机。
+-5. changes/INDEX.md 保持本 Change 为 persisted。
++5. 分析报告保持Authority NONE，审查交付与后续实现分账；本轮核对证据后允许按文档范围收口并再生INDEX。（2026-10-22 Owner授权有序推进，替代早期“保持persisted”的挂账要求；不授权将建议虚构为已实施。）
+ 
+ ## Constraints
+ 
+@@ -31,16 +31,26 @@
+ - 不将代码存在或测试通过单独解释为协议 verified。
+ - 不清理、重置或覆盖其他未提交文件。
+ 
+-## Verification
++## Verification（历史记录：2026-10-12，非本轮重跑）
+ 
+ verification:
+   level: CONTRACT
+   method: "python3 tools/scenario_certify.py --check; python3 tools/scenario-coverage.py --run; python3 tools/gen-protocol-machine.py --check; git status --short --branch"
+   expected: "认证无违规、覆盖 28/28、协议生成检查通过、既有未提交改动仍保留"
+   actual: "认证 PASS（28 files, 0 violations）；覆盖 PASS（28/28，20 golden + 8 descriptive）；协议检查 PASS（5 machines, 28 transitions, 44 edges）；工作树既有未提交文件保留"
+-  evidence: "docs/analysis/uniclaw-lifecycle-completeness-and-optimization-2026-10-12.md"
++  evidence: "docs/analysis/uniclaw-component-engineering-closeout-2026-10-22.md；evidence/ordered-closeout-20261022/"
+ 
+ ## Status log
+ 
+ - 2026-10-12 · UNDERSTAND → PERSIST · 完成只读组件分级与工程化管理审查，形成 P0/P1/P2 优化建议；未改产品代码，保留工作树已有改动。
+ 
++
++- 2026-10-22 · PERSIST→UNDERSTAND→RESOLVE · 发现原证据指向ARCH-DOC-025生命周期主题；新Owner顺序推进授权下修正为独立工程化交付，保留原命令历史值，不冒充当前重跑。
++- 2026-10-22 · RESOLVE→PERSIST→PLAN→IMPLEMENT · 组件分级、Authority/替换边界、P0/P1/P2建议及已实施/候选分开；恢复独立报告/索引，等待独立Review与文档核验。
++
++## 2026-10-22 Verification
++level: CONTRACT
++method: 当前文档元数据4项、文件链接/内容锚点核对、独立双轴Review及git diff --check
++expected: 原Acceptance在文档范围内可回指，历史与当前证据区分，无产品语义和代码变更
++actual: 元数据4/4；双轴Review已返回Standards两项记录一致性问题，修正待补审；链接/内容检查待归档
++evidence: evidence/ordered-closeout-20261022/documents-metadata.trx；documents.patch；document-candidate-hashes.json
+--- a/changes/ARCH-DOC-025/state.md
++++ b/changes/ARCH-DOC-025/state.md
+@@ -1,5 +1,5 @@
+ # ARCH-DOC-025 — 组件、协议与生命周期完备性审查
+-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: working-tree
++lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: working-tree
+ 
+ ## Intent（WHAT/WHY）
+ 
+@@ -31,7 +31,7 @@
+ 4. 明确 Safety、Consistency、Authority closure、Liveness、Reachability、Epistemic soundness、Terminal completeness 的分别判定。
+ 5. 不将未实现建议写成已验证事实。
+ 
+-## Verification
++## Verification（历史记录：2026-10-13至2026-10-14，非本轮重跑）
+ 
+ ```yaml
+ verification:
+@@ -46,3 +46,29 @@
+ 
+ - 2026-10-13 · UNDERSTAND → PERSIST · 根据用户反馈纠正文档主题；以场景推理和协议形式审计为主证据重写；新增独立 Change，避免与组件工程化审查 Change 混淆。
+ - 2026-10-14 · REVIEW · 按“最小购买者闭包”重新复核：区分当前 buyer、Owner 已裁决但尚无 consumer 的候选扩展、以及明确 no-current-buyer 的 deferred 边；结论收窄为身份链/P24/P25 仍阻塞，P1 authoring 作为 known deviation，P5/P20/P21 等不再计入当前失败分母。
++
++
++## 2026-10-22收口补充
++- 历史快照与当前验收严格分开：150场景/47不变量及数学七性质是原审查的论证材料，不是今天重跑150个可执行场景。
++- 原2026-10-14日志“身份/P24/P25仍阻塞”已被同日LIFECYCLE-CLOSURE-001及buyer复核第六节修正；保留原日志但不再作为最终结论。
++- 最终分析链：10月13日语义审查→10月14日字段公理→10月14日buyer复核第六节；三份均Authority NONE，不给分析文档规范权威。
++- 此次仅按原审查Acceptance验收文档，不代替未完成产品功能；前置/后续功能按各Change独立推进。
++
++## Assumptions / Alternatives
++原题是审查，不是承诺实现所有缺口。选择保留历史正文并标记替代关系；拒绝重写旧日期为今天全通过，拒绝将无buyer扩展制造为当前必做实现。
++
++## Owner-Authority impact / ADR refs
++无Owner、协议或ADR变更；引用既有产品/协议基线及ADR-0045/0046作为当轮字段依据。分析仍无规范权威。
++
++## Residual risks
++历史数学Safety/Consistency等结论是给定模型与样本中的结构判断，不是无边界正确性证明；无条件活性、跨Host恢复和未实施建议不能因文档Change关闭而标完成。
++
++- 2026-10-22 · PERSIST→UNDERSTAND→RESOLVE · 复核发现原日志与后续buyer结论不一致；按审查时点和最终复核明确替代关系。
++- 2026-10-22 · RESOLVE→PERSIST→PLAN→IMPLEMENT · 同步三报告Status/链接及索引，保留原语义和数学正文，待独立Review与文档核验后按审查范围收口。
++
++## 2026-10-22 Verification
++level: CONTRACT
++method: 当前文档元数据4项、文件链接/内容锚点核对、独立双轴Review及git diff --check
++expected: 原Acceptance在文档范围内可回指，历史与当前证据区分，无产品语义和代码变更
++actual: 元数据4/4；双轴Review已返回Standards两项记录一致性问题，修正待补审；链接/内容检查待归档
++evidence: evidence/ordered-closeout-20261022/documents-metadata.trx；documents.patch；document-candidate-hashes.json
+--- a/docs/analysis/README.md
++++ b/docs/analysis/README.md
+@@ -25,3 +25,8 @@
+ | `uniclaw-architecture-protocol-overall-review-2026-10-11.md` | UniClaw 产品架构、层级轴、概念、Owner/Authority、P1–P26 与外围 O1–O12 协议审阅底稿 | REVIEW_IN_PROGRESS / ARCHITECTURE_AND_PROTOCOL_DIRECTION_ACCEPTED |
+ | `uniclaw-module-boundary-design-review-2026-10-21.md` | 模块职责与边界审查：逐组件检查、3 个 P1 与 4 个 P2、隔离复验证据 | COMPLETE / READ_ONLY_REVIEW |
+ | `uniclaw-directory-organization-review-2026-10-21.md` | 组件目录组织审查：导航、物理归属、产物分离、索引和候选整理顺序 | COMPLETE / READ_ONLY_REVIEW |
++
++| `uniclaw-component-engineering-closeout-2026-10-22.md` | ARCH-DOC-024独立组件分级、工程化P0/P1/P2清单及已实施/剩余范围 | COMPLETE / EVIDENCE-BOUNDED |
++| `uniclaw-lifecycle-completeness-and-optimization-2026-10-12.md` | ARCH-DOC-025历史生命周期、150场景、数学/哲学审查；后续字段复核见下一项 | COMPLETE / SUPERSEDED-HISTORICAL |
++| `uniclaw-completeness-check-2026-10-14.md` | 字段链与最小buyer历史复核，第六节修正身份/P24/P25旧阻塞 | COMPLETE / BUYER-SCOPED-HISTORICAL |
++| `uniclaw-mathematical-axioms-philosophical-derivation-2026-10-14.md` | 字段公理和哲学推导历史前提，实例判定受同日buyer复核修正 | COMPLETE / HISTORICAL-PREMISES |
+--- a/docs/analysis/uniclaw-lifecycle-completeness-and-optimization-2026-10-12.md
++++ b/docs/analysis/uniclaw-lifecycle-completeness-and-optimization-2026-10-12.md
+@@ -1,7 +1,9 @@
+ # UniClaw 组件、协议与生命周期完备性审查（2026-10-13）
+ 
+-> Status: superseded by the buyer-scoped 2026-10-14 completeness review
++> Status: COMPLETE / SUPERSEDED-HISTORICAL
+ > Authority: NONE
++
++本报告保留2026-10-13的历史推理快照。字段层结论由[2026-10-14最小buyer复核](uniclaw-completeness-check-2026-10-14.md)修正，尤其身份/P24/P25不再按旧文认定为当前阻塞；数学初始前提见[历史公理推导](uniclaw-mathematical-axioms-philosophical-derivation-2026-10-14.md)。2026-10-22仅核对审查交付与替代关系，不重新认证当前产品生命周期。工程化主题独立见[组件分级收口](uniclaw-component-engineering-closeout-2026-10-22.md)。
+ 
+ ## 这份审查要回答什么
+ 
+--- a/docs/analysis/uniclaw-completeness-check-2026-10-14.md
++++ b/docs/analysis/uniclaw-completeness-check-2026-10-14.md
+@@ -1,7 +1,9 @@
+ # UniClaw 字段有效性与完备性检查（2026-10-14）
+ 
+-> Status: REVIEWED / BUYER-SCOPED
++> Status: COMPLETE / BUYER-SCOPED-HISTORICAL
+ > Authority: NONE
++
++审查时点为2026-10-14；本文第六节及最终判定修正同轮前文和[10月13日报告](uniclaw-lifecycle-completeness-and-optimization-2026-10-12.md)的旧阻塞结论。`VERIFY PASS`只指当轮已声明的最小buyer验收，不是今天所有协议、真实环境或跨Host恢复的总验收。2026-10-22收口仅维护报告状态与追溯链接，后续产品事实以对应Change当前证据为准。
+ 
+ ## 检查方法
+ 
+--- a/docs/analysis/uniclaw-mathematical-axioms-philosophical-derivation-2026-10-14.md
++++ b/docs/analysis/uniclaw-mathematical-axioms-philosophical-derivation-2026-10-14.md
+@@ -1,7 +1,9 @@
+ # UniClaw 字段有效性：数学公理与哲学推导（2026-10-14）
+ 
+-> Status: REVIEWED / BUYER-SCOPED
++> Status: COMPLETE / HISTORICAL-PREMISES
+ > Authority: NONE
++
++本文保留初始字段公理及当时推导，关于P24/P25未闭合的实例前提由[同日最小buyer复核第六节](uniclaw-completeness-check-2026-10-14.md#六按最小购买者闭包重新验证2026-10-14)修正。不得将这些历史“当前推导”当作2026-10-22产品缺陷清单；不改变数学定义本身，也不外推为无条件活性或全生命周期完备证明。
+ 
+ ## 论证对象
+ 
+--- /dev/null
++++ b/docs/analysis/uniclaw-component-engineering-closeout-2026-10-22.md
+@@ -0,0 +1,44 @@
++# UniClaw 组件分级与工程化审查收口（2026-10-22）
++
++> Status: COMPLETE / EVIDENCE-BOUNDED
++> Authority: NONE
++
++## 做了什么与原来的问题
++
++ARCH-DOC-024原题是组件分级、职责边界和工程化管理，但其证据链接后来指向了生命周期审查。这里恢复独立的工程化入口，复用已完成的[模块审查](uniclaw-module-boundary-design-review-2026-10-21.md)、[目录审查](uniclaw-directory-organization-review-2026-10-21.md)及[实施结果](../../changes/ENG-OPT-001/report.md)，不把生命周期论文当成组件管理交付，也不重复定义架构。
++
++## 自顶向下的分级与管理边界
++
++| 层/管理面 | 职责与Owner | 实现/管理入口 | 边界与可替换性 |
++|---|---|---|---|
++| Product T0 | UniClaw与User/Host/Device环境的系统边界 | [产品基线](../architecture/product-architecture-baseline-l0-l3.md) | Host/Device接入不成为产品事实总Owner |
++| Product T1：UniAgent | Goal、Contract authoring、Goal Evaluation | [Agent归属](../../src/UniClaw.Agent/README.md) | Host仍代造部分Contract，是已登记偏差；模型绑定留Adapter |
++| Product T1：Uni Kernel | 生命周期协调及六责任域组合 | [Kernel归属](../../src/UniClaw.Kernel/README.md) | 编排只提供事实/期望/顺序，不接管所有canonical状态 |
++| Product T1：Capability Plane / Memory | 能力协议与注册、记忆的声明边界 | Kernel README及产品基线 | 逻辑peer不强制独立程序集；Memory无真实buyer时保持占位 |
++| Product T2：Ledger / World / Run | Evidence接纳、Belief演化、Run及终态记录 | Kernel README内组件表及对应目录 | 接纳拥有快照、历史不可外部写；producer可替换而不取得canonical写权 |
++| Product T2：Control / Assurance / Effect | Intent、Judgment/Proof、Binding及现实投递 | Kernel README及组件协议 | Control提案、Assurance判断、Effect执法；driver注入不改核心Authority |
++| Product T3 / Host realization | 协议实现、观察接线、驱动和DSH传输 | [Host](../../src/UniClaw.Host/README.md)、[Host.Dsh](../../src/UniClaw.Host.Dsh/README.md)、[程序集地图](../../src/README.md) | 具体实现可替换；HTTP接入与任务启动仍有局部设计债 |
++| Workspace / Provider / Harness / 验证面 | 只读投影、外部供货、开发流程、测试及证据 | [仓库导航](../../README.md)、[测试](../../tests/README.md)、[工具](../../tools/README.md)、[schema](../../schemas/README.md) | Harness不进入产品运行时；Receipt/模型输出/投影不冒充现实已验证效果 |
++
++六个产品程序集的依赖方向、每个组件的逐项判断及定位证据保留在10月21日模块审查，不因本文件收口而把“基本清晰”升级为“完整实现”。
++
++## P0/P1/P2执行清单
++
++这里的优先级是工程推进次序；原缺陷严重度仍以模块审查中的3个P1、4个P2为准，没有新增已证实的P0产品缺陷。
++
++| 次序 | 原问题→本次处置 | 可判定验收 | 当前结论 |
++|---|---|---|---|
++| P0：保护现场与稳定基线 | 大量并行dirty及过期断言→等待World停止写入、保存快照、仅整合局部patch | 指纹/允许重叠清单可回指，测试失败逐项归因，旧资料不丢失 | ENG-OPT-001完成；不代表当前其他活动会话已停止 |
++| P1：canonical所有权 | Run/Ledger输入别名、World读取逃逸→admission快照和只读live view | 修改原输入不改canonical，公开读取不可回写，比较器保持；RED→GREEN | 完成8条公开回归 |
++| P1：判断职责 | Kernel直接定案typed效果→同一Assurance Owner按最小事实定案 | checked/Partial/Unknown、时序和缺dispatch原路径保持，Kernel不构造成功结论 | 完成，相关66项通过 |
++| P2：Coverage内聚 | 提示文字反推动作→Kind/Target/Text显式传递，同一Ledger partial归拢 | 两个特殊合法标签不误判，步骤JSON保留kind/target，旧入口集中兼容 | 完成2条反例与77项相关验证；旧text-only兼容不升级为强语义校验 |
++| P2：导航与测试归属 | 缺总入口、DSH消费测试错放Simulation→导航与单向fixture复用 | 本轮导航97个局部链接0失效、测试发现总量不减 | 完成 |
++| P2：大状态簇及目录 | Driver/HTTP职责集中、历史路径/命名与文档索引债 | 单独范围，保持行为/测试发现/旧证据可解析，不以拆类数量验收 | 后续候选；历史164份资料原路径/字节受保护 |
++
++## 验证结果与限制
++
++本轮文档收口只运行文档元数据、链接/引用及差异格式核验，四元组落在[evidence](../../evidence/ordered-closeout-20261022/)。最近一次完整.NET整合是ENG-OPT-001：8项目2024/2024、场景28/28（20认证+8描述），见[原始结果](../../evidence/eng-opt-001/verification.json)。3个真实模型opt-in未执行内部调用，不计真实模型验收；此处不重命名为今天重新运行全套。场景/单测不能证明完整产品生命周期。
++
++## 新发现与下一步
++
++当前未关闭的功能、环境和布局任务仍按[Change索引](../../changes/INDEX.md)推进。先补真实传输、停滞干预、完整覆盖和工作台集成证据；Driver/HTTP大调整、目录物理迁移与Host authoring跟真实需求单独实施。本报告完成的是ARCH-DOC-024的只读审查交付与工程入口纠偏，未把建议全部当作已实现。

@@ -40,6 +40,8 @@ public sealed class SourceReadmeOwnershipTests
         ("src/UniClaw.Agent.Dsh", "src/UniClaw.Agent.Dsh/README.md"),
         ("src/UniClaw.Host", "src/UniClaw.Host/README.md"),
         ("src/UniClaw.Host/Capability", "src/UniClaw.Host/README.md"),
+        // JEV-SEMANTIC-CAP-001: provider-specific semantic transport stays in the Host adapter plane.
+        ("src/UniClaw.Host/Perception", "src/UniClaw.Host/README.md"),
         ("src/UniClaw.Host/Runtime", "src/UniClaw.Host/README.md"),
         ("src/UniClaw.Host/SettingsCoverage", "src/UniClaw.Host/README.md"),
         ("src/UniClaw.Host.Dsh", "src/UniClaw.Host.Dsh/README.md"),

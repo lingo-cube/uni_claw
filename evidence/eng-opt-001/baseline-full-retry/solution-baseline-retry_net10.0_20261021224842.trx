@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="0b3c6f98-70e0-426e-b185-c39b9dc9858f" name="@frandeMac-mini 2026-10-21 22:48:41" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T22:48:41.8613600+08:00" queuing="2026-10-21T22:48:41.8613600+08:00" start="2026-10-21T22:48:39.8870200+08:00" finish="2026-10-21T22:48:41.8898710+08:00" />
+  <TestSettings name="default" id="00b78071-cc89-4cbb-b5c4-269ff51354e0">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-21_22_48_41" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="5e69a973-cbc8-417b-9b69-c6592892df9f" testId="02c04a0e-51d4-22f8-18ca-51a6bb685cad" testName="UniClaw.Core.Tests.PhoneScrollTracerTests.Binding_basis_slice_is_optional_when_a_fixed_non_slice_basis_is_used" computerName="frandeMac-mini" duration="00:00:00.0035205" startTime="2026-10-21T22:48:40.7714900+08:00" endTime="2026-10-21T22:48:40.7714900+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5e69a973-cbc8-417b-9b69-c6592892df9f" />
+    <UnitTestResult executionId="60ed6a78-f155-42e8-97a6-20df07d44f1e" testId="a784f6c9-65c6-5ff4-afa6-e1182abbc618" testName="UniClaw.Core.Tests.PhoneScrollTracerTests.Binding_dispositions_remain_distinct_and_fail_closed" computerName="frandeMac-mini" duration="00:00:00.0057532" startTime="2026-10-21T22:48:41.4423770+08:00" endTime="2026-10-21T22:48:41.4423770+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="60ed6a78-f155-42e8-97a6-20df07d44f1e" />
+    <UnitTestResult executionId="1381c473-bc01-4fbd-a14a-d9b758b086c2" testId="dbc9c2f3-5e02-ed13-efd4-cd92b36e7143" testName="UniClaw.Core.Tests.CoreObjectRelationTests.Clause_covers_four_kinds_and_observation_never_creates_authorization" computerName="frandeMac-mini" duration="00:00:00.0052373" startTime="2026-10-21T22:48:41.4423680+08:00" endTime="2026-10-21T22:48:41.4423680+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1381c473-bc01-4fbd-a14a-d9b758b086c2" />
+    <UnitTestResult executionId="98f3ba83-a1b2-4b00-9517-b50b610249ee" testId="b5dce9ce-dada-31ff-44df-e6f089a6524e" testName="UniClaw.Core.Tests.PhoneScrollTracerTests.Canonical_binding_without_fixed_basis_fails_closed" computerName="frandeMac-mini" duration="00:00:00.0001134" startTime="2026-10-21T22:48:40.7729340+08:00" endTime="2026-10-21T22:48:40.7729340+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="98f3ba83-a1b2-4b00-9517-b50b610249ee" />
+    <UnitTestResult executionId="4da2be78-b4e5-48e3-a414-2e69272a04ed" testId="67a8f738-43c7-6923-c126-9ff230dd4387" testName="UniClaw.Core.Tests.CoreObjectRelationTests.Relation_chain_tracer_covers_specification_world_effect_and_post_action_evidence" computerName="frandeMac-mini" duration="00:00:00.6441692" startTime="2026-10-21T22:48:41.4130140+08:00" endTime="2026-10-21T22:48:41.4130140+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4da2be78-b4e5-48e3-a414-2e69272a04ed" />
+    <UnitTestResult executionId="8b3936ff-facf-4700-a193-e1c551ca38c9" testId="ba19c4bb-9d7a-7d15-b96f-db2f5f9f49a9" testName="UniClaw.Core.Tests.PhoneScrollTracerTests.Scroll_creates_overlapping_slices_without_rewriting_history_and_binding_stays_fixed" computerName="frandeMac-mini" duration="00:00:00.5766118" startTime="2026-10-21T22:48:41.3462170+08:00" endTime="2026-10-21T22:48:41.3462170+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8b3936ff-facf-4700-a193-e1c551ca38c9" />
+    <UnitTestResult executionId="c79bcbf7-80a7-48d5-b098-fa8df2089ea7" testId="4b197175-d452-2e4c-22f2-6bbf78f890c1" testName="UniClaw.Core.Tests.PhoneScrollTracerTests.Unknown_delivery_does_not_become_world_result_or_dispatch_permission" computerName="frandeMac-mini" duration="00:00:00.0083573" startTime="2026-10-21T22:48:41.4422690+08:00" endTime="2026-10-21T22:48:41.4422690+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c79bcbf7-80a7-48d5-b098-fa8df2089ea7" />
+    <UnitTestResult executionId="43ab3e88-1cd9-48ff-8657-c35b015fd48a" testId="7d955de9-0d62-ee38-ed61-663b76b08717" testName="UniClaw.Core.Tests.CoreObjectRelationTests.Update_then_use_and_use_then_update_preserve_the_same_distinctions" computerName="frandeMac-mini" duration="00:00:00.0077186" startTime="2026-10-21T22:48:41.4423410+08:00" endTime="2026-10-21T22:48:41.4423410+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="43ab3e88-1cd9-48ff-8657-c35b015fd48a" />
+    <UnitTestResult executionId="a46f6cb6-99b9-495d-9543-b8af6051fb6b" testId="928d4fd8-d412-e754-796a-feb3f6577243" testName="UniClaw.Core.Tests.CoreObjectRelationTests.FixedBasisReference_without_slice_is_dispatchable_and_never_poses_as_slice" computerName="frandeMac-mini" duration="00:00:00.0038045" startTime="2026-10-21T22:48:40.7694000+08:00" endTime="2026-10-21T22:48:40.7694180+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a46f6cb6-99b9-495d-9543-b8af6051fb6b" />
+    <UnitTestResult executionId="8f1a1259-313c-47fd-9185-30843a6531dc" testId="69616015-33ed-7d74-0bc1-026245cc6a32" testName="UniClaw.Core.Tests.CoreObjectRelationTests.Core_assembly_stands_alone_with_domain_neutral_record_surface" computerName="frandeMac-mini" duration="00:00:00.0010929" startTime="2026-10-21T22:48:41.4141450+08:00" endTime="2026-10-21T22:48:41.4141450+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8f1a1259-313c-47fd-9185-30843a6531dc" />
+    <UnitTestResult executionId="c55c56c3-a258-43d0-8e99-9f6dd88e1f0f" testId="cd48bd0e-f1dd-3cea-d9bc-52711dc39f96" testName="UniClaw.Core.Tests.PhoneScrollTracerTests.Attempt_keeps_request_executor_authorization_and_three_execution_dimensions_separate" computerName="frandeMac-mini" duration="00:00:00.0714184" startTime="2026-10-21T22:48:41.4177510+08:00" endTime="2026-10-21T22:48:41.4177530+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c55c56c3-a258-43d0-8e99-9f6dd88e1f0f" />
+    <UnitTestResult executionId="5c336ea2-bd54-438d-bc03-4cf8f3c49597" testId="a9f74387-0204-864e-2089-64bf87d4ae81" testName="UniClaw.Core.Tests.PhoneScrollTracerTests.Event_semantics_can_be_composed_from_evidence_and_claim_without_new_authority" computerName="frandeMac-mini" duration="00:00:00.0004796" startTime="2026-10-21T22:48:41.4498310+08:00" endTime="2026-10-21T22:48:41.4498310+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5c336ea2-bd54-438d-bc03-4cf8f3c49597" />
+    <UnitTestResult executionId="72c686a3-abfa-491b-b17d-8817dd43e2e5" testId="771534e1-3a9a-f71e-d1da-fb53f123ce0e" testName="UniClaw.Core.Tests.PhoneScrollTracerTests.Permission_is_explicit_clause_and_is_not_derived_from_observation" computerName="frandeMac-mini" duration="00:00:00.0169846" startTime="2026-10-21T22:48:41.4492170+08:00" endTime="2026-10-21T22:48:41.4492170+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="72c686a3-abfa-491b-b17d-8817dd43e2e5" />
+    <UnitTestResult executionId="503731d9-bb9a-444c-8149-8838297ae2f0" testId="a22699b6-8269-2aa1-a6ef-19062a68bb14" testName="UniClaw.Core.Tests.CoreObjectRelationTests.Event_occurrence_semantics_remain_expressible_composite_without_independent_type" computerName="frandeMac-mini" duration="00:00:00.0042408" startTime="2026-10-21T22:48:41.4185930+08:00" endTime="2026-10-21T22:48:41.4185930+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="503731d9-bb9a-444c-8149-8838297ae2f0" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Core.Tests.CoreObjectRelationTests.FixedBasisReference_without_slice_is_dispatchable_and_never_poses_as_slice" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="928d4fd8-d412-e754-796a-feb3f6577243">
+      <Execution id="a46f6cb6-99b9-495d-9543-b8af6051fb6b" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.CoreObjectRelationTests" name="FixedBasisReference_without_slice_is_dispatchable_and_never_poses_as_slice" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.CoreObjectRelationTests.Update_then_use_and_use_then_update_preserve_the_same_distinctions" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="7d955de9-0d62-ee38-ed61-663b76b08717">
+      <Execution id="43ab3e88-1cd9-48ff-8657-c35b015fd48a" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.CoreObjectRelationTests" name="Update_then_use_and_use_then_update_preserve_the_same_distinctions" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.CoreObjectRelationTests.Core_assembly_stands_alone_with_domain_neutral_record_surface" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="69616015-33ed-7d74-0bc1-026245cc6a32">
+      <Execution id="8f1a1259-313c-47fd-9185-30843a6531dc" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.CoreObjectRelationTests" name="Core_assembly_stands_alone_with_domain_neutral_record_surface" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.CoreObjectRelationTests.Event_occurrence_semantics_remain_expressible_composite_without_independent_type" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="a22699b6-8269-2aa1-a6ef-19062a68bb14">
+      <Execution id="503731d9-bb9a-444c-8149-8838297ae2f0" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.CoreObjectRelationTests" name="Event_occurrence_semantics_remain_expressible_composite_without_independent_type" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.PhoneScrollTracerTests.Permission_is_explicit_clause_and_is_not_derived_from_observation" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="771534e1-3a9a-f71e-d1da-fb53f123ce0e">
+      <Execution id="72c686a3-abfa-491b-b17d-8817dd43e2e5" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.PhoneScrollTracerTests" name="Permission_is_explicit_clause_and_is_not_derived_from_observation" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.PhoneScrollTracerTests.Event_semantics_can_be_composed_from_evidence_and_claim_without_new_authority" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="a9f74387-0204-864e-2089-64bf87d4ae81">
+      <Execution id="5c336ea2-bd54-438d-bc03-4cf8f3c49597" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.PhoneScrollTracerTests" name="Event_semantics_can_be_composed_from_evidence_and_claim_without_new_authority" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.PhoneScrollTracerTests.Canonical_binding_without_fixed_basis_fails_closed" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="b5dce9ce-dada-31ff-44df-e6f089a6524e">
+      <Execution id="98f3ba83-a1b2-4b00-9517-b50b610249ee" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.PhoneScrollTracerTests" name="Canonical_binding_without_fixed_basis_fails_closed" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.PhoneScrollTracerTests.Scroll_creates_overlapping_slices_without_rewriting_history_and_binding_stays_fixed" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="ba19c4bb-9d7a-7d15-b96f-db2f5f9f49a9">
+      <Execution id="8b3936ff-facf-4700-a193-e1c551ca38c9" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.PhoneScrollTracerTests" name="Scroll_creates_overlapping_slices_without_rewriting_history_and_binding_stays_fixed" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.CoreObjectRelationTests.Relation_chain_tracer_covers_specification_world_effect_and_post_action_evidence" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="67a8f738-43c7-6923-c126-9ff230dd4387">
+      <Execution id="4da2be78-b4e5-48e3-a414-2e69272a04ed" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.CoreObjectRelationTests" name="Relation_chain_tracer_covers_specification_world_effect_and_post_action_evidence" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.PhoneScrollTracerTests.Binding_dispositions_remain_distinct_and_fail_closed" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="a784f6c9-65c6-5ff4-afa6-e1182abbc618">
+      <Execution id="60ed6a78-f155-42e8-97a6-20df07d44f1e" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.PhoneScrollTracerTests" name="Binding_dispositions_remain_distinct_and_fail_closed" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.PhoneScrollTracerTests.Attempt_keeps_request_executor_authorization_and_three_execution_dimensions_separate" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="cd48bd0e-f1dd-3cea-d9bc-52711dc39f96">
+      <Execution id="c55c56c3-a258-43d0-8e99-9f6dd88e1f0f" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.PhoneScrollTracerTests" name="Attempt_keeps_request_executor_authorization_and_three_execution_dimensions_separate" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.PhoneScrollTracerTests.Binding_basis_slice_is_optional_when_a_fixed_non_slice_basis_is_used" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="02c04a0e-51d4-22f8-18ca-51a6bb685cad">
+      <Execution id="5e69a973-cbc8-417b-9b69-c6592892df9f" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.PhoneScrollTracerTests" name="Binding_basis_slice_is_optional_when_a_fixed_non_slice_basis_is_used" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.PhoneScrollTracerTests.Unknown_delivery_does_not_become_world_result_or_dispatch_permission" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="4b197175-d452-2e4c-22f2-6bbf78f890c1">
+      <Execution id="c79bcbf7-80a7-48d5-b098-fa8df2089ea7" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.PhoneScrollTracerTests" name="Unknown_delivery_does_not_become_world_result_or_dispatch_permission" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Core.Tests.CoreObjectRelationTests.Clause_covers_four_kinds_and_observation_never_creates_authorization" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.core.tests/bin/debug/net10.0/uniclaw.core.tests.dll" id="dbc9c2f3-5e02-ed13-efd4-cd92b36e7143">
+      <Execution id="1381c473-bc01-4fbd-a14a-d9b758b086c2" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Core.Tests.CoreObjectRelationTests" name="Clause_covers_four_kinds_and_observation_never_creates_authorization" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="02c04a0e-51d4-22f8-18ca-51a6bb685cad" executionId="5e69a973-cbc8-417b-9b69-c6592892df9f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a784f6c9-65c6-5ff4-afa6-e1182abbc618" executionId="60ed6a78-f155-42e8-97a6-20df07d44f1e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dbc9c2f3-5e02-ed13-efd4-cd92b36e7143" executionId="1381c473-bc01-4fbd-a14a-d9b758b086c2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b5dce9ce-dada-31ff-44df-e6f089a6524e" executionId="98f3ba83-a1b2-4b00-9517-b50b610249ee" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="67a8f738-43c7-6923-c126-9ff230dd4387" executionId="4da2be78-b4e5-48e3-a414-2e69272a04ed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ba19c4bb-9d7a-7d15-b96f-db2f5f9f49a9" executionId="8b3936ff-facf-4700-a193-e1c551ca38c9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4b197175-d452-2e4c-22f2-6bbf78f890c1" executionId="c79bcbf7-80a7-48d5-b098-fa8df2089ea7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7d955de9-0d62-ee38-ed61-663b76b08717" executionId="43ab3e88-1cd9-48ff-8657-c35b015fd48a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="928d4fd8-d412-e754-796a-feb3f6577243" executionId="a46f6cb6-99b9-495d-9543-b8af6051fb6b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="69616015-33ed-7d74-0bc1-026245cc6a32" executionId="8f1a1259-313c-47fd-9185-30843a6531dc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cd48bd0e-f1dd-3cea-d9bc-52711dc39f96" executionId="c55c56c3-a258-43d0-8e99-9f6dd88e1f0f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a9f74387-0204-864e-2089-64bf87d4ae81" executionId="5c336ea2-bd54-438d-bc03-4cf8f3c49597" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="771534e1-3a9a-f71e-d1da-fb53f123ce0e" executionId="72c686a3-abfa-491b-b17d-8817dd43e2e5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a22699b6-8269-2aa1-a6ef-19062a68bb14" executionId="503731d9-bb9a-444c-8149-8838297ae2f0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="14" executed="14" passed="14" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.04]   Discovering: UniClaw.Core.Tests
+[xUnit.net 00:00:00.14]   Discovered:  UniClaw.Core.Tests
+[xUnit.net 00:00:00.17]   Starting:    UniClaw.Core.Tests
+[xUnit.net 00:00:00.90]   Finished:    UniClaw.Core.Tests
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

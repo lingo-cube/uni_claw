@@ -51,7 +51,7 @@ public sealed record ArtifactObservation(string Subject, string Value);
 /// WorldModel 或 ContainerIdentity authority。实现必须确定性（同 artifact
 /// 同 observations）。
 /// </summary>
-public interface IFastPerceptionStrategy
+internal interface IFastPerceptionStrategy
 {
     IReadOnlyList<ArtifactObservation> Observe(RawArtifact artifact);
 }
@@ -65,7 +65,7 @@ public interface IFastPerceptionStrategy
 /// 随机值、对象引用、时间源（确定性 replay 纪律）。未实现本接口的
 /// strategy 不参与缓存（fail-safe：行为与无缓存完全一致）。
 /// </summary>
-public interface IVersionedFastPerceptionStrategy : IFastPerceptionStrategy
+internal interface IVersionedFastPerceptionStrategy : IFastPerceptionStrategy
 {
     string StrategyIdentity { get; }
     string StrategyVersion { get; }
@@ -93,7 +93,19 @@ public sealed class FastPerception
     private readonly IVersionedFastPerceptionStrategy? _versioned;
 
     /// <param name="producer">ProducerIdentity（入 provenance，如 "perception.fast"）。</param>
-    public FastPerception(string producer, IFastPerceptionStrategy strategy)
+    public FastPerception(string producer, LiveVisionStrategy strategy)
+        : this(producer, (IFastPerceptionStrategy)strategy, trace: null, metrics: null)
+    {
+    }
+
+    /// <summary>Live entry preserves trace/metrics/cache composition without exposing the internal strategy protocol.</summary>
+    public FastPerception(string producer, LiveVisionStrategy strategy, IRunTrace? trace,
+        RuntimeStageMetrics? metrics, int? cacheCapacity = null)
+        : this(producer, (IFastPerceptionStrategy)strategy, trace, metrics, cacheCapacity)
+    {
+    }
+
+    internal FastPerception(string producer, IFastPerceptionStrategy strategy)
         : this(producer, strategy, trace: null, metrics: null)
     {
     }
@@ -102,7 +114,7 @@ public sealed class FastPerception
     /// FCR-001：cacheCapacity 非 null 且 strategy 实现 IVersionedFastPerceptionStrategy
     /// 时启用有界确定性计算复用（缓存 = 本实例内部实现细节；strategy 未实现
     /// version seam ⇒ 缓存自动禁用，行为与无缓存一致）。</summary>
-    public FastPerception(
+    internal FastPerception(
         string producer, IFastPerceptionStrategy strategy, IRunTrace? trace, RuntimeStageMetrics? metrics,
         int? cacheCapacity = null)
     {

@@ -40,6 +40,7 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
     private readonly bool _ownsHttp;
     private readonly JsonSerializerOptions _json = ProductProtocolJson.CreateOptions();
     private readonly ModelConfiguration? _model;
+    private readonly ArtifactFingerprint _expectedArtifacts;
     private string? _dshSessionId;
     private bool _disposed;
 
@@ -48,12 +49,15 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
         DshWebCredential? credential = null,
         HttpMessageHandler? handler = null,
         ModelConfiguration? model = null,
-        TimeSpan? requestTimeout = null)
+        TimeSpan? requestTimeout = null,
+        UniAgentProfile? expectedProfile = null)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
         endpoint.Validate();
         _credential = credential ?? DshWebCredential.Mint(endpoint);
         _model = model;
+        var profile = expectedProfile ?? UniAgentProfileYaml.LoadDefault();
+        _expectedArtifacts = CreateArtifactFingerprint(profile);
         _ownsHttp = handler is null;
         _http = handler is null
             ? new HttpClient { Timeout = requestTimeout ?? TimeSpan.FromSeconds(90) }
@@ -82,6 +86,7 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
                 capabilityManifestHash = request.Protocol.CapabilityManifestHash,
             },
             expectedCapabilities = new { capabilities = request.ExpectedCapabilities.NormalizedCapabilities },
+            expectedArtifacts = _expectedArtifacts,
             productSessionId = request.ProductSessionId,
             productRunId = request.ProductRunId,
         };
@@ -114,10 +119,64 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
             ReadOptionalStrings(document.RootElement, "runtimeCapabilities"),
             document.RootElement.TryGetProperty("runtimePreset", out var preset)
                 ? preset.GetString()
-                : null);
+                : null,
+            ReadArtifacts(root));
+        if (response.Accepted && !ArtifactsMatch(_expectedArtifacts, response.ReportedArtifacts))
+            response = response with
+            {
+                Accepted = false,
+                DshSessionId = null,
+                FailureReason = "artifact-fingerprint-mismatch",
+            };
         _dshSessionId = response.Accepted ? response.DshSessionId : null;
         return response;
     }
+
+    private static ArtifactFingerprint CreateArtifactFingerprint(UniAgentProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        var promptHash = profile.Assembly?.PromptManifest?.Hash;
+        var skills = profile.AllowedSkillRefs ?? Array.Empty<SkillReference>();
+        if (string.IsNullOrWhiteSpace(promptHash) || promptHash.Length != 64
+            || !promptHash.All(Uri.IsHexDigit))
+            throw new InvalidOperationException("profile-prompt-artifact-pin-missing-or-invalid");
+        if (skills.Count != 1)
+            throw new InvalidOperationException("profile-primary-skill-pin-count-must-be-one");
+        var skill = skills[0];
+        if (string.IsNullOrWhiteSpace(skill.Name) || skill.Revision < 1
+            || skill.Sha256.Length != 64 || !skill.Sha256.All(Uri.IsHexDigit))
+            throw new InvalidOperationException("profile-primary-skill-pin-invalid");
+        return new ArtifactFingerprint(
+            promptHash.ToLowerInvariant(),
+            new SkillArtifactFingerprint(skill.Name, skill.Revision, skill.Sha256.ToLowerInvariant()));
+    }
+
+    private static ArtifactFingerprint? ReadArtifacts(JsonElement root)
+    {
+        if (!root.TryGetProperty("artifacts", out var artifacts)
+            || artifacts.ValueKind != JsonValueKind.Object
+            || !artifacts.TryGetProperty("promptHash", out var promptHash)
+            || promptHash.ValueKind != JsonValueKind.String
+            || !artifacts.TryGetProperty("skill", out var skill)
+            || skill.ValueKind != JsonValueKind.Object
+            || !skill.TryGetProperty("name", out var name)
+            || name.ValueKind != JsonValueKind.String
+            || !skill.TryGetProperty("revision", out var revision)
+            || revision.ValueKind != JsonValueKind.Number
+            || !revision.TryGetInt32(out var revisionValue)
+            || !skill.TryGetProperty("sha256", out var sha256)
+            || sha256.ValueKind != JsonValueKind.String)
+            return null;
+        return new ArtifactFingerprint(promptHash.GetString()!,
+            new SkillArtifactFingerprint(name.GetString()!, revisionValue, sha256.GetString()!));
+    }
+
+    private static bool ArtifactsMatch(ArtifactFingerprint expected, ArtifactFingerprint? reported) =>
+        reported is not null
+        && string.Equals(expected.PromptHash, reported.PromptHash, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(expected.Skill.Name, reported.Skill.Name, StringComparison.Ordinal)
+        && expected.Skill.Revision == reported.Skill.Revision
+        && string.Equals(expected.Skill.Sha256, reported.Skill.Sha256, StringComparison.OrdinalIgnoreCase);
 
     public async Task<DecisionChannelResponse> ReceiveDecisionRequestAsync(
         DecisionRequest request,
@@ -239,7 +298,8 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
         string prompt,
         ModelConfiguration model,
         byte[]? imagePng = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? reasoningEffort = null)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
@@ -253,11 +313,26 @@ public sealed class DshOpenedHttpPeer : IDshOpenedChannelPeer
             ["turnTimeoutMs"] = (int)TimeSpan.FromSeconds(110).TotalMilliseconds,
             ["model"] = new { provider = model.Provider, model = model.Name },
         };
+        if (reasoningEffort is not null)
+        {
+            if (reasoningEffort != "high") throw new ArgumentException("explicit slow effort must be high", nameof(reasoningEffort));
+            body["reasoningEffort"] = reasoningEffort;
+        }
         if (imagePng is { Length: > 0 })
             body["image"] = new { mediaType = "image/png", data = Convert.ToBase64String(imagePng), name = "capture.png" };
         for (var retry = 0; ; retry++)
         {
-            var document = await PostJsonAsync(SlowPath, body, cancellationToken).ConfigureAwait(false);
+            JsonDocument document;
+            try { document = await PostJsonAsync(SlowPath, body, cancellationToken).ConfigureAwait(false); }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // Cancellation stops only this Slow request. A stale cleanup
+                // cannot abort a later request or the main decision session.
+                using var cleanup = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                try { await PostJsonAsync(AbortPath, new { slowRequestId = requestId }, cleanup.Token).ConfigureAwait(false); }
+                catch (Exception) { /* Caller remains cancelled; server deadline/archival is still authoritative. */ }
+                throw;
+            }
             var root = document.RootElement;
             // AGT-019/RUN-006 修复：插件 fail() 封包 error 为 {code,message}
             // 对象（consult 路径同形状），slow 解析此前只认字符串——真实

@@ -1,0 +1,5 @@
+{
+  "src/UniClaw.Host/Runtime/TaskInstanceStore.cs": "25cdc3b343219165b45a55938574249f05043a2e8f2d3ed2914cf3bca8f90e14",
+  "src/UniClaw.Host/Runtime/ProductSessionStore.cs": "451eff7829d0db56e403cd4fcb87a8aae2ea942e8b0a9db6e5aa10d1e2a981d1",
+  "tests/UniClaw.Host.Tests/RuntimeIdentityStoreTests.cs": "6603f45aebacc5e27eb180f51f6f21f983c8986a300af2fe036ae9bf093964c6"
+}

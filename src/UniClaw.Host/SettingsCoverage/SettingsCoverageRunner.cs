@@ -66,7 +66,10 @@ public sealed class SettingsCoverageRunner
         // 认知测试缝：false 时直接采用 UnderlyingConsult 的建议，仍经同一
         // Kernel grounding/assurance/effect 链；默认 true 保持 coverage director。
         bool UseCoverageDirector = true,
-        Func<RunDriverInput.Cancel?>? PollCancellation = null);
+        Func<RunDriverInput.Cancel?>? PollCancellation = null,
+        UniClaw.Kernel.Capability.UniPerceptionCapability? Perception = null,
+        IReadOnlyList<UniClaw.Kernel.Capability.SemanticPageCandidate>? SemanticPages = null,
+        UniClaw.Kernel.Capability.CapabilityRegistry? ProductCapabilities = null);
 
     public sealed record StepArtifact(
         int Index,
@@ -86,7 +89,11 @@ public sealed class SettingsCoverageRunner
         string? PostCaptureId,
         bool Verified,
         string? FailureReason,
-        IReadOnlyList<KeyValuePair<string, bool>> Checks);
+        IReadOnlyList<KeyValuePair<string, bool>> Checks)
+    {
+        public string? DirectiveKind { get; init; }
+        public string? DirectiveTargetDescriptor { get; init; }
+    }
 
     public sealed record RunResult(
         string RunDir,
@@ -115,7 +122,13 @@ public sealed class SettingsCoverageRunner
         BudgetRenewalRequest? Renewal = null,
         BudgetReviewResponse? ReviewResponse = null);
 
-    public static RunResult Run(string runRoot, Options options)
+    public static RunResult Run(string runRoot, Options options) =>
+        RunAsync(runRoot, options).GetAwaiter().GetResult();
+
+    /// <summary>One continuous execution; handler waits yield without turning
+    /// into new consultations or discarding the driver's current position.</summary>
+    public static async Task<RunResult> RunAsync(
+        string runRoot, Options options, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(runRoot);
         ArgumentNullException.ThrowIfNull(options);
@@ -136,19 +149,27 @@ public sealed class SettingsCoverageRunner
             ProductAssociationStrategy.PopupSubject, // AGT-009：弹窗 typed 声明
             SharedSubjects.Frame,
             "ui.node.*",
+            PageObservationCodec.CaptureSubject,
+            PageObservationCodec.IdentitySubject,
+            "ui.semantic.page",
         };
         var ledger = new SettingsCoverageLedger();
         var evidenceSettings = config.EvidenceSettings;
         var evidenceDir = options.FeedNext is null
             ? Path.Combine(runDir, "evidence")
             : null;
+        var perceptionRegistry = options.ProductCapabilities ?? PerceptionCapabilityComposition.RegisterProductPerception(
+            uniPerception: options.Perception);
+        var semanticPerception = (UniClaw.Kernel.Capability.ISemanticPerception)perceptionRegistry.Resolve("uni.perception")!;
         var acquisitionPreflight = System.Diagnostics.Stopwatch.StartNew();
         var liveFeed = options.FeedNext is null
             ? new SettingsTraversalLiveFeed(
                 clock, options.Live, evidenceDir,
                 evidenceSettings.PersistScreenshots, evidenceSettings.PersistHierarchies,
-                coverageConfig: config, uniPerceptionFetch: options.SlowConsult)
+                coverageConfig: config, uniPerceptionFetch: options.SlowConsult,
+                semanticPerception: semanticPerception, semanticPages: options.SemanticPages)
             : null;
+        liveFeed?.SetCancellationToken(cancellationToken);
         acquisitionPreflight.Stop();
         if (liveFeed is not null)
             WriteText(runDir, "environment-preflight.json", TryJson(new
@@ -245,7 +266,7 @@ public sealed class SettingsCoverageRunner
                     or UniClaw.Kernel.Capability.CapabilityLifecycle.Active
                         ? traversalLanguageBinding : null;
             });
-            var materializedSteps = new List<(string DecisionId, string? Directive, AgentActionStep Step)>();
+            var materializedSteps = new List<CoverageStepAttribution>();
             var interleave = new InterleaveBookkeeper(
                 kernel,
                 feedNext,
@@ -255,7 +276,7 @@ public sealed class SettingsCoverageRunner
                 config,
                 TryBindLanguageInspection,
                 () => languageInspection,
-                () => journal.Drain(materializedSteps));
+                () => journal.DrainAttributed(materializedSteps));
             director.SyncBeforeSnapshot = interleave.SyncNow;
             // AGT-009：feed 的有界 Slow 咨询投影目标 = 当前 run kernel。
             if (liveFeed is not null)
@@ -270,26 +291,29 @@ public sealed class SettingsCoverageRunner
                 {
                     NextInput = interleave.WrappedNext,
                     PollCancellation = options.PollCancellation,
+                    ObservationRecoveryTimeout = TimeSpan.FromMilliseconds(Math.Min(30000, config.SlowSettings.BoundedWaitMs)),
+                    MaxObservationRecoveryRequests = Math.Min(16, config.SlowSettings.MaxRequestsPerRun),
                     ConsultationJournal = consultationJournal,
                     AvailablePlanSources = SettingsPlanFacts.SourceDescriptions.Concat(new[]
                     {
                         new KeyValuePair<string, string>(SettingsTraversalProjection.Source,
-                            "持续菜单遍历；readOnly/navigation来自当前World目标与任务显式分类，未分类为Unknown；live发现穷尽未证明，报告部分覆盖。"),
+                            SettingsTraversalProjection.Describe(config)),
                     }).ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal),
                     ProjectTraversal = source => SettingsTraversalProjection.Project(source, kernel, config),
                     CanBindPlanLanguage = traversalInspection.CanBind,
                     InspectPlanLanguage = traversalInspection.Inspect,
+                    InspectPlanLanguageAsync = traversalInspection.InspectAsync,
                     ObserveTraversalRecovery = facts => WriteText(runDir, "traversal-recovery.json", TryJson(facts)),
                     AvailablePlanConditions = SettingsPlanFacts.ConditionDescriptions,
                     EvaluatePlanCondition = (condition, _) =>
                     {
-                        journal.Drain(materializedSteps);
+                        journal.DrainAttributed(materializedSteps);
                         interleave.SyncNow();
                         return SettingsPlanFacts.EvaluateCondition(condition, ledger, config);
                     },
                     ProjectPlanCandidates = source =>
                     {
-                        journal.Drain(materializedSteps);
+                        journal.DrainAttributed(materializedSteps);
                         interleave.SyncNow();
                         var facts = SettingsPlanFacts.Project(source, ledger, config);
                         candidateProjections.Add(new { source, facts });
@@ -297,10 +321,10 @@ public sealed class SettingsCoverageRunner
                     },
                     GuardStep = (step, context) =>
                     {
-                        journal.Drain(materializedSteps);
+                        journal.DrainAttributed(materializedSteps);
                         interleave.SyncNow();
-                        var constraint = config.ActionPolicy is { } policy
-                            ? SettingsActionGuard.EvaluateCurrentStep(step, context, policy)
+                        var constraint = config.NavigationScope is not null || config.ActionPolicy is not null
+                            ? SettingsActionGuard.EvaluateCurrentStep(step, context, config)
                             : new PlanStepGuardResult(PlanStepGuardVerdict.Allow, "no additional Settings policy configured");
                         constraint = constraint with
                         {
@@ -310,14 +334,16 @@ public sealed class SettingsCoverageRunner
                         };
                         currentStepGuards.Add(new { context.DecisionId, step, constraint, context.Screen });
                         if (constraint.Verdict == PlanStepGuardVerdict.Allow)
-                            materializedSteps.Add((context.DecisionId,
-                                options.UseCoverageDirector ? director.ConsultLog.LastOrDefault()?.Directive : null, step));
+                        {
+                            var selection = options.UseCoverageDirector ? director.ConsultLog.LastOrDefault() : null;
+                            materializedSteps.Add(new(context.DecisionId, selection?.Directive, step, selection?.SelectedDirective));
+                        }
                         return constraint;
                     },
                     CheckTaskEvidenceBarrier = config.Bounds.GoalDirectedContinuationEnabled
                         ? () =>
                         {
-                            journal.Drain(materializedSteps);
+                            journal.DrainAttributed(materializedSteps);
                             interleave.SyncNow();
                             var report = ledger.Report(config);
                             return report.UncoveredItems.Count == 0 ? null
@@ -331,7 +357,7 @@ public sealed class SettingsCoverageRunner
                         // Preserve receipt/verification -> post-observation
                         // ordering. Discovery after a verified swipe depends on
                         // this same ledger sequence, as does review freshness.
-                        journal.Drain(materializedSteps);
+                        journal.DrainAttributed(materializedSteps);
                         interleave.SyncNow();
                         var projection = SettingsCoverageOverviewProjector.Project(ledger, config);
                         var graph = kernel.ProjectWorldGraph($"{kernel.RunId}:{kernel.RunView?.Version}");
@@ -384,7 +410,7 @@ public sealed class SettingsCoverageRunner
                         var decision = rawDecision;
                         if (!options.UseCoverageDirector)
                         {
-                            journal.Drain(materializedSteps);
+                            journal.DrainAttributed(materializedSteps);
                             interleave.SyncNow();
                             decision = director.RecordAdvisoryDecision(projected, decision);
                         }
@@ -451,7 +477,7 @@ public sealed class SettingsCoverageRunner
             // cap computed from the initial grant would silently undo renewal.
             while (true)
             {
-                drive = driver.Drive();
+                drive = await driver.DriveAsync(cancellationToken).ConfigureAwait(false);
                 if (drive.Status is not RunDriveStatus.WaitingForInput)
                     break;
             }
@@ -466,7 +492,7 @@ public sealed class SettingsCoverageRunner
             TryBindLanguageInspection();
             if (languageInspectionRequest is { Required: true } && languageInspection is null)
                 throw new InvalidOperationException("language-inspection-required-capability-not-bound");
-            journal.Drain(materializedSteps);
+            journal.DrainAttributed(materializedSteps);
 
             // ---- 产物落盘 ---------------------------------------------------
             WriteText(runDir, "trace.json", TryJson(traceScope.FinalizeArtifact()));
@@ -675,6 +701,17 @@ public sealed class SettingsCoverageRunner
             // (前 route=上一周期, 后 route=本周期) 配对入 journal。
             var routeNow = RouteOf(input);
             var captureNow = _currentCaptureId();
+            // Identity supplementation completes the existing capture. It does
+            // not introduce another route/receipt cycle; World will accept or
+            // reject its identity before the next coverage snapshot.
+            if (input is RunDriverInput.Observation
+                && directive.Need is { } need
+                && routeNow is null
+                && string.Equals(captureNow, need.Capture.CaptureId, StringComparison.Ordinal))
+            {
+                _cycleRecorded = false;
+                return input;
+            }
             // AGT-009：本周期弹窗声明入账本（director 快照分支依据）。
             var popupNow = PopupStateOf(input);
             if (popupNow is not null)
@@ -898,9 +935,14 @@ public sealed class SettingsCoverageRunner
         {
             if (!_observedOnce || _lastCycleRoute is null || _cycleRecorded)
                 return;
+            var belief = _kernel.CurrentBelief;
+            if (belief?.CurrentPageObservation is { } page
+                && (belief.ObservationNeed is not null || page.ContainerId is null
+                    || !string.Equals(page.Capture.CaptureId, _currentCaptureId(), StringComparison.Ordinal)))
+                return;
             _ledger.RecordObservation(
                 _lastCycleRoute,
-                _kernel.CurrentBelief?.Occurrences?
+                belief?.Occurrences?
                     .Select(o => (o.Role, o.SemanticDescriptor, o.Native?.Value)).ToArray()
                 ?? Array.Empty<(string, string?, string?)>());
             _cycleRecorded = true;
@@ -937,7 +979,7 @@ public sealed class SettingsCoverageRunner
         private readonly Func<string?>? _sessionIdAccessor;
         private readonly List<StepArtifact> _artifacts = new();
         private readonly List<(EffectReceipt Receipt, string? RouteBefore, string? RouteAfter, string? PostCaptureId)> _pending = new();
-        private readonly List<(string DecisionId, string? Directive, AgentActionStep Step)> _attributionQueue = new();
+        private readonly List<CoverageStepAttribution> _attributionQueue = new();
         private int _consumedVerifications;
         private int _queuedAdoptedCount;
 
@@ -957,7 +999,11 @@ public sealed class SettingsCoverageRunner
             EffectReceipt receipt, string? routeBefore, string? routeAfter, string? postCaptureId) =>
             _pending.Add((receipt, routeBefore, routeAfter, postCaptureId));
 
-        public void Drain(IReadOnlyList<(string DecisionId, string? Directive, AgentActionStep Step)> adoptedSteps)
+        public void Drain(IReadOnlyList<(string DecisionId, string? Directive, AgentActionStep Step)> adoptedSteps) =>
+            DrainAttributed(adoptedSteps.Select(item =>
+                new CoverageStepAttribution(item.DecisionId, item.Directive, item.Step)).ToArray());
+
+        internal void DrainAttributed(IReadOnlyList<CoverageStepAttribution> adoptedSteps)
         {
             // 归属队列增量同步：新采纳步骤按序入队（消费式匹配需要移除）。
             while (_queuedAdoptedCount < adoptedSteps.Count)
@@ -1003,7 +1049,11 @@ public sealed class SettingsCoverageRunner
                     PostCaptureId: fact.PostCaptureId,
                     Verified: verification?.IsVerified == true,
                     FailureReason: verification?.RejectionReason ?? fact.Receipt.Reason,
-                    Checks: checks);
+                    Checks: checks)
+                {
+                    DirectiveKind = attribution?.SelectedDirective?.KindName,
+                    DirectiveTargetDescriptor = attribution?.SelectedDirective?.TargetDescriptor,
+                };
                 _artifacts.Add(artifact);
                 _ledger.RecordStep(new CoverageStepRecord(
                     artifact.Index, artifact.DecisionId, artifact.DshSessionId,
@@ -1012,7 +1062,8 @@ public sealed class SettingsCoverageRunner
                     artifact.PreActionTargetUnique, artifact.ReceiptId, artifact.ReceiptOutcome,
                     artifact.ReceiptCommand,
                     artifact.RouteBefore, artifact.RouteAfter, artifact.PostCaptureId,
-                    artifact.Verified, artifact.FailureReason, artifact.Directive));
+                    artifact.Verified, artifact.FailureReason, artifact.Directive)
+                    { SelectedDirective = attribution?.SelectedDirective });
             }
             _pending.Clear();
         }
@@ -1021,7 +1072,7 @@ public sealed class SettingsCoverageRunner
         /// (role, descriptor, effectClass) 相等消费（匹配即移除——重复进入
         /// 同目标的第二次步骤归属到第二次咨询）；无 verification 的
         /// （Unconfirmed 提前终止）按队首归属。</summary>
-        private (string DecisionId, string? Directive, AgentActionStep Step)? Attribute(
+        private CoverageStepAttribution? Attribute(
             EffectReceipt receipt,
             PostActionEffectVerification? verification)
         {

@@ -1,0 +1,7 @@
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.09]     UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.LocalSafetyTracers_OfficialCodecThenKernelSimulationHaveZeroEffects [FAIL]
+[xUnit.net 00:00:00.10]     UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.LocalLiteralTracers_OfficialCodecThenKernelSimulation [FAIL]
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/eng-opt-001/baseline/baseline-codec-green.trx
+
+失败!  - 失败:     2，通过:     0，已跳过:     0，总计:     2，持续时间: 28 ms - UniClaw.Host.Dsh.Tests.dll (net10.0)

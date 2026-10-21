@@ -26,7 +26,8 @@ public sealed record SpatialLocator
     {
         if (string.IsNullOrWhiteSpace(spatialFrameId))
             throw new ArgumentException("spatial 值没有 SpatialFrame = 无效协议载荷（P-UW-16）", nameof(spatialFrameId));
-        if (x1 < 0 || y1 < 0 || x2 > 1 || y2 > 1 || x1 > x2 || y1 > y2)
+        if (!double.IsFinite(x1) || !double.IsFinite(y1) || !double.IsFinite(x2) || !double.IsFinite(y2)
+            || x1 < 0 || y1 < 0 || x2 > 1 || y2 > 1 || x1 > x2 || y1 > y2)
             throw new ArgumentException($"bounds 无效（期望归一化 [0,1]×[0,1] 且 X1≤X2/Y1≤Y2）：({x1},{y1},{x2},{y2})", nameof(x1));
         X1 = x1; Y1 = y1; X2 = x2; Y2 = y2;
         SpatialFrameId = spatialFrameId;

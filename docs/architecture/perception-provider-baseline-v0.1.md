@@ -2,7 +2,7 @@
 
 > DocumentType: `PERCEPTION_PROVIDER_BASELINE_V0_1`
 >
-> Status: `FROZEN / COMPONENT-BASELINE v0.2`（修订必须经 change）
+> Status: `FROZEN / COMPONENT-BASELINE v0.3`（修订必须经 change）
 >
 > Authority: `COMPONENT`（组件基线：实现层权威；不修改任何产品级冻结基线，
 > 与其冲突时以产品基线为准）
@@ -15,6 +15,8 @@
 > 家族、Fusion/、UiHierarchy/）+ 双协议身份与快慢概念澄清；§3 契约
 > 零变化，无需 supersede ADR-0020/0021。文件名保留 v0.1 字样以维持
 > 历史引用，语义版本以本头部为准。
+> v0.3（2026-10-21，JEV-SEMANTIC-CAP-001 + PER-022）：语义执行载荷及
+> provider-neutral供货缝落地；§7将Fast内部strategy面收层，保留live公开入口。
 
 ---
 
@@ -136,12 +138,38 @@ derived（响应 JSON，**确定性锚**）分离——replay/parity 锚定响�
 ## 7. 与冻结基线的映射核对（§8 Capability Plane）
 
 - **realizes**：§8 允许项「perception typed capability 的可替换实现」——
-  本 plane 是其 live realization（IFastPerceptionStrategy 可替换缝不变）。
+  对外由`ISemanticPerception.ObserveSemanticsAsync`表达语义执行；
+  `SemanticPerceptionExecutor`是L2的供货缝，Jev位于Host适配层，不实现L1。
+  `IFastPerceptionStrategy`/`IVersionedFastPerceptionStrategy`收为internal，
+  替换纪律在组件内部保留；公开`FastPerception`的LiveVisionStrategy入口及
+  trace/metrics/cache参数保留，缓存失效责任与遥测事件名称不变（PER-022）。
 - **不触碰**：Owner/Authority 全景（perception 非 Authority；identity 权威
-  在 World Model；P2 ingress 唯一性；confidence 无 buyer 不进 payload）。
+  在 World Model；P2 ingress 唯一性；provider confidence仅作诊断，不成为权威）。
 - **依赖方向**：Kernel C# ← 契约 → provider 进程；provider 树零进入产品
   程序集（AGENTS.md 绿地隔离的 DIRECT 平移先例，provenance 见
   platforms/perception/README.md）。
+
+### 7.1 Semantic执行载荷（JEV-SEMANTIC-CAP-001）
+
+`SemanticPerceptionRequest`包含当前归一化布局及EvidenceIds/源叶闭包、
+capture/cycle/session/time/space、新鲜度；可选前页观察保留独立关联；操作
+显式描述元素类型/文字/来源/源capture与可选坐标/receipt；预期独立声明为
+`SemanticEvaluationIntent`。候选目录由调用方拥有，Key是语义类别。
+当前输入缺失、过期或错位不调用供货方；同session/capture/cycle仅一次尝试，
+有界等待、取消与失败均返回诚实状态。旧SlowConsultationRequest及P22不变。
+完整请求按System.Text.Json Web默认编码的UTF-8 JSON最多128KiB，包含全部文本、
+候选、动作及依据，不只限制条目数。当前PageName/PagePurpose/PageKey先验禁止
+输入；前页语义描述是独立标注的调用方上下文，不冒充当前观察。
+
+输出将`Observation`、`Relation`、`ExpectedMatch`分开：预期判断与观察矛盾时
+保留独立观察、符合性标Conflicted；标题必须来自当前文字项。投影只输出
+`ui.semantic.page`，声明全部咨询依据及源叶闭包，经P2入账后由World关联，
+不输出identity、导航边、设置效果或ExpectedMatch。L1的兼容默认方法返回
+Unsupported，旧marker实现继续可用；兼容扩展按R6保留协议1.0。
+
+资源由Host显式持有并释放Jev adapter；能力实例纯内存常驻，不驱动网络对象
+生命周期。配置/凭据经Host注入，不读取Harness配置；可执行注册复用
+`PerceptionCapabilityComposition.RegisterProductPerception(uniPerception: ...)`。
 
 ## 8. 修订规则（冻结后）
 

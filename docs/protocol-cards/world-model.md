@@ -9,6 +9,7 @@
 |---|---|---|---|---|---|
 | P4 | edge | keep | world-model → control-loop | record UniClaw.Kernel.World.Slice | ### P4 Slice（World Model → Control Loop） |
 | P11 | edge | keep | world-model → assurance | record UniClaw.Kernel.World.ActionAssuranceView | ### P11 Current WorldBelief View（World Model → Assurance / Effect Boundary） |
+| P27 | edge | keep | world-model → control-loop | record UniClaw.Kernel.World.ObservationNeed | ### P27 Observation Need（World Model → Control Loop） |
 
 ## 入边（对端 → 本组件）
 

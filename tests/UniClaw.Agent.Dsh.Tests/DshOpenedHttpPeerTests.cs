@@ -40,6 +40,9 @@ public sealed class DshOpenedHttpPeerTests
                      "schemaHash":"<hash>","profileId":"uniagent-prod","profileVersion":"1",
                      "capabilityManifestHash":"<manifest>"},
          "reportedCapabilities":{"capabilities":["submit_decision"]},
+         "artifacts":{"promptHash":"<prompt>",
+                      "skill":{"name":"android-automotive-ui-testing","revision":4,
+                               "sha256":"3271ed614ae6dc590b6f4c454fc1251b8976044c92a2a5556ce773fbca0aa21a"}},
          "dshSessionId":"dsh-9"}
         """;
 
@@ -50,7 +53,8 @@ public sealed class DshOpenedHttpPeerTests
         var handler = new ScriptedHandler((_, _) => Task.FromResult(Json(HttpStatusCode.OK,
             HandshakeBody
                 .Replace("<hash>", expected.Protocol.SchemaHash)
-                .Replace("<manifest>", expected.Protocol.CapabilityManifestHash))));
+                .Replace("<manifest>", expected.Protocol.CapabilityManifestHash)
+                .Replace("<prompt>", UniAgentProfileYaml.LoadDefault().Assembly!.PromptManifest!.Hash))));
         await using var peer = new DshOpenedHttpPeer(
             new DshServiceEndpoint(new Uri("http://127.0.0.1:3080/", UriKind.Absolute)),
             credential: Credential(), handler: handler);
@@ -71,6 +75,33 @@ public sealed class DshOpenedHttpPeerTests
 
     // AGT-019/RUN-006 修复：slow 解析归一对象错误封包（fail() 的
     // {code,message} 形状此前被吞成 slow-endpoint-empty-text）。
+
+    [Fact]
+    public async Task Slow_HighIsOnRequest_AndCancellationAbortsOnlyItsRequestId()
+    {
+        using var cancelled = new CancellationTokenSource();
+        var aborted = false;
+        var handler = new ScriptedHandler(async (request, _) =>
+        {
+            using var body = System.Text.Json.JsonDocument.Parse(await request.Content!.ReadAsStringAsync());
+            if (request.RequestUri!.AbsolutePath.EndsWith("/slow"))
+            {
+                Assert.Equal("high", body.RootElement.GetProperty("reasoningEffort").GetString());
+                cancelled.Cancel();
+                throw new OperationCanceledException(cancelled.Token);
+            }
+            Assert.EndsWith("/abort", request.RequestUri.AbsolutePath);
+            Assert.Equal("slow-high-cancel", body.RootElement.GetProperty("slowRequestId").GetString());
+            aborted = true;
+            return Json(HttpStatusCode.OK, "{\"aborted\":true}");
+        });
+        await using var peer = new DshOpenedHttpPeer(new(new Uri("http://127.0.0.1:3081/")),
+            credential: Credential(), handler: handler);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => peer.ExecuteSlowAsync(
+            "slow-high-cancel", "prompt", new("configured", "model"), cancellationToken: cancelled.Token,
+            reasoningEffort: "high"));
+        Assert.True(aborted);
+    }
 
     [Fact]
     public async Task Slow_NormalizesObjectErrorEnvelope()
@@ -221,7 +252,8 @@ public sealed class DshOpenedHttpPeerTests
                 return Json(HttpStatusCode.OK,
                     HandshakeBody
                         .Replace("<hash>", expected.Protocol.SchemaHash)
-                        .Replace("<manifest>", expected.Protocol.CapabilityManifestHash));
+                        .Replace("<manifest>", expected.Protocol.CapabilityManifestHash)
+                .Replace("<prompt>", UniAgentProfileYaml.LoadDefault().Assembly!.PromptManifest!.Hash));
             }
 
             consultBody = await request.Content!.ReadAsStringAsync();

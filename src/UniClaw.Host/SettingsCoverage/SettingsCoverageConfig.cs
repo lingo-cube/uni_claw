@@ -152,7 +152,8 @@ public sealed record SettingsCoverageConfig(
     LanguageInspectionTaskRequest? LanguageInspection = null,
     DeepTraversalConfig? DeepTraversal = null,
     DynamicRootEntriesConfig? DynamicRootEntries = null,
-    DynamicNestedEntriesConfig? DynamicNestedEntries = null)
+    DynamicNestedEntriesConfig? DynamicNestedEntries = null,
+    SettingsNavigationScope? NavigationScope = null)
 {
     /// <summary>证据持久化（缺省全开；旧配置无该段时保持缺省）。</summary>
     public CoverageEvidenceOptions EvidenceSettings => Evidence ?? new CoverageEvidenceOptions();

@@ -4,6 +4,9 @@ using System.Xml.Linq;
 using UniClaw.Host.SettingsCoverage;
 using UniClaw.Kernel;
 using UniClaw.Kernel.Effects;
+using UniClaw.Kernel.Capability;
+using UniClaw.Kernel.World;
+using System.Security.Cryptography;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.Perception.UiHierarchy;
@@ -76,6 +79,21 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     private int _popupPresentStreak;
     private int _slowRequests;
     private int _cycle;
+    private readonly ISemanticPerception? _semanticPerception;
+    private readonly IReadOnlyList<SemanticPageCandidate> _semanticPages;
+    private PageCaptureObservation? _identityCapture;
+    private byte[]? _identityPixels;
+    private string? _identityFastTitle;
+    private string? _identityFastSignature;
+    private string? _identityPriorSignature;
+    private string? _identityPriorRoute;
+    private string? _identityDeliveredTarget;
+    private string? _identityDeliveredDescriptor;
+    private bool _identityDeliveredUnique;
+    private bool _reobservingIdentity;
+    private CancellationToken _cancellationToken;
+
+    internal void SetCancellationToken(CancellationToken token) => _cancellationToken = token;
 
     public SettingsTraversalLiveFeed(HostUtilities.VirtualClock clock, LivePerception.LiveAssets assets)
         : this(clock, assets, null)
@@ -92,10 +110,14 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         bool persistScreenshots = true,
         bool persistHierarchies = true,
         SettingsCoverageConfig? coverageConfig = null,
-        UniPerceptionPipeline.Fetch? uniPerceptionFetch = null)
+        UniPerceptionPipeline.Fetch? uniPerceptionFetch = null,
+        ISemanticPerception? semanticPerception = null,
+        IReadOnlyList<SemanticPageCandidate>? semanticPages = null)
     {
         _clock = clock;
         _assets = assets;
+        _semanticPerception = semanticPerception;
+        _semanticPages = semanticPages ?? [];
         _acquisition = new AdbScreenshotAcquisition(assets.DeviceId, "adb", () => clock.Now);
         _vision = new VisionServiceSession(assets.ProviderRoot, assets.PythonExecutable, assets.CacheRoot);
         _evidenceDir = evidenceDir;
@@ -142,6 +164,9 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
 
     public RunDriverInput? Next(ObservationDirective directive)
     {
+        if (_cancellationToken.IsCancellationRequested)
+            return new RunDriverInput.Cancel("host-cancelled", _clock.Now);
+        if (directive.Need is not null) return SupplementIdentity(directive);
         if (directive.Context == ObservationContext.PostActionEffectFlow)
             Thread.Sleep(1200);
 
@@ -176,30 +201,48 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
             popup?.HostPackage ?? "com.android.settings",
             popup?.ResourceIds ?? SettingsCoverage.PopupClearanceConfig.DefaultPopupResourceIds);
         var priorBelief = KernelProvider?.Invoke()?.CurrentBelief;
-        var priorSignature = priorBelief?.WorldState.TryGetValue(
+        var priorSignature = _reobservingIdentity ? _identityPriorSignature : priorBelief?.WorldState.TryGetValue(
             ProductAssociationStrategy.ScreenIdentitySubject, out var screenClaim) == true
                 ? screenClaim.Value : null;
-        var priorRoute = priorBelief?.WorldState.TryGetValue(
+        var priorRoute = _reobservingIdentity ? _identityPriorRoute : priorBelief?.WorldState.TryGetValue(
             ProductAssociationStrategy.ScreenRouteSubject, out var routeClaim) == true
                 ? routeClaim.Value : null;
         var lastReceipt = KernelProvider?.Invoke()?.EffectReceipts.LastOrDefault();
+        // Receipt target is an opaque occurrence id. Resolve its already accepted
+        // pre-action semantic descriptor rather than parsing meaning from the id.
+        var deliveredTargetDescriptor = _reobservingIdentity ? _identityDeliveredDescriptor : lastReceipt is null ? null
+            : priorBelief?.Occurrences?.SingleOrDefault(item =>
+                item.OccurrenceId == lastReceipt.TargetSubject)?.SemanticDescriptor;
         var pageSignature = SettingsPageIdentity.Derive(priorSignature, priorRoute, routeKey,
             lastReceipt?.TargetSubject, directive.Context == ObservationContext.PostActionEffectFlow,
             overlayPresent: popupState == "present",
-            backDescriptor: _coverageConfig?.BackDescriptor ?? "Navigate up");
+            backDescriptor: _coverageConfig?.BackDescriptor ?? "Navigate up",
+            deliveredTargetDescriptor: deliveredTargetDescriptor,
+            entryDescriptorUnique: _reobservingIdentity ? _identityDeliveredUnique : deliveredTargetDescriptor is not null
+                && priorBelief?.Occurrences?.Count(item => item.SemanticDescriptor == deliveredTargetDescriptor) == 1);
 
         if (_evidenceDir is not null && _persistHierarchies && xmlResult.Xml is not null)
             WriteEvidenceFile(_evidenceDir, captureId + ".xml",
                 System.Text.Encoding.UTF8.GetBytes(xmlResult.Xml));
 
         var proposals = new List<ObservationProposal>();
-        if (pageSignature is not null)
-            proposals.Add(new(
-                new ObservationClaim(ProductAssociationStrategy.ScreenIdentitySubject, pageSignature),
-                IngressKind.Observation,
-                directive.Context,
-                new Provenance("host.live.settings", _clock.Now, $"scope:ui.screen:{observationCycleId}",
-                    new[] { "real-device", "capture:" + captureId })));
+        var session = KernelProvider?.Invoke()?.RunId ?? $"settings:{_assets.DeviceId}";
+        _identityCapture = PageIdentityRecovery.Capture(captureId, observationCycleId, session,
+            _clock.Now, capture.Width, capture.Height, xmlResult.Xml, fastBasis);
+        _identityPixels = SHA256.HashData(capture.Artifact.Payload);
+        _identityFastTitle = routeKey.StartsWith("android.settings|rk1:", StringComparison.Ordinal)
+            ? routeKey["android.settings|rk1:".Length..].Split("|src=", StringSplitOptions.None)[0] : null;
+        _identityFastSignature = pageSignature;
+        _identityPriorSignature = priorSignature;
+        _identityPriorRoute = priorRoute;
+        _identityDeliveredTarget = lastReceipt?.TargetSubject;
+        _identityDeliveredDescriptor = deliveredTargetDescriptor;
+        if (!_reobservingIdentity)
+            _identityDeliveredUnique = deliveredTargetDescriptor is not null
+                && priorBelief?.Occurrences?.Count(item => item.SemanticDescriptor == deliveredTargetDescriptor) == 1;
+        proposals.Add(new(new(PageObservationCodec.CaptureSubject, PageObservationCodec.Encode(_identityCapture)),
+            IngressKind.Observation, directive.Context, new("host.live.settings", _clock.Now,
+                $"capture:{captureId}", ["real-device", "capture:" + captureId])));
         proposals.Add(new ObservationProposal(
             new ObservationClaim(ProductAssociationStrategy.ScreenRouteSubject, routeKey),
             IngressKind.Observation,
@@ -225,7 +268,13 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         var trigger = DeriveSlowTrigger(
             xmlResult.Xml is not null, fastAvailable, clickableNodeCount, routeKey,
             UpdatePopupStreak(popupState), _coverageConfig?.SlowSettings);
-        if (trigger is not null && _uniPerception is not null && _coverageConfig?.SlowSettings is { Enabled: true } slowOn)
+        // Identity-related material gaps now have a World-owned buyer. Do not
+        // race the legacy material heuristic against its pending supplementation.
+        var identityBuyerConfigured = _semanticPerception is not null && _semanticPages.Count > 0;
+        if (identityBuyerConfigured && trigger is "NoXml" or "SemanticUnclear" or "StructuralVisualConflict")
+            trigger = null;
+        if (trigger is not null && _uniPerception is not null && _coverageConfig?.SlowSettings is { Enabled: true } slowOn
+            && _slowRequests < slowOn.MaxRequestsPerRun)
         {
             var kernel = KernelProvider?.Invoke();
             if (kernel is null)
@@ -246,6 +295,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
                     request, sessionCorrelation, routeKey, trigger, _slowFetchBound);
                 slowTokens.Add(dispatchToken);
                 slowDispatchedThisCycle = dispatchToken.Contains("|Dispatched|", StringComparison.Ordinal);
+                if (slowDispatchedThisCycle) _slowRequests++;
             }
         }
         // AGT-019 M3：材料不足（hierarchyAvailable=false ∨ proposalCount=0）
@@ -267,7 +317,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
                 var typed = UiAutomatorDump.ParseHierarchyObservation(xmlResult.Xml,
                     new UiAutomatorDump.UiHierarchyParseContext(
                         captureId, _clock.Now, _assets.DeviceId,
-                        $"settings:{_assets.DeviceId}", api.Value,
+                        session, api.Value,
                         ObservationCycleId: observationCycleId,
                         Capabilities: WifiToggleCapabilities,
                         ExactProof: WifiToggleExactProof,
@@ -299,6 +349,49 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
             FastServiceWarmupSucceeded: cycle == 1 ? _warmup.Succeeded : null,
             FastServiceWarmupError: cycle == 1 ? _warmup.Error : null));
         return new RunDriverInput.Observation(proposals);
+    }
+
+    private RunDriverInput? SupplementIdentity(ObservationDirective directive)
+    {
+        var need = directive.Need!;
+        if (_identityCapture is null || _identityCapture.CaptureId != need.Capture.CaptureId
+            || _identityCapture.ObservationCycleId != need.Capture.ObservationCycleId
+            || _identityCapture.SessionCorrelation != need.Capture.SessionCorrelation
+            || directive.RemainingBudget is not { } budget || budget <= TimeSpan.Zero) return null;
+        var source = new PageObservationState(need.Capture, need.CaptureEvidenceId, null);
+        var identity = PageIdentityRecovery.Identity(source, _identityFastTitle,
+            _identityFastSignature, directive.Context);
+        IReadOnlyList<ObservationProposal> meaning = [];
+        if (identity is null)
+        {
+            if (_coverageConfig?.SlowSettings.Enabled == false
+                || _slowRequests >= (_coverageConfig?.SlowSettings.MaxRequestsPerRun ?? 4)) return null;
+            _slowRequests++;
+            var recognized = PageIdentityRecovery.RecognizeAsync(_semanticPerception, _semanticPages,
+                need, budget, directive.Context, _cancellationToken).GetAwaiter().GetResult();
+            meaning = recognized.Meaning;
+            var observedRoute = recognized.Title is null ? "android.settings"
+                : "observed-page:v1:title=" + recognized.Title;
+            var signature = SettingsPageIdentity.Derive(_identityPriorSignature, _identityPriorRoute,
+                observedRoute, _identityDeliveredTarget, directive.Context == ObservationContext.PostActionEffectFlow,
+                deliveredTargetDescriptor: _identityDeliveredDescriptor,
+                entryDescriptorUnique: _identityDeliveredUnique);
+            identity = PageIdentityRecovery.Identity(source, recognized.Title, signature, directive.Context);
+        }
+        if (_cancellationToken.IsCancellationRequested)
+            return new RunDriverInput.Cancel("host-cancelled", _clock.Now);
+        if (identity is null) return null;
+        // Same-capture evidence can be reused only while the observed scene is
+        // unchanged. A fresh scene enters P2 as a new capture, with the original
+        // Control deadline and receipt still in force.
+        var currentPixels = _acquisition.CaptureAsync(_cancellationToken).GetAwaiter().GetResult();
+        if (_identityPixels is null || !SHA256.HashData(currentPixels.Artifact.Payload).SequenceEqual(_identityPixels))
+        {
+            _reobservingIdentity = true;
+            try { return Next(directive with { Need = null, Depth = ObservationDepth.Normal, RemainingBudget = null }); }
+            finally { _reobservingIdentity = false; }
+        }
+        return new RunDriverInput.Observation(new[] { identity }.Concat(meaning).ToArray());
     }
 
     /// <summary>

@@ -1,0 +1,4 @@
+{
+  "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs": "a486a23597de1ddb11c0883fddcb93227a09a9df2bcf28d303b57177f33a7c8e",
+  "tests/UniClaw.Host.Tests/SettingsCoverageScenarioTests.cs": "89eca5121a2127231470587b16e0abb5c5a6432f300eca20fe2e654016cd96d2"
+}

@@ -421,6 +421,18 @@
       "to": "simulation-host"
     },
     {
+      "from": "world-model",
+      "id": "P27",
+      "kind": "edge",
+      "payloadRef": {
+        "name": "UniClaw.Kernel.World.ObservationNeed",
+        "type": "record"
+      },
+      "status": "keep",
+      "titleAnchor": "### P27 Observation Need（World Model → Control Loop）",
+      "to": "control-loop"
+    },
+    {
       "from": "evidence-ledger",
       "id": "P3",
       "kind": "edge",
@@ -1138,6 +1150,21 @@
           "trigger": {
             "edge": null,
             "event": "decision-failed-closed"
+          }
+        },
+        {
+          "await": "external",
+          "emits": [
+            "WaitingForHandler"
+          ],
+          "from": "acting",
+          "guard": "已提交typed只读handler且尚无终态；原操作/handler位置保留，完成/截止/取消后串行接回",
+          "id": "R-T18",
+          "measure": null,
+          "to": "acting",
+          "trigger": {
+            "edge": null,
+            "event": "await-handler-completion"
           }
         }
       ]

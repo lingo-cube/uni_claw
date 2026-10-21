@@ -1,0 +1,2360 @@
+--- a/CONTEXT.md
++++ b/CONTEXT.md
+@@ -480,7 +480,7 @@
+ **ObservationNeed**: World Model 派生的信息缺失描述，表达当前观察不足以
+ 支持哪些世界判断，例如页面身份判别或元素归属。它不指定感知能力；
+ Observation Control 据消费需求安排补证，World 根据接纳后的证据重新判断。
+-描述缺失信息不等于建立身份、授权动作或宣告失败；跨组件消费须经明确协议。
++描述缺失信息不等于建立身份、授权动作或宣告失败；当前观察的身份补证由World表达缺口，Control有界调度，World采信后仍须Assurance验证到达，Traversal才继续。
+ _Avoid_: CallVLM/RunOCR 类能力指令、provider命令、identity真值、priority policy
+ 
+ ### UI Entity Model & Continuity（UIW-002 落定）
+--- a/docs/agents/test-emulator.md
++++ b/docs/agents/test-emulator.md
+@@ -117,3 +117,7 @@
+ ### 2026-10-20 CommandCode Flash正式绑定（所有者授权）
+ 当前专用3081及`.dsh/product/uniagent-prod-bindings.yaml`选择`commandcode/deepseek/deepseek-v4.1-flash`，复用宿主既有pi-ai provider和`COMMANDCODE_API_KEY`凭据引用；无需把provider或凭据写入产品Profile/Prompt/Skill。原官方Flash choice保留。宿主agent默认effort值为low，但CommandCode真实request/header没有显式reasoningEffort，验收登记为null/provider-default，不宣称与官方enabled/low相同。代理与凭据未改。
+ 专用3081已移除无关Jev MCP sidecar，确保正式Agent系统上下文只有既有产品Prompt与UI测试Skill两段；CommandCode模型provider独立保留。变更及私有恢复位置见`evidence/runtime-plan-005/commandcode-binding-change.json`与`commandcode-context-isolation.json`；固定输入和验收门槛见`preregistration-epoch007.json`，结果以相应TRX及`live-summary.json`为准。官方402余额不足与旧malformed批次保留，不能计入新通道通过率。
++
++
++### WORLD-OBSERVATION-001 慢感知请求强度（2026-10-21所有者补充）
++无XML身份恢复成功验收必须包含慢模型请求high。仍使用当前DSH绑定的provider/model；高档通过`/slow`隔离session的请求waterfall施加，不更改主Agent默认强度。专用uniclaw-product剖面的CommandCode既有模型补充high可选档位及reasoning_effort兼容声明，凭据/代理不变；回执未见high或供应方拒绝均不算该路径通过。部署备份和指纹见`changes/WORLD-OBSERVATION-001/evidence/slow-high-deployment.json`；实际验收结果以该Change最终验证记录为准，不能以配置声明代替请求证据。
+--- a/docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md
++++ b/docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md
+@@ -1008,3 +1008,17 @@
+ - **②（Contract version 取代）**：方向已由 baseline §24.6 细化（Grant →
+   UniAgent Proposal → Run Model admission → 新 immutable Contract View
+   generation；旧 View 不改写）；完整 supersession 语义仍待 multi-run buyer。
++
++
++### P27 Observation Need（World Model → Control Loop）
++
++WORLD-OBSERVATION-001以Settings身份不足为实际buyer启用既有ObservationNeed领域概念。Producer=World reconciliation；Consumer=Control Observation Recovery；driver仅转送，不成为新Owner。
++
++- `ObservationNeed(SourceRevisionId, CaptureEvidenceId, Capture, Kind)`：Kind当前为identity-disambiguation，只表达缺失信息，不指定模型、provider或算法。SourceRevisionId指need首次产生revision；普通内容revision不重建请求。Capture含capture/cycle/session/time/space及同capture观察布局；CaptureEvidenceId是P2已采信source记录。
++- P2/P3复用普通ObservationProposal/EvidenceRecord；当前源载荷`ui.page.capture`=`PageCaptureObservation`，补证载荷`ui.page.identity`=`PageIdentityObservation`。正式严格JSON codec=`PageObservationCodec`，未知字段、非法相关性/坐标/重复项拒绝。补证必须具备当前capture的derived graph和实际已观察标题/布局；Signature是上下文提示，PageKey、预期和confidence均不作为身份。IAssociationStrategy提案仍过World authority gates。
++- WorldBeliefRevision表达不可变CurrentPageObservation；未确认时保留ownerless结构及need。新capture替换当前观察，旧capture补证仅保留历史证据，不恢复；当前capture确认后仅在新revision提供有该capture证据的已归属元素。普通内容Insufficient不撤销页面。
++- Control在既有ObservationDirective附带Need与RemainingBudget，并选择观察深度。等待位置关联原phase/attempt/receipt，跨Drive续用原deadline及run补证子配额；换capture不续预算。超时/不足保持未知，返回既有GroundingFailed/VerificationFailed与Recovery/任务策略，不构成Run失败或默认Back。Effect Gate不请求或等待模型。
++- P23当前UI grounding及P11绑定消费对未确认capture不授权UI动作；无capture的既有ownerless用途及不依赖页面身份的非UI查询兼容。导航投影未知时不提供旧anchor用于Traversal。
++- 补证采信不等于到达。Assurance另验本次dispatch之后的capture及effect谓词，Traversal只在verified后推进；已投递点击不重发，step/round/plan预算不重置。未知、错相关性、迟到、重复、取消不得越过该顺序。
++
++不扩张Agent AGT-002协议或P22意图；本边为World信息需求，观察/语义已有正式消费缝继续复用。
+--- a/docs/architecture/protocols/protocol-map.generated.md
++++ b/docs/architecture/protocols/protocol-map.generated.md
+@@ -17,7 +17,7 @@
+ | judgment | pending | 3 | 2 | consumed | ∅ |
+ | run | created | 10 | 18 | closed, terminal | ∅ |
+ 
+-## 协议边表（44 条；P## 协议边 / O## wire·宿主边 / G## known gap）
++## 协议边表（45 条；P## 协议边 / O## wire·宿主边 / G## known gap）
+ 
+ | id | kind | status | 方向 | 载荷 | 基线锚 |
+ |---|---|---|---|---|---|
+@@ -65,3 +65,4 @@
+ | P24 | edge | keep | uni-agent → uni-kernel | record UniClaw.Kernel.Runtime.ActivationResult | #### P24 Legal Run Activation（Runtime activation path → Uni Kernel internal run driver） |
+ | P25 | edge | keep | uni-kernel → uni-agent | record UniClaw.Kernel.Runtime.AgentDecision | #### P25 Agent Decision Consultation（Uni Kernel internal driver → UniAgent realization，外部 seam） |
+ | P26 | edge | keep | uni-kernel → simulation-host | record UniClaw.Kernel.Trace.RunTraceArtifact | #### P26 Sealed Trace → ScenarioStimulus（测试 / 治理侧，非产品内边） |
++| P27 | edge | keep | world-model → control-loop | record UniClaw.Kernel.World.ObservationNeed | ### P27 Observation Need（World Model → Control Loop） |
+--- a/docs/architecture/uworld-protocol-baseline-l4.md
++++ b/docs/architecture/uworld-protocol-baseline-l4.md
+@@ -807,12 +807,7 @@
+ DEFER — NO CURRENT BUYER
+ ```
+ 
+-2026-10-21 后续决定：真实 Settings 导航已出现“有元素但页面身份不足、
+-缺少World补证需求消费路径”的buyer。用户在本轮grill中接受启用该需求出口，
+-范围与验收见 `changes/WORLD-OBSERVATION-001/state.md`。上述文字保留
+-v0.1原始defer依据；“无buyer”不再代表当前状态。具体跨组件载荷尚未冻结或
+-实现，不能据此宣称已有可执行出口。World仍只表达信息缺失，Control拥有
+-观察调度，Perception不获得身份权威。
++2026-10-21 WORLD-OBSERVATION-001启用实际Settings buyer：最小外部边P27与观察载荷见组件间协议基线P27；正式codec为PageObservationCodec。World输出当前capture的identity-disambiguation need，Control在原执行位置有界调度，Perception只产提案。未知capture不沿用旧页元素归属；World确认后Assurance另验到达，Traversal才推进。验收状态以Change证据为准；启用协议不等于真实样例已通过。上述defer为v0.1历史依据，其余未购买的信息需求仍deferred。
+ 
+ ---
+ 
+--- a/docs/protocol-cards/control-loop.md
++++ b/docs/protocol-cards/control-loop.md
+@@ -18,3 +18,4 @@
+ | P5 | edge | track | run-model → control-loop | record UniClaw.Kernel.Run.RunState | ### P5 Run Snapshot（Run Model → Control Loop） |
+ | P6 | edge | keep | run-model → control-loop | record UniClaw.Kernel.Run.ExecutionContractView | ### P6 Execution Contract View（Run Model → Control Loop / Assurance） |
+ | P21 | edge | track | memory-system → control-loop | — | ### P21 Memory Recall（placeholder，Memory System → Agent / Control / World Model） |
++| P27 | edge | keep | world-model → control-loop | record UniClaw.Kernel.World.ObservationNeed | ### P27 Observation Need（World Model → Control Loop） |
+--- a/docs/protocol-cards/world-model.md
++++ b/docs/protocol-cards/world-model.md
+@@ -9,6 +9,7 @@
+ |---|---|---|---|---|---|
+ | P4 | edge | keep | world-model → control-loop | record UniClaw.Kernel.World.Slice | ### P4 Slice（World Model → Control Loop） |
+ | P11 | edge | keep | world-model → assurance | record UniClaw.Kernel.World.ActionAssuranceView | ### P11 Current WorldBelief View（World Model → Assurance / Effect Boundary） |
++| P27 | edge | keep | world-model → control-loop | record UniClaw.Kernel.World.ObservationNeed | ### P27 Observation Need（World Model → Control Loop） |
+ 
+ ## 入边（对端 → 本组件）
+ 
+--- a/dsh/uniclaw-decision-channel/README.md
++++ b/dsh/uniclaw-decision-channel/README.md
+@@ -103,3 +103,6 @@
+ ADR-0053：正式通道新增plan与continuePlan，并同步既有blocked零Effect出口。Plan支持具体步骤、候选迭代、Owner命名条件的if分支、有界repeat及检查点；有限块可组合，不开放任意表达式/跳转/递归调用；typed结构由Kernel记录生成Schema，插件只验证/传输。ContinuePlan精确回带context.planExecution.position，续额不隐式续Plan；NoAction保持终局评估。Source及Condition声明仅首次请求注入，未来页面动作由Runtime逐步检查当前事实。实际attempt完成锚使用plan-attempt:ID，不把同节点下一次迭代误作上次完成。咨询落盘不是进程重启执行恢复承诺。
+ 
+ Agent咨询的attempt保留身份、位置、状态、receipt及原因，EvidenceRefs使用实际plan-attempt审计引用；完整原始来源仍留在Driver审计及plan-execution证据。引用存在不代表Verified，completion仍按内核原有状态核验。
++
++
++WORLD-OBSERVATION-001：`/slow`可携带`reasoningEffort: "high"`。插件只在该隔离slow session的`agent/request` waterfall施加请求参数，不修改主决策session或默认effort。实际请求hook应用后响应`diagnostics.reasoningEffort=high`；未应用返回`reasoning-effort-unproven`，不静默降级。模型能力声明必须支持该档位，否则供应方拒绝；该参数不进入产品共享协议。
+--- a/dsh/uniclaw-decision-channel/src/index.js
++++ b/dsh/uniclaw-decision-channel/src/index.js
+@@ -802,6 +802,21 @@
+     },
+   }
+ 
++  // Request-local Slow override. Do not change the default model/effort or
++  // any other session; only the isolated active Slow request may consume it.
++  ctx.on('agent/request', async (payload, next) => {
++    const resolved = await next()
++    const pending = state.slowPending
++    if (pending === null || pending.reasoningEffort == null
++      || String(payload.agent?.session?.id ?? '') !== pending.sessionId) return resolved
++    const actual = { ...resolved, reasoningEffort: pending.reasoningEffort }
++    pending.actualReasoningEffort = actual.reasoningEffort
++    recordEvent('slow-request-config', { requestId: pending.requestId,
++      sessionId: pending.sessionId, provider: actual.provider, model: actual.model,
++      reasoningEffort: actual.reasoningEffort })
++    return actual
++  })
++
+   // ---- session journal watch: B3 — turn end WITHOUT capture is a failure.
+   ctx.on('session/event', (session, event) => {
+     const attached = state.attached
+@@ -1176,6 +1191,8 @@
+       if (body === null) return fail(400, 'gateway/bad-request', 'slow body must be a JSON object')
+       const attached = state.attached
+       if (attached === null) return fail(200, 'channel-not-attached', 'handshake required before slow')
++      if (body.reasoningEffort != null && body.reasoningEffort !== 'high')
++        return fail(400, 'gateway/bad-request', 'explicit slow reasoningEffort must be high')
+       if (typeof body.requestId !== 'string' || body.requestId.length === 0
+         || typeof body.prompt !== 'string' || body.prompt.length === 0) {
+         return fail(400, 'gateway/bad-request', 'slow requires requestId and prompt')
+@@ -1192,7 +1209,8 @@
+       if (workspaceRegistry === undefined || typeof workspaceRegistry.archiveSession !== 'function')
+         return fail(500, 'workspace-archive-unavailable', 'slow requires session archival support')
+       let slowSessionId
+-      const slowPending = { requestId: body.requestId, sessionId: null, resolve: settled, text: null, timer: null }
++      const slowPending = { requestId: body.requestId, sessionId: null, resolve: settled, text: null, timer: null,
++        reasoningEffort: body.reasoningEffort ?? null, actualReasoningEffort: null }
+       state.slowPending = slowPending
+       try {
+         try {
+@@ -1253,9 +1271,12 @@
+           return json(200, { requestId: body.requestId, text: null,
+             error: captured.error.code, diagnostics: captured.error })
+         }
++        if (slowPending.reasoningEffort !== null && slowPending.actualReasoningEffort !== slowPending.reasoningEffort)
++          return fail(200, 'reasoning-effort-unproven', 'Slow request did not attest the requested effort')
+         recordEvent('slow-complete', { requestId: body.requestId })
+         return json(200, { requestId: body.requestId, text: captured.text,
+-          error: null, diagnostics: { source: 'assistant/message' } })
++          error: null, diagnostics: { source: 'assistant/message',
++            ...(slowPending.actualReasoningEffort === null ? {} : { reasoningEffort: slowPending.actualReasoningEffort }) } })
+       } finally {
+         if (slowPending.timer !== null) clearTimeout(slowPending.timer)
+         try {
+@@ -1523,6 +1544,18 @@
+     fetch: async (request) => {
+       const body = await readJson(request)
+       if (body === null) return fail(400, 'gateway/bad-request', 'abort body must be a JSON object')
++      if (body.slowRequestId != null) {
++        const slow = state.slowPending
++        if (typeof body.slowRequestId !== 'string' || slow?.requestId !== body.slowRequestId)
++          return json(200, { aborted: false, reason: 'stale-slow-request' })
++        if (slow.timer !== null) clearTimeout(slow.timer)
++        state.slowPending = null
++        slow.resolve({ ok: false, error: { code: 'turn-aborted', message: 'correlated Slow cancellation' } })
++        if (slow.sessionId && controller !== undefined && typeof controller.cancel === 'function')
++          controller.cancel({ sessionId: slow.sessionId })
++        recordEvent('slow-abort', { requestId: body.slowRequestId, sessionId: slow.sessionId })
++        return json(200, { aborted: true })
++      }
+       recordEvent('abort')
+       retirePending()
+       if (state.slowPending !== null) {
+--- a/dsh/uniclaw-decision-channel/tests/plugin.test.mjs
++++ b/dsh/uniclaw-decision-channel/tests/plugin.test.mjs
+@@ -1515,3 +1515,45 @@
+   assert.deepEqual(captured.body.task.payload, payload)
+   await call(harness.routes, '/api/uniclaw-agent/detach', {})
+ })
++
++test('Slow high effort is applied only to its isolated request and attested in diagnostics', async () => {
++  const harness = mockCtx()
++  applyHost(harness)
++  await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
++  const pending = call(harness.routes, '/api/uniclaw-agent/slow', {
++    requestId: 'slow-high', prompt: 'observe title', reasoningEffort: 'high',
++    model: { provider: 'commandcode', model: 'configured-model' },
++  })
++  for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++)
++    await new Promise(resolve => setTimeout(resolve, 5))
++  const sessionId = harness.controller.promptCalls[0].sessionId
++  const hook = harness.events.get('agent/request')?.[0]
++  assert.equal(typeof hook, 'function')
++  const seed = { provider: 'commandcode', model: 'configured-model', reasoningEffort: 'low' }
++  assert.deepEqual(await hook({ agent: { session: { id: 'unrelated-session' } } }, async () => seed), seed)
++  const actual = await hook({ agent: { session: { id: sessionId } } }, async () => seed)
++  assert.equal(actual.reasoningEffort, 'high')
++  emitAssistantText(harness, sessionId, '{"pageKey":"apps","observedTitle":"Apps"}')
++  emitTurnEnd(harness, sessionId)
++  const result = await pending
++  assert.equal(result.body.diagnostics.reasoningEffort, 'high')
++  await call(harness.routes, '/api/uniclaw-agent/detach', {})
++})
++
++test('Correlated Slow abort ignores an expired request and leaves the main session alone', async () => {
++  const harness = mockCtx()
++  applyHost(harness)
++  await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
++  const pending = call(harness.routes, '/api/uniclaw-agent/slow', { requestId: 'slow-owned', prompt: 'observe' })
++  for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++)
++    await new Promise(resolve => setTimeout(resolve, 5))
++  const isolated = harness.controller.promptCalls[0].sessionId
++  const stale = await call(harness.routes, '/api/uniclaw-agent/abort', { slowRequestId: 'expired-request' })
++  assert.equal(stale.body.aborted, false)
++  assert.equal(harness.controller.cancels.length, 0)
++  const stopped = await call(harness.routes, '/api/uniclaw-agent/abort', { slowRequestId: 'slow-owned' })
++  assert.equal(stopped.body.aborted, true)
++  await pending
++  assert.deepEqual(harness.controller.cancels, [{ sessionId: isolated }])
++  await call(harness.routes, '/api/uniclaw-agent/detach', {})
++})
+--- a/scenarios/SCN-BARRIER-001.json
++++ b/scenarios/SCN-BARRIER-001.json
+@@ -30,8 +30,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "e70845d5e3000ddfb414741a304d86784719da988872676d98646580dfaaded5",
+     "executionDigest": "b772211aad026e21a4459e2b36d08f926623011ad712704046bd2eb85c7e3e9a",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-BARRIER-002.json
++++ b/scenarios/SCN-BARRIER-002.json
+@@ -33,8 +33,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "55ed6e38c5221c9ed84f111da61ee5637707a3db9b6f0ca307c62698fbb90442",
+     "executionDigest": "d02e4ff2ab99e50797abae43894280d905a27f8f291dc823e3226017cf122511",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-BARRIER-003.json
++++ b/scenarios/SCN-BARRIER-003.json
+@@ -30,8 +30,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "3757929670677752beec06cf9cb50d4929ae878704b296eab0d8b2ababfa9b9a",
+     "executionDigest": "a16959ae6376dd47c4195fef7709bc71079d23f2231eaaf438853496332cb194",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-POLICY-001.json
++++ b/scenarios/SCN-POLICY-001.json
+@@ -34,8 +34,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "e0c2f65aaa35f1acf9ebc5097bc615ee35035e060d7555af25fecf90dc0ac7ad",
+     "executionDigest": "aa4ee84fe95c500d9a5973b7bb17ec5c0e75e864982270826a292a71cfead115",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-POLICY-002.json
++++ b/scenarios/SCN-POLICY-002.json
+@@ -34,8 +34,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "e70845d5e3000ddfb414741a304d86784719da988872676d98646580dfaaded5",
+     "executionDigest": "1cf543de0ab0abdd12a1c4ac8c3291c50ba832d60c329f8393778e7a736acba5",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-POLICY-003.json
++++ b/scenarios/SCN-POLICY-003.json
+@@ -34,8 +34,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "4b272fd73ef58ede4eb2a817e583e30dbd588b319d777a8d0daffe3b1b604eeb",
+     "executionDigest": "97328f1c56934f3048bcc70e31e85d98eac2ae1e0c75f2c70e3f959d85ca216a",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-POLICY-004.json
++++ b/scenarios/SCN-POLICY-004.json
+@@ -34,8 +34,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "5fc118241dc16870c7ab7655c6483647d1f9ee3b5c85a69ddd5e8641d7c7bec1",
+     "executionDigest": "405f5f1abfb87ce9aa2ec307038a5943a99fbffc730d9069f9eb87dbe665cada",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-POLICY-005.json
++++ b/scenarios/SCN-POLICY-005.json
+@@ -34,8 +34,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "75cb1230027332536c2c6f01f9e5641bc671c7dd21a77047b8d70589b4bc711c",
+     "executionDigest": "0165142c66f75d024227d8925e78fea8ed0a6de04b46a032152ef9983eef69e6",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-POLICY-006.json
++++ b/scenarios/SCN-POLICY-006.json
+@@ -34,8 +34,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "4b272fd73ef58ede4eb2a817e583e30dbd588b319d777a8d0daffe3b1b604eeb",
+     "executionDigest": "e5304887067e744961d3a9ce2bc0f5b756653e62c8e614e761b2443a5b6755c3",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-POLICY-007.json
++++ b/scenarios/SCN-POLICY-007.json
+@@ -34,8 +34,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "5fc118241dc16870c7ab7655c6483647d1f9ee3b5c85a69ddd5e8641d7c7bec1",
+     "executionDigest": "455438ba3398670dbe3be2e2cbc489960abb5e342f915b6157680d9613501a62",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-POLICY-008.json
++++ b/scenarios/SCN-POLICY-008.json
+@@ -34,8 +34,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "4b272fd73ef58ede4eb2a817e583e30dbd588b319d777a8d0daffe3b1b604eeb",
+     "executionDigest": "9a31eb8f902b05d064cb7f15716a88785365b214501f2be16ccc3a90a999bf28",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-POLICY-009.json
++++ b/scenarios/SCN-POLICY-009.json
+@@ -34,8 +34,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "400b1755b0e41e92f3af95979a13117a0329550c4907c34c39fe755e049fd778",
+     "executionDigest": "d0d5aebf09d10aeca655585c170c27730b97031aab80a92a7b4be80f7946835a",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-POLICY-010.json
++++ b/scenarios/SCN-POLICY-010.json
+@@ -34,8 +34,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "400b1755b0e41e92f3af95979a13117a0329550c4907c34c39fe755e049fd778",
+     "executionDigest": "f25cca230034edc1c384084496a34dc5496ed5d2915aa08e25dce7ca7302f94b",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-POLICY-011.json
++++ b/scenarios/SCN-POLICY-011.json
+@@ -34,8 +34,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "400b1755b0e41e92f3af95979a13117a0329550c4907c34c39fe755e049fd778",
+     "executionDigest": "eb39919ae14f4cc3f8de9a70819e8fd94a8776d2906a21fae4d4d9b774857378",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-WIFI-001.json
++++ b/scenarios/SCN-WIFI-001.json
+@@ -31,8 +31,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+     "executionDigest": "981ff6dac9b804f8e5e1208f622ef50567d89aba289df01f6410e1d635cbb8ae",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-WIFI-002.json
++++ b/scenarios/SCN-WIFI-002.json
+@@ -29,8 +29,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "e9f7b914e94096aeb03ac500921303d1b00e70239184a124664cdd00d71f341e",
+     "executionDigest": "0f1f21449f1f460ae9f58efffcc826c7f600aba4a1a2ba226c80a65ed8b6e654",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-WIFI-003.json
++++ b/scenarios/SCN-WIFI-003.json
+@@ -32,8 +32,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+     "executionDigest": "f6f9802bd5ce7d7b59222c82754e252a8ec4547ff9cb76587943397366fca864",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-WIFI-004.json
++++ b/scenarios/SCN-WIFI-004.json
+@@ -30,8 +30,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "e295392830356c6d8aabaa22617caaaac705343312001e6b86e8d73c90344f6a",
+     "executionDigest": "7faf1573ea6990aa3f9c437b310654f72a62fbb57bd4e0abcfb5aed60a2dcf9b",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-WIFI-005.json
++++ b/scenarios/SCN-WIFI-005.json
+@@ -33,8 +33,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "7f4b1806e36b413ca49b16b4cdb7e702a181fb74ceb5da084945e2b252de70d6",
+     "executionDigest": "b823e11cbbeba98d2b21f47c496283b691f6ebf8bef86b52c9651eb2b0b14db2",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   },
+   "security": {
+--- a/scenarios/SCN-WIFI-006.json
++++ b/scenarios/SCN-WIFI-006.json
+@@ -37,8 +37,8 @@
+     "schemaVersion": 2,
+     "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+     "executionDigest": "3860d1ec54225994504fa909570a0cc7e77fb294899627a8e324d143d61db740",
+-    "runtimeSourceHash": "fff84423e7367f23aa8eb27b9e943aa5a72497fb547f56349b7649f6d3e65b88",
+-    "certifiedByChange": "JEV-SEMANTIC-CAP-001",
++    "runtimeSourceHash": "aef6160d5c426c4867fa50f6c01070c07a971f715baf3ec1ed1be674149aa234",
++    "certifiedByChange": "WORLD-OBSERVATION-001",
+     "certifiedAt": "2026-10-21"
+   }
+ }
+--- a/schemas/protocol/state-machine.yaml
++++ b/schemas/protocol/state-machine.yaml
+@@ -664,6 +664,15 @@
+     payload_ref:
+       type: record
+       name: UniClaw.Kernel.World.UiRealization.CurrentGroundingView
++  - id: P27
++    kind: edge
++    status: keep
++    title_anchor: "### P27 Observation Need（World Model → Control Loop）"
++    from: world-model
++    to: control-loop
++    payload_ref:
++      type: record
++      name: UniClaw.Kernel.World.ObservationNeed
+   - id: P26
+     kind: edge
+     status: keep
+--- a/src/UniClaw.Agent.Dsh/DshOpenedHttpPeer.cs
++++ b/src/UniClaw.Agent.Dsh/DshOpenedHttpPeer.cs
+@@ -298,7 +298,8 @@
+         string prompt,
+         ModelConfiguration model,
+         byte[]? imagePng = null,
+-        CancellationToken cancellationToken = default)
++        CancellationToken cancellationToken = default,
++        string? reasoningEffort = null)
+     {
+         ObjectDisposedException.ThrowIf(_disposed, this);
+         ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
+@@ -312,11 +313,26 @@
+             ["turnTimeoutMs"] = (int)TimeSpan.FromSeconds(110).TotalMilliseconds,
+             ["model"] = new { provider = model.Provider, model = model.Name },
+         };
++        if (reasoningEffort is not null)
++        {
++            if (reasoningEffort != "high") throw new ArgumentException("explicit slow effort must be high", nameof(reasoningEffort));
++            body["reasoningEffort"] = reasoningEffort;
++        }
+         if (imagePng is { Length: > 0 })
+             body["image"] = new { mediaType = "image/png", data = Convert.ToBase64String(imagePng), name = "capture.png" };
+         for (var retry = 0; ; retry++)
+         {
+-            var document = await PostJsonAsync(SlowPath, body, cancellationToken).ConfigureAwait(false);
++            JsonDocument document;
++            try { document = await PostJsonAsync(SlowPath, body, cancellationToken).ConfigureAwait(false); }
++            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
++            {
++                // Cancellation stops only this Slow request. A stale cleanup
++                // cannot abort a later request or the main decision session.
++                using var cleanup = new CancellationTokenSource(TimeSpan.FromSeconds(2));
++                try { await PostJsonAsync(AbortPath, new { slowRequestId = requestId }, cleanup.Token).ConfigureAwait(false); }
++                catch (Exception) { /* Caller remains cancelled; server deadline/archival is still authoritative. */ }
++                throw;
++            }
+             var root = document.RootElement;
+             // AGT-019/RUN-006 修复：插件 fail() 封包 error 为 {code,message}
+             // 对象（consult 路径同形状），slow 解析此前只认字符串——真实
+--- a/src/UniClaw.Agent.Dsh/DshSemanticPerception.cs
++++ b/src/UniClaw.Agent.Dsh/DshSemanticPerception.cs
+@@ -0,0 +1,88 @@
++using System.Text.Json;
++using System.Text.Json.Serialization;
++using UniClaw.Kernel.Capability;
++
++namespace UniClaw.Agent.Dsh;
++
++public sealed class DshSemanticPerception
++{
++    public delegate Task<DshSlowResponse> Transport(
++        string requestId, string prompt, ModelConfiguration model,
++        string reasoningEffort, CancellationToken cancellationToken);
++
++    private readonly Transport _transport;
++    private readonly ModelConfiguration _model;
++    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
++    { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow };
++    static DshSemanticPerception() => Json.Converters.Add(new JsonStringEnumConverter());
++
++    public DshSemanticPerception(Transport transport, ModelConfiguration model)
++    {
++        _transport = transport ?? throw new ArgumentNullException(nameof(transport));
++        _model = model ?? throw new ArgumentNullException(nameof(model));
++    }
++
++    public UniPerceptionCapability CreateCapability(IEnumerable<PerceptionHealthSource>? sources = null) =>
++        new UniPerceptionCapability(sources ?? []).WithSemanticExecutor(ExecuteAsync);
++
++    private async ValueTask<SemanticPerceptionResult> ExecuteAsync(
++        SemanticPerceptionRequest request, CancellationToken cancellationToken)
++    {
++        try
++        {
++            var prompt = BuildPrompt(request);
++            var response = await _transport(request.RequestId, prompt, _model, "high", cancellationToken)
++                .ConfigureAwait(false);
++            if (!string.IsNullOrWhiteSpace(response.Error) || string.IsNullOrWhiteSpace(response.Text))
++                return SemanticPerceptionResult.Empty(request, CapabilityStatus.Failed,
++                    PerceptionDisposition.Unknown, response.Error ?? "empty response");
++            if (!HasHighReasoning(response.Diagnostic))
++                return SemanticPerceptionResult.Empty(request, CapabilityStatus.Completed,
++                    PerceptionDisposition.Unaligned, "reasoning-effort-unproven");
++            var answer = JsonSerializer.Deserialize<Answer>(response.Text, Json);
++            if (answer is null || !request.Candidates.Any(c => c.Key == answer.PageKey)
++                && answer.PageKey != "unknown")
++                return SemanticPerceptionResult.Empty(request, CapabilityStatus.Completed,
++                    PerceptionDisposition.Unknown, "pageKey outside candidate catalogue");
++            if (!string.IsNullOrWhiteSpace(answer.ObservedTitle)
++                && !request.Current.Items.Any(i => string.Equals(i.Text, answer.ObservedTitle, StringComparison.Ordinal)))
++                return SemanticPerceptionResult.Empty(request, CapabilityStatus.Completed,
++                    PerceptionDisposition.Unaligned, "title not observed in current capture");
++            if (answer.PageKey == "unknown")
++                return SemanticPerceptionResult.Empty(request, CapabilityStatus.Completed,
++                    PerceptionDisposition.Unknown, "unknown page");
++            return SemanticPerceptionResult.Observed(request, answer.PageKey, answer.ObservedTitle,
++                answer.Relation, answer.ExpectedMatch, source: "dsh.semantic");
++        }
++        catch (OperationCanceledException)
++        {
++            return SemanticPerceptionResult.Empty(request, CapabilityStatus.Cancelled,
++                PerceptionDisposition.Unknown, "cancelled");
++        }
++        catch (JsonException error)
++        {
++            return SemanticPerceptionResult.Empty(request, CapabilityStatus.Failed,
++                PerceptionDisposition.Unknown, "invalid JSON: " + error.Message);
++        }
++        catch (Exception error)
++        {
++            return SemanticPerceptionResult.Empty(request, CapabilityStatus.Failed,
++                PerceptionDisposition.Unavailable, error.Message);
++        }
++    }
++
++    private static bool HasHighReasoning(string? diagnostic)
++    {
++        try { using var json = JsonDocument.Parse(diagnostic ?? ""); return json.RootElement.GetProperty("reasoningEffort").GetString() == "high"; }
++        catch { return false; }
++    }
++
++    private static string BuildPrompt(SemanticPerceptionRequest request) =>
++        "只使用当前capture中的观察事实判断页面。预期与实际观察必须独立，不能把预期当事实。"
++        + "只返回JSON，不要Markdown：{\"pageKey\":\"候选key或unknown\",\"observedTitle\":\"当前文字或null\","
++        + "\"relation\":\"Unknown|SamePage|DifferentPage\",\"expectedMatch\":\"Unknown|Match|Mismatch|Conflicted\"}。"
++        + JsonSerializer.Serialize(new { request.Current, request.Candidates, request.Correlation, request.Intent, request.Previous, request.Action, request.Budget }, Json);
++
++    private sealed record Answer(string PageKey, string? ObservedTitle,
++        SemanticPageRelation Relation, SemanticExpectedMatch ExpectedMatch);
++}
+--- a/src/UniClaw.Agent.Dsh/README.md
++++ b/src/UniClaw.Agent.Dsh/README.md
+@@ -10,6 +10,7 @@
+ 
+ | 文件 | 职责 |
+ |---|---|
++| `DshSemanticPerception.cs` | 既有SemanticPerception供货缝的DSH慢模型实现；请求high并核对实际请求回执，零World写权 |
+ | `DshModelManagement.cs` | Model Management 缺省（借用 DSH）realization：产品声明+DSH 绑定双输入 → ModelManagement 快照注入（CAP-006；PRF-002） |
+ | `UniagentDshBindings.cs` | DSH realization 绑定加载结果（CAP-007 modelSelection+service；PRF-002） |
+ | `UniagentDshBindingsYaml.cs` | DSH 绑定 loader（`.dsh/product/uniagent-prod-bindings.yaml`；PRF-002 接替 UniagentProdYaml 的绑定半部，产品半部在 `../UniClaw.Agent/Profile/`） |
+--- a/src/UniClaw.Host.Dsh/Program.cs
++++ b/src/UniClaw.Host.Dsh/Program.cs
+@@ -134,7 +134,7 @@
+     dshPeer = new DshOpenedHttpPeer(bindings.Service, model: model, expectedProfile: agentProfile);
+     var slowBridge = new DshSlowConsult(
+         (requestId, prompt, slowModel, imagePng, cancellationToken) =>
+-            dshPeer.ExecuteSlowAsync(requestId, prompt, slowModel, imagePng, cancellationToken),
++            dshPeer.ExecuteSlowAsync(requestId, prompt, slowModel, imagePng, cancellationToken, reasoningEffort: "high"),
+         slowTextModel);
+     // PER-019：UniPerception 异步 fetch 缝（Host 形状；fetch 界随 slow 配置）。
+     var slowSettings = SettingsCoverageConfig.LoadDefault().SlowSettings;
+@@ -166,8 +166,11 @@
+         });
+     var modelHealthProbe = new UniClaw.Kernel.Capability.PerceptionHealthSource(
+         "slow.text-models", models.CheckHealth);
++    var semanticBridge = new DshSemanticPerception(
++        (requestId, prompt, slowModel, effort, token) => dshPeer.ExecuteSlowAsync(
++            requestId, prompt, slowModel, cancellationToken: token, reasoningEffort: effort), slowTextModel);
+     capabilityRegistry = UniClaw.Host.SettingsCoverage.PerceptionCapabilityComposition
+-        .RegisterProductPerception(uniPerception: new UniClaw.Kernel.Capability.UniPerceptionCapability(
++        .RegisterProductPerception(uniPerception: semanticBridge.CreateCapability(
+             new[] { fastAssetsProbe, modelHealthProbe }));
+     // CAP-012：Runtime Integration 域注册语言检查能力（skill 首次全新实战：
+     // 确定性 Unicode 脚本规则，Finding 非权威）。
+@@ -238,6 +241,9 @@
+             LanguageInspection: coverageConfig.LanguageInspectionRequest,
+             LanguageInspectionSelectionProvider: () => agentLanguageInspectionSelection,
+             RuntimeIntegrationCapabilities: runtimeIntegrationRegistry,
++            ProductCapabilities: capabilityRegistry,
++            SemanticPages: new[] { new SemanticPageCandidate("observed-page", "当前观察页面",
++                "只标记当前实际呈现的系统页面；标题从当前文字选择，材料不足为unknown，不猜预期") },
+             UseCoverageDirector: !advisoryDirect));
+     }
+     else
+--- a/src/UniClaw.Host/CurrentPageAnchor.cs
++++ b/src/UniClaw.Host/CurrentPageAnchor.cs
+@@ -8,6 +8,7 @@
+ {
+     internal static string? Resolve(WorldBeliefRevision? belief)
+     {
++        if (belief?.ObservationNeed is not null) return null;
+         if (belief?.WorldState.TryGetValue(WorldModel.CurrentContainerSubject, out var anchor) == true)
+             return !belief.Conflicts.Any(conflict => conflict.Subject == WorldModel.CurrentContainerSubject)
+                 && belief.Containers?.Count(container => container.Identity.ContainerId == anchor.Value) == 1
+--- a/src/UniClaw.Host/PageIdentityRecovery.cs
++++ b/src/UniClaw.Host/PageIdentityRecovery.cs
+@@ -0,0 +1,102 @@
++using System.Collections.Frozen;
++using System.Text.Json;
++using System.Xml.Linq;
++using UniClaw.Kernel.Capability;
++using UniClaw.Kernel.Evidence;
++using UniClaw.Kernel.Perception;
++using UniClaw.Kernel.Perception.UiHierarchy;
++using UniClaw.Kernel.World;
++
++namespace UniClaw.Host;
++
++/// <summary>Observation adapter only: preserves source layout and projects a
++/// supplied title selection. World decides identity; Assurance decides arrival.</summary>
++internal static class PageIdentityRecovery
++{
++    internal static PageCaptureObservation Capture(string captureId, string cycle, string session,
++        DateTimeOffset time, int width, int height, string? xml, FastTextBasis? fast)
++    {
++        var items = new List<SemanticLayoutItem>();
++        if (xml is not null)
++        {
++            try
++            {
++                foreach (var n in XDocument.Parse(xml).Descendants("node"))
++                {
++                    var raw = (string?)n.Attribute("bounds");
++                    var v = raw?.Replace("][", ",").Trim('[', ']').Split(',');
++                    if (v?.Length != 4 || !v.All(x => int.TryParse(x, out _))) continue;
++                    var b = v.Select(int.Parse).ToArray();
++                    if (b[0] < 0 || b[1] < 0 || b[2] <= b[0] || b[3] <= b[1] || b[2] > width || b[3] > height) continue;
++                    var text = (string?)n.Attribute("text");
++                    if (string.IsNullOrWhiteSpace(text)) text = (string?)n.Attribute("content-desc");
++                    var role = (string?)n.Attribute("clickable") == "true" ? "ui.element" : "text";
++                    if (string.IsNullOrWhiteSpace(text) && role == "text") continue;
++                    items.Add(new($"xml-{items.Count}", role, text?.Trim(), new(b[0], b[1], b[2], b[3])));
++                }
++            }
++            catch (System.Xml.XmlException) { /* Invalid XML supplies no items. */ }
++        }
++        // Prefer one source for the current layout. Never join different captures.
++        if (items.Count == 0 && fast is { ProviderAvailable: true })
++        {
++            foreach (var raw in fast.OcrTokens.Concat(fast.YoloDetections))
++            {
++                try
++                {
++                    using var json = JsonDocument.Parse(raw);
++                    var n = json.RootElement;
++                    var b = n.GetProperty("boundsPx").EnumerateArray().Select(v => v.GetInt32()).ToArray();
++                    if (b.Length != 4 || b[0] < 0 || b[1] < 0 || b[2] <= b[0] || b[3] <= b[1] || b[2] > width || b[3] > height) continue;
++                    var isText = n.TryGetProperty("text", out var t);
++                    var text = isText ? t.GetString() : null;
++                    var role = isText ? "text" : n.GetProperty("label").GetString()!;
++                    items.Add(new($"vision-{items.Count}", role, text, new(b[0], b[1], b[2], b[3])));
++                }
++                catch (Exception e) when (e is JsonException or KeyNotFoundException or InvalidOperationException or FormatException) { }
++            }
++        }
++        return new(captureId, cycle, session, time,
++            CoordinateSpace.DeviceViewport(width, height, captureId: captureId), items.AsReadOnly());
++    }
++
++    internal static ObservationProposal? Identity(PageObservationState source, string? title,
++        string? signature, ObservationContext context, string producer = "host.page-identity")
++    {
++        var c = source.Capture;
++        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(signature)
++            || c.Items.Count < 2 || !c.Items.Any(i => i.Text?.Trim() == title.Trim())) return null;
++        var payload = new PageIdentityObservation(c.CaptureId, c.ObservationCycleId,
++            c.SessionCorrelation, c.CaptureTime, signature, title);
++        return new(new(PageObservationCodec.IdentitySubject, PageObservationCodec.Encode(payload)),
++            IngressKind.Observation, context, new(producer, c.CaptureTime,
++                $"identity:{c.CaptureId}", ["capture:" + c.CaptureId, "source-layout-title"]))
++        {
++            DerivedFromEvidenceIds = new[] { source.EvidenceId },
++            TransitiveEvidenceBasis = new[] { source.EvidenceId }.ToFrozenSet(StringComparer.Ordinal),
++            FusionRule = "page.identity.observed-title-layout", FusionVersion = "1",
++        };
++    }
++
++    internal static async Task<(string? Title, IReadOnlyList<ObservationProposal> Meaning)> RecognizeAsync(
++        ISemanticPerception? perception, IReadOnlyList<SemanticPageCandidate> candidates,
++        ObservationNeed need, TimeSpan budget, ObservationContext context, CancellationToken token)
++    {
++        if (perception is null || candidates.Count == 0 || budget <= TimeSpan.Zero) return (null, []);
++        var c = need.Capture;
++        var request = new SemanticPerceptionRequest($"page-identity:{c.CaptureId}:{Guid.NewGuid():N}",
++            new CapabilityCorrelation(c.SessionCorrelation, captureId: c.CaptureId, observationCycleId: c.ObservationCycleId),
++            new(c.CaptureId, c.ObservationCycleId, c.SessionCorrelation, c.CaptureTime, c.Space,
++                c.Items, [need.CaptureEvidenceId]), candidates, Budget: budget);
++        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
++        timeout.CancelAfter(budget);
++        try
++        {
++            var result = await perception.ObserveSemanticsAsync(request, timeout.Token).AsTask()
++                .WaitAsync(budget, token).ConfigureAwait(false);
++            var meaning = SemanticObservationProjector.CreateProposals(request, result, context: context);
++            return (meaning.Count > 0 ? result.Observation?.ObservedTitle : null, meaning);
++        }
++        catch (Exception e) when (e is TimeoutException or OperationCanceledException) { return (null, []); }
++    }
++}
+--- a/src/UniClaw.Host/README.md
++++ b/src/UniClaw.Host/README.md
+@@ -8,6 +8,7 @@
+ 
+ | 文件 | 职责 |
+ |---|---|
++| `PageIdentityRecovery.cs` | 同capture观察材料与语义标题选择的补证adapter；只产普通proposal，身份/到达不在此裁决 |
+ | `HostRunner.cs` | Product Host 最小 composition root（HOST-001 spec v0.3） |
+ | `Runtime/ActivationRecordStore.cs` | P24 activation key 的 reserved/finalized/failed/blocked 持久记录 |
+ | `Runtime/FileConsultationJournal.cs` | Kernel P25 consultation journal 的文件 adapter |
+@@ -55,6 +56,7 @@
+ | `SettingsPlanFacts.cs` | 由已有观察/覆盖账本投影当前根页候选、范围及来源；不驱动动作、不授予许可、不证明范围穷尽（ADR-0053） |
+ | `SettingsCoverageOverviewProjector.cs` | 由既有账本投影全局待办、验证、未知及稳定事实键；无新增可变权威 |
+ | `Geometry.cs` | TRAJECTORY-001 D5 几何工具箱：Rect / 遮挡判据（中心点）/ uiAutomator bounds 解析（只做信号输入，不改 Ledger） |
++| `SettingsNavigationScope.cs` | 将任务声明的路由范围投影为导航约束；不替代 Kernel 授权 |
+ | `SettingsCoverageConfig.cs` / `SettingsCoverageLedger.cs` / `SettingsActionPolicy.cs` | 遍历配置 / 台账（含可选 dynamicRootEntries/all-visible frontier、visited、结构性 skip reason）/ 动作策略 |
+ 
+ ## 变更规则
+--- a/src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs
++++ b/src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs
+@@ -66,7 +66,10 @@
+         // 认知测试缝：false 时直接采用 UnderlyingConsult 的建议，仍经同一
+         // Kernel grounding/assurance/effect 链；默认 true 保持 coverage director。
+         bool UseCoverageDirector = true,
+-        Func<RunDriverInput.Cancel?>? PollCancellation = null);
++        Func<RunDriverInput.Cancel?>? PollCancellation = null,
++        UniClaw.Kernel.Capability.UniPerceptionCapability? Perception = null,
++        IReadOnlyList<UniClaw.Kernel.Capability.SemanticPageCandidate>? SemanticPages = null,
++        UniClaw.Kernel.Capability.CapabilityRegistry? ProductCapabilities = null);
+ 
+     public sealed record StepArtifact(
+         int Index,
+@@ -142,19 +145,27 @@
+             ProductAssociationStrategy.PopupSubject, // AGT-009：弹窗 typed 声明
+             SharedSubjects.Frame,
+             "ui.node.*",
++            PageObservationCodec.CaptureSubject,
++            PageObservationCodec.IdentitySubject,
++            "ui.semantic.page",
+         };
+         var ledger = new SettingsCoverageLedger();
+         var evidenceSettings = config.EvidenceSettings;
+         var evidenceDir = options.FeedNext is null
+             ? Path.Combine(runDir, "evidence")
+             : null;
++        var perceptionRegistry = options.ProductCapabilities ?? PerceptionCapabilityComposition.RegisterProductPerception(
++            uniPerception: options.Perception);
++        var semanticPerception = (UniClaw.Kernel.Capability.ISemanticPerception)perceptionRegistry.Resolve("uni.perception")!;
+         var acquisitionPreflight = System.Diagnostics.Stopwatch.StartNew();
+         var liveFeed = options.FeedNext is null
+             ? new SettingsTraversalLiveFeed(
+                 clock, options.Live, evidenceDir,
+                 evidenceSettings.PersistScreenshots, evidenceSettings.PersistHierarchies,
+-                coverageConfig: config, uniPerceptionFetch: options.SlowConsult)
++                coverageConfig: config, uniPerceptionFetch: options.SlowConsult,
++                semanticPerception: semanticPerception, semanticPages: options.SemanticPages)
+             : null;
++        liveFeed?.SetCancellationToken(cancellationToken);
+         acquisitionPreflight.Stop();
+         if (liveFeed is not null)
+             WriteText(runDir, "environment-preflight.json", TryJson(new
+@@ -276,6 +287,8 @@
+                 {
+                     NextInput = interleave.WrappedNext,
+                     PollCancellation = options.PollCancellation,
++                    ObservationRecoveryTimeout = TimeSpan.FromMilliseconds(Math.Min(30000, config.SlowSettings.BoundedWaitMs)),
++                    MaxObservationRecoveryRequests = Math.Min(16, config.SlowSettings.MaxRequestsPerRun),
+                     ConsultationJournal = consultationJournal,
+                     AvailablePlanSources = SettingsPlanFacts.SourceDescriptions.Concat(new[]
+                     {
+--- a/src/UniClaw.Host/SettingsCoverage/SettingsTraversalProjection.cs
++++ b/src/UniClaw.Host/SettingsCoverage/SettingsTraversalProjection.cs
+@@ -18,7 +18,7 @@
+         : "持续菜单遍历；启用Task逐route导航白名单：当前route白名单ui.element为navigation，switch仅作readOnly，其余未授权入口Blocked；安全skip不等于覆盖完成，live发现穷尽未证明，Discovery仍为false。";
+     public static TraversalObservation? Project(string source, UniKernel kernel, SettingsCoverageConfig config)
+     {
+-        if (source != Source || kernel.CurrentBelief is not { } belief) return null;
++        if (source != Source || kernel.CurrentBelief is not { } belief || belief.ObservationNeed is not null) return null;
+         var graph = kernel.ProjectWorldGraph($"{kernel.RunId}:{kernel.RunView?.Version}");
+         if (graph?.CurrentContainerId is not { } current) return null;
+         var routeKnown = belief.WorldState.TryGetValue(ProductAssociationStrategy.ScreenRouteSubject, out var route)
+--- a/src/UniClaw.Host/SettingsTraversalLiveFeed.cs
++++ b/src/UniClaw.Host/SettingsTraversalLiveFeed.cs
+@@ -4,6 +4,9 @@
+ using UniClaw.Host.SettingsCoverage;
+ using UniClaw.Kernel;
+ using UniClaw.Kernel.Effects;
++using UniClaw.Kernel.Capability;
++using UniClaw.Kernel.World;
++using System.Security.Cryptography;
+ using UniClaw.Kernel.Evidence;
+ using UniClaw.Kernel.Perception;
+ using UniClaw.Kernel.Perception.UiHierarchy;
+@@ -76,6 +79,21 @@
+     private int _popupPresentStreak;
+     private int _slowRequests;
+     private int _cycle;
++    private readonly ISemanticPerception? _semanticPerception;
++    private readonly IReadOnlyList<SemanticPageCandidate> _semanticPages;
++    private PageCaptureObservation? _identityCapture;
++    private byte[]? _identityPixels;
++    private string? _identityFastTitle;
++    private string? _identityFastSignature;
++    private string? _identityPriorSignature;
++    private string? _identityPriorRoute;
++    private string? _identityDeliveredTarget;
++    private string? _identityDeliveredDescriptor;
++    private bool _identityDeliveredUnique;
++    private bool _reobservingIdentity;
++    private CancellationToken _cancellationToken;
++
++    internal void SetCancellationToken(CancellationToken token) => _cancellationToken = token;
+ 
+     public SettingsTraversalLiveFeed(HostUtilities.VirtualClock clock, LivePerception.LiveAssets assets)
+         : this(clock, assets, null)
+@@ -92,10 +110,14 @@
+         bool persistScreenshots = true,
+         bool persistHierarchies = true,
+         SettingsCoverageConfig? coverageConfig = null,
+-        UniPerceptionPipeline.Fetch? uniPerceptionFetch = null)
++        UniPerceptionPipeline.Fetch? uniPerceptionFetch = null,
++        ISemanticPerception? semanticPerception = null,
++        IReadOnlyList<SemanticPageCandidate>? semanticPages = null)
+     {
+         _clock = clock;
+         _assets = assets;
++        _semanticPerception = semanticPerception;
++        _semanticPages = semanticPages ?? [];
+         _acquisition = new AdbScreenshotAcquisition(assets.DeviceId, "adb", () => clock.Now);
+         _vision = new VisionServiceSession(assets.ProviderRoot, assets.PythonExecutable, assets.CacheRoot);
+         _evidenceDir = evidenceDir;
+@@ -142,6 +164,9 @@
+ 
+     public RunDriverInput? Next(ObservationDirective directive)
+     {
++        if (_cancellationToken.IsCancellationRequested)
++            return new RunDriverInput.Cancel("host-cancelled", _clock.Now);
++        if (directive.Need is not null) return SupplementIdentity(directive);
+         if (directive.Context == ObservationContext.PostActionEffectFlow)
+             Thread.Sleep(1200);
+ 
+@@ -176,16 +201,16 @@
+             popup?.HostPackage ?? "com.android.settings",
+             popup?.ResourceIds ?? SettingsCoverage.PopupClearanceConfig.DefaultPopupResourceIds);
+         var priorBelief = KernelProvider?.Invoke()?.CurrentBelief;
+-        var priorSignature = priorBelief?.WorldState.TryGetValue(
++        var priorSignature = _reobservingIdentity ? _identityPriorSignature : priorBelief?.WorldState.TryGetValue(
+             ProductAssociationStrategy.ScreenIdentitySubject, out var screenClaim) == true
+                 ? screenClaim.Value : null;
+-        var priorRoute = priorBelief?.WorldState.TryGetValue(
++        var priorRoute = _reobservingIdentity ? _identityPriorRoute : priorBelief?.WorldState.TryGetValue(
+             ProductAssociationStrategy.ScreenRouteSubject, out var routeClaim) == true
+                 ? routeClaim.Value : null;
+         var lastReceipt = KernelProvider?.Invoke()?.EffectReceipts.LastOrDefault();
+         // Receipt target is an opaque occurrence id. Resolve its already accepted
+         // pre-action semantic descriptor rather than parsing meaning from the id.
+-        var deliveredTargetDescriptor = lastReceipt is null ? null
++        var deliveredTargetDescriptor = _reobservingIdentity ? _identityDeliveredDescriptor : lastReceipt is null ? null
+             : priorBelief?.Occurrences?.SingleOrDefault(item =>
+                 item.OccurrenceId == lastReceipt.TargetSubject)?.SemanticDescriptor;
+         var pageSignature = SettingsPageIdentity.Derive(priorSignature, priorRoute, routeKey,
+@@ -193,7 +218,7 @@
+             overlayPresent: popupState == "present",
+             backDescriptor: _coverageConfig?.BackDescriptor ?? "Navigate up",
+             deliveredTargetDescriptor: deliveredTargetDescriptor,
+-            entryDescriptorUnique: deliveredTargetDescriptor is not null
++            entryDescriptorUnique: _reobservingIdentity ? _identityDeliveredUnique : deliveredTargetDescriptor is not null
+                 && priorBelief?.Occurrences?.Count(item => item.SemanticDescriptor == deliveredTargetDescriptor) == 1);
+ 
+         if (_evidenceDir is not null && _persistHierarchies && xmlResult.Xml is not null)
+@@ -201,13 +226,23 @@
+                 System.Text.Encoding.UTF8.GetBytes(xmlResult.Xml));
+ 
+         var proposals = new List<ObservationProposal>();
+-        if (pageSignature is not null)
+-            proposals.Add(new(
+-                new ObservationClaim(ProductAssociationStrategy.ScreenIdentitySubject, pageSignature),
+-                IngressKind.Observation,
+-                directive.Context,
+-                new Provenance("host.live.settings", _clock.Now, $"scope:ui.screen:{observationCycleId}",
+-                    new[] { "real-device", "capture:" + captureId })));
++        var session = KernelProvider?.Invoke()?.RunId ?? $"settings:{_assets.DeviceId}";
++        _identityCapture = PageIdentityRecovery.Capture(captureId, observationCycleId, session,
++            _clock.Now, capture.Width, capture.Height, xmlResult.Xml, fastBasis);
++        _identityPixels = SHA256.HashData(capture.Artifact.Payload);
++        _identityFastTitle = routeKey.StartsWith("android.settings|rk1:", StringComparison.Ordinal)
++            ? routeKey["android.settings|rk1:".Length..].Split("|src=", StringSplitOptions.None)[0] : null;
++        _identityFastSignature = pageSignature;
++        _identityPriorSignature = priorSignature;
++        _identityPriorRoute = priorRoute;
++        _identityDeliveredTarget = lastReceipt?.TargetSubject;
++        _identityDeliveredDescriptor = deliveredTargetDescriptor;
++        if (!_reobservingIdentity)
++            _identityDeliveredUnique = deliveredTargetDescriptor is not null
++                && priorBelief?.Occurrences?.Count(item => item.SemanticDescriptor == deliveredTargetDescriptor) == 1;
++        proposals.Add(new(new(PageObservationCodec.CaptureSubject, PageObservationCodec.Encode(_identityCapture)),
++            IngressKind.Observation, directive.Context, new("host.live.settings", _clock.Now,
++                $"capture:{captureId}", ["real-device", "capture:" + captureId])));
+         proposals.Add(new ObservationProposal(
+             new ObservationClaim(ProductAssociationStrategy.ScreenRouteSubject, routeKey),
+             IngressKind.Observation,
+@@ -233,7 +268,13 @@
+         var trigger = DeriveSlowTrigger(
+             xmlResult.Xml is not null, fastAvailable, clickableNodeCount, routeKey,
+             UpdatePopupStreak(popupState), _coverageConfig?.SlowSettings);
+-        if (trigger is not null && _uniPerception is not null && _coverageConfig?.SlowSettings is { Enabled: true } slowOn)
++        // Identity-related material gaps now have a World-owned buyer. Do not
++        // race the legacy material heuristic against its pending supplementation.
++        var identityBuyerConfigured = _semanticPerception is not null && _semanticPages.Count > 0;
++        if (identityBuyerConfigured && trigger is "NoXml" or "SemanticUnclear" or "StructuralVisualConflict")
++            trigger = null;
++        if (trigger is not null && _uniPerception is not null && _coverageConfig?.SlowSettings is { Enabled: true } slowOn
++            && _slowRequests < slowOn.MaxRequestsPerRun)
+         {
+             var kernel = KernelProvider?.Invoke();
+             if (kernel is null)
+@@ -254,6 +295,7 @@
+                     request, sessionCorrelation, routeKey, trigger, _slowFetchBound);
+                 slowTokens.Add(dispatchToken);
+                 slowDispatchedThisCycle = dispatchToken.Contains("|Dispatched|", StringComparison.Ordinal);
++                if (slowDispatchedThisCycle) _slowRequests++;
+             }
+         }
+         // AGT-019 M3：材料不足（hierarchyAvailable=false ∨ proposalCount=0）
+@@ -275,7 +317,7 @@
+                 var typed = UiAutomatorDump.ParseHierarchyObservation(xmlResult.Xml,
+                     new UiAutomatorDump.UiHierarchyParseContext(
+                         captureId, _clock.Now, _assets.DeviceId,
+-                        $"settings:{_assets.DeviceId}", api.Value,
++                        session, api.Value,
+                         ObservationCycleId: observationCycleId,
+                         Capabilities: WifiToggleCapabilities,
+                         ExactProof: WifiToggleExactProof,
+@@ -307,6 +349,49 @@
+             FastServiceWarmupSucceeded: cycle == 1 ? _warmup.Succeeded : null,
+             FastServiceWarmupError: cycle == 1 ? _warmup.Error : null));
+         return new RunDriverInput.Observation(proposals);
++    }
++
++    private RunDriverInput? SupplementIdentity(ObservationDirective directive)
++    {
++        var need = directive.Need!;
++        if (_identityCapture is null || _identityCapture.CaptureId != need.Capture.CaptureId
++            || _identityCapture.ObservationCycleId != need.Capture.ObservationCycleId
++            || _identityCapture.SessionCorrelation != need.Capture.SessionCorrelation
++            || directive.RemainingBudget is not { } budget || budget <= TimeSpan.Zero) return null;
++        var source = new PageObservationState(need.Capture, need.CaptureEvidenceId, null);
++        var identity = PageIdentityRecovery.Identity(source, _identityFastTitle,
++            _identityFastSignature, directive.Context);
++        IReadOnlyList<ObservationProposal> meaning = [];
++        if (identity is null)
++        {
++            if (_coverageConfig?.SlowSettings.Enabled == false
++                || _slowRequests >= (_coverageConfig?.SlowSettings.MaxRequestsPerRun ?? 4)) return null;
++            _slowRequests++;
++            var recognized = PageIdentityRecovery.RecognizeAsync(_semanticPerception, _semanticPages,
++                need, budget, directive.Context, _cancellationToken).GetAwaiter().GetResult();
++            meaning = recognized.Meaning;
++            var observedRoute = recognized.Title is null ? "android.settings"
++                : "observed-page:v1:title=" + recognized.Title;
++            var signature = SettingsPageIdentity.Derive(_identityPriorSignature, _identityPriorRoute,
++                observedRoute, _identityDeliveredTarget, directive.Context == ObservationContext.PostActionEffectFlow,
++                deliveredTargetDescriptor: _identityDeliveredDescriptor,
++                entryDescriptorUnique: _identityDeliveredUnique);
++            identity = PageIdentityRecovery.Identity(source, recognized.Title, signature, directive.Context);
++        }
++        if (_cancellationToken.IsCancellationRequested)
++            return new RunDriverInput.Cancel("host-cancelled", _clock.Now);
++        if (identity is null) return null;
++        // Same-capture evidence can be reused only while the observed scene is
++        // unchanged. A fresh scene enters P2 as a new capture, with the original
++        // Control deadline and receipt still in force.
++        var currentPixels = _acquisition.CaptureAsync(_cancellationToken).GetAwaiter().GetResult();
++        if (_identityPixels is null || !SHA256.HashData(currentPixels.Artifact.Payload).SequenceEqual(_identityPixels))
++        {
++            _reobservingIdentity = true;
++            try { return Next(directive with { Need = null, Depth = ObservationDepth.Normal, RemainingBudget = null }); }
++            finally { _reobservingIdentity = false; }
++        }
++        return new RunDriverInput.Observation(new[] { identity }.Concat(meaning).ToArray());
+     }
+ 
+     /// <summary>
+--- a/src/UniClaw.Host/UiHierarchyOccurrenceStrategy.cs
++++ b/src/UniClaw.Host/UiHierarchyOccurrenceStrategy.cs
+@@ -49,12 +49,19 @@
+         if (record.Provenance.Hierarchy is not { } hierarchy)
+             return previous?.Occurrences?.Select(Copy).ToArray() ?? Array.Empty<ProposedOccurrence>();
+ 
+-        var owner = CurrentPageAnchor.Resolve(previous);
++        var pageObservation = previous?.CurrentPageObservation;
++        if (pageObservation is not null && (hierarchy.CaptureId != pageObservation.Capture.CaptureId
++            || hierarchy.ObservationCycleId != pageObservation.Capture.ObservationCycleId
++            || hierarchy.SessionCorrelation != pageObservation.Capture.SessionCorrelation
++            || hierarchy.CaptureTimestamp != pageObservation.Capture.CaptureTime))
++            return previous?.Occurrences?.Select(Copy).ToArray() ?? Array.Empty<ProposedOccurrence>();
++        var owner = pageObservation?.ContainerId ?? CurrentPageAnchor.Resolve(previous);
+         // Late fields remain historical evidence. They must not rebuild a retired
+         // capture under the current page, including a later viewport of the same page.
+         if (hierarchy.CaptureTimestamp < _latestCaptureTime
+             || (_captures.ContainsKey(hierarchy.CaptureId) && _activeCaptureId != hierarchy.CaptureId)
+-            || (_captureOwners.TryGetValue(hierarchy.CaptureId, out var captureOwner) && captureOwner != owner))
++            || (_captureOwners.TryGetValue(hierarchy.CaptureId, out var captureOwner) && captureOwner != owner
++                && !(captureOwner is null && pageObservation?.ContainerId == owner)))
+             return previous?.Occurrences?.Select(Copy).ToArray() ?? Array.Empty<ProposedOccurrence>();
+         _activeCaptureId = hierarchy.CaptureId;
+         _latestCaptureTime = hierarchy.CaptureTimestamp;
+--- a/src/UniClaw.Kernel/Control/ObservationRecoveryControl.cs
++++ b/src/UniClaw.Kernel/Control/ObservationRecoveryControl.cs
+@@ -0,0 +1,64 @@
++using System.Diagnostics;
++
++namespace UniClaw.Kernel.Control;
++
++/// <summary>Control-owned subquota for read-only supplementation. Neither a new
++/// attempt nor a scene change replenishes the run quota or an active deadline.</summary>
++internal sealed class ObservationRecoveryControl
++{
++    private readonly TimeSpan _timeout;
++    private readonly int _maxRequests;
++    private readonly Func<long> _timestamp;
++    private readonly long _frequency;
++    private string? _slot;
++    private long _started;
++    private bool _expired;
++
++    internal ObservationRecoveryControl(TimeSpan timeout, int maxRequests,
++        Func<long>? timestamp = null, long? frequency = null)
++    {
++        if (timeout <= TimeSpan.Zero || timeout > TimeSpan.FromSeconds(30))
++            throw new ArgumentOutOfRangeException(nameof(timeout));
++        if (maxRequests < 0 || maxRequests > 16)
++            throw new ArgumentOutOfRangeException(nameof(maxRequests));
++        _timeout = timeout;
++        _maxRequests = maxRequests;
++        _timestamp = timestamp ?? Stopwatch.GetTimestamp;
++        _frequency = frequency ?? Stopwatch.Frequency;
++    }
++
++    internal int RequestsUsed { get; private set; }
++    private TimeSpan Remaining => _timeout - TimeSpan.FromSeconds((double)(_timestamp() - _started) / _frequency);
++
++    internal bool TrySchedule(string slot, out TimeSpan remaining)
++    {
++        if (_slot is null)
++        {
++            _slot = slot;
++            _started = _timestamp();
++        }
++        remaining = Remaining;
++        if (_slot != slot || _expired || remaining <= TimeSpan.Zero || RequestsUsed >= _maxRequests)
++        {
++            _expired = true;
++            return false;
++        }
++        RequestsUsed++;
++        return true;
++    }
++
++    internal bool IsExpired(string slot)
++    {
++        if (_slot != slot) return false;
++        if (Remaining <= TimeSpan.Zero) _expired = true;
++        return _expired;
++    }
++
++    internal bool CanAccept(string slot) => _slot == slot && !_expired && Remaining > TimeSpan.Zero;
++
++    internal void Complete(string slot)
++    {
++        if (_slot != slot || _expired) return;
++        _slot = null;
++    }
++}
+--- a/src/UniClaw.Kernel/Control/README.md
++++ b/src/UniClaw.Kernel/Control/README.md
+@@ -9,6 +9,7 @@
+ 
+ | 文件 | 职责 |
+ |---|---|
++| `ObservationRecoveryControl.cs` | 当前执行位置的有界补证等待与run子配额，恢复不续预算 |
+ | `TraversalControl.cs` | Control所有的有界探索/返回/深度和义务游标；经Run保存进度，不投递Effect |
+ | `ControlLoop.cs` | control intent 权威本体（不变量 21） |
+ | `ControlIntent.cs` | intent 的 typed 形状（跨 Product T2 只传 immutable command） |
+--- a/src/UniClaw.Kernel/Runtime/KernelRunDriver.cs
++++ b/src/UniClaw.Kernel/Runtime/KernelRunDriver.cs
+@@ -156,6 +156,10 @@
+     private static readonly TimeSpan ConflictFreshnessWindow = TimeSpan.FromSeconds(3);
+ 
+     private int _focusRetries;
++    private ObservationRecoveryControl? _observationRecovery;
++    private string? _observationPullSlot;
++    private readonly List<KernelResult> _observationRecoveryEvidence = new();
++    private readonly HashSet<string> _observationRecoveryFailures = new(StringComparer.Ordinal);
+ 
+     /// <summary>C-2：最近一次 dispatch 的下游确认时间（StepVerify 时序门执法）。</summary>
+     private DateTimeOffset? _lastDispatchAt;
+@@ -3677,7 +3681,39 @@
+         ObservationDepth depth = ObservationDepth.Normal,
+         IReadOnlyList<string>? subjects = null)
+     {
+-        var input = _inputs.NextInput(new ObservationDirective(expected, depth, subjects));
++        _observationRecovery ??= new ObservationRecoveryControl(
++            _inputs.ObservationRecoveryTimeout, _inputs.MaxObservationRecoveryRequests);
++        // The slot is the original execution position, never the capture id.
++        // Changing scene/capture cannot renew its deadline or its run subquota.
++        var slot = $"{_phase}:{_consultCounter}:{_stepIndex}:{_planItemIndex}:{_lastDispatchAt:O}";
++        if (_observationPullSlot != slot)
++        {
++            _observationPullSlot = slot;
++            _observationRecoveryEvidence.Clear();
++        }
++        var processed = _observationRecoveryEvidence;
++        if (_observationRecovery.IsExpired(slot))
++            return new ObservationPull(RecordObservationRecoveryFailure(slot,
++                "page-identity-observation-expired", expected, processed), processed.ToArray());
++        while (true)
++        {
++        var need = _kernel.CurrentBelief?.ObservationNeed;
++        TimeSpan? remaining = null;
++        if (need is not null)
++        {
++            if (_inputs.PollCancellation?.Invoke() is { } cancelled)
++                return new ObservationPull(CancelPath(cancelled), processed.ToArray());
++            if (!_observationRecovery.TrySchedule(slot, out var available))
++                return new ObservationPull(RecordObservationRecoveryFailure(slot,
++                    "page-identity-observation-exhausted", expected, processed), processed.ToArray());
++            remaining = available;
++        }
++        var input = _inputs.NextInput(new ObservationDirective(expected,
++            need is null ? depth : ObservationDepth.Slow,
++            need is null ? subjects : new[] { WorldModel.CurrentContainerSubject }, need, remaining));
++        if (need is not null && input is RunDriverInput.Observation && !_observationRecovery.CanAccept(slot))
++            return new ObservationPull(RecordObservationRecoveryFailure(slot,
++                "page-identity-observation-timeout", expected, processed), processed.ToArray());
+         switch (input)
+         {
+             case null:
+@@ -3723,10 +3759,14 @@
+                             RunDriveStatus.UnexpectedInput, $"{phaseLabel}:context-mismatch", null,
+                             _kernel.EffectReceipts.Count),
+                         Array.Empty<KernelResult>());
+-                var processed = new List<KernelResult>(observation.Proposals.Count);
+                 foreach (var proposal in observation.Proposals)
+                     processed.Add(_kernel.Process(proposal));
+-                return new ObservationPull(null, processed);
++                if (_kernel.CurrentBelief?.ObservationNeed is not null) continue;
++                _observationRecovery.Complete(slot);
++                var completed = processed.ToArray();
++                processed.Clear();
++                _observationPullSlot = null;
++                return new ObservationPull(null, completed);
+ 
+             default:
+                 return new ObservationPull(
+@@ -3734,6 +3774,33 @@
+                         _kernel.EffectReceipts.Count),
+                     Array.Empty<KernelResult>());
+         }
++        }
++    }
++
++    private RunDriveResult RecordObservationRecoveryFailure(string slot, string reason,
++        ObservationContext context, IReadOnlyList<KernelResult> observations)
++    {
++        if (_observationRecoveryFailures.Add(slot) && context == ObservationContext.PostActionEffectFlow)
++        {
++            var evidence = observations.Select(o => o.Admission.EvidenceId).OfType<string>().ToArray();
++            UpdateActivePlanAttempt(PlanAttemptStatus.Rejected,
++                _kernel.EffectReceipts.LastOrDefault()?.ReceiptId, evidence, reason);
++            if (_activeTraversal is not null && _traversalWork is { } work)
++            {
++                _traversal.Gap(work.ContainerId, work.Candidate?.Target.Key, reason, evidence);
++                _traversal.Pause(reason);
++                RecordTraversalState();
++                var facts = new TraversalRecoveryFacts(CurrentPlanPosition(), _kernel.TraversalExecution!,
++                    _planAttempts.ToArray(), _stepsDispatched, _consultCounter);
++                _kernel.RecordTraversalRecovery(facts);
++                _inputs.ObserveTraversalRecovery?.Invoke(facts);
++            }
++        }
++        // No Run failure or automatic Back. The original verification position
++        // stays closed to late authorization; existing Recovery receives facts.
++        return new RunDriveResult(context == ObservationContext.PostActionEffectFlow
++            ? RunDriveStatus.VerificationFailed : RunDriveStatus.GroundingFailed,
++            reason, null, _kernel.EffectReceipts.Count);
+     }
+ 
+     /// <summary>
+--- a/src/UniClaw.Kernel/Runtime/RunDriverInputs.cs
++++ b/src/UniClaw.Kernel/Runtime/RunDriverInputs.cs
+@@ -1,5 +1,6 @@
+ using UniClaw.Kernel.Evidence;
+ using UniClaw.Kernel.Capability;
++using UniClaw.Kernel.World;
+ 
+ namespace UniClaw.Kernel.Runtime;
+ 
+@@ -74,7 +75,9 @@
+ public sealed record ObservationDirective(
+     ObservationContext Context,
+     ObservationDepth Depth = ObservationDepth.Normal,
+-    IReadOnlyList<string>? Subjects = null);
++    IReadOnlyList<string>? Subjects = null,
++    ObservationNeed? Need = null,
++    TimeSpan? RemainingBudget = null);
+ 
+ /// <summary>
+ /// internal run driver 的最小 concrete 外部 seam（delegate 形态；非冻结公共
+@@ -139,6 +142,10 @@
+     /// have no Owner write authority and are not accepted after this deadline.</summary>
+     public TimeSpan PlanHandlerTimeout { get; init; } = TimeSpan.FromSeconds(2);
+ 
++    /// <summary>Control subquota; never replenishes Effect, consultation or plan budgets.</summary>
++    public TimeSpan ObservationRecoveryTimeout { get; init; } = TimeSpan.FromSeconds(5);
++    public int MaxObservationRecoveryRequests { get; init; } = 4;
++
+     /// <summary>Control Loop Recovery receives execution facts; strategy remains there.</summary>
+     public Action<TraversalRecoveryFacts>? ObserveTraversalRecovery { get; init; }
+ 
+--- a/src/UniClaw.Kernel/UniKernel.cs
++++ b/src/UniClaw.Kernel/UniKernel.cs
+@@ -473,6 +473,20 @@
+     {
+         ArgumentNullException.ThrowIfNull(target);
+         ArgumentNullException.ThrowIfNull(processedObservations);
++
++        // Explicit capture identity is an Assurance prerequisite, including the
++        // direct verification seam. A receipt or changed route cannot replace it.
++        if (_world.Current is { CurrentPageObservation: { } observation } captured)
++        {
++            var confirmed = captured.ObservationNeed is null && observation.ContainerId is not null;
++            var afterDispatch = dispatchTime is { } dispatch && observation.Capture.CaptureTime > dispatch;
++            if (!confirmed || !afterDispatch)
++                return Assurance.RecordPostActionVerification(new PostActionEffectVerification(
++                    captured.RevisionId, target, false,
++                    new[] { new AssuranceCheck("post-action-page-identity-confirmed", confirmed),
++                        new AssuranceCheck("post-action-capture-after-dispatch", afterDispatch) },
++                    !confirmed ? "post-action-page-identity-unconfirmed" : "post-action-capture-not-after-dispatch"));
++        }
+ 
+         // PER-014 R2：四门等价的 typed 验证路由——语义 checked 权威域
+         // （DesiredState ≠ null）∧ post belief 可经 R1 缝唯一解析目标
+@@ -584,6 +598,7 @@
+ 
+     private static string? CurrentInteractionContainer(WorldBeliefRevision? belief)
+     {
++        if (belief?.ObservationNeed is not null) return null;
+         if (belief?.WorldState.TryGetValue(WorldModel.CurrentContainerSubject, out var current) == true
+             && belief.Containers?.Count(container => container.Identity.ContainerId == current.Value) == 1)
+             return current.Value;
+--- a/src/UniClaw.Kernel/World/PageObservation.cs
++++ b/src/UniClaw.Kernel/World/PageObservation.cs
+@@ -0,0 +1,112 @@
++using System.Text.Json;
++using UniClaw.Kernel.Capability;
++using UniClaw.Kernel.Evidence;
++using UniClaw.Kernel.World.UiRealization;
++using UniClaw.Kernel.Perception;
++
++namespace UniClaw.Kernel.World;
++
++public sealed record PageCaptureObservation(
++    string CaptureId, string ObservationCycleId, string SessionCorrelation,
++    DateTimeOffset CaptureTime, CoordinateSpace Space,
++    IReadOnlyList<SemanticLayoutItem> Items)
++{
++    public IReadOnlyList<SemanticLayoutItem> Items { get; init; } = Array.AsReadOnly((Items ?? []).ToArray());
++}
++
++public sealed record PageIdentityObservation(
++    string CaptureId, string ObservationCycleId, string SessionCorrelation,
++    DateTimeOffset CaptureTime, string Signature, string? ObservedTitle);
++
++public sealed record PageObservationState(
++    PageCaptureObservation Capture, string EvidenceId, string? ContainerId);
++
++public sealed record ObservationNeed(
++    string SourceRevisionId, string CaptureEvidenceId, PageCaptureObservation Capture,
++    string Kind = "identity-disambiguation");
++
++public static class PageObservationCodec
++{
++    public const string CaptureSubject = "ui.page.capture";
++    public const string IdentitySubject = "ui.page.identity";
++    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
++    { UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow };
++
++    public static string Encode(PageCaptureObservation payload) => EncodeCore(payload);
++    public static string Encode(PageIdentityObservation payload) => EncodeCore(payload);
++    public static bool TryReadCapture(string value, out PageCaptureObservation? payload) => TryRead(value, out payload);
++    public static bool TryReadIdentity(string value, out PageIdentityObservation? payload) => TryRead(value, out payload);
++
++    private static string EncodeCore<T>(T payload)
++    {
++        Validate(payload);
++        return JsonSerializer.Serialize(payload, Json);
++    }
++    private static bool TryRead<T>(string value, out T? payload)
++    {
++        payload = default;
++        try
++        {
++            payload = JsonSerializer.Deserialize<T>(value, Json);
++            Validate(payload);
++            if (payload is PageCaptureObservation capture)
++                payload = (T)(object)(capture with { Items = Array.AsReadOnly(capture.Items.ToArray()) });
++            return true;
++        }
++        catch (Exception e) when (e is JsonException or ArgumentException or InvalidOperationException or NotSupportedException)
++        { payload = default; return false; }
++    }
++    private static void Validate<T>(T? value)
++    {
++        if (value is PageCaptureObservation capture)
++        {
++            if (string.IsNullOrWhiteSpace(capture.CaptureId) || string.IsNullOrWhiteSpace(capture.ObservationCycleId) || string.IsNullOrWhiteSpace(capture.SessionCorrelation) || capture.CaptureTime == default || capture.Space is null || capture.Items is null
++                || capture.Space.CaptureId is not null && capture.Space.CaptureId != capture.CaptureId || capture.Items.Count > 2048)
++                throw new ArgumentException("capture correlation is required");
++            if (capture.Items.Any(i => i is null || string.IsNullOrWhiteSpace(i.Id) || string.IsNullOrWhiteSpace(i.Kind)
++                || i.Bounds is null || !i.Bounds.IsValid || i.Bounds.X1 < 0 || i.Bounds.Y1 < 0
++                || i.Bounds.X2 > capture.Space.PixelWidth || i.Bounds.Y2 > capture.Space.PixelHeight
++                || i.Confidence is { } confidence && (!double.IsFinite(confidence) || confidence < 0 || confidence > 1)) || capture.Items.Select(i => i.Id).Distinct().Count() != capture.Items.Count)
++                throw new ArgumentException("capture items must be unique and bounded");
++        }
++        else if (value is PageIdentityObservation identity)
++        {
++            if (string.IsNullOrWhiteSpace(identity.CaptureId) || string.IsNullOrWhiteSpace(identity.ObservationCycleId) || string.IsNullOrWhiteSpace(identity.SessionCorrelation) || identity.CaptureTime == default || string.IsNullOrWhiteSpace(identity.Signature))
++                throw new ArgumentException("identity correlation and signature are required");
++        }
++        else throw new ArgumentException("unsupported page observation");
++    }
++}
++
++internal static class PageObservationEvidence
++{
++    internal static bool Matches(PageIdentityObservation identity, PageObservationState capture,
++        EvidenceRecord record)
++    {
++        if (capture is null || record is null || capture.Capture.Items.Count < 2
++            || identity.CaptureId != capture.Capture.CaptureId
++            || identity.ObservationCycleId != capture.Capture.ObservationCycleId
++            || identity.SessionCorrelation != capture.Capture.SessionCorrelation
++            || identity.CaptureTime != capture.Capture.CaptureTime
++            || record.Provenance.CaptureTime != capture.Capture.CaptureTime
++            || !record.DerivedFromEvidenceIds.Contains(capture.EvidenceId)
++                && !record.TransitiveEvidenceBasis.Contains(capture.EvidenceId)
++            || string.IsNullOrWhiteSpace(identity.ObservedTitle)
++            || !capture.Capture.Items.Any(i => string.Equals(i.Text?.Trim(), identity.ObservedTitle.Trim(), StringComparison.Ordinal)))
++            return false;
++        return true;
++    }
++
++    internal static IReadOnlyList<ProposedOccurrence> ToOwnerlessOccurrences(PageCaptureObservation capture)
++    {
++        var width = capture.Space.PixelWidth;
++        var height = capture.Space.PixelHeight;
++        return capture.Items.Select(item => new ProposedOccurrence(
++            null, item.Kind, item.Text,
++            null, new SpatialLocator(
++                (double)item.Bounds.X1 / width, (double)item.Bounds.Y1 / height,
++                (double)item.Bounds.X2 / width, (double)item.Bounds.Y2 / height,
++                "device-viewport"), null, capture.Space)).ToArray();
++    }
++
++}
+--- a/src/UniClaw.Kernel/World/README.md
++++ b/src/UniClaw.Kernel/World/README.md
+@@ -8,6 +8,7 @@
+ 
+ | 文件 | 职责 |
+ |---|---|
++| `PageObservation.cs` | 当前capture/身份证据严格codec、不可变观察状态及World派生ObservationNeed |
+ | `WorldModel.cs` | belief/reconciliation 权威本体（不变量 14-15） |
+ | `WorldModel.Semantics.cs` | 将有当前身份观察/capture依据的accepted页面语义投影到既有容器；不以类别铸造身份 |
+ | `WorldModel.Viewports.cs` | 已验证滚动的观察关联、accepted 重叠锚配准与未知原因（WRC-003） |
+--- a/src/UniClaw.Kernel/World/UiRealization/ProductAssociationStrategy.cs
++++ b/src/UniClaw.Kernel/World/UiRealization/ProductAssociationStrategy.cs
+@@ -49,7 +49,8 @@
+     {
+         ArgumentNullException.ThrowIfNull(input);
+ 
+-        if (input.Current.Claim.Subject != ScreenIdentitySubject)
++        var isPageIdentity = input.Current.Claim.Subject == PageObservationCodec.IdentitySubject;
++        if (input.Current.Claim.Subject != ScreenIdentitySubject && !isPageIdentity)
+             return new AssociationProposal(
+                 AssociationDispositionKind.Insufficient,
+                 MatchedContainerId: null,
+@@ -57,7 +58,9 @@
+                 Relations: Array.Empty<ProposedRelation>(),
+                 Reason: "not-screen-identity-claim");
+ 
+-        var value = input.Current.Claim.Value;
++        var value = isPageIdentity && PageObservationCodec.TryReadIdentity(input.Current.Claim.Value, out var page)
++            ? page!.Signature
++            : input.Current.Claim.Value;
+         if (string.IsNullOrWhiteSpace(value))
+             return new AssociationProposal(
+                 AssociationDispositionKind.Insufficient,
+--- a/src/UniClaw.Kernel/World/WorldBeliefRevision.cs
++++ b/src/UniClaw.Kernel/World/WorldBeliefRevision.cs
+@@ -95,6 +95,8 @@
+     IReadOnlyList<OccurrenceBelief>? Occurrences = null,
+     IReadOnlyList<LogicalItemBelief>? LogicalItems = null)
+ {
++    public PageObservationState? CurrentPageObservation { get; init; }
++    public ObservationNeed? ObservationNeed { get; init; }
+     public IReadOnlyList<ViewportTransition> ViewportTransitions { get; init; } =
+         System.Collections.Immutable.ImmutableArray<ViewportTransition>.Empty;
+ }
+--- a/src/UniClaw.Kernel/World/WorldModel.cs
++++ b/src/UniClaw.Kernel/World/WorldModel.cs
+@@ -198,7 +198,9 @@
+                 navigation.TargetRevisionId)),
+             Occurrences: current.Occurrences,
+             LogicalItems: current.LogicalItems)
+-        { ViewportTransitions = current.ViewportTransitions };
++        { ViewportTransitions = current.ViewportTransitions,
++          CurrentPageObservation = current.CurrentPageObservation,
++          ObservationNeed = current.ObservationNeed };
+ 
+         PublishRevision(revision);
+         return true;
+@@ -321,7 +323,9 @@
+             new Uncertainty(remaining.Length),
+             remaining,
+             parent.Containers, parent.Relations, parent.Occurrences, parent.LogicalItems)
+-        { ViewportTransitions = parent.ViewportTransitions };
++        { ViewportTransitions = parent.ViewportTransitions,
++          CurrentPageObservation = parent.CurrentPageObservation,
++          ObservationNeed = parent.ObservationNeed };
+ 
+         _claimEvolutionLog.Add(new ClaimEvolutionDecision(
+             revision.RevisionId, subject, ClaimEvolutionKind.Revise,
+@@ -409,13 +413,34 @@
+         // P-UW-16 owner 侧执法：裸 spatial subject（无 SpatialFrame）不得进入 belief
+         ValidateSpatialSubject(record.Claim.Subject);
+         var identityObservation = record.Claim.Subject == ProductAssociationStrategy.ScreenIdentitySubject;
++        var pageCapture = record.Claim.Subject == PageObservationCodec.CaptureSubject
++            && PageObservationCodec.TryReadCapture(record.Claim.Value, out var capturePayload) ? capturePayload : null;
++        var pageIdentity = record.Claim.Subject == PageObservationCodec.IdentitySubject
++            && PageObservationCodec.TryReadIdentity(record.Claim.Value, out var identityPayload) ? identityPayload : null;
++        var pageIdentityObservation = record.Claim.Subject == PageObservationCodec.IdentitySubject;
++        var pageCaptureObservation = record.Claim.Subject == PageObservationCodec.CaptureSubject;
++        var pageCaptureInvalid = pageCaptureObservation && (pageCapture is null
++            || pageCapture.CaptureTime != record.Provenance.CaptureTime
++            || parent?.CurrentPageObservation is { } activePage
++                && pageCapture.SessionCorrelation != activePage.Capture.SessionCorrelation);
++        var pageCaptureHistorical = pageCapture is not null && parent?.CurrentPageObservation is { } priorCapture
++            && pageCapture.CaptureTime < priorCapture.Capture.CaptureTime;
+         var historical = identityObservation
+             && _latestPageObservationTime is { } latestObservation
+             && record.Provenance.CaptureTime < latestObservation;
+         var semanticObservation = record.Claim.Subject == SemanticPageSubject;
+         string? semanticReason = null;
+         var semanticContainer = semanticObservation ? SemanticContainer(record, parent, out semanticReason) : null;
+-        var applicable = !historical && semanticReason is null;
++        var pageIdentityValid = pageIdentity is not null && parent?.CurrentPageObservation is { } currentCapture
++            && PageObservationEvidence.Matches(pageIdentity, currentCapture, record)
++            && !(parent.Conflicts.Any(c => c.Subject == PageObservationCodec.IdentitySubject + ":" + currentCapture.Capture.CaptureId)
++                && parent.ObservationNeed?.CaptureEvidenceId == currentCapture.EvidenceId);
++        var pageIdentityContradicts = pageIdentityValid && parent?.CurrentPageObservation?.ContainerId is { } establishedPage
++            && parent.WorldState.TryGetValue(SignatureSubjectPrefix + establishedPage, out var establishedSignature)
++            && establishedSignature.Value != pageIdentity!.Signature;
++        var applicable = !pageIdentityContradicts && !historical && !pageCaptureHistorical && !pageCaptureInvalid && semanticReason is null
++            && (!pageIdentityObservation || pageIdentityValid)
++            && !(identityObservation && parent?.CurrentPageObservation is not null);
+ 
+         var state = PersistentRevisionDictionary<string, WorldClaim>.Next(
+             parent?.WorldState as PersistentRevisionDictionary<string, WorldClaim>,
+@@ -499,8 +524,10 @@
+         }
+ 
+         var conflictsBeforeObservation = conflicts.Count;
+-        if (applicable)
++        if (applicable && pageCapture is null && pageIdentity is null)
+             ApplyClaim(record.Claim.Subject, record.Claim.Value, record.EvidenceId);
++        if (applicable && pageIdentity is not null)
++            ApplyDerivedClaim(ProductAssociationStrategy.ScreenIdentitySubject, pageIdentity.Signature, record.EvidenceId);
+         var observationConflicts = conflicts.Count > conflictsBeforeObservation;
+         if (applicable && !observationConflicts && semanticContainer is not null)
+             ApplyClaim(semanticContainer + ".semantic.page", record.Claim.Value, record.EvidenceId);
+@@ -512,6 +539,7 @@
+         var relations = parent?.Relations as ImmutableList<ContainerRelation>
+             ?? (parent?.Relations?.ToImmutableList() ?? ImmutableList<ContainerRelation>.Empty);
+         string? associatedContainer = null;
++        IReadOnlyList<OccurrenceBelief>? occurrences = parent?.Occurrences;
+         if (_associationStrategy is not null)
+         {
+             var decision = Associate(
+@@ -519,7 +547,11 @@
+                 ref containers, ref relations,
+                 ref scannedEntries, ref copiedEntries,
+                 out var currentContainerId,
+-                historical ? "historical-observation"
++                historical || pageCaptureHistorical ? "historical-observation"
++                    : pageCaptureInvalid ? "invalid-page-capture"
++                    : identityObservation && parent?.CurrentPageObservation is not null ? "unscoped-screen-observation"
++                    : pageIdentityContradicts ? "conflicting-page-identity"
++                    : pageIdentityObservation && !pageIdentityValid ? "page-identity-correlation-invalid"
+                     : semanticReason ?? (identityObservation && observationConflicts ? "conflicting-observation"
+                     : semanticObservation ? "auxiliary-semantic-observation" : null));
+             associatedContainer = currentContainerId;
+@@ -528,9 +560,18 @@
+                 // CurrentContainer / signature 是 owner-derived WorldState claims
+                 // （UWM-009 §23：CurrentContainer 属 WorldState，不属 graph）
+                 ApplyDerivedClaim(CurrentContainerSubject, currentContainerId, record.EvidenceId);
+-                ApplyDerivedClaim(SignatureSubjectPrefix + currentContainerId, record.Claim.Value, record.EvidenceId);
++                ApplyDerivedClaim(SignatureSubjectPrefix + currentContainerId,
++                    pageIdentity?.Signature ?? record.Claim.Value, record.EvidenceId);
+             }
+             _associationLog.Add(decision);
++        }
++        if (pageIdentityValid && associatedContainer is not null && parent?.CurrentPageObservation is { } confirmed)
++        {
++            occurrences = (parent.Occurrences ?? Array.Empty<OccurrenceBelief>())
++                .Where(o => o.EvidenceBasis.Contains(confirmed.EvidenceId))
++                .Select((o, index) => o with { OccurrenceId = MintOccurrenceIdentity(record.EvidenceId, index),
++                    OwningContainerId = associatedContainer })
++                .ToImmutableArray();
+         }
+ 
+         // UIW-003（UWM-009 v0.3 §35 / ADR-0015）：ObservationOccurrence 是
+@@ -539,8 +580,21 @@
+         // （内容派生、确定性）；EvidenceBasis = {该 EvidenceId}。无 strategy →
+         // null（旧语义不变）。LogicalItem belief 跨 evidence revision 延续
+         //（continuity 是例外路径，ADR-0015）。
+-        IReadOnlyList<OccurrenceBelief>? occurrences = parent?.Occurrences;
+-        if (_observationStrategy is not null && applicable && !semanticObservation
++        var proposedPageCaptureOccurrences = pageCapture is not null && applicable
++            ? PageObservationEvidence.ToOwnerlessOccurrences(pageCapture)
++            : null;
++        if (proposedPageCaptureOccurrences is not null)
++        {
++            occurrences = proposedPageCaptureOccurrences
++                .Select((proposal, index) => new OccurrenceBelief(
++                    MintOccurrenceIdentity(record.EvidenceId, index), proposal.OwningContainerId,
++                    proposal.Role, proposal.SemanticDescriptor, new[] { record.EvidenceId },
++                    proposal.State, proposal.Locator, proposal.Native, proposal.Space))
++                .ToImmutableArray();
++            copiedEntries += occurrences.Count;
++        }
++        else if (_observationStrategy is not null && applicable && !semanticObservation
++            && !pageIdentityObservation
+             && !(identityObservation && observationConflicts))
+         {
+             var proposed = _observationStrategy.Derive(record, parent);
+@@ -549,6 +603,15 @@
+                 var ids = proposal.SupportingEvidenceIds ?? new[] { record.EvidenceId };
+                 if (ids.Count == 0 || ids.Any(id => id != record.EvidenceId && parent?.EvidenceBasis.Contains(id) != true))
+                     throw new InvalidOperationException("Occurrence supporting evidence is not accepted world evidence");
++                // Attach the accepted capture boundary to current hierarchy
++                // structure, so later identity recovery can rebind only that
++                // capture while retaining the original hierarchy evidence.
++                if (parent?.CurrentPageObservation is { } page && record.Provenance.Hierarchy is { } h
++                    && h.CaptureId == page.Capture.CaptureId
++                    && h.ObservationCycleId == page.Capture.ObservationCycleId
++                    && h.SessionCorrelation == page.Capture.SessionCorrelation
++                    && h.CaptureTimestamp == page.Capture.CaptureTime)
++                    return ids.Append(page.EvidenceId).Distinct(StringComparer.Ordinal).ToImmutableArray();
+                 return ids.Distinct(StringComparer.Ordinal).ToImmutableArray();
+             }
+             scannedEntries += proposed.Count;
+@@ -563,6 +626,14 @@
+                     Space: proposed.Space))
+                 .ToImmutableArray();
+             copiedEntries += occurrences.Count;
++        }
++        if (pageIdentityContradicts && parent?.CurrentPageObservation is { } contradicted)
++        {
++            conflicts = conflicts.Add(new Conflict(PageObservationCodec.IdentitySubject + ":" + contradicted.Capture.CaptureId,
++                parent.WorldState[SignatureSubjectPrefix + contradicted.ContainerId!].Value,
++                pageIdentity!.Signature, parent.WorldState[SignatureSubjectPrefix + contradicted.ContainerId!].EvidenceId,
++                record.EvidenceId));
++            occurrences = (parent.Occurrences ?? []).Select(o => o with { OwningContainerId = (string?)null }).ToImmutableArray();
+         }
+         var logicalItems = parent?.LogicalItems;
+ 
+@@ -586,7 +657,19 @@
+             Relations: relations,
+             Occurrences: occurrences,
+             LogicalItems: logicalItems)
+-        { ViewportTransitions = parent?.ViewportTransitions ?? ImmutableArray<ViewportTransition>.Empty };
++        { ViewportTransitions = parent?.ViewportTransitions ?? ImmutableArray<ViewportTransition>.Empty,
++          CurrentPageObservation = pageIdentityContradicts && parent?.CurrentPageObservation is { } contradictedObservation
++              ? contradictedObservation with { ContainerId = null }
++              : pageCapture is not null && applicable
++              ? new PageObservationState(pageCapture, record.EvidenceId, associatedContainer)
++              : pageIdentity is not null && parent?.CurrentPageObservation is { } priorObservation
++                  ? priorObservation with { ContainerId = associatedContainer ?? priorObservation.ContainerId }
++                  : parent?.CurrentPageObservation,
++          ObservationNeed = pageIdentityContradicts && parent?.CurrentPageObservation is { } conflictedObservation
++              ? new ObservationNeed($"rev-{number}", conflictedObservation.EvidenceId, conflictedObservation.Capture)
++              : pageCapture is not null && applicable && associatedContainer is null
++              ? new ObservationNeed($"rev-{number}", record.EvidenceId, pageCapture)
++              : pageIdentity is not null && associatedContainer is not null ? null : parent?.ObservationNeed };
+ 
+         PublishRevision(revision);
+         if (identityObservation && applicable)
+@@ -1197,7 +1280,9 @@
+             parent.FreshnessBasis, parent.Uncertainty, parent.Conflicts,
+             parent.Containers, parent.Relations,
+             parent.Occurrences, logicalItems)
+-        { ViewportTransitions = parent.ViewportTransitions };
++        { ViewportTransitions = parent.ViewportTransitions,
++          CurrentPageObservation = parent.CurrentPageObservation,
++          ObservationNeed = parent.ObservationNeed };
+         PublishRevision(revision, parentIndex);
+         return revision;
+     }
+@@ -1234,6 +1319,10 @@
+             return new CurrentGroundingView(
+                 current?.RevisionId ?? string.Empty,
+                 OwningContainerId: null,
++                CurrentCandidateSetResultKind.ScopeProjectionUnavailable,
++                Array.Empty<CandidateOccurrenceFact>());
++        if (current.CurrentPageObservation is { ContainerId: null })
++            return new CurrentGroundingView(current.RevisionId, null,
+                 CurrentCandidateSetResultKind.ScopeProjectionUnavailable,
+                 Array.Empty<CandidateOccurrenceFact>());
+ 
+@@ -1349,10 +1438,14 @@
+         var targetOccurrence = occurrenceId is null
+             ? null
+             : IndexFor(current).OccurrencesById.GetValueOrDefault(occurrenceId);
++        if (current.CurrentPageObservation is { ContainerId: null })
++            targetOccurrence = null;
+         var view = new BindingView(
+             current.RevisionId,
+             current.RevisionNumber,
+-            HasTargetSubjectClaim: subject is not null && current.WorldState.ContainsKey(subject),
++            HasTargetSubjectClaim: subject is not null && current.WorldState.ContainsKey(subject)
++                && !(current.CurrentPageObservation is { ContainerId: null }
++                    && (subject.StartsWith("ui.", StringComparison.Ordinal) || subject == "live.frame")),
+             HasTargetOccurrence: targetOccurrence is not null,
+             TargetOccurrenceLocator: targetOccurrence?.Locator,
+             TargetOccurrenceNative: targetOccurrence?.Native,
+--- a/tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs
++++ b/tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs
+@@ -74,6 +74,33 @@
+ 
+     // AGT-019/RUN-006 修复：slow 解析归一对象错误封包（fail() 的
+     // {code,message} 形状此前被吞成 slow-endpoint-empty-text）。
++
++    [Fact]
++    public async Task Slow_HighIsOnRequest_AndCancellationAbortsOnlyItsRequestId()
++    {
++        using var cancelled = new CancellationTokenSource();
++        var aborted = false;
++        var handler = new ScriptedHandler(async (request, _) =>
++        {
++            using var body = System.Text.Json.JsonDocument.Parse(await request.Content!.ReadAsStringAsync());
++            if (request.RequestUri!.AbsolutePath.EndsWith("/slow"))
++            {
++                Assert.Equal("high", body.RootElement.GetProperty("reasoningEffort").GetString());
++                cancelled.Cancel();
++                throw new OperationCanceledException(cancelled.Token);
++            }
++            Assert.EndsWith("/abort", request.RequestUri.AbsolutePath);
++            Assert.Equal("slow-high-cancel", body.RootElement.GetProperty("slowRequestId").GetString());
++            aborted = true;
++            return Json(HttpStatusCode.OK, "{\"aborted\":true}");
++        });
++        await using var peer = new DshOpenedHttpPeer(new(new Uri("http://127.0.0.1:3081/")),
++            credential: Credential(), handler: handler);
++        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => peer.ExecuteSlowAsync(
++            "slow-high-cancel", "prompt", new("configured", "model"), cancellationToken: cancelled.Token,
++            reasoningEffort: "high"));
++        Assert.True(aborted);
++    }
+ 
+     [Fact]
+     public async Task Slow_NormalizesObjectErrorEnvelope()
+--- a/tests/UniClaw.Agent.Dsh.Tests/DshSemanticPerceptionTests.cs
++++ b/tests/UniClaw.Agent.Dsh.Tests/DshSemanticPerceptionTests.cs
+@@ -0,0 +1,50 @@
++using UniClaw.Agent.Dsh;
++using UniClaw.Kernel.Capability;
++using UniClaw.Kernel.Perception;
++using UniClaw.Kernel.Perception.UiHierarchy;
++using Xunit;
++
++namespace UniClaw.Agent.Dsh.Tests;
++
++public sealed class DshSemanticPerceptionTests
++{
++    private static SemanticPerceptionRequest Request() => new("r1",
++        new CapabilityCorrelation("s1", captureId: "c1", observationCycleId: "o1"),
++        new("c1", "o1", "s1", DateTimeOffset.UtcNow,
++            CoordinateSpace.DeviceViewport(100, 100, captureId: "c1"),
++            new[] { new SemanticLayoutItem("t", "text", "Settings", new UiBounds(0, 0, 80, 20)) }, new[] { "e1" }),
++        new[] { new SemanticPageCandidate("settings", "Settings", "system settings") });
++
++    [Fact]
++    public async Task UsesHighReasoningAndProjectsObservedPage()
++    {
++        string? effort = null;
++        var adapter = new DshSemanticPerception((_, prompt, model, reasoning, _) =>
++        { effort = reasoning; Assert.Contains("当前capture", prompt); return Task.FromResult(new DshSlowResponse("r1", "{\"pageKey\":\"settings\",\"observedTitle\":\"Settings\",\"relation\":\"Unknown\",\"expectedMatch\":\"Unknown\"}", null, "{\"reasoningEffort\":\"high\"}")); }, new ModelConfiguration("p", "m"));
++        var result = await Assert.IsAssignableFrom<ISemanticPerception>(adapter.CreateCapability()).ObserveSemanticsAsync(Request());
++        Assert.True(result.Status == CapabilityStatus.Completed, result.Assessment.Diagnostic);
++        Assert.Equal("high", effort);
++        Assert.Equal("settings", result.Observation!.PageKey);
++    }
++
++    [Theory]
++    [InlineData("{bad")]
++    [InlineData("{\"pageKey\":\"other\",\"observedTitle\":\"Settings\",\"relation\":\"Unknown\",\"expectedMatch\":\"Unknown\"}")]
++    [InlineData("{\"pageKey\":\"settings\",\"observedTitle\":\"Other\",\"relation\":\"Unknown\",\"expectedMatch\":\"Unknown\"}")]
++    public async Task InvalidResponsesFailClosed(string text)
++    {
++        var adapter = new DshSemanticPerception((_, _, _, _, _) => Task.FromResult(new DshSlowResponse("r1", text, null)), new ModelConfiguration("p", "m"));
++        var result = await Assert.IsAssignableFrom<ISemanticPerception>(adapter.CreateCapability()).ObserveSemanticsAsync(Request());
++        Assert.Null(result.Observation);
++    }
++
++    [Fact]
++    public async Task CancellationDoesNotProduceObservation()
++    {
++        var adapter = new DshSemanticPerception(async (_, _, _, _, token) => { await Task.Delay(Timeout.Infinite, token); return null!; }, new ModelConfiguration("p", "m"));
++        using var cts = new CancellationTokenSource(); cts.Cancel();
++        var result = await Assert.IsAssignableFrom<ISemanticPerception>(adapter.CreateCapability()).ObserveSemanticsAsync(Request(), cts.Token);
++        Assert.Equal(CapabilityStatus.Cancelled, result.Status);
++        Assert.Null(result.Observation);
++    }
++}
+--- a/tests/UniClaw.Host.Tests/PageIdentityRecoveryTests.cs
++++ b/tests/UniClaw.Host.Tests/PageIdentityRecoveryTests.cs
+@@ -0,0 +1,84 @@
++using UniClaw.Host.SettingsCoverage;
++using UniClaw.Kernel.Capability;
++using UniClaw.Kernel.Evidence;
++using UniClaw.Kernel.Perception;
++using UniClaw.Kernel.World;
++using UniClaw.Kernel.World.UiRealization;
++using Xunit;
++
++namespace UniClaw.Host.Tests;
++
++public sealed class PageIdentityRecoveryTests
++{
++    private static readonly DateTimeOffset Now = new(2026, 10, 21, 0, 0, 0, TimeSpan.Zero);
++    private const string Xml = """
++        <hierarchy><node text="SIMs" class="android.widget.TextView" clickable="false" enabled="true" bounds="[10,10][100,40]"/>
++        <node text="Mobile network" class="android.widget.Button" clickable="true" enabled="true" bounds="[10,60][180,100]"/></hierarchy>
++        """;
++
++    [Theory]
++    [InlineData(true)]
++    [InlineData(false)]
++    public async Task XmlOrVisionTitleFlowsThroughRegisteredSemanticCapabilityAndP2BeforeWorldConfirmation(bool xml)
++    {
++        var fast = new FastTextBasis("c", "session", "cycle", [],
++            ["""{"text":"SIMs","boundsPx":[10,10,100,40]}""", """{"text":"Mobile network","boundsPx":[10,60,180,100]}"""], Now);
++        var capture = PageIdentityRecovery.Capture("c", "cycle", "session", Now, 200, 200, xml ? Xml : null, fast);
++        var ledger = new EvidenceLedger();
++        var world = new WorldModel(new HashSet<string> { PageObservationCodec.CaptureSubject, PageObservationCodec.IdentitySubject,
++            "ui.semantic.page" }, new ProductAssociationStrategy(), new UiHierarchyOccurrenceStrategy());
++        var proposal = new ObservationProposal(new(PageObservationCodec.CaptureSubject, PageObservationCodec.Encode(capture)),
++            IngressKind.Observation, ObservationContext.PostActionEffectFlow, new("capture", Now, "capture:c", [xml ? "XML-fixture" : "vision-fixture"]));
++        var (_, record) = ledger.Admit(proposal);
++        world.Reconcile(record!, world.JudgeRelevance(record!));
++        var unknown = world.Current!;
++        var providerCalls = 0;
++        var capability = new UniPerceptionCapability().WithSemanticExecutor((request, _) =>
++        {
++            providerCalls++;
++            Assert.Null(request.Intent);
++            Assert.Null(request.Current.PageKey);
++            return ValueTask.FromResult(SemanticPerceptionResult.Observed(request, "sims", "SIMs"));
++        });
++        var registry = PerceptionCapabilityComposition.RegisterProductPerception(uniPerception: capability);
++        var result = await PageIdentityRecovery.RecognizeAsync((ISemanticPerception)registry.Resolve("uni.perception")!,
++            [new("sims", "SIMs", "Manage mobile subscriptions")], unknown.ObservationNeed!, TimeSpan.FromSeconds(2),
++            ObservationContext.PostActionEffectFlow, CancellationToken.None);
++        Assert.Equal("SIMs", result.Title);
++        Assert.NotNull(world.Current.ObservationNeed); // model completion alone grants nothing
++        var identity = PageIdentityRecovery.Identity(unknown.CurrentPageObservation!, result.Title,
++            "context:actual-entry:observed-SIMs", ObservationContext.PostActionEffectFlow)!;
++        var accepted = ledger.Admit(identity);
++        Assert.Equal(AdmissionDecision.Accepted, accepted.Admission.Decision);
++        world.Reconcile(accepted.Record!, world.JudgeRelevance(accepted.Record!));
++        Assert.Null(world.Current!.ObservationNeed);
++        Assert.NotNull(world.Current.CurrentPageObservation!.ContainerId);
++        Assert.NotNull(unknown.ObservationNeed);
++        Assert.Empty(world.Current.Relations!); // still no Assurance proof of arrival
++        Assert.Equal(1, providerCalls);
++    }
++
++    [Theory]
++    [InlineData("unknown")]
++    [InlineData("wrong-capture")]
++    [InlineData("timeout")]
++    [InlineData("cancel")]
++    public async Task FailedOrUnalignedSemanticResultCannotCreateIdentity(string failure)
++    {
++        var capture = PageIdentityRecovery.Capture("c", "cycle", "session", Now, 200, 200, Xml, null);
++        var need = new ObservationNeed("rev:1", "ev:source", capture);
++        var capability = new UniPerceptionCapability().WithSemanticExecutor(async (request, token) =>
++        {
++            if (failure is "timeout" or "cancel") await Task.Delay(1000, token);
++            return failure == "unknown"
++                ? SemanticPerceptionResult.Empty(request, CapabilityStatus.Completed, PerceptionDisposition.Unknown, "fixture")
++                : SemanticPerceptionResult.Observed(request, "sims", "SIMs") with { CaptureId = "wrong" };
++        });
++        using var cts = new CancellationTokenSource();
++        if (failure == "cancel") cts.Cancel();
++        var result = await PageIdentityRecovery.RecognizeAsync(capability, [new("sims", "SIMs", "Subscriptions")],
++            need, TimeSpan.FromMilliseconds(20), ObservationContext.External, cts.Token);
++        Assert.Null(result.Title);
++        Assert.Empty(result.Meaning);
++    }
++}
+--- a/tests/UniClaw.Kernel.Tests/Protocol/protocol-machine.generated.json
++++ b/tests/UniClaw.Kernel.Tests/Protocol/protocol-machine.generated.json
+@@ -419,6 +419,18 @@
+       "status": "keep",
+       "titleAnchor": "#### P26 Sealed Trace → ScenarioStimulus（测试 / 治理侧，非产品内边）",
+       "to": "simulation-host"
++    },
++    {
++      "from": "world-model",
++      "id": "P27",
++      "kind": "edge",
++      "payloadRef": {
++        "name": "UniClaw.Kernel.World.ObservationNeed",
++        "type": "record"
++      },
++      "status": "keep",
++      "titleAnchor": "### P27 Observation Need（World Model → Control Loop）",
++      "to": "control-loop"
+     },
+     {
+       "from": "evidence-ledger",
+--- a/tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs
++++ b/tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs
+@@ -456,8 +456,13 @@
+             "UniClaw.Kernel.World.EntityObligationFactKind",
+             "UniClaw.Kernel.World.FreshnessBasis",
+             "UniClaw.Kernel.World.NativeLocator",
++            "UniClaw.Kernel.World.ObservationNeed",
+             "UniClaw.Kernel.World.OccurrenceFact",
+             "UniClaw.Kernel.World.OutcomeAssuranceView",
++            "UniClaw.Kernel.World.PageCaptureObservation",
++            "UniClaw.Kernel.World.PageIdentityObservation",
++            "UniClaw.Kernel.World.PageObservationCodec",
++            "UniClaw.Kernel.World.PageObservationState",
+             "UniClaw.Kernel.World.RelevanceJudgment",
+             "UniClaw.Kernel.World.ScopedClaim",
+             "UniClaw.Kernel.World.Slice",
+--- a/tests/UniClaw.Kernel.Tests/Runtime/ObservationRecoveryControlTests.cs
++++ b/tests/UniClaw.Kernel.Tests/Runtime/ObservationRecoveryControlTests.cs
+@@ -0,0 +1,34 @@
++using UniClaw.Kernel.Control;
++using Xunit;
++
++namespace UniClaw.Kernel.Tests.Runtime;
++
++public sealed class ObservationRecoveryControlTests
++{
++    [Fact]
++    public void ResumeDoesNotRestartDeadlineOrReplenishRequests()
++    {
++        var now = 0L;
++        var control = new ObservationRecoveryControl(TimeSpan.FromSeconds(2), 2, () => now, 1000);
++        Assert.True(control.TrySchedule("attempt:1", out var first));
++        now = 1000;
++        Assert.True(control.TrySchedule("attempt:1", out var second));
++        Assert.Equal(TimeSpan.FromSeconds(1), second);
++        Assert.False(control.TrySchedule("attempt:1", out _));
++        control.Complete("attempt:1");
++        Assert.False(control.TrySchedule("attempt:2", out _)); // run quota retained
++        Assert.Equal(2, control.RequestsUsed);
++    }
++
++    [Fact]
++    public void LateCompletionCannotReopenExpiredWait()
++    {
++        var now = 0L;
++        var control = new ObservationRecoveryControl(TimeSpan.FromSeconds(2), 4, () => now, 1000);
++        Assert.True(control.TrySchedule("attempt:1", out _));
++        now = 2001;
++        Assert.False(control.CanAccept("attempt:1"));
++        Assert.False(control.TrySchedule("attempt:1", out _));
++        Assert.False(control.CanAccept("attempt:other"));
++    }
++}
+--- a/tests/UniClaw.Kernel.Tests/Runtime/PageObservationExecutionTests.cs
++++ b/tests/UniClaw.Kernel.Tests/Runtime/PageObservationExecutionTests.cs
+@@ -0,0 +1,189 @@
++using System.Collections.Frozen;
++using UniClaw.Kernel.Assurance;
++using UniClaw.Kernel.Capability;
++using UniClaw.Kernel.Control;
++using UniClaw.Kernel.Effects;
++using UniClaw.Kernel.Evidence;
++using UniClaw.Kernel.Perception;
++using UniClaw.Kernel.Perception.UiHierarchy;
++using UniClaw.Kernel.Run;
++using UniClaw.Kernel.Runtime;
++using UniClaw.Kernel.Trace;
++using UniClaw.Kernel.World;
++using UniClaw.Kernel.World.UiRealization;
++using Xunit;
++
++namespace UniClaw.Kernel.Tests.Runtime;
++
++public sealed class PageObservationExecutionTests
++{
++    private static readonly DateTimeOffset T0 = new(2026, 10, 21, 0, 0, 0, TimeSpan.Zero);
++    private sealed class Fresh : IFreshnessEvaluator
++    {
++        public FreshnessJudgment Evaluate(FreshnessEvaluationInput input) => new(FreshnessSufficiency.Sufficient, "fixture");
++    }
++    private sealed class Delivery : IEffectDriver
++    {
++        public int Count;
++        public DispatchResult Deliver(DispatchRequest request)
++        { Count++; return new(DispatchOutcome.DeliveryCompleted, "fixture", T0.AddSeconds(1)); }
++    }
++    private static PageCaptureObservation Capture(string id, string title, string target, int second) =>
++        new(id, "cycle:" + id, "session", T0.AddSeconds(second), CoordinateSpace.DeviceViewport(1000, 1000, captureId: id),
++            new[] { new SemanticLayoutItem("title", "text", title, new(100, 50, 900, 100)),
++                new SemanticLayoutItem("row", "ui.element", target, new(100, 200, 900, 300)) });
++    private static ObservationProposal CaptureProposal(PageCaptureObservation c, ObservationContext context) =>
++        new(new(PageObservationCodec.CaptureSubject, PageObservationCodec.Encode(c)), IngressKind.Observation, context,
++            new("fixture", c.CaptureTime, "capture:" + c.CaptureId, ["fixture"]));
++    private static ObservationProposal Identity(ObservationNeed need, ObservationContext context, string? overrideCapture = null) =>
++        new(new(PageObservationCodec.IdentitySubject, PageObservationCodec.Encode(new PageIdentityObservation(
++            overrideCapture ?? need.Capture.CaptureId, need.Capture.ObservationCycleId, need.Capture.SessionCorrelation,
++            need.Capture.CaptureTime, "observed:" + need.Capture.Items[0].Text, need.Capture.Items[0].Text))),
++            IngressKind.Observation, context, new("fixture.identity", need.Capture.CaptureTime,
++                "identity:" + need.Capture.CaptureId, ["fixture"]))
++        {
++            DerivedFromEvidenceIds = new[] { need.CaptureEvidenceId },
++            TransitiveEvidenceBasis = new[] { need.CaptureEvidenceId }.ToFrozenSet(),
++            FusionRule = "fixture", FusionVersion = "1",
++        };
++    private static ObservationProposal Route(string route, int second, ObservationContext context) =>
++        new(new(ProductAssociationStrategy.ScreenRouteSubject, route), IngressKind.Observation, context,
++            new("fixture", T0.AddSeconds(second), "route:" + second, ["fixture"]));
++
++    [Theory]
++    [InlineData(false, "none")]
++    [InlineData(true, "none")]
++    [InlineData(false, "duplicate")]
++    [InlineData(false, "insufficient")]
++    [InlineData(false, "timeout")]
++    [InlineData(false, "cancel")]
++    [InlineData(false, "late-scene")]
++    public void NavigationWaitsForIdentityAndAssurance_ThenTraversalContinuesWithoutRedispatch(bool wrongFirst, string failure)
++    {
++        var scope = new HashSet<string> { PageObservationCodec.CaptureSubject, PageObservationCodec.IdentitySubject,
++            ProductAssociationStrategy.ScreenRouteSubject };
++        var plan = new AgentPlanPolicy();
++        var delivery = new Delivery();
++        var kernel = new UniKernel(new EvidenceLedger(), new WorldModel(scope, new ProductAssociationStrategy()),
++            DisabledRunTrace.Instance, new RunModel(), new ControlLoop(plan), new RuntimeAssurance(new Fresh()),
++            new EffectBoundary(delivery));
++        var initial = false;
++        var post = false;
++        var released = false;
++        var invalidSent = false;
++        var sceneChanged = false;
++        ObservationNeed? retiredNeed = null;
++        var directives = new List<ObservationDirective>();
++        var consulted = 0;
++        var recoveries = new List<TraversalRecoveryFacts>();
++        var inputs = new RunDriverInputs
++        {
++            NextInput = directive =>
++            {
++                directives.Add(directive);
++                if (directive.Need is { } need)
++                {
++                    if (directive.Context == ObservationContext.PostActionEffectFlow && !released) return null;
++                    if (need.Capture.CaptureId != "root" && failure == "insufficient") return null;
++                    if (need.Capture.CaptureId == "child" && failure == "late-scene" && !sceneChanged)
++                    {
++                        sceneChanged = true; retiredNeed = need;
++                        return new RunDriverInput.Observation([CaptureProposal(Capture("child-new", "New page", "Details", 3), directive.Context)]);
++                    }
++                    if (retiredNeed is not null)
++                    {
++                        var late = Identity(retiredNeed, directive.Context); retiredNeed = null;
++                        Assert.Equal(0, kernel.PostActionVerifications.Count);
++                        return new RunDriverInput.Observation([late]);
++                    }
++                    var invalid = wrongFirst && need.Capture.CaptureId == "child" && !invalidSent;
++                    if (invalid) invalidSent = true;
++                    var identity = Identity(need, directive.Context, invalid ? "wrong-capture" : null);
++                    return new RunDriverInput.Observation(failure == "duplicate" ? [identity, identity] : [identity]);
++                }
++                if (!initial)
++                {
++                    initial = true;
++                    return new RunDriverInput.Observation([CaptureProposal(Capture("root", "Settings", "Open", 0), directive.Context), Route("root", 0, directive.Context)]);
++                }
++                if (directive.Context == ObservationContext.PostActionEffectFlow && !post)
++                {
++                    post = true;
++                    return new RunDriverInput.Observation([CaptureProposal(Capture("child", "All apps", "Details", 2), directive.Context), Route("child", 2, directive.Context)]);
++                }
++                return null;
++            },
++            ConsultAgent = context => ++consulted == 1
++                ? new AgentDecision.Plan(context.DecisionId, new AgentPlanProposal(new PlanItem[]
++                {
++                    new PlanItem.TraverseItem("current", [new("navigate", "go", new("open", TraversalOperationKind.Navigate,
++                        new("ui.element", "Open", "tap", null), [], []))], 1, new("ui.element", "Back", "tap", null)),
++                }, "fixture traversal", "identity-plan", MaxLocalOperations: 8))
++                : null,
++            AvailablePlanSources = new Dictionary<string, string> { ["current"] = "fixture" },
++            ProjectTraversal = _ =>
++            {
++                var b = kernel.CurrentBelief!;
++                if (b.ObservationNeed is not null) return null;
++                if (b.CurrentPageObservation!.Capture.CaptureId == "child") Assert.Equal(1, consulted);
++                var current = b.WorldState[WorldModel.CurrentContainerSubject].Value;
++                var candidates = b.CurrentPageObservation!.Capture.CaptureId == "root"
++                    ? b.Occurrences!.Where(o => o.SemanticDescriptor == "Open").Select(o => new TraversalCandidate(
++                        new("open", o.Role, o.SemanticDescriptor!, PlanCandidateDisposition.Ready, o.EvidenceBasis),
++                        new Dictionary<string, PolicyTruth> { ["go"] = PolicyTruth.Satisfied })).ToArray() : [];
++                return new(new(b.RevisionId, kernel.NavigationScope, current, b.Containers!, b.Relations!, []),
++                    candidates, false, b.EvidenceBasis.ToArray());
++            },
++            ObserveTraversalRecovery = facts => recoveries.Add(facts),
++            MaxObservationRecoveryRequests = 8,
++            ObservationRecoveryTimeout = failure == "timeout" ? TimeSpan.FromMilliseconds(50) : TimeSpan.FromSeconds(5),
++            PollCancellation = () => released && failure == "cancel" ? new("fixture-cancel", T0.AddSeconds(3)) : null,
++        };
++        Assert.True(kernel.AdmitContract(new("v1", "fixture", scope, new HashSet<string> { "tap" }, new HashSet<string>(),
++            ["objective"], TaskInstanceId: "task", ProductSessionId: "session", ContractRef: "contract")).Accepted);
++        var driver = new KernelRunDriver(kernel, plan, inputs);
++        Assert.True(driver.Activate().Accepted);
++        var waiting = driver.Drive();
++        Assert.Equal(RunDriveStatus.WaitingForInput, waiting.Status);
++        Assert.Equal(1, delivery.Count);
++        Assert.NotNull(kernel.CurrentBelief!.ObservationNeed);
++        Assert.All(kernel.CurrentBelief.Occurrences!, o => Assert.Null(o.OwningContainerId));
++        Assert.Empty(kernel.PostActionVerifications);
++        Assert.Equal(0, driver.TraversalExecution!.Depth);
++        var before = kernel.CurrentBelief;
++        released = true;
++        if (failure == "timeout") Thread.Sleep(70);
++        var resumed = driver.Drive();
++        if (failure is "insufficient" or "timeout" or "cancel")
++        {
++            if (failure == "insufficient")
++                for (var i = 0; i < 9 && resumed.Status == RunDriveStatus.WaitingForInput; i++) resumed = driver.Drive();
++            Assert.Equal(failure == "cancel" ? RunDriveStatus.CancelledWithoutSafeStopPath : RunDriveStatus.VerificationFailed, resumed.Status);
++            Assert.Equal(1, delivery.Count);
++            Assert.Empty(kernel.PostActionVerifications);
++            Assert.NotNull(kernel.CurrentBelief!.ObservationNeed);
++            if (failure is "insufficient" or "timeout")
++            {
++                Assert.Single(recoveries);
++                Assert.False(kernel.IsRunTerminal);
++            }
++            if (failure == "timeout")
++            {
++                kernel.Process(Identity(kernel.CurrentBelief.ObservationNeed!, ObservationContext.PostActionEffectFlow));
++                Assert.Equal(RunDriveStatus.VerificationFailed, driver.Drive().Status);
++                Assert.Empty(kernel.PostActionVerifications); // late evidence cannot authorize expired attempt
++                Assert.Equal(1, delivery.Count);
++            }
++            return;
++        }
++        Assert.Equal(1, delivery.Count);
++        Assert.Null(kernel.CurrentBelief!.ObservationNeed);
++        Assert.True(Assert.Single(kernel.PostActionVerifications).IsVerified);
++        Assert.Equal(1, driver.TraversalExecution!.Depth);
++        Assert.All(kernel.CurrentBelief.Occurrences!, o => Assert.Equal(kernel.CurrentBelief.CurrentPageObservation!.ContainerId, o.OwningContainerId));
++        Assert.NotNull(before.ObservationNeed);
++        Assert.All(before.Occurrences!, o => Assert.Null(o.OwningContainerId));
++        Assert.All(directives.Where(d => d.Need is not null), d => Assert.True(d.RemainingBudget > TimeSpan.Zero));
++        Assert.Equal(2, consulted); // continuation consulted only after verified navigation
++    }
++}
+--- a/tests/UniClaw.Kernel.Tests/World/PageObservationRecoveryTests.cs
++++ b/tests/UniClaw.Kernel.Tests/World/PageObservationRecoveryTests.cs
+@@ -0,0 +1,177 @@
++using UniClaw.Kernel.Capability;
++using UniClaw.Kernel.Perception;
++using UniClaw.Kernel.Perception.UiHierarchy;
++using UniClaw.Kernel.World;
++using UniClaw.Kernel.Evidence;
++using UniClaw.Kernel.World.UiRealization;
++using Xunit;
++
++namespace UniClaw.Kernel.Tests.World;
++
++public sealed class PageObservationRecoveryTests
++{
++    private static PageCaptureObservation Capture(string id = "capture-a") =>
++        new(id, "cycle-a", "session-a", new DateTimeOffset(2026, 10, 21, 0, 0, 0, TimeSpan.Zero),
++            CoordinateSpace.DeviceViewport(100, 100, captureId: id),
++            new[] { new SemanticLayoutItem("title", "text", "Settings", new UiBounds(0, 0, 80, 20)) });
++
++    [Fact]
++    public void CodecRoundTripPreservesCaptureCorrelationAndItems()
++    {
++        var capture = Capture();
++        var json = PageObservationCodec.Encode(capture);
++        Assert.True(PageObservationCodec.TryReadCapture(json, out var decoded));
++        Assert.NotNull(decoded);
++        Assert.Equal(capture.CaptureId, decoded!.CaptureId);
++        Assert.Equal(capture.ObservationCycleId, decoded.ObservationCycleId);
++        Assert.Equal(capture.Space, decoded.Space);
++        Assert.Equal(capture.Items, decoded.Items);
++    }
++
++    [Fact]
++    public void CodecRejectsUnknownMembersAndDuplicateItems()
++    {
++        var json = PageObservationCodec.Encode(Capture());
++        Assert.False(PageObservationCodec.TryReadCapture(json[..^1] + ",\"unexpected\":true}", out _));
++        var duplicate = Capture() with { Items = new[] { Capture().Items[0], Capture().Items[0] } };
++        Assert.Throws<ArgumentException>(() => PageObservationCodec.Encode(duplicate));
++    }
++
++    [Fact]
++    public void CaptureNeedBlocksUiUntilCorrelatedIdentityThenRebindsOnlyThatCapture()
++    {
++        var ledger = new EvidenceLedger();
++        var world = new WorldModel(new HashSet<string> { "ui.screen", PageObservationCodec.CaptureSubject,
++            PageObservationCodec.IdentitySubject, "ordinary" }, new ProductAssociationStrategy());
++        var at = new DateTimeOffset(2026, 10, 21, 0, 0, 0, TimeSpan.Zero);
++        EvidenceRecord Admit(ObservationProposal p)
++        {
++            var result = ledger.Admit(p); Assert.True(result.Admission.Decision == AdmissionDecision.Accepted, result.Admission.ToString());
++            var record = result.Record!; world.Reconcile(record, world.JudgeRelevance(record)); return record;
++        }
++        var pageA = Admit(new(new("ui.screen", "A"), IngressKind.Observation, ObservationContext.External,
++            new("test", at, "screen-a", ["screen-a"])));
++        var capture = Capture("capture-b") with { CaptureTime = at.AddSeconds(1),
++            Items = new[] { Capture().Items[0], new SemanticLayoutItem("row", "ui.element", "Mobile network", new UiBounds(0, 30, 80, 60)) } };
++        var captureRecord = Admit(new(new(PageObservationCodec.CaptureSubject, PageObservationCodec.Encode(capture)),
++            IngressKind.Observation, ObservationContext.External,
++            new("test", at.AddSeconds(1), "capture-b", ["capture-b" ])));
++        Assert.NotNull(world.Current!.ObservationNeed);
++        Assert.All(world.Current.Occurrences!, occurrence => Assert.Null(occurrence.OwningContainerId));
++        Assert.Equal(CurrentCandidateSetResultKind.ScopeProjectionUnavailable,
++            world.ResolveCurrent(new TargetDescriptor("text", "Settings")).Result);
++
++        var identity = new PageIdentityObservation("capture-b", "cycle-a", "session-a", capture.CaptureTime, "B", "Settings");
++        foreach (var variant in new[] { identity with { CaptureId = "wrong" }, identity with { ObservationCycleId = "wrong" },
++                     identity with { SessionCorrelation = "wrong" }, identity with { CaptureTime = at.AddSeconds(3) },
++                     identity with { ObservedTitle = "Other" } })
++        {
++            var invalidResult = ledger.Admit(IdentityProposal(variant, at.AddSeconds(1), captureRecord.EvidenceId));
++            if (invalidResult.Admission.Decision == AdmissionDecision.Accepted)
++                world.Reconcile(invalidResult.Record!, world.JudgeRelevance(invalidResult.Record!));
++            Assert.Null(world.Current!.CurrentPageObservation!.ContainerId);
++            Assert.Equal("A", world.Current.WorldState[WorldModel.SignatureSubjectPrefix +
++                world.Current.WorldState[WorldModel.CurrentContainerSubject].Value].Value);
++        }
++        var noLineage = Admit(new(new(PageObservationCodec.IdentitySubject, PageObservationCodec.Encode(identity)),
++            IngressKind.Observation, ObservationContext.External,
++            new("test", at.AddSeconds(1), "capture-b", ["capture-b"])));
++        Assert.Null(world.Current!.CurrentPageObservation!.ContainerId);
++
++        var valid = Admit(IdentityProposal(identity, capture.CaptureTime, captureRecord.EvidenceId));
++        var confirmed = world.Current!;
++        Assert.NotNull(confirmed.CurrentPageObservation!.ContainerId);
++        Assert.Equal("B", confirmed.WorldState[WorldModel.SignatureSubjectPrefix + confirmed.CurrentPageObservation.ContainerId].Value);
++        Assert.Null(confirmed.ObservationNeed);
++        Assert.All(confirmed.Occurrences!, occurrence => Assert.Equal(confirmed.CurrentPageObservation.ContainerId, occurrence.OwningContainerId));
++        Assert.Contains(world.RevisionHistory, revision => revision.RevisionId != confirmed.RevisionId
++            && revision.CurrentPageObservation?.ContainerId is null);
++        Assert.True(world.Current!.WorldState.ContainsKey(WorldModel.CurrentContainerSubject));
++        var duplicate = world.Reconcile(valid, world.JudgeRelevance(valid));
++        Assert.Same(confirmed, duplicate);
++        Admit(new(new("ordinary", "content"), IngressKind.Observation, ObservationContext.External,
++            new("test", at.AddSeconds(2), "ordinary", ["fixture"])));
++        Assert.Null(world.Current!.ObservationNeed);
++        var lateCapture = capture with { CaptureId = "late", CaptureTime = at,
++            Space = CoordinateSpace.DeviceViewport(100, 100, captureId: "late") };
++        Admit(new(new(PageObservationCodec.CaptureSubject, PageObservationCodec.Encode(lateCapture)), IngressKind.Observation,
++            ObservationContext.External, new("test", at, "late", ["fixture"])));
++        Assert.Equal("capture-b", world.Current!.CurrentPageObservation!.Capture.CaptureId);
++        Assert.Null(world.Current.ObservationNeed);
++        _ = pageA; _ = noLineage;
++    }
++
++    [Fact]
++    public void ContradictionInConfirmedCapturePausesUntilNewObservation_WithoutChangingOldRevision()
++    {
++        var ledger = new EvidenceLedger();
++        var world = new WorldModel(new HashSet<string> { PageObservationCodec.CaptureSubject,
++            PageObservationCodec.IdentitySubject }, new ProductAssociationStrategy());
++        var capture = Capture() with { Items = new[] { Capture().Items[0],
++            new SemanticLayoutItem("row", "ui.element", "Details", new UiBounds(0, 30, 80, 60)) } };
++        EvidenceRecord Process(ObservationProposal proposal)
++        {
++            var admitted = ledger.Admit(proposal);
++            Assert.Equal(AdmissionDecision.Accepted, admitted.Admission.Decision);
++            world.Reconcile(admitted.Record!, world.JudgeRelevance(admitted.Record!));
++            return admitted.Record!;
++        }
++        var source = Process(new(new(PageObservationCodec.CaptureSubject, PageObservationCodec.Encode(capture)),
++            IngressKind.Observation, ObservationContext.External,
++            new("test", capture.CaptureTime, "capture", ["fixture"])));
++        var identity = new PageIdentityObservation(capture.CaptureId, capture.ObservationCycleId,
++            capture.SessionCorrelation, capture.CaptureTime, "A", "Settings");
++        Process(IdentityProposal(identity, capture.CaptureTime, source.EvidenceId));
++        var confirmed = world.Current!;
++        Process(IdentityProposal(identity with { Signature = "B" }, capture.CaptureTime, source.EvidenceId));
++        Assert.NotNull(world.Current!.ObservationNeed);
++        Assert.Null(world.Current.CurrentPageObservation!.ContainerId);
++        Assert.NotNull(confirmed.CurrentPageObservation!.ContainerId);
++        Assert.Single(world.Current.Conflicts);
++        Assert.All(world.Current.Occurrences!, o => Assert.Null(o.OwningContainerId));
++        var next = capture with { CaptureId = "next", ObservationCycleId = "next-cycle", CaptureTime = capture.CaptureTime.AddSeconds(1),
++            Space = CoordinateSpace.DeviceViewport(100, 100, captureId: "next") };
++        var nextSource = Process(new(new(PageObservationCodec.CaptureSubject, PageObservationCodec.Encode(next)),
++            IngressKind.Observation, ObservationContext.External, new("test", next.CaptureTime, "next", ["fixture"])));
++        Process(IdentityProposal(identity with { CaptureId = next.CaptureId, ObservationCycleId = next.ObservationCycleId,
++            CaptureTime = next.CaptureTime }, next.CaptureTime, nextSource.EvidenceId));
++        Assert.Null(world.Current!.ObservationNeed);
++    }
++
++    [Theory]
++    [InlineData(false)]
++    [InlineData(true)]
++    public void InsufficientLayoutOrAmbiguousAssociationKeepsIdentityUnknown(bool ambiguous)
++    {
++        var ledger = new EvidenceLedger();
++        var capture = Capture();
++        if (ambiguous) capture = capture with { Items = new[] { capture.Items[0],
++            new SemanticLayoutItem("row", "ui.element", "Details", new UiBounds(0, 30, 80, 60)) } };
++        var world = new WorldModel(new HashSet<string> { PageObservationCodec.CaptureSubject,
++            PageObservationCodec.IdentitySubject }, ambiguous ? new Ambiguous() : new ProductAssociationStrategy());
++        var source = ledger.Admit(new(new(PageObservationCodec.CaptureSubject, PageObservationCodec.Encode(capture)),
++            IngressKind.Observation, ObservationContext.External,
++            new("test", capture.CaptureTime, "capture", ["fixture"]))).Record!;
++        world.Reconcile(source, world.JudgeRelevance(source));
++        var identity = new PageIdentityObservation(capture.CaptureId, capture.ObservationCycleId, capture.SessionCorrelation,
++            capture.CaptureTime, "A", "Settings");
++        var proposed = ledger.Admit(IdentityProposal(identity, capture.CaptureTime, source.EvidenceId)).Record!;
++        world.Reconcile(proposed, world.JudgeRelevance(proposed));
++        Assert.NotNull(world.Current!.ObservationNeed);
++        Assert.Null(world.Current.CurrentPageObservation!.ContainerId);
++        Assert.Empty(world.Current.Containers!);
++        Assert.All(world.Current.Occurrences!, o => Assert.Null(o.OwningContainerId));
++    }
++
++    private sealed class Ambiguous : IAssociationStrategy
++    {
++        public AssociationProposal Propose(AssociationInput input) => new(AssociationDispositionKind.Ambiguous,
++            null, [], [], "fixture ambiguous identity");
++    }
++
++    private static ObservationProposal IdentityProposal(PageIdentityObservation identity, DateTimeOffset time, string evidenceId) =>
++        new(new(PageObservationCodec.IdentitySubject, PageObservationCodec.Encode(identity)),
++            IngressKind.Observation, ObservationContext.External,
++            new("test", time, "capture-b:" + identity.CaptureId + ":" + identity.ObservationCycleId + ":" + identity.SessionCorrelation + ":" + identity.ObservedTitle, ["capture:capture-b"]))
++        { DerivedFromEvidenceIds = new[] { evidenceId }, TransitiveEvidenceBasis = new HashSet<string> { evidenceId }, FusionRule = "page-identity", FusionVersion = "1" };
++}
+--- a/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj
++++ b/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj
+@@ -19,6 +19,7 @@
+   </ItemGroup>
+ 
+   <ItemGroup>
++    <Compile Include="..\UniClaw.Kernel.Tests\Runtime\PageObservationExecutionTests.cs" Link="PageObservationExecutionTests.cs" />
+     <Compile Include="..\UniClaw.Host.Dsh.Tests\PlanGenerationSemanticAssertions.cs" Link="PlanGenerationSemanticAssertions.cs" />
+     <!-- 同一 Product Runtime artifact（RFS-001 / baseline §24.8：Simulation Host
+          与 Product Host 复用同一 Product Runtime modules；本测试项目即

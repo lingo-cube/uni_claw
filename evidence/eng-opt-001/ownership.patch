@@ -1,0 +1,418 @@
+--- a/src/UniClaw.Kernel/Run/RunModel.cs
++++ b/src/UniClaw.Kernel/Run/RunModel.cs
+@@ -1,4 +1,6 @@
+ using System.Collections.ObjectModel;
++using System.Collections.Frozen;
++using System.Collections.Immutable;
+ using System.Security.Cryptography;
+ using System.Text;
+ 
+@@ -191,8 +193,8 @@
+                 : BudgetValueOrigin.Mixed;
+             View = new ExecutionContractView(
+                 contract.Version, contract.Objective,
+-                contract.Scope!, contract.AllowedEffects!, contract.ForbiddenEffects!,
+-                contract.ProofCriteria!, consultations, totalSteps, valueOrigin,
++                SnapshotSet(contract.Scope!), SnapshotSet(contract.AllowedEffects!), SnapshotSet(contract.ForbiddenEffects!),
++                Array.AsReadOnly(contract.ProofCriteria!.ToArray()), consultations, totalSteps, valueOrigin,
+                 contract.TaskInstanceId, contract.ProductSessionId, contract.ContractRef,
+                 contract.AcceptedContractViewRef, contract.ContractGeneration)
+             {
+@@ -225,6 +227,18 @@
+         return new ContractAdmission(false, checks, "version-conflict");
+     }
+ 
++    private static IReadOnlySet<string> SnapshotSet(IReadOnlySet<string> values)
++    {
++        if (values is FrozenSet<string> or IImmutableSet<string>) return values;
++        if (values is SortedSet<string> sorted)
++            return sorted.ToImmutableSortedSet(sorted.Comparer);
++
++        var comparer = values is HashSet<string> hashSet
++            ? hashSet.Comparer
++            : StringComparer.Ordinal;
++        return values.ToFrozenSet(comparer);
++    }
++
+     /// <summary>
+     /// RunId 内容派生（RUN-001；评审二轮 Standards 1 / Spec P1 硬化）：
+     /// canonical 为自描述结构——每字段独立编码 field-tag + 长度帧内容，
+--- a/src/UniClaw.Kernel/Evidence/EvidenceLedger.cs
++++ b/src/UniClaw.Kernel/Evidence/EvidenceLedger.cs
+@@ -1,4 +1,5 @@
+ using System.Collections.ObjectModel;
++using System.Collections.Frozen;
+ using System.Security.Cryptography;
+ using System.Text;
+ 
+@@ -79,10 +80,13 @@
+                     : ObservationOrigin.External;
+                 record = new EvidenceRecord(
+                     id, observation.Claim!, observation.Kind, observation.Context,
+-                    observation.Provenance!, derivedOrigin)
++                    observation.Provenance! with
++                    {
++                        TransformationLineage = Array.AsReadOnly(provenance!.TransformationLineage.ToArray()),
++                    }, derivedOrigin)
+                 {
+-                    DerivedFromEvidenceIds = observation.DerivedFromEvidenceIds,
+-                    TransitiveEvidenceBasis = observation.TransitiveEvidenceBasis,
++                    DerivedFromEvidenceIds = Array.AsReadOnly(observation.DerivedFromEvidenceIds.ToArray()),
++                    TransitiveEvidenceBasis = observation.TransitiveEvidenceBasis.ToFrozenSet(StringComparer.Ordinal),
+                     FusionRule = observation.FusionRule,
+                     FusionVersion = observation.FusionVersion,
+                 };
+--- a/src/UniClaw.Kernel/World/WorldModel.cs
++++ b/src/UniClaw.Kernel/World/WorldModel.cs
+@@ -1,5 +1,6 @@
+ using System.Collections.Frozen;
+ using System.Collections.Immutable;
++using System.Collections.ObjectModel;
+ using System.Diagnostics;
+ using UniClaw.Kernel.Diagnostics;
+ using UniClaw.Kernel.Evidence;
+@@ -33,6 +34,12 @@
+     private readonly Dictionary<string, int> _activeDemandCountsByItem = new(StringComparer.Ordinal);
+     private readonly List<ContinuityDecision> _continuityLog = new();
+     private readonly List<ClaimEvolutionDecision> _claimEvolutionLog = new();
++    private readonly ReadOnlyCollection<WorldBeliefRevision> _revisionHistoryView;
++    private readonly ReadOnlyCollection<RelevanceJudgment> _relevanceLogView;
++    private readonly ReadOnlyCollection<AssociationDecision> _associationLogView;
++    private readonly ReadOnlyCollection<ContinuityDemand> _continuityDemandsView;
++    private readonly ReadOnlyCollection<ContinuityDecision> _continuityLogView;
++    private readonly ReadOnlyCollection<ClaimEvolutionDecision> _claimEvolutionLogView;
+     // Current-page eligibility is independent from aggregate freshness and from
+     // the establishing EvidenceId retained by a same-value reaffirmation.
+     private DateTimeOffset? _latestPageObservationTime;
+@@ -62,6 +69,12 @@
+         _associationStrategy = associationStrategy;
+         _observationStrategy = observationStrategy;
+         _continuityStrategy = continuityStrategy;
++        _revisionHistoryView = _revisionHistory.AsReadOnly();
++        _relevanceLogView = _relevanceLog.AsReadOnly();
++        _associationLogView = _associationLog.AsReadOnly();
++        _continuityDemandsView = _continuityDemands.AsReadOnly();
++        _continuityLogView = _continuityLog.AsReadOnly();
++        _claimEvolutionLogView = _claimEvolutionLog.AsReadOnly();
+     }
+ 
+     /// <summary>Current WorldBelief（首次 Reconciliation 前为 null）。</summary>
+@@ -69,10 +82,10 @@
+         _revisionHistory.Count == 0 ? null : _revisionHistory[^1];
+ 
+     /// <summary>revision 历史（append-only 只读依据；被取代的 revision 保留为历史）。</summary>
+-    public IReadOnlyList<WorldBeliefRevision> RevisionHistory => _revisionHistory;
++    public IReadOnlyList<WorldBeliefRevision> RevisionHistory => _revisionHistoryView;
+ 
+     /// <summary>每次 relevance 判定的留痕。</summary>
+-    public IReadOnlyList<RelevanceJudgment> RelevanceLog => _relevanceLog;
++    public IReadOnlyList<RelevanceJudgment> RelevanceLog => _relevanceLogView;
+ 
+     /// <summary>
+     /// 每次 Container Association 判定的留痕（owner-internal append-only，
+@@ -80,20 +93,20 @@
+     /// decision context 的可引用载体——供未来 Trace/Replay 引用，
+     /// 不进 revision aggregate，不构成第二 truth）。
+     /// </summary>
+-    public IReadOnlyList<AssociationDecision> AssociationLog => _associationLog;
++    public IReadOnlyList<AssociationDecision> AssociationLog => _associationLogView;
+ 
+     /// <summary>
+     /// Continuity demand registry（owner-internal、非 revision 化，ADR-0014）：
+     /// List + 只读视图；demand 状态变化不产生 revision（P-UW-32）。
+     /// </summary>
+-    public IReadOnlyList<ContinuityDemand> ContinuityDemands => _continuityDemands;
++    public IReadOnlyList<ContinuityDemand> ContinuityDemands => _continuityDemandsView;
+ 
+     /// <summary>
+     /// 每次 continuity adjudication 判定的留痕（owner-internal append-only，
+     /// 同 AssociationLog 先例；含 demand correlation 与 proposed/effective
+     /// outcome，不进 revision aggregate、不构成第二 truth）。
+     /// </summary>
+-    public IReadOnlyList<ContinuityDecision> ContinuityLog => _continuityLog;
++    public IReadOnlyList<ContinuityDecision> ContinuityLog => _continuityLogView;
+ 
+     /// <summary>
+     /// 每次 claim evolution 判定的留痕（CLE-001 / ADR-0016，owner-internal
+@@ -101,7 +114,7 @@
+     /// Revise 均留痕（subject 历代 value / evidence 可溯源，D2「不静默
+     /// 覆盖」三件套之一）；不进 revision aggregate、不构成第二 truth。
+     /// </summary>
+-    public IReadOnlyList<ClaimEvolutionDecision> ClaimEvolutionLog => _claimEvolutionLog;
++    public IReadOnlyList<ClaimEvolutionDecision> ClaimEvolutionLog => _claimEvolutionLogView;
+ 
+     /// <summary>
+     /// Append a verified navigation relation after both endpoint observations
+--- /dev/null
++++ b/tests/UniClaw.Kernel.Tests/Run/ContractOwnershipTests.cs
+@@ -0,0 +1,132 @@
++using System.Collections.Frozen;
++using System.Collections.Immutable;
++using UniClaw.Kernel.Run;
++using Xunit;
++
++namespace UniClaw.Kernel.Tests.Run;
++
++public sealed class ContractOwnershipTests
++{
++    [Fact]
++    public void AdmitContract_SnapshotsCallerCollectionsAndPreservesComparers()
++    {
++        var scope = new HashSet<string> { "ui.node.*" };
++        var allowed = new HashSet<string>(StringComparer.Ordinal) { "tap" };
++        var forbidden = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "toggle:NFC" };
++        var proofCriteria = new List<string> { "switch-state-checked" };
++        var contract = Contract(scope, allowed, forbidden, proofCriteria);
++        var run = new RunModel();
++
++        var admission = run.AdmitContract(contract);
++
++        Assert.True(admission.Accepted);
++        var view = run.View!;
++        var runId = run.RunId;
++
++        scope.Clear();
++        scope.Add("changed.scope");
++        allowed.Clear();
++        allowed.Add("swipe");
++        forbidden.Clear();
++        forbidden.Add("other");
++        proofCriteria[0] = "changed-criterion";
++        proofCriteria.Add("second-criterion");
++
++        Assert.Contains("ui.node.*", view.Scope);
++        Assert.DoesNotContain("UI.NODE.*", view.Scope);
++        Assert.DoesNotContain("changed.scope", view.Scope);
++        Assert.True(view.AllowedEffects.Contains("tap"));
++        Assert.False(view.AllowedEffects.Contains("TAP"));
++        Assert.False(view.AllowedEffects.Contains("swipe"));
++        Assert.True(view.ForbiddenEffects.Contains("TOGGLE:nfc"));
++        Assert.False(view.ForbiddenEffects.Contains("other"));
++        Assert.Equal(new[] { "switch-state-checked" }, view.ProofCriteria);
++        Assert.Equal(runId, run.RunId);
++
++        var readmission = run.AdmitContract(contract);
++        Assert.True(readmission.Accepted);
++        Assert.Same(view, run.View);
++        Assert.Equal(runId, run.RunId);
++    }
++
++    [Fact]
++    public void PublishedCollectionsDoNotExposeMutableCallerStorage()
++    {
++        var run = new RunModel();
++        var contract = Contract(
++            new HashSet<string> { "ui.node.*" },
++            new HashSet<string> { "tap" },
++            new HashSet<string> { "toggle" },
++            new List<string> { "switch-state-checked" });
++
++        Assert.True(run.AdmitContract(contract).Accepted);
++        var view = run.View!;
++
++        AssertReadOnly(view.Scope, collection => collection.Add("changed.scope"));
++        AssertReadOnly(view.AllowedEffects, collection => collection.Clear());
++        AssertReadOnly(view.ForbiddenEffects, collection => collection.Remove("toggle"));
++        AssertReadOnly(view.ProofCriteria, collection => collection.Add("changed-criterion"));
++        Assert.Equal(new[] { "switch-state-checked" }, view.ProofCriteria);
++    }
++
++    [Fact]
++    public void AdmitContract_PreservesAlreadyFrozenSetSemantics()
++    {
++        var scope = new[] { "ui.node.*" }.ToFrozenSet(StringComparer.Ordinal);
++        var allowed = new[] { "tap" }.ToFrozenSet(StringComparer.Ordinal);
++        var forbidden = new[] { "toggle:NFC" }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
++        var run = new RunModel();
++
++        Assert.True(run.AdmitContract(Contract(
++            scope, allowed, forbidden, new[] { "switch-state-checked" })).Accepted);
++
++        Assert.Contains("ui.node.*", run.View!.Scope);
++        Assert.DoesNotContain("UI.NODE.*", run.View.Scope);
++        Assert.Contains("tap", run.View.AllowedEffects);
++        Assert.DoesNotContain("TAP", run.View.AllowedEffects);
++        Assert.Contains("TOGGLE:nfc", run.View.ForbiddenEffects);
++        Assert.DoesNotContain("other", run.View.ForbiddenEffects);
++    }
++
++    [Fact]
++    public void AdmitContract_PreservesImmutableSetAndSortedSetComparers()
++    {
++        var allowed = ImmutableHashSet.Create(StringComparer.OrdinalIgnoreCase, "tap");
++        var forbidden = new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "toggle:NFC" };
++        var run = new RunModel();
++        Assert.True(run.AdmitContract(Contract(
++            ImmutableSortedSet.Create(StringComparer.OrdinalIgnoreCase, "ui.node.*"),
++            allowed, forbidden, new[] { "switch-state-checked" })).Accepted);
++
++        forbidden.Clear();
++
++        Assert.True(run.View!.Scope.Contains("UI.NODE.*"));
++        Assert.True(run.View.AllowedEffects.Contains("TAP"));
++        Assert.True(run.View.ForbiddenEffects.Contains("TOGGLE:nfc"));
++        AssertReadOnly(run.View.ForbiddenEffects, collection => collection.Clear());
++    }
++
++    private static void AssertReadOnly<T>(IEnumerable<T> values, Action<ICollection<T>> mutate)
++    {
++        if (values is not ICollection<T> collection) return;
++
++        Assert.True(collection.IsReadOnly);
++        Assert.Throws<NotSupportedException>(() => mutate(collection));
++    }
++
++    private static ExecutionContract Contract(
++        IReadOnlySet<string> scope,
++        IReadOnlySet<string> allowed,
++        IReadOnlySet<string> forbidden,
++        IReadOnlyList<string> proofCriteria) =>
++        new(
++            Version: "v1",
++            Objective: "confirm switch state",
++            Scope: scope,
++            AllowedEffects: allowed,
++            ForbiddenEffects: forbidden,
++            ProofCriteria: proofCriteria,
++            TaskInstanceId: "task-ownership",
++            ProductSessionId: "session-ownership",
++            ContractRef: "contract-ownership");
++}
+--- /dev/null
++++ b/tests/UniClaw.Kernel.Tests/Evidence/EvidenceOwnershipTests.cs
+@@ -0,0 +1,76 @@
++using UniClaw.Kernel.Evidence;
++using Xunit;
++
++namespace UniClaw.Kernel.Tests.Evidence;
++
++public sealed class EvidenceOwnershipTests
++{
++    private static readonly DateTimeOffset CapturedAt = new(2026, 10, 21, 12, 0, 0, TimeSpan.Zero);
++
++    private static ObservationProposal Source(IReadOnlyList<string> lineage) =>
++        new(new ObservationClaim("wifi.checked", "checked"), IngressKind.Observation,
++            ObservationContext.External,
++            new Provenance("ownership-source", CapturedAt, "wifi", lineage));
++
++    [Fact]
++    public void AdmittedProvenanceKeepsItsContentWhenProducerChangesLineage()
++    {
++        var ledger = new EvidenceLedger();
++        var lineage = new List<string> { "capture:original" };
++        var accepted = ledger.Admit(Source(lineage));
++        Assert.Equal(AdmissionDecision.Accepted, accepted.Admission.Decision);
++        var id = accepted.Record!.EvidenceId;
++
++        lineage[0] = "capture:rewritten";
++        lineage.Add("unadmitted-transform");
++
++        var canonical = ledger.CanonicalRecords[id];
++        Assert.Equal(new[] { "capture:original" }, canonical.Provenance.TransformationLineage);
++        Assert.Same(canonical, ledger.Admit(Source(new[] { "capture:original" })).Record);
++        if (canonical.Provenance.TransformationLineage is IList<string> writable)
++            Assert.Throws<NotSupportedException>(() => writable[0] = "rewritten-through-read-view");
++        Assert.Equal(new[] { "capture:original" }, canonical.Provenance.TransformationLineage);
++    }
++
++    [Fact]
++    public void ProducerCannotRewriteAcceptedAncestryOrBreakLaterDerivedAdmission()
++    {
++        var ledger = new EvidenceLedger();
++        var source = ledger.Admit(Source(new[] { "capture:original" })).Record!;
++        var parents = new List<string> { source.EvidenceId };
++        var basis = new HashSet<string>(StringComparer.Ordinal) { source.EvidenceId };
++        var derivedProposal = Source(new[] { "derive:v1" }) with
++        {
++            DerivedFromEvidenceIds = parents,
++            TransitiveEvidenceBasis = basis,
++            FusionRule = "ownership-fusion",
++            FusionVersion = "1",
++        };
++        var accepted = ledger.Admit(derivedProposal);
++        Assert.Equal(AdmissionDecision.Accepted, accepted.Admission.Decision);
++        var derived = accepted.Record!;
++
++        parents.Clear();
++        basis.Clear();
++
++        Assert.Equal(new[] { source.EvidenceId }, derived.DerivedFromEvidenceIds);
++        Assert.True(derived.TransitiveEvidenceBasis.SetEquals(new[] { source.EvidenceId }));
++        if (derived.DerivedFromEvidenceIds is IList<string> writableParents)
++            Assert.Throws<NotSupportedException>(() => writableParents.Clear());
++        if (derived.TransitiveEvidenceBasis is ISet<string> writableBasis)
++            Assert.Throws<NotSupportedException>(() => writableBasis.Clear());
++        var child = Source(new[] { "derive:v2" }) with
++        {
++            DerivedFromEvidenceIds = new[] { derived.EvidenceId },
++            TransitiveEvidenceBasis = new HashSet<string> { source.EvidenceId },
++            FusionRule = "ownership-fusion",
++            FusionVersion = "2",
++        };
++        Assert.Equal(AdmissionDecision.Accepted, ledger.Admit(child).Admission.Decision);
++        Assert.Same(derived, ledger.Admit(derivedProposal with
++        {
++            DerivedFromEvidenceIds = new[] { source.EvidenceId },
++            TransitiveEvidenceBasis = new HashSet<string> { source.EvidenceId },
++        }).Record);
++    }
++}
+--- /dev/null
++++ b/tests/UniClaw.Kernel.Tests/World/WorldReadViewOwnershipTests.cs
+@@ -0,0 +1,56 @@
++using UniClaw.Kernel.Evidence;
++using UniClaw.Kernel.Trace;
++using UniClaw.Kernel.World;
++using Xunit;
++
++namespace UniClaw.Kernel.Tests.World;
++
++public sealed class WorldReadViewOwnershipTests
++{
++    [Fact]
++    public void PublishedHistoryCannotClearCurrentBeliefAndStillTracksOwnerAppends()
++    {
++        var world = new WorldModel(new HashSet<string> { "screen.home" });
++        var kernel = new UniKernel(new EvidenceLedger(), world, DisabledRunTrace.Instance);
++        var history = world.RevisionHistory;
++        Assert.Empty(history);
++
++        kernel.Process(Observation("visible", 0));
++        var first = world.Current;
++        Assert.NotNull(first);
++        Assert.Single(history);
++        AssertReadOnly(history);
++        Assert.Same(first, world.Current);
++
++        kernel.Process(Observation("hidden", 1));
++        Assert.Equal(2, history.Count);
++        Assert.Same(first, history[0]);
++        Assert.NotSame(first, world.Current);
++        Assert.Same(history[1], world.Current);
++    }
++
++    [Fact]
++    public void EveryPublishedOwnerLogRejectsExternalWrites()
++    {
++        var world = new WorldModel(new HashSet<string> { "screen.home" });
++        AssertReadOnly(world.RelevanceLog);
++        AssertReadOnly(world.AssociationLog);
++        AssertReadOnly(world.ContinuityDemands);
++        AssertReadOnly(world.ContinuityLog);
++        AssertReadOnly(world.ClaimEvolutionLog);
++    }
++
++    private static void AssertReadOnly<T>(IReadOnlyList<T> view)
++    {
++        if (view is ICollection<T> collection)
++        {
++            Assert.True(collection.IsReadOnly);
++            Assert.Throws<NotSupportedException>(() => collection.Clear());
++        }
++    }
++
++    private static ObservationProposal Observation(string value, int second) =>
++        new(new ObservationClaim("screen.home", value), IngressKind.Observation, ObservationContext.External,
++            new Provenance("read-view-test", new DateTimeOffset(2026, 10, 21, 12, 0, second, TimeSpan.Zero),
++                "screen.home", new[] { "capture:read-view" }));
++}

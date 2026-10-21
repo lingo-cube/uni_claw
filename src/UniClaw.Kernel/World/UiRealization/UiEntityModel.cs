@@ -75,7 +75,12 @@ public sealed record ProposedOccurrence(
     string? State = null,
     SpatialLocator? Locator = null,
     NativeLocator? Native = null,
-    UniClaw.Kernel.Perception.CoordinateSpace? Space = null);
+    UniClaw.Kernel.Perception.CoordinateSpace? Space = null)
+{
+    /// <summary>Carry-forward proposals retain their original accepted basis;
+    /// null means the currently triggering observation. World validates refs.</summary>
+    public IReadOnlyList<string>? SupportingEvidenceIds { get; init; }
+}
 
 /// <summary>
 /// IUiObservationStrategy — owner-internal 确定性 occurrence 派生缝

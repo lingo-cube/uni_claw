@@ -108,11 +108,11 @@ public sealed class ObserverProjectionTests
             profile.ModelRoles);
 
         // DSH 侧：provider/model/baseUrl 只在绑定文件（CAP-007 语义）。
-        // 2026-10-06 所有者指令：默认模型 deepseek-flash（deepseek-official
-        // 直连）；CAP-012 D9：专线按 docs/agents/test-emulator.md 注册 3081。
+        // 2026-10-20 所有者授权：默认选择 CommandCode Flash；
+        // CAP-012 D9：专线按 docs/agents/test-emulator.md 注册 3081。
         var bindings = UniagentDshBindingsYaml.LoadDefault();
-        Assert.Equal("deepseekFlash", bindings.SelectedModelKey);
-        Assert.Equal(new ModelConfiguration("deepseek-official", "deepseek-flash"), bindings.Model);
+        Assert.Equal("commandcodeFlash", bindings.SelectedModelKey);
+        Assert.Equal(new ModelConfiguration("commandcode", "deepseek/deepseek-v4.1-flash"), bindings.Model);
         Assert.Equal("http://127.0.0.1:3081/", bindings.Service.BaseUri.ToString());
     }
 

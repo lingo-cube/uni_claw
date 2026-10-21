@@ -7,6 +7,7 @@ import test from 'node:test'
 
 
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
@@ -18,6 +19,13 @@ const plugin = await import(join(PACKAGE_ROOT, 'src', 'index.js'))
 const SCHEMA_HASH = readFileSync(join(PACKAGE_ROOT, 'schema', 'schema-hash.txt'), 'utf8').trim()
 const SKILL_DIR = join(PACKAGE_ROOT, 'skill', 'android-automotive-ui-testing')
 const CANONICAL_SKILL_DIR = join(PACKAGE_ROOT, '..', '..', 'product', 'skills', 'android-automotive-ui-testing')
+const EXPECTED_ARTIFACTS = {
+  promptHash: readFileSync(join(PACKAGE_ROOT, 'prompt', 'prompt-hash.txt'), 'utf8').trim(),
+  skill: {
+    name: 'android-automotive-ui-testing', revision: 4,
+    sha256: readFileSync(join(SKILL_DIR, 'skill-hash.txt'), 'utf8').trim(),
+  },
+}
 
 /** Minimal schema artifact shape consumed by the prompt loader. */
 function schemaArtifactFixture() {
@@ -51,15 +59,15 @@ test.afterEach(async () => {
   }
 })
 
-function applyHost(harness, extraConfig = {}) {
+function applyHost(harness, extraConfig = {}, pluginImplementation = plugin) {
   activeHarness = harness
   // The session-scoped mount publishes the tool definition the host-mode
   // handshake registers into the agent scope (B1). In the real deployment both
   // rows are mounted; do the same here so the flow is exercised end to end.
   const sessionMount = mockCtx()
-  plugin.apply(sessionMount.ctx, { sessionScoped: true })
+  pluginImplementation.apply(sessionMount.ctx, { sessionScoped: true })
   harness.controller.inheritedPromptSections = sessionMount.controller.promptSections
-  plugin.apply(harness.ctx, {
+  pluginImplementation.apply(harness.ctx, {
     workspaceRoot: TEST_WORKSPACE_ROOT,
     workspaceTitle: 'UniClaw test project',
     workspaceKey: 'UniClaw shared test project',
@@ -208,15 +216,16 @@ function handshakeBody(overrides = {}) {
       ...(protocol ?? {}),
     },
     reportedCapabilities: { capabilities: ['submit_decision'] },
+    expectedArtifacts: structuredClone(EXPECTED_ARTIFACTS),
     productSessionId: 'product-A',
     productRunId: 'run-A',
     ...rest,
   }
 }
 
-function emitTurnEnd(harness, sessionId) {
+function emitTurnEnd(harness, sessionId, reason) {
   for (const handler of harness.events.get('session/event') ?? []) {
-    handler({ id: sessionId }, { type: 'turn/end', data: {} })
+    handler({ id: sessionId }, { type: 'turn/end', data: reason === undefined ? {} : { reason } })
   }
 }
 
@@ -417,6 +426,70 @@ test('B2: product schemaHash != DSH-local artifact → attach refused', async ()
   assert.equal(harness.controller.createCalls.length, 0)
 })
 
+test('RUNTIME-PLAN-004: missing or malformed artifact pins fail before session creation', async () => {
+  for (const expectedArtifacts of [undefined, {}, { ...EXPECTED_ARTIFACTS, promptHash: 'bad' }]) {
+    const harness = mockCtx()
+    applyHost(harness)
+    const body = handshakeBody()
+    if (expectedArtifacts === undefined) delete body.expectedArtifacts
+    else body.expectedArtifacts = expectedArtifacts
+    const result = await call(harness.routes, '/api/uniclaw-agent/handshake', body)
+    assert.equal(result.body.ok, false)
+    assert.match(result.body.error.message, /artifact-pins-missing-or-malformed/)
+    assert.equal(harness.controller.createCalls.length, 0)
+    await call(harness.routes, '/api/uniclaw-agent/detach', {})
+  }
+})
+
+test('RUNTIME-PLAN-004: prompt and skill pins reject drift before session creation', async () => {
+  for (const expectedArtifacts of [
+    { ...EXPECTED_ARTIFACTS, promptHash: '0'.repeat(64) },
+    { ...EXPECTED_ARTIFACTS, skill: { ...EXPECTED_ARTIFACTS.skill, revision: 3 } },
+    { ...EXPECTED_ARTIFACTS, skill: { ...EXPECTED_ARTIFACTS.skill, sha256: '0'.repeat(64) } },
+  ]) {
+    const harness = mockCtx()
+    applyHost(harness)
+    const result = await call(harness.routes, '/api/uniclaw-agent/handshake',
+      handshakeBody({ expectedArtifacts }))
+    assert.equal(result.body.ok, false)
+    assert.match(result.body.error.message, /artifact-pin-mismatch/)
+    assert.equal(harness.controller.createCalls.length, 0)
+    assert.equal(harness.controller.promptCalls.length, 0)
+    await call(harness.routes, '/api/uniclaw-agent/detach', {})
+  }
+})
+
+test('RUNTIME-PLAN-004: same-revision Skill content and its package hash can drift together but Profile pin rejects it', async () => {
+  const temporaryRoot = mkdtempSync(join(tmpdir(), 'uniclaw-skill-drift-'))
+  const packageCopy = join(temporaryRoot, 'package')
+  mkdirSync(packageCopy)
+  for (const directory of ['src', 'schema', 'prompt', 'skill'])
+    cpSync(join(PACKAGE_ROOT, directory), join(packageCopy, directory), { recursive: true })
+  const skillDirectory = join(packageCopy, 'skill', 'android-automotive-ui-testing')
+  const manifestBytes = readFileSync(join(skillDirectory, 'manifest.yaml'))
+  const guidancePath = join(skillDirectory, 'guidance.md')
+  const changedGuidance = Buffer.concat([readFileSync(guidancePath), Buffer.from('\nTampered boot artifact.\n')])
+  writeFileSync(guidancePath, changedGuidance)
+  const changedHash = createHash('sha256').update(Buffer.concat([manifestBytes, changedGuidance])).digest('hex')
+  writeFileSync(join(skillDirectory, 'skill-hash.txt'), `${changedHash}\n`)
+  const driftedPlugin = await import(join(packageCopy, 'src', 'index.js'))
+  const harness = mockCtx()
+  applyHost(harness, {
+    skillArtifact: {
+      path: 'skill/android-automotive-ui-testing', name: EXPECTED_ARTIFACTS.skill.name,
+      revision: EXPECTED_ARTIFACTS.skill.revision, sha256: changedHash,
+    },
+  }, driftedPlugin)
+
+  const result = await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+
+  assert.equal(result.body.ok, false)
+  assert.match(result.body.error.message, /skill-artifact-pin-mismatch/)
+  assert.equal(harness.controller.createCalls.length, 0)
+  assert.equal(harness.controller.promptCalls.length, 0)
+  await call(harness.routes, '/api/uniclaw-agent/detach', {})
+})
+
 test('B1: session tool catalog != manifest → attach refused', async () => {
   const harness = mockCtx({ visibleTools: ['submit_decision', 'shell'] })
   applyHost(harness)
@@ -437,6 +510,7 @@ test('B1: session is created under the uniagent-prod preset', async () => {
   }])
   assert.deepEqual(result.body.runtimeCapabilities, ['submit_decision'])
   assert.equal(result.body.runtimePreset, 'uniagent-prod')
+  assert.deepEqual(result.body.artifacts, EXPECTED_ARTIFACTS)
 })
 
 test('shared project and turn lifecycle follow explicit configuration', async () => {
@@ -590,6 +664,8 @@ test('retry after no-submit keeps the original consultation decisionId', async (
     for (let i = 0; i < 50 && harness.controller.promptCalls.length < 2; i++)
       await new Promise(resolve => setTimeout(resolve, 5))
     assert.equal(harness.controller.promptCalls.length, 2, 'the no-submit turn should start one retry')
+    assert.equal(harness.controller.promptCalls[1].content[0].text,
+      'You did not call submit_decision. You MUST call the submit_decision tool NOW to submit your decision for this consultation. Do not respond with text only.')
 
     const tool = harness.ctx.tools.registered.find(t => t.name === 'submit_decision')
     const decisionId = 'decision-retry-context-1'
@@ -603,6 +679,62 @@ test('retry after no-submit keeps the original consultation decisionId', async (
     emitTurnEnd(harness, handshake.body.dshSessionId)
     const result = await consultPromise
     assert.equal(result.body.error ?? null, null)
+    assert.equal(result.body.task.payload.decisionId, decisionId)
+    assert.equal(result.body.diagnostics.source, 'submit_decision_retry')
+  } finally {
+    emitTurnEnd(harness, handshake.body.dshSessionId)
+    await call(harness.routes, '/api/uniclaw-agent/detach', {})
+    await consultPromise
+  }
+})
+
+test('turn/end provider parse failure is included in the single nudge and the original decision can be captured', async () => {
+  const harness = mockCtx()
+  applyHost(harness)
+  const handshake = await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  const decisionId = 'decision-turn-error-retry'
+  const consultPromise = call(harness.routes, '/api/uniclaw-agent/consult', {
+    requestId: 'req-turn-error-retry', generation: 1,
+    productSessionId: 'product-A', productRunId: 'run-A', dshSessionId: handshake.body.dshSessionId,
+    turnTimeoutMs: 5000,
+    context: { decisionId, runId: 'run-A', phase: 'InitialPlanning', allowedEffects: ['tap'] },
+  })
+  try {
+    for (let i = 0; i < 50 && harness.controller.promptCalls.length < 1; i++)
+      await new Promise(resolve => setTimeout(resolve, 5))
+    assert.equal(harness.controller.promptCalls.length, 1)
+    emitTurnEnd(harness, 'unrelated-session', {
+      kind: 'error', error: { code: 'WRONG_SESSION', message: 'must not settle this consultation' },
+    })
+    assert.equal(harness.controller.promptCalls.length, 1)
+    emitTurnEnd(harness, handshake.body.dshSessionId, {
+      kind: 'error',
+      error: { code: 'MALFORMED_RESPONSE', message: 'DeepSeek Messages stream: tool input is invalid JSON' },
+    })
+
+    for (let i = 0; i < 50 && harness.controller.promptCalls.length < 2; i++)
+      await new Promise(resolve => setTimeout(resolve, 5))
+    assert.equal(harness.controller.promptCalls.length, 2, 'the provider failure should use only the existing retry nudge')
+    const nudge = harness.controller.promptCalls[1]
+    assert.equal(nudge.sessionId, handshake.body.dshSessionId)
+    assert.match(nudge.content[0].text, /MALFORMED_RESPONSE/)
+    assert.match(nudge.content[0].text, /tool input is invalid JSON/)
+    assert.match(nudge.content[0].text, new RegExp(decisionId))
+    assert.match(nudge.content[0].text, /authorization unchanged/)
+    const privateFailure = plugin.panelSnapshot().events.findLast(event =>
+      event.kind === 'consult-turn-error' && event.requestId === 'req-turn-error-retry')
+    assert.equal(privateFailure.code, 'MALFORMED_RESPONSE')
+    assert.match(privateFailure.message, /tool input is invalid JSON/)
+
+    const tool = harness.ctx.tools.registered.find(t => t.name === 'submit_decision')
+    const submitted = submitTask(tool, {
+      kind: 'noAction', decisionId,
+      proposal: { decisionId, justification: 'submit the original consultation decision after provider error feedback' },
+    })
+    assert.equal(submitted.accepted, true, submitted.message ?? submitted.reason)
+    emitTurnEnd(harness, handshake.body.dshSessionId)
+
+    const result = await consultPromise
     assert.equal(result.body.task.payload.decisionId, decisionId)
     assert.equal(result.body.diagnostics.source, 'submit_decision_retry')
   } finally {
@@ -1124,7 +1256,11 @@ test('PRF-009: package skill artifact stays byte-identical with product canonica
       `skill artifact drift: ${name}`)
   const artifact = plugin.loadSkillArtifactFor(PACKAGE_ROOT)
   assert.equal(artifact.name, 'android-automotive-ui-testing')
-  assert.equal(artifact.revision, 2)
+  assert.equal(artifact.revision, 4)
+  assert.match(artifact.guidance, /独立期望与授权预算/)
+  assert.match(artifact.guidance, /有序 handlers/)
+  assert.match(artifact.guidance, /Running.*不能当作成功/)
+  assert.match(artifact.guidance, /交付结果与证据/)
   assert.equal(artifact.sha256, readFileSync(join(CANONICAL_SKILL_DIR, '..', '..', 'profiles', 'uniagent-prod.yaml'), 'utf8').match(/sha256: ([0-9a-f]{64})/)?.[1])
 })
 
@@ -1156,7 +1292,8 @@ test('PRF-009: per-turn fallback carries Skill guidance with the static prompt',
   for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++)
     await new Promise(resolve => setTimeout(resolve, 5))
   const prompt = harness.controller.promptCalls[0].content[0].text
-  assert.match(prompt, /有目的的探索/)
+  assert.match(prompt, /独立期望与授权预算/)
+  assert.match(prompt, /交付结果与证据/)
   emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
   await consultPromise
 })
@@ -1178,14 +1315,16 @@ test('PRF-003: preset mount registers the scoped product-prompt section; host mo
   assert.equal(section.name, 'uniagent-prod:product-prompt')
   assert.equal(section.order, 100)
   assert.equal(section.interpolate, false)
-  assert.match(section.text, /You are the UniAgent decision component/)
-  assert.match(section.text, /payload validates against the Product AgentDecision schema/)
+  assert.match(section.text, /Role: You are the UniAgent decision component/)
+  assert.match(section.text, /The task envelope must validate against the Product AgentDecision/)
   assert.match(section.text, /effectClass.*runtime token/i)
   assert.match(section.text, /顶层提交 `reviewResponse/)
   assert.match(section.text, /不是事实来源/)
   assert.equal(skillSection.name, 'uniagent-prod:skill:android-automotive-ui-testing')
   assert.equal(skillSection.order, 110)
-  assert.match(skillSection.text, /有目的的探索/)
+  assert.match(skillSection.text, /独立期望与授权预算/)
+  assert.match(skillSection.text, /Kernel 运行时协调执行/)
+  assert.match(skillSection.text, /handler 执行 Owner/)
 
   const host = mockCtx()
   plugin.apply(host.ctx, {})
@@ -1374,5 +1513,47 @@ test('RUNTIME-PLAN-002: DSH accepts typed TraverseItem and rejects malformed ope
   emitTurnEnd(harness, handshake.body.dshSessionId)
   const captured = await consultation
   assert.deepEqual(captured.body.task.payload, payload)
+  await call(harness.routes, '/api/uniclaw-agent/detach', {})
+})
+
+test('Slow high effort is applied only to its isolated request and attested in diagnostics', async () => {
+  const harness = mockCtx()
+  applyHost(harness)
+  await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  const pending = call(harness.routes, '/api/uniclaw-agent/slow', {
+    requestId: 'slow-high', prompt: 'observe title', reasoningEffort: 'high',
+    model: { provider: 'commandcode', model: 'configured-model' },
+  })
+  for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++)
+    await new Promise(resolve => setTimeout(resolve, 5))
+  const sessionId = harness.controller.promptCalls[0].sessionId
+  const hook = harness.events.get('agent/request')?.[0]
+  assert.equal(typeof hook, 'function')
+  const seed = { provider: 'commandcode', model: 'configured-model', reasoningEffort: 'low' }
+  assert.deepEqual(await hook({ agent: { session: { id: 'unrelated-session' } } }, async () => seed), seed)
+  const actual = await hook({ agent: { session: { id: sessionId } } }, async () => seed)
+  assert.equal(actual.reasoningEffort, 'high')
+  emitAssistantText(harness, sessionId, '{"pageKey":"apps","observedTitle":"Apps"}')
+  emitTurnEnd(harness, sessionId)
+  const result = await pending
+  assert.equal(result.body.diagnostics.reasoningEffort, 'high')
+  await call(harness.routes, '/api/uniclaw-agent/detach', {})
+})
+
+test('Correlated Slow abort ignores an expired request and leaves the main session alone', async () => {
+  const harness = mockCtx()
+  applyHost(harness)
+  await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody())
+  const pending = call(harness.routes, '/api/uniclaw-agent/slow', { requestId: 'slow-owned', prompt: 'observe' })
+  for (let i = 0; i < 50 && harness.controller.promptCalls.length === 0; i++)
+    await new Promise(resolve => setTimeout(resolve, 5))
+  const isolated = harness.controller.promptCalls[0].sessionId
+  const stale = await call(harness.routes, '/api/uniclaw-agent/abort', { slowRequestId: 'expired-request' })
+  assert.equal(stale.body.aborted, false)
+  assert.equal(harness.controller.cancels.length, 0)
+  const stopped = await call(harness.routes, '/api/uniclaw-agent/abort', { slowRequestId: 'slow-owned' })
+  assert.equal(stopped.body.aborted, true)
+  await pending
+  assert.deepEqual(harness.controller.cancels, [{ sessionId: isolated }])
   await call(harness.routes, '/api/uniclaw-agent/detach', {})
 })

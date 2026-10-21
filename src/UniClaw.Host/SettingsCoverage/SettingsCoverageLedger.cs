@@ -17,7 +17,10 @@ public sealed record CoverageStepRecord(
     string? PostCaptureId,
     bool Verified,
     string? FailureReason,
-    string? Directive);
+    string? Directive)
+{
+    internal CoverageDirective? SelectedDirective { get; init; }
+}
 
 public sealed record CoverageItem(string Requirement, string Detail, bool Covered, string? Evidence);
 
@@ -52,16 +55,18 @@ public sealed record CoverageSnapshot(
     string? PopupState = null,              // AGT-009：最新弹窗分类声明（present/absent/null=无声明）
     IReadOnlyList<string>? VisibleDescriptors = null) // AGT-009：最新观察的可见 descriptor（清障目标发现）
 {
+    internal CoverageDirective? SelectedDirective { get; init; }
+
     /// <summary>AGT-009：可见 descriptor（无观察时为空集，不返回 null）。</summary>
     public IReadOnlyList<string> Visible => VisibleDescriptors ?? Array.Empty<string>();
 }
 
-public sealed class SettingsCoverageLedger
+public sealed partial class SettingsCoverageLedger
 {
     /// <summary>
     /// TRAJECTORY-001 D3 裁决（M5 进度轴组合）：清障验证不算 Coverage
-    /// Progress。obstacle 类 directive（"Clear the popup" / "Dismiss the
-    /// popup" 前缀）的步骤即使 Verified=true 也不计入覆盖进度轴——
+    /// Progress。新记录依指令种类判定，历史文本经兼容读取；obstacle
+    /// 步骤即使 Verified=true 也不计入覆盖进度轴——
     /// RUN-006 实证：弹窗循环里每个清障 tap 都"验证成功"，若计入进度轴
     /// 会把零覆盖推进误报为有进展。StepsVerified 保留为事实字段（不受此
     /// 裁决影响）。停滞判定消费方：Runner 的 InterleaveBookkeeper 进度
@@ -71,9 +76,8 @@ public sealed class SettingsCoverageLedger
     {
         if (!step.Verified)
             return false;
-        if (step.Directive is { } directive
-            && (directive.StartsWith("Clear the popup", StringComparison.Ordinal)
-                || directive.StartsWith("Dismiss the popup", StringComparison.Ordinal)))
+        if (step.SelectedDirective is { Kind: CoverageDirectiveKind.Obstacle }
+            || step.SelectedDirective is null && LegacyCoverageDirective.IsObstacle(step.Directive))
             return false;
         return true;
     }
@@ -336,8 +340,7 @@ public sealed class SettingsCoverageLedger
             || (config.Termination.OnConsecutiveFailures && maxConsecutiveFailuresReached
                 && !config.Bounds.GoalDirectedContinuationEnabled);
 
-        string? directive = null;
-        string? directiveKind = null;
+        CoverageDirective? directive = null;
         if (!coverageComplete && !terminated)
         {
             // The scroll-attempt limit constrains only further swipes. Preserve
@@ -346,7 +349,7 @@ public sealed class SettingsCoverageLedger
                 || config.Bounds.GoalDirectedContinuationEnabled && maxScrollsReached;
             var backSatisfied = items.First(item => item.Requirement == "back-navigation").Covered;
             var repeatedSatisfied = items.First(item => item.Requirement == "repeated-entry").Covered;
-            (directive, directiveKind) = NextDirective(config, scrollSatisfied, backSatisfied, repeatedSatisfied, currentRoute);
+            directive = NextDirective(config, scrollSatisfied, backSatisfied, repeatedSatisfied, currentRoute);
         }
 
         return new CoverageSnapshot(
@@ -357,10 +360,10 @@ public sealed class SettingsCoverageLedger
             MaxConsultRoundsReached: maxConsultRoundsReached,
             CurrentRoute: currentRoute,
             StepsVerified: _steps.Count(entry => entry.Step.Verified),
-            NextDirective: directive,
-            NextDirectiveKind: directiveKind,
+            NextDirective: directive?.Text,
+            NextDirectiveKind: directive?.KindName,
             PopupState: LatestPopupState,
-            VisibleDescriptors: CurrentVisibleDescriptors()?.ToList());
+            VisibleDescriptors: CurrentVisibleDescriptors()?.ToList()) { SelectedDirective = directive };
     }
 
     public CoverageReport Report(SettingsCoverageConfig config)
@@ -616,112 +619,6 @@ public sealed class SettingsCoverageLedger
         }
 
         return (items, backVerified, enteredPages, scrollCandidates, _lastVerifiedScrollSequence, rootSeen, secondLevelRoutes.ToList());
-    }
-
-    private (string? Directive, string? Kind) NextDirective(
-        SettingsCoverageConfig config,
-        bool scrollSatisfied,
-        bool backSatisfied,
-        bool repeatedSatisfied,
-        string? currentRoute)
-    {
-        var enteredPages = EnteredPagesSnapshot(config);
-        var visible = CurrentVisibleDescriptors();
-        if (visible is null)
-            return (null, null); // 尚无根页观察：等待，不指挥
-
-        // AGT-019 Q4 skip-first：同轮可见候选双源（NativeRid 在场）优先，
-        // 单源跳过不丢弃；OrderBy 稳定排序保确定性（同输入同指令）。
-        var dualSource = CurrentDualSourceDescriptors();
-        string? ByConfidence(IEnumerable<string> candidates, Func<string, bool> eligible) =>
-            candidates.Where(eligible)
-                .OrderBy(descriptor => dualSource.Contains(descriptor) ? 0 : 1)
-                .FirstOrDefault();
-
-        // 深度遍历只接受配置中显式声明的 parent > child；未知 UI 不会被提升为目标。
-        if (config.DeepTraversalSettings.Enabled && currentRoute is not null && !IsRoot(config, currentRoute))
-        {
-            var currentPage = RoutePage(currentRoute);
-            var nestedParents = NestedTargets(config);
-            if (currentPage is not null && nestedParents.ContainsKey(currentPage)
-                && nestedParents[currentPage].Any(child => !NestedWasEntered(config, currentPage, child)))
-            {
-                var child = ByConfidence(
-                    nestedParents[currentPage],
-                    child => !NestedWasEntered(config, currentPage, child) && visible.Contains(child));
-                if (child is not null)
-                    return ($"Enter the nested Settings entry '<{child}>' by tapping it.", "nested-enter");
-            }
-        }
-
-        if (config.DynamicNestedEntriesSettings.IsActive && currentRoute is not null && !IsRoot(config, currentRoute))
-        {
-            var nested = ByConfidence(
-                DynamicNestedFrontier(config)
-                    .Where(key => key.StartsWith(currentRoute + ">", StringComparison.Ordinal))
-                    .Select(key => key[(currentRoute.Length + 1)..]),
-                visible.Contains);
-            if (nested is not null)
-                return ($"Enter the dynamically discovered nested Settings entry '<{nested}>' by tapping it.", "nested-enter");
-        }
-
-        // 离开根页时返回；nested 页面同样 fail closed 地只允许配置的 back。
-        if (currentRoute is not null && !IsRoot(config, currentRoute))
-            return ($"Return to the Settings root page by tapping '<{config.BackDescriptor}>'", "back");
-
-        // 只指挥当前可见的目标（不可见目标经滚动露出后再指挥）。
-        var firstNotEntered = ByConfidence(
-            config.TargetPages,
-            page => !enteredPages.Contains(page) && visible.Contains(page));
-        if (firstNotEntered is not null)
-            return ($"Enter the Settings first-level entry '<{firstNotEntered}>' by tapping it.", "enter");
-
-        if (config.DynamicRootEntriesSettings.AllVisible)
-        {
-            var dynamic = ByConfidence(DynamicRootFrontier(config), visible.Contains);
-            if (dynamic is not null)
-                return ($"Enter the dynamically discovered Settings entry '<{dynamic}>' by tapping it.", "enter");
-        }
-
-        if (!scrollSatisfied)
-        {
-            // 已发现的滚动候选优先进入；无候选且滚动预算未尽则继续滚动；
-            // 预算尽 = 覆盖被阻塞（bounded stop）。
-            var allEntered = AllEnteredDescriptors(config);
-            // AGT-007 加固：进入验证失败过的候选不再重试（真机实证：底部
-            // 候选可能因路由指纹碰撞永远无法验证进入，重试只会耗尽失败预算）。
-            var failedCandidates = FailedEntryDescriptors(config);
-            var candidate = ByConfidence(
-                ScrollCandidates(config),
-                descriptor => !allEntered.Contains(descriptor)
-                    && !failedCandidates.Contains(descriptor)
-                    && visible.Contains(descriptor));
-            if (candidate is not null)
-                return ($"Enter the scroll-discovered Settings entry '<{candidate}>' by tapping it.", "enter");
-            if (_scrollAttempts < config.Bounds.MaxScrolls)
-                return ($"Scroll the Settings list down with swipe-up on '<{config.ScrollContainerDescriptor}>'", "scroll");
-            return (null, null);
-        }
-
-        if (!repeatedSatisfied)
-        {
-            var firstEntered = config.TargetPages
-                .FirstOrDefault(page => enteredPages.Contains(page)
-                    && !IsAgentSkipped(page) && visible.Contains(page));
-            if (firstEntered is not null)
-                return ($"Enter '<{firstEntered}>' again to verify repeated entry.", "re-enter");
-        }
-
-        if (config.DeepTraversalSettings.Enabled)
-        {
-            var pendingParent = NestedTargets(config)
-                .FirstOrDefault(pair => pair.Value.Any(child => !NestedWasEntered(config, pair.Key, child))
-                    && visible.Contains(pair.Key));
-            if (!string.IsNullOrWhiteSpace(pendingParent.Key))
-                return ($"Re-enter the Settings page '<{pendingParent.Key}>' to inspect explicit nested entries.", "re-enter");
-        }
-
-        return (null, null);
     }
 
     private bool NestedWasEntered(SettingsCoverageConfig config, string parent, string child)
@@ -1114,40 +1011,10 @@ public sealed class SettingsCoverageLedger
         return null;
     }
 
-    private bool DirectiveMatches(SettingsCoverageConfig config, CoverageStepRecord step)
-    {
-        if (step.Directive is null)
-            return true;
-        var kind = DirectiveKind(step.Directive);
-        var descriptor = DirectiveDescriptor(step.Directive);
-        return kind switch
-        {
-            "scroll" => step.EffectClass is "swipe-up" or "swipe-down",
-            "back" => IsTapOrClick(step.EffectClass) && step.TargetDescriptor == config.BackDescriptor,
-            "enter" or "re-enter" or "nested-enter" => IsTapOrClick(step.EffectClass) && step.TargetDescriptor == descriptor,
-            _ => true,
-        };
-    }
-
-    private static string? DirectiveDescriptor(string directive)
-    {
-        var start = directive.IndexOf('<');
-        var end = directive.IndexOf('>');
-        return start >= 0 && end > start ? directive[(start + 1)..end] : null;
-    }
-
-    private static string? DirectiveKind(string directive)
-    {
-        if (directive.Contains("Scroll", StringComparison.Ordinal))
-            return "scroll";
-        if (directive.StartsWith("Return to", StringComparison.Ordinal))
-            return "back";
-        if (directive.Contains(" again", StringComparison.Ordinal))
-            return "re-enter";
-        if (directive.StartsWith("Enter", StringComparison.Ordinal))
-            return "enter";
-        return null;
-    }
+    private bool DirectiveMatches(SettingsCoverageConfig config, CoverageStepRecord step) =>
+        step.SelectedDirective is { } directive
+            ? directive.MatchesRecordedStep(step)
+            : LegacyCoverageDirective.Matches(config, step);
 
     private bool IsRoot(SettingsCoverageConfig config, string route) =>
         string.Equals(route, config.RootRoute, StringComparison.Ordinal)

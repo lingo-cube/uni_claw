@@ -370,6 +370,19 @@ public static class SettingsActionGuard
             ? PlanStepGuardVerdict.AlreadySatisfied : PlanStepGuardVerdict.Allow, classified.Reason, refs);
     }
 
+    public static PlanStepGuardResult EvaluateCurrentStep(
+        AgentActionStep step, AgentDecisionContext context, SettingsCoverageConfig config)
+    {
+        var policy = config.ActionPolicy;
+        if (policy is null)
+            return new PlanStepGuardResult(PlanStepGuardVerdict.Reject,
+                "settings-action-policy-not-loaded", Array.Empty<string>());
+        var baseResult = EvaluateCurrentStep(step, context, policy);
+        if (baseResult.Verdict is PlanStepGuardVerdict.Reject or PlanStepGuardVerdict.Unknown)
+            return baseResult;
+        return config.NavigationScope?.EvaluateCurrentStep(step, context, config) ?? baseResult;
+    }
+
     private static SettingsActionGuardResult Reject(
         string semantic,
         string reason,

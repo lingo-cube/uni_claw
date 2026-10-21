@@ -1,0 +1,8 @@
+contract_admitted=True
+before_new_effect=False
+after_new_effect=True;run_id_unchanged=True
+world_history_runtime_type=List`1;is_mutable_list=True
+evidence_admitted=Accepted;lineage_before=1
+lineage_after=2;evidence_id_unchanged=True
+world_current_before_clear=True
+world_current_after_clear=False

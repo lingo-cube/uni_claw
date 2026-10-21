@@ -1,0 +1,13 @@
+{
+  "owned_dsh_3081": [
+    {
+      "pid": 57450,
+      "stopped": true,
+      "reason": "owned service; all consultation attachments already detached"
+    }
+  ],
+  "device_cleanup": "see device-stop.txt",
+  "owner_3080_untouched": true,
+  "workbench_preview_3082_untouched": true,
+  "credentials_proxy_model_configuration_changed": false
+}

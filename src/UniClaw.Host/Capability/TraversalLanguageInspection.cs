@@ -32,6 +32,16 @@ public sealed class TraversalLanguageInspection
             && binding.Inspector.Description.Health != HealthStatus.Unhealthy;
     }
 
+    /// <summary>The existing deterministic inspector completes synchronously;
+    /// the execution adapter participates in the typed asynchronous driver seam
+    /// without changing the capability's business protocol or writing Owners.</summary>
+    public ValueTask<Finding?> InspectAsync(
+        PlanLanguageHandler handler, PlanHandlerInput input, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ValueTask.FromResult(Inspect(handler, input));
+    }
+
     public Finding? Inspect(PlanLanguageHandler handler, PlanHandlerInput input)
     {
         if (!CanBind(handler)) return null;

@@ -1,0 +1,8 @@
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.11]     UniClaw.Kernel.Tests.SourceReadmeOwnershipTests.SourceFiles_AreRegistered_InDimensionReadme [FAIL]
+[xUnit.net 00:00:00.12]     UniClaw.Kernel.Tests.DocsMetadataTests.AnalysisAndDesign_DeclareStatusAndNoneAuthority_NoFrozenWords [FAIL]
+[xUnit.net 00:00:00.14]     UniClaw.Kernel.Tests.ProductHostClosureTests.Solution_SimulationTestProjectIsSeparateCompositionRoot [FAIL]
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/eng-opt-001/baseline/baseline-governance-red.trx
+
+失败!  - 失败:     3，通过:     5，已跳过:     0，总计:     8，持续时间: 41 ms - UniClaw.Kernel.Tests.dll (net10.0)

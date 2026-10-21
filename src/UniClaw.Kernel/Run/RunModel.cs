@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -51,7 +53,21 @@ public sealed class RunModel
 
     internal void RecordTraversalHandler(UniClaw.Kernel.Runtime.PlanHandlerRecord record)
     {
-        if (!IsTerminal) _traversalHandlers.Add(record);
+        if (IsTerminal) return;
+        if (record.CallId is { } callId)
+        {
+            var index = _traversalHandlers.FindIndex(existing => existing.CallId == callId);
+            if (index >= 0)
+            {
+                var prior = _traversalHandlers[index];
+                if (prior.Status != UniClaw.Kernel.Runtime.PlanHandlerCallStatus.Running
+                    || record.Status == UniClaw.Kernel.Runtime.PlanHandlerCallStatus.Running)
+                    return;
+                _traversalHandlers[index] = record;
+                return;
+            }
+        }
+        _traversalHandlers.Add(record);
     }
 
     internal void RecordTraversalOperation(UniClaw.Kernel.Runtime.TraversalOperationRecord record)
@@ -177,8 +193,8 @@ public sealed class RunModel
                 : BudgetValueOrigin.Mixed;
             View = new ExecutionContractView(
                 contract.Version, contract.Objective,
-                contract.Scope!, contract.AllowedEffects!, contract.ForbiddenEffects!,
-                contract.ProofCriteria!, consultations, totalSteps, valueOrigin,
+                SnapshotSet(contract.Scope!), SnapshotSet(contract.AllowedEffects!), SnapshotSet(contract.ForbiddenEffects!),
+                Array.AsReadOnly(contract.ProofCriteria!.ToArray()), consultations, totalSteps, valueOrigin,
                 contract.TaskInstanceId, contract.ProductSessionId, contract.ContractRef,
                 contract.AcceptedContractViewRef, contract.ContractGeneration)
             {
@@ -209,6 +225,18 @@ public sealed class RunModel
             return new ContractAdmission(false, checks, "contract-signature-conflict");
 
         return new ContractAdmission(false, checks, "version-conflict");
+    }
+
+    private static IReadOnlySet<string> SnapshotSet(IReadOnlySet<string> values)
+    {
+        if (values is FrozenSet<string> or IImmutableSet<string>) return values;
+        if (values is SortedSet<string> sorted)
+            return sorted.ToImmutableSortedSet(sorted.Comparer);
+
+        var comparer = values is HashSet<string> hashSet
+            ? hashSet.Comparer
+            : StringComparer.Ordinal;
+        return values.ToFrozenSet(comparer);
     }
 
     /// <summary>

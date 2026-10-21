@@ -26,6 +26,12 @@ public sealed record HandshakeRequest(
     string ProductSessionId,
     string ProductRunId);
 
+/// <summary>Adapter-only fingerprints of the static Product artifacts mounted
+/// into the DSH session. This metadata is deliberately outside Kernel protocol schemas.</summary>
+public sealed record SkillArtifactFingerprint(string Name, int Revision, string Sha256);
+
+public sealed record ArtifactFingerprint(string PromptHash, SkillArtifactFingerprint Skill);
+
 public sealed record HandshakeResponse(
     bool Accepted,
     ProtocolStamp Protocol,
@@ -33,7 +39,8 @@ public sealed record HandshakeResponse(
     string? DshSessionId,
     string? FailureReason = null,
     IReadOnlyList<string>? RuntimeCapabilities = null,
-    string? RuntimePreset = null);
+    string? RuntimePreset = null,
+    ArtifactFingerprint? ReportedArtifacts = null);
 
 public sealed record DshDiagnostic(
     string Code,

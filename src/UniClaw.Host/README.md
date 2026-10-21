@@ -8,6 +8,7 @@ Product Host 的组合根：装配 Kernel 六个 Product T2 责任域与 Capabil
 
 | 文件 | 职责 |
 |---|---|
+| `PageIdentityRecovery.cs` | 同capture观察材料与语义标题选择的补证adapter；只产普通proposal，身份/到达不在此裁决 |
 | `HostRunner.cs` | Product Host 最小 composition root（HOST-001 spec v0.3） |
 | `Runtime/ActivationRecordStore.cs` | P24 activation key 的 reserved/finalized/failed/blocked 持久记录 |
 | `Runtime/FileConsultationJournal.cs` | Kernel P25 consultation journal 的文件 adapter |
@@ -33,6 +34,11 @@ Product Host 的组合根：装配 Kernel 六个 Product T2 责任域与 Capabil
 
 ### Runtime/ — Host 自有持久化缝
 
+`Perception/JevSemanticPerceptionAdapter.cs`是归一化布局到Jev选择题的L3供货适配：
+显式注入ModelManagement/endpoint/key/HttpClient，创建可执行的同一`uni.perception`
+实例；不实现L1，不写Ledger/World。Host持有并释放网络资源，健康只报告配置与
+最近传输/响应schema，不宣称语义准确率。
+
 | 文件 | 职责 |
 |---|---|
 | `RuntimeRunStore.cs` | RuntimeRun 快照与 append-only 事件的持久化缝（ADR-0036 投影消费） |
@@ -50,6 +56,9 @@ Product Host 的组合根：装配 Kernel 六个 Product T2 责任域与 Capabil
 | `SettingsPlanFacts.cs` | 由已有观察/覆盖账本投影当前根页候选、范围及来源；不驱动动作、不授予许可、不证明范围穷尽（ADR-0053） |
 | `SettingsCoverageOverviewProjector.cs` | 由既有账本投影全局待办、验证、未知及稳定事实键；无新增可变权威 |
 | `Geometry.cs` | TRAJECTORY-001 D5 几何工具箱：Rect / 遮挡判据（中心点）/ uiAutomator bounds 解析（只做信号输入，不改 Ledger） |
+| `CoverageDirective.cs` | 覆盖指令的种类/目标事实与历史文本兼容读取；不授予执行权 |
+| `SettingsCoverageLedger.Directives.cs` | 同一覆盖账本内的指令选择；提示文字不参与新执行链的语义判断 |
+| `SettingsNavigationScope.cs` | 将任务声明的路由范围投影为导航约束；不替代 Kernel 授权 |
 | `SettingsCoverageConfig.cs` / `SettingsCoverageLedger.cs` / `SettingsActionPolicy.cs` | 遍历配置 / 台账（含可选 dynamicRootEntries/all-visible frontier、visited、结构性 skip reason）/ 动作策略 |
 
 ## 变更规则

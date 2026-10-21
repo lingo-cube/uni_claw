@@ -1,0 +1,45 @@
+{
+  "preexistingDirtyFiles": 7354,
+  "changed": [
+    "changes/INDEX.md",
+    "docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md",
+    "dsh/uniclaw-decision-channel/prompt/manifest.json",
+    "dsh/uniclaw-decision-channel/prompt/prompt-hash.txt",
+    "dsh/uniclaw-decision-channel/schema/product-protocol.schema.json",
+    "dsh/uniclaw-decision-channel/schema/schema-hash.txt",
+    "product/profiles/uniagent-prod.yaml",
+    "product/prompt/uniagent-prod/manifest.json",
+    "product/prompt/uniagent-prod/prompt-hash.txt",
+    "schemas/agt-002/product-protocol.d.ts",
+    "schemas/agt-002/product-protocol.schema.json",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+    "tests/UniClaw.Kernel.Tests/Runtime/TraversalExecutionTests.cs",
+    "changes/RUNTIME-PLAN-003/execution-contract.md",
+    "evidence/runtime-plan-003/kernel/async-kernel.md",
+    "evidence/runtime-plan-003/simulation/implementation-status.md",
+    "src/UniClaw.Kernel/Runtime/PlanLanguageHandlerCall.cs",
+    "tests/UniClaw.Simulation.Tests/AsyncHandlerTraversalScenarioTests.cs"
+  ],
+  "taskSharedFiles": [
+    "changes/INDEX.md",
+    "docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md",
+    "dsh/uniclaw-decision-channel/schema/product-protocol.schema.json",
+    "dsh/uniclaw-decision-channel/schema/schema-hash.txt",
+    "schemas/agt-002/product-protocol.d.ts",
+    "schemas/agt-002/product-protocol.schema.json"
+  ],
+  "externalChanges": [
+    "dsh/uniclaw-decision-channel/prompt/manifest.json",
+    "dsh/uniclaw-decision-channel/prompt/prompt-hash.txt",
+    "product/profiles/uniagent-prod.yaml",
+    "product/prompt/uniagent-prod/manifest.json",
+    "product/prompt/uniagent-prod/prompt-hash.txt",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+    "tests/UniClaw.Kernel.Tests/Runtime/TraversalExecutionTests.cs",
+    "changes/RUNTIME-PLAN-003/execution-contract.md",
+    "evidence/runtime-plan-003/kernel/async-kernel.md",
+    "evidence/runtime-plan-003/simulation/implementation-status.md",
+    "src/UniClaw.Kernel/Runtime/PlanLanguageHandlerCall.cs",
+    "tests/UniClaw.Simulation.Tests/AsyncHandlerTraversalScenarioTests.cs"
+  ]
+}

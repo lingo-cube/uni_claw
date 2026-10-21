@@ -1,0 +1,406 @@
+{
+  "SCN-PERC-005.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 1,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "none"
+    }
+  },
+  "SCN-POLICY-008.json": {
+    "expectations": {
+      "status": "TerminalNotProven",
+      "classification": null,
+      "effects": 0,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "policy-lease-drift",
+      "options": {}
+    }
+  },
+  "SCN-WIFI-005.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "SafeStop",
+      "effects": 1,
+      "agentConsultations": 1,
+      "unconsumedStimuli": 1,
+      "goalSatisfaction": "Unsatisfied"
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "wifi-cancel-late",
+      "options": {
+        "phased": true
+      }
+    }
+  },
+  "SCN-POLICY-004.json": {
+    "expectations": {
+      "status": "TerminalNotProven",
+      "classification": null,
+      "effects": 1,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "policy-bounds-exhausted",
+      "options": {}
+    }
+  },
+  "SCN-POLICY-005.json": {
+    "expectations": {
+      "status": "TerminalNotProven",
+      "classification": null,
+      "effects": 2,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "policy-guard-violated",
+      "options": {}
+    }
+  },
+  "SCN-WIFI-004.json": {
+    "expectations": {
+      "status": "WaitingForInput",
+      "classification": null,
+      "effects": 1,
+      "agentConsultations": 1,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "wifi-missing-post-action"
+    }
+  },
+  "SCN-PERC-008.json": {
+    "expectations": {
+      "status": "TerminalNotProven",
+      "classification": null,
+      "effects": 0,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "none"
+    }
+  },
+  "SCN-POLICY-009.json": {
+    "expectations": {
+      "status": "AgentDecisionFailed",
+      "classification": null,
+      "effects": 0,
+      "agentConsultations": 1,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "policy-forbidden-effect",
+      "options": {}
+    }
+  },
+  "SCN-PERC-004.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 1,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "none"
+    }
+  },
+  "SCN-WIFI-003.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 1,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "wifi-off-to-on",
+      "options": {
+        "duplicateActivation": true
+      }
+    }
+  },
+  "SCN-POLICY-002.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 2,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "policy-repeated-application",
+      "options": {}
+    }
+  },
+  "SCN-PERC-003.json": {
+    "expectations": {
+      "status": "AgentDecisionFailed",
+      "classification": null,
+      "effects": 0,
+      "agentConsultations": 1,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "none"
+    }
+  },
+  "SCN-BARRIER-001.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 2,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "wifi-two-step-toggle-menu"
+    }
+  },
+  "SCN-PERC-002.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 1,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "none"
+    }
+  },
+  "SCN-POLICY-003.json": {
+    "expectations": {
+      "status": "TerminalNotProven",
+      "classification": null,
+      "effects": 0,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "policy-no-match",
+      "options": {}
+    }
+  },
+  "SCN-WIFI-002.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 0,
+      "agentConsultations": 1,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "wifi-already-on"
+    }
+  },
+  "SCN-WIFI-001.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 1,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "wifi-off-to-on"
+    }
+  },
+  "SCN-BARRIER-002.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "SafeStop",
+      "effects": 1,
+      "agentConsultations": 1,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Unsatisfied"
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "wifi-two-step-missing-middle",
+      "options": {
+        "phased": true
+      }
+    }
+  },
+  "SCN-PERC-001.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 1,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "none"
+    }
+  },
+  "SCN-BARRIER-003.json": {
+    "expectations": {
+      "status": "TerminalNotProven",
+      "classification": null,
+      "effects": 1,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 1,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "wifi-two-step-contradictory-post"
+    }
+  },
+  "SCN-POLICY-001.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 0,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "policy-immediate-termination",
+      "options": {}
+    }
+  },
+  "SCN-PERC-007.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 1,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "none"
+    }
+  },
+  "SCN-POLICY-006.json": {
+    "expectations": {
+      "status": "TerminalNotProven",
+      "classification": null,
+      "effects": 0,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "policy-guard-unknown",
+      "options": {}
+    }
+  },
+  "SCN-POLICY-010.json": {
+    "expectations": {
+      "status": "AgentDecisionFailed",
+      "classification": null,
+      "effects": 0,
+      "agentConsultations": 1,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "policy-budget-exceeds",
+      "options": {}
+    }
+  },
+  "SCN-POLICY-011.json": {
+    "expectations": {
+      "status": "AgentDecisionFailed",
+      "classification": null,
+      "effects": 0,
+      "agentConsultations": 1,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "policy-unknown-ast",
+      "options": {}
+    }
+  },
+  "SCN-WIFI-006.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 1,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "wifi-off-to-on-generated"
+    }
+  },
+  "SCN-POLICY-007.json": {
+    "expectations": {
+      "status": "TerminalNotProven",
+      "classification": null,
+      "effects": 1,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": null
+    },
+    "execution": {
+      "kind": "golden-bundle",
+      "carrier": "policy-verification-failure",
+      "options": {}
+    }
+  },
+  "SCN-PERC-006.json": {
+    "expectations": {
+      "status": "Completed",
+      "classification": "Completion",
+      "effects": 1,
+      "agentConsultations": 2,
+      "unconsumedStimuli": 0,
+      "goalSatisfaction": "Satisfied"
+    },
+    "execution": {
+      "kind": "none"
+    }
+  }
+}

@@ -13,6 +13,7 @@ Intent、Run State、target binding 或 dispatch（权威表见基线 §10）。
 | `Freshness.cs` / `ProductFreshnessEvaluator.cs` | freshness = 消费相对充分性判断（ADR-0010）；FRS-008 首个产品实现 |
 | `OutcomeProof.cs` | outcome 证明（本维度独有 judgment 权威） |
 | `RuntimeAssurance.cs` | runtime assurance 权威本体（Target §15） |
+| `RuntimeAssurance.PostAction.cs` | 动作后页面身份、捕获时序、typed checked与视觉期望判定；同一Assurance Owner留痕 |
 | `PostActionEffectVerification.cs` | 一次现实 Effect 的 post-action verification judgment（AGT-005，Host 消费面） |
 
 ## 变更规则

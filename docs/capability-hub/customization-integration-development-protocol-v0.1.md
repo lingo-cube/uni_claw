@@ -1,4 +1,4 @@
-> Status: FROZEN / PROTOCOL GUIDE v0.1（修订必须经 change；CAP-010 升格——先例：perception-provider-baseline 的 COMPONENT-BASELINE 体例）
+> Status: FROZEN / PROTOCOL GUIDE v0.2（JEV-SEMANTIC-CAP-001兼容执行扩展；修订必须经 change；CAP-010升格）
 > Authority: COMPONENT（协议指南：能力定制/集成/开发的 canonical 路径，被 capability-component skill 引用；架构权威在 ADR-0035/0038 与产品基线，冲突时以其为准）
 > Applies to: Product Capability Registry、Runtime Integration Registry、Harness Capability Registry
 > Date: 2026-10-04
@@ -91,6 +91,11 @@ Capability Hub 不拥有以下内容：
 - 能力状态和诊断。
 
 它只产生 proposal，不拥有 Evidence admission、WorldModel reconciliation、Assurance 或 Effect authority。
+
+JEV-SEMANTIC-CAP-001将语义执行载荷冻结为当前有界观察、可选独立关联的前页
+观察/已记录动作，以及单独的调用方预期意图。观察结果、前后关系、符合性分别
+返回；预期不进入观察、P22或身份。只有观察由官方projector经P2/P3投影；
+字段、预算/去重/缺失语义见感知组件基线§7.1。UI元素执行载荷仍待买方冻结。
 
 ### 4.2 UI Element Perception
 
@@ -193,14 +198,19 @@ public interface ICapability
 产品感知协议是派生接口：
 
 ```csharp
-public interface ISemanticPerception : ICapability { }
+public interface ISemanticPerception : ICapability
+{
+    ValueTask<SemanticPerceptionResult> ObserveSemanticsAsync(
+        SemanticPerceptionRequest request, CancellationToken cancellationToken = default);
+}
 public interface IUiElementPerception : ICapability { }
 ```
 
 Product perception 的实例注册必须同时满足：Descriptor 声明的协议与实例实际
 实现的协议接口一致。`ICapabilityHub`/`CapabilityRegistry` 在注册时执行这一校验；
 失败时不产生 `Registered` lifecycle fact。Hub 只管理实例解析和生命周期，具体
-执行 payload 仍由后续协议 Change 冻结。
+语义执行payload已由JEV-SEMANTIC-CAP-001冻结；实际L1保留返回Unsupported的
+默认实现以兼容旧marker，R6兼容扩展不升协议1.0。UI元素执行payload仍待后续Change。
 
 DSH Tool 不在 Kernel 中定义。需要向 DSH 暴露 Capability 时，由 Host/DSH
 Adapter 将已解析的 `ICapability` 投影为 DSH 原生 ToolDefinition，并交给

@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="40c670dc-8673-4340-a84f-90fdc7292995" name="@frandeMac-mini 2026-10-21 23:47:14" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T23:47:14.7262500+08:00" queuing="2026-10-21T23:47:14.7262500+08:00" start="2026-10-21T23:47:14.1030790+08:00" finish="2026-10-21T23:47:14.7289710+08:00" />
+  <TestSettings name="default" id="86b31b70-34c9-4662-befd-61e099c6875b">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-21_23_47_14" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="5751a5d7-ce31-4ed0-95f3-6cb6119ca007" testId="17b9e2bc-abe8-e32a-c587-996c98ecb306" testName="UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(target: &quot;Volume &gt; media&quot;)" computerName="frandeMac-mini" duration="00:00:00.0157918" startTime="2026-10-21T23:47:14.5426770+08:00" endTime="2026-10-21T23:47:14.5426840+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5751a5d7-ce31-4ed0-95f3-6cb6119ca007">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsType() Failure: Value is null
+Expected: typeof(UniClaw.Kernel.Runtime.AgentDecision+Act)
+Actual:   null</Message>
+          <StackTrace>   at UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(String target) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsCoverage/CoverageDirectiveSemanticsTests.cs:line 29
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="94ed9b68-1421-4278-a0f1-f7e10f3aab3f" testId="0a27f441-3888-ef86-120a-93cdaad774a8" testName="UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(target: &quot;Scroll settings&quot;)" computerName="frandeMac-mini" duration="00:00:00.0040872" startTime="2026-10-21T23:47:14.5453210+08:00" endTime="2026-10-21T23:47:14.5453210+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="94ed9b68-1421-4278-a0f1-f7e10f3aab3f">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Null() Failure: Value is not null
+Expected: null
+Actual:   "step 0 decision enter: deviation-from-directive"</Message>
+          <StackTrace>   at UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(String target) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsCoverage/CoverageDirectiveSemanticsTests.cs:line 36
+   at InvokeStub_CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(target: &quot;Volume &gt; media&quot;)" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="17b9e2bc-abe8-e32a-c587-996c98ecb306">
+      <Execution id="5751a5d7-ce31-4ed0-95f3-6cb6119ca007" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests" name="EntryLabelCannotChangeDirectiveMeaning" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(target: &quot;Scroll settings&quot;)" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="0a27f441-3888-ef86-120a-93cdaad774a8">
+      <Execution id="94ed9b68-1421-4278-a0f1-f7e10f3aab3f" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests" name="EntryLabelCannotChangeDirectiveMeaning" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="17b9e2bc-abe8-e32a-c587-996c98ecb306" executionId="5751a5d7-ce31-4ed0-95f3-6cb6119ca007" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0a27f441-3888-ef86-120a-93cdaad774a8" executionId="94ed9b68-1421-4278-a0f1-f7e10f3aab3f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="2" executed="2" passed="0" failed="2" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.02]   Discovering: UniClaw.Host.Tests
+[xUnit.net 00:00:00.05]   Discovered:  UniClaw.Host.Tests
+[xUnit.net 00:00:00.05]   Starting:    UniClaw.Host.Tests
+[xUnit.net 00:00:00.09]       Assert.IsType() Failure: Value is null
+[xUnit.net 00:00:00.09]       Expected: typeof(UniClaw.Kernel.Runtime.AgentDecision+Act)
+[xUnit.net 00:00:00.09]       Actual:   null
+[xUnit.net 00:00:00.09]       Stack Trace:
+[xUnit.net 00:00:00.09]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsCoverage/CoverageDirectiveSemanticsTests.cs(29,0): at UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(String target)
+[xUnit.net 00:00:00.09]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.09]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.09]       Assert.Null() Failure: Value is not null
+[xUnit.net 00:00:00.09]       Expected: null
+[xUnit.net 00:00:00.09]       Actual:   "step 0 decision enter: deviation-from-directive"
+[xUnit.net 00:00:00.09]       Stack Trace:
+[xUnit.net 00:00:00.09]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsCoverage/CoverageDirectiveSemanticsTests.cs(36,0): at UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(String target)
+[xUnit.net 00:00:00.09]            at InvokeStub_CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(Object, Span`1)
+[xUnit.net 00:00:00.09]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.09]   Finished:    UniClaw.Host.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-21T23:47:14.5423120+08:00">
+        <Text>[xUnit.net 00:00:00.09]     UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(target: "Volume &gt; media") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-21T23:47:14.5454260+08:00">
+        <Text>[xUnit.net 00:00:00.09]     UniClaw.Host.Tests.SettingsCoverage.CoverageDirectiveSemanticsTests.EntryLabelCannotChangeDirectiveMeaning(target: "Scroll settings") [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

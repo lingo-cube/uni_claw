@@ -1,7 +1,9 @@
 # UniClaw 字段有效性：数学公理与哲学推导（2026-10-14）
 
-> Status: REVIEWED / BUYER-SCOPED
+> Status: COMPLETE / HISTORICAL-PREMISES
 > Authority: NONE
+
+本文保留初始字段公理及当时推导，关于P24/P25未闭合的实例前提由[同日最小buyer复核第六节](uniclaw-completeness-check-2026-10-14.md#六按最小购买者闭包重新验证2026-10-14)修正。不得将这些历史“当前推导”当作2026-10-22产品缺陷清单；不改变数学定义本身，也不外推为无条件活性或全生命周期完备证明。
 
 ## 论证对象
 

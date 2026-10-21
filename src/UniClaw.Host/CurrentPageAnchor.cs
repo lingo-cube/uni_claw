@@ -8,6 +8,7 @@ internal static class CurrentPageAnchor
 {
     internal static string? Resolve(WorldBeliefRevision? belief)
     {
+        if (belief?.ObservationNeed is not null) return null;
         if (belief?.WorldState.TryGetValue(WorldModel.CurrentContainerSubject, out var anchor) == true)
             return !belief.Conflicts.Any(conflict => conflict.Subject == WorldModel.CurrentContainerSubject)
                 && belief.Containers?.Count(container => container.Identity.ContainerId == anchor.Value) == 1

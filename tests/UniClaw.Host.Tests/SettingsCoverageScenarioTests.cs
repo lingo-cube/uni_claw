@@ -50,6 +50,7 @@ public sealed class SettingsCoverageScenarioTests
     private sealed class SimulatedSettingsWorld
     {
         public bool EnableNestedPlanFixture { get; init; }
+        public bool UseConfirmedPageObservations { get; init; }
         private readonly Stack<string> _returnRoutes = new();
         private int _captureCounter;
         private int _scrollOffset;
@@ -196,6 +197,16 @@ public sealed class SettingsCoverageScenarioTests
 
         public RunDriverInput? Next(ObservationDirective directive)
         {
+            if (UseConfirmedPageObservations && directive.Need is { } need)
+            {
+                var title = Route == RootRoute ? "Settings"
+                    : Route["android.settings|route:".Length..];
+                var identity = PageIdentityRecovery.Identity(
+                    new UniClaw.Kernel.World.PageObservationState(need.Capture, need.CaptureEvidenceId, null),
+                    title, Route, directive.Context);
+                return identity is null ? null : new RunDriverInput.Observation([identity]);
+            }
+            var captureTime = DateTimeOffset.UtcNow;
             var captureId = $"sim-capture-{++_captureCounter:D4}";
             var xml = BuildXml();
             var route = SettingsTraversalLiveFeed.DeriveRouteKey(xml);
@@ -215,7 +226,7 @@ public sealed class SettingsCoverageScenarioTests
                     IngressKind.Observation,
                     directive.Context,
                     new Provenance(
-                        "host.sim.settings", DateTimeOffset.UtcNow, "scope:ui.screen",
+                        "host.sim.settings", captureTime, "scope:ui.screen",
                         new[] { "simulated-device", "capture:" + captureId })),
                 new(
                     new ObservationClaim(
@@ -224,14 +235,14 @@ public sealed class SettingsCoverageScenarioTests
                     IngressKind.Observation,
                     directive.Context,
                     new Provenance(
-                        "host.sim.settings", DateTimeOffset.UtcNow,
+                        "host.sim.settings", captureTime,
                         $"scope:ui.screen.route:sim-{_captureCounter:D4}",
                         new[] { "simulated-device", "capture:" + captureId, "route-fingerprint" })),
             };
             var parsed = UiAutomatorDump.ParseHierarchyObservation(
                 xml,
                 new UiAutomatorDump.UiHierarchyParseContext(
-                    captureId, DateTimeOffset.UtcNow, "emulator-sim", "settings:sim", 35,
+                    captureId, captureTime, "emulator-sim", "settings:sim", 35,
                     ObservationCycleId: $"sim-cycle-{_captureCounter:D4}",
                     Space: CoordinateSpace.DeviceViewport(Width, Height)));
             if (parsed.Observation is { } observation)
@@ -240,10 +251,22 @@ public sealed class SettingsCoverageScenarioTests
             // 无 XML/不可解析 → 无声明）。与真实 feed 同形。
             if (SettingsTraversalLiveFeed.PopupProposal(
                     SettingsTraversalLiveFeed.DerivePopupState(xml, "com.android.settings"),
-                    captureId, $"sim-cycle-{_captureCounter:D4}", DateTimeOffset.UtcNow,
+                    captureId, $"sim-cycle-{_captureCounter:D4}", captureTime,
                     directive.Context)
                 is { } popupProposal)
                 proposals.Add(popupProposal);
+            if (UseConfirmedPageObservations)
+            {
+                proposals.RemoveAll(p => p.Claim.Subject ==
+                    UniClaw.Kernel.World.UiRealization.ProductAssociationStrategy.ScreenIdentitySubject);
+                var capture = PageIdentityRecovery.Capture(captureId, $"sim-cycle-{_captureCounter:D4}",
+                    "settings:sim", captureTime, Width, Height, xml, null);
+                proposals.Insert(0, new ObservationProposal(
+                    new ObservationClaim(UniClaw.Kernel.World.PageObservationCodec.CaptureSubject,
+                        UniClaw.Kernel.World.PageObservationCodec.Encode(capture)),
+                    IngressKind.Observation, directive.Context,
+                    new Provenance("host.sim.settings", captureTime, $"capture:{captureId}", ["simulated-device"])));
+            }
             return new RunDriverInput.Observation(proposals);
         }
 
@@ -266,8 +289,10 @@ public sealed class SettingsCoverageScenarioTests
 
     private sealed class SimulatedEffectDriver(SimulatedSettingsWorld world) : IEffectDriver
     {
+        public int Deliveries { get; private set; }
         public DispatchResult Deliver(DispatchRequest request)
         {
+            Deliveries++;
             ArgumentNullException.ThrowIfNull(request);
             var locator = request.Target.Spatial
                 ?? throw new InvalidOperationException("sim driver requires spatial target");
@@ -518,6 +543,11 @@ public sealed class SettingsCoverageScenarioTests
                     return new AgentDecision.NoAction(new AgentNoActionProposal(context.DecisionId, "scoped pages and controls observed"));
                 }
                 Assert.Contains(SettingsPlanFacts.HasNavigationCondition, context.AvailablePlanConditions!.Keys);
+                Assert.DoesNotContain("navigation", context.AvailablePlanConditions.Keys);
+                Assert.DoesNotContain("readOnly", context.AvailablePlanConditions.Keys);
+                var traversalSource = context.AvailablePlanSources![SettingsTraversalProjection.Source];
+                Assert.Contains("navigation", traversalSource);
+                Assert.Contains("readOnly", traversalSource);
                 return new AgentDecision.Plan(context.DecisionId, new AgentPlanProposal(new PlanItem[]
                 {
                     new PlanItem.RepeatItem(new PlanItem[]
@@ -809,6 +839,93 @@ public sealed class SettingsCoverageScenarioTests
         Assert.StartsWith("task-evidence-unproven:", result.Reason);
         Assert.NotEmpty(result.Report.UncoveredItems);
         Assert.Empty(result.Steps);
+    }
+
+    [Fact]
+    public void SameCaptureIdentitySupplement_PreservesVerifiedRoutesAndCoverage()
+    {
+        var world = new SimulatedSettingsWorld { UseConfirmedPageObservations = true };
+        var runRoot = Path.Combine(Path.GetTempPath(), $"settings-identity-coverage-{Guid.NewGuid():N}");
+        try
+        {
+            var result = SettingsCoverageRunner.Run(runRoot, new SettingsCoverageRunner.Options(
+                "emulator-sim", new LivePerception.LiveAssets("emulator-sim", "wifi-settings",
+                    "/nonexistent", "/nonexistent/python", "/nonexistent/cache"),
+                ConfigWith() with
+                {
+                    TargetPages = ["Network & internet"],
+                    Coverage = new CoverageRequirements(true, "all-visible", 0, 1, true, 0),
+                }, ModelConsult, FeedNext: world.Next,
+                CurrentCaptureId: () => world.CurrentCaptureId, EffectDriver: new SimulatedEffectDriver(world)));
+            Assert.True(result.Status == RunDriveStatus.Completed,
+                $"{result.Status}/{result.Reason}: {JsonSerializer.Serialize(result.Report)}");
+            Assert.Equal(2, result.Steps.Count);
+            Assert.All(result.Steps, step =>
+            {
+                Assert.True(step.Verified);
+                Assert.NotNull(step.RouteBefore);
+                Assert.NotNull(step.RouteAfter);
+            });
+            Assert.Equal(1.0, result.Report.CoverageRate);
+            Assert.Empty(result.Report.UncoveredItems);
+        }
+        finally { if (Directory.Exists(runRoot)) Directory.Delete(runRoot, true); }
+    }
+
+    [Fact]
+    public void UnconfirmedPageCapture_DoesNotCountAsObservedCoverage()
+    {
+        var world = new SimulatedSettingsWorld { UseConfirmedPageObservations = true };
+        var runRoot = Path.Combine(Path.GetTempPath(), $"settings-unconfirmed-coverage-{Guid.NewGuid():N}");
+        try
+        {
+            var consulted = false;
+            var result = SettingsCoverageRunner.Run(runRoot, new SettingsCoverageRunner.Options(
+                "emulator-sim", new LivePerception.LiveAssets("emulator-sim", "wifi-settings",
+                    "/nonexistent", "/nonexistent/python", "/nonexistent/cache"),
+                ConfigWith(), _ => { consulted = true; return null; },
+                FeedNext: directive => directive.Need is null ? world.Next(directive)
+                    : new RunDriverInput.Observation([]),
+                CurrentCaptureId: () => world.CurrentCaptureId, EffectDriver: new SimulatedEffectDriver(world)));
+            Assert.False(consulted);
+            Assert.Empty(result.Steps);
+            Assert.False(result.Report.Items.Single(item => item.Requirement == "root-page").Covered);
+        }
+        finally { if (Directory.Exists(runRoot)) Directory.Delete(runRoot, true); }
+    }
+
+    [Fact]
+    public void NewCaptureWithoutRouteOrIdentity_DoesNotBorrowPriorCoverage()
+    {
+        var world = new SimulatedSettingsWorld { UseConfirmedPageObservations = true };
+        var effect = new SimulatedEffectDriver(world);
+        var runRoot = Path.Combine(Path.GetTempPath(), $"settings-new-capture-coverage-{Guid.NewGuid():N}");
+        try
+        {
+            var consulted = false;
+            var captures = new HashSet<string>(StringComparer.Ordinal);
+            RunDriverInput? Next(ObservationDirective directive)
+            {
+                var input = (RunDriverInput.Observation)world.Next(directive with { Need = null })!;
+                captures.Add(world.CurrentCaptureId);
+                // The scene changed while identity was pending. The new
+                // capture supplies neither a route nor an accepted identity.
+                return directive.Need is null ? input : new RunDriverInput.Observation(
+                    input.Proposals.Where(p => p.Claim.Subject !=
+                        UniClaw.Kernel.World.UiRealization.ProductAssociationStrategy.ScreenRouteSubject).ToArray());
+            }
+            var result = SettingsCoverageRunner.Run(runRoot, new SettingsCoverageRunner.Options(
+                "emulator-sim", new LivePerception.LiveAssets("emulator-sim", "wifi-settings",
+                    "/nonexistent", "/nonexistent/python", "/nonexistent/cache"),
+                ConfigWith(), _ => { consulted = true; return null; }, FeedNext: Next,
+                CurrentCaptureId: () => world.CurrentCaptureId, EffectDriver: effect));
+            Assert.True(captures.Count > 1);
+            Assert.False(consulted);
+            Assert.Empty(result.Steps);
+            Assert.Equal(0, effect.Deliveries);
+            Assert.False(result.Report.Items.Single(item => item.Requirement == "root-page").Covered);
+        }
+        finally { if (Directory.Exists(runRoot)) Directory.Delete(runRoot, true); }
     }
 
     [Fact]

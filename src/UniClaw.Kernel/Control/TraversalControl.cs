@@ -74,7 +74,15 @@ internal sealed class TraversalControl
     {
         if (_finished || _status == PlanExecutionStatus.Paused || _path.Count == 0) return null;
         var frame = _path.Peek();
-        _currentContainerId = observation.Graph.CurrentContainerId;
+        var observedContainerId = observation.Graph.CurrentContainerId;
+        _currentContainerId = observedContainerId;
+        if (!string.Equals(frame.ContainerId, observedContainerId, StringComparison.Ordinal))
+        {
+            Gap(observedContainerId ?? frame.ContainerId, null, "control-path-current-page-mismatch",
+                observation.DiscoveryEvidenceRefs);
+            Pause("traversal:control-path-current-page-mismatch");
+            return null;
+        }
         if (!_returning)
         {
             foreach (var candidate in observation.Candidates)

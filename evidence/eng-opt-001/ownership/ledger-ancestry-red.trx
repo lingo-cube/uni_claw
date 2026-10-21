@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="9163b900-710d-4f45-82e4-4c93a0db8857" name="@frandeMac-mini 2026-10-21 23:22:45" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T23:22:45.4710180+08:00" queuing="2026-10-21T23:22:45.4710180+08:00" start="2026-10-21T23:22:44.8181680+08:00" finish="2026-10-21T23:22:45.4732180+08:00" />
+  <TestSettings name="default" id="a6d60fd2-b5b8-4574-9d88-e606abc975a7">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-21_23_22_45" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="cc5b414c-6a2d-4da3-beb1-b9cd12ecd192" testId="2d429da9-6524-c39e-1d23-fadf7f91d137" testName="UniClaw.Kernel.Tests.Evidence.EvidenceOwnershipTests.ProducerCannotRewriteAcceptedAncestryOrBreakLaterDerivedAdmission" computerName="frandeMac-mini" duration="00:00:00.0020985" startTime="2026-10-21T23:22:45.2780770+08:00" endTime="2026-10-21T23:22:45.2780770+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cc5b414c-6a2d-4da3-beb1-b9cd12ecd192">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Collections differ
+                        ↓ (pos 0)
+Expected: string[]     ["ev-65699cf72f9206724afffd24412244fe98a4db22077f43a"···]
+Actual:   List&lt;string&gt; []</Message>
+          <StackTrace>   at UniClaw.Kernel.Tests.Evidence.EvidenceOwnershipTests.ProducerCannotRewriteAcceptedAncestryOrBreakLaterDerivedAdmission() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/Evidence/EvidenceOwnershipTests.cs:line 56
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b5f22e52-272a-4961-bdef-f5bfa14f7490" testId="3f47324e-ddc7-1b21-f287-d16d2f553499" testName="UniClaw.Kernel.Tests.Evidence.EvidenceOwnershipTests.AdmittedProvenanceKeepsItsContentWhenProducerChangesLineage" computerName="frandeMac-mini" duration="00:00:00.0079236" startTime="2026-10-21T23:22:45.2705040+08:00" endTime="2026-10-21T23:22:45.2705110+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b5f22e52-272a-4961-bdef-f5bfa14f7490" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Kernel.Tests.Evidence.EvidenceOwnershipTests.ProducerCannotRewriteAcceptedAncestryOrBreakLaterDerivedAdmission" storage="/users/fran/documents/code/spacex/uni_claw/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="2d429da9-6524-c39e-1d23-fadf7f91d137">
+      <Execution id="cc5b414c-6a2d-4da3-beb1-b9cd12ecd192" />
+      <TestMethod codeBase="/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.Evidence.EvidenceOwnershipTests" name="ProducerCannotRewriteAcceptedAncestryOrBreakLaterDerivedAdmission" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.Evidence.EvidenceOwnershipTests.AdmittedProvenanceKeepsItsContentWhenProducerChangesLineage" storage="/users/fran/documents/code/spacex/uni_claw/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="3f47324e-ddc7-1b21-f287-d16d2f553499">
+      <Execution id="b5f22e52-272a-4961-bdef-f5bfa14f7490" />
+      <TestMethod codeBase="/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.Evidence.EvidenceOwnershipTests" name="AdmittedProvenanceKeepsItsContentWhenProducerChangesLineage" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="2d429da9-6524-c39e-1d23-fadf7f91d137" executionId="cc5b414c-6a2d-4da3-beb1-b9cd12ecd192" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3f47324e-ddc7-1b21-f287-d16d2f553499" executionId="b5f22e52-272a-4961-bdef-f5bfa14f7490" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="2" executed="2" passed="1" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Kernel.Tests
+[xUnit.net 00:00:00.08]   Discovered:  UniClaw.Kernel.Tests
+[xUnit.net 00:00:00.09]   Starting:    UniClaw.Kernel.Tests
+[xUnit.net 00:00:00.12]       Assert.Equal() Failure: Collections differ
+[xUnit.net 00:00:00.12]                               ↓ (pos 0)
+[xUnit.net 00:00:00.12]       Expected: string[]     ["ev-65699cf72f9206724afffd24412244fe98a4db22077f43a"···]
+[xUnit.net 00:00:00.12]       Actual:   List&lt;string&gt; []
+[xUnit.net 00:00:00.12]       Stack Trace:
+[xUnit.net 00:00:00.12]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/Evidence/EvidenceOwnershipTests.cs(56,0): at UniClaw.Kernel.Tests.Evidence.EvidenceOwnershipTests.ProducerCannotRewriteAcceptedAncestryOrBreakLaterDerivedAdmission()
+[xUnit.net 00:00:00.12]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.12]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.12]   Finished:    UniClaw.Kernel.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-21T23:22:45.2773770+08:00">
+        <Text>[xUnit.net 00:00:00.12]     UniClaw.Kernel.Tests.Evidence.EvidenceOwnershipTests.ProducerCannotRewriteAcceptedAncestryOrBreakLaterDerivedAdmission [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

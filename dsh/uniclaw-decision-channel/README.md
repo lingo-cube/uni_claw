@@ -60,6 +60,13 @@ Skill 只提供观察、规划、受控执行、验证和证据指导，不授�
 Memory 权限。Profile allowlist 和 Runtime initialization envelope 会记录其
 name、revision、sha256。
 
+在创建 DSH session 前，`/api/uniclaw-agent/handshake` 还要求调用方发送
+adapter 元数据 `expectedArtifacts`：已加载 Profile 的 Prompt `promptHash` 和单个
+primary Skill 的 `{name, revision, sha256}`。插件把它们与进程启动时校验并加载的
+实际工件比较；缺失、格式错误或任一指纹不符都会拒绝握手，不会创建 session 或
+发起模型请求。接受响应带回实际 `artifacts` 指纹，C# peer 再次核对。该元数据只
+属于 DSH adapter 握手，不扩展 Kernel AgentDecision 或产品协议 Schema。
+
 握手使用 `systemPrompt.assemble({scope: actualAgent})` 核对真实会话输入；
 section 模式缺少完整 Prompt 或 Skill 时拒绝握手。`GET /api/uniclaw-agent/prompt-probe`
 返回该实际会话的输入名称清单，不返回正文；没有会话作用域的 `assemble({})`
@@ -96,3 +103,6 @@ dsh/deploy.sh --check-only
 ADR-0053：正式通道新增plan与continuePlan，并同步既有blocked零Effect出口。Plan支持具体步骤、候选迭代、Owner命名条件的if分支、有界repeat及检查点；有限块可组合，不开放任意表达式/跳转/递归调用；typed结构由Kernel记录生成Schema，插件只验证/传输。ContinuePlan精确回带context.planExecution.position，续额不隐式续Plan；NoAction保持终局评估。Source及Condition声明仅首次请求注入，未来页面动作由Runtime逐步检查当前事实。实际attempt完成锚使用plan-attempt:ID，不把同节点下一次迭代误作上次完成。咨询落盘不是进程重启执行恢复承诺。
 
 Agent咨询的attempt保留身份、位置、状态、receipt及原因，EvidenceRefs使用实际plan-attempt审计引用；完整原始来源仍留在Driver审计及plan-execution证据。引用存在不代表Verified，completion仍按内核原有状态核验。
+
+
+WORLD-OBSERVATION-001：`/slow`可携带`reasoningEffort: "high"`。插件只在该隔离slow session的`agent/request` waterfall施加请求参数，不修改主决策session或默认effort。实际请求hook应用后响应`diagnostics.reasoningEffort=high`；未应用返回`reasoning-effort-unproven`，不静默降级。模型能力声明必须支持该档位，否则供应方拒绝；该参数不进入产品共享协议。

@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="c183b3a2-7093-49cf-a5e0-08be556e76ad" name="@frandeMac-mini 2026-10-21 22:40:13" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T22:40:13.0242900+08:00" queuing="2026-10-21T22:40:13.0242900+08:00" start="2026-10-21T22:40:12.4165230+08:00" finish="2026-10-21T22:40:13.0266820+08:00" />
+  <TestSettings name="default" id="5c3264b5-dda5-427a-b15a-06e239588eec">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-21_22_40_13" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="015c6b71-14d9-44f6-bba8-4bd78a12d099" testId="2a907e14-ba17-83e5-1b85-cd63b9ad3573" testName="UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.LocalSafetyTracers_OfficialCodecThenKernelSimulationHaveZeroEffects" computerName="frandeMac-mini" duration="00:00:00.0265683" startTime="2026-10-21T22:40:12.8487680+08:00" endTime="2026-10-21T22:40:12.8487760+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="015c6b71-14d9-44f6-bba8-4bd78a12d099">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-eng-opt-001-review/platforms/perception/evaluation/assets/captures/golden-run-v1/device-profile.json'.</Message>
+          <StackTrace>   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Simulation.Tests.GoldenScenarioBundles.LoadTargetUiSystem() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/GoldenScenarioBundles.cs:line 783
+   at UniClaw.Simulation.Tests.GoldenScenarioBundles.AlreadyOnZeroEffect(String expectationScenarioId) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/GoldenScenarioBundles.cs:line 90
+   at UniClaw.Simulation.Tests.TraversalScenarioFixture.Create(Page[] pages, IReadOnlyList`1 rules, Int32 maxDepth, Int32 maxOperations, AgentActionStep returnStep, Nullable`1 handlerTimeout, Func`3 inspectOverride, Func`2 canBindOverride, Action`1 recoveryObserver, Func`2 agentOverride, Func`3 projectionOverride, ExecutionContract contractOverride, ScenarioExpectation expectedOverride, GoalSpec goalOverride, Func`2 continuePaused, Action`2 inspectObserver) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/TraversalScenarioFixture.cs:line 238
+   at UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.BuildTraversalScenario(Plan generated) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs:line 350
+   at UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.LocalSafetyTracers_OfficialCodecThenKernelSimulationHaveZeroEffects() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs:line 149
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b35f0581-613f-4428-ad47-fd2b650a52bc" testId="0d3a7c91-6ece-a9e8-e0a0-55f5c12a625a" testName="UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.LocalLiteralTracers_OfficialCodecThenKernelSimulation" computerName="frandeMac-mini" duration="00:00:00.0027553" startTime="2026-10-21T22:40:12.8502980+08:00" endTime="2026-10-21T22:40:12.8502980+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b35f0581-613f-4428-ad47-fd2b650a52bc">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-eng-opt-001-review/platforms/perception/evaluation/assets/captures/golden-run-v1/device-profile.json'.</Message>
+          <StackTrace>   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Simulation.Tests.GoldenScenarioBundles.LoadTargetUiSystem() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/GoldenScenarioBundles.cs:line 783
+   at UniClaw.Simulation.Tests.GoldenScenarioBundles.AlreadyOnZeroEffect(String expectationScenarioId) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/GoldenScenarioBundles.cs:line 90
+   at UniClaw.Simulation.Tests.TraversalScenarioFixture.Create(Page[] pages, IReadOnlyList`1 rules, Int32 maxDepth, Int32 maxOperations, AgentActionStep returnStep, Nullable`1 handlerTimeout, Func`3 inspectOverride, Func`2 canBindOverride, Action`1 recoveryObserver, Func`2 agentOverride, Func`3 projectionOverride, ExecutionContract contractOverride, ScenarioExpectation expectedOverride, GoalSpec goalOverride, Func`2 continuePaused, Action`2 inspectObserver) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/TraversalScenarioFixture.cs:line 238
+   at UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.BuildTraversalScenario(Plan generated) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs:line 350
+   at UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.LocalLiteralTracers_OfficialCodecThenKernelSimulation() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs:line 114
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.LocalSafetyTracers_OfficialCodecThenKernelSimulationHaveZeroEffects" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.dsh.tests/bin/debug/net10.0/uniclaw.host.dsh.tests.dll" id="2a907e14-ba17-83e5-1b85-cd63b9ad3573">
+      <Execution id="015c6b71-14d9-44f6-bba8-4bd78a12d099" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests" name="LocalSafetyTracers_OfficialCodecThenKernelSimulationHaveZeroEffects" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.LocalLiteralTracers_OfficialCodecThenKernelSimulation" storage="/private/tmp/uniclaw-eng-opt-001-review/tests/uniclaw.host.dsh.tests/bin/debug/net10.0/uniclaw.host.dsh.tests.dll" id="0d3a7c91-6ece-a9e8-e0a0-55f5c12a625a">
+      <Execution id="b35f0581-613f-4428-ad47-fd2b650a52bc" />
+      <TestMethod codeBase="/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests" name="LocalLiteralTracers_OfficialCodecThenKernelSimulation" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="2a907e14-ba17-83e5-1b85-cd63b9ad3573" executionId="015c6b71-14d9-44f6-bba8-4bd78a12d099" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0d3a7c91-6ece-a9e8-e0a0-55f5c12a625a" executionId="b35f0581-613f-4428-ad47-fd2b650a52bc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="2" executed="2" passed="0" failed="2" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Host.Dsh.Tests
+[xUnit.net 00:00:00.05]   Discovered:  UniClaw.Host.Dsh.Tests
+[xUnit.net 00:00:00.05]   Starting:    UniClaw.Host.Dsh.Tests
+[xUnit.net 00:00:00.09]       System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-eng-opt-001-review/platforms/perception/evaluation/assets/captures/golden-run-v1/device-profile.json'.
+[xUnit.net 00:00:00.10]       Stack Trace:
+[xUnit.net 00:00:00.10]            at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+[xUnit.net 00:00:00.10]            at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+[xUnit.net 00:00:00.10]            at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+[xUnit.net 00:00:00.10]            at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+[xUnit.net 00:00:00.10]            at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+[xUnit.net 00:00:00.10]            at System.IO.File.ReadAllText(String path, Encoding encoding)
+[xUnit.net 00:00:00.10]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/GoldenScenarioBundles.cs(783,0): at UniClaw.Simulation.Tests.GoldenScenarioBundles.LoadTargetUiSystem()
+[xUnit.net 00:00:00.10]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/GoldenScenarioBundles.cs(90,0): at UniClaw.Simulation.Tests.GoldenScenarioBundles.AlreadyOnZeroEffect(String expectationScenarioId)
+[xUnit.net 00:00:00.10]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/TraversalScenarioFixture.cs(238,0): at UniClaw.Simulation.Tests.TraversalScenarioFixture.Create(Page[] pages, IReadOnlyList`1 rules, Int32 maxDepth, Int32 maxOperations, AgentActionStep returnStep, Nullable`1 handlerTimeout, Func`3 inspectOverride, Func`2 canBindOverride, Action`1 recoveryObserver, Func`2 agentOverride, Func`3 projectionOverride, ExecutionContract contractOverride, ScenarioExpectation expectedOverride, GoalSpec goalOverride, Func`2 continuePaused, Action`2 inspectObserver)
+[xUnit.net 00:00:00.10]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs(350,0): at UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.BuildTraversalScenario(Plan generated)
+[xUnit.net 00:00:00.10]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs(149,0): at UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.LocalSafetyTracers_OfficialCodecThenKernelSimulationHaveZeroEffects()
+[xUnit.net 00:00:00.10]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.10]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.10]       System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-eng-opt-001-review/platforms/perception/evaluation/assets/captures/golden-run-v1/device-profile.json'.
+[xUnit.net 00:00:00.10]       Stack Trace:
+[xUnit.net 00:00:00.10]            at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+[xUnit.net 00:00:00.10]            at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+[xUnit.net 00:00:00.10]            at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+[xUnit.net 00:00:00.10]            at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+[xUnit.net 00:00:00.10]            at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+[xUnit.net 00:00:00.10]            at System.IO.File.ReadAllText(String path, Encoding encoding)
+[xUnit.net 00:00:00.10]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/GoldenScenarioBundles.cs(783,0): at UniClaw.Simulation.Tests.GoldenScenarioBundles.LoadTargetUiSystem()
+[xUnit.net 00:00:00.10]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/GoldenScenarioBundles.cs(90,0): at UniClaw.Simulation.Tests.GoldenScenarioBundles.AlreadyOnZeroEffect(String expectationScenarioId)
+[xUnit.net 00:00:00.10]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/TraversalScenarioFixture.cs(238,0): at UniClaw.Simulation.Tests.TraversalScenarioFixture.Create(Page[] pages, IReadOnlyList`1 rules, Int32 maxDepth, Int32 maxOperations, AgentActionStep returnStep, Nullable`1 handlerTimeout, Func`3 inspectOverride, Func`2 canBindOverride, Action`1 recoveryObserver, Func`2 agentOverride, Func`3 projectionOverride, ExecutionContract contractOverride, ScenarioExpectation expectedOverride, GoalSpec goalOverride, Func`2 continuePaused, Action`2 inspectObserver)
+[xUnit.net 00:00:00.10]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs(350,0): at UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.BuildTraversalScenario(Plan generated)
+[xUnit.net 00:00:00.10]         /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs(114,0): at UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.LocalLiteralTracers_OfficialCodecThenKernelSimulation()
+[xUnit.net 00:00:00.10]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.10]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.10]   Finished:    UniClaw.Host.Dsh.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-21T22:40:12.8478190+08:00">
+        <Text>[xUnit.net 00:00:00.09]     UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.LocalSafetyTracers_OfficialCodecThenKernelSimulationHaveZeroEffects [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-21T22:40:12.8501020+08:00">
+        <Text>[xUnit.net 00:00:00.10]     UniClaw.Host.Dsh.Tests.PlanGenerationKernelConsumerTests.LocalLiteralTracers_OfficialCodecThenKernelSimulation [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

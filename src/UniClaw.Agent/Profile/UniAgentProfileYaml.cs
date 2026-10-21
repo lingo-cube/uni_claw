@@ -12,7 +12,7 @@ namespace UniClaw.Agent.Profile;
 /// </summary>
 public static class UniAgentProfileYaml
 {
-    public const string SchemaVersion = "uniagent.profile/v1";
+    public const string SchemaVersion = "uniagent.profile/v2";
     public const string DefaultConfigRelativePath = "product/profiles/uniagent-prod.yaml";
     public const string ConfigPathEnvironmentVariable = "UNICLAW_UNIAGENT_PROD_CONFIG";
 
@@ -86,13 +86,39 @@ public static class UniAgentProfileYaml
         var name = document.RequireScalar(new[] { "identity", "name" });
         if (string.IsNullOrWhiteSpace(name))
             throw new InvalidOperationException($"config-invalid:identity.name ({path})");
+        var charter = ReadCharter(document, path);
 
         return new UniAgentProfile(
             UniagentProdProfile.Current,
             revision,
+            charter,
             ReadModelRoles(document, path),
-            ReadAssembly(document, path),
+            ReadAssembly(document, path, charter),
             ReadAllowedSkillRefs(document, path));
+    }
+
+    private static ProfileCharter ReadCharter(ProfileYamlDocument document, string path)
+    {
+        var role = document.RequireScalar(new[] { "charter", "role" }).Trim();
+        if (role.Length == 0)
+            throw new InvalidOperationException($"config-invalid:charter.role ({path})");
+
+        static IReadOnlyList<string> ReadItems(ProfileYamlDocument source, string key, string profilePath)
+        {
+            if (source.TryWalk(new[] { "charter", key }) is not string[] values
+                || values.Length == 0
+                || values.Any(static value => string.IsNullOrWhiteSpace(value)))
+                throw new InvalidOperationException(
+                    $"config-invalid:charter.{key} ({profilePath}): non-empty string list required");
+            return values.Select(static value => value.Trim()).ToArray();
+        }
+
+        return new ProfileCharter(
+            role,
+            ReadItems(document, "responsibilities", path),
+            ReadItems(document, "boundaries", path),
+            ReadItems(document, "planningPrinciples", path),
+            ReadItems(document, "skillUse", path));
     }
 
     private static IReadOnlyList<SkillReference> ReadAllowedSkillRefs(
@@ -204,7 +230,7 @@ public static class UniAgentProfileYaml
     /// 声明即 fail-closed 执法：文件必须存在，hash 必须与工件内容指纹一致
     /// （promptManifest=目录 digest，与 tools/prompt-manifest-hash.py 同一
     /// canonical 规则；safetyPolicy=文件字节 sha256）。</summary>
-    private static ProfileAssembly? ReadAssembly(ProfileYamlDocument document, string path)
+    private static ProfileAssembly? ReadAssembly(ProfileYamlDocument document, string path, ProfileCharter charter)
     {
         if (document.TryWalk(new[] { "assembly" }) is not Dictionary<string, object> assembly)
             return null;
@@ -230,13 +256,14 @@ public static class UniAgentProfileYaml
 
         var repoRoot = ResolveRepoRoot();
         if (result.PromptManifest is not null)
-            VerifyPromptManifest(result.PromptManifest, repoRoot, path);
+            VerifyPromptManifest(result.PromptManifest, repoRoot, path, charter);
         if (result.SafetyPolicy is not null)
             VerifySafetyPolicy(result.SafetyPolicy, repoRoot, path);
         return result;
     }
 
-    private static void VerifyPromptManifest(AssemblyReference reference, string repoRoot, string profilePath)
+    private static void VerifyPromptManifest(
+        AssemblyReference reference, string repoRoot, string profilePath, ProfileCharter charter)
     {
         var directory = Path.GetFullPath(Path.Combine(repoRoot, reference.Path));
         if (!Directory.Exists(directory))
@@ -265,14 +292,25 @@ public static class UniAgentProfileYaml
                 $"assembly-invalid:assembly.promptManifest: manifest.segments must be a non-empty list ({profilePath})");
         using var stream = new MemoryStream();
         stream.Write(File.ReadAllBytes(manifestPath));
+        var hasIdentity = false;
         foreach (var segment in segments.EnumerateArray())
         {
-            var segmentPath = Path.Combine(directory, segment.GetString() ?? "");
+            var segmentName = segment.GetString() ?? "";
+            var segmentPath = Path.Combine(directory, segmentName);
             if (!File.Exists(segmentPath))
                 throw new InvalidOperationException(
-                    $"assembly-invalid:assembly.promptManifest: segment missing: {segment.GetString()} ({profilePath})");
-            stream.Write(File.ReadAllBytes(segmentPath));
+                    $"assembly-invalid:assembly.promptManifest: segment missing: {segmentName} ({profilePath})");
+            var segmentBytes = File.ReadAllBytes(segmentPath);
+            if (string.Equals(segmentName, "01-identity.txt", StringComparison.Ordinal))
+            {
+                hasIdentity = true;
+                ProfileIdentityRenderer.EnsureMatches(charter, System.Text.Encoding.UTF8.GetString(segmentBytes), segmentName);
+            }
+            stream.Write(segmentBytes);
         }
+        if (!hasIdentity)
+            throw new InvalidOperationException(
+                $"identity-charter-mismatch:assembly.promptManifest: 01-identity.txt is required ({profilePath})");
         stream.Position = 0;
         var computed = Convert.ToHexString(
             System.Security.Cryptography.SHA256.HashData(stream)).ToLowerInvariant();

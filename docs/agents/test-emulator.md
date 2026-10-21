@@ -74,6 +74,12 @@
 | 预检证据 | 正式流程前写 `environment-preflight.json`（含视觉服务预热与 `formalFlowStartedAfterPreflight` 标志）；预热耗时（实测 ~63.5s 视觉服务冷启动）与正式流程分段计时分开记录 |
 | 诊断入口 | provider 不通先看专用实例日志与代理线路（排查顺序见 `evidence/agt-014/dsh-provider-timeout-diagnosis-2026-10-06.md`），不先怀疑上下文压力 |
 
+### DeepSeek出口例外（2026-10-18，Owner配置与ADR-0053验收）
+
+Owner已在DSH家目录`.env`的`NO_PROXY`与`no_proxy`加入`api.deepseek.com,.deepseek.com`。DeepSeek官方请求按该持久配置直连，其他provider继续沿用原代理规则；不得把本说明解释为临时绕过家目录配置。环境快照在专线启动时加载，修改后需重载拥有的3081实例。正式模型以当前`.dsh/product/uniagent-prod-bindings.yaml`及trial实际model selection为准，上表GLM耗时属于历史基准。
+
+本次只更新DeepSeek实现线路事实，未改变设备AVD、尺寸、lease或AdbEnvironmentTests设备断言。实际服务PID、家目录配置指纹、模型调用时段的直连socket正向见证及采样边界，见[evidence/runtime-plan-001/acceptance-direct-20261018/results.md](../../evidence/runtime-plan-001/acceptance-direct-20261018/results.md)；新旧性能不得混算。
+
 ## 运行速查
 
 ```bash
@@ -101,3 +107,17 @@ dotnet test
 
 - ADB-001（L3-lite：真实 adb 二进制 × 假 serial，失败通道）
 - ADB-002（V1：locator → tap → dump 证实世界翻转；本环境注册的建立者）
+
+### RUNTIME-PLAN-004 当前生成验收参数（2026-10-20）
+
+RUNTIME-PLAN-004历史对照使用`deepseek-official/deepseek-flash`，未采用Pro；当时宿主配置为`thinking: enabled`、`reasoningEffort: low`，两个配置入口（default model与DeepSeek provider）一致。该参数在实际请求头和reasoning block中已取证。Profile25/Prompt24/Skill4及236项源、固定输入与门槛不变的对照中，off批首稿18/21、最终19/21；low批首稿20/21、最终21/21，21份模型输出全部经正式codec交给真实Kernel仿真消费通过。low批平均单次正式咨询4.07秒、中位3.27秒；此为有限样本记录，不是未来正确性、设备性能或网络延迟归因保证。
+
+参数属于DSH宿主adapter，未进入host-neutral Profile；代理配置保持Owner已设置的持久规则。完整对照、当前服务指纹、失败批次与私有配置恢复路径索引见`evidence/runtime-plan-004/generation/thinking-low-config-change.json`、`thinking-low-controlled-comparison.json`及`epoch-007/leader-evidence-audit.json`。私有配置备份保留在索引指定的本机临时目录，不包含进仓证据的凭据正文。
+
+### 2026-10-20 CommandCode Flash正式绑定（所有者授权）
+当前专用3081及`.dsh/product/uniagent-prod-bindings.yaml`选择`commandcode/deepseek/deepseek-v4.1-flash`，复用宿主既有pi-ai provider和`COMMANDCODE_API_KEY`凭据引用；无需把provider或凭据写入产品Profile/Prompt/Skill。原官方Flash choice保留。宿主agent默认effort值为low，但CommandCode真实request/header没有显式reasoningEffort，验收登记为null/provider-default，不宣称与官方enabled/low相同。代理与凭据未改。
+专用3081已移除无关Jev MCP sidecar，确保正式Agent系统上下文只有既有产品Prompt与UI测试Skill两段；CommandCode模型provider独立保留。变更及私有恢复位置见`evidence/runtime-plan-005/commandcode-binding-change.json`与`commandcode-context-isolation.json`；固定输入和验收门槛见`preregistration-epoch007.json`，结果以相应TRX及`live-summary.json`为准。官方402余额不足与旧malformed批次保留，不能计入新通道通过率。
+
+
+### WORLD-OBSERVATION-001 慢感知请求强度（2026-10-21所有者补充）
+无XML身份恢复成功验收必须包含慢模型请求high。仍使用当前DSH绑定的provider/model；高档通过`/slow`隔离session的请求waterfall施加，不更改主Agent默认强度。专用uniclaw-product剖面的CommandCode既有模型补充high可选档位及reasoning_effort兼容声明，凭据/代理不变；回执未见high或供应方拒绝均不算该路径通过。部署备份和指纹见`changes/WORLD-OBSERVATION-001/evidence/slow-high-deployment.json`；实际验收结果以该Change最终验证记录为准，不能以配置声明代替请求证据。

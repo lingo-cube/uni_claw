@@ -28,11 +28,16 @@ public interface ICapability
 }
 
 /// <summary>
-/// Product protocol marker for semantic perception. Execution payloads remain
-/// protocol-specific and are intentionally separate from Hub management.
+/// Executable semantic perception protocol. Payloads are provider-neutral;
+/// legacy marker implementations retain an honest unsupported default.
 /// </summary>
 public interface ISemanticPerception : ICapability
 {
+    /// <summary>Execute bounded semantics. Older marker-only implementations honestly remain unsupported.</summary>
+    ValueTask<SemanticPerceptionResult> ObserveSemanticsAsync(
+        SemanticPerceptionRequest request, CancellationToken cancellationToken = default) =>
+        ValueTask.FromResult(SemanticPerceptionResult.Empty(request, CapabilityStatus.Unavailable,
+            PerceptionDisposition.Unsupported, "semantic execution is not configured"));
 }
 
 /// <summary>

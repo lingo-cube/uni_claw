@@ -1,0 +1,10 @@
+[
+  {
+    "url": "http://127.0.0.1:3081/",
+    "error": "HTTP Error 401: Unauthorized"
+  },
+  {
+    "url": "http://127.0.0.1:3081/api/uniclaw/decision-channel/handshake",
+    "error": "HTTP Error 401: Unauthorized"
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "assembly": "uniclaw.agent.dsh.tests",
+    "total": 212,
+    "passed": 212,
+    "failed": 0,
+    "trx": "current-baseline_net10.0_20261021231602.trx"
+  },
+  {
+    "assembly": "uniclaw.host.dsh.tests",
+    "total": 56,
+    "passed": 56,
+    "failed": 0,
+    "trx": "current-baseline_net10.0_20261021231600.trx"
+  },
+  {
+    "assembly": "uniclaw.kernel.tests",
+    "total": 1029,
+    "passed": 1029,
+    "failed": 0,
+    "trx": "current-baseline_net10.0_20261021231558.trx"
+  },
+  {
+    "assembly": "uniclaw.host.tests",
+    "total": 406,
+    "passed": 406,
+    "failed": 0,
+    "trx": "current-baseline_net10.0_20261021231555.trx"
+  },
+  {
+    "assembly": "uniclaw.simulation.tests",
+    "total": 252,
+    "passed": 252,
+    "failed": 0,
+    "trx": "current-baseline_net10.0_20261021231534.trx"
+  },
+  {
+    "assembly": "uniclaw.core.tests",
+    "total": 14,
+    "passed": 14,
+    "failed": 0,
+    "trx": "current-baseline_net10.0_20261021231531.trx"
+  },
+  {
+    "assembly": "uniclaw.agent.tests",
+    "total": 36,
+    "passed": 36,
+    "failed": 0,
+    "trx": "current-baseline_net10.0_20261021231533.trx"
+  },
+  {
+    "assembly": "uniclaw.filesystemrealization.tests",
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "trx": "current-baseline_net10.0_20261021231532.trx"
+  }
+]

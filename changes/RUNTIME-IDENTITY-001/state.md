@@ -1,5 +1,5 @@
 # RUNTIME-IDENTITY-001 — TaskInstance / ProductSession 最小持久化存储
-lifecycle_state: verified · disposition: none · depth: standard · base: f3aeb6f
+lifecycle_state: closed · disposition: none · depth: standard · base: f3aeb6f
 
 ## Intent（WHAT/WHY）
 
@@ -62,3 +62,10 @@ verification:
 
 - 2026-10-12 · UNDERSTAND → RESOLVE → PERSIST → IMPLEMENT · Owner 批准直接干；
   架构裁决已齐（ADR-0043/0044/0045/0046），无需 grill；代码落地。
+
+## 2026-10-21 原Store范围复验
+- method：当前同源码隔离执行 `RuntimeIdentityStoreTests`，独立Standards与Spec审查A1–A4。
+- expected：创建幂等、重启恢复、1:1及可选Run绑定行为成立。
+- actual：8/8通过，双轴审查0阻塞；3个受验源码/测试文件哈希与当前工作区一致。仅覆盖原Store范围，后续HTTP/设备链不据此宣称验收。
+- evidence：`evidence/eng-opt-001/identity-close-review.md`、`baseline/identity-current.trx`、`identity-source-hashes.json`。
+- 2026-10-21 · REVIEW→VERIFY→CLOSED · 补足旧记录待测试缺口；原A1–A4已证明，保留当时编译与待测历史。

@@ -16,7 +16,7 @@ binding 注入。语义权威在 Kernel/Agent，本目录只做宿主映射—�
 | `RuntimeToolHost.cs` | Harness 工具暴露清单在 Runtime 的宿主落点（PNL-008 / ADR-0039） |
 | `RuntimeToolConfig.cs` | Runtime Host 工具执行的本地配置/产出路径（PNL-010） |
 
-`evidence/`、`runs/` 为运行产物目录，非源码。
+`evidence/`、`runs/` 为运行产物目录，非源码。[runs-d9](runs-d9/README.md)保留历史证据原路径，本轮没有搬迁。新运行显式使用`--runs`指定源码目录之外的绝对输出根；需保留的验证输出按[证据目录规则](../../evidence/README.md)进入对应Change目录。CLI默认相对`runs`仍取决于启动位置，调用方应显式给出输出根。
 
 ## Tool 的两层概念（ADR-0039）
 

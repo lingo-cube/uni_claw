@@ -19,9 +19,9 @@ internal static class UIWorldDoubles
     /// <summary>container 观察约定 subject（测试域约定，非协议）。</summary>
     public const string Observed = "ui.container.observed";
 
-    public static ObservationProposal Observation(string value, DateTimeOffset t) =>
+    public static ObservationProposal Observation(string value, DateTimeOffset t, string? scope = null) =>
         new(new ObservationClaim(Observed, value), IngressKind.Observation, ObservationContext.External,
-            new Provenance("provider.scripts", t, "scope:ui.container", new[] { "raw://capture", "encode:v1" }));
+            new Provenance("provider.scripts", t, scope ?? $"scope:ui.container:{t:O}", new[] { "raw://capture", "encode:v1" }));
 
     public static ObservationProposal SubjectObservation(string subject, string value, DateTimeOffset t) =>
         new(new ObservationClaim(subject, value), IngressKind.Observation, ObservationContext.External,

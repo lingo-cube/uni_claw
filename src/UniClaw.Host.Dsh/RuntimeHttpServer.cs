@@ -231,7 +231,7 @@ public sealed class RuntimeHttpServer
         InitializationEnvelope.Write(_runsRoot, run.ProductSessionId, run.RunId,
             _agentProfile, _bindings, model);
         var device = RequestedDevice(request.EnvironmentIntent) ?? _device;
-        var peer = new DshOpenedHttpPeer(_bindings.Service, model: model);
+        var peer = new DshOpenedHttpPeer(_bindings.Service, model: model, expectedProfile: _agentProfile);
         var channel = new DshOpenedDecisionChannel(peer, attachTimeout: TimeSpan.FromSeconds(30));
         DecisionChannelAttachment attachment;
         try
@@ -590,7 +590,7 @@ public sealed class RuntimeHttpServer
     /// <summary>生产传输：slow 端点只取 assistant 文本；端点错误诚实上抛。</summary>
     private async Task<string> TransportAsync(string requestId, string prompt, ModelConfiguration model, CancellationToken cancellationToken)
     {
-        await using var peer = new DshOpenedHttpPeer(_bindings.Service, model: model);
+        await using var peer = new DshOpenedHttpPeer(_bindings.Service, model: model, expectedProfile: _agentProfile);
         var response = await peer.ExecuteSlowAsync(requestId, prompt, model, imagePng: null, cancellationToken).ConfigureAwait(false);
         if (!string.IsNullOrWhiteSpace(response.Error))
             throw new InvalidOperationException($"slow-endpoint-error:{response.Error}:{response.Diagnostic}");

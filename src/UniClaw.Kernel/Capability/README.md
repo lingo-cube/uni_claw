@@ -87,14 +87,16 @@ Kernel Capability 只保留 Host-neutral 管理和协议语义。是否投影为
 
 ## 当前文件与后续拆分
 
-当前四个 C# 文件保持原位置，以降低工作树迁移风险：
+当前 C# 文件保持原位置，以降低工作树迁移风险：
 
 ```text
 Capability/
 ├── CapabilityHub.cs            # Hub 管理面 + Product protocol marker + ModelRouting/LanguageInspection 执法
 ├── IntegrationContracts.cs     # Host-neutral integration contracts
 ├── ModelManagement.cs          # Model Management 能力组件 + 健康能力面 mixin（CAP-006/007/008）
-├── UniPerceptionCapability.cs  # uni.perception L2：双协议 marker + 健康聚合 owner（CAP-009）
+├── UniPerceptionCapability.cs  # uni.perception L2：双协议 + 健康聚合 owner（CAP-009）
+├── UniPerceptionCapability.Semantics.cs # 语义执行：关联/预算/去重/结果执法（JEV-SEMANTIC-CAP-001）
+├── SemanticPerception.cs       # 语义执行载荷：观察/关系/预期评估独立；provider-neutral供货委托
 ├── LanguageInspection.cs       # Language Inspection：L1 + L2 + 协议常量（CAP-012）
 └── README.md                   # ownership/index（本文件）
 ```

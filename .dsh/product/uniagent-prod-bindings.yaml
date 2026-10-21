@@ -10,9 +10,12 @@ service:
 # CAP-007 语义原样（自 .dsh/profiles/uniagent-prod.yaml 整块迁移，PRF-002）：
 # selected=缺省选择；choices=目录；profiles.<role>=per-profile 单选/偏好序。
 modelSelection:
-  # 2026-10-06 所有者指令：默认模型改 DeepSeek deepseek-flash（旧默认 glm53Flash）
-  selected: deepseekFlash
+  # 2026-10-20 所有者授权：切换CommandCode的DeepSeek Flash继续验收。
+  selected: commandcodeFlash
   choices:
+    commandcodeFlash:
+      provider: commandcode
+      name: deepseek/deepseek-v4.1-flash
     free:
       provider: opencode-go
       name: space-bunny-free
@@ -24,3 +27,6 @@ modelSelection:
     glm53Flash:
       provider: zai-coding-cn
       name: glm-5.3-flash
+    deepseekPro:
+      provider: deepseek-official
+      name: deepseek-v4-pro

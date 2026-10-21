@@ -14,14 +14,14 @@ public sealed record PerceptionHealthSource(
 }
 
 /// <summary>
-/// CAP-009 — UniPerception 组合能力的 L2 可执行实现：实现双协议 marker
+/// CAP-009 / JEV-SEMANTIC-CAP-001 — UniPerception 组合能力的 L2 可执行实现：实现双协议
 /// （Semantic Perception + UI Element Perception，协议-接口一致性由 registry
 /// ValidateImplementation 执法）并承担**健康聚合 owner**（ICapabilityHealthCheckable，
-/// 真实买方=真机运行时诊断）。协议负载词汇（SemanticObservationProposal /
-/// PerceptionAssessment）留待下一个感知买方驱动冻结——本类型不预造。
+/// 真实买方=真机运行时诊断）。语义执行负责关联/有界等待/结果校验，
+/// provider 只经 SemanticPerceptionExecutor 注入；UI 元素协议仍为 marker。
 /// 生命周期：纯内存聚合、无资源句柄——RL1 常驻，Registered 即稳态。
 /// </summary>
-public sealed class UniPerceptionCapability : ISemanticPerception, IUiElementPerception, ICapabilityHealthCheckable
+public sealed partial class UniPerceptionCapability : ISemanticPerception, IUiElementPerception, ICapabilityHealthCheckable
 {
     private readonly IReadOnlyList<PerceptionHealthSource> _sources;
     private readonly CapabilityDescription _description;
@@ -80,7 +80,7 @@ public sealed class UniPerceptionCapability : ISemanticPerception, IUiElementPer
     public UniPerceptionCapability WithDescription(CapabilityDescription description)
     {
         ArgumentNullException.ThrowIfNull(description);
-        return new(_sources, description);
+        return new UniPerceptionCapability(_sources, description) { _semanticExecutor = this._semanticExecutor };
     }
 
     /// <summary>CAP-009 — 拉式健康聚合（worst-of，诚实优先级）：

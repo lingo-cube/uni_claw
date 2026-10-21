@@ -1,0 +1,14 @@
+{
+  "files": [
+    "README.md",
+    "src/README.md",
+    "tools/README.md",
+    "tests/README.md",
+    "schemas/README.md",
+    "src/UniClaw.Host.Dsh/README.md",
+    "src/UniClaw.Host.Dsh/runs-d9/README.md",
+    "changes/ENG-OPT-001/report.md"
+  ],
+  "links": 97,
+  "broken": []
+}

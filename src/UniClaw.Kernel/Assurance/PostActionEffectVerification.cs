@@ -1,4 +1,5 @@
 using UniClaw.Kernel.Control;
+using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Kernel.World;
 
 namespace UniClaw.Kernel.Assurance;
@@ -117,3 +118,12 @@ internal sealed record PostActionEffectVerificationInput(
     ExpectedEffect Expected,
     bool TargetDisappearedAfterRouteChange = false,
     ChangeEvidence? Change = null);
+
+/// <summary>Mechanical, ephemeral facts for post-action judgment; no Owner
+/// aggregate, accepted-state mutation or verification verdict crosses this seam.</summary>
+internal sealed record PostActionBeliefFacts(
+    string RevisionId,
+    DateTimeOffset? PageCaptureTime,
+    string? PageContainerId,
+    bool HasObservationNeed,
+    SemanticCheckedResolver.Resolution? Checked);

@@ -11,6 +11,44 @@ public sealed class WorldReconstructionTests
 {
     private readonly WorldReconstruction _reconstruction = new();
 
+    [Theory]
+    [InlineData("bounds", "BoundsMismatch")]
+    [InlineData("state", "WrongState")]
+    [InlineData("extra", "Unexpected")]
+    public void PlausibleButIncorrectPresentation_IsDetected(string mutation, string expectedKind)
+    {
+        var request = WorldReconstructionFixture.LoadSettingsFrame().Request;
+        var occurrences = request.SourceSlice.Occurrences.ToList();
+        var first = occurrences[0];
+        if (mutation == "bounds")
+        {
+            var b = first.Locator!;
+            occurrences[0] = first with { Locator = new SpatialLocator(b.X1 + .02, b.Y1, b.X2, b.Y2, b.SpatialFrameId) };
+        }
+        if (mutation == "state") occurrences[0] = first with { State = "checked" };
+        if (mutation == "extra") occurrences.Add(first with { OccurrenceId = "extra", SemanticDescriptor = "Invented row" });
+
+        var result = _reconstruction.Reconstruct(request with
+        {
+            SourceSlice = request.SourceSlice with { Occurrences = occurrences },
+        });
+        Assert.Equal(expectedKind, result.OracleComparison.FirstDivergence?.Kind.ToString());
+    }
+
+    [Fact]
+    public void RepeatedSemanticLabels_RequireOneOccurrenceForEachExpectedElement()
+    {
+        var request = WorldReconstructionFixture.LoadSettingsFrame().Request;
+        var elements = request.HumanGroundTruth.Elements.ToList();
+        var first = elements.Single(e => e.SemanticDescriptor.StartsWith("Network &", StringComparison.Ordinal));
+        elements.Add(first with { GroundTruthId = "second-network", Bounds = first.Bounds with { Y1 = .5, Y2 = .6 } });
+        var result = _reconstruction.Reconstruct(request with
+        {
+            HumanGroundTruth = request.HumanGroundTruth with { Elements = elements },
+        });
+        Assert.Equal(WorldDivergenceKind.Missing, result.OracleComparison.FirstDivergence?.Kind);
+    }
+
     [Fact]
     public void CompatibleContentOnlyAssets_ReconstructDeterministically()
     {

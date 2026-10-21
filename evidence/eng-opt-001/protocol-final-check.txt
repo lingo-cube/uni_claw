@@ -1,0 +1,1 @@
+OK: protocol machine fresh (7 machines, 37 transitions, 45 edges, 27 steps, 12 domain cards) — graph audit passed: reachability, hang whitelist exact match, cycle bisection, anchors (details: --audit-report)

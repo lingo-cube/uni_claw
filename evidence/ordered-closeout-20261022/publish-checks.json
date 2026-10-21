@@ -1,0 +1,14 @@
+[
+  {
+    "check": "publish-plugin-tests.txt",
+    "exit_code": 0
+  },
+  {
+    "check": "publish-scenario-check.txt",
+    "exit_code": 0
+  },
+  {
+    "check": "publish-protocol-check.txt",
+    "exit_code": 0
+  }
+]

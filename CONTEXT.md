@@ -223,6 +223,12 @@ _Avoid_: realization category、顶层 Owner、固定算法、独立 authority�
 **Semantic Perception**: 面向“界面或元素表达了什么”的外部感知协议；接收同一 capture/cycle 下的有界元素依据、文本/视觉依据和 claim 上下文，产生带 provenance、lineage 与 `PerceptionAssessment` 的 `SemanticObservationProposal`。它不拥有 Evidence、WorldModel、Assurance 或 Effect authority。
 _Avoid_: Slow Text 专属接口、provider response、直接语义真相
 
+**Semantic Evaluation Intent**: 调用方声明的预期页面及目的，表达“希望看到什么”，可以辅助语义解释但不是观察事实。与实际前页观察、已记录操作及当前观察分别关联；符合性判断与观察结论独立，不能进入世界事实或Runtime Transition Context。
+_Avoid_: 预期等于到达、意图等于成功回执、把预期塞入观察字段
+
+**Semantic Page Claim**: 从当前有界观察得到的页面类别、用途与可选已观察标题，保留capture/cycle/session和证据依据。类别不是实体身份；World可将已接受且关联到当前观察的含义补入Slice，但不能仅因类别相同合并容器或建立导航边。
+_Avoid_: 页面类别等于ContainerId、语义相同等于同一遍历节点
+
 **UI Element Perception**: 面向“capture 中有哪些元素、属性、几何和关联”的外部感知协议；XML/Hierarchy、YOLO/Visual、OCR 都是可声明的来源。输出的 occurrence 只在 capture 内有效，不能直接成为跨 revision identity 或 binding。
 _Avoid_: XML 等于 Product truth、坐标等于 identity、数组拼接
 
@@ -441,6 +447,9 @@ _Avoid_: 整图/全量日志转储、查询即推进、状态查询即控制命�
 **Traversal Result（遍历执行结果）**: 本次Traversal执行结束后交付的报告，说明结束方式和原因、完成/未完成工作、跳过/未知及证据引用。它不是单步回执，也不能单独作为Goal完成证明。
 _Avoid_: 每步处理结果、暂停即最终结果、任务完成授权
 
+**Viewport Transition（视口观察关联）**: 同一容器的前后观察由已验证的实际操作关联，可携带有观察依据的空间位移；位移未知时保留原因。它不代表新容器、对象连续身份或可执行定位。
+_Avoid_: 跨页导航边、操作意图、手势距离真值、当前完整长页
+
 **Container Association**: World Model 内部维护 ContainerIdentity
 continuity 的领域过程；合法输入 = accepted world-relevant Evidence（P3）+
 previous WorldBeliefRevision + TransitionContext（仅 prior，P22）。结果见
@@ -468,11 +477,11 @@ discrimination 所需信息覆盖的语义；与 match confidence 是不同语�
 （low match + insufficient observation → Insufficient，不是 New）。
 _Avoid_: confidence、score
 
-**ObservationNeed**: UIWorld 内部领域概念，表达当前 belief 缺什么
-information（信息型缺失，不指向任何 perception capability）；作为
-WorldModel → Observation Control 的外部协议边 = DEFER — NO CURRENT
-BUYER。
-_Avoid_: CallVLM/RunOCR 类能力指令、外部协议对象、priority policy
+**ObservationNeed**: World Model 派生的信息缺失描述，表达当前观察不足以
+支持哪些世界判断，例如页面身份判别或元素归属。它不指定感知能力；
+Observation Control 据消费需求安排补证，World 根据接纳后的证据重新判断。
+描述缺失信息不等于建立身份、授权动作或宣告失败；当前观察的身份补证由World表达缺口，Control有界调度，World采信后仍须Assurance验证到达，Traversal才继续。
+_Avoid_: CallVLM/RunOCR 类能力指令、provider命令、identity真值、priority policy
 
 ### UI Entity Model & Continuity（UIW-002 落定）
 
@@ -895,9 +904,13 @@ _Avoid_: 开发Leader Plan、完整预知的点击脚本、Effect授权、第二
 _Avoid_: UI页面树、World图副本、预展开的完整点击脚本、开发Leader Plan
 
 **Plan Handler（计划处理步骤）**: 绑定于计划中具体操作、引用任务已提供并有效绑定的Capability及其声明操作和参数的处理步骤；不同操作可绑定不同列表，分别声明操作前或完成并验证后的时机，各时机内有序。独立只读处理也可绑定，不要求产生UI交互；目标与观察须明确关联，原目标消失不能自动替换。它不是独立注册的能力组件，不因引用能力而获得事实、裁决或Effect权威。 调用完成、领域通过、继续条件与Goal满足相互独立；能力按自己的typed协议给出领域结果，计划仅按显式继续条件协调。运行中的状态查询只读，最终遍历报告保留发现不足、排除、深度截断及未完成事项。
+
 _Avoid_: 独立Handler注册表、注册顺序即任务顺序、任意方法调用、绕过Kernel直达能力
 
 检查范围、完成及通过的领域含义由该handler对应的能力协议定义；Kernel负责协调调度，经原Owner缝记录执行状态与返回结果，不重判领域结论。检查不符合与调用执行异常分开：前者可按声明策略记录并继续，只有明确必需的继续条件不满足才暂停；具体恢复意图归Control Loop的Recovery职责，handler不直接改写canonical状态或成为控制/安全裁决者。
+
+**Handler Call（处理步骤的一次调用）**: 一个具体操作在声明时机对已绑定能力发起的一次处理尝试，有独立关联、运行状态和单一终态，由Run记录。异步等待保留执行位置，查询不推进；超时或取消后，迟到结果不改写终态。取消请求不等于底层已物理停止，领域结论仍归Capability，继续与恢复仍归原职责。
+_Avoid_: 处理步骤已声明即已完成、取消请求即物理停止、后台能力自行续行
 
 **DSH Realization Binding**: UniAgent Profile 在 DSH realization 上的映射
 文件（逻辑角色到 provider/model 的偏好序、服务端点），由 DSH adapter

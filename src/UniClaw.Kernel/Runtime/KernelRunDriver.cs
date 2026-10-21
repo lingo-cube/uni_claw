@@ -10,6 +10,7 @@ using UniClaw.Kernel.World;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Diagnostics;
 
 namespace UniClaw.Kernel.Runtime;
 
@@ -67,6 +68,9 @@ public enum RunDriveStatus
 
     /// <summary>RUN-004 裁决⑧层3：完成证明待人工终极裁定（合法等待）。</summary>
     AwaitingCompletionAdjudication,
+
+    /// <summary>Typed read-only traversal handler is still running; DriveAsync can resume it.</summary>
+    WaitingForHandler,
 }
 
 /// <summary>
@@ -152,6 +156,10 @@ public sealed class KernelRunDriver
     private static readonly TimeSpan ConflictFreshnessWindow = TimeSpan.FromSeconds(3);
 
     private int _focusRetries;
+    private ObservationRecoveryControl? _observationRecovery;
+    private string? _observationPullSlot;
+    private readonly List<KernelResult> _observationRecoveryEvidence = new();
+    private readonly HashSet<string> _observationRecoveryFailures = new(StringComparer.Ordinal);
 
     /// <summary>C-2：最近一次 dispatch 的下游确认时间（StepVerify 时序门执法）。</summary>
     private DateTimeOffset? _lastDispatchAt;
@@ -300,12 +308,15 @@ public sealed class KernelRunDriver
     private TraversalControl.Work? _traversalWork;
     private string? _traversalVerifiedContainerId;
     private int _traversalHandlerIndex;
+    private PlanLanguageHandlerCall? _pendingPlanLanguageCall;
+    private PendingPlanLanguageCall? _pendingPlanLanguage;
     private string? _traversalHandlerPhase;
     private string? _traversalRoot;
     private readonly List<PlanAttempt> _planAttempts = new();
     private readonly List<PlanConditionEvaluation> _planConditionEvaluations = new();
     private readonly List<PlanBlockedEvidence> _blockedCandidates = new();
     private int _planWorkUsed;
+    private int _driveInProgress;
     private int _planAttemptOrdinal;
     private int? _activeAttemptIndex;
     private readonly Dictionary<string, int> _latestPlanVersionById = new(StringComparer.Ordinal);
@@ -323,6 +334,17 @@ public sealed class KernelRunDriver
     private readonly Stack<PlanBlockFrame> _planBlocks = new();
     private PlanCandidate? _inheritedPlanCandidate;
     private PlanCandidate? CurrentPlanCandidate => _activeCandidate ?? _inheritedPlanCandidate;
+
+    private sealed record PendingPlanLanguageCall(
+        PlanLanguageHandler Binding,
+        PlanHandlerInput Input,
+        TraversalControl.Work Work,
+        string Phase,
+        string Revision,
+        string CallId,
+        TimeSpan Timeout,
+        Stopwatch Timer,
+        long StartedTimestamp);
 
     private readonly RunDriverInputs _inputs;
     private readonly IConsultationJournal _consultationJournal;
@@ -372,6 +394,14 @@ public sealed class KernelRunDriver
     /// </summary>
     public RunDriveResult Drive()
     {
+        if (Interlocked.CompareExchange(ref _driveInProgress, 1, 0) != 0)
+            return DriveInProgressResult();
+        try { return DriveCore(); }
+        finally { Volatile.Write(ref _driveInProgress, 0); }
+    }
+
+    private RunDriveResult DriveCore()
+    {
         if (!_kernel.IsActivated)
             return new RunDriveResult(RunDriveStatus.NotActivated, "drive-before-activation", null, 0);
         if (!_kernel.IsActivationOwner(_driverIdentity))
@@ -403,6 +433,13 @@ public sealed class KernelRunDriver
 
         while (true)
         {
+            if (_pendingPlanLanguageCall is not null)
+            {
+                if (TryFinishPendingPlanLanguageCall()) continue;
+                return new RunDriveResult(RunDriveStatus.WaitingForHandler,
+                    "traversal:waiting-for-handler", null, _kernel.EffectReceipts.Count);
+            }
+
             // Cancellation has its own lifecycle feed and is sampled at every
             // safe driver boundary. StepVerify owns an in-flight delivery
             // receipt, so defer the poll until its verification facts settle.
@@ -1763,6 +1800,69 @@ public sealed class KernelRunDriver
         }
     }
 
+    /// <summary>Drive through typed asynchronous handler completion, timeout,
+    /// or cancellation; external input waits remain resumable results.</summary>
+    public async Task<RunDriveResult> DriveAsync(CancellationToken cancellationToken = default)
+    {
+        if (Interlocked.CompareExchange(ref _driveInProgress, 1, 0) != 0)
+            return DriveInProgressResult();
+        try { return await DriveAsyncCore(cancellationToken).ConfigureAwait(false); }
+        finally { Volatile.Write(ref _driveInProgress, 0); }
+    }
+
+    private async Task<RunDriveResult> DriveAsyncCore(CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            if (cancellationToken.IsCancellationRequested && _kernel.IsActivated
+                && _kernel.IsActivationOwner(_driverIdentity) && !_kernel.IsRunTerminal)
+            {
+                if (_pendingPlanLanguage is { } active && _pendingPlanLanguageCall is { } activeCall)
+                {
+                    activeCall.Cancel();
+                    FinishPlanLanguageCall(active, PlanHandlerCallStatus.Cancelled, null, "handler-cancelled");
+                }
+                _traversalCancelDisposition = CancelPath(new RunDriverInput.Cancel(
+                    "drive-cancelled", DateTimeOffset.UtcNow));
+                return _traversalCancelDisposition;
+            }
+
+            var result = DriveCore();
+            if (result.Status != RunDriveStatus.WaitingForHandler) return result;
+            var call = _pendingPlanLanguageCall;
+            var pending = _pendingPlanLanguage;
+            if (call is null || pending is null) return DriveCore();
+
+            if (cancellationToken.IsCancellationRequested) continue;
+            RunDriverInput.Cancel? runCancel = null;
+            try { runCancel = _inputs.PollCancellation?.Invoke(); }
+            catch (Exception ex)
+            {
+                call.Cancel();
+                FinishPlanLanguageCall(pending, PlanHandlerCallStatus.Cancelled, null,
+                    $"cancellation-poll-failed:{ex.GetType().Name}");
+                return new RunDriveResult(RunDriveStatus.UnexpectedInput,
+                    $"cancellation-poll-failed:{ex.GetType().Name}", null, _kernel.EffectReceipts.Count);
+            }
+            if (runCancel is not null)
+            {
+                call.Cancel();
+                FinishPlanLanguageCall(pending, PlanHandlerCallStatus.Cancelled, null, $"run-cancelled:{runCancel.Reason}");
+                _traversalCancelDisposition = CancelPath(runCancel);
+                return _traversalCancelDisposition;
+            }
+
+            var remaining = pending.Timeout - pending.Timer.Elapsed;
+            if (remaining <= TimeSpan.Zero) continue;
+            await Task.WhenAny(call.Completion, Task.Delay(
+                remaining < TimeSpan.FromMilliseconds(50) ? remaining : TimeSpan.FromMilliseconds(50),
+                cancellationToken)).ConfigureAwait(false);
+        }
+    }
+
+    private RunDriveResult DriveInProgressResult() => new(
+        RunDriveStatus.UnexpectedInput, "drive-in-progress", null, _kernel.EffectReceipts.Count);
+
     /// <summary>P25 consultation 结果：Rejection 非 null = fail closed 原因。</summary>
     private readonly record struct ConsultOutcome(AgentDecision? Value, string? Rejection);
 
@@ -2037,7 +2137,7 @@ public sealed class KernelRunDriver
         {
             foreach (var handler in operations.SelectMany(operation => operation.Before.Concat(operation.AfterVerified)))
                 if (handler.Required && (_inputs.CanBindPlanLanguage?.Invoke(handler) != true
-                    || _inputs.InspectPlanLanguage is null))
+                    || (_inputs.InspectPlanLanguage is null && _inputs.InspectPlanLanguageAsync is null)))
                     return "traversal:required-handler-unavailable";
         }
         catch (Exception) { return "traversal:handler-binding-validation-failed"; }
@@ -2074,6 +2174,7 @@ public sealed class KernelRunDriver
         {
             if (!RunTraversalHandlers(_traversalWork.Operation.AfterVerified, "AfterVerified", _traversalWork))
             {
+                if (_pendingPlanLanguageCall is not null) return true;
                 PausePlan(_traversal.View().PauseReason ?? "traversal:handler-paused");
                 return true;
             }
@@ -2173,6 +2274,7 @@ public sealed class KernelRunDriver
         var before = selected.Operation.Before;
         if (!RunTraversalHandlers(before, "Before", selected))
         {
+            if (_pendingPlanLanguageCall is not null) return true;
             PausePlan(_traversal.View().PauseReason ?? "traversal:handler-paused");
             return true;
         }
@@ -2205,7 +2307,7 @@ public sealed class KernelRunDriver
             var binding = handlers[_traversalHandlerIndex];
             if (binding.Required && (_kernel.TraversalExecution?.Handlers ?? Array.Empty<PlanHandlerRecord>()).Any(record =>
                     record.OperationId == work.InvocationId && record.HandlerId == binding.HandlerId
-                    && record.Phase == phase && record.Status == PlanHandlerCallStatus.TimedOut))
+                    && record.Phase == phase && record.Status is PlanHandlerCallStatus.TimedOut or PlanHandlerCallStatus.Cancelled))
             {
                 _traversal.Pause("traversal:handler-timedout-requires-revision");
                 return false;
@@ -2225,95 +2327,151 @@ public sealed class KernelRunDriver
                 _kernel.CurrentBelief?.EvidenceBasis.ToArray() ?? Array.Empty<string>());
             var input = new PlanHandlerInput(_kernel.RunId!, work.InvocationId, phase,
                 revision, containerId, handlerTarget, TargetContainerId: work.ContainerId);
-            PlanHandlerCallStatus status = PlanHandlerCallStatus.Failed;
-            Finding? finding = null;
-            string? reason = null;
+            bool canBind;
+            try { canBind = _inputs.CanBindPlanLanguage?.Invoke(binding) == true; }
+            catch (Exception ex)
+            {
+                RecordHandlerFailure(work, binding, phase, revision, PlanHandlerCallStatus.Failed,
+                    $"binding-check-failed:{ex.GetType().Name}");
+                if (binding.Required || binding.RequirePass) return false;
+                _traversalHandlerIndex++;
+                continue;
+            }
+            if (!canBind)
+            {
+                RecordHandlerFailure(work, binding, phase, revision, PlanHandlerCallStatus.Unavailable, "binding-unavailable");
+                if (binding.Required || binding.RequirePass) return false;
+                _traversalHandlerIndex++;
+                continue;
+            }
+            if (_inputs.InspectPlanLanguageAsync is null && _inputs.InspectPlanLanguage is null)
+            {
+                RecordHandlerFailure(work, binding, phase, revision, PlanHandlerCallStatus.Unavailable, "handler-adapter-unavailable");
+                if (binding.Required || binding.RequirePass) return false;
+                _traversalHandlerIndex++;
+                continue;
+            }
+
+            var callId = Guid.NewGuid().ToString("N");
+            var timeout = _inputs.PlanHandlerTimeout > TimeSpan.Zero ? _inputs.PlanHandlerTimeout : TimeSpan.Zero;
+            var callCancellation = new CancellationTokenSource();
+            var call = new PlanLanguageHandlerCall(callId, callCancellation);
+            var pending = new PendingPlanLanguageCall(binding, input, work, phase, revision,
+                callId, timeout, Stopwatch.StartNew(), Stopwatch.GetTimestamp());
+            _pendingPlanLanguageCall = call;
+            _pendingPlanLanguage = pending;
+            _kernel.RecordTraversalHandler(new PlanHandlerRecord(work.InvocationId, binding.HandlerId,
+                phase, revision, PlanHandlerCallStatus.Running, null, null, callId));
+            RecordTraversalState();
             try
             {
-                if (_inputs.CanBindPlanLanguage?.Invoke(binding) != true)
-                {
-                    status = PlanHandlerCallStatus.Unavailable;
-                    reason = "binding-unavailable";
-                }
-                else if (_inputs.InspectPlanLanguage is null)
-                {
-                    status = PlanHandlerCallStatus.Unavailable;
-                    reason = "handler-adapter-unavailable";
-                }
+                Task<Finding?> completion;
+                if (_inputs.InspectPlanLanguageAsync is { } inspectAsync)
+                    completion = inspectAsync(binding, input, call.Token).AsTask();
                 else
                 {
-                    var invocation = Task.Run(() => _inputs.InspectPlanLanguage(binding, input));
-                    var invocationCompleted = false;
-                    try { invocationCompleted = invocation.Wait(_inputs.PlanHandlerTimeout); }
-                    catch (AggregateException ex)
-                    {
-                        status = PlanHandlerCallStatus.Failed;
-                        reason = ex.Flatten().InnerExceptions.FirstOrDefault()?.GetType().Name
-                            ?? nameof(AggregateException);
-                    }
-                    if (reason is not null)
-                    {
-                        // Wait observes a faulted Task via AggregateException;
-                        // keep the typed failure reason and never read a late result.
-                    }
-                    else if (!invocationCompleted)
-                    {
-                        status = PlanHandlerCallStatus.TimedOut;
-                        reason = "handler-timeout";
-                    }
-                    else
-                    {
-                        finding = invocation.GetAwaiter().GetResult();
-                        if (finding is null)
-                        {
-                            status = PlanHandlerCallStatus.Failed;
-                            reason = "handler-returned-no-finding";
-                        }
-                        else if (finding.Correlation.RunId != _kernel.RunId
-                            || finding.Correlation.OperationId != work.InvocationId
-                            || finding.Correlation.DomainCorrelation != revision
-                            || finding.SourceOwner != binding.CapabilityId
-                            || finding.RuleVersion != binding.ProtocolVersion)
-                        {
-                            status = PlanHandlerCallStatus.Failed;
-                            reason = "finding-association-mismatch";
-                        }
-                        else if (finding.Status is CapabilityStatus.Completed or CapabilityStatus.Unknown)
-                        {
-                            status = PlanHandlerCallStatus.Completed;
-                        }
-                        else
-                        {
-                            status = finding.Status == CapabilityStatus.TimedOut
-                                ? PlanHandlerCallStatus.TimedOut
-                                : finding.Status == CapabilityStatus.Unavailable
-                                    ? PlanHandlerCallStatus.Unavailable
-                                    : PlanHandlerCallStatus.Failed;
-                            reason = $"finding-status:{finding.Status}";
-                        }
-                    }
+                    var inspect = _inputs.InspectPlanLanguage!;
+                    completion = Task.Run(() => inspect(binding, input));
                 }
+                call.Observe(completion);
             }
-            catch (Exception ex) { status = PlanHandlerCallStatus.Failed; reason = ex.GetType().Name; }
-            _kernel.RecordTraversalHandler(new PlanHandlerRecord(work.InvocationId, binding.HandlerId,
-                phase, revision, status, finding, reason));
-            RecordTraversalState();
-            if (status != PlanHandlerCallStatus.Completed && binding.Required)
+            catch (Exception ex)
             {
-                _traversal.Pause($"traversal:handler-{status.ToString().ToLowerInvariant()}");
-                return false;
+                call.Observe(Task.FromException<Finding?>(ex));
             }
-            if (binding.RequirePass && (finding is null || finding.Disposition != FindingDisposition.Pass
-                || finding.Status != CapabilityStatus.Completed))
-            {
-                _traversal.Pause("traversal:handler-require-pass");
-                return false;
-            }
-            _traversalHandlerIndex++;
+            return false;
         }
         _traversalHandlerIndex = 0;
         if (phase == "Before") _traversalHandlerPhase = "operation";
         return true;
+    }
+
+    private (PlanHandlerCallStatus Status, string? Reason) ClassifyPlanLanguageFinding(
+        PendingPlanLanguageCall pending, Finding? finding)
+    {
+        if (finding is null) return (PlanHandlerCallStatus.Failed, "handler-returned-no-finding");
+        if (finding.Correlation.RunId != _kernel.RunId
+            || finding.Correlation.OperationId != pending.Work.InvocationId
+            || finding.Correlation.DomainCorrelation != pending.Revision
+            || finding.SourceOwner != pending.Binding.CapabilityId
+            || finding.RuleVersion != pending.Binding.ProtocolVersion)
+            return (PlanHandlerCallStatus.Failed, "finding-association-mismatch");
+        if (finding.Status is CapabilityStatus.Completed or CapabilityStatus.Unknown)
+            return (PlanHandlerCallStatus.Completed, null);
+        return (finding.Status == CapabilityStatus.TimedOut
+            ? PlanHandlerCallStatus.TimedOut
+            : finding.Status == CapabilityStatus.Unavailable
+                ? PlanHandlerCallStatus.Unavailable
+                : PlanHandlerCallStatus.Failed, $"finding-status:{finding.Status}");
+    }
+
+    private bool TryFinishPendingPlanLanguageCall()
+    {
+        var call = _pendingPlanLanguageCall;
+        var pending = _pendingPlanLanguage;
+        if (call is null || pending is null) return true;
+        var completionAt = call.CompletedTimestamp;
+        var completedBeforeDeadline = completionAt is { } timestamp
+            && Stopwatch.GetElapsedTime(pending.StartedTimestamp, timestamp) <= pending.Timeout;
+        if (!completedBeforeDeadline && pending.Timer.Elapsed >= pending.Timeout)
+        {
+            call.Cancel();
+            FinishPlanLanguageCall(pending, PlanHandlerCallStatus.TimedOut, null, "handler-timeout");
+            return true;
+        }
+        if (!call.Completion.IsCompleted) return false;
+        if (call.Failure is { } failure)
+        {
+            FinishPlanLanguageCall(pending, PlanHandlerCallStatus.Failed, null, failure.GetType().Name);
+        }
+        else
+        {
+            try
+            {
+                var finding = call.Completion.GetAwaiter().GetResult();
+                var (status, reason) = ClassifyPlanLanguageFinding(pending, finding);
+                FinishPlanLanguageCall(pending, status, finding, reason);
+            }
+            catch (Exception ex)
+            {
+                FinishPlanLanguageCall(pending, PlanHandlerCallStatus.Failed, null, ex.GetType().Name);
+            }
+        }
+        return true;
+    }
+
+    private void FinishPlanLanguageCall(PendingPlanLanguageCall pending, PlanHandlerCallStatus status,
+        Finding? finding, string? reason)
+    {
+        var call = _pendingPlanLanguageCall;
+        if (call is null || call.CallId != pending.CallId || call.IsClosed) return;
+        if (call.CancellationFailure is { } cancelFailure)
+            reason = string.IsNullOrEmpty(reason) ? $"handler-cancel-request-failed:{cancelFailure}"
+                : $"{reason};handler-cancel-request-failed:{cancelFailure}";
+        call.Close();
+        _kernel.RecordTraversalHandler(new PlanHandlerRecord(pending.Work.InvocationId, pending.Binding.HandlerId,
+            pending.Phase, pending.Revision, status, finding, reason, pending.CallId));
+        _pendingPlanLanguageCall = null;
+        _pendingPlanLanguage = null;
+        call.Dispose();
+        if (status != PlanHandlerCallStatus.Completed && pending.Binding.Required)
+            _traversal.Pause($"traversal:handler-{status.ToString().ToLowerInvariant()}");
+        else if (pending.Binding.RequirePass && (finding is null || finding.Disposition != FindingDisposition.Pass
+            || finding.Status != CapabilityStatus.Completed))
+            _traversal.Pause("traversal:handler-require-pass");
+        else
+            _traversalHandlerIndex++;
+        RecordTraversalState();
+    }
+
+    private void RecordHandlerFailure(TraversalControl.Work work, PlanLanguageHandler binding, string phase,
+        string revision, PlanHandlerCallStatus status, string reason)
+    {
+        _kernel.RecordTraversalHandler(new PlanHandlerRecord(work.InvocationId, binding.HandlerId,
+            phase, revision, status, null, reason));
+        RecordTraversalState();
+        if (binding.Required) _traversal.Pause($"traversal:handler-{status.ToString().ToLowerInvariant()}");
+        else if (binding.RequirePass) _traversal.Pause("traversal:handler-require-pass");
     }
 
     private void RecordTraversalState()
@@ -3523,7 +3681,39 @@ public sealed class KernelRunDriver
         ObservationDepth depth = ObservationDepth.Normal,
         IReadOnlyList<string>? subjects = null)
     {
-        var input = _inputs.NextInput(new ObservationDirective(expected, depth, subjects));
+        _observationRecovery ??= new ObservationRecoveryControl(
+            _inputs.ObservationRecoveryTimeout, _inputs.MaxObservationRecoveryRequests);
+        // The slot is the original execution position, never the capture id.
+        // Changing scene/capture cannot renew its deadline or its run subquota.
+        var slot = $"{_phase}:{_consultCounter}:{_stepIndex}:{_planItemIndex}:{_lastDispatchAt:O}";
+        if (_observationPullSlot != slot)
+        {
+            _observationPullSlot = slot;
+            _observationRecoveryEvidence.Clear();
+        }
+        var processed = _observationRecoveryEvidence;
+        if (_observationRecovery.IsExpired(slot))
+            return new ObservationPull(RecordObservationRecoveryFailure(slot,
+                "page-identity-observation-expired", expected, processed), processed.ToArray());
+        while (true)
+        {
+        var need = _kernel.CurrentBelief?.ObservationNeed;
+        TimeSpan? remaining = null;
+        if (need is not null)
+        {
+            if (_inputs.PollCancellation?.Invoke() is { } cancelled)
+                return new ObservationPull(CancelPath(cancelled), processed.ToArray());
+            if (!_observationRecovery.TrySchedule(slot, out var available))
+                return new ObservationPull(RecordObservationRecoveryFailure(slot,
+                    "page-identity-observation-exhausted", expected, processed), processed.ToArray());
+            remaining = available;
+        }
+        var input = _inputs.NextInput(new ObservationDirective(expected,
+            need is null ? depth : ObservationDepth.Slow,
+            need is null ? subjects : new[] { WorldModel.CurrentContainerSubject }, need, remaining));
+        if (need is not null && input is RunDriverInput.Observation && !_observationRecovery.CanAccept(slot))
+            return new ObservationPull(RecordObservationRecoveryFailure(slot,
+                "page-identity-observation-timeout", expected, processed), processed.ToArray());
         switch (input)
         {
             case null:
@@ -3569,10 +3759,14 @@ public sealed class KernelRunDriver
                             RunDriveStatus.UnexpectedInput, $"{phaseLabel}:context-mismatch", null,
                             _kernel.EffectReceipts.Count),
                         Array.Empty<KernelResult>());
-                var processed = new List<KernelResult>(observation.Proposals.Count);
                 foreach (var proposal in observation.Proposals)
                     processed.Add(_kernel.Process(proposal));
-                return new ObservationPull(null, processed);
+                if (_kernel.CurrentBelief?.ObservationNeed is not null) continue;
+                _observationRecovery.Complete(slot);
+                var completed = processed.ToArray();
+                processed.Clear();
+                _observationPullSlot = null;
+                return new ObservationPull(null, completed);
 
             default:
                 return new ObservationPull(
@@ -3580,6 +3774,33 @@ public sealed class KernelRunDriver
                         _kernel.EffectReceipts.Count),
                     Array.Empty<KernelResult>());
         }
+        }
+    }
+
+    private RunDriveResult RecordObservationRecoveryFailure(string slot, string reason,
+        ObservationContext context, IReadOnlyList<KernelResult> observations)
+    {
+        if (_observationRecoveryFailures.Add(slot) && context == ObservationContext.PostActionEffectFlow)
+        {
+            var evidence = observations.Select(o => o.Admission.EvidenceId).OfType<string>().ToArray();
+            UpdateActivePlanAttempt(PlanAttemptStatus.Rejected,
+                _kernel.EffectReceipts.LastOrDefault()?.ReceiptId, evidence, reason);
+            if (_activeTraversal is not null && _traversalWork is { } work)
+            {
+                _traversal.Gap(work.ContainerId, work.Candidate?.Target.Key, reason, evidence);
+                _traversal.Pause(reason);
+                RecordTraversalState();
+                var facts = new TraversalRecoveryFacts(CurrentPlanPosition(), _kernel.TraversalExecution!,
+                    _planAttempts.ToArray(), _stepsDispatched, _consultCounter);
+                _kernel.RecordTraversalRecovery(facts);
+                _inputs.ObserveTraversalRecovery?.Invoke(facts);
+            }
+        }
+        // No Run failure or automatic Back. The original verification position
+        // stays closed to late authorization; existing Recovery receives facts.
+        return new RunDriveResult(context == ObservationContext.PostActionEffectFlow
+            ? RunDriveStatus.VerificationFailed : RunDriveStatus.GroundingFailed,
+            reason, null, _kernel.EffectReceipts.Count);
     }
 
     /// <summary>

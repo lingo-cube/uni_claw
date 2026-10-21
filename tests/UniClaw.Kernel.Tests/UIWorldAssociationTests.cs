@@ -236,8 +236,8 @@ public sealed class UIWorldAssociationTests
     public void S7_ConflictingAcceptedEvidenceRecordsConflict_NoLatestWins()
     {
         var kernel = UIWorldDoubles.NewKernel(new SignatureAssociationStrategy());
-        var first = kernel.Process(UIWorldDoubles.Observation("page:a:v1", UIWorldDoubles.T0));
-        var second = kernel.Process(UIWorldDoubles.Observation("page:b:v1", UIWorldDoubles.T1));
+        var first = kernel.Process(UIWorldDoubles.Observation("page:a:v1", UIWorldDoubles.T0, "scope:same-capture"));
+        var second = kernel.Process(UIWorldDoubles.Observation("page:b:v1", UIWorldDoubles.T1, "scope:same-capture"));
 
         var revision = second.ResultingRevision!;
         var conflict = Assert.Single(revision.Conflicts);

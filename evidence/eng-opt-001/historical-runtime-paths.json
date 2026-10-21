@@ -1,0 +1,826 @@
+{
+  "files": [
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134255-145/capability-facts.json",
+      "sha256": "c05c7931c57ac394f200aff75b96e00a50427d0d014c01467c864eace51a3c04",
+      "bytes": 820
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134255-145/capability-profiles.json",
+      "sha256": "24f89d31464a5c1d7e882750b4c5027a335cce3f2d63fad776e3026421db2e61",
+      "bytes": 941
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134255-145/coverage-report.json",
+      "sha256": "d8284106682303e2094e6857323890c29b6d8233c7fb595a630a655e7dc4cb91",
+      "bytes": 1305
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134255-145/coverage-steps.json",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "bytes": 2
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134255-145/environment-preflight.json",
+      "sha256": "9b2340bd1ddc1aa91accc587c6e1d6e5bdec2b1b08cd55c3800ba3a6f677a7d0",
+      "bytes": 209
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134255-145/evidence/capture-3f984461426e433d8f21c644d363946b.png",
+      "sha256": "c7a5975e5ec7a621a716999acbad724b31d78bbfb70720c27a974e07631b6feb",
+      "bytes": 109880
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134255-145/evidence/capture-3f984461426e433d8f21c644d363946b.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134255-145/exec.journal",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134255-145/facts.json",
+      "sha256": "0c18deb1bfa7aca3ffbcfe433b423f47af83a32e94e01cee5e0ead702015fd70",
+      "bytes": 2035
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134255-145/settings-trace.json",
+      "sha256": "a6cc7338f9ab301783149237ed803d8472180f0dad83344c26b4b354308ef24d",
+      "bytes": 882
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134255-145/trace.json",
+      "sha256": "336d340fffcd5a3194e00d0619afb0b64179b03701feed3739dd49c84df68ec5",
+      "bytes": 861086
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134356-439/capability-facts.json",
+      "sha256": "c05c7931c57ac394f200aff75b96e00a50427d0d014c01467c864eace51a3c04",
+      "bytes": 820
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134356-439/capability-profiles.json",
+      "sha256": "24f89d31464a5c1d7e882750b4c5027a335cce3f2d63fad776e3026421db2e61",
+      "bytes": 941
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134356-439/coverage-report.json",
+      "sha256": "d8284106682303e2094e6857323890c29b6d8233c7fb595a630a655e7dc4cb91",
+      "bytes": 1305
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134356-439/coverage-steps.json",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "bytes": 2
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134356-439/environment-preflight.json",
+      "sha256": "a7e1f73df569fe2b85d0b0679b68f091abb05b50e12e9ecfc33770d8f794ca52",
+      "bytes": 209
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134356-439/evidence/capture-1a451c9429c1499b96a38c8bda9d7e9c.png",
+      "sha256": "fd4acdde7e59db87a6307c0a9f56b2fb7de3a3c5c2226b8c7f88e0d9cfabe5a2",
+      "bytes": 109951
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134356-439/evidence/capture-1a451c9429c1499b96a38c8bda9d7e9c.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134356-439/exec.journal",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134356-439/facts.json",
+      "sha256": "9bad5bf6389667cabe898d95f8e13adccea0f831049104cbcfd5188284510115",
+      "bytes": 2035
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134356-439/settings-trace.json",
+      "sha256": "3265fcf18934b4ba905f5f071d2c8c19565646e2ad56754f958516db62e77489",
+      "bytes": 882
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134356-439/trace.json",
+      "sha256": "d92dddf67237bc8ad0445d2124099f10ad9bd45270ec91c4657b3fa18ebc4767",
+      "bytes": 861086
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/capability-facts.json",
+      "sha256": "c05c7931c57ac394f200aff75b96e00a50427d0d014c01467c864eace51a3c04",
+      "bytes": 820
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/capability-profiles.json",
+      "sha256": "24f89d31464a5c1d7e882750b4c5027a335cce3f2d63fad776e3026421db2e61",
+      "bytes": 941
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/coverage-report.json",
+      "sha256": "20ca0022333f7eed9e0d8e005fdbc5ead85c208ad4322b711e22ec782cc29317",
+      "bytes": 2171
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/coverage-steps.json",
+      "sha256": "d2631cce70833778de263fc05bc7375db20293610e093d1b97d95c2ed7186a0b",
+      "bytes": 24697
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/environment-preflight.json",
+      "sha256": "737de19d838de471743392aaaa3f9f22f874ece22b466d1d81f995d09c2201a1",
+      "bytes": 209
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-125f39349a67408e86aea447286d5125.png",
+      "sha256": "756693f1f302c284ee219e33223d385469857e153d23e793f89928193d7c302a",
+      "bytes": 109772
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-125f39349a67408e86aea447286d5125.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-1d63282a2b014e8bb79e57fc3c75f331.png",
+      "sha256": "ccebc56a4211620a6c08f09da3a4fbc1d8605fdf58b750ad060eef4f3ff7f6a4",
+      "bytes": 74541
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-1d63282a2b014e8bb79e57fc3c75f331.xml",
+      "sha256": "a9a83adfc331f28ef3b7324f23aadcfd27f567369b559bf7aaedeee4b002644c",
+      "bytes": 10956
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-3685d8924df54f2fba5ef168960ca077.png",
+      "sha256": "2b8419b35f4d6cfc60fa2070cfb53c981bf8e0daafd6d8ed4dd58b6b5eaa3ece",
+      "bytes": 73690
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-3685d8924df54f2fba5ef168960ca077.xml",
+      "sha256": "848f46b459f2353f636f287799f36e9498e8aabf9ae4c80e53998a7b901629a6",
+      "bytes": 7176
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-41a7ccaa267c4797b718f75b6d9ffd4c.png",
+      "sha256": "e7598142902008d0d3344f7524ac9f408c963835fbe9f264547d281d5c230c14",
+      "bytes": 97526
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-41a7ccaa267c4797b718f75b6d9ffd4c.xml",
+      "sha256": "e5d7bc3b5229fb58e67adaf5a0e4ad9599774a4a5f0b1ee61747b439c47ee97a",
+      "bytes": 21053
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-4c60f82d77e94f109fa451bfbb90e5c4.png",
+      "sha256": "f75a31c679d870d222d07a1cb638ae5576372474d47daacf06d6fb287b93b05a",
+      "bytes": 130847
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-4c60f82d77e94f109fa451bfbb90e5c4.xml",
+      "sha256": "25fbd089e2f51796a8e7bc4180df9ed72c40cef892e1666f97a631831e6b57a3",
+      "bytes": 26914
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-59ec60a977284355b90e9630aa395cc0.png",
+      "sha256": "dc55a530c43f1c7a017a5431c84e7928bceb90a35d975c30e0da38fb4bcfacf1",
+      "bytes": 113952
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-59ec60a977284355b90e9630aa395cc0.xml",
+      "sha256": "a5da2e1b17a4e20db659ee5f29e6f25e2e0f9e0b5f334a6ba12c4b7e4ff9f180",
+      "bytes": 24243
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-6f4773e64e38400280999996abb60957.png",
+      "sha256": "72753ebf6b381d4b9e87991b1f2c3aeea9dd94018979d08be52cecf43836fa13",
+      "bytes": 131125
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-6f4773e64e38400280999996abb60957.xml",
+      "sha256": "25fbd089e2f51796a8e7bc4180df9ed72c40cef892e1666f97a631831e6b57a3",
+      "bytes": 26914
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-7349f24cb8d546868dc698f8db10386a.png",
+      "sha256": "72753ebf6b381d4b9e87991b1f2c3aeea9dd94018979d08be52cecf43836fa13",
+      "bytes": 131125
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-7349f24cb8d546868dc698f8db10386a.xml",
+      "sha256": "25fbd089e2f51796a8e7bc4180df9ed72c40cef892e1666f97a631831e6b57a3",
+      "bytes": 26914
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-791d522f26da4243862f93ff4532b549.png",
+      "sha256": "5cf3ce2f1ed234a418a40117d45a412988c655c237075f20b85bd5301254bdc4",
+      "bytes": 106861
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-791d522f26da4243862f93ff4532b549.xml",
+      "sha256": "32c4a81a00e5652f5f5e96773c4b2c81cd9d3607f1b8a561c7501df6dd65b011",
+      "bytes": 15989
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-7ab62d5929014d38b8f113474ab39ddf.png",
+      "sha256": "d7be282263cc2c29f35d6da3f4194146aacafc32aa54457111cb4a4c68015854",
+      "bytes": 109883
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-7ab62d5929014d38b8f113474ab39ddf.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-810cff26b9b743518671a4aa9a13b47b.png",
+      "sha256": "5e144f1969c1a281cf7e083687d9e861adea7f76ddbef29402a8e999ce6c0790",
+      "bytes": 85055
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-810cff26b9b743518671a4aa9a13b47b.xml",
+      "sha256": "81a58ade90591512e709f235e724fcdb5e2af91222191e8db8583224e7250503",
+      "bytes": 13439
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-877754919fc147269e657e1d6ebb93a8.png",
+      "sha256": "64d772afce8b7c6e7b315a94327571b22a1b3175bb898fd6ff11e9f0e89e35ce",
+      "bytes": 115502
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-877754919fc147269e657e1d6ebb93a8.xml",
+      "sha256": "a6caf448ab0e1dd89337d38070cfdd2b2c1b7c4d842d84e343b24540f280e100",
+      "bytes": 15527
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-88bf7f43de264569b7b41d5a837a4da3.png",
+      "sha256": "d624e420a412092becafa150ff2195682bf572609a9ce858d791c58d9d3f6513",
+      "bytes": 109163
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-88bf7f43de264569b7b41d5a837a4da3.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-949c996b2a8f4fe292a830e696c748c4.png",
+      "sha256": "756693f1f302c284ee219e33223d385469857e153d23e793f89928193d7c302a",
+      "bytes": 109772
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-949c996b2a8f4fe292a830e696c748c4.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-a6db264a2f5f4e588fa6ea4dde0e2c7a.png",
+      "sha256": "72753ebf6b381d4b9e87991b1f2c3aeea9dd94018979d08be52cecf43836fa13",
+      "bytes": 131125
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-a6db264a2f5f4e588fa6ea4dde0e2c7a.xml",
+      "sha256": "25fbd089e2f51796a8e7bc4180df9ed72c40cef892e1666f97a631831e6b57a3",
+      "bytes": 26914
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-c1ece5db0a0142c89ff34fc394e577b3.png",
+      "sha256": "44652bc42f2124f3eb5f72d92445658a29e2b431c9536ad710fc809992f58dc0",
+      "bytes": 131138
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-c1ece5db0a0142c89ff34fc394e577b3.xml",
+      "sha256": "25fbd089e2f51796a8e7bc4180df9ed72c40cef892e1666f97a631831e6b57a3",
+      "bytes": 26914
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-d56bd07b3b0c42979054dc653833c2d6.png",
+      "sha256": "1f417b2fcea122c2836633cb10f1f8fb7e4d4fd9056ac2c7521b4f116e73abf9",
+      "bytes": 74218
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-d56bd07b3b0c42979054dc653833c2d6.xml",
+      "sha256": "a9a83adfc331f28ef3b7324f23aadcfd27f567369b559bf7aaedeee4b002644c",
+      "bytes": 10956
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-e210f1852c76422496b6910022fc8842.png",
+      "sha256": "d624e420a412092becafa150ff2195682bf572609a9ce858d791c58d9d3f6513",
+      "bytes": 109163
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-e210f1852c76422496b6910022fc8842.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-f38b7e9339ce488087b630c133975f0d.png",
+      "sha256": "756693f1f302c284ee219e33223d385469857e153d23e793f89928193d7c302a",
+      "bytes": 109772
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-f38b7e9339ce488087b630c133975f0d.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-f7cb03f23dd34c38b22a6bda2140f69c.png",
+      "sha256": "57e69293c6cbd256c725e58ec9f2d87eec22453c5977f837765856bb888d7427",
+      "bytes": 97995
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/evidence/capture-f7cb03f23dd34c38b22a6bda2140f69c.xml",
+      "sha256": "17b180197d1eb988c7b6e23438e8df6cae2eae7a9a9dc86f8c0d2e2f70b049ef",
+      "bytes": 20378
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/exec.journal",
+      "sha256": "7bc5e556ee733966b2276a16209a875a12e430a23e058733365cef12555e8390",
+      "bytes": 29372
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/facts.json",
+      "sha256": "91b561f5e548a4acd445694814b3651cf4b3643a3ad040816c99618d5ab6dc7a",
+      "bytes": 15433
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/settings-trace.json",
+      "sha256": "810e94ecaeaa7a5ad78277796ea495904b8fcf7fbfc78cb4d1c722a858c0724b",
+      "bytes": 17638
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/trace.json",
+      "sha256": "9002d710891c5374c2b391e8c9ca263df3848ac01f8262658db2f6f4623ef451",
+      "bytes": 17659189
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/environment-preflight.json",
+      "sha256": "ce8d122b1343c97273af984c9faf4a2c1146b7cb7d783664604ae05894485903",
+      "bytes": 209
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-0865bfa05a9041e08093c31224f0479c.png",
+      "sha256": "2c7292aa8dc8691de25bb8fc0f431f1ff0c5f5edcb2798f00866a795bfc434b4",
+      "bytes": 132868
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-0865bfa05a9041e08093c31224f0479c.xml",
+      "sha256": "84561fe91005eee8995645adea0792e7257bbb03e6d69d11f48e2f92fc976199",
+      "bytes": 26177
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-1009a92b319a4e65952dce32412a5b4a.png",
+      "sha256": "b94f8c13afc5285eb507639c23650b8e6258e7369f450da4fcd82ba0ab4a2569",
+      "bytes": 109203
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-1009a92b319a4e65952dce32412a5b4a.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-390ad41dd33248f68f7448366568ab77.png",
+      "sha256": "d162f8628116f6cce5076fe9903cb0f0d1cbe2ae6b689cfeb243eb46f022c7fe",
+      "bytes": 132542
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-390ad41dd33248f68f7448366568ab77.xml",
+      "sha256": "84561fe91005eee8995645adea0792e7257bbb03e6d69d11f48e2f92fc976199",
+      "bytes": 26177
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-3b5ae9aba63e4acf93aec4e30ce08de4.png",
+      "sha256": "7727e9321b6e103d9be3384dc12dbe9e9b2198f1b38d71acc56a0cc6325e273a",
+      "bytes": 73869
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-3b5ae9aba63e4acf93aec4e30ce08de4.xml",
+      "sha256": "a9a83adfc331f28ef3b7324f23aadcfd27f567369b559bf7aaedeee4b002644c",
+      "bytes": 10956
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-3bd7dd61aad4442fbb504f4d8ab3adf7.png",
+      "sha256": "0710d0feefdaf33ae9318f300854b7f057322bf8afbf931a2dc92c33caf456a4",
+      "bytes": 114897
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-3bd7dd61aad4442fbb504f4d8ab3adf7.xml",
+      "sha256": "a6caf448ab0e1dd89337d38070cfdd2b2c1b7c4d842d84e343b24540f280e100",
+      "bytes": 15527
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-3d91babc18644481b252660c757f0d6a.png",
+      "sha256": "973f4ce939190d8771f0f9718c95b6e2f4ef6104a9d33f0cf0a300c4f9332c81",
+      "bytes": 109971
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-3d91babc18644481b252660c757f0d6a.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-41abf2b5ada14ed3b8f0754d0420e65d.png",
+      "sha256": "9c8a2857b348427f8342afb54f79c87014e8498177061eb673d814c0b2fce54e",
+      "bytes": 115800
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-41abf2b5ada14ed3b8f0754d0420e65d.xml",
+      "sha256": "a6caf448ab0e1dd89337d38070cfdd2b2c1b7c4d842d84e343b24540f280e100",
+      "bytes": 15527
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-5631b3ccff2441df970e5eed84a6223d.png",
+      "sha256": "b94f8c13afc5285eb507639c23650b8e6258e7369f450da4fcd82ba0ab4a2569",
+      "bytes": 109203
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-5631b3ccff2441df970e5eed84a6223d.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-5e48f0cff3e6463ca23237a18affc398.png",
+      "sha256": "e71a04efb1844783e739b46bdefb3b0e7507992b87ab0d08c9fcffd7c5399c30",
+      "bytes": 73850
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-5e48f0cff3e6463ca23237a18affc398.xml",
+      "sha256": "848f46b459f2353f636f287799f36e9498e8aabf9ae4c80e53998a7b901629a6",
+      "bytes": 7176
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-8c85f48b3df2481a90a87818f03d299b.png",
+      "sha256": "a567098c394c38298bf23bba5deb42352c79f026dddb5a53a6f7a03c1341fa35",
+      "bytes": 133418
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-8c85f48b3df2481a90a87818f03d299b.xml",
+      "sha256": "84561fe91005eee8995645adea0792e7257bbb03e6d69d11f48e2f92fc976199",
+      "bytes": 26177
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-9426244d4ec0492199620459c2effc5c.png",
+      "sha256": "fb7e969f8dd8fe52c74ea7c2bdf2c3b8dc78e10d9b4df6f139cfb6e196f54dc6",
+      "bytes": 114066
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-9426244d4ec0492199620459c2effc5c.xml",
+      "sha256": "a5da2e1b17a4e20db659ee5f29e6f25e2e0f9e0b5f334a6ba12c4b7e4ff9f180",
+      "bytes": 24243
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-9b55cd92fc704cdcb45cb1aadb9362ce.png",
+      "sha256": "eed729b005da9b2ef222794f987c806f6b07ae3e8911044615638010f831de8b",
+      "bytes": 133363
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-9b55cd92fc704cdcb45cb1aadb9362ce.xml",
+      "sha256": "84561fe91005eee8995645adea0792e7257bbb03e6d69d11f48e2f92fc976199",
+      "bytes": 26177
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-9f685d94e15942689a4c5045ad7cf06a.png",
+      "sha256": "b94f8c13afc5285eb507639c23650b8e6258e7369f450da4fcd82ba0ab4a2569",
+      "bytes": 109203
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-9f685d94e15942689a4c5045ad7cf06a.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-a0da483b786b495b99fb0ab68f2cba2d.png",
+      "sha256": "c448000aadc2f2019194d7ac7c4f9e790ff2c502458d5f4c081129cdcc07a6fc",
+      "bytes": 84396
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-a0da483b786b495b99fb0ab68f2cba2d.xml",
+      "sha256": "81a58ade90591512e709f235e724fcdb5e2af91222191e8db8583224e7250503",
+      "bytes": 13439
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-ad4246b915ed4de7b95fc91a5b62ef7f.png",
+      "sha256": "5d6d11c3437fb2d45645763a5d87ed0f74f5100188a442390347e2f74596c703",
+      "bytes": 98761
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-ad4246b915ed4de7b95fc91a5b62ef7f.xml",
+      "sha256": "17b180197d1eb988c7b6e23438e8df6cae2eae7a9a9dc86f8c0d2e2f70b049ef",
+      "bytes": 20378
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-cd110b65cea642f2845ca69e6b89b038.png",
+      "sha256": "eed729b005da9b2ef222794f987c806f6b07ae3e8911044615638010f831de8b",
+      "bytes": 133363
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-cd110b65cea642f2845ca69e6b89b038.xml",
+      "sha256": "84561fe91005eee8995645adea0792e7257bbb03e6d69d11f48e2f92fc976199",
+      "bytes": 26177
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-e85f83a40e724634b544045c045610fa.png",
+      "sha256": "b94f8c13afc5285eb507639c23650b8e6258e7369f450da4fcd82ba0ab4a2569",
+      "bytes": 109203
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-e85f83a40e724634b544045c045610fa.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-eabf4377530a43879e87669f0e25e069.png",
+      "sha256": "74c6bb12575788eae772540aa3a4a2ab0d3ddd5fc228e75d6cbf368c16d6d6aa",
+      "bytes": 106331
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-eabf4377530a43879e87669f0e25e069.xml",
+      "sha256": "32c4a81a00e5652f5f5e96773c4b2c81cd9d3607f1b8a561c7501df6dd65b011",
+      "bytes": 15989
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-eda964da513a42b3abc0965d1ddfaed0.png",
+      "sha256": "973f4ce939190d8771f0f9718c95b6e2f4ef6104a9d33f0cf0a300c4f9332c81",
+      "bytes": 109971
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-eda964da513a42b3abc0965d1ddfaed0.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-fe96fc06f3e24e189837140d005cb868.png",
+      "sha256": "9d14501c7edc7da6647a3824fe3efdea5c6e7fdd0d6da7a2a10b3d25e393e502",
+      "bytes": 97663
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/evidence/capture-fe96fc06f3e24e189837140d005cb868.xml",
+      "sha256": "e5d7bc3b5229fb58e67adaf5a0e4ad9599774a4a5f0b1ee61747b439c47ee97a",
+      "bytes": 21053
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/exec.journal",
+      "sha256": "eebadfac94f3ef52769de532374512be303fd5771ae11e135543f96044c40ce3",
+      "bytes": 29372
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-134840-062/failure.json",
+      "sha256": "e5ef4c2e54879ada8ce259488bd7e7fdf99a4b2353bac1857dd1297bfd25cec6",
+      "bytes": 437
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/capability-facts.json",
+      "sha256": "c05c7931c57ac394f200aff75b96e00a50427d0d014c01467c864eace51a3c04",
+      "bytes": 820
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/capability-profiles.json",
+      "sha256": "24f89d31464a5c1d7e882750b4c5027a335cce3f2d63fad776e3026421db2e61",
+      "bytes": 941
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/coverage-report.json",
+      "sha256": "20ca0022333f7eed9e0d8e005fdbc5ead85c208ad4322b711e22ec782cc29317",
+      "bytes": 2171
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/coverage-steps.json",
+      "sha256": "e5d130b18ecd2ca21ce768ddffe2103cfbed834b9f1ee0a31929eba403baf272",
+      "bytes": 24697
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/environment-preflight.json",
+      "sha256": "ebb35f75a7e835a37e552d65b80f397c67d104202713708b14f290fa93561bd1",
+      "bytes": 209
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-0a8d515e8cc04174938a760398d5ae48.png",
+      "sha256": "4c3701e4068f5461d78b943d9255942be0585da36e826146b40907a53fbe49db",
+      "bytes": 109966
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-0a8d515e8cc04174938a760398d5ae48.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-0ca010a50373418490b0cb484dff9251.png",
+      "sha256": "d052dcc96f5afe55f7d4e9cd7e7657fc6e3c84a227487ad831d95e9e1f056a56",
+      "bytes": 109518
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-0ca010a50373418490b0cb484dff9251.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-0ce17908fdbc4061a1cc7d44a56f4c35.png",
+      "sha256": "8ea3cc0e4ac84460045e2f5b09a616a40272a3bfae1e19e38b65228142b4b6d5",
+      "bytes": 98334
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-0ce17908fdbc4061a1cc7d44a56f4c35.xml",
+      "sha256": "17b180197d1eb988c7b6e23438e8df6cae2eae7a9a9dc86f8c0d2e2f70b049ef",
+      "bytes": 20378
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-108a30b9a060408ead6b421f66d0a8f5.png",
+      "sha256": "2dfc5f5257c7537525516c38d83e66e6b9f675ba64f1bb79c677b764a634247a",
+      "bytes": 84793
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-108a30b9a060408ead6b421f66d0a8f5.xml",
+      "sha256": "81a58ade90591512e709f235e724fcdb5e2af91222191e8db8583224e7250503",
+      "bytes": 13439
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-37b83cd1772a4a229ebac64e6bc7a6ef.png",
+      "sha256": "ada56fde6da2506d404d24ce5ccfcb5fef537353e7c72f7e818b67ffb92cb4f2",
+      "bytes": 97801
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-37b83cd1772a4a229ebac64e6bc7a6ef.xml",
+      "sha256": "e5d7bc3b5229fb58e67adaf5a0e4ad9599774a4a5f0b1ee61747b439c47ee97a",
+      "bytes": 21053
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-391a529c70314aa9ac14b1e7e01e1294.png",
+      "sha256": "e017555cc15ca1bc8565eb1952def0215fd9b55c27bc6fa2c7f56ec7ad59ed23",
+      "bytes": 131216
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-391a529c70314aa9ac14b1e7e01e1294.xml",
+      "sha256": "680be0db159e2a35fd1831505a6bd6df26ddaf7fe92f169839297631dbf8ffa1",
+      "bytes": 26912
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-3aaf9ac2657a462f827ebb340b9d63de.png",
+      "sha256": "312746797e4f7221226783b9e695908e47a8dd72450c93a3b4bda5d1cb8fc619",
+      "bytes": 109959
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-3aaf9ac2657a462f827ebb340b9d63de.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-3ad6cbf2e3ec4ba19413eede9e268ec5.png",
+      "sha256": "73c1588a324b39a683cebf6c334ddf8119830232cd7c38d07bf276583a52a0c3",
+      "bytes": 107063
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-3ad6cbf2e3ec4ba19413eede9e268ec5.xml",
+      "sha256": "32c4a81a00e5652f5f5e96773c4b2c81cd9d3607f1b8a561c7501df6dd65b011",
+      "bytes": 15989
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-40b5dd10211b49828e91e83316e0ecc9.png",
+      "sha256": "92390943b33c574c3a4a617da02b41e90eaaffbc517d20e91babd17c830aa407",
+      "bytes": 113989
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-40b5dd10211b49828e91e83316e0ecc9.xml",
+      "sha256": "a5da2e1b17a4e20db659ee5f29e6f25e2e0f9e0b5f334a6ba12c4b7e4ff9f180",
+      "bytes": 24243
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-4e923986329246e396d130d5ac56d89f.png",
+      "sha256": "d052dcc96f5afe55f7d4e9cd7e7657fc6e3c84a227487ad831d95e9e1f056a56",
+      "bytes": 109518
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-4e923986329246e396d130d5ac56d89f.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-780c58ee888b457ea8c8cfd799e7ef8c.png",
+      "sha256": "a52c7d6e5ec8cfee63f5ff66bf330244026d5c918041669a9c719476ed73dc14",
+      "bytes": 131325
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-780c58ee888b457ea8c8cfd799e7ef8c.xml",
+      "sha256": "680be0db159e2a35fd1831505a6bd6df26ddaf7fe92f169839297631dbf8ffa1",
+      "bytes": 26912
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-8050021838cf48c085f45adf94722e31.png",
+      "sha256": "312746797e4f7221226783b9e695908e47a8dd72450c93a3b4bda5d1cb8fc619",
+      "bytes": 109959
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-8050021838cf48c085f45adf94722e31.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-8d71ea5628ed4e3b9cf7b2bb89dfa02f.png",
+      "sha256": "9f7af58eb680834c4e4a360a083e07439ab31d796f9799979d0eaeae219848bd",
+      "bytes": 115710
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-8d71ea5628ed4e3b9cf7b2bb89dfa02f.xml",
+      "sha256": "a6caf448ab0e1dd89337d38070cfdd2b2c1b7c4d842d84e343b24540f280e100",
+      "bytes": 15527
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-b024e3bc34a14350a5997a1531caad3e.png",
+      "sha256": "a52c7d6e5ec8cfee63f5ff66bf330244026d5c918041669a9c719476ed73dc14",
+      "bytes": 131325
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-b024e3bc34a14350a5997a1531caad3e.xml",
+      "sha256": "680be0db159e2a35fd1831505a6bd6df26ddaf7fe92f169839297631dbf8ffa1",
+      "bytes": 26912
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-b8ae0ce2ec7a49fd9aff89547ef5ca2d.png",
+      "sha256": "d052dcc96f5afe55f7d4e9cd7e7657fc6e3c84a227487ad831d95e9e1f056a56",
+      "bytes": 109518
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-b8ae0ce2ec7a49fd9aff89547ef5ca2d.xml",
+      "sha256": "5eda893897961cedff2e3a94a67e6b14fad7c9d01e6d1d3e35ccb6acebd38b18",
+      "bytes": 19103
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-c562dd42fb084505892cc648718f6b21.png",
+      "sha256": "b1fb9ee1c2a27fd5facb9b10f5ba5072fe3571edf77290a03e7119650c5b2066",
+      "bytes": 74258
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-c562dd42fb084505892cc648718f6b21.xml",
+      "sha256": "a9a83adfc331f28ef3b7324f23aadcfd27f567369b559bf7aaedeee4b002644c",
+      "bytes": 10956
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-ceed5b0ba21d4356a02130f2fad4ecfa.png",
+      "sha256": "e51fa51d0b1725d103947b3e2a17809227b3ac112afa9a4d8594b2824139e4e5",
+      "bytes": 74945
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-ceed5b0ba21d4356a02130f2fad4ecfa.xml",
+      "sha256": "a9a83adfc331f28ef3b7324f23aadcfd27f567369b559bf7aaedeee4b002644c",
+      "bytes": 10956
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-d23bf0a6af714482a4ecf96ba2bf36ff.png",
+      "sha256": "111c76868e5ab9f7e2e330c4411c29ce615bca31377f414f0cf6f498ae4bbf9f",
+      "bytes": 131203
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-d23bf0a6af714482a4ecf96ba2bf36ff.xml",
+      "sha256": "680be0db159e2a35fd1831505a6bd6df26ddaf7fe92f169839297631dbf8ffa1",
+      "bytes": 26912
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-d867810793a143fb8846c9f8128d88d8.png",
+      "sha256": "a52c7d6e5ec8cfee63f5ff66bf330244026d5c918041669a9c719476ed73dc14",
+      "bytes": 131325
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-d867810793a143fb8846c9f8128d88d8.xml",
+      "sha256": "680be0db159e2a35fd1831505a6bd6df26ddaf7fe92f169839297631dbf8ffa1",
+      "bytes": 26912
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-eda64057026d43fa942ab512d4547417.png",
+      "sha256": "6ae247ba19cdd4cb0313df62b4abe372d7cbaa22d154e201493ed1762504fa65",
+      "bytes": 73927
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/evidence/capture-eda64057026d43fa942ab512d4547417.xml",
+      "sha256": "848f46b459f2353f636f287799f36e9498e8aabf9ae4c80e53998a7b901629a6",
+      "bytes": 7176
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/exec.journal",
+      "sha256": "d9c5a38a2a88c30c92c0c0a4951289f48881bb5b349117c3c96b27144d00e894",
+      "bytes": 29372
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/facts.json",
+      "sha256": "246c4eb4a100f3ccc91b52c52c02c63c992d97afab843d45a937d4a16b579261",
+      "bytes": 14883
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/language-findings.json",
+      "sha256": "39d924514ef8ba7bfd95b2787baafafa2b245653d9f85c703f2bb4b43fb0756c",
+      "bytes": 13889
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/settings-trace.json",
+      "sha256": "e494a6a1f77ddc734d19f904b486281f21bac3af55389873b84a0be3f7729c69",
+      "bytes": 17638
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/trace.json",
+      "sha256": "cd5018c4ce1ee1b2265b3668d9b14b3aa16f9df1c2bebec1eb5000a521115969",
+      "bytes": 17652399
+    }
+  ],
+  "count": 164,
+  "disposition": "preserve-original-path-and-bytes"
+}

@@ -474,23 +474,18 @@ public sealed class UniKernel
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(processedObservations);
 
-        // PER-014 R2：四门等价的 typed 验证路由——语义 checked 权威域
-        // （DesiredState ≠ null）∧ post belief 可经 R1 缝唯一解析目标
-        // occurrence 的 typed checked claim ∧ capture 时序在 dispatch 之后
-        // → typed 定案。语义权威域一旦启用，门不过 / Unknown / Unsupported
-        // 都只能产生 insufficient evidence，禁止退回 occurrence 视觉状态。
-        if (target.DesiredState is not null)
-        {
-            // Semantic authority remains fail-closed even when the caller did
-            // not provide a dispatch timestamp; do not enter the visual path.
-            var current = _world.Current
-                ?? throw new InvalidOperationException("post-action verification requires current belief");
-            if (dispatchTime is not { } dispatched)
-                return InsufficientTypedVerification(current, target, "dispatch-time-missing");
-            var verification = TryRouteTypedVerification(target, dispatched)
-                ?? InsufficientTypedVerification(current, target, "semantic-checked-unresolved");
-            return Assurance.RecordPostActionVerification(verification);
-        }
+        var current = _world.Current;
+        var beliefFacts = current is null ? null : new PostActionBeliefFacts(
+            current.RevisionId,
+            current.CurrentPageObservation?.Capture.CaptureTime,
+            current.CurrentPageObservation?.ContainerId,
+            current.ObservationNeed is not null,
+            target.DesiredState is null ? null : SemanticCheckedResolver.ResolveDetailed(
+                current, new World.UiRealization.TargetDescriptor(target.Role, target.SemanticDescriptor),
+                _ledger.CanonicalRecords));
+        var beliefVerification = Assurance.TryVerifyPostActionFromBelief(target, beliefFacts, dispatchTime);
+        if (beliefVerification is not null)
+            return beliefVerification;
 
         var root = CurrentInteractionContainer(_world.Current)
             ?? throw new InvalidOperationException("post-action verification requires a current container");
@@ -516,22 +511,21 @@ public sealed class UniKernel
         // visual-path 步骤 = 目标可观察在位（navigation transition 由验证
         // 侧豁免）。期望（authoring 侧）与观测证据分离：变化型求值所需的
         // pre/post 派生事实收敛进 ChangeEvidence。
-        var isSwipe = global::UniClaw.Kernel.Effects.AdbEffectDriver.IsSwipeEffect(
-            target.EffectClass.ToLowerInvariant());
+        var isSwipe = target.EffectClass.ToLowerInvariant() is "swipe-up" or "swipe-down";
         var expected = isSwipe
             ? ExpectedEffect.OfChanges(
                 ChangePredicate.RouteStable, ChangePredicate.ContentChanged)
             : ExpectedEffect.OfState(target.Role, "present");
-        // 滚动内容变化 = pre-dispatch 与当前可见 occurrence
-        // (role, descriptor) 集合不对称（滚动露出新条目/收起旧条目均算）；
-        // 集合对称的滚动 = 未生效，由 Assurance fail closed。
+        // A small scroll can move the same visible rows without exposing a new
+        // label. Compare observed geometry as well; occurrence ids/capture ids
+        // must not make an unchanged viewport appear to have moved.
         bool? visibleContentChanged = null;
         if (isSwipe && preActionBelief?.Occurrences is { } beforeOccurrences)
         {
             var before = beforeOccurrences
-                .Select(o => (o.Role, o.SemanticDescriptor)).ToHashSet();
+                .Select(o => (o.Role, o.SemanticDescriptor, o.Locator?.X1, o.Locator?.Y1, o.Locator?.X2, o.Locator?.Y2)).ToHashSet();
             var after = slice.Occurrences
-                .Select(o => (o.Role, o.SemanticDescriptor)).ToHashSet();
+                .Select(o => (o.Role, o.SemanticDescriptor, o.Locator?.X1, o.Locator?.Y1, o.Locator?.X2, o.Locator?.Y2)).ToHashSet();
             visibleContentChanged = !before.SetEquals(after);
         }
         var result = Assurance.VerifyPostActionEffect(
@@ -539,6 +533,29 @@ public sealed class UniKernel
                 expected,
                 TargetDisappearedAfterRouteChange: navigationTransition,
                 Change: new ChangeEvidence(routeBefore, routeAfter, visibleContentChanged)));
+        // WRC-003: same-page scroll connects observations, not containers.
+        // Project only an actual matching dispatch; World derives displacement
+        // from accepted observations and may honestly leave it unknown.
+        if (result.IsVerified && isSwipe && preActionBelief is { } scrollSource
+            && _world.Current is { } scrollTarget && dispatchTime is { } dispatchedAt
+            && EffectReceipts.LastOrDefault() is { Outcome: DispatchOutcome.DeliveryCompleted } scrollReceipt
+            && scrollReceipt.DispatchedAt == dispatchedAt && scrollReceipt.RevisionId == scrollSource.RevisionId
+            && Effects.BindingLog.Select(item => item.Canonical).OfType<CanonicalBinding>()
+                .SingleOrDefault(binding => binding.BindingId == scrollReceipt.BindingId) is { } scrollBinding
+            && scrollBinding.EffectClass.Equals(target.EffectClass, StringComparison.OrdinalIgnoreCase)
+            && scrollBinding.TargetOccurrenceId is { } scrollOccurrence
+            && scrollReceipt.TargetSubject == scrollOccurrence
+            && scrollSource.Occurrences?.SingleOrDefault(item => item.OccurrenceId == scrollOccurrence) is { } observedScrollTarget
+            && observedScrollTarget.Role == target.Role
+            && (target.SemanticDescriptor is null || target.SemanticDescriptor == observedScrollTarget.SemanticDescriptor)
+            && CurrentInteractionContainer(scrollSource) is { } scrollContainer)
+        {
+            _world.RecordObservedViewportTransition(new ObservedViewportTransition(
+                scrollSource.RevisionId, scrollTarget.RevisionId, scrollContainer,
+                scrollReceipt.ReceiptId, scrollBinding.BindingId, scrollOccurrence,
+                scrollBinding.EffectClass.ToLowerInvariant(), dispatchedAt, NavigationScope,
+                $"verification:{result.RevisionId}:{scrollReceipt.ReceiptId}"));
+        }
         // The independent Assurance result and accepted pre/post page observations
         // must exist before World can add a navigation relation. Delivery alone
         // and the P22 transition prior never establish this relation.
@@ -561,6 +578,7 @@ public sealed class UniKernel
 
     private static string? CurrentInteractionContainer(WorldBeliefRevision? belief)
     {
+        if (belief?.ObservationNeed is not null) return null;
         if (belief?.WorldState.TryGetValue(WorldModel.CurrentContainerSubject, out var current) == true
             && belief.Containers?.Count(container => container.Identity.ContainerId == current.Value) == 1)
             return current.Value;
@@ -574,89 +592,6 @@ public sealed class UniKernel
     private static bool MatchesTarget(string role, string? descriptor, TargetSpec target) =>
         role == target.Role
         && (target.SemanticDescriptor is null || descriptor == target.SemanticDescriptor);
-
-    /// <summary>
-    /// typed 验证路由执行（PER-014 R2）：经 <see cref="SemanticCheckedResolver"/>
-    /// （R1 只读缝）对 post-action belief 解析目标 role 的 typed checked 值。
-    /// 四门等价重述：
-    /// ① 权威域 = DesiredState ≠ null（Click 型非状态权威域 → 视觉路径）；
-    /// ② 身份唯一 = occurrence 解析恰一（缝内零/多候选 → Unknown → insufficient）；
-    /// ③ 属性有效 = typed claim 仅在 parser 能力/ExactProof 执法通过时发射
-    ///    （TypedHierarchyProposalProjector fail-closed），Observed 即证明；
-    ///    capability 缺席 → Unsupported → fail-closed insufficient；
-    /// ④ 时序 = capture timestamp 严格晚于 dispatchTime。
-    /// 值判定：CheckedState 与 typed DesiredState 相等才 verified；Partial
-    /// 不通过且不回视觉（explicit insufficient-evidence）；Unchecked/Checked
-    /// 不等 = 如实未验证（mismatch 留档）。任一 Unknown/Unsupported 或时序
-    /// 门失败都返回 insufficient（fail-closed，不猜值）。
-    /// </summary>
-    private PostActionEffectVerification? TryRouteTypedVerification(
-        TargetSpec target,
-        DateTimeOffset dispatchTime)
-    {
-        // 门①：字段权威域（无期望终态 = Click 型，非语义 checked 权威域）。
-        if (target.DesiredState is null)
-            return null;
-
-        var current = _world.Current;
-        if (current is null)
-            return null;
-
-        var resolution = SemanticCheckedResolver.ResolveDetailed(
-            current,
-            new World.UiRealization.TargetDescriptor(target.Role, target.SemanticDescriptor),
-            _ledger.CanonicalRecords);
-
-        // 门②/③：occurrence 唯一解析 + typed claim 在案。Unknown（无 claim /
-        // 歧义 / capture 不可判）与 Unsupported（capability 缺席）一律
-        // fail-closed 为语义证据不足；不可降级到视觉 State。
-        if (!resolution.IsObserved)
-            return InsufficientTypedVerification(current, target,
-                resolution.Value.Reason ?? "semantic-checked-unresolved");
-
-        // 门④：时序——capture 必须严格晚于 dispatch（事后新鲜度）。
-        if (resolution.CaptureTimestamp is not { } captureTime || captureTime <= dispatchTime)
-            return InsufficientTypedVerification(current, target, "capture-not-after-dispatch");
-
-        var resolved = resolution.Value.Value!;
-        if (resolved == CheckedState.Partial)
-        {
-            // Partial：tri-state 语义，不得折叠为 off/true——显式证据不足。
-            return new PostActionEffectVerification(
-                current.RevisionId, target, IsVerified: false,
-                new[]
-                {
-                    new AssuranceCheck("typed-route-four-gates", true),
-                    new AssuranceCheck("typed-checked-matches-desired", false),
-                },
-                $"typed-route: insufficient-evidence (partial at {resolution.CaptureId})");
-        }
-
-        var verified = resolved == target.DesiredState;
-        return new PostActionEffectVerification(
-            current.RevisionId, target, verified,
-            new[]
-            {
-                new AssuranceCheck("typed-route-four-gates", true),
-                new AssuranceCheck("typed-checked-matches-desired", verified),
-            },
-            verified ? null : "post-action-desired-state-not-satisfied");
-    }
-
-    private static PostActionEffectVerification InsufficientTypedVerification(
-        WorldBeliefRevision current,
-        TargetSpec target,
-        string reason) =>
-        new(
-            current.RevisionId,
-            target,
-            IsVerified: false,
-            new[]
-            {
-                new AssuranceCheck("typed-route-four-gates", false),
-                new AssuranceCheck("typed-checked-matches-desired", false),
-            },
-            $"typed-route: insufficient-evidence ({reason})");
 
     private RunModel Run => _run ?? throw new InvalidOperationException("Uni Kernel 未组合 Run Model");
 

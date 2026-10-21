@@ -1,0 +1,30 @@
+{
+  "src/UniClaw.Agent/README.md": {
+    "working": "145bfde99cdff8618ca5e9765244734c1bc7029041bc13b196e9c6519d81fe16",
+    "candidate": "db993bcece77deed934d52598c52c6f369e452d3255deb9da94849e48ec4abe1"
+  },
+  "src/UniClaw.Host/README.md": {
+    "working": "d52d40a3a1c191713c923e818b6b1b424c23e366505148eedfc50b49d8e3a39e",
+    "candidate": "0b956c100fa391d3dfdc786c91e9b2a7551ca3c67dee29812cbf6ed23adfc5b7"
+  },
+  "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj": {
+    "working": "b54ea9c5b25b701e1f5c34f4cdd22ee778eb24c1cae4e82fe66ae72ff5abbff6",
+    "candidate": "dcfb6ac939402094ff5e555d72a9755a7dbccafedd38dcecdfa78d2f17c2f663"
+  },
+  "tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj": {
+    "working": "b5ec2717f65e47c5b8dc8157d0c93af366a6e14ab6be9413bf518f4a6916f725",
+    "candidate": "95e06d0d1d120a8fc6de88de2898c75286b58d5e41b58e2f0c293cc495ee1e72"
+  },
+  "docs/analysis/ui-automation-test-function-reuse-inventory-2026-10-20.md": {
+    "working": "4cf04f2cba07d6c1fe88fa67011b3c178a5ba23d676c5ea2397ef2396b34020a",
+    "candidate": "ef0d483cf4faf3aeec18ad919fd1728dde47bf7882c7951ec96281fe116ebd18"
+  },
+  "tests/UniClaw.Agent.Dsh.Tests/ObserverProjectionTests.cs": {
+    "working": "bb427c1f4ec704af27962df24796b66086bcf3adc1f57fe90c3e84e975c9a837",
+    "candidate": "6f31d4da06fe595afae3dc1dd2c5f1cde6115d806d03dec4f4b7eba4bd8dfc1d"
+  },
+  "tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs": {
+    "working": "2b7effa9846e3e7b4132518efd24665a17f46e0ffaba72900df4b21a00dd667d",
+    "candidate": "9a81645e178196445a8f0ca2d9ac07940473d9e74a2fd99d80b58b5fb4b574cc"
+  }
+}

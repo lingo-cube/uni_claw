@@ -1,0 +1,7 @@
+{
+  "src/UniClaw.Kernel/UniKernel.cs": "288686e0c7d91ef800351424c8a66e7b95221cb148559409f244a46d8f988cce",
+  "src/UniClaw.Kernel/Assurance/RuntimeAssurance.cs": "ab9e9ee7b5cc8b49b73ba9a72c9b5a52bf44bdc85d55164ef4182e4b86e33c82",
+  "src/UniClaw.Kernel/Assurance/RuntimeAssurance.PostAction.cs": "d1972f355a45b60f14894b65a858900c5901ef6a9c23921ac6ab7ee297d4f7af",
+  "src/UniClaw.Kernel/Assurance/PostActionEffectVerification.cs": "6f1aecbbdf71985284203a400e5feffe62d3d2a63ce0a0540fa284788547b1b6",
+  "src/UniClaw.Kernel/Assurance/README.md": "c20c2bf3bb76995a895cfe230c2d3066377c0b4b669ea64867510ef06ac8444e"
+}

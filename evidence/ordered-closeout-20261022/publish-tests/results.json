@@ -1,0 +1,65 @@
+{
+  "scope": "isolated candidate; first full run other seven projects plus corrected candidate Kernel rerun",
+  "projects": [
+    {
+      "project": "UniClaw.Core.Tests.dll",
+      "total": 14,
+      "passed": 14,
+      "failed": 0,
+      "evidence": "publish-exact_net10.0_20261022010634.trx"
+    },
+    {
+      "project": "UniClaw.FileSystemRealization.Tests.dll",
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "evidence": "publish-exact_net10.0_20261022010635.trx"
+    },
+    {
+      "project": "UniClaw.Agent.Tests.dll",
+      "total": 36,
+      "passed": 36,
+      "failed": 0,
+      "evidence": "publish-exact_net10.0_20261022010636.trx"
+    },
+    {
+      "project": "UniClaw.Simulation.Tests.dll",
+      "total": 252,
+      "passed": 252,
+      "failed": 0,
+      "evidence": "publish-exact_net10.0_20261022010639.trx"
+    },
+    {
+      "project": "UniClaw.Host.Tests.dll",
+      "total": 411,
+      "passed": 411,
+      "failed": 0,
+      "evidence": "publish-exact_net10.0_20261022010704.trx"
+    },
+    {
+      "project": "UniClaw.Host.Dsh.Tests.dll",
+      "total": 56,
+      "passed": 56,
+      "failed": 0,
+      "evidence": "publish-exact_net10.0_20261022010706.trx"
+    },
+    {
+      "project": "UniClaw.Agent.Dsh.Tests.dll",
+      "total": 212,
+      "passed": 212,
+      "failed": 0,
+      "evidence": "publish-exact_net10.0_20261022010708.trx"
+    },
+    {
+      "project": "UniClaw.Kernel.Tests.dll",
+      "total": 1037,
+      "passed": 1037,
+      "failed": 0,
+      "evidence": "publish-kernel-final.trx"
+    }
+  ],
+  "total": 2027,
+  "passed": 2027,
+  "failed": 0,
+  "correction": "Generated protocol JSON omitted initially; included without changing expected behavior. Failed attempts retained."
+}

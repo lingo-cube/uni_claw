@@ -131,10 +131,10 @@ try
     Console.WriteLine($"agent.provider={model.Provider} agent.model={model.Name} dsh.endpoint={bindings.Service.BaseUri} model.realization={DshModelManagement.RealizationName}");
     // AGT-017：peer 提前创建，决策通道与 Slow 桥共享同一 attached 会话
     //（/slow 服务端要求 attached 且单飞行）。peer 构造零网络副作用。
-    dshPeer = new DshOpenedHttpPeer(bindings.Service, model: model);
+    dshPeer = new DshOpenedHttpPeer(bindings.Service, model: model, expectedProfile: agentProfile);
     var slowBridge = new DshSlowConsult(
         (requestId, prompt, slowModel, imagePng, cancellationToken) =>
-            dshPeer.ExecuteSlowAsync(requestId, prompt, slowModel, imagePng, cancellationToken),
+            dshPeer.ExecuteSlowAsync(requestId, prompt, slowModel, imagePng, cancellationToken, reasoningEffort: "high"),
         slowTextModel);
     // PER-019：UniPerception 异步 fetch 缝（Host 形状；fetch 界随 slow 配置）。
     var slowSettings = SettingsCoverageConfig.LoadDefault().SlowSettings;
@@ -166,8 +166,11 @@ try
         });
     var modelHealthProbe = new UniClaw.Kernel.Capability.PerceptionHealthSource(
         "slow.text-models", models.CheckHealth);
+    var semanticBridge = new DshSemanticPerception(
+        (requestId, prompt, slowModel, effort, token) => dshPeer.ExecuteSlowAsync(
+            requestId, prompt, slowModel, cancellationToken: token, reasoningEffort: effort), slowTextModel);
     capabilityRegistry = UniClaw.Host.SettingsCoverage.PerceptionCapabilityComposition
-        .RegisterProductPerception(uniPerception: new UniClaw.Kernel.Capability.UniPerceptionCapability(
+        .RegisterProductPerception(uniPerception: semanticBridge.CreateCapability(
             new[] { fastAssetsProbe, modelHealthProbe }));
     // CAP-012：Runtime Integration 域注册语言检查能力（skill 首次全新实战：
     // 确定性 Unicode 脚本规则，Finding 非权威）。
@@ -238,6 +241,9 @@ try
             LanguageInspection: coverageConfig.LanguageInspectionRequest,
             LanguageInspectionSelectionProvider: () => agentLanguageInspectionSelection,
             RuntimeIntegrationCapabilities: runtimeIntegrationRegistry,
+            ProductCapabilities: capabilityRegistry,
+            SemanticPages: new[] { new SemanticPageCandidate("observed-page", "当前观察页面",
+                "只标记当前实际呈现的系统页面；标题从当前文字选择，材料不足为unknown，不猜预期") },
             UseCoverageDirector: !advisoryDirect));
     }
     else

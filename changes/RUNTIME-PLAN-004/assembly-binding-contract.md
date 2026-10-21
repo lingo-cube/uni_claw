@@ -1,0 +1,11 @@
+# Profile装配绑定：独立评审发现与修复选择
+
+A1复核发现：C# Profile校验canonical Prompt/Skill hash，而DSH插件独立加载包内工件并仅校验其自报hash。二者即使同revision而内容不同，原六字段协议握手仍可成功。磁盘同步测试或section名字相等不能使这种错误在运行时拒收。
+
+修复沿用既有DSH装配握手，增加adapter层expectedArtifacts，不修改Kernel AgentDecision、能力协议或Owner：由已验证的Profile提供Prompt hash及单primary Skill的name/revision/sha256。DshOpenedHttpPeer构造时接收并钉扎Profile，生产组合根传入已加载实例；缺省调用方仅在peer构造时加载一次默认Profile，不在咨询期间热读。
+
+DSH在创建会话、咨询或任何Effect之前比较expectedArtifacts与进程已加载的Prompt/Skill，缺失、畸形、任一不等即fail-closed；接受响应回报实际指纹，C#再核对。插件中的全部指纹仍从工件计算，Profile不复制正文，DSH配置不成为第二真相源。既有wire六字段协议身份不变；新增内容是realization装配元数据，不进入Kernel公开协议Schema。
+
+负例必须证明：镜像正文及自报hash一同改写仍被Profile pin拒收；Prompt/Skill分别漂移、缺失元数据、响应报告不一致均拒收且无model prompt。正例须以当前真实3081握手+scope+实际请求正文复验。此修复源于004 Spec P1，属A1必要装配链，不将既有漏洞隐藏为已通过。
+
+另按Standards P2使新ProfileCharter列表防御复制并只读；只修新增职责对象，不扩展为全Profile重构。Skill补正式协议名称和运行装配引用即可，不复制Schema。

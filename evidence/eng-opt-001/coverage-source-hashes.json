@@ -1,0 +1,9 @@
+{
+  "src/UniClaw.Host/SettingsCoverage/CoverageDirective.cs": "0ec2bdecc4d6c5d66c73463b49d31466b55a71206ce08a66c495aa5957c08e5d",
+  "src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.cs": "4b3e7faa3af14f813dd72afdf5986eb09e3b979d3a2ce787e624d98193d9873c",
+  "src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.Directives.cs": "5fb9bf3b55a9111acb108e7a293077c3a213fb4bfe3b7b5698623f05a1de635d",
+  "src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs": "f9633222d5f8195e2784a55026a41793afeb8cb4374cc640ef3b81ed7a5f1511",
+  "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs": "1027bf8dedb56458786d8e52961227009113ae411c309e1cff1ed1e7bce358d3",
+  "src/UniClaw.Host/README.md": "b3a61f6ca5a8e693461697aeb6da85c97d6968cf37a1412581ad9c59817831ce",
+  "tests/UniClaw.Host.Tests/SettingsCoverage/CoverageDirectiveSemanticsTests.cs": "55446df70deb6a154dfb6d76966bb213eb66929014078d75cc414afe08fbecd1"
+}

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Collections.Frozen;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -79,10 +80,13 @@ public sealed class EvidenceLedger
                     : ObservationOrigin.External;
                 record = new EvidenceRecord(
                     id, observation.Claim!, observation.Kind, observation.Context,
-                    observation.Provenance!, derivedOrigin)
+                    observation.Provenance! with
+                    {
+                        TransformationLineage = Array.AsReadOnly(provenance!.TransformationLineage.ToArray()),
+                    }, derivedOrigin)
                 {
-                    DerivedFromEvidenceIds = observation.DerivedFromEvidenceIds,
-                    TransitiveEvidenceBasis = observation.TransitiveEvidenceBasis,
+                    DerivedFromEvidenceIds = Array.AsReadOnly(observation.DerivedFromEvidenceIds.ToArray()),
+                    TransitiveEvidenceBasis = observation.TransitiveEvidenceBasis.ToFrozenSet(StringComparer.Ordinal),
                     FusionRule = observation.FusionRule,
                     FusionVersion = observation.FusionVersion,
                 };

@@ -1,0 +1,32 @@
+{
+  "id": "WI-ORDERED-CLOSEOUT-EVIDENCE",
+  "objective": "只读核对Settings弹窗与轨迹旧任务可复用验收证据，指出最小剩余缺口",
+  "scope": {
+    "write": [
+      "evidence/ordered-closeout-20261022/evidence-readiness.md"
+    ],
+    "read_hints": [
+      "changes/SETTINGS-COVERAGE-004",
+      "evidence/settings-coverage-004",
+      "changes/TRAJECTORY-001",
+      "evidence/trajectory-001",
+      "changes/WORLD-OBSERVATION-001/evidence",
+      "docs/agents/test-emulator.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Leader正在按顺序收口旧任务。旧状态可能过期，不能把新World定向成功当全树覆盖或真实Heartbeat送达。仅核对可复用工件与缺项，禁止设备/模型/服务操作。"
+  },
+  "acceptance": [
+    "指出SETTINGS-COVERAGE-004每项Acceptance是否有可读工件，列准确路径和不足",
+    "查TRAJECTORY-001 H7需要的真实传输字段与可复用新证据，区分模拟和真实",
+    "给出最小后续命令/入口建议，但不执行设备、模型或服务",
+    "仅写指定证据Markdown，不改状态，不将缺证据任务关闭"
+  ],
+  "forbidden": [
+    "不独占代码库，不回退他人修改；共享树有并行任务",
+    "不写src/tests/web/dsh或Change状态",
+    "不读取或输出密钥，不启动/重启/停止服务，不访问设备或调用模型",
+    "不把历史命令或旧环境错误当作当前现场结论"
+  ]
+}

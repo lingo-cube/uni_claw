@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-22",
+  "source": "bounded-live-01 real registered device + formal DSH session export",
+  "consultations": [
+    {
+      "consultation": "01",
+      "decisionId": "decision-2e5c60f8a6ab-1",
+      "dsh_received_exact_context": true,
+      "received_at": {
+        "seq": 10,
+        "type": "user/message",
+        "surfaceOp": "append"
+      },
+      "viewport": {
+        "width": 1080,
+        "height": 1920
+      },
+      "diagnostics": {
+        "hierarchyAvailable": true,
+        "fastAvailable": true,
+        "proposalCount": 638,
+        "fastLatencyMs": 465,
+        "hierarchyLatencyMs": 1977
+      },
+      "containers_present": true,
+      "recent_cycles": 1,
+      "heartbeat_present": false,
+      "casePacket_present": false
+    },
+    {
+      "consultation": "02",
+      "decisionId": "decision-2e5c60f8a6ab-2",
+      "dsh_received_exact_context": true,
+      "received_at": {
+        "seq": 26,
+        "type": "user/message",
+        "surfaceOp": "append"
+      },
+      "viewport": {
+        "width": 1080,
+        "height": 1920
+      },
+      "diagnostics": {
+        "hierarchyAvailable": true,
+        "fastAvailable": true,
+        "proposalCount": 693,
+        "fastLatencyMs": 486,
+        "hierarchyLatencyMs": 2154
+      },
+      "containers_present": true,
+      "recent_cycles": 2,
+      "heartbeat_present": false,
+      "casePacket_present": false
+    },
+    {
+      "consultation": "03",
+      "decisionId": "decision-2e5c60f8a6ab-3",
+      "dsh_received_exact_context": true,
+      "received_at": {
+        "seq": 40,
+        "type": "user/message",
+        "surfaceOp": "append"
+      },
+      "viewport": {
+        "width": 1080,
+        "height": 1920
+      },
+      "diagnostics": {
+        "hierarchyAvailable": true,
+        "fastAvailable": true,
+        "proposalCount": 538,
+        "fastLatencyMs": 475,
+        "hierarchyLatencyMs": 2803
+      },
+      "containers_present": true,
+      "recent_cycles": 3,
+      "heartbeat_present": false,
+      "casePacket_present": false
+    }
+  ],
+  "limits": [
+    "No natural stagnation event occurred; all heartbeat/casePacket fields absent, H7 not proven",
+    "Observed LocalView delivery is partial AGT-019 evidence, not threshold calibration or all-tree proof",
+    "Product changed afterward only for route attribution; no post-fix live run claimed"
+  ]
+}

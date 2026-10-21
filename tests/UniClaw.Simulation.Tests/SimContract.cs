@@ -510,6 +510,8 @@ internal sealed record SeamOverrides
     public Func<UniClaw.Kernel.Runtime.PlanLanguageHandler, bool>? CanBindPlanLanguage { get; init; }
     public Func<UniClaw.Kernel.Runtime.PlanLanguageHandler, UniClaw.Kernel.Runtime.PlanHandlerInput,
         UniClaw.Kernel.Capability.Finding?>? InspectPlanLanguage { get; init; }
+    public Func<UniClaw.Kernel.Runtime.PlanLanguageHandler, UniClaw.Kernel.Runtime.PlanHandlerInput,
+        CancellationToken, ValueTask<UniClaw.Kernel.Capability.Finding?>>? InspectPlanLanguageAsync { get; init; }
     public Action<UniClaw.Kernel.Runtime.TraversalRecoveryFacts>? ObserveTraversalRecovery { get; init; }
     public TimeSpan? PlanHandlerTimeout { get; init; }
 

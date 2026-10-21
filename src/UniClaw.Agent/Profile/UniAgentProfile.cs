@@ -5,6 +5,39 @@ namespace UniClaw.Agent.Profile;
 /// 是拒启（true）还是诚实 NotConfigured（false）。</summary>
 public sealed record ModelRoleDeclaration(string Role, bool Required);
 
+/// <summary>Stable semantic charter for the product agent. It describes role,
+/// responsibilities, boundaries and planning posture; it grants no capability
+/// and contains no task-specific UI procedure.</summary>
+public sealed record ProfileCharter
+{
+    public ProfileCharter(
+        string role,
+        IReadOnlyList<string> responsibilities,
+        IReadOnlyList<string> boundaries,
+        IReadOnlyList<string> planningPrinciples,
+        IReadOnlyList<string> skillUse)
+    {
+        ArgumentNullException.ThrowIfNull(role);
+        Role = role;
+        Responsibilities = Copy(responsibilities, nameof(responsibilities));
+        Boundaries = Copy(boundaries, nameof(boundaries));
+        PlanningPrinciples = Copy(planningPrinciples, nameof(planningPrinciples));
+        SkillUse = Copy(skillUse, nameof(skillUse));
+    }
+
+    public string Role { get; }
+    public IReadOnlyList<string> Responsibilities { get; }
+    public IReadOnlyList<string> Boundaries { get; }
+    public IReadOnlyList<string> PlanningPrinciples { get; }
+    public IReadOnlyList<string> SkillUse { get; }
+
+    private static IReadOnlyList<string> Copy(IReadOnlyList<string> source, string parameterName)
+    {
+        ArgumentNullException.ThrowIfNull(source, parameterName);
+        return Array.AsReadOnly(source.ToArray());
+    }
+}
+
 /// <summary>产品工件引用（PRF-005/ADR-0041）：路径相对仓库根，hash 是工件
 /// 内容指纹；loader 在装配时 fail-closed 校验（存在 + hash 匹配）。</summary>
 public sealed record AssemblyReference(string Path, string Hash);
@@ -25,6 +58,7 @@ public sealed record ProfileAssembly(
 public sealed record UniAgentProfile(
     ProductProfile Identity,
     int Revision,
+    ProfileCharter Charter,
     IReadOnlyList<ModelRoleDeclaration> ModelRoles,
     ProfileAssembly? Assembly = null,
     IReadOnlyList<SkillReference>? AllowedSkillRefs = null);

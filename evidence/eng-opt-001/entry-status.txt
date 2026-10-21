@@ -1,0 +1,666 @@
+ M .agents/skills/capability-component/SKILL.md
+ M .dsh/product/uniagent-prod-bindings.yaml
+ M CONTEXT.md
+ M changes/INDEX.md
+ M changes/RUNTIME-PLAN-002/execution-contract.md
+ M docs/agents/test-emulator.md
+ M docs/analysis/README.md
+ M docs/architecture/perception-provider-baseline-v0.1.md
+ M docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md
+ M docs/architecture/protocols/protocol-map.generated.md
+ M docs/architecture/uworld-protocol-baseline-l4.md
+ M docs/capability-hub/customization-integration-development-protocol-v0.1.md
+ M docs/protocol-cards/control-loop.md
+ M docs/protocol-cards/world-model.md
+ M dsh/uniclaw-decision-channel/README.md
+ M dsh/uniclaw-decision-channel/prompt/01-identity.txt
+ M dsh/uniclaw-decision-channel/prompt/02-output-discipline.txt
+ M dsh/uniclaw-decision-channel/prompt/03-payload-shapes.txt
+ M dsh/uniclaw-decision-channel/prompt/manifest.json
+ M dsh/uniclaw-decision-channel/prompt/prompt-hash.txt
+ M dsh/uniclaw-decision-channel/schema/product-protocol.schema.json
+ M dsh/uniclaw-decision-channel/schema/schema-hash.txt
+ M dsh/uniclaw-decision-channel/skill/android-automotive-ui-testing/guidance.md
+ M dsh/uniclaw-decision-channel/skill/android-automotive-ui-testing/manifest.yaml
+ M dsh/uniclaw-decision-channel/skill/android-automotive-ui-testing/skill-hash.txt
+ M dsh/uniclaw-decision-channel/src/index.js
+ M dsh/uniclaw-decision-channel/tests/plugin.test.mjs
+ M product/profiles/uniagent-prod.yaml
+ M product/prompt/uniagent-prod/01-identity.txt
+ M product/prompt/uniagent-prod/02-output-discipline.txt
+ M product/prompt/uniagent-prod/03-payload-shapes.txt
+ M product/prompt/uniagent-prod/manifest.json
+ M product/prompt/uniagent-prod/prompt-hash.txt
+ M product/skills/android-automotive-ui-testing/guidance.md
+ M product/skills/android-automotive-ui-testing/manifest.yaml
+ M scenarios/SCN-BARRIER-001.json
+ M scenarios/SCN-BARRIER-002.json
+ M scenarios/SCN-BARRIER-003.json
+ M scenarios/SCN-POLICY-001.json
+ M scenarios/SCN-POLICY-002.json
+ M scenarios/SCN-POLICY-003.json
+ M scenarios/SCN-POLICY-004.json
+ M scenarios/SCN-POLICY-005.json
+ M scenarios/SCN-POLICY-006.json
+ M scenarios/SCN-POLICY-007.json
+ M scenarios/SCN-POLICY-008.json
+ M scenarios/SCN-POLICY-009.json
+ M scenarios/SCN-POLICY-010.json
+ M scenarios/SCN-POLICY-011.json
+ M scenarios/SCN-WIFI-001.json
+ M scenarios/SCN-WIFI-002.json
+ M scenarios/SCN-WIFI-003.json
+ M scenarios/SCN-WIFI-004.json
+ M scenarios/SCN-WIFI-005.json
+ M scenarios/SCN-WIFI-006.json
+ M schemas/agt-002/product-protocol.d.ts
+ M schemas/agt-002/product-protocol.schema.json
+ M schemas/protocol/state-machine.yaml
+ M src/UniClaw.Agent.Dsh/DshOpenedHttpPeer.cs
+ M src/UniClaw.Agent.Dsh/ProtocolModels.cs
+ M src/UniClaw.Agent.Dsh/ProtocolSchema.cs
+ M src/UniClaw.Agent/Profile/UniAgentProfile.cs
+ M src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs
+ M src/UniClaw.Host.Dsh/Program.cs
+ M src/UniClaw.Host.Dsh/RuntimeHttpServer.cs
+ M src/UniClaw.Host/Capability/TraversalLanguageInspection.cs
+ M src/UniClaw.Host/CurrentPageAnchor.cs
+ M src/UniClaw.Host/README.md
+ M src/UniClaw.Host/Runtime/FileConsultationJournal.cs
+ M src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs
+ M src/UniClaw.Host/SettingsCoverage/SettingsCoverageConfig.cs
+ M src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs
+ M src/UniClaw.Host/SettingsCoverage/SettingsTraversalProjection.cs
+ M src/UniClaw.Host/SettingsPageIdentity.cs
+ M src/UniClaw.Host/SettingsTraversalLiveFeed.cs
+ M src/UniClaw.Host/UiHierarchyOccurrenceStrategy.cs
+ M src/UniClaw.Kernel/Capability/CapabilityHub.cs
+ M src/UniClaw.Kernel/Capability/README.md
+ M src/UniClaw.Kernel/Capability/UniPerceptionCapability.cs
+ M src/UniClaw.Kernel/Control/README.md
+ M src/UniClaw.Kernel/Control/TraversalControl.cs
+ M src/UniClaw.Kernel/Perception/FastPerception.cs
+ M src/UniClaw.Kernel/Perception/README.md
+ M src/UniClaw.Kernel/Run/RunModel.cs
+ M src/UniClaw.Kernel/Runtime/KernelRunDriver.cs
+ M src/UniClaw.Kernel/Runtime/README.md
+ M src/UniClaw.Kernel/Runtime/RunDriverInputs.cs
+ M src/UniClaw.Kernel/Runtime/TraversalExecution.cs
+ M src/UniClaw.Kernel/UniKernel.cs
+ M src/UniClaw.Kernel/World/README.md
+ M src/UniClaw.Kernel/World/SpatialLocator.cs
+ M src/UniClaw.Kernel/World/UiRealization/ProductAssociationStrategy.cs
+ M src/UniClaw.Kernel/World/UiRealization/UiEntityModel.cs
+ M src/UniClaw.Kernel/World/WorldBeliefRevision.cs
+ M src/UniClaw.Kernel/World/WorldModel.cs
+ M tests/UniClaw.Agent.Dsh.Tests/DshModelManagementTests.cs
+ M tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs
+ M tests/UniClaw.Agent.Dsh.Tests/TraversalProtocolTests.cs
+ M tests/UniClaw.Agent.Tests/UniAgentProfileYamlTests.cs
+ M tests/UniClaw.Host.Dsh.Tests/InitializationEnvelopeTests.cs
+ M tests/UniClaw.Host.Tests/FileConsultationJournalTests.cs
+ M tests/UniClaw.Host.Tests/SettingsCoverageScenarioTests.cs
+ M tests/UniClaw.Host.Tests/SettingsPageIdentityTests.cs
+ M tests/UniClaw.Host.Tests/TraversalOwnerBindingTests.cs
+ M tests/UniClaw.Kernel.Tests/Protocol/protocol-machine.generated.json
+ M tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs
+ M tests/UniClaw.Kernel.Tests/Runtime/TraversalExecutionTests.cs
+ M tests/UniClaw.Kernel.Tests/SourceReadmeOwnershipTests.cs
+ M tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs
+ M tests/UniClaw.Kernel.Tests/UIWorldDoubles.cs
+ M tests/UniClaw.Kernel.Tests/World/ProductAssociationStrategyTests.cs
+ M tests/UniClaw.Simulation.Tests/SimContract.cs
+ M tests/UniClaw.Simulation.Tests/SimulationHost.cs
+ M tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs
+ M tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj
+ M tests/UniClaw.Simulation.Tests/WorldReconstruction.cs
+ M tests/UniClaw.Simulation.Tests/WorldReconstructionTests.cs
+?? .tmp-protocol-artifacts/
+?? changes/AGNES-RESEARCH-001/
+?? changes/AGNES-SETTINGS-DEPTH2-001/
+?? changes/AGNES-UI-SMOKE-001/
+?? changes/AGNES-VISION-AUDIT-001/
+?? changes/JEV-ELEMENT-RELATION-001/
+?? changes/JEV-NODE-BENCH-001/
+?? changes/JEV-PAGE-CONTEXT-001/
+?? changes/JEV-PAGE-CONTEXT-002/
+?? changes/JEV-PAGE-IDENTITY-001/
+?? changes/JEV-PAGE-SEMANTICS-001/
+?? changes/JEV-SEMANTIC-CAP-001/
+?? changes/RUNTIME-PLAN-002/generation-discussion.md
+?? changes/RUNTIME-PLAN-002/generation-profile-skill-contract.md
+?? changes/RUNTIME-PLAN-002/profile-skill-discussion.md
+?? changes/RUNTIME-PLAN-003/
+?? changes/RUNTIME-PLAN-004/
+?? changes/RUNTIME-PLAN-005/
+?? changes/RUNTIME-PLAN-006/
+?? changes/UI-TEST-REUSE-001/
+?? changes/WORLD-CHANGES.md
+?? changes/WORLD-OBSERVATION-001/
+?? changes/WORLD-SEMANTICS-001/
+?? changes/WORLD-SEMANTICS-002/
+?? changes/WRC-002/
+?? changes/WRC-003/
+?? changes/YOLO-OCR-BASIC-001/
+?? changes/YOLO-OCR-DEPTH2-001/
+?? changes/YOLO-OCR-NODE-AUDIT-001/
+?? changes/fantasy-island-20261017/
+?? changes/whale-coast-svg-20261017/
+?? docs/analysis/android-automotive-ui-agent-gap-assessment-2026-10-09.md
+?? docs/analysis/ui-automation-agent-gap-assessment-2026-10-08.md
+?? docs/analysis/ui-automation-test-function-reuse-inventory-2026-10-20.md
+?? docs/analysis/uniclaw-directory-organization-review-2026-10-21.md
+?? docs/analysis/uniclaw-module-boundary-design-review-2026-10-21.md
+?? docs/analysis/world-observation-recovery-grill-2026-10-21.md
+?? docs/research/agnes-harness-fit-assessment-20261020.md
+?? docs/research/agnes-uniclaw-prompt-profile-skill-comparison-20261020.md
+?? docs/research/jev-page-identity-evaluation-20261021.md
+?? docs/research/jev-qwen-uniclaw-fit-assessment-20261020.md
+?? docs/research/jev-traversal-integration-assessment-20261021.md
+?? docs/visuals/
+?? dsh/unicloud-decision-channel/
+?? evidence/agnes-settings-depth2-20261020/
+?? evidence/agnes-ui-smoke-20261020/
+?? evidence/agnes-uniclaw-prompt-comparison-20261020/
+?? evidence/agnes-vision-audit-20261020/
+?? evidence/agt-010/live-rerun/run-20261016-230603-332/
+?? evidence/agt-010/live-rerun/run-20261017-030530-464/
+?? evidence/design-boundary-review-20261021/
+?? evidence/fantasy-island-20261017/
+?? evidence/jev-element-relations-20261021/
+?? evidence/jev-node-bench-20261021/
+?? evidence/jev-page-context-20261021/
+?? evidence/jev-page-explicit-context-20261021/
+?? evidence/jev-page-identity-20261021/
+?? evidence/jev-page-semantics-20261021/
+?? evidence/jev-semantic-cap-001/
+?? evidence/jev-traversal-comparison-20261021/
+?? evidence/renewal-strategy-research-20261018/
+?? evidence/run-006/acceptance-1/
+?? evidence/run-006/acceptance-2/
+?? evidence/run-006/acceptance-3/
+?? evidence/run-006/autoskip-verify/
+?? evidence/run-006/d2-verify/
+?? evidence/run-006/diag-1/
+?? evidence/run-006/diag-2/
+?? evidence/run-006/drop-diag/
+?? evidence/run-006/final-verify-2/
+?? evidence/run-006/final-verify-3/
+?? evidence/run-006/final-verify/
+?? evidence/run-006/full-traversal-1/inbox/
+?? evidence/run-006/full-traversal-1/run-20261015-165826-729/capability-profiles.json
+?? evidence/run-006/full-traversal-1/run-20261015-165826-729/evidence/
+?? evidence/run-006/full-traversal-1/run-20261015-165826-729/exec.journal
+?? evidence/run-006/full-traversal-1/run-20261015-165826-729/language-findings.json
+?? evidence/run-006/full-traversal-1/run-20261015-165826-729/trace.json
+?? evidence/run-006/full-traversal-2/run-20261015-224042-517/capability-profiles.json
+?? evidence/run-006/full-traversal-2/run-20261015-224042-517/environment-preflight.json
+?? evidence/run-006/full-traversal-2/run-20261015-224042-517/evidence/
+?? evidence/run-006/full-traversal-2/run-20261015-224042-517/exec.journal
+?? evidence/run-006/full-traversal-2/run-20261015-224042-517/facts.json
+?? evidence/run-006/full-traversal-2/run-20261015-224042-517/language-findings.json
+?? evidence/run-006/full-traversal-2/run-20261015-224042-517/trace.json
+?? evidence/run-006/full-traversal-3/run-20261015-224414-388/capability-profiles.json
+?? evidence/run-006/full-traversal-3/run-20261015-224414-388/environment-preflight.json
+?? evidence/run-006/full-traversal-3/run-20261015-224414-388/evidence/
+?? evidence/run-006/full-traversal-3/run-20261015-224414-388/exec.journal
+?? evidence/run-006/full-traversal-3/run-20261015-224414-388/facts.json
+?? evidence/run-006/full-traversal-3/run-20261015-224414-388/language-findings.json
+?? evidence/run-006/full-traversal-3/run-20261015-224414-388/trace.json
+?? evidence/run-006/full-traversal-3b/run-20261015-225305-029/capability-profiles.json
+?? evidence/run-006/full-traversal-3b/run-20261015-225305-029/environment-preflight.json
+?? evidence/run-006/full-traversal-3b/run-20261015-225305-029/evidence/
+?? evidence/run-006/full-traversal-3b/run-20261015-225305-029/exec.journal
+?? evidence/run-006/full-traversal-3b/run-20261015-225305-029/facts.json
+?? evidence/run-006/full-traversal-3b/run-20261015-225305-029/language-findings.json
+?? evidence/run-006/full-traversal-3b/run-20261015-225305-029/trace.json
+?? evidence/run-006/full-traversal-4/run-20261015-233520-403/capability-facts.json
+?? evidence/run-006/full-traversal-4/run-20261015-233520-403/capability-profiles.json
+?? evidence/run-006/full-traversal-4/run-20261015-233520-403/environment-preflight.json
+?? evidence/run-006/full-traversal-4/run-20261015-233520-403/evidence/
+?? evidence/run-006/full-traversal-4/run-20261015-233520-403/exec.journal
+?? evidence/run-006/full-traversal-4/run-20261015-233520-403/facts.json
+?? evidence/run-006/full-traversal-4/run-20261015-233520-403/language-findings.json
+?? evidence/run-006/full-traversal-4/run-20261015-233520-403/trace.json
+?? evidence/run-006/full-traversal-5/run-20261015-235706-784/capability-facts.json
+?? evidence/run-006/full-traversal-5/run-20261015-235706-784/capability-profiles.json
+?? evidence/run-006/full-traversal-5/run-20261015-235706-784/environment-preflight.json
+?? evidence/run-006/full-traversal-5/run-20261015-235706-784/evidence/
+?? evidence/run-006/full-traversal-5/run-20261015-235706-784/exec.journal
+?? evidence/run-006/full-traversal-5/run-20261015-235706-784/facts.json
+?? evidence/run-006/full-traversal-5/run-20261015-235706-784/language-findings.json
+?? evidence/run-006/full-traversal-5/run-20261015-235706-784/trace.json
+?? evidence/run-006/full-traversal-6/run-20261016-001948-908/capability-facts.json
+?? evidence/run-006/full-traversal-6/run-20261016-001948-908/capability-profiles.json
+?? evidence/run-006/full-traversal-6/run-20261016-001948-908/environment-preflight.json
+?? evidence/run-006/full-traversal-6/run-20261016-001948-908/evidence/
+?? evidence/run-006/full-traversal-6/run-20261016-001948-908/exec.journal
+?? evidence/run-006/full-traversal-6/run-20261016-001948-908/facts.json
+?? evidence/run-006/full-traversal-6/run-20261016-001948-908/language-findings.json
+?? evidence/run-006/full-traversal-6/run-20261016-001948-908/trace.json
+?? evidence/run-006/full-traversal/
+?? evidence/run-006/retry-verify/
+?? evidence/run-006/switch-fix-verify/
+?? evidence/run-006/verify-1/
+?? evidence/run-006/verify-2/
+?? evidence/run-006/verify-3/
+?? evidence/run-006/verify-4/
+?? evidence/run-006/verify-5/
+?? evidence/run-006/verify-6/
+?? evidence/runtime-consultation-001/bounded-verification.yaml
+?? evidence/runtime-consultation-001/deployment-backup.txt
+?? evidence/runtime-consultation-001/dsh-service-pid.txt
+?? evidence/runtime-consultation-001/live-selected.json
+?? evidence/runtime-consultation-001/live/
+?? evidence/runtime-consultation-001/preflight.json
+?? evidence/runtime-consultation-001/slow-baseline.json
+?? evidence/runtime-consultation-001/slow-live.json
+?? evidence/runtime-consultation-001/source-digests.json
+?? evidence/runtime-overview-001/agent-build.txt
+?? evidence/runtime-overview-001/agent-dsh-full.txt
+?? evidence/runtime-overview-001/agent-profile-final-2.txt
+?? evidence/runtime-overview-001/agent-profile-final.txt
+?? evidence/runtime-overview-001/agent-profile-verified.txt
+?? evidence/runtime-overview-001/authorized-total-final.txt
+?? evidence/runtime-overview-001/change-index.txt
+?? evidence/runtime-overview-001/deployed-drift-check.txt
+?? evidence/runtime-overview-001/device-deterministic-attempt4.txt
+?? evidence/runtime-overview-001/device-deterministic/
+?? evidence/runtime-overview-001/device-stop.txt
+?? evidence/runtime-overview-001/device-verified.txt
+?? evidence/runtime-overview-001/diff-check.txt
+?? evidence/runtime-overview-001/dsh-3081-pid.txt
+?? evidence/runtime-overview-001/dsh-deploy-review-fix.txt
+?? evidence/runtime-overview-001/dsh-deploy-verified.txt
+?? evidence/runtime-overview-001/entry/head.txt
+?? evidence/runtime-overview-001/entry/source-hashes.json
+?? evidence/runtime-overview-001/entry/status.txt
+?? evidence/runtime-overview-001/entry/tracked.patch
+?? evidence/runtime-overview-001/entry/untracked.txt
+?? evidence/runtime-overview-001/environment-summary.json
+?? evidence/runtime-overview-001/final-head.txt
+?? evidence/runtime-overview-001/final-status.txt
+?? evidence/runtime-overview-001/host-completion-final.txt
+?? evidence/runtime-overview-001/host-dsh-final-2.txt
+?? evidence/runtime-overview-001/host-dsh-final.txt
+?? evidence/runtime-overview-001/host-dsh-verified.txt
+?? evidence/runtime-overview-001/host-final-2.txt
+?? evidence/runtime-overview-001/host-final-3.txt
+?? evidence/runtime-overview-001/host-final.txt
+?? evidence/runtime-overview-001/host-scenario-diagnosis.txt
+?? evidence/runtime-overview-001/host-verified.txt
+?? evidence/runtime-overview-001/implementation-files.txt
+?? evidence/runtime-overview-001/implementation-hashes.json
+?? evidence/runtime-overview-001/kernel-full-2.txt
+?? evidence/runtime-overview-001/kernel-full.txt
+?? evidence/runtime-overview-001/kernel-integrated-final.txt
+?? evidence/runtime-overview-001/kernel-integrated.txt
+?? evidence/runtime-overview-001/kernel-verified.txt
+?? evidence/runtime-overview-001/live-bounded-config.yaml
+?? evidence/runtime-overview-001/live-model-final-2.txt
+?? evidence/runtime-overview-001/live-model-final-2/
+?? evidence/runtime-overview-001/live-model-final.txt
+?? evidence/runtime-overview-001/live-model-retry.txt
+?? evidence/runtime-overview-001/live-model-retry/
+?? evidence/runtime-overview-001/live-model.txt
+?? evidence/runtime-overview-001/live-model/
+?? evidence/runtime-overview-001/live-scoped-config.yaml
+?? evidence/runtime-overview-001/multi-page-hierarchy-green.txt
+?? evidence/runtime-overview-001/multi-page-hierarchy-red.txt
+?? evidence/runtime-overview-001/plugin-final-2.txt
+?? evidence/runtime-overview-001/plugin-final-3.txt
+?? evidence/runtime-overview-001/plugin-final.txt
+?? evidence/runtime-overview-001/plugin-focused-final.txt
+?? evidence/runtime-overview-001/protocol-final.txt
+?? evidence/runtime-overview-001/review-followup/agent-dsh-final.txt
+?? evidence/runtime-overview-001/review-followup/agent-dsh-full.txt
+?? evidence/runtime-overview-001/review-followup/agent-full.txt
+?? evidence/runtime-overview-001/review-followup/before-hashes.json
+?? evidence/runtime-overview-001/review-followup/before/src/
+?? evidence/runtime-overview-001/review-followup/before/tests/
+?? evidence/runtime-overview-001/review-followup/deploy-check.txt
+?? evidence/runtime-overview-001/review-followup/deploy.txt
+?? evidence/runtime-overview-001/review-followup/device-final.txt
+?? evidence/runtime-overview-001/review-followup/device-lease.txt
+?? evidence/runtime-overview-001/review-followup/device-start.txt
+?? evidence/runtime-overview-001/review-followup/device-stop.txt
+?? evidence/runtime-overview-001/review-followup/device-verified.txt
+?? evidence/runtime-overview-001/review-followup/diff-check-final.txt
+?? evidence/runtime-overview-001/review-followup/diff-check.txt
+?? evidence/runtime-overview-001/review-followup/dsh-3081-pid.txt
+?? evidence/runtime-overview-001/review-followup/entry-status.txt
+?? evidence/runtime-overview-001/review-followup/environment-summary.json
+?? evidence/runtime-overview-001/review-followup/final-status.txt
+?? evidence/runtime-overview-001/review-followup/host-dsh-full.txt
+?? evidence/runtime-overview-001/review-followup/host-final-2.txt
+?? evidence/runtime-overview-001/review-followup/host-final.txt
+?? evidence/runtime-overview-001/review-followup/host-full.txt
+?? evidence/runtime-overview-001/review-followup/host-green.txt
+?? evidence/runtime-overview-001/review-followup/host-items-green.txt
+?? evidence/runtime-overview-001/review-followup/host-red.txt
+?? evidence/runtime-overview-001/review-followup/implementation-files.txt
+?? evidence/runtime-overview-001/review-followup/implementation-hashes.json
+?? evidence/runtime-overview-001/review-followup/item-relevance-red.txt
+?? evidence/runtime-overview-001/review-followup/kernel-final-2.txt
+?? evidence/runtime-overview-001/review-followup/kernel-final-3.txt
+?? evidence/runtime-overview-001/review-followup/kernel-final.txt
+?? evidence/runtime-overview-001/review-followup/kernel-full.txt
+?? evidence/runtime-overview-001/review-followup/kernel-green-2.txt
+?? evidence/runtime-overview-001/review-followup/kernel-green.txt
+?? evidence/runtime-overview-001/review-followup/kernel-items-green.txt
+?? evidence/runtime-overview-001/review-followup/kernel-items-red.txt
+?? evidence/runtime-overview-001/review-followup/kernel-red-2.txt
+?? evidence/runtime-overview-001/review-followup/kernel-red.txt
+?? evidence/runtime-overview-001/review-followup/live-model.txt
+?? evidence/runtime-overview-001/review-followup/live-model/
+?? evidence/runtime-overview-001/review-followup/partial-grant-red.txt
+?? evidence/runtime-overview-001/review-followup/plugin-full.txt
+?? evidence/runtime-overview-001/review-followup/plugin-item-wire.txt
+?? evidence/runtime-overview-001/review-followup/prompt-check.txt
+?? evidence/runtime-overview-001/review-followup/scenario-certify-final.txt
+?? evidence/runtime-overview-001/review-followup/scenario-certify.txt
+?? evidence/runtime-overview-001/review-followup/scenario-check-final.txt
+?? evidence/runtime-overview-001/review-followup/scenario-check.txt
+?? evidence/runtime-overview-001/review-followup/schema-generation-final.txt
+?? evidence/runtime-overview-001/review-followup/schema-generation.txt
+?? evidence/runtime-overview-001/review-followup/simulation-final.txt
+?? evidence/runtime-overview-001/review-followup/simulation-full.txt
+?? evidence/runtime-overview-001/review-followup/workspace-schemas.txt
+?? evidence/runtime-overview-001/scenario-certification-final.txt
+?? evidence/runtime-overview-001/scenario-certification.txt
+?? evidence/runtime-overview-001/scenario-check-final.txt
+?? evidence/runtime-overview-001/scenario-check.txt
+?? evidence/runtime-overview-001/schema-generation-final.txt
+?? evidence/runtime-overview-001/schema-generation.txt
+?? evidence/runtime-overview-001/schema-restore.txt
+?? evidence/runtime-overview-001/segment-history-final-2.txt
+?? evidence/runtime-overview-001/segment-history-final.txt
+?? evidence/runtime-overview-001/simulation-final.txt
+?? evidence/runtime-overview-001/simulation-verified.txt
+?? evidence/runtime-overview-001/workspace-schemas.txt
+?? evidence/runtime-overview-001/world-navigation-integrated-tests.txt
+?? evidence/runtime-plan-001/acceptance-direct-20261018/baseline-run-results.json
+?? evidence/runtime-plan-001/acceptance-direct-20261018/comparison-evaluation.txt
+?? evidence/runtime-plan-001/acceptance-direct-20261018/deepseek-runtime-sockets.jsonl
+?? evidence/runtime-plan-001/acceptance-direct-20261018/device-start.txt
+?? evidence/runtime-plan-001/acceptance-direct-20261018/device-stop.txt
+?? evidence/runtime-plan-001/acceptance-direct-20261018/entry/0-RuntimePlanComparisonLiveTests.cs
+?? evidence/runtime-plan-001/acceptance-direct-20261018/entry/manifest.json
+?? evidence/runtime-plan-001/acceptance-direct-20261018/failed-baseline-diagnosis.json
+?? evidence/runtime-plan-001/acceptance-direct-20261018/final-checks.json
+?? evidence/runtime-plan-001/acceptance-direct-20261018/formal-trial-audit.json
+?? evidence/runtime-plan-001/acceptance-direct-20261018/host-dsh-tests.txt
+?? evidence/runtime-plan-001/acceptance-direct-20261018/known-path-decisions-audit.json
+?? evidence/runtime-plan-001/acceptance-direct-20261018/plan-run-results.json
+?? evidence/runtime-plan-001/acceptance-direct-20261018/regression-evidence.json
+?? evidence/runtime-plan-001/acceptance-direct-20261018/reused-evidence-identity.json
+?? evidence/runtime-plan-001/acceptance-direct-20261018/runtime-direct-proof.json
+?? evidence/runtime-plan-001/acceptance-direct-20261018/stop-socket-monitor
+?? evidence/runtime-plan-001/acceptance-direct-20261018/threshold-registration.txt
+?? evidence/runtime-plan-001/acceptance-direct-20261018/threshold-script-precheck.json
+?? evidence/runtime-plan-001/acceptance-direct-20261018/transport.json
+?? evidence/runtime-plan-001/comparison/all-trial-metrics.json
+?? evidence/runtime-plan-001/comparison/baseline-accounted-metrics.json
+?? evidence/runtime-plan-001/comparison/baseline-compact-metrics.json
+?? evidence/runtime-plan-001/comparison/baseline-final-metrics.json
+?? evidence/runtime-plan-001/comparison/baseline-flash-direct-metrics.json
+?? evidence/runtime-plan-001/comparison/baseline-metrics.json
+?? evidence/runtime-plan-001/comparison/baseline-pro-metrics.json
+?? evidence/runtime-plan-001/comparison/candidates/
+?? evidence/runtime-plan-001/comparison/comparison-result-accounted.json
+?? evidence/runtime-plan-001/comparison/comparison-result-compact.json
+?? evidence/runtime-plan-001/comparison/comparison-result-compact.txt
+?? evidence/runtime-plan-001/comparison/comparison-result-final.json
+?? evidence/runtime-plan-001/comparison/comparison-result-final.txt
+?? evidence/runtime-plan-001/comparison/comparison-result-flash-direct.json
+?? evidence/runtime-plan-001/comparison/comparison-result-pro.json
+?? evidence/runtime-plan-001/comparison/comparison-result-pro.txt
+?? evidence/runtime-plan-001/comparison/comparison-result-uncompressed.json
+?? evidence/runtime-plan-001/comparison/comparison-result-uncompressed.txt
+?? evidence/runtime-plan-001/comparison/comparison-result.json
+?? evidence/runtime-plan-001/comparison/known-path/
+?? evidence/runtime-plan-001/comparison/model-change-pro/authorization-and-binding.json
+?? evidence/runtime-plan-001/comparison/model-change-pro/blind-gate-calculation.json
+?? evidence/runtime-plan-001/comparison/model-change-pro/fixed-known-path-replication.json
+?? evidence/runtime-plan-001/comparison/model-change-pro/formal-model-selection-audit.json
+?? evidence/runtime-plan-001/comparison/model-change-pro/known-path-overhead-audit.json
+?? evidence/runtime-plan-001/comparison/model-change-pro/latency-envelope-audit.json
+?? evidence/runtime-plan-001/comparison/model-change-pro/registration-deviation.json
+?? evidence/runtime-plan-001/comparison/model-change-pro/returned-to-flash.json
+?? evidence/runtime-plan-001/comparison/model-change-pro/uniagent-prod-bindings.before.yaml
+?? evidence/runtime-plan-001/comparison/model-change-pro/uniagent-prod-bindings.pro-before-return.yaml
+?? evidence/runtime-plan-001/comparison/nested-scope/
+?? evidence/runtime-plan-001/comparison/thresholds-accounted.json
+?? evidence/runtime-plan-001/comparison/thresholds-compact.json
+?? evidence/runtime-plan-001/comparison/thresholds-final.json
+?? evidence/runtime-plan-001/comparison/thresholds-flash-direct.json
+?? evidence/runtime-plan-001/comparison/thresholds-pro.json
+?? evidence/runtime-plan-001/comparison/thresholds.json
+?? evidence/runtime-plan-001/composition-20261018/agent-dsh-final185.txt
+?? evidence/runtime-plan-001/composition-20261018/agent-final1.txt
+?? evidence/runtime-plan-001/composition-20261018/agent-final2.txt
+?? evidence/runtime-plan-001/composition-20261018/baseline-batch.txt
+?? evidence/runtime-plan-001/composition-20261018/common-goal-epoch/audit.txt
+?? evidence/runtime-plan-001/composition-20261018/common-goal-epoch/baseline-batch.txt
+?? evidence/runtime-plan-001/composition-20261018/common-goal-epoch/baseline-metrics.json
+?? evidence/runtime-plan-001/composition-20261018/common-goal-epoch/evaluation.txt
+?? evidence/runtime-plan-001/composition-20261018/common-goal-epoch/formal-audit.json
+?? evidence/runtime-plan-001/composition-20261018/common-goal-epoch/live-metrics.json
+?? evidence/runtime-plan-001/composition-20261018/common-goal-epoch/live-result.json
+?? evidence/runtime-plan-001/composition-20261018/common-goal-epoch/plan-batch.txt
+?? evidence/runtime-plan-001/composition-20261018/common-goal-epoch/threshold-registration.txt
+?? evidence/runtime-plan-001/composition-20261018/common-goal-epoch/thresholds.json
+?? evidence/runtime-plan-001/composition-20261018/common-goal-epoch/transport.json
+?? evidence/runtime-plan-001/composition-20261018/deploy-check.txt
+?? evidence/runtime-plan-001/composition-20261018/deploy-final-check.txt
+?? evidence/runtime-plan-001/composition-20261018/deploy.txt
+?? evidence/runtime-plan-001/composition-20261018/device-start.txt
+?? evidence/runtime-plan-001/composition-20261018/device-stop.txt
+?? evidence/runtime-plan-001/composition-20261018/failed-epoch-baseline-metrics.json
+?? evidence/runtime-plan-001/composition-20261018/failed-epoch-summary.json
+?? evidence/runtime-plan-001/composition-20261018/final-checks.json
+?? evidence/runtime-plan-001/composition-20261018/final-implementation.patch
+?? evidence/runtime-plan-001/composition-20261018/final-inventory.json
+?? evidence/runtime-plan-001/composition-20261018/frontier-limit-red.txt
+?? evidence/runtime-plan-001/composition-20261018/host-dsh-common-goal8.txt
+?? evidence/runtime-plan-001/composition-20261018/host-dsh-final2.txt
+?? evidence/runtime-plan-001/composition-20261018/host-dsh-final3.txt
+?? evidence/runtime-plan-001/composition-20261018/host-dsh-final4.txt
+?? evidence/runtime-plan-001/composition-20261018/host-dsh-route-final7.txt
+?? evidence/runtime-plan-001/composition-20261018/host-final1.txt
+?? evidence/runtime-plan-001/composition-20261018/host-route-final5.txt
+?? evidence/runtime-plan-001/composition-20261018/host-route-final6.txt
+?? evidence/runtime-plan-001/composition-20261018/implementation.patch
+?? evidence/runtime-plan-001/composition-20261018/inventory.json
+?? evidence/runtime-plan-001/composition-20261018/kernel-final1.txt
+?? evidence/runtime-plan-001/composition-20261018/kernel-final4.txt
+?? evidence/runtime-plan-001/composition-20261018/node-earlier43-of44.txt
+?? evidence/runtime-plan-001/composition-20261018/node-final3.txt
+?? evidence/runtime-plan-001/composition-20261018/product-deployment-backup.json
+?? evidence/runtime-plan-001/composition-20261018/product-service-profile-before.tar.gz
+?? evidence/runtime-plan-001/composition-20261018/regression-followup-progress.json
+?? evidence/runtime-plan-001/composition-20261018/regression-followup3-progress.json
+?? evidence/runtime-plan-001/composition-20261018/regression-progress.json
+?? evidence/runtime-plan-001/composition-20261018/route-fix-epoch/baseline-batch.txt
+?? evidence/runtime-plan-001/composition-20261018/route-fix-epoch/baseline-stopped-metrics.json
+?? evidence/runtime-plan-001/composition-20261018/route-fix-epoch/baseline-stopped-summary.json
+?? evidence/runtime-plan-001/composition-20261018/route-fix-epoch/transport.json
+?? evidence/runtime-plan-001/composition-20261018/route-green.txt
+?? evidence/runtime-plan-001/composition-20261018/route-green2.txt
+?? evidence/runtime-plan-001/composition-20261018/route-red.txt
+?? evidence/runtime-plan-001/composition-20261018/scenario-check.txt
+?? evidence/runtime-plan-001/composition-20261018/scenario-recertification.txt
+?? evidence/runtime-plan-001/composition-20261018/scenario-route-check.txt
+?? evidence/runtime-plan-001/composition-20261018/scenario-route-recert.txt
+?? evidence/runtime-plan-001/composition-20261018/scoped-diff-check.txt
+?? evidence/runtime-plan-001/composition-20261018/service-start-redacted.txt
+?? evidence/runtime-plan-001/composition-20261018/simulation-final3.txt
+?? evidence/runtime-plan-001/composition-20261018/simulation-route-final7.txt
+?? evidence/runtime-plan-001/composition-20261018/standards-implementation.patch
+?? evidence/runtime-plan-001/composition-20261018/standards-inventory.json
+?? evidence/runtime-plan-001/composition-20261018/transport.json
+?? evidence/runtime-plan-001/composition-20261018/ui-scenario/
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-generator-path.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-green.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-host-facts-green.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-host-full.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-host-red.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-kernel-focused.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-kernel-focused2.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-kernel-full.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-nested-diagnosis.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-red.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-schema-build2.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-schema-generation.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-schema-generation2.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-ui-scenario.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-ui-scenario2.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-wire-green.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-wire-green2.txt
+?? evidence/runtime-plan-001/composition-20261018/uniclaw-composition-wire-red.txt
+?? evidence/runtime-plan-001/composition-20261018/workitem-schema-check.json
+?? evidence/runtime-plan-001/composition-20261018/workspace-schemas-final.txt
+?? evidence/runtime-plan-001/entry/
+?? evidence/runtime-plan-001/host/host-full-attempt1.txt
+?? evidence/runtime-plan-001/host/host-full-final.txt
+?? evidence/runtime-plan-001/host/host-green-attempt1.txt
+?? evidence/runtime-plan-001/host/host-green-attempt2.txt
+?? evidence/runtime-plan-001/host/host-integration-attempt3.txt
+?? evidence/runtime-plan-001/host/host-red.txt
+?? evidence/runtime-plan-001/host/terminal-stagnation-green.txt
+?? evidence/runtime-plan-001/host/terminal-stagnation-green2.txt
+?? evidence/runtime-plan-001/host/terminal-stagnation-green3.txt
+?? evidence/runtime-plan-001/host/terminal-stagnation-red.txt
+?? evidence/runtime-plan-001/host/terminal-stagnation-red2.txt
+?? evidence/runtime-plan-001/integration/
+?? evidence/runtime-plan-001/plantree-derivation-20261019/entry.json
+?? evidence/runtime-plan-001/plantree-derivation-20261019/inventory.json
+?? evidence/runtime-plan-001/plantree-derivation-20261019/verification.json
+?? evidence/runtime-plan-001/protocol/agent-dsh-full-attempt1.txt
+?? evidence/runtime-plan-001/protocol/dsh-failed-usage-green.txt
+?? evidence/runtime-plan-001/protocol/dsh-failed-usage-red.txt
+?? evidence/runtime-plan-001/protocol/dsh-provider-built-smoke.json
+?? evidence/runtime-plan-001/protocol/dsh-usage-bundle.txt
+?? evidence/runtime-plan-001/protocol/dsh-usage-bundle2.txt
+?? evidence/runtime-plan-001/protocol/dsh-usage-pairing-check.txt
+?? evidence/runtime-plan-001/protocol/dsh-usage-pairing-final.txt
+?? evidence/runtime-plan-001/protocol/dsh-usage-pairing.txt
+?? evidence/runtime-plan-001/protocol/dsh-usage-session-snapshot.txt
+?? evidence/runtime-plan-001/protocol/dsh-usage-session-snapshot2.txt
+?? evidence/runtime-plan-001/protocol/dsh-usage-type-build.txt
+?? evidence/runtime-plan-001/protocol/retry-failure-fence-green.txt
+?? evidence/runtime-plan-001/protocol/retry-failure-fence-red.txt
+?? evidence/runtime-plan-001/protocol/retry-green.txt
+?? evidence/runtime-plan-001/protocol/retry-identity-red.txt
+?? evidence/runtime-plan-001/protocol/retry-turn-boundary-red.txt
+?? evidence/runtime-plan-001/protocol/wire-green-attempt1.txt
+?? evidence/runtime-plan-001/protocol/wire-red.txt
+?? evidence/runtime-plan-001/review/disposition.json
+?? evidence/runtime-plan-001/review/dsh-provider-usage-inventory.json
+?? evidence/runtime-plan-001/review/dsh-provider-usage.patch
+?? evidence/runtime-plan-001/review/implementation.patch
+?? evidence/runtime-plan-001/review/inventory.json
+?? evidence/runtime-plan-001/review/reviewed-implementation.patch
+?? evidence/runtime-plan-001/review/reviewed-inventory.json
+?? evidence/runtime-plan-002/generation-discussion-20261019/
+?? evidence/runtime-plan-002/protocol-review-20261020/
+?? evidence/runtime-plan-003/
+?? evidence/runtime-plan-004/
+?? evidence/runtime-plan-005/
+?? evidence/runtime-plan-006/
+?? evidence/settings-coverage-002/system-inventory/activity-top.txt
+?? evidence/settings-coverage-003/leader-pass1/
+?? evidence/settings-coverage-003/leader-pass2/
+?? evidence/settings-coverage-003/leader-pass3/
+?? evidence/settings-coverage-003/leader-pass4/
+?? evidence/settings-coverage-003/leader-pass5/
+?? evidence/settings-coverage-003/leader-pass6/
+?? evidence/settings-coverage-003/leader-pass7/
+?? evidence/settings-coverage-003/leader-pass8/
+?? evidence/settings-coverage-004/live-fix/
+?? evidence/settings-coverage-004/live-fix2/
+?? evidence/settings-coverage-005/
+?? evidence/settings-coverage-006/
+?? evidence/wrc-002/
+?? evidence/wrc-003/
+?? evidence/yolo-ocr-basic-20261020/
+?? evidence/yolo-ocr-depth2-20261021/
+?? evidence/yolo-ocr-node-audit-20261021/
+?? plans/runtime-plan-003.md
+?? plans/runtime-plan-004.md
+?? plans/runtime-plan-005.md
+?? plans/runtime-plan-006.md
+?? product/skills/android-automotive-ui-testing/skill-hash.txt
+?? src/UniClaw.Agent/Profile/ProfileIdentityRenderer.cs
+?? src/UniClaw.Host.Dsh/evidence/
+?? src/UniClaw.Host/PageIdentityRecovery.cs
+?? src/UniClaw.Host/Perception/
+?? src/UniClaw.Host/SettingsCoverage/SettingsNavigationScope.cs
+?? src/UniClaw.Kernel/Capability/SemanticPerception.cs
+?? src/UniClaw.Kernel/Capability/UniPerceptionCapability.Semantics.cs
+?? src/UniClaw.Kernel/Control/ObservationRecoveryControl.cs
+?? src/UniClaw.Kernel/Perception/SemanticObservationProjector.cs
+?? src/UniClaw.Kernel/Runtime/PlanLanguageHandlerCall.cs
+?? src/UniClaw.Kernel/World/PageObservation.cs
+?? src/UniClaw.Kernel/World/ViewportTransition.cs
+?? src/UniClaw.Kernel/World/WorldModel.Semantics.cs
+?? src/UniClaw.Kernel/World/WorldModel.Viewports.cs
+?? tests/UniClaw.Agent.Dsh.Tests/ArtifactBindingTests.cs
+?? tests/UniClaw.Host.Dsh.Tests/PlanGenerationLiveEvaluationTests.cs
+?? tests/UniClaw.Host.Dsh.Tests/PlanGenerationSemanticAssertions.cs
+?? tests/UniClaw.Host.Dsh.Tests/PlanGenerationSemanticAssertionsTests.cs
+?? tests/UniClaw.Host.Dsh.Tests/PlanGenerationTrajectory.cs
+?? tests/UniClaw.Host.Dsh.Tests/PlanGenerationTrajectoryTests.cs
+?? tests/UniClaw.Host.Dsh.Tests/SettingsDepthTraversalLiveTests.cs
+?? tests/UniClaw.Host.Dsh.Tests/SettingsTraversalPlanLiveTests.cs
+?? tests/UniClaw.Host.Tests/JevSemanticPerceptionTests.cs
+?? tests/UniClaw.Host.Tests/PageIdentityRecoveryTests.cs
+?? tests/UniClaw.Host.Tests/SettingsNavigationScopeTests.cs
+?? tests/UniClaw.Host.Tests/WorldCaptureIsolationTests.cs
+?? tests/UniClaw.Host.Tests/WorldOperationReplayReport.cs
+?? tests/UniClaw.Host.Tests/WorldOperationReplayTests.cs
+?? tests/UniClaw.Host.Tests/WorldReplayDiagnostics.cs
+?? tests/UniClaw.Host.Tests/WorldReplayGallery.cs
+?? tests/UniClaw.Host.Tests/WorldReplayReconstructionTests.cs
+?? tests/UniClaw.Kernel.Tests/Capability/SemanticPerceptionCapabilityTests.cs
+?? tests/UniClaw.Kernel.Tests/Runtime/ObservationRecoveryControlTests.cs
+?? tests/UniClaw.Kernel.Tests/Runtime/PageObservationExecutionTests.cs
+?? tests/UniClaw.Kernel.Tests/World/PageObservationRecoveryTests.cs
+?? tests/UniClaw.Kernel.Tests/World/SemanticCapabilityWorldIntegrationTests.cs
+?? tests/UniClaw.Kernel.Tests/World/WorldIdentityReconciliationTests.cs
+?? tests/UniClaw.Kernel.Tests/World/WorldSemanticEvidenceTests.cs
+?? tests/UniClaw.Kernel.Tests/World/WorldViewportTransitionTests.cs
+?? tests/UniClaw.Simulation.Tests/AsyncHandlerTraversalScenarioTests.cs
+?? tests/UniClaw.Simulation.Tests/PlanGenerationKernelConsumerTests.cs
+?? tests/UniClaw.Simulation.Tests/WorldScenarioReplayTests.cs
+?? tools/experiments/
+?? tools/render-profile-identity.py
+?? workitems/WI-JEV-SEMANTIC-REVIEW-SPEC.json
+?? workitems/WI-JEV-SEMANTIC-REVIEW-STANDARDS.json
+?? workitems/WI-PLAN005-CORE.json
+?? workitems/WI-PLAN005-HOST.json
+?? workitems/WI-PLAN005-JOURNAL.json
+?? workitems/WI-PLAN005-LIVE.json
+?? workitems/WI-PLAN005-PATH.json
+?? workitems/WI-PLAN005-REVIEW-SPEC.json
+?? workitems/WI-PLAN005-REVIEW-STANDARDS.json
+?? workitems/WI-PLAN006-LIVE.json
+?? workitems/WI-PLAN006-REVIEW-SPEC.json
+?? workitems/WI-PLAN006-REVIEW-STANDARDS.json
+?? workitems/WI-PLAN006-SCOPE.json
+?? workitems/WI-RUNTIME-PLAN-002-PROTOCOL-AUDIT-SPEC.json
+?? workitems/WI-RUNTIME-PLAN-002-PROTOCOL-AUDIT-STANDARDS.json
+?? workitems/WI-RUNTIME-PLAN-003-ASYNC-FACTS.json
+?? workitems/WI-RUNTIME-PLAN-003-ASYNC-KERNEL.json
+?? workitems/WI-RUNTIME-PLAN-003-PROTOCOL.json
+?? workitems/WI-RUNTIME-PLAN-003-REVIEW-SPEC.json
+?? workitems/WI-RUNTIME-PLAN-003-REVIEW-STANDARDS.json
+?? workitems/WI-RUNTIME-PLAN-003-SIMULATION.json
+?? workitems/WI-RUNTIME-PLAN-004-ASSEMBLY-PIN.json
+?? workitems/WI-RUNTIME-PLAN-004-FEEDBACK.json
+?? workitems/WI-RUNTIME-PLAN-004-GENERATION.json
+?? workitems/WI-RUNTIME-PLAN-004-PROFILE.json
+?? workitems/WI-RUNTIME-PLAN-004-REVIEW-SPEC.json
+?? workitems/WI-RUNTIME-PLAN-004-REVIEW-STANDARDS.json
+?? workitems/WI-RUNTIME-PLAN-004-SKILL.json
+?? workitems/WI-RUNTIME-PLAN-004-TRAJECTORY.json

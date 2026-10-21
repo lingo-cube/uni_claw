@@ -1,0 +1,159 @@
+  正在确定要还原的项目…
+  已还原 /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj (用时 171 毫秒)。
+  已还原 /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.FileSystemRealization.Tests/UniClaw.FileSystemRealization.Tests.csproj (用时 168 毫秒)。
+  已还原 /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj (用时 178 毫秒)。
+  已还原 /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj (用时 168 毫秒)。
+  10 个项目(共 14 个)是最新的，无法还原。
+  UniClaw.Core -> /private/tmp/uniclaw-eng-opt-001-review/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/tmp/uniclaw-eng-opt-001-review/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Kernel.Tests -> /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+  UniClaw.Core.Tests -> /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+  UniClaw.FileSystemRealization.Tests -> /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+总共 1 个测试文件与指定模式相匹配。
+总共 1 个测试文件与指定模式相匹配。
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/eng-opt-001/baseline-full-retry/solution-baseline-retry_net10.0_20261021224841.trx
+
+已通过! - 失败:     0，通过:     9，已跳过:     0，总计:     9，持续时间: 72 ms - UniClaw.FileSystemRealization.Tests.dll (net10.0)
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/eng-opt-001/baseline-full-retry/solution-baseline-retry_net10.0_20261021224842.trx
+
+已通过! - 失败:     0，通过:    14，已跳过:     0，总计:    14，持续时间: 684 ms - UniClaw.Core.Tests.dll (net10.0)
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/eng-opt-001/baseline-full-retry/solution-baseline-retry_net10.0_20261021224843.trx
+
+已通过! - 失败:     0，通过:  1026，已跳过:     0，总计:  1026，持续时间: 3 s - UniClaw.Kernel.Tests.dll (net10.0)
+  UniClaw.Agent -> /private/tmp/uniclaw-eng-opt-001-review/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+  UniClaw.Host -> /private/tmp/uniclaw-eng-opt-001-review/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+  UniClaw.Host.Tests -> /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Tests/GoalEvaluationTests.cs(482,61): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj]
+  UniClaw.Agent.Dsh -> /private/tmp/uniclaw-eng-opt-001-review/src/UniClaw.Agent.Dsh/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll
+  UniClaw.Simulation.Tests -> /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+  UniClaw.Agent.Tests -> /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Tests/bin/Debug/net10.0/UniClaw.Agent.Tests.dll
+总共 1 个测试文件与指定模式相匹配。
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Tests/bin/Debug/net10.0/UniClaw.Agent.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.20]     UniClaw.Host.Tests.SettingsRouteKeyTests.ViewportDigest_StableForSameViewport_ChangesOnScroll [FAIL]
+  失败 UniClaw.Host.Tests.SettingsRouteKeyTests.ViewportDigest_StableForSameViewport_ChangesOnScroll [8 ms]
+  错误消息:
+   System.IO.FileNotFoundException : Could not find file '/private/tmp/uniclaw-eng-opt-001-review/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-15e81b6ab12c4752b9ca835f36de8e50.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.ViewportDigest_StableForSameViewport_ChangesOnScroll() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 103
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.20]     UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent [FAIL]
+[xUnit.net 00:00:00.21]     UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable [FAIL]
+  失败 UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent [1 ms]
+  错误消息:
+   System.IO.FileNotFoundException : Could not find file '/private/tmp/uniclaw-eng-opt-001-review/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-1f44ad9365084c3c923ff8470eadfbb5.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 131
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失败 UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable [2 ms]
+  错误消息:
+   System.IO.FileNotFoundException : Could not find file '/private/tmp/uniclaw-eng-opt-001-review/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-15e81b6ab12c4752b9ca835f36de8e50.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.<>c.<RootPage_AcrossScrollStates_RouteKeyStable>b__6_0(String c) in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 82
+   at System.Linq.Enumerable.ArraySelectIterator`2.MoveNext()
+   at System.Collections.Generic.HashSet`1.UnionWith(IEnumerable`1 other)
+   at System.Collections.Generic.HashSet`1..ctor(IEnumerable`1 collection, IEqualityComparer`1 comparer)
+   at System.Linq.Enumerable.DistinctIterator`1.ToList()
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 81
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.83]     UniClaw.Simulation.Tests.ScenarioCertificationTests.TamperedExpectations_FailCertification_AutoReSealImpossible [FAIL]
+  失败 UniClaw.Simulation.Tests.ScenarioCertificationTests.TamperedExpectations_FailCertification_AutoReSealImpossible [90 ms]
+  错误消息:
+   Assert.DoesNotContain() Failure: Filter matched in collection
+                                                                      ↓ (pos 1)
+Collection: ["uniclaw-cert-tamper-68da193adb4f47a6968a9055a68bff"···, "uniclaw-cert-tamper-68da193adb4f47a6968a9055a68bff"···]
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.ScenarioCertificationTests.TamperedExpectations_FailCertification_AutoReSealImpossible() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/ScenarioCertificationTests.cs:line 124
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/eng-opt-001/baseline-full-retry/solution-baseline-retry_net10.0_20261021224845.trx
+
+已通过! - 失败:     0，通过:    36，已跳过:     0，总计:    36，持续时间: 99 ms - UniClaw.Agent.Tests.dll (net10.0)
+[xUnit.net 00:00:01.58]     UniClaw.Simulation.Tests.ScenarioCertificationTests.ScenarioLibrary_CertifiedEntriesAndDescriptiveEntriesAreValid [FAIL]
+  失败 UniClaw.Simulation.Tests.ScenarioCertificationTests.ScenarioLibrary_CertifiedEntriesAndDescriptiveEntriesAreValid [764 ms]
+  错误消息:
+   Assert.Empty() Failure: Collection was not empty
+Collection: ["SCN-BARRIER-001.json: 运行时源码哈希不匹配——Kernel/Agent 源在认"···, "SCN-BARRIER-002.json: 运行时源码哈希不匹配——Kernel/Agent 源在认"···, "SCN-BARRIER-003.json: 运行时源码哈希不匹配——Kernel/Agent 源在认"···, "SCN-POLICY-001.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证"···, "SCN-POLICY-002.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证"···, ···]
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.ScenarioCertificationTests.ScenarioLibrary_CertifiedEntriesAndDescriptiveEntriesAreValid() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Simulation.Tests/ScenarioCertificationTests.cs:line 36
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/eng-opt-001/baseline-full-retry/solution-baseline-retry_net10.0_20261021224847.trx
+
+失败!  - 失败:     2，通过:   250，已跳过:     0，总计:   252，持续时间: 2 s - UniClaw.Simulation.Tests.dll (net10.0)
+  UniClaw.Agent.Dsh.Tests -> /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.44]     UniClaw.Agent.Dsh.Tests.ObserverProjectionTests.Runtime_Configuration_Loads_From_Product_Profile_And_Dsh_Bindings [FAIL]
+  失败 UniClaw.Agent.Dsh.Tests.ObserverProjectionTests.Runtime_Configuration_Loads_From_Product_Profile_And_Dsh_Bindings [2 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "deepseekFlash"
+Actual:   "commandcodeFlash"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Agent.Dsh.Tests.ObserverProjectionTests.Runtime_Configuration_Loads_From_Product_Profile_And_Dsh_Bindings() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Dsh.Tests/ObserverProjectionTests.cs:line 114
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.45]     UniClaw.Agent.Dsh.Tests.DshOpenedHttpPeerTests.Handshake_MapsStampAndCapabilities [FAIL]
+  失败 UniClaw.Agent.Dsh.Tests.DshOpenedHttpPeerTests.Handshake_MapsStampAndCapabilities [6 ms]
+  错误消息:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  堆栈跟踪:
+     at UniClaw.Agent.Dsh.Tests.DshOpenedHttpPeerTests.Handshake_MapsStampAndCapabilities() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs:line 63
+   at UniClaw.Agent.Dsh.Tests.DshOpenedHttpPeerTests.Handshake_MapsStampAndCapabilities() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs:line 72
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:02.49]     UniClaw.Agent.Dsh.Tests.DshOpenedHttpPeerTests.Consult_AfterHandshake_ReusesReturnedDshSession [FAIL]
+  失败 UniClaw.Agent.Dsh.Tests.DshOpenedHttpPeerTests.Consult_AfterHandshake_ReusesReturnedDshSession [3 ms]
+  错误消息:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  堆栈跟踪:
+     at UniClaw.Agent.Dsh.Tests.DshOpenedHttpPeerTests.Consult_AfterHandshake_ReusesReturnedDshSession() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs:line 239
+   at UniClaw.Agent.Dsh.Tests.DshOpenedHttpPeerTests.Consult_AfterHandshake_ReusesReturnedDshSession() in /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs:line 244
+--- End of stack trace from previous location ---
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/eng-opt-001/baseline-full-retry/solution-baseline-retry_net10.0_20261021224852.trx
+
+失败!  - 失败:     3，通过:   203，已跳过:     0，总计:   206，持续时间: 4 s - UniClaw.Agent.Dsh.Tests.dll (net10.0)
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/eng-opt-001/baseline-full-retry/solution-baseline-retry_net10.0_20261021224911.trx
+
+失败!  - 失败:     3，通过:   403，已跳过:     0，总计:   406，持续时间: 26 s - UniClaw.Host.Tests.dll (net10.0)
+  UniClaw.Host.Dsh -> /private/tmp/uniclaw-eng-opt-001-review/src/UniClaw.Host.Dsh/bin/Debug/net10.0/UniClaw.Host.Dsh.dll
+  UniClaw.Host.Dsh.Tests -> /private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll
+/private/tmp/uniclaw-eng-opt-001-review/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/eng-opt-001/baseline-full-retry/solution-baseline-retry_net10.0_20261021224912.trx
+
+已通过! - 失败:     0，通过:    56，已跳过:     0，总计:    56，持续时间: 382 ms - UniClaw.Host.Dsh.Tests.dll (net10.0)

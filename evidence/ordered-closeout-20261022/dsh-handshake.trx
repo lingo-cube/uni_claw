@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="e5199efe-1c51-4b44-9d0b-afd32bdb34fb" name="@frandeMac-mini 2026-10-22 00:25:09" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T00:25:09.0761330+08:00" queuing="2026-10-22T00:25:09.0761330+08:00" start="2026-10-22T00:25:08.3752270+08:00" finish="2026-10-22T00:25:09.0781390+08:00" />
+  <TestSettings name="default" id="aa7a1ef3-6e4b-4be7-b069-3354665d7dfa">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-22_00_25_09" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="51e8f3a7-abb9-4c7b-9ae4-1c8c2818c0aa" testId="76fad041-3a3a-0ae9-a033-66875423b00c" testName="UniClaw.Agent.Dsh.Tests.DshOpenedHttpPeerE2eTests.E2E_Handshake_AcceptedOnRealDsh_WithFrozenStamp" computerName="frandeMac-mini" duration="00:00:00.0853788" startTime="2026-10-22T00:25:08.8592660+08:00" endTime="2026-10-22T00:25:08.8592820+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="51e8f3a7-abb9-4c7b-9ae4-1c8c2818c0aa" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Agent.Dsh.Tests.DshOpenedHttpPeerE2eTests.E2E_Handshake_AcceptedOnRealDsh_WithFrozenStamp" storage="/users/fran/documents/code/spacex/uni_claw/tests/uniclaw.agent.dsh.tests/bin/debug/net10.0/uniclaw.agent.dsh.tests.dll" id="76fad041-3a3a-0ae9-a033-66875423b00c">
+      <Execution id="51e8f3a7-abb9-4c7b-9ae4-1c8c2818c0aa" />
+      <TestMethod codeBase="/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Agent.Dsh.Tests.DshOpenedHttpPeerE2eTests" name="E2E_Handshake_AcceptedOnRealDsh_WithFrozenStamp" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="76fad041-3a3a-0ae9-a033-66875423b00c" executionId="51e8f3a7-abb9-4c7b-9ae4-1c8c2818c0aa" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="1" executed="1" passed="1" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Agent.Dsh.Tests
+[xUnit.net 00:00:00.06]   Discovered:  UniClaw.Agent.Dsh.Tests
+[xUnit.net 00:00:00.06]   Starting:    UniClaw.Agent.Dsh.Tests
+[xUnit.net 00:00:00.17]   Finished:    UniClaw.Agent.Dsh.Tests
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>
