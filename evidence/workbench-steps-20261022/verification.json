@@ -16,5 +16,11 @@
     "pid": 75299,
     "ownedSession": 69958
   },
-  "delivery": "Scoped commit/push pending."
+  "delivery": {
+    "codeCommit": "70b694406bf882235df87b657602f234e881a12e",
+    "remote": "origin/uni-harness",
+    "verifiedRemoteHead": "70b694406bf882235df87b657602f234e881a12e",
+    "scope": "54 allowlisted Workbench source/research/state/evidence files only",
+    "unrelatedDirtyWorkPreserved": true
+  }
 }

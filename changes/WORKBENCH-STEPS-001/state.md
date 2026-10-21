@@ -1,5 +1,5 @@
 # WORKBENCH-STEPS-001 — 可读步骤与 Workbench 提交
-lifecycle_state: verified
+lifecycle_state: closed
 disposition: none
 depth: standard
 
@@ -25,8 +25,8 @@ RED/GREEN → build/regression → scope review → owned preview browser → cu
 ## Verification
 level: ENVIRONMENT
 method: 现有 renderer 接口测试、全量 Workspace/DSH 回归、bundle 重建、真实 DSH 既有会话只读浏览和截图审查。
-expected: A1-A3 成立；A4 提交路径归属明确，随后执行提交/推送。
-actual: 169/169；点击步骤可读且参数完整，刷新后保留展开；390px 无横向溢出；浏览器批次包含最终 client 完整字节。提交与推送待执行。
+expected: A1-A4 全部成立。
+actual: 169/169；点击步骤可读且参数完整，刷新后保留展开；390px 无横向溢出；浏览器批次包含最终 client 完整字节。代码已提交并推送 origin/uni-harness，远端 SHA 与 70b694406bf882235df87b657602f234e881a12e 一致。
 evidence: evidence/workbench-steps-20261022/verification.json、review.md、tests.txt、browser-checks.json、桌面/手机截图。
 
 ## Status
@@ -35,3 +35,5 @@ evidence: evidence/workbench-steps-20261022/verification.json、review.md、test
 - 2026-10-22：planned → implemented：步骤展示改为来源字段摘要与可展开参数；修复对象之外空步骤的显示，不修改输入/执行。
 - 2026-10-22：implemented → reviewed：累计 Workbench diff 与提交归属清单复核；未知动作保留、字段转义、原始参数保留与 authority 边界确认。
 - 2026-10-22：reviewed → verified：169/169 与真实 DSH 浏览器参数/刷新/390px 检查通过；仅本任务拥有的 3082 重载。
+
+- 2026-10-22：verified → closed：54 个 allowlist 文件已生成代码提交 70b694406bf882235df87b657602f234e881a12e 并推送 origin/uni-harness；ls-remote 确认远端相同 SHA。并行任务此前提交 a23fe67d 已在远端，本次代码提交仅含本任务归属路径；未包含其余脏修改。关闭记录单独作为文档提交。
