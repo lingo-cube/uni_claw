@@ -18,12 +18,12 @@
 | `core-extraction-uiworld-alignment-v0.1.md` | Core 契约 × UI World realization 只读对齐表：覆盖矩阵、缺口归属分类、文档漂移修正、Step 2-4 路线（CORE-015） | DRAFT / READ-ONLY ALIGNMENT |
 | `uiworld-realization-contract-v0.1.md` | UI World realization 契约草案：输入/输出/不得拥有清单 + Core 条目→UI 义务映射（CORE-015 Step 2） | DRAFT / REVIEW_REQUIRED |
 | `core-execution-record-contract-v0.1.md` | 可靠执行记录契约与验收计划（不含实现） | DESIGN / APPROVED；CORE-009 |
-| `plans/2026-09-19-core-010-reliable-execution-record.md` | 首个可靠执行记录受控实现计划（CORE-010 规划实体；已执行：CORE-011 仿真、CORE-013 产品/ADR-0023） | PLAN / APPROVED；已执行 |
+| `../../plans/2026-09-19-core-010-reliable-execution-record.md` | 首个可靠执行记录受控实现计划（CORE-010 规划实体；已执行：CORE-011 仿真、CORE-013 产品/ADR-0023） | PLAN / APPROVED；已执行 |
 | `core-execution-record-simulation-contract-v0.1.md` | CORE-010 测试侧仿真、Crash Cut Point 与验收契约（不含实现） | DESIGN / APPROVED；CORE-010 |
 | `runtime-core-model-interface-archive-skeleton-v0.1.md` | Runtime/Core 模型接口 archive 骨架 | DRAFT / REVIEW_REQUIRED |
 | `runtime-perception-world-simulation-replay-roadmap-v0.1.md` | Runtime 感知/世界/仿真/回放路线图 | DRAFT / ACCEPTED_AS_CHANGE_INPUT（H2） |
 | `uniclaw-workspace-architecture-v0.1.md` | UniClaw Workspace 架构方案 v0.1（目标/边界/分层/数据形状/前端组织；PNL-003 主文档，AGT-009 基线卫生修复迁入） | DRAFT / REVIEW_REQUIRED |
-| `../capability-hub/customization-integration-development-protocol-v0.1.md` | Capability 定制化、协议选择、注册集成、Adapter 开发与验收流程（Capability Hub 管理入口） | FROZEN / PROTOCOL GUIDE v0.1（CAP-010 升格） |
+| `../capability-hub/customization-integration-development-protocol-v0.1.md` | Capability 定制化、协议选择、注册集成、Adapter 开发与验收流程（Capability Hub 管理入口） | FROZEN / PROTOCOL GUIDE v0.2（JEV-SEMANTIC-CAP-001 兼容执行扩展；CAP-010 升格） |
 | `memory-system-component-declaration-v0.1.md` | Memory System 组件声明占位（给 UniAgent 提供记忆；零落地待 buyer；AGT-018） | CANDIDATE / DECLARATION |
 | `task-scoped-capability-binding-v0.1.md` | 任务级能力创建、绑定、隔离、取消与收尾；生产接口待实现 | DRAFT / ACCEPTED_AS_CHANGE_INPUT |
 | `uniagent-profile-realization-and-management-v0.1.md` | UniAgent Profile 落地设计：产品级 host-neutral profile + DSH 绑定分离（四层装配、17 项裁决闭合、切片 PRF-1a/1b/2/3/4/5、ADR-0041 计划） | DRAFT / GRILLING_DECIDED（待 change 执行） |
@@ -33,3 +33,14 @@
 | `protocol-completeness-formal-audit-v0.1.md` | 协议完备性形式审计：生命周期/流程全走查，Safety/Liveness/Reachability/Consistency 数学检查 + 认识论/政体哲学审计；九项发现 + 附录A 字段级落实清单（缺/多字段逐接口）+ 附录B 流程字段链二次走查 + 附录C grill 裁决记录（11 题全裁决） | DRAFT / FORMAL-AUDIT（裁决已固化 ADR-0048/0049/0050；实施待 PROTOCOL-FIX） |
 | `protocol-fix-001-proposal.md` | PROTOCOL-FIX 修复包提案：六切片实施计划（Origin 字段族/期望载荷/预算两层顶+续授/locator 收窄/渗透立法/机械搭车），含验收与锁定计划衔接 | DRAFT / PROPOSAL（待 Owner 批准开工，立 changes/PROTOCOL-FIX-001） |
 | `protocol-workflow-model-v0.1.html` | 交互式协议工作流模型：27 步全链（任务→契约→运行→交卷），点击节点查看该步字段传递与修复标记（＋新增/✖移除/chg变更），可按修复点/不动/轨道过滤 | DRAFT / INTERACTIVE-MODEL（Authority: NONE；字段为读码实测） |
+| `uniflow-gate-recalibration-proposal-v0.1.md` | UniFlow 门控再校准提案 v0.1（草案·待对抗审核；历史保留不改写） | SUPERSEDED（by v0.2，2026-09-20） |
+| `uniflow-gate-recalibration-proposal-v0.2.md` | UniFlow 门控再校准提案 v0.2：两周 shadow-mode 实验方案（实验期间 SKILL.md 与 ADR-0007 零改动；升格须另立 ADR 窄修 change） | DRAFT |
+| `capability-coverage-derivation-v0.1.md` | 能力接口覆盖推导：VNext 场景库 × uni-agent 实跑 × 当前接口（场景×接口静态推导） | DRAFT |
+| `scenario-reasoning-v0.1.md` | 场景推理：150 实际场景中的可靠性与设计正确性论证（T1–T6 定理层的场景实例化层） | DRAFT / CANDIDATE |
+| `decision-granularity-scenarios-v0.1.md` | 决策粒度与策略分层场景推演（RUN-004 多轮决策协议与 RUN-005 策略提案形态的规格输入） | DRAFT |
+| `consultation-protocol-v0.1.md` | 咨询协议与数据格式推导：从 150 场景反推 P25 契约 v2（RUN-004/RUN-005 契约规格基座） | DRAFT / CANDIDATE |
+| `componentization-map-v0.1.md` | 组件化地图：当前架构与分离进度活地图（每次 change 关闭时更新；事实基线 HEAD 01ced9bf） | DRAFT（活地图） |
+| `runtime-capability-integration-seams-v0.1.md` | Runtime 能力集成接缝：调用链盘点 × 能力买家场景 × 接缝推导（UniPerception 组合能力；Grill ACCEPTED 2026-10-04；ADR-0035 前置） | DRAFT |
+| `agent-exception-escalation-and-observation-v0.1.md` | Agent 异常升级与观察机制设计讨论稿 v0.1（问题整理、候选机制与借鉴对照） | DRAFT / CANDIDATE（SUPERSEDED by v0.2，存档） |
+| `agent-exception-escalation-and-observation-v0.2.md` | Agent 异常升级与观察机制设计稿 v0.2（三轨 grill 定稿；AGT-019 实现依据，字段冻结以 changes/AGT-019/spec.md 为准） | GRILLED / DECISION-COMPLETE（2026-10-17） |
+| `state-machine-viz-v0.1.html` | 协议状态机可视化信息图：流程/分支/归属/字段，点击节点查看该步详情 | DRAFT / INTERACTIVE-VIZ（Authority: NONE，与基线冲突以基线为准） |
