@@ -5,7 +5,19 @@ const { renderWorkspaceHtml } = require('../src/ui/render-workspace-html');
 const { createWorkspaceViewModel } = require('../src/features/workspace-view-model');
 
 function view(overrides = {}) { return createWorkspaceViewModel({ projects:{status:'ready',items:[{projectId:'p1',name:'项目',instances:[{productSessionId:'ps1',title:'任务',status:'running'}]}],errors:[]}, selection:{projectId:'p1',productSessionId:'ps1',taskInstances:{status:'ready',items:[{productSessionId:'ps1',title:'任务',status:'running'}],errors:[]}}, session:{status:'ready',session:{productSessionId:'ps1',metadata:{owner:'a'}}}, timeline:{status:'ready',items:[{kind:'request',summary:'请求'},{kind:'decision',summary:'决策'},{kind:'result',summary:'结果'}],errors:[]}, traces:{status:'ready',items:[{id:'t1',source:'uniclaw',detailRef:{refId:'trace-1'}}],errors:[]}, evidence:{status:'ready',items:[{id:'e1',title:'证据',detailRef:{refId:'evidence-1'}},{id:'e2',title:'受限',detailRef:{refId:'denied'},error:{code:'permission-denied',message:'拒绝'}}],errors:[]}, detail:{status:'idle'},...overrides }); }
-test('renders semantic workspace sections, tabs, side rail and trace timeline', () => { const html = renderWorkspaceHtml(view()); for (const selector of ['workspace-navigation','workspace-navigation__resize','workspace-navigation__toggle','workspace-task-header','workspace-observation-bar','workspace-diagnostics-slot','workspace-conversation-shell','workspace-conversation','workspace-pane-tabs','workspace-pane--trace','workspace-pane--evidence','workspace-pane--metadata','workspace-pane--execution','workspace-side-rail','workspace-trace-source-switch']) assert.match(html, new RegExp(selector)); assert.match(html,/data-workspace-action="launch-task"/); assert.match(html,/请求/); assert.match(html,/决策/); assert.match(html,/结果/); assert.match(html,/<details class="workspace-trace-root"/); assert.match(html,/data-detail-ref="evidence-1"/); });
+test('makes conversation primary with an independent Trace view and a closed inspector', () => {
+  const html = renderWorkspaceHtml(view());
+  assert.match(html, /data-main-view="conversation"/);
+  assert.match(html, /data-workspace-action="select-view"[^>]*data-view="trace"/);
+  assert.match(html, /id="workspace-inspector"[^>]*hidden/);
+  assert.match(html, /data-view-panel="trace"[^>]*hidden/);
+  const open = renderWorkspaceHtml(view({ ui: { activeView: 'trace', activePane: 'metadata', inspectorOpen: true } }));
+  assert.match(open, /workspace--inspector-open/);
+  assert.match(open, /data-main-view="trace"/);
+  assert.doesNotMatch(open, /id="workspace-inspector"[^>]*hidden/);
+  assert.match(open, /data-workspace-action="close-inspector"/);
+});
+test('renders semantic workspace sections, primary views, on-demand inspector and trace timeline', () => { const html = renderWorkspaceHtml(view()); for (const selector of ['workspace-navigation','workspace-navigation__resize','workspace-navigation__toggle','workspace-task-header','workspace-observation-bar','workspace-diagnostics-slot','workspace-conversation-shell','workspace-conversation','workspace-pane-tabs','workspace-pane--trace','workspace-pane--evidence','workspace-pane--metadata','workspace-pane--execution','workspace-detail-panel','workspace-primary','workspace-view--trace','workspace-trace-source-switch']) assert.match(html, new RegExp(selector)); assert.match(html,/data-workspace-action="launch-task"/); assert.match(html,/请求/); assert.match(html,/决策/); assert.match(html,/结果/); assert.match(html,/<details class="workspace-trace-root"/); assert.match(html,/data-detail-ref="evidence-1"/); });
 test('renders a project-local plus action and requirement-only launch composer', () => {
   const html = renderWorkspaceHtml(view({
     projects: { status: 'ready', items: [{ projectId: 'p1', name: '项目', instances: [] }], launchDefaults: { projectRef: { id: 'project/local' }, testSetRef: { id: 'testset/local', version: 'default' }, taskRef: { id: 'task/local/request', label: '默认任务' } }, errors: [] },
@@ -41,19 +53,20 @@ test('offers combined and split trace views and a return action from details', (
   assert.match(split, /data-trace-mode="split"[^>]*aria-pressed="true"/);
   assert.match(split, /workspace-trace-source-group/);
   const detail = renderWorkspaceHtml(view({ ui: { activePane: 'evidence', detailReturnPane: 'evidence', detailModalOpen: true }, detail: { status: 'ready', detail: { ok: true } } }));
-  assert.match(detail, /workspace-detail-modal/);
+  assert.match(detail, /workspace-record-detail/);
   assert.match(detail, /返回 Evidence/);
   assert.match(detail, /data-workspace-action="close-detail"/);
 });
-test('formats structured detail text and highlights device metadata', () => {
-  const html = renderWorkspaceHtml(view({
-    session: { status: 'ready', session: { productSessionId: 'ps1', metadata: { device: 'emulator-5556', androidApi: 35, wmSize: '1080x1920', real: true } } },
+test('shows device metadata in the overview and formats selected artifact detail separately', () => {
+  const session = { status: 'ready', session: { productSessionId: 'ps1', metadata: { device: 'emulator-5556', androidApi: 35, wmSize: '1080x1920', real: true } } };
+  const overview = renderWorkspaceHtml(view({ session, ui: { activePane: 'metadata', inspectorOpen: true } }));
+  assert.match(overview, /设备与运行环境/);
+  assert.match(overview, /emulator-5556/);
+  assert.match(overview, /Android API/);
+  const html = renderWorkspaceHtml(view({ session,
     ui: { activePane: 'trace', detailModalOpen: true },
     detail: { status: 'ready', detail: { name: 'facts.json', text: '{"outcome":"Completion","delivered":2}' } }
   }));
-  assert.match(html, /设备与运行环境/);
-  assert.match(html, /emulator-5556/);
-  assert.match(html, /Android API/);
   assert.match(html, /&quot;outcome&quot;: &quot;Completion&quot;/);
   assert.doesNotMatch(html, /\\&quot;outcome\\&quot;:/);
 });
@@ -86,6 +99,19 @@ test('renders Uni-Agent dialogue rounds with readable roles and runtime stages',
   assert.match(html, /选择搜索策略/);
   assert.match(html, /执行与验证/);
   assert.match(html, /证据齐全/);
+});
+test('renders the rationale on the decision card and the receipt only on the submission card', () => {
+  const html = renderWorkspaceHtml(view({ session: { status: 'ready', session: {
+    conversationGroups: [{ stages: [
+      { kind: 'decision', role: 'assistant', justification: '先检查 <Wi-Fi>', result: { text: 'submit_decision accepted' } },
+      { kind: 'result', role: 'tool', text: 'submit_decision accepted' }
+    ] }]
+  } } }));
+  const decision = html.match(/<article[^>]*data-kind="decision"[^>]*>(.*?)<\/article>/s)[1];
+  assert.match(decision, /先检查 &lt;Wi-Fi&gt;/);
+  assert.doesNotMatch(decision, /submit_decision accepted/);
+  assert.equal((html.match(/submit_decision accepted/g) || []).length, 1);
+  assert.doesNotMatch(html, /<Wi-Fi>/);
 });
 test('escapes text, attributes and detail refs', () => { const html = renderWorkspaceHtml(view({ selection:{projectId:'<p>',productSessionId:'ps&',taskInstances:{status:'ready',items:[{productSessionId:'ps&',title:'<script>alert(1)</script>'}],errors:[]}}, timeline:{status:'ready',items:[{kind:'request',summary:'<img src=x>'}],errors:[]} })); assert.doesNotMatch(html, /<script|<img/); assert.ok(html.includes('&lt;script&gt;alert(1)&lt;/script&gt;')); assert.match(html,/ps&amp;/); });
 test('keeps uncorrelated and unavailable detail visible but inert', () => { const html = renderWorkspaceHtml(view({ evidence:{status:'partial',items:[{title:'孤立',correlationStatus:'uncorrelated',detailRef:{refId:'orphan'}},{title:'拒绝',detailRef:{refId:'denied'},error:{code:'permission-denied',message:'permission-denied'}}],errors:[{code:'stale',message:'旧快照'}]}, notices:[{level:'warning',code:'uncorrelated',message:'未关联'}] })); assert.match(html,/未关联/); assert.match(html,/permission-denied/); assert.match(html,/disabled aria-disabled/); assert.doesNotMatch(html,/data-detail-ref="orphan"/); });
@@ -146,4 +172,79 @@ test('diagnosis result block renders the non-authoritative notice before the tex
   assert.match(html, /根因：A/);
   const failed = renderWorkspaceHtml(view({ ui: { activePane: 'tools' }, diagnosis: { status: 'error', data: null, errors: [{ code: 'diagnosis-report-missing', message: 'diagnosis-report-missing: invoke run-report first' }] } }));
   assert.match(failed, /diagnosis-report-missing/);
+});
+
+
+test('tool cards fold structured receipts, expose errors, and retain source-only status and record actions', () => {
+  const html = renderWorkspaceHtml(view({ session: { status: 'ready', session: { conversationGroups: [{ groupId: 'g1', stages: [
+    { kind: 'result', role: 'tool', label: '决策提交结果', text: '{"accepted":true,"value":"<script>"}', seq: 3 },
+    { kind: 'result', role: 'tool', label: '能力结果', text: 'permission <denied>', isError: true, seq: 4 },
+    { kind: 'tool-call', role: 'tool', label: '能力调用', text: '读取页面', status: 'running', seq: 5 }
+  ] }] } } }));
+  const cards = [...html.matchAll(/<article[^>]*data-kind="(?:result|tool-call)"[^>]*>(.*?)<\/article>/gs)].map(m => m[1]);
+  assert.match(cards[0], /<details[^>]*data-reading-disclosure="tool:g1:3"[^>]*>/);
+  assert.match(cards[0], /结构化内容/);
+  assert.match(cards[0], /&lt;script&gt;/);
+  assert.doesNotMatch(cards[0], /已完成|已成功|workspace-status--completed/);
+  assert.match(cards[0], /data-workspace-action="inspect-conversation"/);
+  assert.match(cards[1], /class="workspace-tool-card__error"[^>]*>permission &lt;denied&gt;/);
+  assert.match(cards[1], /workspace-status--error/);
+  assert.match(cards[2], /进行中/);
+  assert.doesNotMatch(html, /<script>/);
+});
+
+test('tool catalog cards keep registry fields accessible without adding execution authority', () => {
+  const html = renderWorkspaceHtml(view({ tools: { status: 'ready', items: [
+    { name: 'run-<report>', summary: '生成报告', invocation: 'command', posture: 'readonly', status: 'implemented' },
+    { name: 'future-tool', summary: '待接入', invocation: 'model-procedure', posture: 'analysis', status: 'planned' }
+  ], errors: [] }, ui: { activePane: 'tools', inspectorOpen: true } }));
+  assert.match(html, /workspace-tool-catalog/);
+  assert.doesNotMatch(html, /<table class="workspace-tools-table"/);
+  assert.match(html, /run-&lt;report&gt;/);
+  assert.match(html, /data-reading-disclosure="catalog:0:run-&lt;report&gt;"/);
+  for (const value of ['command', 'readonly', 'model-procedure', 'analysis', 'implemented', 'planned']) assert.match(html, new RegExp(value));
+  assert.match(html, /data-workspace-action="generate-report"[^>]*disabled/);
+  assert.doesNotMatch(html, /data-workspace-action="execute-tool"/);
+});
+
+
+test('uninspectable tool rows without event IDs receive distinct disclosure keys and no dead inspect actions', () => {
+  const html = renderWorkspaceHtml({ conversationTimeline: { rounds: [{ inspectable: false, stages: [
+    { kind: 'result', role: 'tool', text: '读取第一项' },
+    { kind: 'result', role: 'tool', text: '读取第二项' }
+  ] }] } });
+  const keys = [...html.matchAll(/data-reading-disclosure="(tool:[^"]+)"/g)].map(m => m[1]);
+  assert.equal(keys.length, 2);
+  assert.equal(new Set(keys).size, 2);
+  assert.doesNotMatch(html, /data-workspace-action="inspect-conversation"/);
+});
+
+
+test('renders legacy action steps as readable action and target with complete expandable parameters', () => {
+  const html = renderWorkspaceHtml(view({ session: { status: 'ready', session: { conversationGroups: [{ groupId: 'g1', stages: [
+    { kind: 'decision', role: 'agent', steps: [{ effectClass: 'tap', targetDescriptor: 'Network & internet', targetRole: 'ui.element', desiredState: 'checked' }, '保持当前设置'] }
+  ] }] } } }));
+  assert.match(html, /workspace-step-summary">点击 · Network &amp; internet/);
+  assert.match(html, /目标状态：checked/);
+  assert.match(html, /<details[^>]*data-reading-disclosure="step:g1:0:0"/);
+  assert.match(html, /&quot;targetRole&quot;: &quot;ui.element&quot;/);
+  assert.match(html, /保持当前设置/);
+  assert.doesNotMatch(html, /执行成功/);
+});
+
+
+test('keeps supplied labels and unknown actions without inventing results or losing raw fields', () => {
+  const html = renderWorkspaceHtml({ conversationTimeline: { rounds: [{ groupId: 'g2', stages: [{ kind: 'decision', role: 'agent', steps: [
+    { label: '保留 <当前状态>', description: '其他说明', effectClass: 'tap', targetDescriptor: 'Wi-Fi', extra: '参数仍保留' },
+    { effectClass: 'custom.action', targetRole: 'ui.<switch>', desiredState: '<enabled>' },
+    { unrecognized: '<img src=x>' }, null
+  ] }] }] } });
+  assert.match(html, /workspace-step-summary">保留 &lt;当前状态&gt;/);
+  assert.match(html, /workspace-step-summary">custom.action · 目标角色：ui.&lt;switch&gt;/);
+  assert.match(html, /目标状态：&lt;enabled&gt;/);
+  assert.match(html, /workspace-step-summary">结构化步骤/);
+  assert.match(html, /参数仍保留/);
+  assert.match(html, /&lt;img src=x&gt;/);
+  assert.match(html, /未提供步骤内容/);
+  assert.doesNotMatch(html, /<img|执行成功|已执行/);
 });

@@ -1,0 +1,47 @@
+{
+  "fixtureOnly": true,
+  "stats": {
+    "reads": {
+      "fixture-host-1": 2,
+      "fixture-host-2": 2
+    },
+    "launches": [
+      [
+        "uniclaw.workspace.task-launch-request.v1",
+        "uniclaw.workspace.contract.v1",
+        "launch-request-1792595225329",
+        {
+          "id": "project/fixture"
+        },
+        {
+          "id": "testset/fixture",
+          "version": "default"
+        },
+        {
+          "id": "task/fixture",
+          "label": "仅用于隔离验收的任务需求"
+        },
+        "workspace-1792595225329-7ce1fk",
+        "workspace-1792595225329",
+        "2026-10-21T15:07:05.329Z",
+        null,
+        [
+          {
+            "key": "requirement",
+            "value": "仅用于隔离验收的任务需求",
+            "valueOrigin": "configured",
+            "availability": "present",
+            "source": "workspace-launch-form",
+            "authority": "user"
+          }
+        ],
+        null
+      ]
+    ]
+  },
+  "decision": "U\nUni-Agent 决策\n\n当前页面有蓝牙入口，先查看蓝牙状态\n\n仅展示已有决策，不执行设备操作",
+  "submission": "T\n提交结果\n\nsubmit_decision accepted: decision captured",
+  "composerOpen": true,
+  "requirement": "仅用于隔离验收的任务需求",
+  "fillObservation": "input replaced its DOM element; reinspection confirmed full value, mock Host received exactly one launch"
+}

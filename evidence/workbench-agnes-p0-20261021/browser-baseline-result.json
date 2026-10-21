@@ -1,0 +1,43 @@
+{
+  "fixtureOnly": true,
+  "stats": {
+    "reads": {
+      "fixture-host-1": 8
+    },
+    "launches": [
+      [
+        "uniclaw.workspace.task-launch-request.v1",
+        "uniclaw.workspace.contract.v1",
+        "launch-request-1792595336525",
+        {
+          "id": "project/fixture"
+        },
+        {
+          "id": "testset/fixture",
+          "version": "default"
+        },
+        {
+          "id": "task/fixture",
+          "label": "仅用于隔离验收的任务需求"
+        },
+        "workspace-1792595336525-ubpnni",
+        "workspace-1792595336525",
+        "2026-10-21T15:08:56.525Z",
+        null,
+        [
+          {
+            "key": "requirement",
+            "value": "仅用于隔离验收的任务需求",
+            "valueOrigin": "configured",
+            "availability": "present",
+            "source": "workspace-launch-form",
+            "authority": "user"
+          }
+        ],
+        null
+      ]
+    ]
+  },
+  "composerOpen": true,
+  "decision": "U\nUni-Agent 决策\n\nsubmit_decision accepted: decision captured\n\n仅展示已有决策，不执行设备操作"
+}

@@ -1,0 +1,16 @@
+{
+  "evidence": {
+    "status": "ready",
+    "hasContent": true
+  },
+  "launch": {
+    "composerOpen": true,
+    "submitDisabled": true
+  },
+  "mobile": {
+    "width": 390,
+    "overflow": false,
+    "cardsFit": true
+  },
+  "modelOrDeviceActionInvoked": false
+}

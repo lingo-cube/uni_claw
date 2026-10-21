@@ -1,0 +1,20 @@
+{
+  "level": "ENVIRONMENT",
+  "method": "node --test web/uniclaw-workspace/tests/*.test.js dsh/uniclaw-task-workbench/tests/*.test.mjs; rebuild browser bundle; actual uniclaw-product profile on owned 3082; read persisted Android Settings session, expand step parameters, refresh, inspect 390px view.",
+  "expected": "Readable action/target, complete raw parameters, preserved expansion, no overflow, source/installed/served bundle consistency, no model/device action.",
+  "actual": "169/169; real summaries are readable Chinese action plus source targets; parameter details remain open after refresh; desktop/mobile fit; served batch contains exact generated client.",
+  "evidence": [
+    "tests.txt",
+    "browser-checks.json",
+    "real-desktop.png",
+    "real-mobile.png",
+    "review.md"
+  ],
+  "clientSha256": "b2d553f0c279972d1acc507bb937b577e6f4b9c4ad98b49e7fc379675b5ff86a",
+  "preview": {
+    "port": 3082,
+    "pid": 75299,
+    "ownedSession": 69958
+  },
+  "delivery": "Scoped commit/push pending."
+}

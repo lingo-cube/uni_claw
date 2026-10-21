@@ -2,6 +2,7 @@
 const { WorkspaceQueryCore } = require('../core');
 const { createWorkspaceApp } = require('../app/create-workspace-app');
 const { bindWorkspaceLayout } = require('../ui/workspace-layout');
+const { bindWorkspaceReading } = require('../ui/workspace-reading');
 const WORKSPACE_STYLE_ID = 'uniclaw-workspace-styles';
 // A persisted DSH session may require a cold decompression/read on first access.
 // Keep the browser seam bounded, while allowing the real product session to load.
@@ -105,6 +106,24 @@ function createCapabilities(remote) {
     if (r.ok) rememberSessionMappings(r.data.projects);
     return r;
   });
+  // A refresh reads several panes concurrently from the same Host detail.
+  // Share only the in-flight read: later refreshes must re-check the source.
+  const sessionReads = new Map();
+  const readSession = (productSessionId, capability) => {
+    const sessionId = sessionByProduct.get(productSessionId) || productSessionId;
+    const key = JSON.stringify([productSessionId, sessionId]);
+    if (!sessionReads.has(key)) {
+      const pending = call('session', [sessionId], 'SessionQuery').finally(() => sessionReads.delete(key));
+      sessionReads.set(key, pending);
+    }
+    return sessionReads.get(key).then((result) => ({
+      ...result,
+      capability,
+      ...(!result.ok && result.error?.source === 'SessionQuery'
+        ? { error: { ...result.error, source: capability } }
+        : {})
+    }));
+  };
   return {
     TaskQuery: {
       listProjects,
@@ -128,8 +147,8 @@ function createCapabilities(remote) {
         return { ...r, data: { taskInstances: project.instances || [], errors: r.data.errors || [] } };
       }),
     },
-    SessionQuery: { getSession: ({ productSessionId }) => call('session', [sessionByProduct.get(productSessionId) || productSessionId], 'SessionQuery').then((r) => r.ok ? { ...r, data: r.data.session || r.data } : r), getTimeline: ({ productSessionId }) => call('session', [sessionByProduct.get(productSessionId) || productSessionId], 'SessionQuery').then((r) => r.ok ? { ...r, data: r.data.conversation || [] } : r) },
-    TraceQuery: { getTraces: ({ productSessionId }) => call('session', [sessionByProduct.get(productSessionId) || productSessionId], 'TraceQuery').then((r) => {
+    SessionQuery: { getSession: ({ productSessionId }) => readSession(productSessionId, 'SessionQuery').then((r) => r.ok ? { ...r, data: r.data.session || r.data } : r), getTimeline: ({ productSessionId }) => readSession(productSessionId, 'SessionQuery').then((r) => r.ok ? { ...r, data: r.data.conversation || [] } : r) },
+    TraceQuery: { getTraces: ({ productSessionId }) => readSession(productSessionId, 'TraceQuery').then((r) => {
       if (!r.ok) return r;
       const detailRef = { refId: 'trace.json', source: 'dsh', productSessionId };
       let detailAttached = false;
@@ -147,7 +166,7 @@ function createCapabilities(remote) {
       ];
       return { ...r, data: { traces, context: r.data.uniclawTraceContext ? { ...r.data.uniclawTraceContext, source: 'uniclaw' } : null } };
     }) },
-    EvidenceQuery: { getEvidence: ({ productSessionId }) => call('session', [sessionByProduct.get(productSessionId) || productSessionId], 'EvidenceQuery').then((r) => {
+    EvidenceQuery: { getEvidence: ({ productSessionId }) => readSession(productSessionId, 'EvidenceQuery').then((r) => {
       if (!r.ok) return r;
       const evidence = (r.data.evidence || []).map((item) => {
         if (item && typeof item === 'object') return item;
@@ -169,10 +188,13 @@ function createCapabilities(remote) {
 function createDshWorkspaceBrowserBridge({ remote, container, render, viewOptions, styleText } = {}) {
   if (!container || typeof container.appendChild !== 'function') throw new TypeError('container is required');
   const layout = bindWorkspaceLayout(container);
+  const reading = bindWorkspaceReading(container, { closeInspector: () => app.getController().closeInspector() });
   let eventsBound = false;
   const app = createWorkspaceApp({ queryCore: new WorkspaceQueryCore(createCapabilities(remote)), render, viewOptions, mount: ({ html }) => {
+    reading.capture();
     container.innerHTML = html;
     layout.apply();
+    reading.restore();
     if (eventsBound || typeof container.addEventListener !== 'function') return;
     eventsBound = true;
     const controller = app.getController();
@@ -184,6 +206,12 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
       event.preventDefault();
       if (action === 'refresh') {
         void controller.refresh();
+      } else if (action === 'select-view') {
+        controller.selectView(target.getAttribute('data-view'));
+      } else if (action === 'close-inspector') {
+        controller.closeInspector();
+      } else if (action === 'inspect-conversation') {
+        controller.inspectConversation(Number(target.getAttribute('data-round-index')), Number(target.getAttribute('data-stage-index')));
       } else if (action === 'launch-task' || action === 'launch-project') {
         controller.openLaunchComposer(action === 'launch-project' ? target.getAttribute('data-project-id') : app.getState().selection.projectId);
       } else if (action === 'submit-launch') {
@@ -263,7 +291,7 @@ function createDshWorkspaceBrowserBridge({ remote, container, render, viewOption
       }
     });
   } });
-  return Object.freeze({ start: () => { ensureWorkspaceStyles(container, styleText); layout.apply(); return app.start(); }, stop: () => { layout.dispose(); app.stop(); }, getApp: () => app, getLayout: () => layout });
+  return Object.freeze({ start: () => { ensureWorkspaceStyles(container, styleText); layout.apply(); return app.start(); }, stop: () => { reading.dispose(); layout.dispose(); app.stop(); }, getApp: () => app, getLayout: () => layout });
 }
 
 function launchRefs(state, projectId) {

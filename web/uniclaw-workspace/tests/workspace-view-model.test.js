@@ -160,6 +160,23 @@ test('projects Uni-Agent conversation groups and runtime stages into the main di
   assert.equal(view.conversationTimeline.runStages[0].kind, 'verification');
 });
 
+test('keeps the decision rationale separate from its submission receipt', () => {
+  const stages = [
+    { kind: 'decision', role: 'assistant', justification: '先进入网络设置', result: { text: 'submit_decision accepted' } },
+    { kind: 'result', role: 'tool', text: 'submit_decision accepted' },
+    { kind: 'decision', role: 'assistant', result: { text: 'submit_decision rejected' } },
+    { kind: 'result', role: 'tool', justification: '工具调用原因', result: { text: '工具实际结果' } }
+  ];
+  const input = state({ session: { status: 'ready', session: { conversationGroups: [{ stages }] } } });
+  const before = JSON.stringify(input);
+  const projected = createWorkspaceViewModel(input).conversationTimeline.rounds[0].stages;
+  assert.equal(projected[0].text, '先进入网络设置');
+  assert.equal(projected[1].text, 'submit_decision accepted');
+  assert.equal(projected[2].text, '');
+  assert.equal(projected[3].text, '工具实际结果');
+  assert.equal(JSON.stringify(input), before);
+});
+
 test('does not expose renderer or host dependencies', () => {
   const source = require('node:fs').readFileSync(require('node:path').join(__dirname, '../src/features/workspace-view-model.js'), 'utf8');
   assert.doesNotMatch(source, /react|document\.|window\.|fetch\(|node:fs|node:path|dsh|host/i);

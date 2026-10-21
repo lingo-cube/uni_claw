@@ -5,7 +5,7 @@ function createWorkspaceController({ queryCore } = {}) {
   const state = {
     projects: idlePage('projects'),
     selection: { projectId: null, productSessionId: null },
-    ui: { activePane: 'trace', traceMode: 'combined', traceSource: 'all', detailReturnPane: 'trace', detailModalOpen: false, toolsRunDir: '', launchComposer: { open: false, projectId: null, requirement: '', deviceOverrideEnabled: false, deviceOverride: null, requirementDocument: null, documentError: null } },
+    ui: { activeView: 'conversation', inspectorOpen: false, activePane: 'trace', traceMode: 'combined', traceSource: 'all', detailReturnPane: 'trace', detailModalOpen: false, toolsRunDir: '', launchComposer: { open: false, projectId: null, requirement: '', deviceOverrideEnabled: false, deviceOverride: null, requirementDocument: null, documentError: null } },
     session: idleData('session'),
     timeline: idlePage('timeline'),
     traces: idlePage('traces'),
@@ -187,6 +187,7 @@ function createWorkspaceController({ queryCore } = {}) {
       ? (state.ui.detailReturnPane || 'trace')
       : state.ui.activePane;
     state.ui.detailModalOpen = true;
+    state.ui.inspectorOpen = true;
     state.detail = { status: 'loading', detail: null, errors: [] };
     publish();
     const result = await queryCore.resolveDetail(detailRef, { productSessionId });
@@ -194,9 +195,20 @@ function createWorkspaceController({ queryCore } = {}) {
     return applyData('detail', result, token);
   }
   function selectPane(pane) {
-    const allowed = ['trace', 'evidence', 'tools', 'detail'];
+    const allowed = ['trace', 'evidence', 'tools', 'detail', 'metadata', 'execution'];
     state.ui.activePane = allowed.includes(pane) ? pane : 'trace';
-    if (pane === 'detail') state.ui.detailModalOpen = true;
+    state.ui.detailModalOpen = pane === 'detail';
+    state.ui.inspectorOpen = state.ui.activePane !== 'trace';
+    if (state.ui.activePane === 'trace') state.ui.activeView = 'trace';
+    return publish();
+  }
+  function selectView(view) {
+    state.ui.activeView = view === 'trace' ? 'trace' : 'conversation';
+    return publish();
+  }
+  function closeInspector() {
+    state.ui.inspectorOpen = false;
+    state.ui.detailModalOpen = false;
     return publish();
   }
   function inspectTrace(index) {
@@ -204,7 +216,21 @@ function createWorkspaceController({ queryCore } = {}) {
     tokens.set('detail', (tokens.get('detail') || 0) + 1);
     state.ui.detailReturnPane = 'trace';
     state.ui.detailModalOpen = true;
+    state.ui.inspectorOpen = true;
     state.detail = { status: 'ready', detail: { format: 'trace-record', record: clone(state.traces.items[index]) }, errors: [] };
+    return publish();
+  }
+  function inspectConversation(roundIndex, stageIndex) {
+    if (!selected() || !Number.isInteger(roundIndex) || !Number.isInteger(stageIndex)) return publish();
+    const round = state.session.session?.conversationGroups?.[roundIndex];
+    const stages = round && (Array.isArray(round.stages) ? round.stages : [round.request, round.decision, round.submission || round.result, ...(round.extras || [])]);
+    const stage = stages?.filter((item) => item && typeof item === 'object')[stageIndex];
+    if (!stage) return publish();
+    tokens.set('detail', (tokens.get('detail') || 0) + 1);
+    state.ui.detailReturnPane = 'conversation';
+    state.ui.detailModalOpen = true;
+    state.ui.inspectorOpen = true;
+    state.detail = { status: 'ready', detail: { format: 'conversation-record', record: clone(stage), round: round.round || roundIndex + 1 }, errors: [] };
     return publish();
   }
   function selectTraceMode(mode) {
@@ -217,6 +243,7 @@ function createWorkspaceController({ queryCore } = {}) {
   }
   function closeDetail() {
     state.ui.detailModalOpen = false;
+    state.ui.inspectorOpen = ['evidence', 'tools', 'metadata', 'execution'].includes(state.ui.detailReturnPane);
     if (state.ui.activePane === 'detail') state.ui.activePane = state.ui.detailReturnPane || 'trace';
     return publish();
   }
@@ -234,7 +261,7 @@ function createWorkspaceController({ queryCore } = {}) {
   }
   return Object.freeze({
     loadProjects, selectProject, selectTaskInstance, loadSession, loadTimeline,
-    loadTraces, loadEvidence, launchTask, openLaunchComposer, setLaunchRequirement, setLaunchDeviceOverride, setLaunchDocument, setLaunchDocumentError, closeLaunchComposer, resolveDetail, inspectTrace, selectPane, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
+    loadTraces, loadEvidence, launchTask, openLaunchComposer, setLaunchRequirement, setLaunchDeviceOverride, setLaunchDocument, setLaunchDocumentError, closeLaunchComposer, resolveDetail, inspectTrace, inspectConversation, selectPane, selectView, closeInspector, selectTraceMode, selectTraceSource, closeDetail, refresh, subscribe,
     loadTools, setToolsRunDir, generateReport, diagnoseRun,
     getState: () => clone(state)
   });
@@ -252,6 +279,8 @@ function createWorkspaceController({ queryCore } = {}) {
     return apply(key, result, token);
   }
   function resetSelectionData() {
+    state.ui.inspectorOpen = false;
+    state.ui.detailModalOpen = false;
     for (const key of ['session', 'timeline', 'traces', 'evidence', 'detail']) {
       tokens.set(key, (tokens.get(key) || 0) + 1);
       state[key] = key === 'session' ? idleData(key) : idlePage(key);

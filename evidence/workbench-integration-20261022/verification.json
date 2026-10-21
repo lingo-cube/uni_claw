@@ -1,0 +1,33 @@
+{
+  "level": "ENVIRONMENT",
+  "method": "Exact-baseline scoped integration, shared-source bundle build and 167 tests, installed-client backup/update, real DSH profile boot on owned 3082, real persisted-session browser read-only interaction and screenshots.",
+  "expected": "A1-A4: no unrelated edits or running-flow interruption; final source/client consistent; real conversation/Trace/evidence/inspector and mobile layout work.",
+  "actual": "Matched: 167/167; 3 rounds and 3 tool cards; trace inspector and artifact ready; launch composer opens with empty-submit disabled; 390px no overflow; served bundle contains exact generated client; 3081 untouched.",
+  "evidence": [
+    "entry.json",
+    "tests.txt",
+    "profile-update.json",
+    "served-client.json",
+    "browser-loaded.json",
+    "browser-checks.json",
+    "trace-check.json",
+    "review.md",
+    "real-desktop.png",
+    "real-detail-desktop.png",
+    "real-mobile.png",
+    "integration-only.patch"
+  ],
+  "preview": {
+    "url": "http://127.0.0.1:3082/",
+    "pid": 59547,
+    "ownedSession": 18651,
+    "lifecycle": "kept running for user preview",
+    "stop": "Send SIGINT only to PID 59547 after confirming it still owns the 3082 listener."
+  },
+  "boundaries": [
+    "No fresh model/device execution was launched.",
+    "Active 3081 not restarted or claimed updated; product installed client is ready for its next reload.",
+    "Owner web profile and 3080 not modified.",
+    "No commit or push performed."
+  ]
+}

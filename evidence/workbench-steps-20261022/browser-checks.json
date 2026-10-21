@@ -1,0 +1,19 @@
+{
+  "desktop": {
+    "summaries": [
+      "点击 · Network & internet",
+      "点击 · Internet"
+    ],
+    "parametersOpen": true,
+    "rawContainsTarget": true,
+    "noOverflow": true
+  },
+  "mobile": {
+    "width": 390,
+    "noOverflow": true,
+    "summary": "点击 · Network & internet"
+  },
+  "servedClientMatches": true,
+  "sourceSha256": "b2d553f0c279972d1acc507bb937b577e6f4b9c4ad98b49e7fc379675b5ff86a",
+  "newModelDeviceRun": false
+}

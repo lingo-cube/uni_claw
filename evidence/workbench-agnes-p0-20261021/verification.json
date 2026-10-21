@@ -1,0 +1,92 @@
+{
+  "change": "WORKBENCH-AGNES-P0-001",
+  "level": "DETERMINISTIC",
+  "method": {
+    "tests": "node --test web/uniclaw-workspace/tests/*.test.js dsh/uniclaw-task-workbench/tests/*.test.mjs",
+    "build": "node web/uniclaw-workspace/scripts/build-browser-bundle.mjs",
+    "browser": "ego-browser; same isolated fixture and before/current generated bundles; read-only UI and fake Host launch only"
+  },
+  "expected": {
+    "decision": "rationale shown, receipt only in submission; result precedence outside decision preserved",
+    "sessionReads": "one in-flight Host detail for concurrent panes, next refresh reads again; no session mixing; errors recover",
+    "mainFlow": "existing command shape and runtime code unchanged"
+  },
+  "actual": {
+    "tests": {
+      "passed": 161,
+      "failed": 0
+    },
+    "redThenGreen": true,
+    "browser": {
+      "decisionBefore": "submit_decision accepted: decision captured",
+      "decisionAfter": "当前页面有网络入口，先进入网络设置",
+      "readsPerSelectionBefore": 4,
+      "readsPerSelectionAfter": 1,
+      "freshReadOnRefresh": true,
+      "fakeLaunchesPerSubmitBefore": 1,
+      "fakeLaunchesPerSubmitAfter": 1,
+      "actualRuntimeOrDeviceTasks": 0,
+      "deployedServiceRestarted": false,
+      "pixelReview": false
+    },
+    "browserBridgeAndLaunchSectionByteIdentical": true,
+    "changedTrackedPaths": [
+      "dsh/uniclaw-task-workbench/README.md",
+      "dsh/uniclaw-task-workbench/src/client.js",
+      "web/uniclaw-workspace/src/browser/entry.js",
+      "web/uniclaw-workspace/src/features/workspace-view-model.js",
+      "web/uniclaw-workspace/tests/browser-bridge.test.js",
+      "web/uniclaw-workspace/tests/workspace-renderer.test.js",
+      "web/uniclaw-workspace/tests/workspace-view-model.test.js"
+    ],
+    "outsideScopeTrackedDiffUnchanged": false,
+    "scopeNote": "Other concurrent work changed the existing tracked diff. This task only wrote the declared files plus its new Change/evidence directory; global preservation is not claimed.",
+    "statusEntriesAddedSinceEntry": [
+      " M dsh/uniclaw-task-workbench/README.md",
+      " M dsh/uniclaw-task-workbench/src/client.js",
+      " M src/UniClaw.Agent/README.md",
+      " M web/uniclaw-workspace/src/browser/entry.js",
+      " M web/uniclaw-workspace/src/features/workspace-view-model.js",
+      " M web/uniclaw-workspace/tests/browser-bridge.test.js",
+      " M web/uniclaw-workspace/tests/workspace-renderer.test.js",
+      " M web/uniclaw-workspace/tests/workspace-view-model.test.js",
+      "?? changes/WORKBENCH-AGNES-P0-001/",
+      "?? evidence/workbench-agnes-p0-20261021/"
+    ]
+  },
+  "evidence": {
+    "tests": "full-tests.txt",
+    "decisionRED": "decision-red.txt",
+    "snapshotRED": "snapshot-red.txt",
+    "snapshotGREEN": "snapshot-green.txt",
+    "queryLifecycle": "query-lifecycle-tests.txt",
+    "browserCheckpoints": "browser-checkpoints.json",
+    "browserAfter": "browser-result.json",
+    "browserBefore": "browser-baseline-result.json",
+    "preexistingInput": "baseline-input.json",
+    "patch": "implementation.patch"
+  },
+  "newFindings": [
+    {
+      "description": "Whole-page render replaces input element; baseline and current page.fill report disconnected target while retaining complete value.",
+      "disposition": "preexisting; no extra fix in this slice"
+    },
+    {
+      "description": "Launch composer remains open after successful fake Host submission in both baseline and current bundle.",
+      "cause": "browser callback checks returned overall state.status rather than state.launch.status; not modified",
+      "disposition": "preexisting; no extra fix in this slice"
+    }
+  ],
+  "sha256": {
+    "web/uniclaw-workspace/src/features/workspace-view-model.js": "ad895b2c808f95c74a9f608dc371aa8c11bbf1965f55e28c7bf3cf3428ce2331",
+    "web/uniclaw-workspace/src/browser/entry.js": "b04eb16a1659d9072a150d12b570e40c7f2119ab085a4a4820682d8126523186",
+    "web/uniclaw-workspace/tests/workspace-view-model.test.js": "b0f349c81858f63a86ea361432aa4552a78402904629610299012ed8baf81e50",
+    "web/uniclaw-workspace/tests/workspace-renderer.test.js": "1d86504bd97f20738a122501e693fdfc37bf83173cf67c52265124dff0aae281",
+    "web/uniclaw-workspace/tests/browser-bridge.test.js": "1f601bcd6a73ae97b7c3fa4d1ec1e80876c7626c6a1b32fe5317917ac503d75c",
+    "dsh/uniclaw-task-workbench/src/client.js": "1b24bfe57e2edd493022574efae1a59fd421bab8ff4838cba7633fd2e178ef28",
+    "dsh/uniclaw-task-workbench/README.md": "6ce1ac61f17fd9a4501cadbb66a849ff5a9d3d7d6fecedd6d9ccfc56967f73d1",
+    "changes/WORKBENCH-AGNES-P0-001/state.md": "dad5acf891f82d191b6322fc6d8a6f3067441e1449bbba3a0f621b88cddbecf3",
+    "evidence/workbench-agnes-p0-20261021/review.md": "bdb2af07c52f7cd910b9ab3ba7d4e86b6586e1f7b02625cae56ab9d40accbdec"
+  },
+  "outsideScopeTrackedDiffSha256After": "83ff955487f57b65dfe0fab096063933cf7e950835cb10abda45b3be495183a2"
+}

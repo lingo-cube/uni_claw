@@ -36,6 +36,7 @@ function createWorkspaceViewModel(input, options = {}) {
       title: (selectedTask && (selectedTask.title || selectedTask.name || selectedTask.task && selectedTask.task.title)) || (session && (session.title || session.name)) || options.emptyTitle || '未选择任务',
       projectId: state.selection && state.selection.projectId || (selectedTask && selectedTask.projectId) || null,
       correlationStatus: selectedTask && selectedTask.correlationStatus || (selectedId ? 'correlated' : 'unselected'),
+      taskStatus: selectedTask && selectedTask.status || null,
       source: options.agentLabel || 'Uni-Agent',
       origin: selectedTask && selectedTask.source || (session && session.source) || null,
       authority: selectedTask && selectedTask.authority || (session && session.authority) || null,
@@ -66,6 +67,7 @@ function createWorkspaceViewModel(input, options = {}) {
       localConfig: clone(projectsState.localConfig || null)
     },
     activePane: state.ui && state.ui.activePane || 'trace',
+    layout: { activeView: state.ui?.activeView === 'trace' ? 'trace' : 'conversation', inspectorOpen: Boolean(state.ui?.inspectorOpen || state.ui?.detailModalOpen) },
     detailActions: detailActions(state, selectedId),
     notices,
     status: overallStatus(state, notices)
@@ -157,6 +159,7 @@ function conversationRounds(value, fallbackGroups) {
   if (Array.isArray(value) && value.length > 0) {
     return value.map((round, index) => ({
       groupId: round.groupId || `round-${index + 1}`,
+      inspectable: true,
       round: round.round || index + 1,
       status: round.status || 'pending',
       stages: (Array.isArray(round.stages)
@@ -168,7 +171,7 @@ function conversationRounds(value, fallbackGroups) {
   }
   const stages = ['request', 'decision', 'result']
     .flatMap((kind) => (fallbackGroups[kind] || []).map(normalizeConversationStage));
-  return stages.length > 0 ? [{ groupId: 'round-1', round: 1, status: 'legacy', stages }] : [];
+  return stages.length > 0 ? [{ groupId: 'round-1', inspectable: false, round: 1, status: 'legacy', stages }] : [];
 }
 
 function normalizeConversationStage(stage) {
@@ -179,7 +182,11 @@ function normalizeConversationStage(stage) {
     kind,
     role: normalizeRole(stage.role, kind),
     label: stage.label || labelForKind(kind),
-    text: stage.objective || stage.summary || stage.text || (result && result.text) || stage.justification || '',
+    // A decision explains the choice; its nested result only acknowledges
+    // submission and is rendered in the separate result stage.
+    text: stage.objective || stage.summary || stage.text || (kind === 'decision'
+      ? stage.justification
+      : (result && result.text) || stage.justification) || '',
     objective: stage.objective || null,
     phase: stage.phase || null,
     decisionKind: stage.decisionKind || null,
@@ -321,7 +328,7 @@ function evidencePane(value) {
 
 function detailActions(state, productSessionId) {
   const detail = state.detail || {};
-  return { status: detail.status || 'idle', enabled: Boolean(productSessionId), current: clone(detail.detail || null), errors: errorsOf(detail), resolve: detail.status === 'loading' ? 'loading' : 'available', modalOpen: Boolean(state.ui && state.ui.detailModalOpen), returnPane: ['trace', 'evidence'].includes(state.ui && state.ui.detailReturnPane) ? state.ui.detailReturnPane : 'trace' };
+  return { status: detail.status || 'idle', enabled: Boolean(productSessionId), current: clone(detail.detail || null), errors: errorsOf(detail), resolve: detail.status === 'loading' ? 'loading' : 'available', modalOpen: Boolean(state.ui && state.ui.detailModalOpen), returnPane: ['conversation', 'trace', 'evidence', 'tools', 'metadata', 'execution'].includes(state.ui && state.ui.detailReturnPane) ? state.ui.detailReturnPane : 'trace' };
 }
 
 function mergeMetadata(task, session) {

@@ -1,0 +1,12 @@
+{
+  "width": 390,
+  "noOverflow": true,
+  "cardsFit": true,
+  "expanded": [
+    true,
+    true,
+    false
+  ],
+  "reportDisabled": true,
+  "diagnosisDisabled": true
+}

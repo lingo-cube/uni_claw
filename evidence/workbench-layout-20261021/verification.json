@@ -1,0 +1,122 @@
+{
+  "change": "WORKBENCH-LAYOUT-001",
+  "executionRoot": "/Users/fran/.codex/worktrees/workbench-conversation-layout/uni_claw",
+  "method": {
+    "tests": "node --test web/uniclaw-workspace/tests/*.test.js dsh/uniclaw-task-workbench/tests/*.test.mjs",
+    "build": "node web/uniclaw-workspace/scripts/build-browser-bundle.mjs",
+    "syntax": "node --check for renderer, layout, reading, browser entry and generated client; git diff --check",
+    "browser": "ego-browser isolated 127.0.0.1:4198; fake Host only; final bundle verified by SHA256"
+  },
+  "expected": {
+    "layout": "conversation primary, Trace separate, selected detail on demand, desktop and mobile usable",
+    "reading": "refresh/task return preserves scroll; new content indicator; focus returned; input remains focused",
+    "boundary": "launch and Runtime interfaces unchanged; preserve shared checkout"
+  },
+  "actual": {
+    "testsPassed": 164,
+    "testsFailed": 0,
+    "generatedModules": 8,
+    "bundleSha256": "e58d31fd487766615ecc08920f4106e5f93e4d8a6409186413fdd877b7ff768a",
+    "browserBundleMatchesBuiltBundle": true,
+    "launchBrowserBlockUnchanged": true,
+    "launchControllerBlockUnchanged": true,
+    "desktop": "1708x1256 pixel review; conversation and side detail reviewed; no horizontal overflow observed",
+    "mobile": "390x844 pixel review; navigation and inspector drawers, inert background, Shift+Tab containment, Escape return and no page horizontal overflow",
+    "readingRefresh": {
+      "before": 1100,
+      "after": 1100,
+      "newContent": true,
+      "reads": {
+        "host-wifi": 2
+      }
+    },
+    "desktopChecks": {
+      "trace": {
+        "mainView": "trace",
+        "panel": "所选记录\n\n记录详情\n×\n名称\nobserve.currentPage\n来源\nuniclaw\nSpan ID\nspan-0\nStatus\nCompleted\n耗时\n24ms\n属性\n{\n  \"fixture\": true,\n  \"sequence\": 0\n}\n完整节点记录\n返回 Trace",
+        "treeOpen": true
+      },
+      "reading": {
+        "top": 1100,
+        "newContent": true
+      },
+      "taskReturnScroll": 1100
+    },
+    "focusChecks": {
+      "selected": {
+        "text": "所选记录\n\n对话详情\n×\n选择与理由\n\n网络设置页面已显示，下一步查看当前连接的网络信息。无需切换已开启的 Wi-Fi 开关。\n\n轮次\n4\n阶段\nUni-Agent 决策\nDecision ID\ndecision-3\nCall ID\ncall-3\n事件序号\n11\n提交回执\n\nsubmit_decision accepted: decision captured\n\n完整记录与关联信息\n返回 解决过程",
+        "focused": true,
+        "overflow": false
+      },
+      "returned": {
+        "action": "inspect-conversation",
+        "round": "3"
+      },
+      "typed": {
+        "value": "仅用于布局验收的任务需求",
+        "focused": "workspace-launch-requirement"
+      }
+    },
+    "mobileChecks": {
+      "nav": {
+        "open": true,
+        "mainInert": true
+      },
+      "drawer": {
+        "viewport": [
+          390,
+          844
+        ],
+        "role": "dialog",
+        "primaryInert": true,
+        "width": 366.59375,
+        "overflow": false
+      },
+      "trapped": true,
+      "closed": {
+        "hidden": true,
+        "focus": "证据"
+      }
+    },
+    "runtimeOrDeviceTasks": 0,
+    "existingServicesRestarted": false,
+    "sharedCheckoutIntegration": "not performed: browser entry repeatedly overwritten by concurrent work; own layout changes removed from shared sources after isolated copy"
+  },
+  "evidence": [
+    "entry.json",
+    "isolation.json",
+    "concurrent-write.json",
+    "layout-only.patch",
+    "final-tests.txt",
+    "browser-desktop-checks.json",
+    "browser-focus-checks.json",
+    "browser-mobile-checks.json",
+    "desktop-final.png",
+    "desktop-detail-final.png",
+    "mobile-final.png",
+    "mobile-detail-final.png"
+  ],
+  "sourceSha256": {
+    "web/uniclaw-workspace/src/ui/render-workspace-html.js": "a3a489af392a5b386020b86ca9224f384e111e7df8a162449e3bf0a6328ab423",
+    "web/uniclaw-workspace/src/ui/workspace-layout.js": "10732bcbcc6a78e028ee357434bc7522f7beb6d22f2a709062710a9056a2af30",
+    "web/uniclaw-workspace/src/styles/workspace.css": "80f2d478fd6fa835ec5aea3ce9ebad529d401e112679e57f772c1b5c66f322d3",
+    "web/uniclaw-workspace/src/features/workspace-controller.js": "53347db2ae3e3a34a5dfba6425a0626b0bc005a576b9c307238634aebe02c9e2",
+    "web/uniclaw-workspace/src/features/workspace-view-model.js": "ef415b056b1ad4f013e776674d88d2f219b3421fd760a612bff998ce31071ea4",
+    "web/uniclaw-workspace/src/browser/entry.js": "3c7b8b5eba8564e106dca74605cbe2935f3bfa855606c66823f28f46dafee994",
+    "web/uniclaw-workspace/tests/workspace-controller.test.js": "4736d93a13229f4664ac1671caf716fa4978d662c5818ac962c557f994b40f2b",
+    "web/uniclaw-workspace/tests/workspace-view-model.test.js": "b0f349c81858f63a86ea361432aa4552a78402904629610299012ed8baf81e50",
+    "web/uniclaw-workspace/tests/workspace-renderer.test.js": "bb6816fe8546bcfbf9b33b1536091d3f0e2cec1941245601dc18161059166e62",
+    "web/uniclaw-workspace/tests/dual-entry.test.js": "06abe3f2040f01ef50c1a3b12ed4afd15af66a4e0f5508c5cbbc69f29e2671bc",
+    "dsh/uniclaw-task-workbench/src/client.js": "e58d31fd487766615ecc08920f4106e5f93e4d8a6409186413fdd877b7ff768a",
+    "dsh/uniclaw-task-workbench/README.md": "1bdf065e883ffa9520feeb60f479ba48f7d4677b76d19b51ab98d317f1b2d54a",
+    "dsh/uniclaw-task-workbench/tests/dual-entry.test.mjs": "eb7c9f30db76c2f1d9dbe692699558d301f15312c26a6865c2661381a51fdde5",
+    "web/uniclaw-workspace/src/ui/workspace-reading.js": "5cb44e1a9aa29a7c895180f1a409f8dd121d9934bdf2bbe532146c28da127fcb",
+    "changes/WORKBENCH-LAYOUT-001/state.md": "04ce08c3381dd0d6f0782ecd0a960f0ad52f32dd8ebc41eb116955713c541c8e",
+    "evidence/workbench-layout-20261021/review.md": "7dc4bf6fb4b4c901742f2060581c9b8fa9f99a8e276bff0bc12905c6fbea5027"
+  },
+  "status": {
+    "lifecycle_state": "verified",
+    "disposition": "blocked",
+    "reason": "shared-checkout integration pending due repeated concurrent overwrite; isolated implementation verified"
+  }
+}

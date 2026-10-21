@@ -1,0 +1,1077 @@
+TAP version 13
+# Subtest: browser bridge adapts ProductSessionId and keeps strict RPC boundary
+ok 1 - browser bridge adapts ProductSessionId and keeps strict RPC boundary
+  ---
+  duration_ms: 3.348
+  type: 'test'
+  ...
+# Subtest: malformed remote response becomes structured failure
+ok 2 - malformed remote response becomes structured failure
+  ---
+  duration_ms: 0.116042
+  type: 'test'
+  ...
+# Subtest: browser bridge lists task instances for a selected project
+ok 3 - browser bridge lists task instances for a selected project
+  ---
+  duration_ms: 0.131416
+  type: 'test'
+  ...
+# Subtest: client smoke: loader id and exports shape
+ok 4 - client smoke: loader id and exports shape
+  ---
+  duration_ms: 6.183292
+  type: 'test'
+  ...
+# Subtest: client smoke: workspace/session/artifact contribution, parameter-object shape
+ok 5 - client smoke: workspace/session/artifact contribution, parameter-object shape
+  ---
+  duration_ms: 9.6815
+  type: 'test'
+  ...
+# Subtest: client smoke: loading workspace and first session mounts the remote contribution once
+ok 6 - client smoke: loading workspace and first session mounts the remote contribution once
+  ---
+  duration_ms: 6.931417
+  type: 'test'
+  ...
+# Subtest: client smoke: apply with no slots degrades silently
+ok 7 - client smoke: apply with no slots degrades silently
+  ---
+  duration_ms: 5.512875
+  type: 'test'
+  ...
+# Subtest: client smoke: RPC failure surfaces as structured error, panel does not throw
+ok 8 - client smoke: RPC failure surfaces as structured error, panel does not throw
+  ---
+  duration_ms: 10.895958
+  type: 'test'
+  ...
+# Subtest: client smoke: source contains the descriptor bridge and workspace UI contract
+ok 9 - client smoke: source contains the descriptor bridge and workspace UI contract
+  ---
+  duration_ms: 2.443083
+  type: 'test'
+  ...
+# Subtest: DSH entry exposes the same App regions and complete product flow
+ok 10 - DSH entry exposes the same App regions and complete product flow
+  ---
+  duration_ms: 18.481625
+  type: 'test'
+  ...
+# Subtest: DSH preserves uncorrelated and permission or timeout facts
+ok 11 - DSH preserves uncorrelated and permission or timeout facts
+  ---
+  duration_ms: 2.594458
+  type: 'test'
+  ...
+# Subtest: DSH restart keeps ProductSessionId and redacts session identity from public output
+ok 12 - DSH restart keeps ProductSessionId and redacts session identity from public output
+  ---
+  duration_ms: 5.650708
+  type: 'test'
+  ...
+# Subtest: runtime provider posts the canonical launch payload and validates Runtime-owned IDs
+ok 13 - runtime provider posts the canonical launch payload and validates Runtime-owned IDs
+  ---
+  duration_ms: 1.721125
+  type: 'test'
+  ...
+# Subtest: runtime provider rejects malformed responses instead of minting fallback IDs
+ok 14 - runtime provider rejects malformed responses instead of minting fallback IDs
+  ---
+  duration_ms: 0.609666
+  type: 'test'
+  ...
+# Subtest: runtime provider stays explicitly unavailable without a configured transport
+ok 15 - runtime provider stays explicitly unavailable without a configured transport
+  ---
+  duration_ms: 0.342375
+  type: 'test'
+  ...
+# Subtest: runtime recovery uses the same validated response seam
+ok 16 - runtime recovery uses the same validated response seam
+  ---
+  duration_ms: 0.264833
+  type: 'test'
+  ...
+# Subtest: runtime provider works against a real local HTTP transport
+ok 17 - runtime provider works against a real local HTTP transport
+  ---
+  duration_ms: 31.200583
+  type: 'test'
+  ...
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: uniclawRuntime Host transport adapter
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: uniclawRuntime Host transport adapter
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task created { taskId: 'task-05745e3926b563b4' }
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: uniclawRuntime Host transport adapter
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: uniclawRuntime Host transport adapter
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task created { taskId: 'task-ebe027f2851fbcf8' }
+# [uniclaw-task-workbench] task instantiated {
+#   taskId: 'task-ebe027f2851fbcf8',
+#   instanceId: 'psi-e3a8af54d7df7ba8',
+#   sessionId: 'session-mock-1'
+# }
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: uniclawRuntime Host transport adapter
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task created { taskId: 'task-354aac0606a94b67' }
+# [uniclaw-task-workbench] task instantiated {
+#   taskId: 'task-354aac0606a94b67',
+#   instanceId: 'psi-b46e28738c52b0cd',
+#   sessionId: 'session-mock-1'
+# }
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: uniclawRuntime Host transport adapter
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task created { taskId: 'task-33873bfdde3ee655' }
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: uniclawRuntime Host transport adapter
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task created { taskId: 'task-24581c2993bb68ca' }
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: uniclawRuntime Host transport adapter
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: uniclawRuntime Host transport adapter
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# [uniclaw-task-workbench] task protocol artifact loaded: schemaHash=a83738fbe031…
+# [uniclaw-task-workbench] registered: uniclawRuntime Host transport adapter
+# [uniclaw-task-workbench] registered: /api/uniclaw-task/{tasks,tasks/instantiate} + uniclawTaskPanel panel service (schemaHash a83738fbe031…)
+# Subtest: apply registers a Host Runtime provider without minting local identities
+ok 18 - apply registers a Host Runtime provider without minting local identities
+  ---
+  duration_ms: 4.120792
+  type: 'test'
+  ...
+# Subtest: apply preserves an existing Host Runtime provider
+ok 19 - apply preserves an existing Host Runtime provider
+  ---
+  duration_ms: 0.52175
+  type: 'test'
+  ...
+# Subtest: schema artifact self-check: drifted schema refuses apply() startup
+ok 20 - schema artifact self-check: drifted schema refuses apply() startup
+  ---
+  duration_ms: 0.868625
+  type: 'test'
+  ...
+# Subtest: POST /api/uniclaw-task/tasks: valid body 200 and JSON store persists readably
+ok 21 - POST /api/uniclaw-task/tasks: valid body 200 and JSON store persists readably
+  ---
+  duration_ms: 34.664291
+  type: 'test'
+  ...
+# Subtest: POST /api/uniclaw-task/tasks: invalid bodies fail closed with gateway/bad-request
+ok 22 - POST /api/uniclaw-task/tasks: invalid bodies fail closed with gateway/bad-request
+  ---
+  duration_ms: 6.032625
+  type: 'test'
+  ...
+# Subtest: instantiate: active task creates uniagent-task session and persists the instance
+ok 23 - instantiate: active task creates uniagent-task session and persists the instance
+  ---
+  duration_ms: 3.102917
+  type: 'test'
+  ...
+# Subtest: instantiate: existing workspace path is reused via resolveByPath
+ok 24 - instantiate: existing workspace path is reused via resolveByPath
+  ---
+  duration_ms: 1.305042
+  type: 'test'
+  ...
+# Subtest: instantiate: unknown taskId → task-not-found; non-active → task-not-active
+ok 25 - instantiate: unknown taskId → task-not-found; non-active → task-not-active
+  ---
+  duration_ms: 2.011542
+  type: 'test'
+  ...
+# Subtest: instantiate: controller.create failure → session-create-failed (fail closed, nothing recorded)
+ok 26 - instantiate: controller.create failure → session-create-failed (fail closed, nothing recorded)
+  ---
+  duration_ms: 1.175583
+  type: 'test'
+  ...
+# Subtest: store corruption → store-corrupted, not a 5xx crash
+ok 27 - store corruption → store-corrupted, not a 5xx crash
+  ---
+  duration_ms: 1.174584
+  type: 'test'
+  ...
+# Subtest: instantiate: malformed body → gateway/bad-request before any store access
+ok 28 - instantiate: malformed body → gateway/bad-request before any store access
+  ---
+  duration_ms: 0.466916
+  type: 'test'
+  ...
+# Subtest: launch: Runtime-owned run and Host binding are explicit and idempotent
+ok 29 - launch: Runtime-owned run and Host binding are explicit and idempotent
+  ---
+  duration_ms: 3.179417
+  type: 'test'
+  ...
+# Subtest: launch: Runtime-owned dshSessionId is reused without creating a second DSH session
+ok 30 - launch: Runtime-owned dshSessionId is reused without creating a second DSH session
+  ---
+  duration_ms: 1.327125
+  type: 'test'
+  ...
+# Subtest: launch: Runtime hostSessionRef is reused without requiring project resolution
+ok 31 - launch: Runtime hostSessionRef is reused without requiring project resolution
+  ---
+  duration_ms: 1.093917
+  type: 'test'
+  ...
+# Subtest: launch: Host-configured catalog root resolves repository-owned testsets
+ok 32 - launch: Host-configured catalog root resolves repository-owned testsets
+  ---
+  duration_ms: 1.123916
+  type: 'test'
+  ...
+# Subtest: launch: Host failure leaves a partial recoverable instance after Runtime created run
+ok 33 - launch: Host failure leaves a partial recoverable instance after Runtime created run
+  ---
+  duration_ms: 1.3555
+  type: 'test'
+  ...
+# Subtest: launch: Runtime failure keeps a stable pending instance and requires recovery before retry
+ok 34 - launch: Runtime failure keeps a stable pending instance and requires recovery before retry
+  ---
+  duration_ms: 1.191791
+  type: 'test'
+  ...
+# Subtest: launch: missing Product Session stays partial and does not create a Host session
+ok 35 - launch: missing Product Session stays partial and does not create a Host session
+  ---
+  duration_ms: 0.945667
+  type: 'test'
+  ...
+# Subtest: launch: partial retry reuses the Runtime run and binds the recovered Host session
+ok 36 - launch: partial retry reuses the Runtime run and binds the recovered Host session
+  ---
+  duration_ms: 1.505875
+  type: 'test'
+  ...
+# Subtest: launch: metadata and logical refs fail closed before Runtime creation
+ok 37 - launch: metadata and logical refs fail closed before Runtime creation
+  ---
+  duration_ms: 0.340792
+  type: 'test'
+  ...
+# Subtest: panel sessions: listSessions+readTitles merged; uniclaw marks repository instance sessions
+ok 38 - panel sessions: listSessions+readTitles merged; uniclaw marks repository instance sessions
+  ---
+  duration_ms: 1.482084
+  type: 'test'
+  ...
+# Subtest: panel sessions: session not in the instance table is not marked uniclaw; title falls back
+ok 39 - panel sessions: session not in the instance table is not marked uniclaw; title falls back
+  ---
+  duration_ms: 0.540042
+  type: 'test'
+  ...
+# Subtest: panel sessions: sessionQuery missing → session-query-unavailable
+ok 40 - panel sessions: sessionQuery missing → session-query-unavailable
+  ---
+  duration_ms: 0.085042
+  type: 'test'
+  ...
+# Subtest: panel trace: semantic extraction from event text (gate/outcome/evidence, tokens + refs)
+ok 41 - panel trace: semantic extraction from event text (gate/outcome/evidence, tokens + refs)
+  ---
+  duration_ms: 0.347042
+  type: 'test'
+  ...
+# Subtest: panel trace: no semantic hits in events → entries=[]
+ok 42 - panel trace: no semantic hits in events → entries=[]
+  ---
+  duration_ms: 0.488041
+  type: 'test'
+  ...
+# Subtest: panel trace: sessionQuery missing → session-query-unavailable; missing sessionId → invalid-request
+ok 43 - panel trace: sessionQuery missing → session-query-unavailable; missing sessionId → invalid-request
+  ---
+  duration_ms: 0.053417
+  type: 'test'
+  ...
+# Subtest: panel workspace: task instances are grouped by project and definitions without instances are omitted
+ok 44 - panel workspace: task instances are grouped by project and definitions without instances are omitted
+  ---
+  duration_ms: 0.907
+  type: 'test'
+  ...
+# Subtest: panel session: one detail projection carries conversation, DSH trace, UniClaw trace and evidence
+ok 45 - panel session: one detail projection carries conversation, DSH trace, UniClaw trace and evidence
+  ---
+  duration_ms: 0.7935
+  type: 'test'
+  ...
+# Subtest: panel session: request, submit_decision and result become correlated product cards
+ok 46 - panel session: request, submit_decision and result become correlated product cards
+  ---
+  duration_ms: 0.646084
+  type: 'test'
+  ...
+# Subtest: panel session: missing task instance fails closed
+ok 47 - panel session: missing task instance fails closed
+  ---
+  duration_ms: 0.053333
+  type: 'test'
+  ...
+# Subtest: panel workspace/session: explicit run metadata links an observed session and Kernel Trace
+ok 48 - panel workspace/session: explicit run metadata links an observed session and Kernel Trace
+  ---
+  duration_ms: 4.274875
+  type: 'test'
+  ...
+# Subtest: panel diagnostic: frozen template prompt reaches controller.prompt with skill name + sessionId
+ok 49 - panel diagnostic: frozen template prompt reaches controller.prompt with skill name + sessionId
+  ---
+  duration_ms: 2.667291
+  type: 'test'
+  ...
+# Subtest: panel diagnostic: arbitrary session (no instance) prompts directly with the frozen skill text
+ok 50 - panel diagnostic: arbitrary session (no instance) prompts directly with the frozen skill text
+  ---
+  duration_ms: 0.320542
+  type: 'test'
+  ...
+# Subtest: panel diagnostic: invalid skill → invalid-skill; missing sessionId → invalid-request
+ok 51 - panel diagnostic: invalid skill → invalid-skill; missing sessionId → invalid-request
+  ---
+  duration_ms: 0.067083
+  type: 'test'
+  ...
+# Subtest: panel overview/createTask/instantiate: frozen response shapes over the shared core
+ok 52 - panel overview/createTask/instantiate: frozen response shapes over the shared core
+  ---
+  duration_ms: 0.718333
+  type: 'test'
+  ...
+# Subtest: typert-protocol unavailable offline: apply() still registers working HTTP routes
+ok 53 - typert-protocol unavailable offline: apply() still registers working HTTP routes
+  ---
+  duration_ms: 0.374958
+  type: 'test'
+  ...
+# Subtest: projects and task instances preserve unassociated DSH identity
+ok 54 - projects and task instances preserve unassociated DSH identity
+  ---
+  duration_ms: 1.34325
+  type: 'test'
+  ...
+# Subtest: explicit product session mapping projects session, traces, and evidence
+ok 55 - explicit product session mapping projects session, traces, and evidence
+  ---
+  duration_ms: 0.421375
+  type: 'test'
+  ...
+# Subtest: missing mapping is uncorrelated and never upgrades a DSH session
+ok 56 - missing mapping is uncorrelated and never upgrades a DSH session
+  ---
+  duration_ms: 0.155833
+  type: 'test'
+  ...
+# Subtest: task query rejects unknown projects and malformed instances
+ok 57 - task query rejects unknown projects and malformed instances
+  ---
+  duration_ms: 0.108291
+  type: 'test'
+  ...
+# Subtest: trace and evidence failures retain their requested capability
+ok 58 - trace and evidence failures retain their requested capability
+  ---
+  duration_ms: 0.096
+  type: 'test'
+  ...
+# Subtest: panel errors remain structured and local
+ok 59 - panel errors remain structured and local
+  ---
+  duration_ms: 0.05775
+  type: 'test'
+  ...
+# Subtest: malformed successful panel payloads fail closed
+ok 60 - malformed successful panel payloads fail closed
+  ---
+  duration_ms: 0.119917
+  type: 'test'
+  ...
+# Subtest: resolver failures are structured and do not reject capabilities
+ok 61 - resolver failures are structured and do not reject capabilities
+  ---
+  duration_ms: 0.065333
+  type: 'test'
+  ...
+# Subtest: detail only accepts controlled relative refs
+ok 62 - detail only accepts controlled relative refs
+  ---
+  duration_ms: 0.402541
+  type: 'test'
+  ...
+# Subtest: assembles the full workspace flow and redacts host session identity
+ok 63 - assembles the full workspace flow and redacts host session identity
+  ---
+  duration_ms: 11.241042
+  type: 'test'
+  ...
+# Subtest: missing mapping stays uncorrelated
+ok 64 - missing mapping stays uncorrelated
+  ---
+  duration_ms: 2.114666
+  type: 'test'
+  ...
+# Subtest: panel, renderer, and mount errors remain observable
+ok 65 - panel, renderer, and mount errors remain observable
+  ---
+  duration_ms: 3.9715
+  type: 'test'
+  ...
+# Subtest: stop then start reuses the same app contract
+ok 66 - stop then start reuses the same app contract
+  ---
+  duration_ms: 1.43425
+  type: 'test'
+  ...
+# Subtest: injects shared workspace styles once through the browser document seam
+ok 67 - injects shared workspace styles once through the browser document seam
+  ---
+  duration_ms: 0.67575
+  type: 'test'
+  ...
+# Subtest: normalizes DSH panel success responses at the host seam
+ok 68 - normalizes DSH panel success responses at the host seam
+  ---
+  duration_ms: 5.620417
+  type: 'test'
+  ...
+# Subtest: unwraps Typert success envelopes around the panel payload
+ok 69 - unwraps Typert success envelopes around the panel payload
+  ---
+  duration_ms: 0.074708
+  type: 'test'
+  ...
+# Subtest: unwraps the DSH remote value envelope used by static panel clients
+ok 70 - unwraps the DSH remote value envelope used by static panel clients
+  ---
+  duration_ms: 0.0905
+  type: 'test'
+  ...
+# Subtest: normalizes DSH panel failures without leaking host shape into shared UI
+ok 71 - normalizes DSH panel failures without leaking host shape into shared UI
+  ---
+  duration_ms: 0.051334
+  type: 'test'
+  ...
+# Subtest: projects task instances through the browser bridge after project selection
+ok 72 - projects task instances through the browser bridge after project selection
+  ---
+  duration_ms: 0.435625
+  type: 'test'
+  ...
+# Subtest: projects UniClaw trace and artifact references with inspectable detail actions
+ok 73 - projects UniClaw trace and artifact references with inspectable detail actions
+  ---
+  duration_ms: 0.308375
+  type: 'test'
+  ...
+# Subtest: exposes TaskCommand launch through the host-neutral browser bridge
+ok 74 - exposes TaskCommand launch through the host-neutral browser bridge
+  ---
+  duration_ms: 0.112458
+  type: 'test'
+  ...
+# Subtest: preserves partial Host launch state at the shared browser seam
+ok 75 - preserves partial Host launch state at the shared browser seam
+  ---
+  duration_ms: 0.274583
+  type: 'test'
+  ...
+# Subtest: refresh reads one session detail for all panes and reads fresh detail on the next refresh
+ok 76 - refresh reads one session detail for all panes and reads fresh detail on the next refresh
+  ---
+  duration_ms: 1.649416
+  type: 'test'
+  ...
+# Subtest: shared failures keep each pane source and a later read can recover
+ok 77 - shared failures keep each pane source and a later read can recover
+  ---
+  duration_ms: 0.258291
+  type: 'test'
+  ...
+# Subtest: a rejected remote read is released so the next read can recover
+ok 78 - a rejected remote read is released so the next read can recover
+  ---
+  duration_ms: 1.441708
+  type: 'test'
+  ...
+# Subtest: switching tasks keeps the new panes when the previous session read arrives late
+ok 79 - switching tasks keeps the new panes when the previous session read arrives late
+  ---
+  duration_ms: 2.558
+  type: 'test'
+  ...
+# Subtest: composes the five injected capabilities without source-specific coupling
+ok 80 - composes the five injected capabilities without source-specific coupling
+  ---
+  duration_ms: 2.280208
+  type: 'test'
+  ...
+# Subtest: replacing source implementations preserves read-model semantics
+ok 81 - replacing source implementations preserves read-model semantics
+  ---
+  duration_ms: 1.27275
+  type: 'test'
+  ...
+# Subtest: local failures remain structured and are not converted to successful empty data
+ok 82 - local failures remain structured and are not converted to successful empty data
+  ---
+  duration_ms: 0.555791
+  type: 'test'
+  ...
+# Subtest: partial page errors remain visible beside successful records
+ok 83 - partial page errors remain visible beside successful records
+  ---
+  duration_ms: 0.137292
+  type: 'test'
+  ...
+# Subtest: repeated reads are idempotent and an older response cannot replace a newer revision
+ok 84 - repeated reads are idempotent and an older response cannot replace a newer revision
+  ---
+  duration_ms: 0.253292
+  type: 'test'
+  ...
+# Subtest: stale failures preserve the incoming capability envelope metadata
+ok 85 - stale failures preserve the incoming capability envelope metadata
+  ---
+  duration_ms: 0.162916
+  type: 'test'
+  ...
+# Subtest: uncorrelated source failures are explicit
+ok 86 - uncorrelated source failures are explicit
+  ---
+  duration_ms: 0.113208
+  type: 'test'
+  ...
+# Subtest: capability throws and malformed envelopes become structured unavailable errors
+ok 87 - capability throws and malformed envelopes become structured unavailable errors
+  ---
+  duration_ms: 0.188625
+  type: 'test'
+  ...
+# Subtest: successful responses require snapshot metadata and expected page keys
+ok 88 - successful responses require snapshot metadata and expected page keys
+  ---
+  duration_ms: 0.507667
+  type: 'test'
+  ...
+# Subtest: timeline requires an explicit array payload
+ok 89 - timeline requires an explicit array payload
+  ---
+  duration_ms: 0.932042
+  type: 'test'
+  ...
+# Subtest: session projects capability envelopes into a stable read model
+ok 90 - session projects capability envelopes into a stable read model
+  ---
+  duration_ms: 0.197292
+  type: 'test'
+  ...
+# Subtest: failed capability envelopes preserve source, capability, and available snapshot metadata
+ok 91 - failed capability envelopes preserve source, capability, and available snapshot metadata
+  ---
+  duration_ms: 0.194
+  type: 'test'
+  ...
+# Subtest: standalone entry completes the canonical flow and exposes renderer-neutral regions
+ok 92 - standalone entry completes the canonical flow and exposes renderer-neutral regions
+  ---
+  duration_ms: 13.19975
+  type: 'test'
+  ...
+# Subtest: standalone keeps local failures and uncorrelated records explicit
+ok 93 - standalone keeps local failures and uncorrelated records explicit
+  ---
+  duration_ms: 2.267417
+  type: 'test'
+  ...
+# Subtest: standalone restart preserves ProductSessionId and does not leak host identity
+ok 94 - standalone restart preserves ProductSessionId and does not leak host identity
+  ---
+  duration_ms: 1.780875
+  type: 'test'
+  ...
+# Subtest: maps Runtime Run projections into host-neutral workspace capabilities
+ok 95 - maps Runtime Run projections into host-neutral workspace capabilities
+  ---
+  duration_ms: 4.007708
+  type: 'test'
+  ...
+# Subtest: launches through Runtime HTTP without coupling the UI to DSH
+ok 96 - launches through Runtime HTTP without coupling the UI to DSH
+  ---
+  duration_ms: 0.787125
+  type: 'test'
+  ...
+# Subtest: converts Runtime HTTP business errors to shared query errors
+ok 97 - converts Runtime HTTP business errors to shared query errors
+  ---
+  duration_ms: 0.413125
+  type: 'test'
+  ...
+# Subtest: runtime-http adapter exposes ToolInvoke list and invoke with envelope shape
+ok 98 - runtime-http adapter exposes ToolInvoke list and invoke with envelope shape
+  ---
+  duration_ms: 0.541709
+  type: 'test'
+  ...
+# Subtest: core degrades gracefully when ToolInvoke capability is absent
+ok 99 - core degrades gracefully when ToolInvoke capability is absent
+  ---
+  duration_ms: 0.256792
+  type: 'test'
+  ...
+# Subtest: runs the complete read-only flow through the shared Query Core
+ok 100 - runs the complete read-only flow through the shared Query Core
+  ---
+  duration_ms: 2.384167
+  type: 'test'
+  ...
+# Subtest: is source-replaceable, repeatable, and does not mutate the fixture
+ok 101 - is source-replaceable, repeatable, and does not mutate the fixture
+  ---
+  duration_ms: 0.253542
+  type: 'test'
+  ...
+# Subtest: returns structured missing, permission, and stale errors
+ok 102 - returns structured missing, permission, and stale errors
+  ---
+  duration_ms: 0.214084
+  type: 'test'
+  ...
+# Subtest: starts, loads projects, selects a project and ProductSession task
+ok 103 - starts, loads projects, selects a project and ProductSession task
+  ---
+  duration_ms: 7.427625
+  type: 'test'
+  ...
+# Subtest: restart preserves fixture identity and does not mutate fixture
+ok 104 - restart preserves fixture identity and does not mutate fixture
+  ---
+  duration_ms: 1.080166
+  type: 'test'
+  ...
+# Subtest: mount receives html, viewModel and state
+ok 105 - mount receives html, viewModel and state
+  ---
+  duration_ms: 0.302625
+  type: 'test'
+  ...
+# Subtest: render and mount errors are observable through the host
+ok 106 - render and mount errors are observable through the host
+  ---
+  duration_ms: 1.823583
+  type: 'test'
+  ...
+# Subtest: fixture validation errors remain observable and public API has no DSH session field
+ok 107 - fixture validation errors remain observable and public API has no DSH session field
+  ---
+  duration_ms: 0.3685
+  type: 'test'
+  ...
+# Subtest: starts once, mounts standalone project data, and exposes controller state
+ok 108 - starts once, mounts standalone project data, and exposes controller state
+  ---
+  duration_ms: 4.131834
+  type: 'test'
+  ...
+# Subtest: selection produces a new mount from one controller snapshot
+ok 109 - selection produces a new mount from one controller snapshot
+  ---
+  duration_ms: 1.695584
+  type: 'test'
+  ...
+# Subtest: stop unsubscribes and prevents later mounts
+ok 110 - stop unsubscribes and prevents later mounts
+  ---
+  duration_ms: 0.517583
+  type: 'test'
+  ...
+# Subtest: stop then start creates a fresh lifecycle and mounts again
+ok 111 - stop then start creates a fresh lifecycle and mounts again
+  ---
+  duration_ms: 0.384084
+  type: 'test'
+  ...
+# Subtest: stopping an in-flight start prevents its later mount and allows restart
+ok 112 - stopping an in-flight start prevents its later mount and allows restart
+  ---
+  duration_ms: 1.160292
+  type: 'test'
+  ...
+# Subtest: query failures remain in controller state and renderer errors are observable
+ok 113 - query failures remain in controller state and renderer errors are observable
+  ---
+  duration_ms: 2.467
+  type: 'test'
+  ...
+# Subtest: mount failure is observable and dependencies are replaceable
+ok 114 - mount failure is observable and dependencies are replaceable
+  ---
+  duration_ms: 0.269625
+  type: 'test'
+  ...
+# Subtest: keeps the conversation primary and opens read-only information on demand
+ok 115 - keeps the conversation primary and opens read-only information on demand
+  ---
+  duration_ms: 1.029083
+  type: 'test'
+  ...
+# Subtest: a conversation selection shows its recorded rationale and correlation without a query
+ok 116 - a conversation selection shows its recorded rationale and correlation without a query
+  ---
+  duration_ms: 1.590791
+  type: 'test'
+  ...
+# Subtest: runs project to task to read-model detail flow
+ok 117 - runs project to task to read-model detail flow
+  ---
+  duration_ms: 1.877875
+  type: 'test'
+  ...
+# Subtest: preserves local errors and lazy detail failures
+ok 118 - preserves local errors and lazy detail failures
+  ---
+  duration_ms: 0.452209
+  type: 'test'
+  ...
+# Subtest: selection is product-session based and old async results cannot overwrite it
+ok 119 - selection is product-session based and old async results cannot overwrite it
+  ---
+  duration_ms: 0.168333
+  type: 'test'
+  ...
+# Subtest: project task list preserves loading, partial, and error read-model states
+ok 120 - project task list preserves loading, partial, and error read-model states
+  ---
+  duration_ms: 0.19025
+  type: 'test'
+  ...
+# Subtest: old lazy detail cannot overwrite after task selection changes
+ok 121 - old lazy detail cannot overwrite after task selection changes
+  ---
+  duration_ms: 0.210542
+  type: 'test'
+  ...
+# Subtest: detail query receives current product identity without mutating DetailRef
+ok 122 - detail query receives current product identity without mutating DetailRef
+  ---
+  duration_ms: 0.637041
+  type: 'test'
+  ...
+# Subtest: refresh is repeatable and controller remains renderer independent
+ok 123 - refresh is repeatable and controller remains renderer independent
+  ---
+  duration_ms: 1.948917
+  type: 'test'
+  ...
+# Subtest: launch action reports loading then refreshes the selected task
+ok 124 - launch action reports loading then refreshes the selected task
+  ---
+  duration_ms: 0.541292
+  type: 'test'
+  ...
+# Subtest: launch action keeps partial Host recovery visible without refreshing as success
+ok 125 - launch action keeps partial Host recovery visible without refreshing as success
+  ---
+  duration_ms: 0.170375
+  type: 'test'
+  ...
+# Subtest: launch composer keeps only the user requirement editable
+ok 126 - launch composer keeps only the user requirement editable
+  ---
+  duration_ms: 0.189833
+  type: 'test'
+  ...
+# Subtest: pane selection is durable in renderer-neutral controller state
+ok 127 - pane selection is durable in renderer-neutral controller state
+  ---
+  duration_ms: 0.063666
+  type: 'test'
+  ...
+# Subtest: trace mode and detail return pane are durable in controller state
+ok 128 - trace mode and detail return pane are durable in controller state
+  ---
+  duration_ms: 0.16075
+  type: 'test'
+  ...
+# Subtest: trace node inspection opens a local detail modal without fetching the whole artifact
+ok 129 - trace node inspection opens a local detail modal without fetching the whole artifact
+  ---
+  duration_ms: 0.168583
+  type: 'test'
+  ...
+# Subtest: tools pane loads registry tools and generates a report through ToolInvoke
+ok 130 - tools pane loads registry tools and generates a report through ToolInvoke
+  ---
+  duration_ms: 0.29125
+  type: 'test'
+  ...
+# Subtest: generateReport is a no-op without a run dir and errors without ToolInvoke
+ok 131 - generateReport is a no-op without a run dir and errors without ToolInvoke
+  ---
+  duration_ms: 0.08975
+  type: 'test'
+  ...
+# Subtest: diagnoseRun invokes run-diagnosis through ToolInvoke and stores the result
+ok 132 - diagnoseRun invokes run-diagnosis through ToolInvoke and stores the result
+  ---
+  duration_ms: 0.123708
+  type: 'test'
+  ...
+# Subtest: diagnoseRun is a no-op without a run dir and errors without ToolInvoke
+ok 133 - diagnoseRun is a no-op without a run dir and errors without ToolInvoke
+  ---
+  duration_ms: 0.079583
+  type: 'test'
+  ...
+# Subtest: stale diagnosis response cannot overwrite a newer one
+ok 134 - stale diagnosis response cannot overwrite a newer one
+  ---
+  duration_ms: 0.130709
+  type: 'test'
+  ...
+# Subtest: makes conversation primary with an independent Trace view and a closed inspector
+ok 135 - makes conversation primary with an independent Trace view and a closed inspector
+  ---
+  duration_ms: 5.220333
+  type: 'test'
+  ...
+# Subtest: renders semantic workspace sections, primary views, on-demand inspector and trace timeline
+ok 136 - renders semantic workspace sections, primary views, on-demand inspector and trace timeline
+  ---
+  duration_ms: 0.554083
+  type: 'test'
+  ...
+# Subtest: renders a project-local plus action and requirement-only launch composer
+ok 137 - renders a project-local plus action and requirement-only launch composer
+  ---
+  duration_ms: 0.324417
+  type: 'test'
+  ...
+# Subtest: renders local machine and version configuration in the launch composer
+ok 138 - renders local machine and version configuration in the launch composer
+  ---
+  duration_ms: 0.4425
+  type: 'test'
+  ...
+# Subtest: offers combined and split trace views and a return action from details
+ok 139 - offers combined and split trace views and a return action from details
+  ---
+  duration_ms: 1.8605
+  type: 'test'
+  ...
+# Subtest: shows device metadata in the overview and formats selected artifact detail separately
+ok 140 - shows device metadata in the overview and formats selected artifact detail separately
+  ---
+  duration_ms: 0.921292
+  type: 'test'
+  ...
+# Subtest: keeps truncated JSON detail readable without escaped string wrapping
+ok 141 - keeps truncated JSON detail readable without escaped string wrapping
+  ---
+  duration_ms: 0.242916
+  type: 'test'
+  ...
+# Subtest: renders an OTel-shaped trace context and span summary without widening the row
+ok 142 - renders an OTel-shaped trace context and span summary without widening the row
+  ---
+  duration_ms: 0.327792
+  type: 'test'
+  ...
+# Subtest: renders Uni-Agent dialogue rounds with readable roles and runtime stages
+ok 143 - renders Uni-Agent dialogue rounds with readable roles and runtime stages
+  ---
+  duration_ms: 0.487917
+  type: 'test'
+  ...
+# Subtest: renders the rationale on the decision card and the receipt only on the submission card
+ok 144 - renders the rationale on the decision card and the receipt only on the submission card
+  ---
+  duration_ms: 0.419709
+  type: 'test'
+  ...
+# Subtest: escapes text, attributes and detail refs
+ok 145 - escapes text, attributes and detail refs
+  ---
+  duration_ms: 0.221208
+  type: 'test'
+  ...
+# Subtest: keeps uncorrelated and unavailable detail visible but inert
+ok 146 - keeps uncorrelated and unavailable detail visible but inert
+  ---
+  duration_ms: 0.253125
+  type: 'test'
+  ...
+# Subtest: renders grouped notices as a compact expandable status band with retry
+ok 147 - renders grouped notices as a compact expandable status band with retry
+  ---
+  duration_ms: 0.128583
+  type: 'test'
+  ...
+# Subtest: deduplicates flat task cards already nested in project navigation
+ok 148 - deduplicates flat task cards already nested in project navigation
+  ---
+  duration_ms: 0.106334
+  type: 'test'
+  ...
+# Subtest: renders flat task instances when projects have no nested tasks and preserves uncorrelated cards
+ok 149 - renders flat task instances when projects have no nested tasks and preserves uncorrelated cards
+  ---
+  duration_ms: 0.37125
+  type: 'test'
+  ...
+# Subtest: renderer and stylesheet have no host dependencies
+ok 150 - renderer and stylesheet have no host dependencies
+  ---
+  duration_ms: 0.496042
+  type: 'test'
+  ...
+# Subtest: diagnose-task button stays disabled with a reason until the diagnosis gate opens
+ok 151 - diagnose-task button stays disabled with a reason until the diagnosis gate opens
+  ---
+  duration_ms: 0.381125
+  type: 'test'
+  ...
+# Subtest: diagnosis result block renders the non-authoritative notice before the text
+ok 152 - diagnosis result block renders the non-authoritative notice before the text
+  ---
+  duration_ms: 0.229208
+  type: 'test'
+  ...
+# Subtest: tool cards fold structured receipts, expose errors, and retain source-only status and record actions
+ok 153 - tool cards fold structured receipts, expose errors, and retain source-only status and record actions
+  ---
+  duration_ms: 0.245416
+  type: 'test'
+  ...
+# Subtest: tool catalog cards keep registry fields accessible without adding execution authority
+ok 154 - tool catalog cards keep registry fields accessible without adding execution authority
+  ---
+  duration_ms: 0.1965
+  type: 'test'
+  ...
+# Subtest: uninspectable tool rows without event IDs receive distinct disclosure keys and no dead inspect actions
+ok 155 - uninspectable tool rows without event IDs receive distinct disclosure keys and no dead inspect actions
+  ---
+  duration_ms: 0.0965
+  type: 'test'
+  ...
+# Subtest: projects complete controller state into renderer-neutral sections
+ok 156 - projects complete controller state into renderer-neutral sections
+  ---
+  duration_ms: 2.12
+  type: 'test'
+  ...
+# Subtest: projects launch relations and metadata provenance without flattening availability
+ok 157 - projects launch relations and metadata provenance without flattening availability
+  ---
+  duration_ms: 0.305
+  type: 'test'
+  ...
+# Subtest: enables launch only for complete logical launch references
+ok 158 - enables launch only for complete logical launch references
+  ---
+  duration_ms: 1.465166
+  type: 'test'
+  ...
+# Subtest: uses Host-provided local launch defaults when the selected task has no refs
+ok 159 - uses Host-provided local launch defaults when the selected task has no refs
+  ---
+  duration_ms: 0.884625
+  type: 'test'
+  ...
+# Subtest: keeps uncorrelated instances visible without inventing product identity
+ok 160 - keeps uncorrelated instances visible without inventing product identity
+  ---
+  duration_ms: 0.477417
+  type: 'test'
+  ...
+# Subtest: blocks detail action for uncorrelated evidence even when a reference exists
+ok 161 - blocks detail action for uncorrelated evidence even when a reference exists
+  ---
+  duration_ms: 1.004917
+  type: 'test'
+  ...
+# Subtest: preserves loading, errors, stale and missing detail states
+ok 162 - preserves loading, errors, stale and missing detail states
+  ---
+  duration_ms: 0.560208
+  type: 'test'
+  ...
+# Subtest: aggregates repeated capability errors into one notice with occurrence details
+ok 163 - aggregates repeated capability errors into one notice with occurrence details
+  ---
+  duration_ms: 0.425875
+  type: 'test'
+  ...
+# Subtest: projects Uni-Agent conversation groups and runtime stages into the main dialogue
+ok 164 - projects Uni-Agent conversation groups and runtime stages into the main dialogue
+  ---
+  duration_ms: 0.442791
+  type: 'test'
+  ...
+# Subtest: keeps the decision rationale separate from its submission receipt
+ok 165 - keeps the decision rationale separate from its submission receipt
+  ---
+  duration_ms: 0.374917
+  type: 'test'
+  ...
+# Subtest: does not expose renderer or host dependencies
+ok 166 - does not expose renderer or host dependencies
+  ---
+  duration_ms: 0.431542
+  type: 'test'
+  ...
+# Subtest: diagnosis gate requires loaded tools, an implemented model-procedure tool, and a run dir
+ok 167 - diagnosis gate requires loaded tools, an implemented model-procedure tool, and a run dir
+  ---
+  duration_ms: 0.324208
+  type: 'test'
+  ...
+1..167
+# tests 167
+# suites 0
+# pass 167
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 262.908

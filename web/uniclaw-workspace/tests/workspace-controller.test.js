@@ -9,6 +9,39 @@ const { createWorkspaceController } = require('../src/features/workspace-control
 function fixture() { return { projects: [{ id: 'p1', name: 'Demo' }], tasks: [{ id: 't1', projectId: 'p1', productSessionId: 'ps1' }], sessions: [{ productSessionId: 'ps1' }], timeline: [{ productSessionId: 'ps1', kind: 'request' }], traces: [{ productSessionId: 'ps1', source: 'uniflow' }], evidence: [{ productSessionId: 'ps1', detailRef: { source: 'fixture', refId: 'ev.md' } }], details: { 'fixture:ev.md': { content: 'evidence' } } }; }
 function controller(overrides = {}) { return createWorkspaceController({ queryCore: new WorkspaceQueryCore(createStandaloneFixtureCapabilities({ fixture: { ...fixture(), ...overrides }, revision: 1 })) }); }
 
+test('keeps the conversation primary and opens read-only information on demand', async () => {
+  const c = controller();
+  assert.equal(c.getState().ui.activeView, 'conversation');
+  assert.equal(c.getState().ui.inspectorOpen, false);
+  c.selectPane('metadata');
+  assert.equal(c.getState().ui.inspectorOpen, true);
+  assert.equal(c.getState().ui.activePane, 'metadata');
+  assert.equal(c.getState().ui.activeView, 'conversation');
+  c.closeInspector();
+  assert.equal(c.getState().ui.inspectorOpen, false);
+  c.selectView('trace');
+  assert.equal(c.getState().ui.activeView, 'trace');
+  await c.selectTaskInstance('ps1');
+  c.selectPane('evidence');
+  await c.selectTaskInstance('ps2');
+  assert.equal(c.getState().ui.inspectorOpen, false);
+});
+
+test('a conversation selection shows its recorded rationale and correlation without a query', async () => {
+  const c = controller({ sessions: [{ productSessionId: 'ps1', conversationGroups: [{ round: 2, stages: [
+    { kind: 'request', objective: '确认 Wi-Fi' },
+    { kind: 'decision', justification: '网络入口可见', decisionId: 'd-2', callId: 'call-2', result: { text: 'accepted' } }
+  ] }] }] });
+  await c.selectTaskInstance('ps1'); await c.loadSession();
+  c.inspectConversation(0, 1);
+  assert.equal(c.getState().ui.activeView, 'conversation');
+  assert.equal(c.getState().ui.inspectorOpen, true);
+  assert.equal(c.getState().detail.detail.record.decisionId, 'd-2');
+  assert.equal(c.getState().detail.detail.record.justification, '网络入口可见');
+  c.closeDetail();
+  assert.equal(c.getState().ui.inspectorOpen, false);
+});
+
 test('runs project to task to read-model detail flow', async () => {
   const c = controller();
   await c.loadProjects(); await c.selectProject('p1'); await c.selectTaskInstance('ps1');
