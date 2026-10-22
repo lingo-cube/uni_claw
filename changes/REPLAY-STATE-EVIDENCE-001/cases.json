@@ -1,0 +1,392 @@
+{
+  "schema": "local-design-expectations.v1; not a product contract",
+  "status": "PENDING_REVIEW; new/synthetic cases require later implementation/acquisition",
+  "separation": "immutable legacy / independent new captures / labelled synthetic negatives; expected never feeds canonical belief",
+  "cases": [
+    {
+      "id": "old-false",
+      "sourceKind": "immutable-recording",
+      "input": {
+        "frame": "4a1f3e1d4421",
+        "raw": false,
+        "capability": "Collapsed",
+        "proof": null
+      },
+      "expected": {
+        "field": "Unknown(partial-unrepresentable)",
+        "checkedClaim": false,
+        "verified": false
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "changes/PER-010/spec.md:118-159; CheckedSemantics.cs; UiAutomatorDump.CheckedField; original diagnostic actual"
+    },
+    {
+      "id": "old-true",
+      "sourceKind": "immutable-recording",
+      "input": {
+        "frame": "1e572c8f5092",
+        "raw": true,
+        "capability": "Collapsed"
+      },
+      "expected": {
+        "field": "Observed(Checked)",
+        "verified": "only if other gates pass"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "changes/PER-010/spec.md:118-159; CheckedSemantics.cs; UiAutomatorDump.CheckedField"
+    },
+    {
+      "id": "exact-True",
+      "sourceKind": "proposed-new-fixture",
+      "input": {
+        "raw": true,
+        "capability": "Exact",
+        "proof": "validated three items; domain/version matched",
+        "checkable": true
+      },
+      "expected": {
+        "field": "Observed(Checked)",
+        "verified": "only if all gates pass and desired matches"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "changes/PER-010/spec.md:118-159; CheckedSemantics.cs; UiAutomatorDump.CheckedField; design.md P1"
+    },
+    {
+      "id": "exact-False",
+      "sourceKind": "proposed-new-fixture",
+      "input": {
+        "raw": false,
+        "capability": "Exact",
+        "proof": "validated three items; domain/version matched",
+        "checkable": true
+      },
+      "expected": {
+        "field": "Observed(Unchecked)",
+        "verified": "only if all gates pass and desired matches"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "changes/PER-010/spec.md:118-159; CheckedSemantics.cs; UiAutomatorDump.CheckedField; design.md P1"
+    },
+    {
+      "id": "missing-TwoStateContractId",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "raw": false,
+        "capability": "Exact",
+        "missing": "TwoStateContractId"
+      },
+      "expected": {
+        "field": "Unknown(partial-unrepresentable)"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "changes/PER-010/spec.md:118-159; CheckedSemantics.cs; UiAutomatorDump.CheckedField"
+    },
+    {
+      "id": "missing-AdapterCapabilityDeclaration",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "raw": false,
+        "capability": "Exact",
+        "missing": "AdapterCapabilityDeclaration"
+      },
+      "expected": {
+        "field": "Unknown(partial-unrepresentable)"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "changes/PER-010/spec.md:118-159; CheckedSemantics.cs; UiAutomatorDump.CheckedField"
+    },
+    {
+      "id": "missing-TraceableEvidenceRef",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "raw": false,
+        "capability": "Exact",
+        "missing": "TraceableEvidenceRef"
+      },
+      "expected": {
+        "field": "Unknown(partial-unrepresentable)"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "changes/PER-010/spec.md:118-159; CheckedSemantics.cs; UiAutomatorDump.CheckedField"
+    },
+    {
+      "id": "missing-reference",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "raw": false,
+        "proof": "three nonempty strings",
+        "mismatch": "missing-reference"
+      },
+      "expected": {
+        "required": "refuse Exact before mapping; collapsed or reject",
+        "currentGap": "IsComplete does not validate content"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "design.md P1; CheckedExactProof.IsComplete"
+    },
+    {
+      "id": "bad-hash",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "raw": false,
+        "proof": "three nonempty strings",
+        "mismatch": "bad-hash"
+      },
+      "expected": {
+        "required": "refuse Exact before mapping; collapsed or reject",
+        "currentGap": "IsComplete does not validate content"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "design.md P1; CheckedExactProof.IsComplete"
+    },
+    {
+      "id": "wrong-domain",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "raw": false,
+        "proof": "three nonempty strings",
+        "mismatch": "wrong-domain"
+      },
+      "expected": {
+        "required": "refuse Exact before mapping; collapsed or reject",
+        "currentGap": "IsComplete does not validate content"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "design.md P1; CheckedExactProof.IsComplete"
+    },
+    {
+      "id": "wrong-version",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "raw": false,
+        "proof": "three nonempty strings",
+        "mismatch": "wrong-version"
+      },
+      "expected": {
+        "required": "refuse Exact before mapping; collapsed or reject",
+        "currentGap": "IsComplete does not validate content"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "design.md P1; CheckedExactProof.IsComplete"
+    },
+    {
+      "id": "tri-Checked",
+      "sourceKind": "proposed-richer-fixture",
+      "input": {
+        "raw": "getChecked constant; independent fixture model oracle",
+        "value": "Checked",
+        "capability": "TriState",
+        "checkable": true
+      },
+      "expected": {
+        "field": "Observed(Checked)",
+        "verified": "only if all gates pass and desired matches"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "CheckedSemantics.MapTriState; RuntimeAssurance.PostAction.cs; Android official getChecked"
+    },
+    {
+      "id": "tri-Unchecked",
+      "sourceKind": "proposed-richer-fixture",
+      "input": {
+        "raw": "getChecked constant; independent fixture model oracle",
+        "value": "Unchecked",
+        "capability": "TriState",
+        "checkable": true
+      },
+      "expected": {
+        "field": "Observed(Unchecked)",
+        "verified": "only if all gates pass and desired matches"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "CheckedSemantics.MapTriState; RuntimeAssurance.PostAction.cs; Android official getChecked"
+    },
+    {
+      "id": "tri-Partial",
+      "sourceKind": "proposed-richer-fixture",
+      "input": {
+        "raw": "getChecked constant; independent fixture model oracle",
+        "value": "Partial",
+        "capability": "TriState",
+        "checkable": true
+      },
+      "expected": {
+        "field": "Observed(Partial)",
+        "verified": false
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "CheckedSemantics.MapTriState; RuntimeAssurance.PostAction.cs; Android official getChecked"
+    },
+    {
+      "id": "tri-xml-bool",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "rawXml": "true/false",
+        "capability": "TriState"
+      },
+      "expected": {
+        "current": "ArgumentOutOfRangeException via MapBoolean",
+        "required": "richer typed acquisition or separately reviewed parser fix"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "changes/PER-010/spec.md:118-159; CheckedSemantics.cs; UiAutomatorDump.CheckedField"
+    },
+    {
+      "id": "guard-False",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "checked": "Observed(Checked/Unchecked)",
+        "checkable": false,
+        "class": "android.widget.Switch"
+      },
+      "expected": {
+        "raw": "preserved",
+        "semanticUse": false,
+        "verified": false,
+        "currentGap": "resolver does not test checkable; class-only occurrence path exists"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "PER-009 D12; UiHierarchyOccurrenceStrategy.Build; SemanticCheckedResolver; design.md P2"
+    },
+    {
+      "id": "guard-None",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "checked": "Observed(Checked/Unchecked)",
+        "checkable": null,
+        "class": "android.widget.Switch"
+      },
+      "expected": {
+        "raw": "preserved",
+        "semanticUse": false,
+        "verified": false,
+        "currentGap": "resolver does not test checkable; class-only occurrence path exists"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "PER-009 D12; UiHierarchyOccurrenceStrategy.Build; SemanticCheckedResolver; design.md P2"
+    },
+    {
+      "id": "unknown-attribute-missing",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "raw": null,
+        "capability": "Collapsed"
+      },
+      "expected": {
+        "field": "Unknown(attribute-missing)",
+        "checkedClaim": false
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "changes/PER-010/spec.md:118-159; CheckedSemantics.cs; UiAutomatorDump.CheckedField"
+    },
+    {
+      "id": "unknown-malformed-field",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "raw": "nonsense",
+        "capability": "Collapsed"
+      },
+      "expected": {
+        "field": "Unknown(malformed-field)",
+        "checkedClaim": false
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "changes/PER-010/spec.md:118-159; CheckedSemantics.cs; UiAutomatorDump.CheckedField"
+    },
+    {
+      "id": "unsupported",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "capability": "None",
+        "raw": false
+      },
+      "expected": {
+        "field": "Unsupported(capability:checked-absent)",
+        "checkedClaim": false
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "changes/PER-010/spec.md:118-159; CheckedSemantics.cs; UiAutomatorDump.CheckedField"
+    },
+    {
+      "id": "stale",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "mutation": "stale",
+        "desired": "Unchecked"
+      },
+      "expected": {
+        "verified": false,
+        "reason": "capture-not-after-dispatch"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "SemanticCheckedResolver; RuntimeAssurance.PostAction.cs"
+    },
+    {
+      "id": "same-time",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "mutation": "same-time",
+        "desired": "Unchecked"
+      },
+      "expected": {
+        "verified": false,
+        "reason": "capture-not-after-dispatch"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "SemanticCheckedResolver; RuntimeAssurance.PostAction.cs"
+    },
+    {
+      "id": "multiple-occurrences",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "mutation": "multiple-occurrences",
+        "desired": "Unchecked"
+      },
+      "expected": {
+        "verified": false,
+        "reason": "occurrence-ambiguous"
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "SemanticCheckedResolver; RuntimeAssurance.PostAction.cs"
+    },
+    {
+      "id": "coverage-partial",
+      "sourceKind": "synthetic-negative",
+      "input": {
+        "captureOutcome": "Partial",
+        "coverage": "Partial",
+        "limitation": "window-uncovered"
+      },
+      "expected": {
+        "wholePageAbsence": false,
+        "checkedPartialInferred": false
+      },
+      "actual": null,
+      "executionStatus": "NOT_RUN_IN_THIS_TASK",
+      "basis": "HierarchyCoverage; UiHierarchyCaptureResult.Validate; PER-010 failure matrix"
+    }
+  ]
+}

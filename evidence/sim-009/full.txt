@@ -1,0 +1,473 @@
+CHANGE=SIM-009
+SCENARIO_CAVEAT=SCN-PERC-001 execution.kind=none: dedicated carrier; expectations are descriptive-only (no golden certification), goalEvaluationRealization=not-applicable, decision=double via ConsultAgent seam; carrier PASS proves local behavior only
+SCENARIO_CAVEATS_SUMMARY=1/7 selected scenario(s) with descriptive-only local carriers; baseline claims are partial for them
+SCOPE=full
+FOCUSED=SKIPPED (change-specific tests remain change-owned)
+[DIFF_CHECK] git diff --check
+[ARCHITECTURE] dotnet test tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj --no-restore --filter FullyQualifiedName~LegacyStateSurfaceFreezeTests|FullyQualifiedName~Per014CutoverTests|FullyQualifiedName~ConflictResolverTests|FullyQualifiedName~Per009RemediationTests|FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~SemanticCheckedResolverTests --logger console;verbosity=minimal
+  UniClaw.Core -> /private/tmp/uniclaw-sim009/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/tmp/uniclaw-sim009/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/ClaimEvolutionTests.cs(83,37): warning CS8604: “void Assert.Contains<string>(string expected, IEnumerable<string> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/ControlReferencePolicyTests.cs(150,20): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/ClaimEvolutionTests.cs(114,37): warning CS8604: “void Assert.Contains<string>(string expected, IEnumerable<string> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/ControlReferencePolicyTests.cs(189,20): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/ControlReferencePolicyTests.cs(267,40): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Compatibility/LegacyStateProjectionTests.cs(219,36): warning CS8604: “bool HashSet<string>.Contains(string item)”中的形参“item”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/ControlReferencePolicyTests.cs(286,20): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/CoreProjectionSeamTests.cs(206,48): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/ControlToEffectTests.cs(207,21): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/CoreProjectionSeamTests.cs(218,45): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/CoreProjectionSeamTests.cs(266,53): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/CoreProjectionSeamTests.cs(360,20): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/CoreProjectionSeamTests.cs(399,20): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/CoreProjectionSeamTests.cs(460,20): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Effects/GroundingSpaceBindingTests.cs(123,73): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/DocsMetadataTests.cs(96,43): warning CS8604: “bool Regex.IsMatch(string input, string pattern)”中的形参“input”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Capability/OperationMeasurementContractTests.cs(77,26): warning CS8629: 可为 null 的值类型可为 null。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FastPerceptionSliceTests.cs(56,39): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FastPerceptionSliceTests.cs(67,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FastPerceptionSliceTests.cs(95,39): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FastPerceptionSliceTests.cs(108,33): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FastPerceptionSliceTests.cs(146,33): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FastScreenArmContractTests.cs(123,49): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FastPerceptionSliceTests.cs(177,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FastPerceptionSliceTests.cs(190,33): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/LatencyBaselineTests.cs(321,20): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FastPerceptionSliceTests.cs(217,36): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FastPerceptionSliceTests.cs(229,38): warning CS8604: “ContainerRelation Assert.Single<ContainerRelation>(IEnumerable<ContainerRelation> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/LatencyBaselineTests.cs(380,24): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FastPerceptionSliceTests.cs(257,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/LatencyBaselineTests.cs(398,77): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/LatencyBaselineTests.cs(401,77): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/LatencyBaselineTests.cs(412,24): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/TraversalExecutionTests.cs(63,48): warning CS8604: “HashSet<string>.HashSet(IEnumerable<string> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/LatencyBaselineTests.cs(439,20): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FrameComputationReuseTests.cs(204,54): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverBudgetRenewalTests.cs(65,48): warning CS8604: “HashSet<string>.HashSet(IEnumerable<string> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverFinalizationTests.cs(159,37): warning CS8604: “IEnumerable<string> Enumerable.Append<string>(IEnumerable<string> source, string element)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/LatencyBaselineTests.cs(568,29): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/LatencyBaselineTests.cs(629,17): warning CS8604: “IEnumerable<string> Enumerable.Select<ContainerBelief, string>(IEnumerable<ContainerBelief> source, Func<ContainerBelief, string> selector)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FrameComputationReuseTests.cs(550,24): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverFinalizationTests.cs(744,48): warning CS8604: “HashSet<string>.HashSet(IEnumerable<string> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FrameComputationReuseTests.cs(652,38): warning CS8604: “IEnumerable<string> Enumerable.Select<ContainerBelief, string>(IEnumerable<ContainerBelief> source, Func<ContainerBelief, string> selector)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(208,37): warning CS8604: “IEnumerable<string> Enumerable.Append<string>(IEnumerable<string> source, string element)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(228,21): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(231,23): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(257,23): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(288,23): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(315,44): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(367,23): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(397,25): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(476,44): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(504,23): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(38,39): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(56,40): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(63,39): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(96,37): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(103,41): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(110,34): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(122,40): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(131,39): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(151,26): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(160,41): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(168,34): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(182,25): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(190,25): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(203,40): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(209,35): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(230,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/TypedHierarchyProjectorTests.cs(205,29): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(310,25): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(327,33): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(328,19): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source, Func<ContainerBelief, bool> predicate)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs(334,38): warning CS8604: “ContainerRelation Assert.Single<ContainerRelation>(IEnumerable<ContainerRelation> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/LiveClosedLoopBulletTests.cs(64,34): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldDoubles.cs(73,71): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldDoubles.cs(82,23): warning CS8604: “IEnumerable<ContainerBelief> Enumerable.Where<ContainerBelief>(IEnumerable<ContainerBelief> source, Func<ContainerBelief, bool> predicate)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1730,41): warning CS8604: “IEnumerable<string> Enumerable.Append<string>(IEnumerable<string> source, string element)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldGroundingSeamTests.cs(524,9): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/LiveClosedLoopBulletTests.cs(252,172): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/LiveClosedLoopBulletTests.cs(262,20): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldReplayabilityTests.cs(63,41): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldReplayabilityTests.cs(115,13): warning CS8604: “IEnumerable<(string ContainerId, string Basis)> Enumerable.Select<ContainerBelief, (string ContainerId, string Basis)>(IEnumerable<ContainerBelief> source, Func<ContainerBelief, (string ContainerId, string Basis)> selector)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldReplayabilityTests.cs(116,13): warning CS8604: “IEnumerable<(string ContainerId, string Basis)> Enumerable.Select<ContainerBelief, (string ContainerId, string Basis)>(IEnumerable<ContainerBelief> source, Func<ContainerBelief, (string ContainerId, string Basis)> selector)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/World/ProductAssociationStrategyTests.cs(68,39): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/World/ProductAssociationStrategyTests.cs(85,39): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/World/ProductAssociationStrategyTests.cs(130,23): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldReplayabilityTests.cs(175,36): warning CS8604: “IEnumerable<string> Enumerable.Select<ContainerBelief, string>(IEnumerable<ContainerBelief> source, Func<ContainerBelief, string> selector)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldContinuityTests.cs(299,21): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldReplayabilityTests.cs(229,17): warning CS8604: “IEnumerable<string> Enumerable.Select<ContainerBelief, string>(IEnumerable<ContainerBelief> source, Func<ContainerBelief, string> selector)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldReplayabilityTests.cs(230,17): warning CS8604: “IEnumerable<string> Enumerable.Select<ContainerBelief, string>(IEnumerable<ContainerBelief> source, Func<ContainerBelief, string> selector)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/LoopTwinTests.cs(35,34): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/World/Per009RemediationTests.cs(456,34): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/LoopTwinTests.cs(174,20): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/PerceptionDoubles.cs(137,23): warning CS8604: “IEnumerable<ContainerBelief> Enumerable.Where<ContainerBelief>(IEnumerable<ContainerBelief> source, Func<ContainerBelief, bool> predicate)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/PerceptionDoubles.cs(177,43): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/Per014CutoverTests.cs(401,34): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UIWorldContinuityTests.cs(606,23): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/RealAssetEntityModelTests.cs(502,43): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/RealAssetEntityModelTests.cs(525,43): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/RealAssetEntityModelTests.cs(108,39): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/RealAssetEntityModelTests.cs(131,41): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/RealAssetEntityModelTests.cs(231,36): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/RealAssetEntityModelTests.cs(247,38): warning CS8604: “ContainerRelation Assert.Single<ContainerRelation>(IEnumerable<ContainerRelation> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/RealAssetEntityModelTests.cs(264,45): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/RealAssetEntityModelTests.cs(308,41): warning CS8604: “ContainerBelief Assert.Single<ContainerBelief>(IEnumerable<ContainerBelief> collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/RealAssetEntityModelTests.cs(371,34): warning CS8604: “IEnumerable<string> Enumerable.Select<ContainerBelief, string>(IEnumerable<ContainerBelief> source, Func<ContainerBelief, string> selector)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Effects/EffectGateMatrixTests.cs(95,9): warning xUnit2000: The literal or constant value nameof(BindingRejectionReason.StaleRevision) should be passed as the 'expected' argument in the call to 'Assert.Equal(expected, actual)' in method 'Row5_Freshness_StaleRevisionRejectedAtEffectBoundary_ExistingContract' on type 'EffectGateMatrixTests'. Swap the parameter values. (https://xunit.net/xunit.analyzers/rules/xUnit2000) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FrameComputationReuseTests.cs(305,14): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FrameComputationReuseTests.cs(368,19): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FrameComputationReuseTests.cs(369,20): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FrameComputationReuseTests.cs(416,9): warning xUnit2000: The literal or constant value 4 should be passed as the 'expected' argument in the call to 'Assert.Equal(expected, actual)' in method 'R8_FourPhases_CacheOffVsOn_CanonicalIdentical_InvocationsDrop' on type 'FrameComputationReuseTests'. Swap the parameter values. (https://xunit.net/xunit.analyzers/rules/xUnit2000) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Perception/FrameComputationReuseTests.cs(417,9): warning xUnit2000: The literal or constant value 1 should be passed as the 'expected' argument in the call to 'Assert.Equal(expected, actual)' in method 'R8_FourPhases_CacheOffVsOn_CanonicalIdentical_InvocationsDrop' on type 'FrameComputationReuseTests'. Swap the parameter values. (https://xunit.net/xunit.analyzers/rules/xUnit2000) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(215,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(256,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(284,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(312,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(338,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(365,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(418,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(446,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(474,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(501,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/TraversalExecutionTests.cs(743,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(475,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverBudgetRenewalTests.cs(688,9): warning xUnit2012: Do not use Assert.True() to check if a value exists in a collection. Use Assert.Contains instead. (https://xunit.net/xunit.analyzers/rules/xUnit2012) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs(535,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(629,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(630,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/RunTraceBulletTests.cs(359,9): warning xUnit2017: Do not use Assert.True() to check if a value exists in a collection. Use Assert.Contains instead. (https://xunit.net/xunit.analyzers/rules/xUnit2017) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyValidationTests.cs(136,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(141,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(156,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(175,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(250,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(317,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(337,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(355,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1128,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(395,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1145,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1158,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(415,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1214,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1229,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(453,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1267,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/PageObservationExecutionTests.cs(96,25): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1312,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(497,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1395,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1366,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1431,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1433,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(643,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(648,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1471,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(724,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1502,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs(846,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1200,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1172,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs(1186,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj]
+  UniClaw.Kernel.Tests -> /private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    43，已跳过:     0，总计:    43，持续时间: 51 ms - UniClaw.Kernel.Tests.dll (net10.0)
+[ARCHITECTURE_HOST] dotnet test tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj --no-restore --filter FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~LiveDeviceSelectorTests|FullyQualifiedName~LegacySurfaceRemovalTripwireTests --logger console;verbosity=minimal
+  UniClaw.Core -> /private/tmp/uniclaw-sim009/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/tmp/uniclaw-sim009/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+/private/tmp/uniclaw-sim009/src/UniClaw.Host/UiAutomatorDump.cs(130,31): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/private/tmp/uniclaw-sim009/src/UniClaw.Host/UniClaw.Host.csproj]
+/private/tmp/uniclaw-sim009/src/UniClaw.Host/UiAutomatorDump.cs(134,31): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/private/tmp/uniclaw-sim009/src/UniClaw.Host/UniClaw.Host.csproj]
+/private/tmp/uniclaw-sim009/src/UniClaw.Host/UiAutomatorDump.cs(137,31): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/private/tmp/uniclaw-sim009/src/UniClaw.Host/UniClaw.Host.csproj]
+/private/tmp/uniclaw-sim009/src/UniClaw.Host/UiAutomatorDump.cs(138,41): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/private/tmp/uniclaw-sim009/src/UniClaw.Host/UniClaw.Host.csproj]
+/private/tmp/uniclaw-sim009/src/UniClaw.Host/UiAutomatorDump.cs(142,27): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/private/tmp/uniclaw-sim009/src/UniClaw.Host/UniClaw.Host.csproj]
+/private/tmp/uniclaw-sim009/src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.cs(887,55): warning CS0162: 检测到无法访问的代码 [/private/tmp/uniclaw-sim009/src/UniClaw.Host/UniClaw.Host.csproj]
+/private/tmp/uniclaw-sim009/src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.cs(904,55): warning CS0162: 检测到无法访问的代码 [/private/tmp/uniclaw-sim009/src/UniClaw.Host/UniClaw.Host.csproj]
+  UniClaw.Host -> /private/tmp/uniclaw-sim009/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+/private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/PageIdentityRecoveryTests.cs(48,24): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(249,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(262,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(728,45): warning CS8620: 由于引用类型的可为 null 性差异，(string, string, string)[] 类型的实参不能用于 void SettingsCoverageLedger.RecordObservation(string route, IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> visibleOccurrences) 中 IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> 类型的形参 visibleOccurrences。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/WorldCaptureIsolationTests.cs(39,38): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+  UniClaw.Host.Tests -> /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll
+/private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    26，已跳过:     0，总计:    26，持续时间: 18 ms - UniClaw.Host.Tests.dll (net10.0)
+[SIMULATION] dotnet test tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj --no-restore --logger console;verbosity=minimal --logger trx;LogFileName=sim006-full.trx
+  UniClaw.Core -> /private/tmp/uniclaw-sim009/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/tmp/uniclaw-sim009/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Agent -> /private/tmp/uniclaw-sim009/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+  UniClaw.Simulation.Tests -> /private/tmp/uniclaw-sim009/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll
+/private/tmp/uniclaw-sim009/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:   262，已跳过:     0，总计:   262，持续时间: 1 s - UniClaw.Simulation.Tests.dll (net10.0)
+警告: 正在覆盖结果文件: /private/tmp/uniclaw-sim009/tests/UniClaw.Simulation.Tests/TestResults/sim006-full.trx
+结果文件: /private/tmp/uniclaw-sim009/tests/UniClaw.Simulation.Tests/TestResults/sim006-full.trx
+[FULL_TEST_PROJECTS[UniClaw.Agent.Tests]] dotnet test tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj --no-restore --logger console;verbosity=minimal
+  UniClaw.Core -> /private/tmp/uniclaw-sim009/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/tmp/uniclaw-sim009/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Agent -> /private/tmp/uniclaw-sim009/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+/private/tmp/uniclaw-sim009/tests/UniClaw.Agent.Tests/GoalEvaluationTests.cs(482,61): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim009/tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj]
+  UniClaw.Agent.Tests -> /private/tmp/uniclaw-sim009/tests/UniClaw.Agent.Tests/bin/Debug/net10.0/UniClaw.Agent.Tests.dll
+/private/tmp/uniclaw-sim009/tests/UniClaw.Agent.Tests/bin/Debug/net10.0/UniClaw.Agent.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    36，已跳过:     0，总计:    36，持续时间: 51 ms - UniClaw.Agent.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Agent.Dsh.Tests]] dotnet test tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj --no-restore --logger console;verbosity=minimal
+  UniClaw.Core -> /private/tmp/uniclaw-sim009/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/tmp/uniclaw-sim009/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Agent -> /private/tmp/uniclaw-sim009/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+  UniClaw.Agent.Dsh -> /private/tmp/uniclaw-sim009/src/UniClaw.Agent.Dsh/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll
+  UniClaw.Agent.Dsh.Tests -> /private/tmp/uniclaw-sim009/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll
+/private/tmp/uniclaw-sim009/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:   212，已跳过:     0，总计:   212，持续时间: 3 s - UniClaw.Agent.Dsh.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Core.Tests]] dotnet test tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj --no-restore --logger console;verbosity=minimal
+  UniClaw.Core -> /private/tmp/uniclaw-sim009/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Core.Tests -> /private/tmp/uniclaw-sim009/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll
+/private/tmp/uniclaw-sim009/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    14，已跳过:     0，总计:    14，持续时间: 159 ms - UniClaw.Core.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.FileSystemRealization.Tests]] dotnet test tests/UniClaw.FileSystemRealization.Tests/UniClaw.FileSystemRealization.Tests.csproj --no-restore --logger console;verbosity=minimal
+  UniClaw.Core -> /private/tmp/uniclaw-sim009/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.FileSystemRealization.Tests -> /private/tmp/uniclaw-sim009/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll
+/private/tmp/uniclaw-sim009/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:     9，已跳过:     0，总计:     9，持续时间: 20 ms - UniClaw.FileSystemRealization.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Host.Tests]] dotnet test tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj --no-restore --logger console;verbosity=minimal
+  UniClaw.Core -> /private/tmp/uniclaw-sim009/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/tmp/uniclaw-sim009/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Host -> /private/tmp/uniclaw-sim009/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+  UniClaw.Host.Tests -> /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll
+/private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.08]     UniClaw.Host.Tests.SettingsRouteKeyTests.ViewportDigest_StableForSameViewport_ChangesOnScroll [FAIL]
+[xUnit.net 00:00:00.08]     UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(capture: "internet-page", title: "Internet") [FAIL]
+[xUnit.net 00:00:00.08]     UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(capture: "network-page", title: "Network & internet") [FAIL]
+[xUnit.net 00:00:00.08]     UniClaw.Host.Tests.SettingsRouteKeyTests.PageHeader_TakesPrecedenceOverListRowPreviouslyMisreadAsTitle [FAIL]
+[xUnit.net 00:00:00.08]     UniClaw.Host.Tests.SettingsRouteKeyTests.TitlelessPage_FallsBackToUnknownIdentity [FAIL]
+[xUnit.net 00:00:00.08]     UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent [FAIL]
+[xUnit.net 00:00:00.08]     UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable [FAIL]
+  失败 UniClaw.Host.Tests.SettingsRouteKeyTests.ViewportDigest_StableForSameViewport_ChangesOnScroll [3 ms]
+  错误消息:
+   System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-sim009/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-0d1006df470e4e0391fb8bb8b7f97719.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.ViewportDigest_StableForSameViewport_ChangesOnScroll() in /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 101
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失败 UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(capture: "internet-page", title: "Internet") [< 1 ms]
+  错误消息:
+   System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-sim009/evidence/runtime-plan-001/composition-20261018/route-corpus/internet-page.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(String capture, String title) in /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 71
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  失败 UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(capture: "network-page", title: "Network & internet") [< 1 ms]
+  错误消息:
+   System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-sim009/evidence/runtime-plan-001/composition-20261018/route-corpus/network-page.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(String capture, String title) in /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 71
+   at InvokeStub_SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失败 UniClaw.Host.Tests.SettingsRouteKeyTests.PageHeader_TakesPrecedenceOverListRowPreviouslyMisreadAsTitle [< 1 ms]
+  错误消息:
+   System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-sim009/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-7323abdbfd054a2288c276092a25f7e8.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.PageHeader_TakesPrecedenceOverListRowPreviouslyMisreadAsTitle() in /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 55
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失败 UniClaw.Host.Tests.SettingsRouteKeyTests.TitlelessPage_FallsBackToUnknownIdentity [< 1 ms]
+  错误消息:
+   System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-sim009/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-3e3809ea136e408aaa72f75513953086.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.TitlelessPage_FallsBackToUnknownIdentity() in /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 91
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失败 UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent [< 1 ms]
+  错误消息:
+   System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-sim009/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-4a7726969f964b1494297485d0b0d986.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent() in /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 118
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失败 UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable [< 1 ms]
+  错误消息:
+   System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-sim009/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-21d9968674a343f4b75787b6fb3af044.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.<>c.<RootPage_AcrossScrollStates_RouteKeyStable>b__6_0(String c) in /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 82
+   at System.Linq.Enumerable.ArraySelectIterator`2.MoveNext()
+   at System.Collections.Generic.HashSet`1.UnionWith(IEnumerable`1 other)
+   at System.Collections.Generic.HashSet`1..ctor(IEnumerable`1 collection, IEqualityComparer`1 comparer)
+   at System.Linq.Enumerable.DistinctIterator`1.ToList()
+   at UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable() in /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs:line 81
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.30]     UniClaw.Host.Tests.SettingsPopupClassifierTests.RealNormalSettingsXml_ClassifiesAbsent [FAIL]
+  失败 UniClaw.Host.Tests.SettingsPopupClassifierTests.RealNormalSettingsXml_ClassifiesAbsent [< 1 ms]
+  错误消息:
+   System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-sim009/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-0d1006df470e4e0391fb8bb8b7f97719.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsPopupClassifierTests.NormalSettingsXml() in /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsPopupClassifierTests.cs:line 42
+   at UniClaw.Host.Tests.SettingsPopupClassifierTests.RealNormalSettingsXml_ClassifiesAbsent() in /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsPopupClassifierTests.cs:line 54
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.30]     UniClaw.Host.Tests.SettingsPopupClassifierTests.RealPopupXml_ClassifiesPresent [FAIL]
+  失败 UniClaw.Host.Tests.SettingsPopupClassifierTests.RealPopupXml_ClassifiesPresent [< 1 ms]
+  错误消息:
+   System.IO.DirectoryNotFoundException : Could not find a part of the path '/private/tmp/uniclaw-sim009/evidence/real-settings-coverage-negative-20261001/run-e1-with-evidence/evidence/capture-3e3809ea136e408aaa72f75513953086.xml'.
+  堆栈跟踪:
+     at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupXml() in /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsPopupClassifierTests.cs:line 33
+   at UniClaw.Host.Tests.SettingsPopupClassifierTests.RealPopupXml_ClassifiesPresent() in /private/tmp/uniclaw-sim009/tests/UniClaw.Host.Tests/SettingsPopupClassifierTests.cs:line 48
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失败!  - 失败:     9，通过:   402，已跳过:     0，总计:   411，持续时间: 23 s - UniClaw.Host.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Kernel.Tests]] dotnet test tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj --no-restore --logger console;verbosity=minimal
+  UniClaw.Core -> /private/tmp/uniclaw-sim009/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/tmp/uniclaw-sim009/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Kernel.Tests -> /private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll
+/private/tmp/uniclaw-sim009/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:  1037，已跳过:     0，总计:  1037，持续时间: 2 s - UniClaw.Kernel.Tests.dll (net10.0)
+FULL_TEST_PROJECTS_NOTE=all solution test projects, aggregated; simulation portion reused from SIMULATION (single execution; TRX shared with COVERAGE)
+[CERTIFICATION] python3 tools/scenario_certify.py --check
+certification check: PASS (31 files, 0 violations)
+[COVERAGE] python3 tools/scenario-coverage.py --trx tests/UniClaw.Simulation.Tests/TestResults/sim006-full.trx
+============================================================
+ Scenario Library Coverage Report (truth: sim006-full.trx)
+============================================================
+ Total: 31 scenarios
+
+── By Status (derived from TRX) ──
+  failing            0   0%
+  not-implemented    1   3%
+  passing           30  ███████████████████ 96%
+  pending-env        0   0%
+
+  Pass rate: 30/31 = 96%
+
+── By Capability ──
+  activation-idempotency         1/1 passing
+  ambiguity-safety               1/1 passing
+  desired-state-satisfaction     1/1 passing
+  effect-verification            3/3 passing
+  evidence-deduplication         1/1 passing
+  evidence-revision              4/4 passing
+  identity-continuity            1/1 passing
+  policy-protocol                11/11 passing
+  safe-stop                      1/1 passing
+  serial-verification-barrier    4/4 passing
+  terminal-distinction           1/1 passing
+  world-operation-replay         1/2 passing
+
+── By Source ──
+  component-test        12
+  recorded               8 (refs: SR-104, SR-105, SR-134, SR-001, SR-007, SR-047, SR-052, SR-067)
+  synthetic             11 (refs: SR-001, SR-009, SR-017, SR-012, SR-022, SR-056, SR-063, SR-086)
+
+── Attention (1) ──
+  SCN-REPLAY-003       not-implemented  操作回放：空间证据不足
+
+── Golden Certification (SIM-002 G2) ──
+  certified by ENG-OPT-001: 20 scenarios
+  uncertified descriptive scenarios: 11 (SCN-PERC-001, SCN-PERC-002, SCN-PERC-003, SCN-PERC-004, SCN-PERC-005, SCN-PERC-006, SCN-PERC-007, SCN-PERC-008, SCN-REPLAY-001, SCN-REPLAY-002, SCN-REPLAY-003)
+
+  FAIL (1 violations):
+    SCN-REPLAY-003.json: 无结果——status='passing' 但没有测试承载（[Trait("Scenario", "SCN-REPLAY-003")] 缺失或 TRX 陈旧）
+
+============================================================
+LIVE=SKIPPED (use --live to run environment gate)
+GROUP_DIFF_CHECK=PASS
+GROUP_ARCHITECTURE=PASS
+GROUP_ARCHITECTURE_HOST=PASS
+GROUP_SIMULATION=PASS
+GROUP_FULL_TEST_PROJECTS=FAIL
+GROUP_CERTIFICATION=PASS
+GROUP_COVERAGE=FAIL
+FIRST_FAILURE=FULL_TEST_PROJECTS
+FIRST_FAILURE_SEMANTIC=execution-order group; not the first behavioral divergence (see Failure details)
+EXPECTATIONS_DIGEST=UNCHANGED
+FINAL_STATUS=FAIL
+── Failure details (expected/actual; classification; owner basis) ──
+  FAIL UniClaw.Host.Tests.SettingsRouteKeyTests.ViewportDigest_StableForSameViewport_ChangesOnScroll ownerBasis=host classification=BEHAVIOR_REGRESSION firstDivergence=unknown (console excerpt follows; expected values live in the owning contract)
+      失败 UniClaw.Host.Tests.SettingsRouteKeyTests.ViewportDigest_StableForSameViewport_ChangesOnScroll [3 ms]
+  FAIL UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(capture: ownerBasis=host classification=BEHAVIOR_REGRESSION firstDivergence=unknown (console excerpt follows; expected values live in the owning contract)
+      失败 UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(capture: "internet-page", title: "Internet") [< 1 ms]
+  FAIL UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(capture: ownerBasis=host classification=BEHAVIOR_REGRESSION firstDivergence=unknown (console excerpt follows; expected values live in the owning contract)
+      失败 UniClaw.Host.Tests.SettingsRouteKeyTests.CapturedNestedPages_UsePageHeaderInsteadOfFirstNavigationRow(capture: "network-page", title: "Network & internet") [< 1 ms]
+  FAIL UniClaw.Host.Tests.SettingsRouteKeyTests.PageHeader_TakesPrecedenceOverListRowPreviouslyMisreadAsTitle ownerBasis=host classification=BEHAVIOR_REGRESSION firstDivergence=unknown (console excerpt follows; expected values live in the owning contract)
+      失败 UniClaw.Host.Tests.SettingsRouteKeyTests.PageHeader_TakesPrecedenceOverListRowPreviouslyMisreadAsTitle [< 1 ms]
+  FAIL UniClaw.Host.Tests.SettingsRouteKeyTests.TitlelessPage_FallsBackToUnknownIdentity ownerBasis=host classification=BEHAVIOR_REGRESSION firstDivergence=unknown (console excerpt follows; expected values live in the owning contract)
+      失败 UniClaw.Host.Tests.SettingsRouteKeyTests.TitlelessPage_FallsBackToUnknownIdentity [< 1 ms]
+  FAIL UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent ownerBasis=host classification=BEHAVIOR_REGRESSION firstDivergence=unknown (console excerpt follows; expected values live in the owning contract)
+      失败 UniClaw.Host.Tests.SettingsRouteKeyTests.RouteKey_And_ViewportDigest_AreIndependent [< 1 ms]
+  FAIL UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable ownerBasis=host classification=BEHAVIOR_REGRESSION firstDivergence=unknown (console excerpt follows; expected values live in the owning contract)
+      失败 UniClaw.Host.Tests.SettingsRouteKeyTests.RootPage_AcrossScrollStates_RouteKeyStable [< 1 ms]
+  FAIL UniClaw.Host.Tests.SettingsPopupClassifierTests.RealNormalSettingsXml_ClassifiesAbsent ownerBasis=host classification=BEHAVIOR_REGRESSION firstDivergence=unknown (console excerpt follows; expected values live in the owning contract)
+      失败 UniClaw.Host.Tests.SettingsPopupClassifierTests.RealNormalSettingsXml_ClassifiesAbsent [< 1 ms]
+  FAIL UniClaw.Host.Tests.SettingsPopupClassifierTests.RealPopupXml_ClassifiesPresent ownerBasis=host classification=BEHAVIOR_REGRESSION firstDivergence=unknown (console excerpt follows; expected values live in the owning contract)
+      失败 UniClaw.Host.Tests.SettingsPopupClassifierTests.RealPopupXml_ClassifiesPresent [< 1 ms]
+  GROUP COVERAGE: rc=1 classification=UNCLASSIFIED firstDivergence=unknown ownerBasis=see-group-output
+RESOLVED_CONFIG=evidence/sim-006/runs/SIM-009-full-20261022T123840Z/resolved-config.json

@@ -26,6 +26,8 @@ namespace UniClaw.Kernel.Perception.UiHierarchy;
 /// ⑤ Unsupported：关联 node 的 capability 元数据声明无 checked 能力
 ///    （ResolveCheckedCapability() == null）→ Unsupported（capability 缺席
 ///    与本次判定不足分离）。
+/// ⑥ 属性有效性：同 capture + node 的 checkable 必须为 Observed(true)；
+///    false / 缺席 / malformed 均 Unknown，raw checked 不受影响。
 ///
 /// 禁止（R1 边界）：写回 / 持久化 / 缝内冲突裁决 / producer 侧 role 绑定；
 /// Grounding target binding 权威零变更；Unknown/Unsupported/Partial 永不
@@ -140,6 +142,12 @@ internal static class SemanticCheckedResolver
                 null);
         }
 
+        // PER-009/PER-010 validity guard belongs to consumption, not raw
+        // evidence projection. NodeRef includes capture identity, so neither
+        // another node nor a previous capture can supply this observation.
+        if (!node.CheckableObservedTrue)
+            return Fail(ObservedValue<CheckedState>.Unknown("checkable-not-observed-true"));
+
         // ④ 唯一性定案。
         return new Resolution(
             ObservedValue<CheckedState>.Observed(claim.Value),
@@ -200,6 +208,7 @@ internal static class SemanticCheckedResolver
     {
         public NodeRef Node { get; } = node;
         public List<TypedClaim> Claims { get; } = new();
+        public bool CheckableObservedTrue { get; set; }
         public DateTimeOffset? CaptureTimestamp { get; set; }
         public HashSet<string> EvidenceIds { get; } = new(StringComparer.Ordinal);
         public HashSet<string> ResourceIds { get; } = new(StringComparer.Ordinal);
@@ -247,6 +256,12 @@ internal static class SemanticCheckedResolver
             if (field == "checked" && ParseChecked(claim.Value) is { } checkedValue)
             {
                 node.Claims.Add(new TypedClaim(subject, checkedValue, claim.EvidenceId, nodeRef));
+            }
+            else if (field == "checkable")
+            {
+                // The typed projector emits only Observed fields. Accept its
+                // canonical boolean spelling; absent or malformed is no proof.
+                node.CheckableObservedTrue = claim.Value == "true";
             }
             else if (field == "resource_id" && !string.IsNullOrWhiteSpace(claim.Value))
             {

@@ -1,0 +1,50 @@
+{
+  "level": "SCENARIO",
+  "method": "same-input RED reproduction, independent controlled/public-guard expectations, final isolated current-source full, binary Trait/TRX join, two independent reviews, source/input/artifact/certification/protection hashes",
+  "expected": "SIM-011 acceptance1-4 and CHECKED-GUARD-001 completion before parent acceptance",
+  "actual": {
+    "before": {
+      "passed": 9,
+      "failed": 2,
+      "firstDivergence": "verification.isVerified"
+    },
+    "controlledAfter": {
+      "passed": 11,
+      "failed": 0
+    },
+    "additionalPublicGuardTests": 7,
+    "fullPassed": 2064,
+    "projects": 8,
+    "simulationExecutions": 1,
+    "scenariosPassing": 34,
+    "certified": 20,
+    "descriptive": 14,
+    "controlledFullNamesJoined": 11,
+    "independentReviewBlockers": 0,
+    "unexpectedProtectedChanges": [],
+    "sameBuiltKernelArtifact": true
+  },
+  "evidence": [
+    "controlled-first.trx",
+    "controlled-reproduced.trx",
+    "guard-diagnosis.json",
+    "reproduce-red.txt",
+    "carrier-finalization.json",
+    "full.txt",
+    "module-results.json",
+    "simulation-full.trx",
+    "controlled-discovery.json",
+    "snapshot-source-comparison.json",
+    "certification-parent-check.json",
+    "runtime-artifact-check.json",
+    "protected-files-check.json",
+    "standards-review.md",
+    "spec-review.md"
+  ],
+  "scope": [
+    "controlled synthetic state effect verification, no goal completion claim",
+    "no device/real-model/commit/push",
+    "legacy XML still Unknown; real Stay awake acquisition deferred",
+    "24 design cases not all implemented; proof trust, richer real acquisition, B1/B2 deferred"
+  ]
+}

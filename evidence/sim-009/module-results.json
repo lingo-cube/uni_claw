@@ -1,0 +1,65 @@
+{
+  "scope": "eight .NET test projects; existing full entry plus explicit missing Host.Dsh project; corrected Simulation/Host reruns replace initial snapshot-fixture failures",
+  "projects": [
+    {
+      "project": "UniClaw.Agent.Tests",
+      "total": 36,
+      "passed": 36,
+      "failed": 0,
+      "evidence": "full.txt"
+    },
+    {
+      "project": "UniClaw.Agent.Dsh.Tests",
+      "total": 212,
+      "passed": 212,
+      "failed": 0,
+      "evidence": "full.txt"
+    },
+    {
+      "project": "UniClaw.Core.Tests",
+      "total": 14,
+      "passed": 14,
+      "failed": 0,
+      "evidence": "full.txt"
+    },
+    {
+      "project": "UniClaw.FileSystemRealization.Tests",
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "evidence": "full.txt"
+    },
+    {
+      "project": "UniClaw.Kernel.Tests",
+      "total": 1037,
+      "passed": 1037,
+      "failed": 0,
+      "evidence": "full.txt"
+    },
+    {
+      "project": "UniClaw.Simulation.Tests",
+      "total": 263,
+      "passed": 263,
+      "failed": 0,
+      "evidence": "simulation-reviewed.trx"
+    },
+    {
+      "project": "UniClaw.Host.Tests",
+      "total": 411,
+      "passed": 411,
+      "failed": 0,
+      "evidence": "host-final.trx"
+    },
+    {
+      "project": "UniClaw.Host.Dsh.Tests",
+      "total": 56,
+      "passed": 56,
+      "failed": 0,
+      "evidence": "host-dsh-final.trx"
+    }
+  ],
+  "total": 2038,
+  "passed": 2038,
+  "recordedReplayHostTests": 20,
+  "fullInitialSucceeded": false
+}

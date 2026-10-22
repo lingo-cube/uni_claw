@@ -1,0 +1,36 @@
+{
+  "id": "WI-CHECKED-GUARD-001-REVIEW",
+  "objective": "独立审查 checked guard 实现是否符合既有契约且没有追绿掩盖负例",
+  "scope": {
+    "write": [
+      "evidence/checked-guard-001/review.md"
+    ],
+    "read_hints": [
+      "changes/CHECKED-GUARD-001/state.md",
+      "evidence/checked-guard-001/fixture-rationale.md",
+      "evidence/checked-guard-001/entry/snapshot.json",
+      "evidence/checked-guard-001/certification-diff.json"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "消费 typed checked 前必须同 capture+node checkable=Observed(true)；保留 raw 和既有拒绝。独立评审代码/范围，不以测试通过代替审查。"
+  },
+  "acceptance": [
+    "分开报告 Standards 与 Spec 两轴，列具体文件/行/可重现触发，或零阻塞",
+    "检查产品仅 resolver 与 assurance 注释；新回归只经公开缝；逐项 fixture 有来源且不改 false/missing 真实负例",
+    "检查 SIM011/010 原测试输入冻结；20 golden 元数据变更保持 inputs/expectations 与两 digest 不变",
+    "只写 review.md，返回结论，不能把 Review 当 Verify"
+  ],
+  "forbidden": [
+    "不改产品/测试/契约/场景/共享文件",
+    "不运行设备/模型/提交/推送/消息其他聊天",
+    "不得委派或创建其他 worker",
+    "不覆盖或回退任何其他线改动"
+  ],
+  "frozen_decisions": [
+    "PER-009 D3 checkable=true validity",
+    "PER-010 raw checked retained",
+    "用户明确只允许当前 guard 修复和有因 fixture/metadata 更新"
+  ],
+  "status": "done"
+}

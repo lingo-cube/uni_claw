@@ -565,28 +565,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
 
     internal static string? DerivePopupState(string? xml, string hostPackage, IReadOnlyList<string> popupResourceIds)
     {
-        if (xml is null)
-            return null;
-        XElement? root;
-        try
-        {
-            root = XDocument.Parse(xml).Root;
-        }
-        catch (Exception)
-        {
-            return null; // 不可解析 → 无声明（不猜测）
-        }
-        if (root is null)
-            return null;
-        var nodes = root.Descendants("node").ToList();
-        var windowPackage = (string?)nodes.FirstOrDefault()?.Attribute("package");
-        if (windowPackage is not null && windowPackage != hostPackage)
-            return "present";
-        var whitelist = popupResourceIds.ToHashSet(StringComparer.Ordinal);
-        var hasWhitelistedId = nodes
-            .Select(n => (string?)n.Attribute("resource-id"))
-            .Any(id => id is not null && whitelist.Contains(id));
-        return hasWhitelistedId ? "present" : "absent";
+        return SettingsPopupClassifier.Classify(xml, hostPackage, popupResourceIds);
     }
 
     /// <summary>

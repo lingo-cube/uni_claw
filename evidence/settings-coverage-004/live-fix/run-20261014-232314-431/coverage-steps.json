@@ -1,0 +1,264 @@
+[
+  {
+    "index": 0,
+    "decisionId": "decision-d24d3d1dc90d-1",
+    "dshSessionId": null,
+    "directive": "Enter the Settings first-level entry \u0027\u003CNetwork \u0026 internet\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Network \u0026 internet",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-1-occ-006b523e6fd6-3-1",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 866",
+    "routeBefore": "android.settings|rk1:Settings|src=homepage_title|up=0",
+    "routeAfter": "android.settings|rk1:Internet|src=title|up=1",
+    "postCaptureId": "capture-8d0e33622f4c4a968d1923b0166012c5",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "decisionId": "decision-d24d3d1dc90d-2",
+    "dshSessionId": null,
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CInternet\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Internet",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-2-occ-fa0b9ab12d3a-3-2",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 682",
+    "routeBefore": "android.settings|rk1:Internet|src=title|up=1",
+    "routeAfter": "android.settings|rk1:T-Mobile|src=title|up=1",
+    "postCaptureId": "capture-99aab77b93f24fe5b3b1cbbf2ddef717",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "decisionId": "decision-d24d3d1dc90d-3",
+    "dshSessionId": null,
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CFix connectivity\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Fix connectivity",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-3-occ-515c3775e4f8-2-3",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:T-Mobile|src=title|up=1",
+    "routeAfter": "android.settings|rk1:T-Mobile|src=title|up=1",
+    "postCaptureId": "capture-753e0c5c126d40baa350e0cd30002d5c",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "decisionId": "decision-d24d3d1dc90d-4",
+    "dshSessionId": null,
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CT-Mobile\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "T-Mobile",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-4-occ-8261b0493054-4-4",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 690",
+    "routeBefore": "android.settings|rk1:T-Mobile|src=title|up=1",
+    "routeAfter": "android.settings|rk1:T-Mobile|src=title|up=1",
+    "postCaptureId": "capture-4bd63ded38844123b9ffb24d1c471bf6",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "decisionId": "decision-d24d3d1dc90d-5",
+    "dshSessionId": null,
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSettings\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "Settings",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-5-occ-1b4ab9b9c3a0-5-5",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 943 690",
+    "routeBefore": "android.settings|rk1:T-Mobile|src=title|up=1",
+    "routeAfter": "android.settings|rk1:Mobile network|src=title|up=1",
+    "postCaptureId": "capture-71bad6c240c74a1a8d6ab9215850d1d8",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "decisionId": "decision-d24d3d1dc90d-6",
+    "dshSessionId": null,
+    "directive": "Enter the dynamically discovered nested Settings entry \u0027\u003CSIM name \u0026 color\u003E\u0027 by tapping it.",
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIM name \u0026 color",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-6-occ-7372c47d37a5-2-6",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+    "routeBefore": "android.settings|rk1:Mobile network|src=title|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-b2e5aa3ef6ab44eb808c84fd61e98022",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  }
+]

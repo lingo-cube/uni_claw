@@ -18,6 +18,7 @@ Product Host 的组合根：装配 Kernel 六个 Product T2 责任域与 Capabil
 | `UiAutomatorDump.cs` | uiautomator XML → Observation claims（PER-009，producer=platform.uiautomator） |
 | `FrameOccurrenceStrategy.cs` / `ScreenFrameOccurrenceStrategy.cs` / `UiHierarchyOccurrenceStrategy.cs` | World Model 观察推导策略（SIM-002 G1：产品能力独立成件） |
 | `SettingsTraversalLiveFeed.cs` | Settings 遍历 buyer 的真机观察 feed |
+| `SettingsPopupClassifier.cs` | LiveFeed 与离线 Host 测试共用的 XML 弹窗信号提取；保持现有规则，不提供窗口事实或动作授权 |
 | `CurrentPageAnchor.cs` | 读取World当前交互锚点，历史页面不参与当前控件归属 |
 | `SettingsPageIdentity.cs` | 从观察及进入上下文生成稳定页面签名提示，canonical身份仍由World铸造 |
 | `HostUtilities.cs` | 组合根共享工具（devtest feed 提取的产品化） |

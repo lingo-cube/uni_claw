@@ -67,14 +67,15 @@ public sealed class ScenarioCertificationTests
     }
 
     /// <summary>
-    /// SIM-002 G3：test-case ↔ scenario-id 映射执法——场景库每个条目必须
-    /// 有测试承载（[Trait("Scenario", "SCN-…")]）。golden-bundle 条目的
+    /// SIM-002 G3 / SIM-016：本程序集的 trait 必须指向现有场景。
+    /// 场景库每个条目的承载存在性与真实执行由 scenario-coverage.py
+    /// 在 Simulation.Tests / Host.Tests 的二进制 trait 与 TRX 上共同执法。
+    /// golden-bundle 条目的
     /// 认证由 Verify 执法；kind=none 条目可为描述性记录。映射随测试存活：测试
-    /// 改名/删除 → trait 消失 → 本测试红（覆盖率工具同规则：无结果 →
-    /// exit 1）。反向（trait 指向不存在的场景）同样违规。
+    /// 改名/删除 → trait 消失 → 覆盖率工具无结果 exit 1。
     /// </summary>
     [Fact]
-    public void ScenarioLibrary_EveryEntryHasTestCase_AndEveryTraitResolves()
+    public void ScenarioLibrary_EveryLocalTraitResolves_CrossRootCoverageOwnsCompleteness()
     {
         var repo = RepoRoot();
         var jsonIds = Directory.EnumerateFiles(Path.Combine(repo, "scenarios"), "SCN-*.json")
@@ -96,10 +97,7 @@ public sealed class ScenarioCertificationTests
             traited.Add(scenarioId!);
         }
 
-        var missing = jsonIds.Where(id => !traited.Contains(id)).OrderBy(id => StringComparer.Ordinal).ToList();
-        Assert.True(missing.Count == 0,
-            "场景库条目无测试承载（SIM-002 G3：加 [Trait(\"Scenario\", \"…\")] 到承载测试）："
-            + string.Join(", ", missing));
+        Assert.NotEmpty(traited);
     }
 
     /// <summary>

@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="0b290582-1987-4e92-a483-b96e8925ea79" name="@frandeMac-mini 2026-10-22 23:23:29" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T23:23:29.5707770+08:00" queuing="2026-10-22T23:23:29.5707770+08:00" start="2026-10-22T23:23:28.9079790+08:00" finish="2026-10-22T23:23:29.5732520+08:00" />
+  <TestSettings name="default" id="68f65231-b544-4b73-bd4a-c29c0cb91088">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-22_23_23_29" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="ee8b8b19-e7c7-4e93-9774-f12a4ddb26cb" testId="1c48e5fd-750f-d103-1314-4758fde98feb" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.UnchangedPinsAllowFactoryOnceAndExposeManifestHash" computerName="frandeMac-mini" duration="00:00:00.0002604" startTime="2026-10-22T23:23:29.3781190+08:00" endTime="2026-10-22T23:23:29.3781190+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ee8b8b19-e7c7-4e93-9774-f12a4ddb26cb" />
+    <UnitTestResult executionId="3ccd6c7e-e75a-4940-9e85-24b3a6bc1ad2" testId="dfd64989-7443-50ea-33c3-12e3c3eb0c39" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.CausalChangeIsRecordedWithoutHardCodingOneChangeIntoTheGuard" computerName="frandeMac-mini" duration="00:00:00.0012561" startTime="2026-10-22T23:23:29.3778460+08:00" endTime="2026-10-22T23:23:29.3778460+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3ccd6c7e-e75a-4940-9e85-24b3a6bc1ad2" />
+    <UnitTestResult executionId="f35930fc-9140-4623-8104-750388d6c044" testId="3e4802c9-aa13-fdeb-7347-198a5ef52d9d" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;oracle&quot;, path: &quot;oracle.bin&quot;)" computerName="frandeMac-mini" duration="00:00:00.0195450" startTime="2026-10-22T23:23:29.3764030+08:00" endTime="2026-10-22T23:23:29.3764100+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f35930fc-9140-4623-8104-750388d6c044" />
+    <UnitTestResult executionId="65eac19b-3d17-4f6f-b1c7-140215279116" testId="2c31248b-fad1-de74-17c4-e9f71c794ebe" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;replay-input&quot;, path: &quot;input.bin&quot;)" computerName="frandeMac-mini" duration="00:00:00.0000394" startTime="2026-10-22T23:23:29.3777880+08:00" endTime="2026-10-22T23:23:29.3777880+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="65eac19b-3d17-4f6f-b1c7-140215279116" />
+    <UnitTestResult executionId="6028d742-d8be-4e21-a498-d91acfff1bca" testId="0e50fa18-db99-257f-f915-9141295b4334" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;product-contract&quot;, path: &quot;contract.bin&quot;)" computerName="frandeMac-mini" duration="00:00:00.0000218" startTime="2026-10-22T23:23:29.3777780+08:00" endTime="2026-10-22T23:23:29.3777780+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6028d742-d8be-4e21-a498-d91acfff1bca" />
+    <UnitTestResult executionId="21738712-1d5a-4e68-a079-e3b1378b9775" testId="e3724e85-583f-f25d-accd-522c6fd252b2" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;simulation-adapter&quot;, path: &quot;adapter.bin&quot;)" computerName="frandeMac-mini" duration="00:00:00.0000310" startTime="2026-10-22T23:23:29.3777660+08:00" endTime="2026-10-22T23:23:29.3777660+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="21738712-1d5a-4e68-a079-e3b1378b9775" />
+    <UnitTestResult executionId="2d0d0639-1b35-4edb-a3fe-2b2ed3c71cb3" testId="3e04f7ec-b6c8-90c4-0c4f-26ccc162bf28" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;product-implementation&quot;, path: &quot;implementation.bin&quot;)" computerName="frandeMac-mini" duration="00:00:00.0002878" startTime="2026-10-22T23:23:29.3776600+08:00" endTime="2026-10-22T23:23:29.3776600+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2d0d0639-1b35-4edb-a3fe-2b2ed3c71cb3" />
+    <UnitTestResult executionId="4a0a3a93-bc08-406d-a5b7-ad5daed24cb2" testId="223981ff-d262-0071-9c47-ef9a718e9aa5" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.UnrecognizedCompositionSchemaRejectsBeforeFactory" computerName="frandeMac-mini" duration="00:00:00.0001091" startTime="2026-10-22T23:23:29.3782400+08:00" endTime="2026-10-22T23:23:29.3782400+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4a0a3a93-bc08-406d-a5b7-ad5daed24cb2" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.CausalChangeIsRecordedWithoutHardCodingOneChangeIntoTheGuard" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="dfd64989-7443-50ea-33c3-12e3c3eb0c39">
+      <Execution id="3ccd6c7e-e75a-4940-9e85-24b3a6bc1ad2" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="CausalChangeIsRecordedWithoutHardCodingOneChangeIntoTheGuard" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;product-contract&quot;, path: &quot;contract.bin&quot;)" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="0e50fa18-db99-257f-f915-9141295b4334">
+      <Execution id="6028d742-d8be-4e21-a498-d91acfff1bca" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="EveryContentCategoryRejectsBeforeFactory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;product-implementation&quot;, path: &quot;implementation.bin&quot;)" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="3e04f7ec-b6c8-90c4-0c4f-26ccc162bf28">
+      <Execution id="2d0d0639-1b35-4edb-a3fe-2b2ed3c71cb3" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="EveryContentCategoryRejectsBeforeFactory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.UnrecognizedCompositionSchemaRejectsBeforeFactory" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="223981ff-d262-0071-9c47-ef9a718e9aa5">
+      <Execution id="4a0a3a93-bc08-406d-a5b7-ad5daed24cb2" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="UnrecognizedCompositionSchemaRejectsBeforeFactory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;oracle&quot;, path: &quot;oracle.bin&quot;)" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="3e4802c9-aa13-fdeb-7347-198a5ef52d9d">
+      <Execution id="f35930fc-9140-4623-8104-750388d6c044" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="EveryContentCategoryRejectsBeforeFactory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;simulation-adapter&quot;, path: &quot;adapter.bin&quot;)" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="e3724e85-583f-f25d-accd-522c6fd252b2">
+      <Execution id="21738712-1d5a-4e68-a079-e3b1378b9775" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="EveryContentCategoryRejectsBeforeFactory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;replay-input&quot;, path: &quot;input.bin&quot;)" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="2c31248b-fad1-de74-17c4-e9f71c794ebe">
+      <Execution id="65eac19b-3d17-4f6f-b1c7-140215279116" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="EveryContentCategoryRejectsBeforeFactory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.UnchangedPinsAllowFactoryOnceAndExposeManifestHash" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="1c48e5fd-750f-d103-1314-4758fde98feb">
+      <Execution id="ee8b8b19-e7c7-4e93-9774-f12a4ddb26cb" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="UnchangedPinsAllowFactoryOnceAndExposeManifestHash" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="1c48e5fd-750f-d103-1314-4758fde98feb" executionId="ee8b8b19-e7c7-4e93-9774-f12a4ddb26cb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dfd64989-7443-50ea-33c3-12e3c3eb0c39" executionId="3ccd6c7e-e75a-4940-9e85-24b3a6bc1ad2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3e4802c9-aa13-fdeb-7347-198a5ef52d9d" executionId="f35930fc-9140-4623-8104-750388d6c044" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2c31248b-fad1-de74-17c4-e9f71c794ebe" executionId="65eac19b-3d17-4f6f-b1c7-140215279116" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0e50fa18-db99-257f-f915-9141295b4334" executionId="6028d742-d8be-4e21-a498-d91acfff1bca" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e3724e85-583f-f25d-accd-522c6fd252b2" executionId="21738712-1d5a-4e68-a079-e3b1378b9775" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3e04f7ec-b6c8-90c4-0c4f-26ccc162bf28" executionId="2d0d0639-1b35-4edb-a3fe-2b2ed3c71cb3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="223981ff-d262-0071-9c47-ef9a718e9aa5" executionId="4a0a3a93-bc08-406d-a5b7-ad5daed24cb2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="8" executed="8" passed="8" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.02]   Discovering: guard
+[xUnit.net 00:00:00.05]   Discovered:  guard
+[xUnit.net 00:00:00.05]   Starting:    guard
+[xUnit.net 00:00:00.09]   Finished:    guard
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

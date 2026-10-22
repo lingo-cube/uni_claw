@@ -1,0 +1,31 @@
+{
+  "id": "SCN-REPLAY-009",
+  "name": "真实 World 页面回放与身份恢复",
+  "source": "component-test",
+  "testScope": "component",
+  "purpose": "同一录制输入经两种测试侧布局供应进入真实 Ledger/World；错捕获身份保持无主，正确身份恢复；覆盖重复、矛盾和晚到，不含 Effect/Agent/整装 Run。",
+  "capability": "page-observation",
+  "components": [
+    "world-model",
+    "evidence-ledger"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "not-applicable",
+  "goalEvaluationRealization": "not-applicable",
+  "expectations": {
+    "status": "not-applicable",
+    "classification": null,
+    "effects": 0,
+    "agentConsultations": 0,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "none"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "既有脱敏 Android Settings XML 的公开文本/几何冻结输入；受控身份与语义响应显式区分。"
+  }
+}

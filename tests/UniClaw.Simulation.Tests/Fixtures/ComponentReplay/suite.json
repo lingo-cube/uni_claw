@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "component-replay-suite.v1",
+  "sourceIds": [
+    "sims",
+    "all-apps",
+    "default-apps"
+  ],
+  "layoutSuppliers": [
+    "typed-import",
+    "frozen-capture"
+  ],
+  "semanticSuppliers": [
+    "scripted",
+    "frozen-response"
+  ],
+  "note": "Only controlled supply sources; no original model reply or live device claim."
+}

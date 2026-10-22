@@ -1,0 +1,27 @@
+{
+  "level": "CONTRACT",
+  "method": "owner-approved C7 delta; shared fixed 19-row Schema/Python/C# matrix, old composition anchor, isolated parent full and protection",
+  "expected": "only explicit Agent-free component carriers permit decision N/A; preserve SIM-007 evaluation N/A and existing 35 scene entries",
+  "actual": {
+    "matrixCases": 19,
+    "valid": 3,
+    "invalid": 16,
+    "pythonToolTestsPassed": 10,
+    "csharpMatrixPassed": true,
+    "oldCompositionAnchorPassed": true,
+    "oldScenariosUnchanged": 35,
+    "parentFullPassed": 2101,
+    "scenePassing": 37,
+    "reviewBlockers": 0
+  },
+  "evidence": [
+    "python-red.txt",
+    "python-green.txt",
+    "csharp-red.trx",
+    "tools-tests.txt",
+    "../sim-014/simulation-full.trx",
+    "../sim-014/protection-check.json",
+    "../sim-014/review-disposition.json"
+  ],
+  "scope": "metadata only; no product protocol/Owner changes"
+}

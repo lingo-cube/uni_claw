@@ -65,10 +65,17 @@
       "minimum": 1,
       "description": "行为变更时 bump（期望迁移搭乘致因 change，见 certification.certifiedByChange）"
     },
+    "testScope": {
+      "type": "string",
+      "enum": [
+        "component"
+      ],
+      "description": "SIM-015 C7：仅明确无 Agent 参与的组件隔离载体可声明 component；缺省保留既有装配约束。"
+    },
     "agentDecisionRealization": {
       "type": "string",
-      "enum": ["real", "double"],
-      "description": "C7 v0.2 决策面（ConsultAgent seam 实现）；与实际构成一致性由 ScenarioRealizationAnnotationTests 执法"
+      "enum": ["real", "double", "not-applicable"],
+      "description": "SIM-015：仅显式组件隔离允许 not-applicable；C7 v0.2 决策面（ConsultAgent seam 实现）；与实际构成一致性由 ScenarioRealizationAnnotationTests 执法"
     },
     "goalEvaluationRealization": {
       "type": "string",
@@ -198,6 +205,87 @@
         }
       },
       "then": { "not": { "required": ["certification"] } }
+    },
+    {
+      "if": {
+        "required": [
+          "testScope"
+        ],
+        "properties": {
+          "testScope": {
+            "const": "component"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "source": {
+            "const": "component-test"
+          },
+          "components": {
+            "minItems": 1,
+            "not": {
+              "contains": {
+                "enum": [
+                  "agent",
+                  "uni-agent"
+                ]
+              }
+            }
+          },
+          "execution": {
+            "properties": {
+              "kind": {
+                "const": "none"
+              }
+            }
+          },
+          "agentDecisionRealization": {
+            "const": "not-applicable"
+          },
+          "goalEvaluationRealization": {
+            "const": "not-applicable"
+          },
+          "expectations": {
+            "properties": {
+              "status": {
+                "const": "not-applicable"
+              },
+              "agentConsultations": {
+                "const": 0
+              },
+              "classification": {
+                "type": "null"
+              },
+              "goalSatisfaction": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "agentDecisionRealization"
+        ],
+        "properties": {
+          "agentDecisionRealization": {
+            "const": "not-applicable"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "testScope"
+        ],
+        "properties": {
+          "testScope": {
+            "const": "component"
+          }
+        }
+      }
     }
   ]
 }

@@ -1,0 +1,11 @@
+{
+  "level": "CONTRACT",
+  "method": "current Host/Director/Ledger source audit, recorded counterexample and independent Spec/Standards review",
+  "expected": "design only: source/owner/correlation, missing/conflict/late evidence, unknown bounded observation and recovery, testable future acceptance without freezing guessed APIs",
+  "actual": "PASS_DESIGN_ONLY",
+  "evidence": ["source-audit.md", "../../changes/SIM-017/design.md", "../sim-016/review-spec.md", "../sim-016/review-standards.md", "../sim-016/review-disposition.json"],
+  "implementationComplete": false,
+  "classificationChanged": false,
+  "candidateProtocolFrozen": false,
+  "remaining": ["select permitted window evidence provider", "define sufficient absent evidence and conflict priority", "choose existing freshness/budget owner and exhaustion behavior", "implement and verify stale/unknown control behavior in a later authorized change"]
+}

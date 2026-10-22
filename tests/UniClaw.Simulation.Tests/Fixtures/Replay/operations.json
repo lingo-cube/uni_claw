@@ -1,0 +1,1140 @@
+{
+  "source": "SIM-009 hand-authored worked examples; no model or device recording",
+  "width": 1000,
+  "height": 1000,
+  "cases": [
+    {
+      "id": "translation",
+      "frames": [
+        {
+          "page": "root",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Settings",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "open",
+              "kind": "ui.element",
+              "text": "Open",
+              "x1": 100,
+              "y1": 300,
+              "x2": 800,
+              "y2": 340
+            }
+          ]
+        },
+        {
+          "page": "child",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Details",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "back",
+              "kind": "ui.element",
+              "text": "Back",
+              "x1": 20,
+              "y1": 20,
+              "x2": 120,
+              "y2": 60
+            },
+            {
+              "id": "list",
+              "kind": "scrollable",
+              "text": "List",
+              "x1": 0,
+              "y1": 100,
+              "x2": 1000,
+              "y2": 950
+            },
+            {
+              "id": "sticky",
+              "kind": "ui.element",
+              "text": "Sticky",
+              "x1": 100,
+              "y1": 120,
+              "x2": 800,
+              "y2": 160
+            },
+            {
+              "id": "alpha",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 400,
+              "x2": 800,
+              "y2": 440
+            },
+            {
+              "id": "beta",
+              "kind": "ui.element",
+              "text": "Beta",
+              "x1": 100,
+              "y1": 600,
+              "x2": 800,
+              "y2": 640
+            }
+          ]
+        },
+        {
+          "page": "child",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Details",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "back",
+              "kind": "ui.element",
+              "text": "Back",
+              "x1": 20,
+              "y1": 20,
+              "x2": 120,
+              "y2": 60
+            },
+            {
+              "id": "list",
+              "kind": "scrollable",
+              "text": "List",
+              "x1": 0,
+              "y1": 100,
+              "x2": 1000,
+              "y2": 950
+            },
+            {
+              "id": "sticky",
+              "kind": "ui.element",
+              "text": "Sticky",
+              "x1": 100,
+              "y1": 120,
+              "x2": 800,
+              "y2": 160
+            },
+            {
+              "id": "alpha",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 200,
+              "x2": 800,
+              "y2": 240
+            },
+            {
+              "id": "beta",
+              "kind": "ui.element",
+              "text": "Beta",
+              "x1": 100,
+              "y1": 400,
+              "x2": 800,
+              "y2": 440
+            }
+          ]
+        },
+        {
+          "page": "child",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Details",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "back",
+              "kind": "ui.element",
+              "text": "Back",
+              "x1": 20,
+              "y1": 20,
+              "x2": 120,
+              "y2": 60
+            },
+            {
+              "id": "list",
+              "kind": "scrollable",
+              "text": "List",
+              "x1": 0,
+              "y1": 100,
+              "x2": 1000,
+              "y2": 950
+            },
+            {
+              "id": "sticky",
+              "kind": "ui.element",
+              "text": "Sticky",
+              "x1": 100,
+              "y1": 120,
+              "x2": 800,
+              "y2": 160
+            },
+            {
+              "id": "alpha",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 400,
+              "x2": 800,
+              "y2": 440
+            },
+            {
+              "id": "beta",
+              "kind": "ui.element",
+              "text": "Beta",
+              "x1": 100,
+              "y1": 600,
+              "x2": 800,
+              "y2": 640
+            }
+          ]
+        },
+        {
+          "page": "root",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Settings",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "open",
+              "kind": "ui.element",
+              "text": "Open",
+              "x1": 100,
+              "y1": 300,
+              "x2": 800,
+              "y2": 340
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "role": "ui.element",
+          "descriptor": "Open",
+          "effect": "tap"
+        },
+        {
+          "role": "scrollable",
+          "descriptor": "List",
+          "effect": "swipe-up"
+        },
+        {
+          "role": "scrollable",
+          "descriptor": "List",
+          "effect": "swipe-down"
+        },
+        {
+          "role": "ui.element",
+          "descriptor": "Back",
+          "effect": "tap"
+        }
+      ],
+      "expected": {
+        "receipts": 4,
+        "navigationEdges": 2,
+        "transitionStatuses": [
+          "Aligned",
+          "Aligned"
+        ],
+        "offsetsY": [
+          0.2,
+          -0.2
+        ],
+        "contentY": {
+          "Alpha": [
+            0.4,
+            0.4
+          ],
+          "Beta": [
+            0.6,
+            0.6
+          ]
+        },
+        "postActionVerifications": 4,
+        "navigationPaths": [
+          {
+            "sourceTitle": "Settings",
+            "targetTitle": "Details"
+          },
+          {
+            "sourceTitle": "Details",
+            "targetTitle": "Settings"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reflow",
+      "frames": [
+        {
+          "page": "root",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Settings",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "open",
+              "kind": "ui.element",
+              "text": "Open",
+              "x1": 100,
+              "y1": 300,
+              "x2": 800,
+              "y2": 340
+            }
+          ]
+        },
+        {
+          "page": "child",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Details",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "back",
+              "kind": "ui.element",
+              "text": "Back",
+              "x1": 20,
+              "y1": 20,
+              "x2": 120,
+              "y2": 60
+            },
+            {
+              "id": "list",
+              "kind": "scrollable",
+              "text": "List",
+              "x1": 0,
+              "y1": 100,
+              "x2": 1000,
+              "y2": 950
+            },
+            {
+              "id": "sticky",
+              "kind": "ui.element",
+              "text": "Sticky",
+              "x1": 100,
+              "y1": 120,
+              "x2": 800,
+              "y2": 160
+            },
+            {
+              "id": "alpha",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 400,
+              "x2": 800,
+              "y2": 440
+            },
+            {
+              "id": "beta",
+              "kind": "ui.element",
+              "text": "Beta",
+              "x1": 100,
+              "y1": 600,
+              "x2": 800,
+              "y2": 640
+            }
+          ]
+        },
+        {
+          "page": "child",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Details",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "back",
+              "kind": "ui.element",
+              "text": "Back",
+              "x1": 20,
+              "y1": 20,
+              "x2": 120,
+              "y2": 60
+            },
+            {
+              "id": "list",
+              "kind": "scrollable",
+              "text": "List",
+              "x1": 0,
+              "y1": 100,
+              "x2": 1000,
+              "y2": 950
+            },
+            {
+              "id": "sticky",
+              "kind": "ui.element",
+              "text": "Sticky",
+              "x1": 100,
+              "y1": 120,
+              "x2": 800,
+              "y2": 160
+            },
+            {
+              "id": "alpha",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 200,
+              "x2": 800,
+              "y2": 240
+            },
+            {
+              "id": "beta",
+              "kind": "ui.element",
+              "text": "Beta",
+              "x1": 100,
+              "y1": 450,
+              "x2": 800,
+              "y2": 490
+            }
+          ]
+        },
+        {
+          "page": "child",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Details",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "back",
+              "kind": "ui.element",
+              "text": "Back",
+              "x1": 20,
+              "y1": 20,
+              "x2": 120,
+              "y2": 60
+            },
+            {
+              "id": "list",
+              "kind": "scrollable",
+              "text": "List",
+              "x1": 0,
+              "y1": 100,
+              "x2": 1000,
+              "y2": 950
+            },
+            {
+              "id": "sticky",
+              "kind": "ui.element",
+              "text": "Sticky",
+              "x1": 100,
+              "y1": 120,
+              "x2": 800,
+              "y2": 160
+            },
+            {
+              "id": "alpha",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 400,
+              "x2": 800,
+              "y2": 440
+            },
+            {
+              "id": "beta",
+              "kind": "ui.element",
+              "text": "Beta",
+              "x1": 100,
+              "y1": 600,
+              "x2": 800,
+              "y2": 640
+            }
+          ]
+        },
+        {
+          "page": "root",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Settings",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "open",
+              "kind": "ui.element",
+              "text": "Open",
+              "x1": 100,
+              "y1": 300,
+              "x2": 800,
+              "y2": 340
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "role": "ui.element",
+          "descriptor": "Open",
+          "effect": "tap"
+        },
+        {
+          "role": "scrollable",
+          "descriptor": "List",
+          "effect": "swipe-up"
+        },
+        {
+          "role": "scrollable",
+          "descriptor": "List",
+          "effect": "swipe-down"
+        },
+        {
+          "role": "ui.element",
+          "descriptor": "Back",
+          "effect": "tap"
+        }
+      ],
+      "expected": {
+        "receipts": 4,
+        "navigationEdges": 2,
+        "transitionStatuses": [
+          "NotPureTranslation",
+          "NotPureTranslation"
+        ],
+        "offsetsY": [
+          null,
+          null
+        ],
+        "contentY": {},
+        "postActionVerifications": 4,
+        "navigationPaths": [
+          {
+            "sourceTitle": "Settings",
+            "targetTitle": "Details"
+          },
+          {
+            "sourceTitle": "Details",
+            "targetTitle": "Settings"
+          }
+        ]
+      }
+    },
+    {
+      "id": "nested",
+      "frames": [
+        {
+          "page": "root",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Settings",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "open",
+              "kind": "ui.element",
+              "text": "Open",
+              "x1": 100,
+              "y1": 300,
+              "x2": 800,
+              "y2": 340
+            }
+          ]
+        },
+        {
+          "page": "child",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Details",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "back",
+              "kind": "ui.element",
+              "text": "Back",
+              "x1": 20,
+              "y1": 20,
+              "x2": 120,
+              "y2": 60
+            },
+            {
+              "id": "list",
+              "kind": "scrollable",
+              "text": "List",
+              "x1": 0,
+              "y1": 100,
+              "x2": 1000,
+              "y2": 950
+            },
+            {
+              "id": "sticky",
+              "kind": "ui.element",
+              "text": "Sticky",
+              "x1": 100,
+              "y1": 120,
+              "x2": 800,
+              "y2": 160
+            },
+            {
+              "id": "alpha",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 400,
+              "x2": 800,
+              "y2": 440
+            },
+            {
+              "id": "beta",
+              "kind": "ui.element",
+              "text": "Beta",
+              "x1": 100,
+              "y1": 600,
+              "x2": 800,
+              "y2": 640
+            },
+            {
+              "id": "nested",
+              "kind": "scrollable",
+              "text": "Nested",
+              "x1": 50,
+              "y1": 150,
+              "x2": 950,
+              "y2": 850
+            }
+          ]
+        },
+        {
+          "page": "child",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Details",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "back",
+              "kind": "ui.element",
+              "text": "Back",
+              "x1": 20,
+              "y1": 20,
+              "x2": 120,
+              "y2": 60
+            },
+            {
+              "id": "list",
+              "kind": "scrollable",
+              "text": "List",
+              "x1": 0,
+              "y1": 100,
+              "x2": 1000,
+              "y2": 950
+            },
+            {
+              "id": "sticky",
+              "kind": "ui.element",
+              "text": "Sticky",
+              "x1": 100,
+              "y1": 120,
+              "x2": 800,
+              "y2": 160
+            },
+            {
+              "id": "alpha",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 200,
+              "x2": 800,
+              "y2": 240
+            },
+            {
+              "id": "beta",
+              "kind": "ui.element",
+              "text": "Beta",
+              "x1": 100,
+              "y1": 400,
+              "x2": 800,
+              "y2": 440
+            },
+            {
+              "id": "nested",
+              "kind": "scrollable",
+              "text": "Nested",
+              "x1": 50,
+              "y1": 150,
+              "x2": 950,
+              "y2": 850
+            }
+          ]
+        },
+        {
+          "page": "child",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Details",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "back",
+              "kind": "ui.element",
+              "text": "Back",
+              "x1": 20,
+              "y1": 20,
+              "x2": 120,
+              "y2": 60
+            },
+            {
+              "id": "list",
+              "kind": "scrollable",
+              "text": "List",
+              "x1": 0,
+              "y1": 100,
+              "x2": 1000,
+              "y2": 950
+            },
+            {
+              "id": "sticky",
+              "kind": "ui.element",
+              "text": "Sticky",
+              "x1": 100,
+              "y1": 120,
+              "x2": 800,
+              "y2": 160
+            },
+            {
+              "id": "alpha",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 400,
+              "x2": 800,
+              "y2": 440
+            },
+            {
+              "id": "beta",
+              "kind": "ui.element",
+              "text": "Beta",
+              "x1": 100,
+              "y1": 600,
+              "x2": 800,
+              "y2": 640
+            },
+            {
+              "id": "nested",
+              "kind": "scrollable",
+              "text": "Nested",
+              "x1": 50,
+              "y1": 150,
+              "x2": 950,
+              "y2": 850
+            }
+          ]
+        },
+        {
+          "page": "root",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Settings",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "open",
+              "kind": "ui.element",
+              "text": "Open",
+              "x1": 100,
+              "y1": 300,
+              "x2": 800,
+              "y2": 340
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "role": "ui.element",
+          "descriptor": "Open",
+          "effect": "tap"
+        },
+        {
+          "role": "scrollable",
+          "descriptor": "List",
+          "effect": "swipe-up"
+        },
+        {
+          "role": "scrollable",
+          "descriptor": "List",
+          "effect": "swipe-down"
+        },
+        {
+          "role": "ui.element",
+          "descriptor": "Back",
+          "effect": "tap"
+        }
+      ],
+      "expected": {
+        "receipts": 4,
+        "navigationEdges": 2,
+        "transitionStatuses": [
+          "OverlappingScrollRegions",
+          "OverlappingScrollRegions"
+        ],
+        "offsetsY": [
+          null,
+          null
+        ],
+        "contentY": {},
+        "postActionVerifications": 4,
+        "navigationPaths": [
+          {
+            "sourceTitle": "Settings",
+            "targetTitle": "Details"
+          },
+          {
+            "sourceTitle": "Details",
+            "targetTitle": "Settings"
+          }
+        ]
+      }
+    },
+    {
+      "id": "duplicate",
+      "frames": [
+        {
+          "page": "root",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Settings",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "open",
+              "kind": "ui.element",
+              "text": "Open",
+              "x1": 100,
+              "y1": 300,
+              "x2": 800,
+              "y2": 340
+            }
+          ]
+        },
+        {
+          "page": "child",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Details",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "back",
+              "kind": "ui.element",
+              "text": "Back",
+              "x1": 20,
+              "y1": 20,
+              "x2": 120,
+              "y2": 60
+            },
+            {
+              "id": "list",
+              "kind": "scrollable",
+              "text": "List",
+              "x1": 0,
+              "y1": 100,
+              "x2": 1000,
+              "y2": 950
+            },
+            {
+              "id": "sticky",
+              "kind": "ui.element",
+              "text": "Sticky",
+              "x1": 100,
+              "y1": 120,
+              "x2": 800,
+              "y2": 160
+            },
+            {
+              "id": "alpha",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 400,
+              "x2": 800,
+              "y2": 440
+            },
+            {
+              "id": "beta",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 600,
+              "x2": 800,
+              "y2": 640
+            }
+          ]
+        },
+        {
+          "page": "child",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Details",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "back",
+              "kind": "ui.element",
+              "text": "Back",
+              "x1": 20,
+              "y1": 20,
+              "x2": 120,
+              "y2": 60
+            },
+            {
+              "id": "list",
+              "kind": "scrollable",
+              "text": "List",
+              "x1": 0,
+              "y1": 100,
+              "x2": 1000,
+              "y2": 950
+            },
+            {
+              "id": "sticky",
+              "kind": "ui.element",
+              "text": "Sticky",
+              "x1": 100,
+              "y1": 120,
+              "x2": 800,
+              "y2": 160
+            },
+            {
+              "id": "alpha",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 200,
+              "x2": 800,
+              "y2": 240
+            },
+            {
+              "id": "beta",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 400,
+              "x2": 800,
+              "y2": 440
+            }
+          ]
+        },
+        {
+          "page": "child",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Details",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "back",
+              "kind": "ui.element",
+              "text": "Back",
+              "x1": 20,
+              "y1": 20,
+              "x2": 120,
+              "y2": 60
+            },
+            {
+              "id": "list",
+              "kind": "scrollable",
+              "text": "List",
+              "x1": 0,
+              "y1": 100,
+              "x2": 1000,
+              "y2": 950
+            },
+            {
+              "id": "sticky",
+              "kind": "ui.element",
+              "text": "Sticky",
+              "x1": 100,
+              "y1": 120,
+              "x2": 800,
+              "y2": 160
+            },
+            {
+              "id": "alpha",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 400,
+              "x2": 800,
+              "y2": 440
+            },
+            {
+              "id": "beta",
+              "kind": "ui.element",
+              "text": "Alpha",
+              "x1": 100,
+              "y1": 600,
+              "x2": 800,
+              "y2": 640
+            }
+          ]
+        },
+        {
+          "page": "root",
+          "items": [
+            {
+              "id": "title",
+              "kind": "text",
+              "text": "Settings",
+              "x1": 200,
+              "y1": 40,
+              "x2": 900,
+              "y2": 80
+            },
+            {
+              "id": "open",
+              "kind": "ui.element",
+              "text": "Open",
+              "x1": 100,
+              "y1": 300,
+              "x2": 800,
+              "y2": 340
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "role": "ui.element",
+          "descriptor": "Open",
+          "effect": "tap"
+        },
+        {
+          "role": "scrollable",
+          "descriptor": "List",
+          "effect": "swipe-up"
+        },
+        {
+          "role": "scrollable",
+          "descriptor": "List",
+          "effect": "swipe-down"
+        },
+        {
+          "role": "ui.element",
+          "descriptor": "Back",
+          "effect": "tap"
+        }
+      ],
+      "expected": {
+        "receipts": 4,
+        "navigationEdges": 2,
+        "transitionStatuses": [
+          "AmbiguousAnchors",
+          "AmbiguousAnchors"
+        ],
+        "offsetsY": [
+          null,
+          null
+        ],
+        "contentY": {},
+        "postActionVerifications": 4,
+        "navigationPaths": [
+          {
+            "sourceTitle": "Settings",
+            "targetTitle": "Details"
+          },
+          {
+            "sourceTitle": "Details",
+            "targetTitle": "Settings"
+          }
+        ]
+      }
+    }
+  ],
+  "identityRecoveryRequests": 8
+}

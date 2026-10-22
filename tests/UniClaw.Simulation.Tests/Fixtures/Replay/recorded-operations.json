@@ -1,0 +1,116 @@
+{
+  "source": "Existing 2026-09-12 fastscreen-v1 recorded XML; original setup/actions are provenance, never executed",
+  "width": 1080,
+  "height": 2400,
+  "cases": [
+    {
+      "id": "network",
+      "sequencePath": "platforms/perception/evaluation/validation/fastscreen-v1/sequences/seq-click-network.json",
+      "sequenceSha256": "5965ffe949cae634ba8519aafa359bc5b27fb1b0a703841f4ffb8a5a7197bc79",
+      "before": {
+        "path": "platforms/perception/evaluation/validation/fastscreen-v1/uia/c1667d8b209e.xml",
+        "sha256": "561cab6f3858a5dde6d3580b74b24654e0fa1b70c1892869be3477860b1bc2ec",
+        "pageKey": "settings-home"
+      },
+      "after": {
+        "path": "platforms/perception/evaluation/validation/fastscreen-v1/uia/a5d983aa849b.xml",
+        "sha256": "9aa0b057a59af8929da54622fbd72a4df26edfeaccf8d5e872f6ef1873aac169",
+        "pageKey": "network-page"
+      },
+      "action": {
+        "role": "ui.element",
+        "descriptor": "Network & internet",
+        "effectClass": "tap",
+        "desiredState": null
+      },
+      "desiredOutcome": {
+        "status": "TerminalNotProven",
+        "effects": 1,
+        "verifiedEffects": 1,
+        "navigationEdges": 1,
+        "beforeState": null,
+        "afterState": null,
+        "checkState": false
+      },
+      "expectedBehavior": {
+        "status": "TerminalNotProven",
+        "effects": 1,
+        "verifiedEffects": 1,
+        "navigationEdges": 1,
+        "beforeState": null,
+        "afterState": null,
+        "checkState": false,
+        "phase": "StepVerified"
+      },
+      "imported": {
+        "initial": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Imported/network-initial.json",
+          "sha256": "c56b91a5b1bb67a26c14d8f569c8906640cb2dfbae9815eae635213d65eb7ecd"
+        },
+        "post": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Imported/network-post.json",
+          "sha256": "8851538a3327ebbfd47d08b8a77fc2b432b03bfe044f0cdcad1c0031d68b7f8c"
+        },
+        "unchanged": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Imported/network-unchanged.json",
+          "sha256": "9ad0ed8e0ce40fbff74f4f786a04fd3bee1aa8d1c227c7af3200826e483d243e"
+        }
+      }
+    },
+    {
+      "id": "stay-awake",
+      "sequencePath": "platforms/perception/evaluation/validation/fastscreen-v1/sequences/seq-toggle-stayawake.json",
+      "sequenceSha256": "0a0658fbce3496de0f70178775d2f2d04f06e203361504cd700488887ccaafbd",
+      "before": {
+        "path": "platforms/perception/evaluation/validation/fastscreen-v1/uia/1e572c8f5092.xml",
+        "sha256": "eb2635e40ec39cbf2645dd8b1e08fae55a7b5f7a3c2d5b5e8a43ff4fc179827e",
+        "pageKey": "developer-options"
+      },
+      "after": {
+        "path": "platforms/perception/evaluation/validation/fastscreen-v1/uia/4a1f3e1d4421.xml",
+        "sha256": "d055aab870bca5114d1f885dbf7f66f5810602d691104888f85ee3a7b404276f",
+        "pageKey": "developer-options"
+      },
+      "action": {
+        "role": "switch",
+        "descriptor": "Stay awake",
+        "effectClass": "tap",
+        "desiredState": "off"
+      },
+      "desiredOutcome": {
+        "status": "TerminalNotProven",
+        "effects": 1,
+        "verifiedEffects": 1,
+        "navigationEdges": 0,
+        "beforeState": "checked",
+        "afterState": "unchecked",
+        "checkState": true
+      },
+      "expectedBehavior": {
+        "status": "TerminalNotProven",
+        "effects": 1,
+        "verifiedEffects": 0,
+        "navigationEdges": 0,
+        "beforeState": "checked",
+        "afterState": null,
+        "checkState": true,
+        "phase": "VerificationFailed",
+        "rejectionReasonContains": "no-checked-claim"
+      },
+      "imported": {
+        "initial": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Imported/stay-awake-initial.json",
+          "sha256": "f3c6d81eae91a5870ee801b8bf19c8726ca06f567b2102ec30d22776606ae521"
+        },
+        "post": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Imported/stay-awake-post.json",
+          "sha256": "de2b7a93b42b09df994a0e9e57efbdc2d3534469d35d80277f63bada10c4b9d4"
+        },
+        "unchanged": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Imported/stay-awake-unchanged.json",
+          "sha256": "1081796061617c2f2f169910e5ff3bad4f87a9032b44849d89cd53b1f1d942ac"
+        }
+      }
+    }
+  ]
+}

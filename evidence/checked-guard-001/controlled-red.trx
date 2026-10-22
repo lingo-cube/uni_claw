@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="d69680b8-d384-430e-9d84-59db6e7132a6" name="@frandeMac-mini 2026-10-22 21:46:30" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T21:46:30.6867400+08:00" queuing="2026-10-22T21:46:30.6867400+08:00" start="2026-10-22T21:46:29.8678270+08:00" finish="2026-10-22T21:46:30.6964320+08:00" />
+  <TestSettings name="default" id="b81ac675-3dd1-418c-91b7-4e645e2e879d">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-22_21_46_30" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="0375a259-a2de-4af2-ad4e-c45a13d5dd43" testId="ffd83391-7948-dad4-5a53-5b0a84be778d" testName="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;unknown&quot;)" computerName="frandeMac-mini" duration="00:00:00.1297004" startTime="2026-10-22T21:46:30.4867270+08:00" endTime="2026-10-22T21:46:30.4867340+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0375a259-a2de-4af2-ad4e-c45a13d5dd43" />
+    <UnitTestResult executionId="da42ddef-fadd-42bd-9ff5-859e892b950a" testId="15a46b9d-b52d-7a51-6835-329ada415500" testName="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;checkable missing&quot;)" computerName="frandeMac-mini" duration="00:00:00.0042630" startTime="2026-10-22T21:46:30.5238800+08:00" endTime="2026-10-22T21:46:30.5238800+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="da42ddef-fadd-42bd-9ff5-859e892b950a">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ
+Expected: False
+Actual:   True</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(String id) in /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/ControlledCheckedReplayTests.cs:line 57
+   at InvokeStub_ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="8146f41b-40e9-423b-ac9a-cdf89885bd5d" testId="baf5cef9-affe-231d-f7df-3838209c0908" testName="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;ambiguous post&quot;)" computerName="frandeMac-mini" duration="00:00:00.0019102" startTime="2026-10-22T21:46:30.5046490+08:00" endTime="2026-10-22T21:46:30.5046490+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8146f41b-40e9-423b-ac9a-cdf89885bd5d" />
+    <UnitTestResult executionId="8fe05638-7cda-4d83-a796-c8c173a68b40" testId="87630c2a-408c-bf38-429b-c2006bd1e04c" testName="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;unsupported&quot;)" computerName="frandeMac-mini" duration="00:00:00.0011739" startTime="2026-10-22T21:46:30.4909480+08:00" endTime="2026-10-22T21:46:30.4909480+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8fe05638-7cda-4d83-a796-c8c173a68b40" />
+    <UnitTestResult executionId="15d3fc52-0bd8-46c8-8bd4-c329584a680b" testId="8f47b243-a9f9-5d9c-49a2-8273a0699300" testName="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;turn on&quot;)" computerName="frandeMac-mini" duration="00:00:00.0025158" startTime="2026-10-22T21:46:30.4886190+08:00" endTime="2026-10-22T21:46:30.4886190+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="15d3fc52-0bd8-46c8-8bd4-c329584a680b" />
+    <UnitTestResult executionId="363ea360-68be-4a44-aff9-9fa642dfd4a1" testId="388d08d9-d5f0-d7b1-af4f-b6a3c74b5100" testName="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;partial&quot;)" computerName="frandeMac-mini" duration="00:00:00.0011118" startTime="2026-10-22T21:46:30.4897530+08:00" endTime="2026-10-22T21:46:30.4897530+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="363ea360-68be-4a44-aff9-9fa642dfd4a1" />
+    <UnitTestResult executionId="f972573b-120a-4c8d-9585-9dcb8285c40b" testId="126eb975-c884-0c1f-8740-d1affd2c1e3e" testName="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;unchanged&quot;)" computerName="frandeMac-mini" duration="00:00:00.0021113" startTime="2026-10-22T21:46:30.5239470+08:00" endTime="2026-10-22T21:46:30.5239470+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f972573b-120a-4c8d-9585-9dcb8285c40b" />
+    <UnitTestResult executionId="8341e902-9149-474b-9d58-92dd2b66a771" testId="81d43418-ec92-8759-7937-610e96ac12da" testName="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;stale&quot;)" computerName="frandeMac-mini" duration="00:00:00.0011821" startTime="2026-10-22T21:46:30.5027000+08:00" endTime="2026-10-22T21:46:30.5027000+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8341e902-9149-474b-9d58-92dd2b66a771" />
+    <UnitTestResult executionId="ddb3bb36-a003-4b30-8c93-463b78db7ba6" testId="22f332ab-f6d4-6bd3-f2d4-65229d9512ec" testName="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;equal timestamp&quot;)" computerName="frandeMac-mini" duration="00:00:00.0014127" startTime="2026-10-22T21:46:30.5014940+08:00" endTime="2026-10-22T21:46:30.5014940+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ddb3bb36-a003-4b30-8c93-463b78db7ba6" />
+    <UnitTestResult executionId="c084e8a9-d839-444b-a7b3-cff86c53fabe" testId="e8c087f1-967d-0fe0-9356-f0ce0d5601b1" testName="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;turn off&quot;)" computerName="frandeMac-mini" duration="00:00:00.0030212" startTime="2026-10-22T21:46:30.5001360+08:00" endTime="2026-10-22T21:46:30.5001360+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c084e8a9-d839-444b-a7b3-cff86c53fabe" />
+    <UnitTestResult executionId="5bddd96d-07c3-4c6c-bddb-b783ff70bf9f" testId="0a33501e-8a98-07d5-1958-62521bb2a57b" testName="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;not checkable&quot;)" computerName="frandeMac-mini" duration="00:00:00.0025427" startTime="2026-10-22T21:46:30.5000650+08:00" endTime="2026-10-22T21:46:30.5000650+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5bddd96d-07c3-4c6c-bddb-b783ff70bf9f">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ
+Expected: False
+Actual:   True</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(String id) in /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/ControlledCheckedReplayTests.cs:line 57
+   at InvokeStub_ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;checkable missing&quot;)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll" id="15a46b9d-b52d-7a51-6835-329ada415500">
+      <Execution id="da42ddef-fadd-42bd-9ff5-859e892b950a" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ControlledCheckedReplayTests" name="ControlledChecked_IndependentPositiveAndRefusalCases" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;turn off&quot;)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll" id="e8c087f1-967d-0fe0-9356-f0ce0d5601b1">
+      <Execution id="c084e8a9-d839-444b-a7b3-cff86c53fabe" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ControlledCheckedReplayTests" name="ControlledChecked_IndependentPositiveAndRefusalCases" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;turn on&quot;)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll" id="8f47b243-a9f9-5d9c-49a2-8273a0699300">
+      <Execution id="15d3fc52-0bd8-46c8-8bd4-c329584a680b" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ControlledCheckedReplayTests" name="ControlledChecked_IndependentPositiveAndRefusalCases" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;unsupported&quot;)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll" id="87630c2a-408c-bf38-429b-c2006bd1e04c">
+      <Execution id="8fe05638-7cda-4d83-a796-c8c173a68b40" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ControlledCheckedReplayTests" name="ControlledChecked_IndependentPositiveAndRefusalCases" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;unknown&quot;)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll" id="ffd83391-7948-dad4-5a53-5b0a84be778d">
+      <Execution id="0375a259-a2de-4af2-ad4e-c45a13d5dd43" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ControlledCheckedReplayTests" name="ControlledChecked_IndependentPositiveAndRefusalCases" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;unchanged&quot;)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll" id="126eb975-c884-0c1f-8740-d1affd2c1e3e">
+      <Execution id="f972573b-120a-4c8d-9585-9dcb8285c40b" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ControlledCheckedReplayTests" name="ControlledChecked_IndependentPositiveAndRefusalCases" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;equal timestamp&quot;)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll" id="22f332ab-f6d4-6bd3-f2d4-65229d9512ec">
+      <Execution id="ddb3bb36-a003-4b30-8c93-463b78db7ba6" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ControlledCheckedReplayTests" name="ControlledChecked_IndependentPositiveAndRefusalCases" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;ambiguous post&quot;)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll" id="baf5cef9-affe-231d-f7df-3838209c0908">
+      <Execution id="8146f41b-40e9-423b-ac9a-cdf89885bd5d" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ControlledCheckedReplayTests" name="ControlledChecked_IndependentPositiveAndRefusalCases" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;not checkable&quot;)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll" id="0a33501e-8a98-07d5-1958-62521bb2a57b">
+      <Execution id="5bddd96d-07c3-4c6c-bddb-b783ff70bf9f" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ControlledCheckedReplayTests" name="ControlledChecked_IndependentPositiveAndRefusalCases" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;stale&quot;)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll" id="81d43418-ec92-8759-7937-610e96ac12da">
+      <Execution id="8341e902-9149-474b-9d58-92dd2b66a771" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ControlledCheckedReplayTests" name="ControlledChecked_IndependentPositiveAndRefusalCases" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: &quot;partial&quot;)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll" id="388d08d9-d5f0-d7b1-af4f-b6a3c74b5100">
+      <Execution id="363ea360-68be-4a44-aff9-9fa642dfd4a1" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ControlledCheckedReplayTests" name="ControlledChecked_IndependentPositiveAndRefusalCases" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="ffd83391-7948-dad4-5a53-5b0a84be778d" executionId="0375a259-a2de-4af2-ad4e-c45a13d5dd43" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="15a46b9d-b52d-7a51-6835-329ada415500" executionId="da42ddef-fadd-42bd-9ff5-859e892b950a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="baf5cef9-affe-231d-f7df-3838209c0908" executionId="8146f41b-40e9-423b-ac9a-cdf89885bd5d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="87630c2a-408c-bf38-429b-c2006bd1e04c" executionId="8fe05638-7cda-4d83-a796-c8c173a68b40" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8f47b243-a9f9-5d9c-49a2-8273a0699300" executionId="15d3fc52-0bd8-46c8-8bd4-c329584a680b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="388d08d9-d5f0-d7b1-af4f-b6a3c74b5100" executionId="363ea360-68be-4a44-aff9-9fa642dfd4a1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="126eb975-c884-0c1f-8740-d1affd2c1e3e" executionId="f972573b-120a-4c8d-9585-9dcb8285c40b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="81d43418-ec92-8759-7937-610e96ac12da" executionId="8341e902-9149-474b-9d58-92dd2b66a771" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="22f332ab-f6d4-6bd3-f2d4-65229d9512ec" executionId="ddb3bb36-a003-4b30-8c93-463b78db7ba6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e8c087f1-967d-0fe0-9356-f0ce0d5601b1" executionId="c084e8a9-d839-444b-a7b3-cff86c53fabe" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0a33501e-8a98-07d5-1958-62521bb2a57b" executionId="5bddd96d-07c3-4c6c-bddb-b783ff70bf9f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="11" executed="11" passed="9" failed="2" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.04]   Discovering: UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.08]   Discovered:  UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.08]   Starting:    UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.24]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:00.24]       Expected: False
+[xUnit.net 00:00:00.24]       Actual:   True
+[xUnit.net 00:00:00.24]       Stack Trace:
+[xUnit.net 00:00:00.24]         /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/ControlledCheckedReplayTests.cs(57,0): at UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(String id)
+[xUnit.net 00:00:00.24]            at InvokeStub_ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(Object, Span`1)
+[xUnit.net 00:00:00.24]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.26]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:00.26]       Expected: False
+[xUnit.net 00:00:00.26]       Actual:   True
+[xUnit.net 00:00:00.26]       Stack Trace:
+[xUnit.net 00:00:00.26]         /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Simulation.Tests/ControlledCheckedReplayTests.cs(57,0): at UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(String id)
+[xUnit.net 00:00:00.26]            at InvokeStub_ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(Object, Span`1)
+[xUnit.net 00:00:00.26]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.26]   Finished:    UniClaw.Simulation.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T21:46:30.4992940+08:00">
+        <Text>[xUnit.net 00:00:00.24]     UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: "not checkable") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T21:46:30.6901570+08:00">
+        <Text>[xUnit.net 00:00:00.26]     UniClaw.Simulation.Tests.ControlledCheckedReplayTests.ControlledChecked_IndependentPositiveAndRefusalCases(id: "checkable missing") [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

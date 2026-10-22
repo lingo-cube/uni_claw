@@ -163,7 +163,7 @@ public sealed class Per009RemediationTests
         // PER-014 R2：typed 验证路由四门等价回归（替代 legacy xml-route）。
         var typedSubject = "ui.node.cap-t1#0.checked";
         var world = new WorldModel(
-            new HashSet<string> { SharedSubjects.Screen, SharedSubjects.Frame, typedSubject },
+            new HashSet<string> { SharedSubjects.Screen, SharedSubjects.Frame, typedSubject, CheckedGuardFixture.SubjectFor(typedSubject) },
             new ProductAssociationStrategy(),
             new HostSeededOccurrenceStrategy(associateTyped: true));
         var kernel = Compose(world);
@@ -173,6 +173,7 @@ public sealed class Per009RemediationTests
             "{\"role\":\"switch\",\"state\":\"on\",\"b\":[0.1,0.1,0.2,0.2]}", "host.live", T0));
         // typed claim 最后处理，使 occurrence 的 EvidenceBasis 显式携带
         // typed evidence；这是 S1 association seam 的测试输入。
+        kernel.Process(CheckedGuardFixture.Checkable(TypedCheckedClaim(typedSubject, "checked", T0.AddSeconds(1))));
         var post = kernel.Process(TypedCheckedClaim(typedSubject, "checked", T0.AddSeconds(1)));
         var target = new TargetSpec("switch", null, "tap", CheckedState.Checked);
 
@@ -280,13 +281,14 @@ public sealed class Per009RemediationTests
     {
         var typedSubject = "ui.node.cap-s2-checked#0.checked";
         var world = new WorldModel(
-            new HashSet<string> { SharedSubjects.Screen, SharedSubjects.Frame, typedSubject },
+            new HashSet<string> { SharedSubjects.Screen, SharedSubjects.Frame, typedSubject, CheckedGuardFixture.SubjectFor(typedSubject) },
             new ProductAssociationStrategy(),
             new HostSeededOccurrenceStrategy("off", associateTyped: true));
         var kernel = Compose(world);
         Observe(kernel, Claim(SharedSubjects.Screen, "s1", "host.live", T0));
         Observe(kernel, Claim(SharedSubjects.Frame,
             "{\"role\":\"switch\",\"state\":\"off\",\"b\":[0.1,0.1,0.2,0.2]}", "host.live", T0));
+        kernel.Process(CheckedGuardFixture.Checkable(TypedCheckedClaim(typedSubject, "checked", T0.AddSeconds(1))));
         var typed = kernel.Process(TypedCheckedClaim(
             typedSubject, "checked", T0.AddSeconds(1)));
 

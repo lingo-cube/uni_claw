@@ -1,0 +1,31 @@
+{
+  "id": "SCN-REPLAY-008",
+  "name": "真实感知组件录制输入与供应替换",
+  "source": "component-test",
+  "testScope": "component",
+  "purpose": "真实 L2、两种受控 L3 供应；同一捕获错配先拒绝，校正后投影入真实 Ledger；覆盖取消、晚到、重复和响应错配。录制仅证明页面布局，供应响应为受控合成输入。",
+  "capability": "semantic-perception",
+  "components": [
+    "perception",
+    "evidence-ledger"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "not-applicable",
+  "goalEvaluationRealization": "not-applicable",
+  "expectations": {
+    "status": "not-applicable",
+    "classification": null,
+    "effects": 0,
+    "agentConsultations": 0,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "none"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "既有脱敏 Android Settings XML 的公开文本/几何冻结输入；受控身份与语义响应显式区分。"
+  }
+}

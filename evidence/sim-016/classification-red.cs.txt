@@ -1,0 +1,26 @@
+using System.Text.Json;
+using UniClaw.Host.SettingsCoverage;
+using Xunit;
+
+namespace UniClaw.Host.Tests;
+
+public sealed class RecordedPopupClassificationTests
+{
+    private static string Repo()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "AGENTS.md"))) directory = directory.Parent;
+        return directory?.FullName ?? throw new InvalidOperationException("repo not found");
+    }
+
+    [Fact]
+    public void RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged()
+    {
+        using var corpus = JsonDocument.Parse(File.ReadAllText(Path.Combine(Repo(),
+            "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json")));
+        var source = corpus.RootElement.GetProperty("cases").EnumerateArray().Single(c => c.GetProperty("id").GetString() == "default-apps");
+        var xml = File.ReadAllText(Path.Combine(Repo(), source.GetProperty("after").GetProperty("path").GetString()!));
+        var actual = SettingsPopupClassifier.Classify(xml, "com.android.settings", PopupClearanceConfig.DefaultPopupResourceIds);
+        Assert.True(actual != "present", $"Recorded normal Default apps page was asserted as popup: {actual}");
+    }
+}

@@ -1,0 +1,163 @@
+CHANGE=VERIFY-ENTRY-001
+SCENARIO_CAVEAT=SCN-PERC-001 execution.kind=none: dedicated carrier; expectations are descriptive-only (no golden certification), goalEvaluationRealization=not-applicable, decision=double via ConsultAgent seam; carrier PASS proves local behavior only
+SCENARIO_CAVEATS_SUMMARY=1/7 selected scenario(s) with descriptive-only local carriers; baseline claims are partial for them
+SCOPE=full
+FOCUSED=SKIPPED (change-specific tests remain change-owned)
+[DIFF_CHECK] git diff --check
+[ARCHITECTURE] dotnet test tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj --no-restore --filter FullyQualifiedName~LegacyStateSurfaceFreezeTests|FullyQualifiedName~Per014CutoverTests|FullyQualifiedName~ConflictResolverTests|FullyQualifiedName~Per009RemediationTests|FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~SemanticCheckedResolverTests --logger console;verbosity=minimal
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Kernel.Tests -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    43，已跳过:     0，总计:    43，持续时间: 67 ms - UniClaw.Kernel.Tests.dll (net10.0)
+[ARCHITECTURE_HOST] dotnet test tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj --no-restore --filter FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~LiveDeviceSelectorTests|FullyQualifiedName~LegacySurfaceRemovalTripwireTests --logger console;verbosity=minimal
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Host -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+  UniClaw.Host.Tests -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    26，已跳过:     0，总计:    26，持续时间: 19 ms - UniClaw.Host.Tests.dll (net10.0)
+[SIMULATION] dotnet test tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj --no-restore --logger console;verbosity=minimal --logger trx;LogFileName=sim006-full.trx
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Agent -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+  UniClaw.Simulation.Tests -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:   263，已跳过:     0，总计:   263，持续时间: 2 s - UniClaw.Simulation.Tests.dll (net10.0)
+警告: 正在覆盖结果文件: /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Simulation.Tests/TestResults/sim006-full.trx
+结果文件: /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Simulation.Tests/TestResults/sim006-full.trx
+[FULL_TEST_PROJECTS[UniClaw.Agent.Tests]] dotnet test tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj --no-restore --logger console;verbosity=minimal
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Agent -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+  UniClaw.Agent.Tests -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Agent.Tests/bin/Debug/net10.0/UniClaw.Agent.Tests.dll
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Agent.Tests/bin/Debug/net10.0/UniClaw.Agent.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    36，已跳过:     0，总计:    36，持续时间: 52 ms - UniClaw.Agent.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Agent.Dsh.Tests]] dotnet test tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj --no-restore --logger console;verbosity=minimal
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Agent -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+  UniClaw.Agent.Dsh -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Agent.Dsh/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll
+  UniClaw.Agent.Dsh.Tests -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:   212，已跳过:     0，总计:   212，持续时间: 3 s - UniClaw.Agent.Dsh.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Core.Tests]] dotnet test tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj --no-restore --logger console;verbosity=minimal
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Core.Tests -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    14，已跳过:     0，总计:    14，持续时间: 296 ms - UniClaw.Core.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.FileSystemRealization.Tests]] dotnet test tests/UniClaw.FileSystemRealization.Tests/UniClaw.FileSystemRealization.Tests.csproj --no-restore --logger console;verbosity=minimal
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.FileSystemRealization.Tests/UniClaw.FileSystemRealization.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.FileSystemRealization.Tests -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:     9，已跳过:     0，总计:     9，持续时间: 26 ms - UniClaw.FileSystemRealization.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Host.Tests]] dotnet test tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj --no-restore --logger console;verbosity=minimal
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Host -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+  UniClaw.Host.Tests -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:   411，已跳过:     0，总计:   411，持续时间: 25 s - UniClaw.Host.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Host.Dsh.Tests]] dotnet test tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj --no-restore --logger console;verbosity=minimal
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Host -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+  UniClaw.Agent -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+  UniClaw.Agent.Dsh -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Agent.Dsh/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll
+  UniClaw.Simulation.Tests -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll
+  UniClaw.Host.Dsh -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Host.Dsh/bin/Debug/net10.0/UniClaw.Host.Dsh.dll
+  UniClaw.Host.Dsh.Tests -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    56，已跳过:     0，总计:    56，持续时间: 328 ms - UniClaw.Host.Dsh.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Kernel.Tests]] dotnet test tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj --no-restore --logger console;verbosity=minimal
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Kernel.Tests -> /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll
+/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-verify-entry-001-y3hqwp5s/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:  1037，已跳过:     0，总计:  1037，持续时间: 2 s - UniClaw.Kernel.Tests.dll (net10.0)
+FULL_TEST_PROJECTS_NOTE=all solution test projects, aggregated; simulation portion reused from SIMULATION (single execution; TRX shared with COVERAGE)
+[CERTIFICATION] python3 tools/scenario_certify.py --check
+certification check: PASS (31 files, 0 violations)
+[COVERAGE] python3 tools/scenario-coverage.py --trx tests/UniClaw.Simulation.Tests/TestResults/sim006-full.trx
+============================================================
+ Scenario Library Coverage Report (truth: sim006-full.trx)
+============================================================
+ Total: 31 scenarios
+
+── By Status (derived from TRX) ──
+  failing            0   0%
+  not-implemented    0   0%
+  passing           31  ████████████████████ 100%
+  pending-env        0   0%
+
+  Pass rate: 31/31 = 100%
+
+── By Capability ──
+  activation-idempotency         1/1 passing
+  ambiguity-safety               1/1 passing
+  desired-state-satisfaction     1/1 passing
+  effect-verification            3/3 passing
+  evidence-deduplication         1/1 passing
+  evidence-revision              4/4 passing
+  identity-continuity            1/1 passing
+  policy-protocol                11/11 passing
+  safe-stop                      1/1 passing
+  serial-verification-barrier    4/4 passing
+  terminal-distinction           1/1 passing
+  world-operation-replay         2/2 passing
+
+── By Source ──
+  component-test        12
+  recorded               8 (refs: SR-104, SR-105, SR-134, SR-001, SR-007, SR-047, SR-052, SR-067)
+  synthetic             11 (refs: SR-001, SR-009, SR-017, SR-012, SR-022, SR-056, SR-063, SR-086)
+
+── Golden Certification (SIM-002 G2) ──
+  certified by ENG-OPT-001: 20 scenarios
+  uncertified descriptive scenarios: 11 (SCN-PERC-001, SCN-PERC-002, SCN-PERC-003, SCN-PERC-004, SCN-PERC-005, SCN-PERC-006, SCN-PERC-007, SCN-PERC-008, SCN-REPLAY-001, SCN-REPLAY-002, SCN-REPLAY-003)
+  truth chain verified against sim006-full.trx: 31 scenarios, 20 certified + 11 descriptive
+
+============================================================
+LIVE=SKIPPED (use --live to run environment gate)
+GROUP_DIFF_CHECK=PASS
+GROUP_ARCHITECTURE=PASS
+GROUP_ARCHITECTURE_HOST=PASS
+GROUP_SIMULATION=PASS
+GROUP_FULL_TEST_PROJECTS=PASS
+GROUP_CERTIFICATION=PASS
+GROUP_COVERAGE=PASS
+FIRST_FAILURE=NONE
+FIRST_FAILURE_SEMANTIC=execution-order group; not the first behavioral divergence (see Failure details)
+EXPECTATIONS_DIGEST=UNCHANGED
+FINAL_STATUS=PASS
+RESOLVED_CONFIG=evidence/sim-006/runs/VERIFY-ENTRY-001-full-20261022T130409Z/resolved-config.json

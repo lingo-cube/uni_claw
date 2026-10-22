@@ -1,0 +1,12 @@
+test_conflicting_same_name_results_rejected (__main__.EntryTests) ... ok
+test_empty_and_unknown_never_pass (__main__.EntryTests) ... ok
+test_full_executes_solution_projects_once_and_reuses_simulation_trx (__main__.EntryTests) ... ok
+test_host_dsh_failure_propagates (__main__.EntryTests) ... ok
+test_load_rejects_empty_unknown_and_missing_case (__main__.EntryTests) ... ok
+test_parameterized_names_join_trx_without_merging (__main__.EntryTests) ... ok
+test_quick_stays_filtered_without_full_or_coverage (__main__.EntryTests) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.007s
+
+OK

@@ -1,0 +1,178 @@
+[
+  {
+    "index": 0,
+    "decisionId": "decision-57bafbe8575b-1",
+    "dshSessionId": "session-b51e8c8c-2c67-4f1b-9943-aeed4db70f1b",
+    "directive": null,
+    "targetRole": "ui.element",
+    "targetDescriptor": "Network \u0026 internet",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-1-occ-f5a3a22da34a-3-1",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 866",
+    "routeBefore": "android.settings|rk1:Settings|src=homepage_title|up=0",
+    "routeAfter": "android.settings|rk1:Network \u0026 internet|src=collapsing_toolbar|up=1",
+    "postCaptureId": "capture-7826f79f744741a98dfd3c3d684cca2b",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "decisionId": "decision-57bafbe8575b-1",
+    "dshSessionId": "session-b51e8c8c-2c67-4f1b-9943-aeed4db70f1b",
+    "directive": null,
+    "targetRole": "ui.element",
+    "targetDescriptor": "Internet",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-2-occ-7962a9fc8ecf-3-2",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 682",
+    "routeBefore": "android.settings|rk1:Network \u0026 internet|src=collapsing_toolbar|up=1",
+    "routeAfter": "android.settings|rk1:Internet|src=collapsing_toolbar|up=1",
+    "postCaptureId": "capture-febae758cc934bea859da116b3f0218c",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "decisionId": "decision-57bafbe8575b-1",
+    "dshSessionId": "session-b51e8c8c-2c67-4f1b-9943-aeed4db70f1b",
+    "directive": null,
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-3-occ-fc5047e25402-1-3",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 73 182",
+    "routeBefore": "android.settings|rk1:Internet|src=collapsing_toolbar|up=1",
+    "routeAfter": "android.settings|rk1:Network \u0026 internet|src=collapsing_toolbar|up=1",
+    "postCaptureId": "capture-9ee244c9d11b4016aa7c5303c448fa19",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "decisionId": "decision-57bafbe8575b-1",
+    "dshSessionId": "session-b51e8c8c-2c67-4f1b-9943-aeed4db70f1b",
+    "directive": null,
+    "targetRole": "ui.element",
+    "targetDescriptor": "SIMs",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-4-occ-1037a804508d-4-4",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 888",
+    "routeBefore": "android.settings|rk1:Network \u0026 internet|src=collapsing_toolbar|up=1",
+    "routeAfter": "android.settings",
+    "postCaptureId": "capture-33a09ad228bb476b9c422d8f349b9bea",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  }
+]

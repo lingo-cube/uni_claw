@@ -1,0 +1,36 @@
+{
+  "requestId": "semantic:default-apps",
+  "captureId": "capture-08173a863262439ca1bac49827ad4e6e",
+  "observationCycleId": "capture-08173a863262439ca1bac49827ad4e6e",
+  "status": 0,
+  "observation": {
+    "pageKey": "default-apps",
+    "pageName": "Default apps",
+    "pagePurpose": "Controlled semantic catalogue for Default apps",
+    "observedTitle": "Default apps",
+    "assessment": {
+      "disposition": 0,
+      "coverage": "CompleteWithinDeclaredSurface",
+      "uncertainty": "Bounded",
+      "associationQuality": "Unassociated",
+      "sourcePath": "controlled-semantic-supply",
+      "providerConfidence": null,
+      "diagnostic": null
+    },
+    "basisEvidenceIds": [
+      "ev-9888865540f771566503a4943a357e0b2d3294d11b534acde2fbac39097b4a7f",
+      "ev-f191b7cdf89c5b7f4362c73c5524b861e1c9a86de8a60af9d7c9cd08ecc2da7c"
+    ]
+  },
+  "relation": 2,
+  "expectedMatch": 1,
+  "assessment": {
+    "disposition": 0,
+    "coverage": "CompleteWithinDeclaredSurface",
+    "uncertainty": "Bounded",
+    "associationQuality": "Unassociated",
+    "sourcePath": "controlled-semantic-supply",
+    "providerConfidence": null,
+    "diagnostic": null
+  }
+}

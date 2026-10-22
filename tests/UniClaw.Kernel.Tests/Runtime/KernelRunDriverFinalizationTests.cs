@@ -156,7 +156,7 @@ public sealed class KernelRunDriverFinalizationTests
         var kernel = new UniKernel(
             new EvidenceLedger(),
             new WorldModel(
-                new HashSet<string>(contract.Scope.Append(TypedSubject)),
+                new HashSet<string>(contract.Scope.Append(TypedSubject).Append(CheckedGuardFixture.SubjectFor(TypedSubject))),
                 new SeedContainerAssociationStrategy(),
                 new StatefulObservationStrategy(cid),
                 new RoleContinuityStrategy()),
@@ -305,6 +305,7 @@ public sealed class KernelRunDriverFinalizationTests
                 : new RunDriverInput.Observation(new[]
                 {
                     PostActionObservation("switch:primary@on", UIWorldDoubles.T1),
+                    CheckedGuardFixture.Checkable(TypedCheckedClaim("checked", T1)),
                     TypedCheckedClaim("checked", T1),
                 }),
             consultFactory: k => ctx =>
@@ -489,6 +490,7 @@ public sealed class KernelRunDriverFinalizationTests
                         PostActionObservation(
                             $"switch:primary@on+menuItem:list@{(++postPulls == 1 ? "visible" : "visited")}",
                             UIWorldDoubles.T1.AddSeconds(postPulls)),
+                        CheckedGuardFixture.Checkable(TypedCheckedClaim("checked", T1.AddSeconds(postPulls))),
                         TypedCheckedClaim("checked", T1.AddSeconds(postPulls)),
                         TypedResourceClaim(T1.AddSeconds(postPulls)),
                 }),
@@ -598,6 +600,7 @@ public sealed class KernelRunDriverFinalizationTests
                     ? new RunDriverInput.Observation(new[]
                     {
                         PostActionObservation("switch:primary@on", UIWorldDoubles.T1),
+                        CheckedGuardFixture.Checkable(TypedCheckedClaim("checked", T1)),
                         TypedCheckedClaim("checked", T1),
                     })
                     : null,

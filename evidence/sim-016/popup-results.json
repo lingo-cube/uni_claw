@@ -1,0 +1,34 @@
+{
+  "exports": 6,
+  "runtime": {
+    "clears": {
+      "status": 0,
+      "deliveries": 1,
+      "lastPopup": "absent",
+      "recordedClearance": false,
+      "consultations": 2,
+      "faultReceipts": 0,
+      "report": "CoverageComplete"
+    },
+    "held": {
+      "status": 6,
+      "deliveries": 2,
+      "lastPopup": "present",
+      "recordedClearance": false,
+      "consultations": 3,
+      "faultReceipts": 2,
+      "report": "BoundedStop"
+    },
+    "failed": {
+      "status": 5,
+      "deliveries": 1,
+      "lastPopup": "present",
+      "recordedClearance": false,
+      "consultations": 1,
+      "faultReceipts": 0,
+      "report": "BoundedStop"
+    }
+  },
+  "knownFailure": "KNOWN_FAILURE_UNRESOLVED_SIM017",
+  "sourcePins": 156
+}

@@ -1,0 +1,35 @@
+{
+  "id": "SCN-REPLAY-006",
+  "name": "Controlled checked positive and refusal replay",
+  "source": "synthetic",
+  "purpose": "Reviewed tri-state inputs exercise state proof and refusal at actual product runtime seams; no live/device proof",
+  "capability": "controlled-checked-verification",
+  "components": [
+    "perception",
+    "evidence-ledger",
+    "world-model",
+    "control",
+    "effect-boundary",
+    "assurance",
+    "runtime"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "not-applicable",
+  "expectations": {
+    "status": "TerminalNotProven",
+    "classification": null,
+    "effects": 1,
+    "agentConsultations": 2,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "none"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "Reviewed synthetic data only, no new acquisition"
+  }
+}

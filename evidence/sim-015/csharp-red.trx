@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="83126bef-e947-4a81-9850-fb6629050ecf" name="@frandeMac-mini 2026-10-22 23:39:44" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T23:39:44.7968270+08:00" queuing="2026-10-22T23:39:44.7968270+08:00" start="2026-10-22T23:39:44.0509720+08:00" finish="2026-10-22T23:39:44.7996980+08:00" />
+  <TestSettings name="default" id="8f9d6a70-dd0d-4478-ad9f-df75f52f83fc">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-22_23_39_44" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="cf7fe05b-d667-4b70-b67f-48ba35fe03bc" testId="ef9372c7-24d4-0efc-591f-5c5fbb5b8816" testName="UniClaw.Simulation.Tests.ScenarioRealizationAnnotationTests.ScenarioLibrary_CarriesSplitRealizationAnnotationsMatchingComposition" computerName="frandeMac-mini" duration="00:00:00.0069437" startTime="2026-10-22T23:39:44.5694060+08:00" endTime="2026-10-22T23:39:44.5694140+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cf7fe05b-d667-4b70-b67f-48ba35fe03bc">
+      <Output>
+        <ErrorInfo>
+          <Message>场景库 realization 标注违规（simulation-baseline v0.2 C7）：
+SCN-REPLAY-008.json: agentDecisionRealization='not-applicable' 与实际构成不符（Simulation Host 现组合 double）
+SCN-REPLAY-009.json: agentDecisionRealization='not-applicable' 与实际构成不符（Simulation Host 现组合 double）</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ScenarioRealizationAnnotationTests.ScenarioLibrary_CarriesSplitRealizationAnnotationsMatchingComposition() in /private/tmp/uniclaw-sim014-rpl719r1/tests/UniClaw.Simulation.Tests/ScenarioRealizationAnnotationTests.cs:line 100
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Simulation.Tests.ScenarioRealizationAnnotationTests.ScenarioLibrary_CarriesSplitRealizationAnnotationsMatchingComposition" storage="/private/tmp/uniclaw-sim014-rpl719r1/tests/uniclaw.simulation.tests/bin/debug/net10.0/uniclaw.simulation.tests.dll" id="ef9372c7-24d4-0efc-591f-5c5fbb5b8816">
+      <Execution id="cf7fe05b-d667-4b70-b67f-48ba35fe03bc" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-rpl719r1/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ScenarioRealizationAnnotationTests" name="ScenarioLibrary_CarriesSplitRealizationAnnotationsMatchingComposition" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="ef9372c7-24d4-0efc-591f-5c5fbb5b8816" executionId="cf7fe05b-d667-4b70-b67f-48ba35fe03bc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.04]   Discovering: UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.09]   Discovered:  UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.09]   Starting:    UniClaw.Simulation.Tests
+[xUnit.net 00:00:00.11]       场景库 realization 标注违规（simulation-baseline v0.2 C7）：
+[xUnit.net 00:00:00.11]       SCN-REPLAY-008.json: agentDecisionRealization='not-applicable' 与实际构成不符（Simulation Host 现组合 double）
+[xUnit.net 00:00:00.11]       SCN-REPLAY-009.json: agentDecisionRealization='not-applicable' 与实际构成不符（Simulation Host 现组合 double）
+[xUnit.net 00:00:00.11]       Stack Trace:
+[xUnit.net 00:00:00.11]         /private/tmp/uniclaw-sim014-rpl719r1/tests/UniClaw.Simulation.Tests/ScenarioRealizationAnnotationTests.cs(100,0): at UniClaw.Simulation.Tests.ScenarioRealizationAnnotationTests.ScenarioLibrary_CarriesSplitRealizationAnnotationsMatchingComposition()
+[xUnit.net 00:00:00.11]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.11]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.12]   Finished:    UniClaw.Simulation.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T23:39:44.5683960+08:00">
+        <Text>[xUnit.net 00:00:00.11]     UniClaw.Simulation.Tests.ScenarioRealizationAnnotationTests.ScenarioLibrary_CarriesSplitRealizationAnnotationsMatchingComposition [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

@@ -1,0 +1,36 @@
+{
+  "requestId": "semantic:sims",
+  "captureId": "capture-33a09ad228bb476b9c422d8f349b9bea",
+  "observationCycleId": "capture-33a09ad228bb476b9c422d8f349b9bea",
+  "status": 0,
+  "observation": {
+    "pageKey": "sims",
+    "pageName": "SIMs",
+    "pagePurpose": "Controlled semantic catalogue for SIMs",
+    "observedTitle": "SIMs",
+    "assessment": {
+      "disposition": 0,
+      "coverage": "CompleteWithinDeclaredSurface",
+      "uncertainty": "Bounded",
+      "associationQuality": "Unassociated",
+      "sourcePath": "controlled-semantic-supply",
+      "providerConfidence": null,
+      "diagnostic": null
+    },
+    "basisEvidenceIds": [
+      "ev-33d8d9d218e127f5970223307cc6940d2bf3ce0b783d55d30b059c1ff69ed8e3",
+      "ev-bfbdf5388840956782a3d486d9f5315be90d1cf84cfea6cb2780a8eb2203ec30"
+    ]
+  },
+  "relation": 2,
+  "expectedMatch": 1,
+  "assessment": {
+    "disposition": 0,
+    "coverage": "CompleteWithinDeclaredSurface",
+    "uncertainty": "Bounded",
+    "associationQuality": "Unassociated",
+    "sourcePath": "controlled-semantic-supply",
+    "providerConfidence": null,
+    "diagnostic": null
+  }
+}

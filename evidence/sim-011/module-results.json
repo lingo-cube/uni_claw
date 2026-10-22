@@ -1,0 +1,63 @@
+{
+  "projects": [
+    {
+      "project": "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj",
+      "failed": 0,
+      "passed": 280,
+      "skipped": 0,
+      "total": 280
+    },
+    {
+      "project": "tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj",
+      "failed": 0,
+      "passed": 36,
+      "skipped": 0,
+      "total": 36
+    },
+    {
+      "project": "tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj",
+      "failed": 0,
+      "passed": 212,
+      "skipped": 0,
+      "total": 212
+    },
+    {
+      "project": "tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj",
+      "failed": 0,
+      "passed": 14,
+      "skipped": 0,
+      "total": 14
+    },
+    {
+      "project": "tests/UniClaw.FileSystemRealization.Tests/UniClaw.FileSystemRealization.Tests.csproj",
+      "failed": 0,
+      "passed": 9,
+      "skipped": 0,
+      "total": 9
+    },
+    {
+      "project": "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj",
+      "failed": 0,
+      "passed": 413,
+      "skipped": 0,
+      "total": 413
+    },
+    {
+      "project": "tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj",
+      "failed": 0,
+      "passed": 56,
+      "skipped": 0,
+      "total": 56
+    },
+    {
+      "project": "tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj",
+      "failed": 0,
+      "passed": 1044,
+      "skipped": 0,
+      "total": 1044
+    }
+  ],
+  "passed": 2064,
+  "total": 2064,
+  "simulationExecutions": 1
+}

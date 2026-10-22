@@ -1,0 +1,10 @@
+{
+  "sha256": {
+    "src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll": "84a39a4f55b96e37daa7697c1ce5b7fb5486da15e2913ce76507e9e2ecff130b",
+    "src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Kernel.dll": "84a39a4f55b96e37daa7697c1ce5b7fb5486da15e2913ce76507e9e2ecff130b",
+    "tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "84a39a4f55b96e37daa7697c1ce5b7fb5486da15e2913ce76507e9e2ecff130b",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "84a39a4f55b96e37daa7697c1ce5b7fb5486da15e2913ce76507e9e2ecff130b"
+  },
+  "sameBuiltKernelArtifact": true,
+  "scope": "isolated Debug build, no release qualification claim"
+}

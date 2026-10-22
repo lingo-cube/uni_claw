@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-10-22T13:16:51.632087+00:00",
+  "level": "CONTRACT",
+  "method": "local JSON validation, raw frame and audited product source digest checks, protected hash comparison, design self-review",
+  "expected": "reviewable design and independent expectations; old inputs immutable; own writes within new directory",
+  "actual": "material checks passed; simulation source changed concurrently, fresh ingress excerpt recorded; no parent/human design approval claimed",
+  "checks": [
+    {
+      "check": "json-materials-parse",
+      "passed": true
+    },
+    {
+      "check": "audited-product-and-contract-source-digests-still-match",
+      "passed": true
+    },
+    {
+      "check": "immutable-frame:platforms/perception/evaluation/validation/fastscreen-v1/uia/1e572c8f5092.xml",
+      "passed": true
+    },
+    {
+      "check": "immutable-frame:platforms/perception/evaluation/validation/fastscreen-v1/uia/4a1f3e1d4421.xml",
+      "passed": true
+    },
+    {
+      "check": "legacy-actual-rejects-no-checked-claim",
+      "passed": true
+    },
+    {
+      "check": "24-unique-design-cases",
+      "passed": true
+    },
+    {
+      "check": "no-fabricated-actuals",
+      "passed": true
+    }
+  ],
+  "protectedFilesCompared": 4515,
+  "protectedDrift": [
+    "changes/SIM-010/state.md",
+    "evidence/sim-010/entry/ownership.json",
+    "scenarios/SCN-REPLAY-004.json",
+    "scenarios/SCN-REPLAY-005.json",
+    "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recorded-operations.json",
+    "tests/UniClaw.Simulation.Tests/RecordedOperationReplayTests.cs",
+    "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj"
+  ],
+  "auditedSourceDrift": [
+    "tests/UniClaw.Simulation.Tests/RecordedOperationReplayTests.cs"
+  ],
+  "driftPolicy": "observations only; never revert or attribute shared changes automatically",
+  "ownedFiles": [
+    "changes/REPLAY-STATE-EVIDENCE-001/cases.json",
+    "changes/REPLAY-STATE-EVIDENCE-001/design.md",
+    "changes/REPLAY-STATE-EVIDENCE-001/evidence/concurrent-replay-entry.txt",
+    "changes/REPLAY-STATE-EVIDENCE-001/evidence/entry-protected-sha256.json",
+    "changes/REPLAY-STATE-EVIDENCE-001/evidence/entry-status.txt",
+    "changes/REPLAY-STATE-EVIDENCE-001/evidence/entry-tracked.patch",
+    "changes/REPLAY-STATE-EVIDENCE-001/evidence/entry-untracked.txt",
+    "changes/REPLAY-STATE-EVIDENCE-001/evidence/external-sources.md",
+    "changes/REPLAY-STATE-EVIDENCE-001/evidence/final-status.txt",
+    "changes/REPLAY-STATE-EVIDENCE-001/evidence/legacy-observation.json",
+    "changes/REPLAY-STATE-EVIDENCE-001/evidence/ownership.json",
+    "changes/REPLAY-STATE-EVIDENCE-001/evidence/source-excerpts.txt",
+    "changes/REPLAY-STATE-EVIDENCE-001/evidence/source-manifest.json",
+    "changes/REPLAY-STATE-EVIDENCE-001/state.md"
+  ],
+  "writesByThisTask": [
+    "changes/REPLAY-STATE-EVIDENCE-001/**"
+  ],
+  "testsOrDeviceOrModelsExecuted": false,
+  "review": "self-review only; parent/human acceptance pending"
+}

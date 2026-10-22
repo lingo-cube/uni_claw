@@ -1,0 +1,23 @@
+# 弹窗回放实际接口与证明边界
+
+产品入口为 `SettingsPopupClassifier.Classify(xml, hostPackage, popupResourceIds)`；LiveFeed原DerivePopupState转发到它。只有现有XML分类被抽取，包名不等/资源白名单规则保持，不启动ADB/Vision即可由live/replay两个buyer消费同一个实现。没有新Capability、L1协议、World/Effect Owner或产品仿真分支。
+
+测试侧 `RecordedPopupEpisodes.Extract(id, requireRecordedClearance)` 只读取带SHA的Settings原始trace/steps/XML/PNG；按traceIndex递增校验capture，匹配触发动作的postCapture，读取原分辨率、cycle/context并保留完整trigger记录。schema v1只支持录制前缀，不能用一个metadata布尔值宣称存在CANCEL及关闭后的证据；要求完整录制闭环时明确拒绝。原录制和旧fixture均不写回；源adb命令只是文本，不执行。
+
+两份来源为2026-10-14 SIM真实弹窗（4帧）和2026-10-20 Default apps跨包正常页（2帧）。第一帧是前一步最后记录的post，不是独立pre-action；逐帧墙钟、CANCEL动作/回执及关闭后帧均缺失。提取器可重现已录观察，但不据此声称完整原Run重放。
+
+独立oracle区分两种语义真值。提取/原序观察测试会确认旧分类标签被重现，同时导出Default apps预期非弹窗、实际present的首次分歧，标为KNOWN_FAILURE_UNRESOLVED_SIM017。该场景passing仅证明提取与错误可重现，不能解释为误判已修复。原语义红例保留classification-red.trx及classification-red.cs.txt；后续语义修复应重跑该红例，不能更新oracle掩盖差异。
+
+受控Runtime分支调用公开 `SettingsCoverageRunner.Run`、FeedNext/CurrentCaptureId/IEffectDriver，复用真实Host解析/分类、Director和Kernel。真实原弹窗XML用于接地CANCEL；Actor、交付、路由/身份/时钟为受控输入。成功分支把录制前缀的非弹窗帧拼接到新的post-CANCEL envelope，并给出受控Root到达；这是显式合成结果，未宣称来自原CANCEL闭环。任务要求Root到达，持久弹窗和交付失败分支不能满足该要求。
+
+故障只修改供给：缺XML一次使分类无声明，恢复同原输入再分类；hold-after-delivery在正常关闭候选帧处替换成原弹窗帧，并记录被替换/被投递的来源；DeliveryFailed由受控driver提供，真实EffectBoundary生成本次receipt。没有直接输入canonical receipt或World状态。正常/hold用同一Feed/Runner闭包；故障选择器控制实际输入，须用禁用选择器变异证明它不是仅增加日志。
+
+三个Runtime场景分别登记成功、持续弹窗、交付失败，避免把不同计数和终止状态塞进一条描述性expectations。只有纯提取场景Agent未参与；Runtime场景decision=double、evaluation=N/A，不套用component N/A例外。新source row由数据枚举发现，不改产品组件或Runner。
+
+构成manifest复用SIM-014的70个冻结来源，并追加本切片的Host/Runtime模块、adapter、输入及独立oracle/场景；测试前检查内容，测试没有自动重签路径。它不是全仓兼容解析器。协议/组件改动时先定位影响的source pins和case，保留失败，再在致因Change审查输入/独立oracle与显式重签；运行专项、Host旧回归、全量、协议生成及旧来源保护。SIM-014原manifest不改。
+
+SIM-017前置设计独立交付窗口事实与未知生命周期，候选字段/预算不冻结；当前误判规则和旧present缺证后仍可能延续的问题均未在SIM-016修复。真实设备/模型、完整窗口采集、整周录制穷尽、大模型场景生成和任意Host录制通用导入不在本轮证据中。
+
+后续语义修复时，原trace分类标签仍作为历史记录保留；旧实现复现断言须随致因Change调整为新旧差异报告。独立正常页/弹窗语义标签不回写，knownMismatch标记只有在新证据/新实现通过后才变更，不能把历史错误输出当作新实现的真值。
+
+Host专项载体位于`tests/UniClaw.Host.Tests`，Simulation组合根仍只引用Kernel+Agent。Host.Tests通过Compile链接同一测试侧ReplayCompositionGuard，不引用Simulation工程。场景承载完整性由coverage工具跨两测试根进行二进制Trait/TRX精确关联；两个C#工程各自验证本程序集Trait指向现有场景，不能把仅在本程序集找不到场景误判为全库无承载。verify-change复用各工程本次单次执行的TRX，不为了汇报重跑测试。

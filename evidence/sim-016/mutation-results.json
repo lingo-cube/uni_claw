@@ -1,0 +1,45 @@
+{
+  "disabled-hold-selector": [
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget",
+      "outcome": "Failed",
+      "message": "Assert.Equal() Failure: Strings differ\n           \u2193 (pos 0)\nExpected: \"TerminalNotProven\"\nActual:   \"Completed\"\n           \u2191 (pos 0)"
+    }
+  ],
+  "wrong-popup-oracle": [
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: \"default-apps-cross-package\")",
+      "outcome": "Passed",
+      "message": null
+    },
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: \"sim-dialog\")",
+      "outcome": "Failed",
+      "message": "Assert.Equal() Failure: Values differ\nExpected: False\nActual:   True"
+    }
+  ],
+  "wrong-recording-correlation": [
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: \"default-apps-cross-package\")",
+      "outcome": "Passed",
+      "message": null
+    },
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: \"sim-dialog\")",
+      "outcome": "Failed",
+      "message": "System.IO.InvalidDataException : popup-capture-order-or-correlation"
+    }
+  ],
+  "swapped-recording-file": [
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: \"default-apps-cross-package\")",
+      "outcome": "Passed",
+      "message": null
+    },
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: \"sim-dialog\")",
+      "outcome": "Failed",
+      "message": "System.IO.InvalidDataException : popup-capture-file-binding"
+    }
+  ]
+}

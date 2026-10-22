@@ -1,0 +1,15 @@
+{
+  "captureId": "child",
+  "title": "All apps",
+  "target": "Details",
+  "wrongIdentityCaptureId": "wrong-capture",
+  "expected": {
+    "pausedWithoutIdentity": true,
+    "wrongIdentityKeepsPaused": true,
+    "effects": 1,
+    "postActionVerificationsBeforeRecovery": 0,
+    "depthBeforeRecovery": 0,
+    "depthAfterRecovery": 1,
+    "recoveryDispatches": 0
+  }
+}

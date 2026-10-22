@@ -1,0 +1,13 @@
+{
+  "sha256": {
+    "src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll": "734f8bb7b12c08d723180337acf7c39bd3d8941dae4dd253defeed6be7654c98",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "734f8bb7b12c08d723180337acf7c39bd3d8941dae4dd253defeed6be7654c98",
+    "tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "734f8bb7b12c08d723180337acf7c39bd3d8941dae4dd253defeed6be7654c98",
+    "tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "734f8bb7b12c08d723180337acf7c39bd3d8941dae4dd253defeed6be7654c98",
+    "tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "734f8bb7b12c08d723180337acf7c39bd3d8941dae4dd253defeed6be7654c98",
+    "tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "734f8bb7b12c08d723180337acf7c39bd3d8941dae4dd253defeed6be7654c98",
+    "tests/UniClaw.Agent.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "734f8bb7b12c08d723180337acf7c39bd3d8941dae4dd253defeed6be7654c98"
+  },
+  "sameBuiltKernelArtifact": true,
+  "scope": "Kernel source output and referencing test output copies in one isolated Debug build; popup exports do not embed a DLL hash"
+}

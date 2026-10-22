@@ -1,0 +1,36 @@
+{
+  "level": "SCENARIO",
+  "method": "focused replay/import, current-source isolated full, schema/traits/TRX, independent reviews, artifact and source hash comparison",
+  "expected": "revised SIM-010 acceptance1-5",
+  "actual": {
+    "focusedSimulation": 6,
+    "focusedHost": 2,
+    "fullPassed": 2046,
+    "projects": 8,
+    "simulationExecutions": 1,
+    "scenariosPassing": 33,
+    "certified": 20,
+    "descriptive": 13,
+    "reviewsBlockingFindings": 0,
+    "sameBuiltKernelArtifact": true,
+    "executableInputDrift": []
+  },
+  "evidence": [
+    "full.txt",
+    "module-results.json",
+    "simulation-full.trx",
+    "final-snapshot.json",
+    "snapshot-source-comparison.json",
+    "runtime-artifact-check.json",
+    "protected-files-check.json",
+    "standards-review.md",
+    "spec-review.md"
+  ],
+  "limitations": [
+    "historical XML and virtual capture metadata, deterministic decision/delivery",
+    "old false remains Unknown and no OFF proof",
+    "generic tap is not destination conformance",
+    "no device/model/commit/push",
+    "early same-name diagnostic JSON overwritten; original failed TRX/log and extracted legacy observation retained"
+  ]
+}

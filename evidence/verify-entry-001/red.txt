@@ -1,0 +1,53 @@
+test_conflicting_same_name_results_rejected (__main__.EntryTests) ... FAIL
+test_empty_and_unknown_never_pass (__main__.EntryTests) ... ok
+test_full_executes_solution_projects_once_and_reuses_simulation_trx (__main__.EntryTests) ... FAIL
+test_host_dsh_failure_propagates (__main__.EntryTests) ... FAIL
+test_parameterized_names_join_trx_without_merging (__main__.EntryTests) ... FAIL
+test_quick_stays_filtered_without_full_or_coverage (__main__.EntryTests) ... ok
+
+======================================================================
+FAIL: test_conflicting_same_name_results_rejected (__main__.EntryTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_verify_entry.py", line 88, in test_conflicting_same_name_results_rejected
+    coverage.parse_trx(trx)
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_full_executes_solution_projects_once_and_reuses_simulation_trx (__main__.EntryTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_verify_entry.py", line 50, in test_full_executes_solution_projects_once_and_reuses_simulation_trx
+    self.assertCountEqual(executed, expected)
+AssertionError: Element counts were not equal:
+First has 0, Second has 1:  'tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj'
+
+======================================================================
+FAIL: test_host_dsh_failure_propagates (__main__.EntryTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_verify_entry.py", line 58, in test_host_dsh_failure_propagates
+    self.assertEqual(self.calls('full', fail_host_dsh=True)[0], 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_parameterized_names_join_trx_without_merging (__main__.EntryTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_verify_entry.py", line 72, in test_parameterized_names_join_trx_without_merging
+    self.assertEqual(names, NAMES)
+AssertionError: Lists differ: [] != ['UniClaw.Simulation.Tests.TheoryTests.Cas[185 chars] 3)']
+
+Second list contains 3 additional elements.
+First extra element 0:
+'UniClaw.Simulation.Tests.TheoryTests.Case(text: "hello world", count: 1)'
+
+- []
++ ['UniClaw.Simulation.Tests.TheoryTests.Case(text: "hello world", count: 1)',
++  'UniClaw.Simulation.Tests.TheoryTests.Case(text: "say \\"hello\\"", count: 2)',
++  'UniClaw.Simulation.Tests.TheoryTests.Case(text: "hello world", count: 3)']
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.017s
+
+FAILED (failures=4)

@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-facts.v2",
+  "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286",
+  "status": "AgentDecisionFailed",
+  "reason": "consultation-exception",
+  "outcome": null,
+  "delivered": 0,
+  "budgetRenewals": [],
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0.8333333333333334,
+  "stepSuccessRate": 1,
+  "uncovered": [
+    "first-level-all-visible"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": null,
+  "diagnostics": {
+    "firstDivergence": null,
+    "terminalJustification": null,
+    "nextFiles": [
+      "facts.json",
+      "consult-bridge.json",
+      "environment-preflight.json",
+      "coverage-report.json",
+      "coverage-steps.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B firstDivergence/reason\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 coverage-steps.json\u3001trace.json \u548C exec.journal\u3002"
+  },
+  "languageInspection": {
+    "requested": false,
+    "file": null,
+    "findings": 0,
+    "persistenceHealthy": true,
+    "diagnostics": []
+  },
+  "consultMode": "advisory-direct",
+  "actionPolicy": {
+    "policyRef": "product/android-settings/forbidden-actions",
+    "digest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/product/policy/android-settings-forbidden-actions.json"
+  },
+  "evidenceDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/evidence",
+  "evidenceFiles": 18,
+  "journalBytes": 12316,
+  "consults": [
+    {
+      "decisionId": "decision-acca2d7c9b6f-1",
+      "phase": "InitialPlanning",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "plan",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Root viewport already shows all 4 configured roots, so no scroll is needed; Runtime re-reads the hierarchy for each candidate, verifies each navigation independently, and returns via Navigate up before selecting the next candidate.",
+      "policyDigest": null,
+      "guardVerdict": null
+    },
+    {
+      "decisionId": "decision-acca2d7c9b6f-2",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "skip",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Tapping \u0027All apps\u0027 on the Apps page (ctr-a90e33733303) verified but produced a self-transition ctr-a90e33733303-\u003Ectr-a90e33733303 with page identity unknown (coverage-event:34), i.e. navigation-cycle; repeating the same tap cannot add scope coverage. Its listed entries (Android Keyboard (AOSP), Calendar, Camera, Clock, Contacts, Files, Gallery) are individual app detail pages, not registered nested entries of the task whitelist. Skip is zero-Effect and does not claim any coverage; remaining registered roots (Notifications, Battery) and the 13 nested entries stay open as explicit gaps.",
+      "policyDigest": null,
+      "guardVerdict": null
+    }
+  ],
+  "steps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-8eb7f00c6f3e-4-1"
+    },
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-6a4f9ecedede-4-2"
+    },
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-3-occ-264e79032bec-1-3"
+    },
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-4-occ-6966169085a5-5-4"
+    },
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-5-occ-64859acd98cd-1-5"
+    },
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-6-occ-3c1db2cbb38f-1-6"
+    },
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-7-occ-f1ba77734ab7-5-7"
+    },
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-8-occ-f1f006453031-2-8"
+    }
+  ]
+}

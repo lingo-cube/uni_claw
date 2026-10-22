@@ -1,0 +1,16 @@
+{
+  "projects": {
+    "UniClaw.Simulation.Tests": 280,
+    "UniClaw.Agent.Tests": 36,
+    "UniClaw.Agent.Dsh.Tests": 212,
+    "UniClaw.Core.Tests": 14,
+    "UniClaw.FileSystemRealization.Tests": 9,
+    "UniClaw.Host.Tests": 413,
+    "UniClaw.Host.Dsh.Tests": 56,
+    "UniClaw.Kernel.Tests": 1044
+  },
+  "totalPassed": 2064,
+  "failed": 0,
+  "fullEntry": "tools/verify-change CHECKED-GUARD-001 --scope full",
+  "finalStatus": "PASS"
+}

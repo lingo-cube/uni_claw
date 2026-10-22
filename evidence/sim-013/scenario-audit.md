@@ -1,0 +1,7 @@
+# SIM-013 场景源码事实审计
+
+- **生成维度（确定）**：`ScenarioBuilder` 只能从 `FromTemplate(Func<MinimalScenarioBundle>)` 起步（ScenarioBuilder.cs:49-65）；可改身份/版本（68-74）、变换 stimulus 序列（`Screen`，76-81）、变换相位脚本（`AgentDecides`，83-92）、变换期望快照（`Expect`，94-99），并按调度器插入 stimulus（101-114）。默认底座是模板，Build 重捕获当前 RuntimeArtifact 并重封 digest（116-133）。固定时机只实现 `FixedTimingScheduler`：非负 `afterStep`，按 post-action observation 数计时（21-29、136-161）；接口能接自定义调度器，但代码没有提供条件/对抗实现（注释明确为后续范围，6-10）。
+- **故障注入（确定）**：没有专门故障类型或 fault 参数；唯一注入旋钮是 `Inject(ScenarioStimulus, afterStep|IStimulusScheduler)`，即插入任意 stimulus 数据对象并控制时机（101-114）。若指定 post 帧数未达到则追加序列尾（136-160）。
+- **Importer输入（确定）**：不是原始 XML/任意 trace 通用回放器。`Derive` 要求 source bundle 和 sealed、完整性有效的 trace，RunId 必须为 `sim:{source.ScenarioId}`（ScenarioImporter.cs:54-65）；仅提取 `perception.observe` span 的单个 Artifact 引用，要求 `art-` 加16位前缀、唯一映射 source asset、再唯一映射 source observation stimulus（67-119）。无引用、畸形、无匹配/多匹配均拒绝。`DeriveFromPersisted` 通过 `SealedTraceStore.LoadVerified` 加载持久化产物（39-52）。派生保留源 stimulus 内容并重编号，Expected 仅把未消费数置零，其他期望沿用 source；改为 v2 并重封（121-134）。测试覆盖终态、RunId、篡改、映射和重复 occurrence（ScenarioImporterTests.cs:29-119）。
+- **扩展与验证边界**：现有 builder 允许基于已有 bundle 模板作数据变换，测试声称 runner/host/coverage 工具无需改动（ScenarioBuilder.cs:31-36）；不能据此断言新增任意场景免改核心。`GeneratedScenarioTests` 的注册场景是 SCN-WIFI-006 与 SCN-WIFI-001 比语义结果，另测构建/运行 digest 确定性和注入（GeneratedScenarioTests.cs:24-55、61-79）。源码没有验证任意 runtime 版本兼容；Build 反而捕获当前 RuntimeArtifact（ScenarioBuilder.cs:123-130）。
+- **LLM生成**：没有证据表明已有 LLM 场景生成器；这四文件展示的是 C# Builder 和 trace 派生。是否存在其他未读实现，本审计范围无法判定。

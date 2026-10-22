@@ -1,0 +1,24 @@
+{
+  "episodes": 2,
+  "frames": 6,
+  "rawAssets": {
+    "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/settings-trace.json": "c2254a293b80976b86667c7dcafdb5f3710c5b1fc0e1427c9f4e9617ea27a734",
+    "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/coverage-steps.json": "85872ebf3c1c32bb4bc959179198be81f369e554efa8c2a266c0e8789d997cff",
+    "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/evidence/capture-71bad6c240c74a1a8d6ab9215850d1d8.xml": "3ed2f39b576565a8f98e6e8a7ecf430fd2a88006f1406a925a5ce84bae459ca4",
+    "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/evidence/capture-71bad6c240c74a1a8d6ab9215850d1d8.png": "389704e067a37f464f745a43a676fe64991af5b11e30496b3fd6ab4c36c66085",
+    "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/evidence/capture-b2e5aa3ef6ab44eb808c84fd61e98022.xml": "3b50e2d147d8fe4c42255caae8e0cce91369a898f3896acb126ad2c0ff677002",
+    "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/evidence/capture-b2e5aa3ef6ab44eb808c84fd61e98022.png": "822c6e3033bec1924d04cf0735a6c09136613325ad79bcc3881227ff0431bfaa",
+    "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/evidence/capture-d565ae3ca1bf4f9ab82b13211e7837cf.xml": "3b50e2d147d8fe4c42255caae8e0cce91369a898f3896acb126ad2c0ff677002",
+    "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/evidence/capture-d565ae3ca1bf4f9ab82b13211e7837cf.png": "79f3b3912e713e8cf8f1fb39d01939d996d4d0a284395b0368878c3e13ac2416",
+    "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/evidence/capture-8d4fae45f6d743fb84c07d71badd03b3.xml": "3b50e2d147d8fe4c42255caae8e0cce91369a898f3896acb126ad2c0ff677002",
+    "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/evidence/capture-8d4fae45f6d743fb84c07d71badd03b3.png": "79f3b3912e713e8cf8f1fb39d01939d996d4d0a284395b0368878c3e13ac2416",
+    "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/settings-trace.json": "a31441cff21f16d95679458ebf8d766fdd39275a83c2e18c1b0bd86bb8998c15",
+    "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/coverage-steps.json": "9fd77ca4d9ab531aecabb553f12b30691b38f70925fb1834a821100b65e12adb",
+    "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-406fca6d570e4152b7077c0df70ff81d.xml": "98412fd753f3b38c7902e2cefddeae190ef63b40a123994eeadc7b135a8baa52",
+    "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-406fca6d570e4152b7077c0df70ff81d.png": "9419f0c98010a0e6317e618059eb25e8f31d59f8da644535092d65aecde5b195",
+    "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-08173a863262439ca1bac49827ad4e6e.xml": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599",
+    "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-08173a863262439ca1bac49827ad4e6e.png": "0401a1d3b37176357b75b08953a5459012f2197f27121010a5dc183a2e570a20"
+  },
+  "recordedClearance": false,
+  "scope": "recorded prefixes only; curated oracle is not an original window-stack fact"
+}

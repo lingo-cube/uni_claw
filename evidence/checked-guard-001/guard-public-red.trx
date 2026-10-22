@@ -1,0 +1,198 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="986e7617-652e-4a9d-ac04-d568720ad9b0" name="@frandeMac-mini 2026-10-22 21:48:24" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T21:48:24.9754880+08:00" queuing="2026-10-22T21:48:24.9754880+08:00" start="2026-10-22T21:48:24.3423510+08:00" finish="2026-10-22T21:48:24.9776930+08:00" />
+  <TestSettings name="default" id="2e1516a2-6dde-42c8-9c92-8b2462daa51f">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-22_21_48_24" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="deaff235-6374-463f-b1e2-a6d7e9042f91" testId="3a7ecbba-b2e9-705d-e6e6-07466cfca966" testName="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;true&quot;, expected: True)" computerName="frandeMac-mini" duration="00:00:00.0003348" startTime="2026-10-22T21:48:24.8128790+08:00" endTime="2026-10-22T21:48:24.8128790+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="deaff235-6374-463f-b1e2-a6d7e9042f91" />
+    <UnitTestResult executionId="ef84a194-b7b4-4350-8408-4355aaafa15e" testId="14589d19-c726-c20d-b7e2-a980eb92cc81" testName="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;malformed&quot;, expected: False)" computerName="frandeMac-mini" duration="00:00:00.0000763" startTime="2026-10-22T21:48:24.8124820+08:00" endTime="2026-10-22T21:48:24.8124820+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ef84a194-b7b4-4350-8408-4355aaafa15e">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ
+Expected: False
+Actual:   True</Message>
+          <StackTrace>   at UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(String guard, Boolean expected) in /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs:line 65
+   at InvokeStub_CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b90253a7-93f1-4314-8dc7-3248041dce91" testId="5eab89ef-2ac7-c394-a485-afae29eb6838" testName="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;old-capture&quot;, expected: False)" computerName="frandeMac-mini" duration="00:00:00.0005201" startTime="2026-10-22T21:48:24.8123020+08:00" endTime="2026-10-22T21:48:24.8123020+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b90253a7-93f1-4314-8dc7-3248041dce91">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ
+Expected: False
+Actual:   True</Message>
+          <StackTrace>   at UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(String guard, Boolean expected) in /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs:line 65
+   at InvokeStub_CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="7410c94d-cca3-4999-b428-1f51732e54a5" testId="df8f5809-2504-813e-3ccd-b31b44346b35" testName="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;false&quot;, expected: False)" computerName="frandeMac-mini" duration="00:00:00.0000571" startTime="2026-10-22T21:48:24.8127290+08:00" endTime="2026-10-22T21:48:24.8127290+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7410c94d-cca3-4999-b428-1f51732e54a5">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ
+Expected: False
+Actual:   True</Message>
+          <StackTrace>   at UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(String guard, Boolean expected) in /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs:line 65
+   at InvokeStub_CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="be7cbc9b-2d44-436b-a569-68976c575368" testId="5482b672-dd5d-64a3-e96d-5dfb0942d1d9" testName="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;other-node&quot;, expected: False)" computerName="frandeMac-mini" duration="00:00:00.0286492" startTime="2026-10-22T21:48:24.8111970+08:00" endTime="2026-10-22T21:48:24.8112040+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="be7cbc9b-2d44-436b-a569-68976c575368">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ
+Expected: False
+Actual:   True</Message>
+          <StackTrace>   at UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(String guard, Boolean expected) in /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs:line 65
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="16ef4949-a63a-40bb-92bf-5d973471b273" testId="d2f81fcd-90b7-9b41-72ce-beec95f26c85" testName="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;mismatched-metadata&quot;, expected: False)" computerName="frandeMac-mini" duration="00:00:00.0001989" startTime="2026-10-22T21:48:24.8126480+08:00" endTime="2026-10-22T21:48:24.8126480+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="16ef4949-a63a-40bb-92bf-5d973471b273">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ
+Expected: False
+Actual:   True</Message>
+          <StackTrace>   at UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(String guard, Boolean expected) in /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs:line 65
+   at InvokeStub_CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d6073ac8-d316-402a-9717-f2d333ff4a74" testId="b17e88e8-f0d9-9401-9b70-fbd624bcdaea" testName="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;missing&quot;, expected: False)" computerName="frandeMac-mini" duration="00:00:00.0000463" startTime="2026-10-22T21:48:24.8125670+08:00" endTime="2026-10-22T21:48:24.8125670+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d6073ac8-d316-402a-9717-f2d333ff4a74">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ
+Expected: False
+Actual:   True</Message>
+          <StackTrace>   at UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(String guard, Boolean expected) in /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs:line 65
+   at InvokeStub_CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;other-node&quot;, expected: False)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="5482b672-dd5d-64a3-e96d-5dfb0942d1d9">
+      <Execution id="be7cbc9b-2d44-436b-a569-68976c575368" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests" name="Verification_RequiresTargetNodeCheckableObservation" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;malformed&quot;, expected: False)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="14589d19-c726-c20d-b7e2-a980eb92cc81">
+      <Execution id="ef84a194-b7b4-4350-8408-4355aaafa15e" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests" name="Verification_RequiresTargetNodeCheckableObservation" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;old-capture&quot;, expected: False)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="5eab89ef-2ac7-c394-a485-afae29eb6838">
+      <Execution id="b90253a7-93f1-4314-8dc7-3248041dce91" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests" name="Verification_RequiresTargetNodeCheckableObservation" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;false&quot;, expected: False)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="df8f5809-2504-813e-3ccd-b31b44346b35">
+      <Execution id="7410c94d-cca3-4999-b428-1f51732e54a5" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests" name="Verification_RequiresTargetNodeCheckableObservation" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;mismatched-metadata&quot;, expected: False)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="d2f81fcd-90b7-9b41-72ce-beec95f26c85">
+      <Execution id="16ef4949-a63a-40bb-92bf-5d973471b273" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests" name="Verification_RequiresTargetNodeCheckableObservation" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;true&quot;, expected: True)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="3a7ecbba-b2e9-705d-e6e6-07466cfca966">
+      <Execution id="deaff235-6374-463f-b1e2-a6d7e9042f91" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests" name="Verification_RequiresTargetNodeCheckableObservation" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: &quot;missing&quot;, expected: False)" storage="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/uniclaw.kernel.tests/bin/debug/net10.0/uniclaw.kernel.tests.dll" id="b17e88e8-f0d9-9401-9b70-fbd624bcdaea">
+      <Execution id="d6073ac8-d316-402a-9717-f2d333ff4a74" />
+      <TestMethod codeBase="/private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests" name="Verification_RequiresTargetNodeCheckableObservation" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="3a7ecbba-b2e9-705d-e6e6-07466cfca966" executionId="deaff235-6374-463f-b1e2-a6d7e9042f91" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="14589d19-c726-c20d-b7e2-a980eb92cc81" executionId="ef84a194-b7b4-4350-8408-4355aaafa15e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5eab89ef-2ac7-c394-a485-afae29eb6838" executionId="b90253a7-93f1-4314-8dc7-3248041dce91" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="df8f5809-2504-813e-3ccd-b31b44346b35" executionId="7410c94d-cca3-4999-b428-1f51732e54a5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5482b672-dd5d-64a3-e96d-5dfb0942d1d9" executionId="be7cbc9b-2d44-436b-a569-68976c575368" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d2f81fcd-90b7-9b41-72ce-beec95f26c85" executionId="16ef4949-a63a-40bb-92bf-5d973471b273" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b17e88e8-f0d9-9401-9b70-fbd624bcdaea" executionId="d6073ac8-d316-402a-9717-f2d333ff4a74" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="7" executed="7" passed="1" failed="6" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Kernel.Tests
+[xUnit.net 00:00:00.09]   Discovered:  UniClaw.Kernel.Tests
+[xUnit.net 00:00:00.09]   Starting:    UniClaw.Kernel.Tests
+[xUnit.net 00:00:00.14]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:00.14]       Expected: False
+[xUnit.net 00:00:00.14]       Actual:   True
+[xUnit.net 00:00:00.14]       Stack Trace:
+[xUnit.net 00:00:00.14]         /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs(65,0): at UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(String guard, Boolean expected)
+[xUnit.net 00:00:00.14]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.14]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.14]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:00.14]       Expected: False
+[xUnit.net 00:00:00.14]       Actual:   True
+[xUnit.net 00:00:00.14]       Stack Trace:
+[xUnit.net 00:00:00.14]         /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs(65,0): at UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(String guard, Boolean expected)
+[xUnit.net 00:00:00.14]            at InvokeStub_CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(Object, Span`1)
+[xUnit.net 00:00:00.14]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.14]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:00.14]       Expected: False
+[xUnit.net 00:00:00.14]       Actual:   True
+[xUnit.net 00:00:00.14]       Stack Trace:
+[xUnit.net 00:00:00.14]         /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs(65,0): at UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(String guard, Boolean expected)
+[xUnit.net 00:00:00.14]            at InvokeStub_CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(Object, Span`1)
+[xUnit.net 00:00:00.14]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.14]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:00.14]       Expected: False
+[xUnit.net 00:00:00.14]       Actual:   True
+[xUnit.net 00:00:00.14]       Stack Trace:
+[xUnit.net 00:00:00.14]         /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs(65,0): at UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(String guard, Boolean expected)
+[xUnit.net 00:00:00.14]            at InvokeStub_CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(Object, Span`1)
+[xUnit.net 00:00:00.14]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.14]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:00.14]       Expected: False
+[xUnit.net 00:00:00.14]       Actual:   True
+[xUnit.net 00:00:00.14]       Stack Trace:
+[xUnit.net 00:00:00.14]         /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs(65,0): at UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(String guard, Boolean expected)
+[xUnit.net 00:00:00.14]            at InvokeStub_CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(Object, Span`1)
+[xUnit.net 00:00:00.14]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.14]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:00.14]       Expected: False
+[xUnit.net 00:00:00.14]       Actual:   True
+[xUnit.net 00:00:00.14]       Stack Trace:
+[xUnit.net 00:00:00.14]         /private/tmp/uniclaw-checked-guard-_xeh54wl/tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs(65,0): at UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(String guard, Boolean expected)
+[xUnit.net 00:00:00.14]            at InvokeStub_CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(Object, Span`1)
+[xUnit.net 00:00:00.14]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.14]   Finished:    UniClaw.Kernel.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T21:48:24.8105520+08:00">
+        <Text>[xUnit.net 00:00:00.14]     UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: "other-node", expected: False) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T21:48:24.8122660+08:00">
+        <Text>[xUnit.net 00:00:00.14]     UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: "old-capture", expected: False) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T21:48:24.8124510+08:00">
+        <Text>[xUnit.net 00:00:00.14]     UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: "malformed", expected: False) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T21:48:24.8125350+08:00">
+        <Text>[xUnit.net 00:00:00.14]     UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: "missing", expected: False) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T21:48:24.8126430+08:00">
+        <Text>[xUnit.net 00:00:00.14]     UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: "mismatched-metadata", expected: False) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T21:48:24.8127110+08:00">
+        <Text>[xUnit.net 00:00:00.14]     UniClaw.Kernel.Tests.Perception.UiHierarchy.CheckedGuardPublicTests.Verification_RequiresTargetNodeCheckableObservation(guard: "false", expected: False) [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

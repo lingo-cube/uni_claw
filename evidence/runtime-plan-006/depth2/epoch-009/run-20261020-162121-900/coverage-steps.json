@@ -1,0 +1,92 @@
+[
+  {
+    "index": 0,
+    "decisionId": "decision-c3f6b427ccbf-1",
+    "dshSessionId": "session-7b3e9d73-60dd-46b3-a219-f08d530b1c4d",
+    "directive": null,
+    "targetRole": "ui.element",
+    "targetDescriptor": "Apps",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-1-occ-3f72fba4700c-5-1",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 1328",
+    "routeBefore": "android.settings|rk1:Settings|src=homepage_title|up=0",
+    "routeAfter": "android.settings|rk1:Apps|src=collapsing_toolbar|up=1",
+    "postCaptureId": "capture-406fca6d570e4152b7077c0df70ff81d",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "decisionId": "decision-c3f6b427ccbf-1",
+    "dshSessionId": "session-7b3e9d73-60dd-46b3-a219-f08d530b1c4d",
+    "directive": null,
+    "targetRole": "ui.element",
+    "targetDescriptor": "Default apps",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-2-occ-872d781f120f-3-2",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "adb -s emulator-5556 shell input tap 540 888",
+    "routeBefore": "android.settings|rk1:Apps|src=collapsing_toolbar|up=1",
+    "routeAfter": "android.settings|rk1:Default apps|src=collapsing_toolbar|up=1",
+    "postCaptureId": "capture-08173a863262439ca1bac49827ad4e6e",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ]
+  }
+]

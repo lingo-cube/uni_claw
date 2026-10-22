@@ -1,0 +1,21 @@
+  UniClaw.Core -> /private/tmp/uniclaw-sim016-zy6kokur/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/tmp/uniclaw-sim016-zy6kokur/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Host -> /private/tmp/uniclaw-sim016-zy6kokur/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+  UniClaw.Host.Tests -> /private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll
+/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.10]     UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: "sim-dialog") [FAIL]
+  失败 UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: "sim-dialog") [8 ms]
+  错误消息:
+   System.IO.InvalidDataException : popup-capture-order-or-correlation
+  堆栈跟踪:
+     at UniClaw.Host.Tests.PopupReplay.RecordedPopupEpisodes.Extract(String id, Boolean requireRecordedClearance) in /private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/PopupReplay/RecordedPopupEpisodes.cs:line 55
+   at UniClaw.Host.Tests.RecordedPopupReplayTests.<>c__DisplayClass1_0.<OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible>b__0() in /private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/RecordedPopupReplayTests.cs:line 15
+   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in /private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs:line 50
+   at UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(String id) in /private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/RecordedPopupReplayTests.cs:line 15
+   at InvokeStub_RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+警告: 正在覆盖结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/sim-016/wrong-recording-correlation.trx
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/sim-016/wrong-recording-correlation.trx
+
+失败!  - 失败:     1，通过:     1，已跳过:     0，总计:     2，持续时间: 32 ms - UniClaw.Host.Tests.dll (net10.0)

@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="636cc808-cf57-4e7f-8da9-f68d6d271d6b" name="@frandeMac-mini 2026-10-22 23:23:27" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T23:23:27.9433070+08:00" queuing="2026-10-22T23:23:27.9433070+08:00" start="2026-10-22T23:23:27.2719030+08:00" finish="2026-10-22T23:23:27.9470750+08:00" />
+  <TestSettings name="default" id="1518dd04-51c6-427b-aec8-b2802069e9a1">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-22_23_23_27" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="62946f39-2b8d-4fc0-b69e-84cbd79687ea" testId="1c48e5fd-750f-d103-1314-4758fde98feb" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.UnchangedPinsAllowFactoryOnceAndExposeManifestHash" computerName="frandeMac-mini" duration="00:00:00.0016994" startTime="2026-10-22T23:23:27.7476860+08:00" endTime="2026-10-22T23:23:27.7476860+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="62946f39-2b8d-4fc0-b69e-84cbd79687ea" />
+    <UnitTestResult executionId="8b412dbf-3b6f-4750-a39b-b605130910e9" testId="2c31248b-fad1-de74-17c4-e9f71c794ebe" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;replay-input&quot;, path: &quot;input.bin&quot;)" computerName="frandeMac-mini" duration="00:00:00.0000530" startTime="2026-10-22T23:23:27.7472190+08:00" endTime="2026-10-22T23:23:27.7472190+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8b412dbf-3b6f-4750-a39b-b605130910e9">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: No exception was thrown
+Expected: typeof(System.IO.InvalidDataException)</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(String kind, String path) in /private/tmp/uniclaw-sim014-guard-kkdzn7id/ComponentReplayGovernanceTests.cs:line 34
+   at InvokeStub_ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="c50e3a64-2b52-4a9d-88d3-bcbcee13104f" testId="e3724e85-583f-f25d-accd-522c6fd252b2" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;simulation-adapter&quot;, path: &quot;adapter.bin&quot;)" computerName="frandeMac-mini" duration="00:00:00.0001151" startTime="2026-10-22T23:23:27.7467040+08:00" endTime="2026-10-22T23:23:27.7467040+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c50e3a64-2b52-4a9d-88d3-bcbcee13104f">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: No exception was thrown
+Expected: typeof(System.IO.InvalidDataException)</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(String kind, String path) in /private/tmp/uniclaw-sim014-guard-kkdzn7id/ComponentReplayGovernanceTests.cs:line 34
+   at InvokeStub_ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="757298d3-7e41-4081-830d-694762aed17c" testId="dfd64989-7443-50ea-33c3-12e3c3eb0c39" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.CausalChangeIsRecordedWithoutHardCodingOneChangeIntoTheGuard" computerName="frandeMac-mini" duration="00:00:00.0012189" startTime="2026-10-22T23:23:27.7476290+08:00" endTime="2026-10-22T23:23:27.7476290+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="757298d3-7e41-4081-830d-694762aed17c" />
+    <UnitTestResult executionId="045e4a34-a1e1-4884-8c0f-8d38603afd1f" testId="223981ff-d262-0071-9c47-ef9a718e9aa5" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.UnrecognizedCompositionSchemaRejectsBeforeFactory" computerName="frandeMac-mini" duration="00:00:00.0002888" startTime="2026-10-22T23:23:27.7477040+08:00" endTime="2026-10-22T23:23:27.7477040+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="045e4a34-a1e1-4884-8c0f-8d38603afd1f" />
+    <UnitTestResult executionId="c3ff704a-2103-4edd-9f6b-3673bedfc836" testId="3e04f7ec-b6c8-90c4-0c4f-26ccc162bf28" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;product-implementation&quot;, path: &quot;implementation.bin&quot;)" computerName="frandeMac-mini" duration="00:00:00.0005004" startTime="2026-10-22T23:23:27.7460340+08:00" endTime="2026-10-22T23:23:27.7460340+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c3ff704a-2103-4edd-9f6b-3673bedfc836">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: No exception was thrown
+Expected: typeof(System.IO.InvalidDataException)</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(String kind, String path) in /private/tmp/uniclaw-sim014-guard-kkdzn7id/ComponentReplayGovernanceTests.cs:line 34
+   at InvokeStub_ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="821e34c3-1fbc-407b-8bd0-9dec3ffc3620" testId="3e4802c9-aa13-fdeb-7347-198a5ef52d9d" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;oracle&quot;, path: &quot;oracle.bin&quot;)" computerName="frandeMac-mini" duration="00:00:00.0174486" startTime="2026-10-22T23:23:27.7447110+08:00" endTime="2026-10-22T23:23:27.7447180+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="821e34c3-1fbc-407b-8bd0-9dec3ffc3620">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: No exception was thrown
+Expected: typeof(System.IO.InvalidDataException)</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(String kind, String path) in /private/tmp/uniclaw-sim014-guard-kkdzn7id/ComponentReplayGovernanceTests.cs:line 34
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="641486ab-f0c5-4062-8980-e36db605c66b" testId="0e50fa18-db99-257f-f915-9141295b4334" testName="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;product-contract&quot;, path: &quot;contract.bin&quot;)" computerName="frandeMac-mini" duration="00:00:00.0000496" startTime="2026-10-22T23:23:27.7468800+08:00" endTime="2026-10-22T23:23:27.7468800+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="641486ab-f0c5-4062-8980-e36db605c66b">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: No exception was thrown
+Expected: typeof(System.IO.InvalidDataException)</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(String kind, String path) in /private/tmp/uniclaw-sim014-guard-kkdzn7id/ComponentReplayGovernanceTests.cs:line 34
+   at InvokeStub_ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.CausalChangeIsRecordedWithoutHardCodingOneChangeIntoTheGuard" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="dfd64989-7443-50ea-33c3-12e3c3eb0c39">
+      <Execution id="757298d3-7e41-4081-830d-694762aed17c" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="CausalChangeIsRecordedWithoutHardCodingOneChangeIntoTheGuard" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;product-contract&quot;, path: &quot;contract.bin&quot;)" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="0e50fa18-db99-257f-f915-9141295b4334">
+      <Execution id="641486ab-f0c5-4062-8980-e36db605c66b" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="EveryContentCategoryRejectsBeforeFactory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;product-implementation&quot;, path: &quot;implementation.bin&quot;)" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="3e04f7ec-b6c8-90c4-0c4f-26ccc162bf28">
+      <Execution id="c3ff704a-2103-4edd-9f6b-3673bedfc836" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="EveryContentCategoryRejectsBeforeFactory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.UnrecognizedCompositionSchemaRejectsBeforeFactory" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="223981ff-d262-0071-9c47-ef9a718e9aa5">
+      <Execution id="045e4a34-a1e1-4884-8c0f-8d38603afd1f" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="UnrecognizedCompositionSchemaRejectsBeforeFactory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;oracle&quot;, path: &quot;oracle.bin&quot;)" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="3e4802c9-aa13-fdeb-7347-198a5ef52d9d">
+      <Execution id="821e34c3-1fbc-407b-8bd0-9dec3ffc3620" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="EveryContentCategoryRejectsBeforeFactory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;simulation-adapter&quot;, path: &quot;adapter.bin&quot;)" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="e3724e85-583f-f25d-accd-522c6fd252b2">
+      <Execution id="c50e3a64-2b52-4a9d-88d3-bcbcee13104f" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="EveryContentCategoryRejectsBeforeFactory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: &quot;replay-input&quot;, path: &quot;input.bin&quot;)" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="2c31248b-fad1-de74-17c4-e9f71c794ebe">
+      <Execution id="8b412dbf-3b6f-4750-a39b-b605130910e9" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="EveryContentCategoryRejectsBeforeFactory" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.UnchangedPinsAllowFactoryOnceAndExposeManifestHash" storage="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/debug/net10.0/guard.dll" id="1c48e5fd-750f-d103-1314-4758fde98feb">
+      <Execution id="62946f39-2b8d-4fc0-b69e-84cbd79687ea" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim014-guard-kkdzn7id/bin/Debug/net10.0/guard.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Simulation.Tests.ComponentReplayGovernanceTests" name="UnchangedPinsAllowFactoryOnceAndExposeManifestHash" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="1c48e5fd-750f-d103-1314-4758fde98feb" executionId="62946f39-2b8d-4fc0-b69e-84cbd79687ea" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2c31248b-fad1-de74-17c4-e9f71c794ebe" executionId="8b412dbf-3b6f-4750-a39b-b605130910e9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e3724e85-583f-f25d-accd-522c6fd252b2" executionId="c50e3a64-2b52-4a9d-88d3-bcbcee13104f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dfd64989-7443-50ea-33c3-12e3c3eb0c39" executionId="757298d3-7e41-4081-830d-694762aed17c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="223981ff-d262-0071-9c47-ef9a718e9aa5" executionId="045e4a34-a1e1-4884-8c0f-8d38603afd1f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3e04f7ec-b6c8-90c4-0c4f-26ccc162bf28" executionId="c3ff704a-2103-4edd-9f6b-3673bedfc836" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3e4802c9-aa13-fdeb-7347-198a5ef52d9d" executionId="821e34c3-1fbc-407b-8bd0-9dec3ffc3620" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0e50fa18-db99-257f-f915-9141295b4334" executionId="641486ab-f0c5-4062-8980-e36db605c66b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="8" executed="8" passed="3" failed="5" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: guard
+[xUnit.net 00:00:00.05]   Discovered:  guard
+[xUnit.net 00:00:00.05]   Starting:    guard
+[xUnit.net 00:00:00.09]       Assert.Throws() Failure: No exception was thrown
+[xUnit.net 00:00:00.09]       Expected: typeof(System.IO.InvalidDataException)
+[xUnit.net 00:00:00.09]       Stack Trace:
+[xUnit.net 00:00:00.09]         /private/tmp/uniclaw-sim014-guard-kkdzn7id/ComponentReplayGovernanceTests.cs(34,0): at UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(String kind, String path)
+[xUnit.net 00:00:00.09]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.09]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.09]       Assert.Throws() Failure: No exception was thrown
+[xUnit.net 00:00:00.09]       Expected: typeof(System.IO.InvalidDataException)
+[xUnit.net 00:00:00.09]       Stack Trace:
+[xUnit.net 00:00:00.09]         /private/tmp/uniclaw-sim014-guard-kkdzn7id/ComponentReplayGovernanceTests.cs(34,0): at UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(String kind, String path)
+[xUnit.net 00:00:00.09]            at InvokeStub_ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(Object, Span`1)
+[xUnit.net 00:00:00.09]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.09]       Assert.Throws() Failure: No exception was thrown
+[xUnit.net 00:00:00.09]       Expected: typeof(System.IO.InvalidDataException)
+[xUnit.net 00:00:00.09]       Stack Trace:
+[xUnit.net 00:00:00.09]         /private/tmp/uniclaw-sim014-guard-kkdzn7id/ComponentReplayGovernanceTests.cs(34,0): at UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(String kind, String path)
+[xUnit.net 00:00:00.09]            at InvokeStub_ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(Object, Span`1)
+[xUnit.net 00:00:00.09]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.09]       Assert.Throws() Failure: No exception was thrown
+[xUnit.net 00:00:00.09]       Expected: typeof(System.IO.InvalidDataException)
+[xUnit.net 00:00:00.09]       Stack Trace:
+[xUnit.net 00:00:00.09]         /private/tmp/uniclaw-sim014-guard-kkdzn7id/ComponentReplayGovernanceTests.cs(34,0): at UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(String kind, String path)
+[xUnit.net 00:00:00.09]            at InvokeStub_ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(Object, Span`1)
+[xUnit.net 00:00:00.09]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.09]       Assert.Throws() Failure: No exception was thrown
+[xUnit.net 00:00:00.09]       Expected: typeof(System.IO.InvalidDataException)
+[xUnit.net 00:00:00.09]       Stack Trace:
+[xUnit.net 00:00:00.09]         /private/tmp/uniclaw-sim014-guard-kkdzn7id/ComponentReplayGovernanceTests.cs(34,0): at UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(String kind, String path)
+[xUnit.net 00:00:00.09]            at InvokeStub_ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(Object, Span`1)
+[xUnit.net 00:00:00.09]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.09]   Finished:    guard
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T23:23:27.7441600+08:00">
+        <Text>[xUnit.net 00:00:00.09]     UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: "oracle", path: "oracle.bin") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T23:23:27.7460920+08:00">
+        <Text>[xUnit.net 00:00:00.09]     UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: "product-implementation", path: "implementation.bin") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T23:23:27.7466930+08:00">
+        <Text>[xUnit.net 00:00:00.09]     UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: "simulation-adapter", path: "adapter.bin") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T23:23:27.7468290+08:00">
+        <Text>[xUnit.net 00:00:00.09]     UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: "product-contract", path: "contract.bin") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-22T23:23:27.7471740+08:00">
+        <Text>[xUnit.net 00:00:00.09]     UniClaw.Simulation.Tests.ComponentReplayGovernanceTests.EveryContentCategoryRejectsBeforeFactory(kind: "replay-input", path: "input.bin") [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

@@ -1,0 +1,18 @@
+{
+  "protectedFiles": 1910,
+  "unchanged": 1903,
+  "authorizedChanges": [
+    "src/UniClaw.Host/README.md",
+    "src/UniClaw.Host/SettingsTraversalLiveFeed.cs",
+    "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj",
+    "tests/UniClaw.Simulation.Tests/ScenarioCertificationTests.cs",
+    "tools/scenario-coverage.py",
+    "tools/tests/test_verify_entry.py",
+    "tools/verify-change"
+  ],
+  "oldScenarioEntriesUnchanged": 37,
+  "snapshotExecutableDrift": [],
+  "baseSourcePinsUnchanged": 70,
+  "popupSourcePinsMatch": 156,
+  "rawAssetsMatch": 16
+}

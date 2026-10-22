@@ -1,0 +1,14 @@
+{
+  "simulationProjectReferences": [
+    "..\\..\\src\\UniClaw.Kernel\\UniClaw.Kernel.csproj",
+    "..\\..\\src\\UniClaw.Agent\\UniClaw.Agent.csproj"
+  ],
+  "sha256": {
+    "src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll": "f95483181a867aef32a6d6498b89cb6c596a1213dbf3f6dde9936d1b5a34ab62",
+    "tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "f95483181a867aef32a6d6498b89cb6c596a1213dbf3f6dde9936d1b5a34ab62",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "f95483181a867aef32a6d6498b89cb6c596a1213dbf3f6dde9936d1b5a34ab62",
+    "src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Kernel.dll": "f95483181a867aef32a6d6498b89cb6c596a1213dbf3f6dde9936d1b5a34ab62"
+  },
+  "sameBuiltKernelArtifact": true,
+  "scope": "Current isolated Debug test build; no release qualification claim."
+}

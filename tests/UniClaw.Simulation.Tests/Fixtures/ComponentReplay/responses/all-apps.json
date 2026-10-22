@@ -1,0 +1,36 @@
+{
+  "requestId": "semantic:all-apps",
+  "captureId": "capture-36ea6f9a6231489a92c83d7ed6bd3a75",
+  "observationCycleId": "capture-36ea6f9a6231489a92c83d7ed6bd3a75",
+  "status": 0,
+  "observation": {
+    "pageKey": "all-apps",
+    "pageName": "All apps",
+    "pagePurpose": "Controlled semantic catalogue for All apps",
+    "observedTitle": "All apps",
+    "assessment": {
+      "disposition": 0,
+      "coverage": "CompleteWithinDeclaredSurface",
+      "uncertainty": "Bounded",
+      "associationQuality": "Unassociated",
+      "sourcePath": "controlled-semantic-supply",
+      "providerConfidence": null,
+      "diagnostic": null
+    },
+    "basisEvidenceIds": [
+      "ev-a348dbca3db73958eee05bf33f8b93f7e82a58f81d55d179a83aa36640bfc912",
+      "ev-43435caba1732baa210dc7d97349662e75971320f8439c7ff818ba715598e297"
+    ]
+  },
+  "relation": 2,
+  "expectedMatch": 1,
+  "assessment": {
+    "disposition": 0,
+    "coverage": "CompleteWithinDeclaredSurface",
+    "uncertainty": "Bounded",
+    "associationQuality": "Unassociated",
+    "sourcePath": "controlled-semantic-supply",
+    "providerConfidence": null,
+    "diagnostic": null
+  }
+}

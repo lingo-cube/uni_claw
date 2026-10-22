@@ -1,0 +1,620 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "component-isolated",
+      "valid": true,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "legacy-default-unchanged",
+      "valid": true,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "double",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "TerminalNotProven",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "component-effect-sut",
+      "valid": true,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 1,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "missing-scope",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "unknown-scope",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "runtime",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "component-decision-double",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "double",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "component-golden",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "golden-bundle",
+          "carrier": "fixture"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "component-evaluation-real",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "real",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "agent-consulted",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 1,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "goal-completion-claim",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": "Satisfied"
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "runtime-status-claim",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "TerminalNotProven",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "agent-in-components",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception",
+          "agent"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "uni-agent-in-components",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "uni-agent"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "wrong-source",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "recorded",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "classification-claim",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": "Success",
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "empty-components",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "missing-expectations",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "missing-consultations",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "agentDecisionRealization": "not-applicable",
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    },
+    {
+      "id": "missing-decision",
+      "valid": false,
+      "data": {
+        "id": "SCN-FIXTURE-001",
+        "name": "Component annotation contract",
+        "source": "component-test",
+        "testScope": "component",
+        "purpose": "Fixed independent metadata oracle",
+        "capability": "component-replay",
+        "components": [
+          "perception"
+        ],
+        "status": "passing",
+        "version": 1,
+        "goalEvaluationRealization": "not-applicable",
+        "expectations": {
+          "status": "not-applicable",
+          "classification": null,
+          "effects": 0,
+          "agentConsultations": 0,
+          "unconsumedStimuli": 0,
+          "goalSatisfaction": null
+        },
+        "execution": {
+          "kind": "none"
+        },
+        "security": {
+          "sensitiveReview": "cleared"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "SCN-REPLAY-008": {
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: \"sims\", supplier: \"scripted\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: \"sims\", supplier: \"frozen-response\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: \"all-apps\", supplier: \"scripted\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: \"all-apps\", supplier: \"frozen-response\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: \"default-apps\", supplier: \"scripted\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: \"default-apps\", supplier: \"frozen-response\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SameConsumerClosurePreservesFailureAndObservationDimensions(supplier: \"scripted\", variant: \"unavailable\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SameConsumerClosurePreservesFailureAndObservationDimensions(supplier: \"frozen-response\", variant: \"unavailable\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SameConsumerClosurePreservesFailureAndObservationDimensions(supplier: \"scripted\", variant: \"conflicted-intent\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SameConsumerClosurePreservesFailureAndObservationDimensions(supplier: \"frozen-response\", variant: \"conflicted-intent\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SameConsumerClosurePreservesFailureAndObservationDimensions(supplier: \"scripted\", variant: \"misbound-response\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SameConsumerClosurePreservesFailureAndObservationDimensions(supplier: \"frozen-response\", variant: \"misbound-response\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.CancellationTerminatesAttempt_LateSupplierReplyCannotReplaceTheReturnedResult(supplier: \"scripted\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentSemanticReplayTests.CancellationTerminatesAttempt_LateSupplierReplyCannotReplaceTheReturnedResult(supplier: \"frozen-response\")": "Passed"
+  },
+  "SCN-REPLAY-009": {
+    "UniClaw.Simulation.Tests.ComponentWorldReplayTests.SameWorldConsumerUsesTwoRecordedLayoutSources_SharedCaptureFaultPausesThenRecovers(id: \"sims\", supplier: \"typed-import\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentWorldReplayTests.SameWorldConsumerUsesTwoRecordedLayoutSources_SharedCaptureFaultPausesThenRecovers(id: \"sims\", supplier: \"frozen-capture\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentWorldReplayTests.SameWorldConsumerUsesTwoRecordedLayoutSources_SharedCaptureFaultPausesThenRecovers(id: \"all-apps\", supplier: \"typed-import\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentWorldReplayTests.SameWorldConsumerUsesTwoRecordedLayoutSources_SharedCaptureFaultPausesThenRecovers(id: \"all-apps\", supplier: \"frozen-capture\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentWorldReplayTests.SameWorldConsumerUsesTwoRecordedLayoutSources_SharedCaptureFaultPausesThenRecovers(id: \"default-apps\", supplier: \"typed-import\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentWorldReplayTests.SameWorldConsumerUsesTwoRecordedLayoutSources_SharedCaptureFaultPausesThenRecovers(id: \"default-apps\", supplier: \"frozen-capture\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentWorldReplayTests.ContradictoryIdentityAfterConfirmationBecomesUnknown_OriginalRevisionRemainsUnchanged(supplier: \"typed-import\")": "Passed",
+    "UniClaw.Simulation.Tests.ComponentWorldReplayTests.ContradictoryIdentityAfterConfirmationBecomesUnknown_OriginalRevisionRemainsUnchanged(supplier: \"frozen-capture\")": "Passed"
+  }
+}

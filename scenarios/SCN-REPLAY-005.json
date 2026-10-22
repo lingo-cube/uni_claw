@@ -1,0 +1,35 @@
+{
+  "id": "SCN-REPLAY-005",
+  "name": "录制开关：Unknown 后验拒绝与等待恢复",
+  "source": "recorded",
+  "purpose": "旧 XML checked=false 保持 Unknown；恢复 post 后 typed 验证仍拒绝，不伪造关闭证明",
+  "capability": "recorded-state-verification",
+  "components": [
+    "perception",
+    "evidence-ledger",
+    "world-model",
+    "control",
+    "effect-boundary",
+    "assurance",
+    "runtime"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "not-applicable",
+  "expectations": {
+    "status": "TerminalNotProven",
+    "classification": null,
+    "effects": 1,
+    "agentConsultations": 2,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "none"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "既有fastscreen-v1本地录制XML；输入hash与详细期望见recorded-operations.json，无新采集"
+  }
+}

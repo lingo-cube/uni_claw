@@ -1,0 +1,103 @@
+{
+  "change": "SIM-009",
+  "status": "CLOSED_SCOPE_VERIFIED",
+  "level": "SCENARIO",
+  "method": "isolate source snapshot; replay RED/GREEN; existing full command plus explicit omitted Host.Dsh and affected Simulation/Host reruns; fresh TRX coverage; sequential independent two-axis review",
+  "expected": "state.md Acceptance1-6; real product owner chain, independent expectations, reproducible error and correction, no src/shared-index/model/device edits",
+  "actual": {
+    "projects": [
+      {
+        "project": "UniClaw.Agent.Tests",
+        "total": 36,
+        "passed": 36,
+        "failed": 0,
+        "evidence": "full.txt"
+      },
+      {
+        "project": "UniClaw.Agent.Dsh.Tests",
+        "total": 212,
+        "passed": 212,
+        "failed": 0,
+        "evidence": "full.txt"
+      },
+      {
+        "project": "UniClaw.Core.Tests",
+        "total": 14,
+        "passed": 14,
+        "failed": 0,
+        "evidence": "full.txt"
+      },
+      {
+        "project": "UniClaw.FileSystemRealization.Tests",
+        "total": 9,
+        "passed": 9,
+        "failed": 0,
+        "evidence": "full.txt"
+      },
+      {
+        "project": "UniClaw.Kernel.Tests",
+        "total": 1037,
+        "passed": 1037,
+        "failed": 0,
+        "evidence": "full.txt"
+      },
+      {
+        "project": "UniClaw.Simulation.Tests",
+        "total": 263,
+        "passed": 263,
+        "failed": 0,
+        "evidence": "simulation-reviewed.trx"
+      },
+      {
+        "project": "UniClaw.Host.Tests",
+        "total": 411,
+        "passed": 411,
+        "failed": 0,
+        "evidence": "host-final.trx"
+      },
+      {
+        "project": "UniClaw.Host.Dsh.Tests",
+        "total": 56,
+        "passed": 56,
+        "failed": 0,
+        "evidence": "host-dsh-final.trx"
+      }
+    ],
+    "total": 2038,
+    "passed": 2038,
+    "newReplayTests": 11,
+    "recordedReplayHostTestsIncluded": 20,
+    "scenarios": {
+      "total": 31,
+      "passing": 31,
+      "certified": 20,
+      "descriptive": 11
+    },
+    "standards": "PASS_AFTER_NAVIGATION_ORACLE_FIX",
+    "spec": "PASS_AFTER_EVIDENCE_RECHECK",
+    "initialFullStatus": "FAIL_RETAINED",
+    "finalCompositeStatus": "PASS",
+    "sourceSnapshotMatches": true
+  },
+  "evidence": [
+    "report.md",
+    "review.md",
+    "module-results.json",
+    "full.txt",
+    "simulation-reviewed.trx",
+    "host-final.trx",
+    "host-dsh-final.trx",
+    "coverage-reviewed.txt",
+    "navigation-oracle-red.trx",
+    "frozen-source.json",
+    "protected-files-check.json"
+  ],
+  "environmentEvidence": false,
+  "limitations": [
+    "synthetic semantic captures and scripted agent in new tests",
+    "existing recorded XML replay is offline, not current device evidence",
+    "dedicated scenarios are not golden-bundle certified",
+    "shared full script omits Host.Dsh, explicitly supplemented here",
+    "no product code fix or arbitrary counterfactual simulator implemented"
+  ]
+}

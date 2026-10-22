@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\UniClaw.Host\UniClaw.Host.csproj" />
+    <!-- Shared test-only content gate; no reference to the Simulation composition root. -->
+    <Compile Include="..\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs" Link="PopupReplay\ReplayCompositionGuard.cs" />
   </ItemGroup>
 
 </Project>

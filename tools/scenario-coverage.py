@@ -49,7 +49,9 @@ ROOT = Path(__file__).resolve().parent.parent
 SCENARIOS = ROOT / "scenarios"
 SCHEMA = SCENARIOS / "schema.json"
 SIM_TESTS = ROOT / "tests" / "UniClaw.Simulation.Tests"
-TRX_DIR = SIM_TESTS / "TestResults"
+HOST_TESTS = ROOT / "tests" / "UniClaw.Host.Tests"
+TEST_ROOTS = (SIM_TESTS, HOST_TESTS)
+TRX_DIR = SIM_TESTS / "TestResults"  # legacy single-root compatibility
 VALID_STATUS = {"passing", "failing", "pending-env", "not-implemented"}
 VALID_SOURCE = {"recorded", "synthetic", "derived-from-doc", "bug-repro", "component-test"}
 VALID_REALIZATION = {"real", "double", "not-applicable"}
@@ -62,40 +64,48 @@ OUTCOME_TO_STATUS = {
 }
 
 
-def run_tests() -> Path:
-    """Execute the simulation suite with a TRX logger; return the TRX path."""
-    TRX_DIR.mkdir(parents=True, exist_ok=True)
-    name = "coverage.trx"
-    result = subprocess.run(
-        ["dotnet", "test", str(SIM_TESTS), "--logger", f"trx;LogFileName={name}"],
-        cwd=ROOT,
-    )
-    trx = TRX_DIR / name
-    if result.returncode != 0:
-        print(f"  FAIL: dotnet test 退出码 {result.returncode}（测试存在失败 = 场景真值，"
-              f"以 TRX 派生状态为准继续）")
-    if not trx.exists():
-        print("  FAIL: dotnet test 未产出 TRX")
-        sys.exit(2)
-    return trx
-
-
-def discover_trx(explicit: str | None) -> Path:
-    if explicit:
-        path = Path(explicit)
-        if not path.exists():
-            print(f"  FAIL: TRX 不存在: {path}")
+def run_tests() -> list[Path]:
+    """Execute both buyer roots once; return one fresh TRX per root."""
+    results = []
+    for root in TEST_ROOTS:
+        trx_dir = root / "TestResults"
+        trx_dir.mkdir(parents=True, exist_ok=True)
+        name = "coverage.trx"
+        result = subprocess.run(
+            ["dotnet", "test", str(root), "--logger", f"trx;LogFileName={name}"],
+            cwd=ROOT,
+        )
+        trx = trx_dir / name
+        if result.returncode != 0:
+            print(f"  FAIL: {root.name} dotnet test 退出码 {result.returncode}（以 TRX 派生场景状态）")
+        if not trx.exists():
+            print(f"  FAIL: {root.name} dotnet test 未产出 TRX")
             sys.exit(2)
-        return path
-    candidates = sorted(TRX_DIR.glob("*.trx")) if TRX_DIR.exists() else []
-    if not candidates:
-        print("  FAIL: 无 TRX（先跑 dotnet test --logger trx，或用 --run）")
-        sys.exit(2)
-    return candidates[-1]
+        results.append(trx)
+    return results
+
+
+def discover_trx(explicit: str | list[str] | None) -> list[Path]:
+    if explicit:
+        items = explicit if isinstance(explicit, list) else [explicit]
+        paths = [Path(item) for item in items]
+        missing = [path for path in paths if not path.exists()]
+        if missing:
+            print("  FAIL: TRX 不存在: " + ", ".join(map(str, missing)))
+            sys.exit(2)
+        return paths
+    paths = []
+    for root in TEST_ROOTS:
+        candidates = sorted((root / "TestResults").glob("*.trx"))
+        if not candidates:
+            print(f"  FAIL: {root.name} 无 TRX（先运行该 buyer 测试并生成 TRX，或使用 --run）")
+            sys.exit(2)
+        paths.append(candidates[-1])
+    return paths
 
 
 def parse_trx(trx: Path) -> dict[str, str]:
-    """TRX → {测试 FQN: outcome}（同名多次执行取最后一次；namespace 无关）。"""
+    """TRX → {测试 FQN: outcome}（完整展示名精确 join；同名冲突拒绝，namespace 无关）。"""
     root = ET.parse(trx).getroot()
     outcomes: dict[str, str] = {}
     for result in root.iter():
@@ -103,8 +113,23 @@ def parse_trx(trx: Path) -> dict[str, str]:
             continue
         name, outcome = result.get("testName"), result.get("outcome")
         if name and outcome:
+            if name in outcomes and outcomes[name] != outcome:
+                raise ValueError(f"TRX 同名结果冲突: {name}: {outcomes[name]} / {outcome}")
             outcomes[name] = outcome
     return outcomes
+
+
+def merge_trx(paths: list[Path]) -> dict[str, str]:
+    """Join buyer results without hiding cross-root duplicate FQNs."""
+    merged: dict[str, str] = {}
+    owners: dict[str, Path] = {}
+    for path in paths:
+        for name, outcome in parse_trx(path).items():
+            if name in merged:
+                raise ValueError(f"TRX 映射歧义: {name} 同时出现在 {owners[name]} 与 {path}")
+            merged[name] = outcome
+            owners[name] = path
+    return merged
 
 
 def scenario_test_map(scenario_ids: list[str], *, no_build: bool = False) -> dict[str, list[str]]:
@@ -112,20 +137,21 @@ def scenario_test_map(scenario_ids: list[str], *, no_build: bool = False) -> dic
     if not no_build:
         # Preserve the explicit-TRX entry point's ability to build missing
         # binaries, but do it once before the read-only per-scenario probes.
-        warmup = subprocess.run(
-            ["dotnet", "test", str(SIM_TESTS), "--list-tests", "--no-restore"],
-            cwd=ROOT, capture_output=True, text=True,
-        )
-        if warmup.returncode != 0:
-            print("  FAIL: Simulation 测试枚举/构建失败：", file=sys.stderr)
-            print(warmup.stderr, file=sys.stderr)
-            sys.exit(2)
+        for root in TEST_ROOTS:
+            warmup = subprocess.run(
+                ["dotnet", "test", str(root), "--list-tests", "--no-restore"],
+                cwd=ROOT, capture_output=True, text=True,
+            )
+            if warmup.returncode != 0:
+                print(f"  FAIL: {root.name} 测试枚举/构建失败：", file=sys.stderr)
+                print(warmup.stderr, file=sys.stderr)
+                sys.exit(2)
         no_build = True
 
-    def discover(scenario_id: str) -> tuple[str, list[str]]:
+    def discover(project: Path, scenario_id: str) -> tuple[str, list[str]]:
         build_flags = ["--no-build", "--no-restore"] if no_build else []
         proc = subprocess.run(
-            ["dotnet", "test", str(SIM_TESTS), "--list-tests",
+            ["dotnet", "test", str(project), "--list-tests",
              *build_flags,
              "--filter", f"Scenario={scenario_id}"],
             cwd=ROOT, capture_output=True, text=True,
@@ -136,34 +162,53 @@ def scenario_test_map(scenario_ids: list[str], *, no_build: bool = False) -> dic
                 f"{scenario_id}: dotnet test --list-tests 退出码 {proc.returncode}"
                 + (f"：{detail}" if detail else "")
             )
-        fqns = re.findall(r"^\s+(UniClaw\.\S+)$", proc.stdout, re.M)
-        return scenario_id, [f.strip() for f in fqns]
+        # xUnit Theory display names include spaces, quotes and all arguments.
+        # Preserve the whole line for the exact TRX testName join. Only remove
+        # the list-tests indentation; never collapse to the method name.
+        fqns = re.findall(r"^[ \t]+(UniClaw\.[^\r\n]+)\r?$", proc.stdout, re.M)
+        return scenario_id, fqns
 
-    # The simulation binary is already built by run_tests() for --run, or by
-    # the single warmup above for an explicit TRX. Keep each filter
+    # Both binaries are built once above (or by --run); filtered probes do not build.
+    # Keep each filter
     # independent for trait truth, but avoid serial process startup.
     workers = min(4, max(1, len(scenario_ids)))
     try:
         with ThreadPoolExecutor(max_workers=workers) as pool:
-            return dict(pool.map(discover, scenario_ids))
+            pairs = [(project, sid) for sid in scenario_ids for project in TEST_ROOTS]
+            discovered = pool.map(lambda pair: discover(*pair), pairs)
+            merged = {sid: [] for sid in scenario_ids}
+            for sid, fqns in discovered:
+                repeated = set(merged[sid]).intersection(fqns)
+                if repeated:
+                    raise RuntimeError(f"{sid}: 跨测试根 Trait 映射歧义: {', '.join(sorted(repeated))}")
+                merged[sid].extend(fqns)
+            return merged
     except RuntimeError as exc:
         print(f"  FAIL: 场景 trait 映射失败：{exc}", file=sys.stderr)
         sys.exit(2)
 
 
-def freshness_violation(trx: Path) -> str | None:
+def freshness_violation(trx: Path | list[Path]) -> str | None:
     """TRX 必须不早于任何影响测试结果的内容（Kernel/Agent 源、仿真测试源、场景库）。"""
     watched: list[Path] = []
     for project in (ROOT / "src" / "UniClaw.Kernel", ROOT / "src" / "UniClaw.Agent"):
         for pattern in ("*.cs", "*.csproj"):
             watched.extend(p for p in project.rglob(pattern)
                            if "/bin/" not in p.as_posix() and "/obj/" not in p.as_posix())
-    watched.extend(SIM_TESTS.rglob("*.cs"))
+    for root in TEST_ROOTS:
+        watched.extend(p for p in root.rglob("*") if p.is_file() and p.suffix in {".cs", ".csproj"}
+                       and "/bin/" not in p.as_posix() and "/obj/" not in p.as_posix())
+    host_source = ROOT / "src" / "UniClaw.Host"
+    watched.extend(p for p in host_source.rglob("*.cs")
+                   if "/bin/" not in p.as_posix() and "/obj/" not in p.as_posix())
+    watched.extend(host_source.glob("*.csproj"))
     watched.extend(SCENARIOS.glob("SCN-*.json"))
     newest = max(p.stat().st_mtime for p in watched)
-    if trx.stat().st_mtime < newest:
+    paths = trx if isinstance(trx, list) else [trx]
+    stale_trx = [path for path in paths if path.stat().st_mtime < newest]
+    if stale_trx:
         stale = max(watched, key=lambda p: p.stat().st_mtime)
-        return f"TRX 陈旧（{trx.name} 早于 {stale.relative_to(ROOT).as_posix()} 的最后修改）——重跑 dotnet test 或使用 --run"
+        return f"TRX 陈旧（{', '.join(path.name for path in stale_trx)} 早于 {stale.relative_to(ROOT).as_posix()} 的最后修改）——重跑两个 buyer 测试或使用 --run"
     return None
 
 
@@ -200,6 +245,41 @@ def validate_entry(schema: dict | None, data: dict, filename: str) -> list[str]:
     ]
 
 
+def component_scope_violations(data: dict) -> list[str]:
+    """SIM-015 C7: N/A means Agent absent only in explicit component isolation."""
+    problems = []
+    scope = data.get("testScope")
+    if "testScope" in data and scope != "component":
+        problems.append("testScope must be component when present")
+    decision = data.get("agentDecisionRealization")
+    if scope != "component":
+        if decision not in {"real", "double"}:
+            problems.append("noncomponent decision must be real or double")
+        return problems
+    for field, expected in (("source", "component-test"),
+                            ("agentDecisionRealization", "not-applicable"),
+                            ("goalEvaluationRealization", "not-applicable")):
+        if data.get(field) != expected:
+            problems.append(f"component {field} must be {expected}")
+    execution = data.get("execution")
+    if not isinstance(execution, dict) or execution.get("kind") != "none":
+        problems.append("component execution.kind must be none")
+    components = data.get("components")
+    if (not isinstance(components, list) or not components
+            or any(not isinstance(value, str) or value in {"agent", "uni-agent"} for value in components)):
+        problems.append("component components must be nonempty without Agent")
+    expectations = data.get("expectations")
+    if not isinstance(expectations, dict):
+        problems.append("component expectations required")
+        return problems
+    for field, expected in (("status", "not-applicable"), ("agentConsultations", 0),
+                            ("classification", None), ("goalSatisfaction", None)):
+        if field not in expectations or expectations[field] != expected or (
+                field == "agentConsultations" and type(expectations[field]) is not int):
+            problems.append(f"component expectations.{field} must be {expected}")
+    return problems
+
+
 def load(trx_outcomes: dict[str, str], test_map: dict[str, list[str]]) -> tuple[list[dict], list[str]]:
     entries = []
     violations: list[str] = []
@@ -216,6 +296,7 @@ def load(trx_outcomes: dict[str, str], test_map: dict[str, list[str]]) -> tuple[
             continue
         # S5：schema v2 真校验（结构 / 枚举 / 必填 / additionalProperties）
         violations.extend(validate_entry(schema, data, f.name))
+        violations.extend(f"{f.name}: {problem}" for problem in component_scope_violations(data))
         # 语义级执法（schema 之外的策略）
         if data.get("status") not in VALID_STATUS:
             violations.append(f"{f.name}: invalid status '{data.get('status')}'")
@@ -273,19 +354,25 @@ def main() -> int:
     args = sys.argv[1:]
     by_component = "--by-component" in args
     do_run = "--run" in args
-    trx_arg = None
-    if "--trx" in args:
-        trx_arg = args[args.index("--trx") + 1]
+    trx_args = []
+    for index, arg in enumerate(args[:-1]):
+        if arg == "--trx":
+            trx_args.append(args[index + 1])
+    trx_arg = trx_args or None
 
-    trx = run_tests() if do_run else discover_trx(trx_arg)
-    trx_outcomes = parse_trx(trx)
+    trx_paths = run_tests() if do_run else discover_trx(trx_arg)
+    try:
+        trx_outcomes = merge_trx(trx_paths)
+    except ValueError as exc:
+        print(f"  FAIL: {exc}", file=sys.stderr)
+        return 2
     scenario_ids = [p.stem for p in sorted(SCENARIOS.glob("SCN-*.json"))]
     # The explicit --trx path retains one build-capable warmup. The default
     # latest-TRX path is read-only and requires the existing test binary.
     test_map = scenario_test_map(scenario_ids, no_build=do_run or trx_arg is None)
     entries, violations = load(trx_outcomes, test_map)
 
-    stale = freshness_violation(trx)
+    stale = freshness_violation(trx_paths)
     if stale:
         violations.append(stale)
 
@@ -294,7 +381,7 @@ def main() -> int:
         return 1
 
     print(f"{'='*60}")
-    print(f" Scenario Library Coverage Report (truth: {trx.name})")
+    print(f" Scenario Library Coverage Report (truth: {', '.join(p.name for p in trx_paths)})")
     print(f"{'='*60}")
     print(f" Total: {len(entries)} scenarios\n")
 
@@ -359,7 +446,7 @@ def main() -> int:
             print(f"    {v}")
     else:
         certified_count = len(entries) - len(uncertified)
-        print(f"  truth chain verified against {trx.name}: {len(entries)} scenarios, {certified_count} certified + {len(uncertified)} descriptive")
+        print(f"  truth chain verified against {', '.join(p.name for p in trx_paths)}: {len(entries)} scenarios, {certified_count} certified + {len(uncertified)} descriptive")
 
     print(f"\n{'='*60}")
     return 0 if not violations else 1

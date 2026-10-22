@@ -13,6 +13,8 @@
 
 ---
 
+> 2026-10-22 补充：无 Agent 的组件隔离场景遵循 [C7 component delta](simulation-baseline-v0.2-c7-component-delta.md)；该例外仅适用于显式 testScope=component，原整装约束继续有效。
+
 ## 修订范围
 
 本文件是 **delta 修订**：v0.1 全文继续有效，唯 C7 由下文取代。目的、

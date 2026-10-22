@@ -593,6 +593,7 @@ public sealed class KernelRunDriverTests
                     ? new RunDriverInput.Observation(new[]
                     {
                         PostActionObservation("switch:primary@on", UIWorldDoubles.T1),
+                        CheckedGuardFixture.Checkable(TypedCheckedClaim("checked", T1)),
                         TypedCheckedClaim("checked", T1),
                     })
                     : null,
@@ -606,7 +607,7 @@ public sealed class KernelRunDriverTests
         var kernel = new UniKernel(
             new EvidenceLedger(),
             new WorldModel(
-                new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
+                new HashSet<string> { UIWorldDoubles.Observed, TypedSubject, CheckedGuardFixture.SubjectFor(TypedSubject) },
                 new SeedContainerAssociationStrategy(),
                 new StatefulObservationStrategy(cid),
                 new RoleContinuityStrategy()),
@@ -618,7 +619,7 @@ public sealed class KernelRunDriverTests
         Assert.True(kernel.AdmitContract(new ExecutionContract(
             Version: "v1",
             Objective: "turn-switch-on",
-            Scope: new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
+            Scope: new HashSet<string> { UIWorldDoubles.Observed, TypedSubject, CheckedGuardFixture.SubjectFor(TypedSubject) },
             AllowedEffects: new HashSet<string> { "toggle" },
             ForbiddenEffects: new HashSet<string>(),
             ProofCriteria: new[] { "switch-on" },
@@ -686,7 +687,7 @@ public sealed class KernelRunDriverTests
         var kernel = new UniKernel(
             new EvidenceLedger(),
             new WorldModel(
-                new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
+                new HashSet<string> { UIWorldDoubles.Observed, TypedSubject, CheckedGuardFixture.SubjectFor(TypedSubject) },
                 new SeedContainerAssociationStrategy(),
                 new StatefulObservationStrategy(cid),
                 new RoleContinuityStrategy()),
@@ -698,7 +699,7 @@ public sealed class KernelRunDriverTests
         Assert.True(kernel.AdmitContract(new ExecutionContract(
             Version: "v1",
             Objective: "turn-switch-on",
-            Scope: new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
+            Scope: new HashSet<string> { UIWorldDoubles.Observed, TypedSubject, CheckedGuardFixture.SubjectFor(TypedSubject) },
             AllowedEffects: new HashSet<string> { "toggle" },
             ForbiddenEffects: new HashSet<string>(),
             ProofCriteria: new[] { "switch-on" },

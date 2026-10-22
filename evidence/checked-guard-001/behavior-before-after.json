@@ -1,0 +1,761 @@
+[
+  {
+    "case": "ambiguous post",
+    "inputUnchanged": true,
+    "expected": {
+      "verified": false,
+      "phase": "VerificationFailed",
+      "rejectionReasonContains": "occurrence-ambiguous"
+    },
+    "before": {
+      "verification": [
+        {
+          "revisionId": "rev-46",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": false
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (occurrence-ambiguous)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (occurrence-ambiguous)"
+      },
+      "firstDivergence": null
+    },
+    "after": {
+      "verification": [
+        {
+          "revisionId": "rev-46",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": false
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (occurrence-ambiguous)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (occurrence-ambiguous)"
+      },
+      "firstDivergence": null
+    }
+  },
+  {
+    "case": "checkable missing",
+    "inputUnchanged": true,
+    "expected": {
+      "verified": false,
+      "phase": "VerificationFailed",
+      "rejectionReasonContains": "checkable"
+    },
+    "before": {
+      "verification": [
+        {
+          "revisionId": "rev-31",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": true,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": true
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": true
+            }
+          ],
+          "rejectionReason": null
+        }
+      ],
+      "phase": {
+        "phase": "StepVerified",
+        "failureReason": null
+      },
+      "firstDivergence": "verification.isVerified"
+    },
+    "after": {
+      "verification": [
+        {
+          "revisionId": "rev-31",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": false
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (checkable-not-observed-true)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (checkable-not-observed-true)"
+      },
+      "firstDivergence": null
+    }
+  },
+  {
+    "case": "equal timestamp",
+    "inputUnchanged": true,
+    "expected": {
+      "verified": false,
+      "phase": "VerificationFailed",
+      "rejectionReasonContains": "capture-not-after-dispatch"
+    },
+    "before": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": false
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (capture-not-after-dispatch)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (capture-not-after-dispatch)"
+      },
+      "firstDivergence": null
+    },
+    "after": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": false
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (capture-not-after-dispatch)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (capture-not-after-dispatch)"
+      },
+      "firstDivergence": null
+    }
+  },
+  {
+    "case": "not checkable",
+    "inputUnchanged": true,
+    "expected": {
+      "verified": false,
+      "phase": "VerificationFailed",
+      "rejectionReasonContains": "checkable"
+    },
+    "before": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": true,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": true
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": true
+            }
+          ],
+          "rejectionReason": null
+        }
+      ],
+      "phase": {
+        "phase": "StepVerified",
+        "failureReason": null
+      },
+      "firstDivergence": "verification.isVerified"
+    },
+    "after": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": false
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (checkable-not-observed-true)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (checkable-not-observed-true)"
+      },
+      "firstDivergence": null
+    }
+  },
+  {
+    "case": "partial",
+    "inputUnchanged": true,
+    "expected": {
+      "verified": false,
+      "phase": "VerificationFailed",
+      "rejectionReasonContains": "partial"
+    },
+    "before": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": true
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (partial at partial:post)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (partial at partial:post)"
+      },
+      "firstDivergence": null
+    },
+    "after": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": true
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (partial at partial:post)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (partial at partial:post)"
+      },
+      "firstDivergence": null
+    }
+  },
+  {
+    "case": "stale",
+    "inputUnchanged": true,
+    "expected": {
+      "verified": false,
+      "phase": "VerificationFailed",
+      "rejectionReasonContains": "capture-not-after-dispatch"
+    },
+    "before": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": false
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (capture-not-after-dispatch)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (capture-not-after-dispatch)"
+      },
+      "firstDivergence": null
+    },
+    "after": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": false
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (capture-not-after-dispatch)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (capture-not-after-dispatch)"
+      },
+      "firstDivergence": null
+    }
+  },
+  {
+    "case": "turn off",
+    "inputUnchanged": true,
+    "expected": {
+      "verified": true,
+      "phase": "StepVerified",
+      "rejectionReasonContains": null
+    },
+    "before": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": true,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": true
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": true
+            }
+          ],
+          "rejectionReason": null
+        }
+      ],
+      "phase": {
+        "phase": "StepVerified",
+        "failureReason": null
+      },
+      "firstDivergence": null
+    },
+    "after": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": true,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": true
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": true
+            }
+          ],
+          "rejectionReason": null
+        }
+      ],
+      "phase": {
+        "phase": "StepVerified",
+        "failureReason": null
+      },
+      "firstDivergence": null
+    }
+  },
+  {
+    "case": "turn on",
+    "inputUnchanged": true,
+    "expected": {
+      "verified": true,
+      "phase": "StepVerified",
+      "rejectionReasonContains": null
+    },
+    "before": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 0
+          },
+          "isVerified": true,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": true
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": true
+            }
+          ],
+          "rejectionReason": null
+        }
+      ],
+      "phase": {
+        "phase": "StepVerified",
+        "failureReason": null
+      },
+      "firstDivergence": null
+    },
+    "after": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 0
+          },
+          "isVerified": true,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": true
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": true
+            }
+          ],
+          "rejectionReason": null
+        }
+      ],
+      "phase": {
+        "phase": "StepVerified",
+        "failureReason": null
+      },
+      "firstDivergence": null
+    }
+  },
+  {
+    "case": "unchanged",
+    "inputUnchanged": true,
+    "expected": {
+      "verified": false,
+      "phase": "VerificationFailed",
+      "rejectionReasonContains": "post-action-desired-state-not-satisfied"
+    },
+    "before": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": true
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "post-action-desired-state-not-satisfied"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "post-action-desired-state-not-satisfied"
+      },
+      "firstDivergence": null
+    },
+    "after": {
+      "verification": [
+        {
+          "revisionId": "rev-32",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": true
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "post-action-desired-state-not-satisfied"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "post-action-desired-state-not-satisfied"
+      },
+      "firstDivergence": null
+    }
+  },
+  {
+    "case": "unknown",
+    "inputUnchanged": true,
+    "expected": {
+      "verified": false,
+      "phase": "VerificationFailed",
+      "rejectionReasonContains": "no-checked-claim"
+    },
+    "before": {
+      "verification": [
+        {
+          "revisionId": "rev-31",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": false
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (no-checked-claim)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (no-checked-claim)"
+      },
+      "firstDivergence": null
+    },
+    "after": {
+      "verification": [
+        {
+          "revisionId": "rev-31",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": false
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (no-checked-claim)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (no-checked-claim)"
+      },
+      "firstDivergence": null
+    }
+  },
+  {
+    "case": "unsupported",
+    "inputUnchanged": true,
+    "expected": {
+      "verified": false,
+      "phase": "VerificationFailed",
+      "rejectionReasonContains": "no-checked-claim"
+    },
+    "before": {
+      "verification": [
+        {
+          "revisionId": "rev-31",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": false
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (no-checked-claim)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (no-checked-claim)"
+      },
+      "firstDivergence": null
+    },
+    "after": {
+      "verification": [
+        {
+          "revisionId": "rev-31",
+          "target": {
+            "role": "switch",
+            "semanticDescriptor": "Controlled switch",
+            "effectClass": "tap",
+            "desiredState": 1
+          },
+          "isVerified": false,
+          "checks": [
+            {
+              "name": "typed-route-four-gates",
+              "passed": false
+            },
+            {
+              "name": "typed-checked-matches-desired",
+              "passed": false
+            }
+          ],
+          "rejectionReason": "typed-route: insufficient-evidence (no-checked-claim)"
+        }
+      ],
+      "phase": {
+        "phase": "VerificationFailed",
+        "failureReason": "typed-route: insufficient-evidence (no-checked-claim)"
+      },
+      "firstDivergence": null
+    }
+  }
+]

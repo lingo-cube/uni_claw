@@ -1,0 +1,244 @@
+{
+  "source": "recorded layouts + controlled identity/delivery/agent substitutes; no device or model execution",
+  "window": {
+    "from": "2026-10-16T00:00:00+08:00",
+    "untilExclusive": "2026-10-23T00:00:00+08:00"
+  },
+  "width": 1080,
+  "height": 1920,
+  "replayAndroidApiLevel": 35,
+  "metadataNote": "API level, capture times, cycle/session are replay context; they do not prove original acquisition facts or freshness. Legacy XML uses collapsed checked capability.",
+  "cases": [
+    {
+      "id": "sims",
+      "sourceKind": "recorded-device-xml",
+      "epoch": "epoch-002",
+      "recordedAt": "2026-10-20T15:58:39.118709+00:00",
+      "recordedAtMeaning": "run preregistration frozenAtUtc; per-frame wall clock absent",
+      "recording": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-002/preregistration.json",
+        "sha256": "0db1a9945903e45be6e500ba3ca5e3410338e747b0f800ee254ec8a609a4743c"
+      },
+      "sequence": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/coverage-steps.json",
+        "sha256": "926571cef3d0a5bc42685e01a1ae7a5c45f93c2b87a83c736eb9089a91b81456"
+      },
+      "settingsTrace": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/settings-trace.json",
+        "sha256": "fc01dcf4c598768409defabcd622f5d823766d3fbc99e6978bf468ae481a95d8"
+      },
+      "facts": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/facts.json",
+        "sha256": "9d5178526221b9aaace71e5ba12545a1a0292e926883b2d22bc85106b0150a01"
+      },
+      "previousCaptureRelation": "last recorded post of previous step; no explicit pre-action capture field",
+      "action": {
+        "role": "ui.element",
+        "descriptor": "SIMs",
+        "effectClass": "tap"
+      },
+      "before": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/evidence/capture-9ee244c9d11b4016aa7c5303c448fa19.xml",
+        "sha256": "619103cbf92f36af017abcf700861122e16156be810912f2347450cd36ba674a",
+        "captureId": "capture-9ee244c9d11b4016aa7c5303c448fa19",
+        "replayTime": "2026-10-22T00:00:00+00:00"
+      },
+      "after": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/evidence/capture-33a09ad228bb476b9c422d8f349b9bea.xml",
+        "sha256": "9c53323585e60ebdf4ebbbb9d3585dbd23534314dfd78ad9e8ae32e59d88e583",
+        "captureId": "capture-33a09ad228bb476b9c422d8f349b9bea",
+        "replayTime": "2026-10-22T00:00:02+00:00"
+      },
+      "routeBefore": "android.settings|rk1:Network & internet|src=collapsing_toolbar|up=1",
+      "routeAfter": "android.settings",
+      "identityInput": {
+        "source": "controlled perception substitute from recorded text/content-description; not recorded model output",
+        "before": {
+          "signature": "recent:sims:before",
+          "title": "Network & internet"
+        },
+        "after": {
+          "signature": "recent:sims:after",
+          "title": "SIMs"
+        }
+      },
+      "expected": {
+        "effects": 1,
+        "verificationsBeforeRecovery": 0,
+        "depthBeforeRecovery": 0,
+        "depthAfterRecovery": 1,
+        "recoveryDispatches": 0,
+        "status": "TerminalNotProven",
+        "afterControls": [
+          "T-Mobile",
+          "Mobile data"
+        ]
+      },
+      "imported": {
+        "before": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/sims-before.json",
+          "sha256": "a279ca1866d7be8773c0fb0ee61ab0e1d86f345759ec9cb1a8d5e0542fa9a3f7"
+        },
+        "after": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/sims-after.json",
+          "sha256": "f3c48004127986726788ab7b895138d7bb7895d9abc7dc67a61952f241849678"
+        }
+      }
+    },
+    {
+      "id": "all-apps",
+      "sourceKind": "recorded-device-xml",
+      "epoch": "epoch-003",
+      "recordedAt": "2026-10-20T16:01:01.309672+00:00",
+      "recordedAtMeaning": "run preregistration frozenAtUtc; per-frame wall clock absent",
+      "recording": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-003/preregistration.json",
+        "sha256": "2f69cc389313e2f4de5693c26a857cf7ac110ea363ebe96c84ca78a55c230931"
+      },
+      "sequence": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/coverage-steps.json",
+        "sha256": "062de61f977fa3d18f56717e120ac2a436b6a67ad5a091c8036b7fc18deee561"
+      },
+      "settingsTrace": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/settings-trace.json",
+        "sha256": "53e5f5aad642d354fa8b464998ed14ed2387818257e61bfabc6ca8adb7cd77c8"
+      },
+      "facts": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/facts.json",
+        "sha256": "3d862fcb6a70822933049681d28a72a604423694270db55dad181336d018e2d3"
+      },
+      "previousCaptureRelation": "last recorded post of previous step; no explicit pre-action capture field",
+      "action": {
+        "role": "ui.element",
+        "descriptor": "All apps",
+        "effectClass": "tap"
+      },
+      "before": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/evidence/capture-d0e219264e684ff2b90f5dbe6ae495d3.xml",
+        "sha256": "a9a83adfc331f28ef3b7324f23aadcfd27f567369b559bf7aaedeee4b002644c",
+        "captureId": "capture-d0e219264e684ff2b90f5dbe6ae495d3",
+        "replayTime": "2026-10-22T00:00:00+00:00"
+      },
+      "after": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/evidence/capture-36ea6f9a6231489a92c83d7ed6bd3a75.xml",
+        "sha256": "a4138bf25879c79682f6b15f9689734d65c1433865350f26716e5db966610664",
+        "captureId": "capture-36ea6f9a6231489a92c83d7ed6bd3a75",
+        "replayTime": "2026-10-22T00:00:02+00:00"
+      },
+      "routeBefore": "android.settings|rk1:Apps|src=collapsing_toolbar|up=1",
+      "routeAfter": "android.settings",
+      "identityInput": {
+        "source": "controlled perception substitute from recorded text/content-description; not recorded model output",
+        "before": {
+          "signature": "recent:all-apps:before",
+          "title": "Apps"
+        },
+        "after": {
+          "signature": "recent:all-apps:after",
+          "title": "All apps"
+        }
+      },
+      "expected": {
+        "effects": 1,
+        "verificationsBeforeRecovery": 0,
+        "depthBeforeRecovery": 0,
+        "depthAfterRecovery": 1,
+        "recoveryDispatches": 0,
+        "status": "TerminalNotProven",
+        "afterControls": [
+          "Android Keyboard (AOSP)",
+          "Calendar",
+          "Camera"
+        ]
+      },
+      "imported": {
+        "before": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/all-apps-before.json",
+          "sha256": "5a3ceb92c081ee614b311040b4188504ed0e6ad651f0f066a8e54004ff96d263"
+        },
+        "after": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/all-apps-after.json",
+          "sha256": "615c357fa473c17ea02153d7a0b40b2912ccc33d293d31e4556ada6b207adb79"
+        }
+      }
+    },
+    {
+      "id": "default-apps",
+      "sourceKind": "recorded-device-xml",
+      "epoch": "epoch-009",
+      "recordedAt": "2026-10-20T16:21:20.754458+00:00",
+      "recordedAtMeaning": "run preregistration frozenAtUtc; per-frame wall clock absent",
+      "recording": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-009/preregistration.json",
+        "sha256": "a2fdf26919043fa25334a8976f4fd89a1d986229e8cd22d88d2a29c4dacc1d7a"
+      },
+      "sequence": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/coverage-steps.json",
+        "sha256": "9fd77ca4d9ab531aecabb553f12b30691b38f70925fb1834a821100b65e12adb"
+      },
+      "settingsTrace": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/settings-trace.json",
+        "sha256": "a31441cff21f16d95679458ebf8d766fdd39275a83c2e18c1b0bd86bb8998c15"
+      },
+      "facts": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/facts.json",
+        "sha256": "1e523d966310731a144d7888937e10ef7ff73ddc48574371551116c82940d522"
+      },
+      "previousCaptureRelation": "last recorded post of previous step; no explicit pre-action capture field",
+      "action": {
+        "role": "ui.element",
+        "descriptor": "Default apps",
+        "effectClass": "tap"
+      },
+      "before": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-406fca6d570e4152b7077c0df70ff81d.xml",
+        "sha256": "98412fd753f3b38c7902e2cefddeae190ef63b40a123994eeadc7b135a8baa52",
+        "captureId": "capture-406fca6d570e4152b7077c0df70ff81d",
+        "replayTime": "2026-10-22T00:00:00+00:00"
+      },
+      "after": {
+        "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-08173a863262439ca1bac49827ad4e6e.xml",
+        "sha256": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599",
+        "captureId": "capture-08173a863262439ca1bac49827ad4e6e",
+        "replayTime": "2026-10-22T00:00:02+00:00"
+      },
+      "routeBefore": "android.settings|rk1:Apps|src=collapsing_toolbar|up=1",
+      "routeAfter": "android.settings|rk1:Default apps|src=collapsing_toolbar|up=1",
+      "identityInput": {
+        "source": "controlled perception substitute from recorded text/content-description; not recorded model output",
+        "before": {
+          "signature": "recent:default-apps:before",
+          "title": "Apps"
+        },
+        "after": {
+          "signature": "recent:default-apps:after",
+          "title": "Default apps"
+        }
+      },
+      "expected": {
+        "effects": 1,
+        "verificationsBeforeRecovery": 0,
+        "depthBeforeRecovery": 0,
+        "depthAfterRecovery": 1,
+        "recoveryDispatches": 0,
+        "status": "TerminalNotProven",
+        "afterControls": [
+          "Browser app",
+          "Home app",
+          "Phone app",
+          "Opening links"
+        ]
+      },
+      "imported": {
+        "before": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-before.json",
+          "sha256": "04d23fb8be071146fa61138a037852e2c79f4eae1e1764047c431a92e5bcfcf2"
+        },
+        "after": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-after.json",
+          "sha256": "712f4be002fbc8ec137ed07b623ee959f3ac95949afa67216d0e7ec559980821"
+        }
+      }
+    }
+  ]
+}

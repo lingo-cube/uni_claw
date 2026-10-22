@@ -1,0 +1,909 @@
+## checked-semantics: src/UniClaw.Kernel/Perception/UiHierarchy/CheckedSemantics.cs:1
+1: namespace UniClaw.Kernel.Perception.UiHierarchy;
+2: 
+3: /// <summary>
+4: /// PER-010 §Checked：checked 的值轴（语义 checked 状态，与 rendered appearance 分轴）。
+5: /// 替代 PER-009 string 值域 {on,off,partial} 的运行时执法缺口（closure audit A-3）。
+6: /// </summary>
+7: public enum CheckedState
+8: {
+9:     /// <summary>选中。</summary>
+10:     Checked,
+11: 
+12:     /// <summary>未选中（仅 Exact 证明成立时才允许由 boolean false 得出）。</summary>
+13:     Unchecked,
+14: 
+15:     /// <summary>部分选中（tri-state 语义；不得由 boolean 伪造）。</summary>
+16:     Partial,
+17: }
+18: 
+19: /// <summary>
+20: /// PER-010 checked capability：acquirer 对当前 claim domain 的 checked 表达能力。
+21: /// 运行时优先级 capability &gt; acquirer &gt; Android API level。
+22: /// </summary>
+23: public enum CheckedCapability
+24: {
+25:     /// <summary>checkedTriState：完整表达 Checked/Unchecked/Partial。</summary>
+26:     CheckedTriState,
+27: 
+28:     /// <summary>checkedBooleanExact：仅在三项 exact proof 满足时表达二态。</summary>
+29:     CheckedBooleanExact,
+30: 
+31:     /// <summary>checkedBooleanCollapsed：lossy boolean；false 不可表达为 Unchecked。</summary>
+32:     CheckedBooleanCollapsed,
+33: }
+34: 
+35: /// <summary>
+36: /// PER-010 checkedBooleanExact proof rule 的三项证明（缺一即 Collapsed）：
+37: /// (1) 当前 semantic claim domain 有明确 two-state contract；
+38: /// (2) adapter capability metadata 明确声明 Exact；
+39: /// (3) 有可追溯 contract / fixture evidence 支撑该声明。
+40: /// 禁止从 AndroidApiLevel、checked attribute presence、class/role name alone、
+41: /// historical absence of Partial、empirical samples alone 推断——
+42: /// <see cref="CheckedSemantics"/> 的公开面没有任何上述参数（编译期执法）。
+43: /// </summary>
+44: /// <param name="TwoStateContractId">两态契约标识（claim domain 级）。</param>
+45: /// <param name="AdapterCapabilityDeclaration">adapter capability metadata 的 Exact 声明。</param>
+46: /// <param name="TraceableEvidenceRef">可追溯 contract/fixture evidence 引用。</param>
+47: public sealed record CheckedExactProof(
+48:     string TwoStateContractId,
+49:     string AdapterCapabilityDeclaration,
+50:     string TraceableEvidenceRef)
+51: {
+52:     /// <summary>三项证明全部非空才成立。</summary>
+53:     public bool IsComplete =>
+54:         !string.IsNullOrWhiteSpace(TwoStateContractId)
+55:         && !string.IsNullOrWhiteSpace(AdapterCapabilityDeclaration)
+56:         && !string.IsNullOrWhiteSpace(TraceableEvidenceRef);
+57: }
+58: 
+59: /// <summary>
+60: /// PER-010 checked 语义纯映射（parse-independent，Slice A 域类型执法）：
+61: /// TriState 无损；BooleanExact true/false → Checked/Unchecked（仅当三项 proof 完整）；
+62: /// BooleanCollapsed true → Checked、false → Unknown(partial-unrepresentable)。
+63: /// 不得把 boolean 伪造为 Partial；不得在字段缺失时伪造 Unchecked。
+64: /// </summary>
+65: public static class CheckedSemantics
+66: {
+67:     /// <summary>M-02：collapsed/未证明 exact 的 boolean false 之 Unknown 原因。</summary>
+68:     public const string PartialUnrepresentableReason = "partial-unrepresentable";
+69: 
+70:     /// <summary>
+71:     /// M-03：tri-state 源三值无损映射（source capability 声明 checkedTriState）。
+72:     /// </summary>
+73:     public static ObservedValue<CheckedState> MapTriState(
+74:         CheckedState value,
+75:         FieldProvenance? provenance = null) =>
+76:         ObservedValue<CheckedState>.Observed(value, provenance);
+77: 
+78:     /// <summary>
+79:     /// M-01/M-02：boolean 源映射。<paramref name="rawChecked"/> 为 true 时任何能力都
+80:     /// 得 Checked；为 false 时仅 <see cref="CheckedCapability.CheckedBooleanExact"/>
+81:     /// 且 <paramref name="exactProof"/> 三项完整才得 Unchecked，否则一律
+82:     /// Unknown(<see cref="PartialUnrepresentableReason"/>)。
+83:     /// tri-state 源必须走 <see cref="MapTriState"/>；本入口收到
+84:     /// <see cref="CheckedCapability.CheckedTriState"/> 属契约违规，fail-closed 抛出
+85:     /// （parser 不猜值）。
+86:     /// </summary>
+87:     public static ObservedValue<CheckedState> MapBoolean(
+88:         bool rawChecked,
+89:         CheckedCapability declaredCapability,
+90:         CheckedExactProof? exactProof,
+91:         FieldProvenance? provenance = null)
+92:     {
+93:         if (declaredCapability == CheckedCapability.CheckedTriState)
+94:         {
+95:             throw new ArgumentOutOfRangeException(
+96:                 nameof(declaredCapability),
+97:                 "tri-state source must use MapTriState; boolean path cannot represent Partial (fail-closed)");
+98:         }
+99: 
+100:         if (rawChecked)
+101:         {
+102:             return ObservedValue<CheckedState>.Observed(CheckedState.Checked, provenance);
+103:         }
+104: 
+105:         return ExactProofSatisfied(declaredCapability, exactProof)
+106:             ? ObservedValue<CheckedState>.Observed(CheckedState.Unchecked, provenance)
+107:             : ObservedValue<CheckedState>.Unknown(PartialUnrepresentableReason, provenance);
+108:     }
+109: 
+110:     /// <summary>
+111:     /// PER-014 R3：presentation-state 值域到 typed checked 的严格映射
+112:     /// （occurrence belief 侧 CDS-001 State 的消费面单点适配）。接受 typed 名
+113:     /// （checked/unchecked/partial）与既有 presentation 名（on/off、true/false）
+114:     /// 的一对一映射；无法映射（null / 空串 / 未知词）→ null = Unknown——
+115:     /// 调用方必须 fail-closed，不得折叠为 Unchecked/off。
+116:     /// </summary>
+117:     public static CheckedState? FromPresentation(string? presentation) => presentation switch
+118:     {
+119:         "checked" or "on" or "true" => CheckedState.Checked,
+120:         "unchecked" or "off" or "false" => CheckedState.Unchecked,
+121:         "partial" => CheckedState.Partial,
+122:         // PER-014 R3 fixture 迁移：Simulation/DevLoop 场景域的两态契约词
+123:         // （settings-row 域 enabled/disabled ≡ 该 claim domain 的
+124:         // checked/unchecked；一对一映射，非折叠）。
+125:         "enabled" => CheckedState.Checked,
+126:         "disabled" => CheckedState.Unchecked,
+127:         _ => null,
+128:     };
+129: 
+130:     /// <summary>
+131:     /// Exact 判定：capability 必须声明 Exact 且 proof 三项完整；任一不满足即视为
+132:     /// Collapsed（false → Unknown(partial-unrepresentable)）。
+133:     /// </summary>
+134:     public static bool ExactProofSatisfied(
+135:         CheckedCapability declaredCapability,
+136:         CheckedExactProof? exactProof) =>
+137:         declaredCapability == CheckedCapability.CheckedBooleanExact
+138:         && exactProof is { } proof
+139:         && proof.IsComplete;
+140: }
+
+## capabilities: src/UniClaw.Kernel/Perception/UiHierarchy/HierarchyCapabilities.cs:1
+1: namespace UniClaw.Kernel.Perception.UiHierarchy;
+2: 
+3: /// <summary>
+4: /// PER-010 §Capabilities：adapter 声明并可被测试的能力（flags）。能力按
+5: /// source/acquirer/version 事实映射，不按 Android major version 硬编码；
+6: /// <c>Unsupported</c> 只表示能力不存在（字段级 Unknown 表示本次不足）。
+7: /// </summary>
+8: [Flags]
+9: public enum HierarchyCapability
+10: {
+11:     /// <summary>无能力声明。</summary>
+12:     None = 0,
+13: 
+14:     /// <summary>checkedTriState：完整表达 Checked/Unchecked/Partial。</summary>
+15:     CheckedTriState = 1 << 0,
+16: 
+17:     /// <summary>checkedBooleanExact：三项 proof 下表达二态。</summary>
+18:     CheckedBooleanExact = 1 << 1,
+19: 
+20:     /// <summary>checkedBooleanCollapsed：lossy boolean。</summary>
+21:     CheckedBooleanCollapsed = 1 << 2,
+22: 
+23:     /// <summary>drawing order 可观察。</summary>
+24:     DrawingOrder = 1 << 3,
+25: 
+26:     /// <summary>hint 字段可观察。</summary>
+27:     Hint = 1 << 4,
+28: 
+29:     /// <summary>window 列表可观察。</summary>
+30:     WindowSupport = 1 << 5,
+31: 
+32:     /// <summary>visible-to-user 可观察。</summary>
+33:     Visibility = 1 << 6,
+34: 
+35:     /// <summary>语义文本可观察。</summary>
+36:     SemanticText = 1 << 7,
+37: 
+38:     /// <summary>content-description 可观察。</summary>
+39:     ContentDescription = 1 << 8,
+40: 
+41:     /// <summary>Compose semantics 树可观察。</summary>
+42:     ComposeSemantics = 1 << 9,
+43: 
+44:     /// <summary>WebView inner content 可观察。</summary>
+45:     WebViewInnerContent = 1 << 10,
+46: }
+47: 
+48: /// <summary>
+49: /// 一次 capture 的能力声明集合（PER-010：adapter 声明并可被测试）。
+50: /// </summary>
+51: /// <param name="Declared">已声明能力位。</param>
+52: public sealed record HierarchyCapabilities(HierarchyCapability Declared)
+53: {
+54:     /// <summary>是否声明了指定能力（None 恒为 false）。</summary>
+55:     public bool Has(HierarchyCapability capability) =>
+56:         capability != HierarchyCapability.None && (Declared & capability) == capability;
+57: 
+58:     /// <summary>
+59:     /// 解析本次 checked 表达能力（优先级 TriState &gt; Exact &gt; Collapsed）；
+60:     /// 无任何 checked 能力声明时为 null（字段将全部 Unsupported）。
+61:     /// </summary>
+62:     public CheckedCapability? ResolveCheckedCapability() =>
+63:         Has(HierarchyCapability.CheckedTriState) ? CheckedCapability.CheckedTriState
+64:         : Has(HierarchyCapability.CheckedBooleanExact) ? CheckedCapability.CheckedBooleanExact
+65:         : Has(HierarchyCapability.CheckedBooleanCollapsed) ? CheckedCapability.CheckedBooleanCollapsed
+66:         : null;
+67: }
+
+## parse-context-and-default: src/UniClaw.Host/UiAutomatorDump.cs:280
+280:     /// <summary>
+281:     /// typed 解析的调用方输入（acquisition 侧持有设备/会话事实；API level 由
+282:     /// 调用方经 adb 查询提供——PER-010 metadata 必填，不做默认猜测）。
+283:     /// </summary>
+284:     public sealed record UiHierarchyParseContext(
+285:         string CaptureId,
+286:         DateTimeOffset CaptureTimestamp,
+287:         string DeviceId,
+288:         string SessionCorrelation,
+289:         int AndroidApiLevel,
+290:         string? ObservationCycleId = null,
+291:         TimeSpan? CaptureDuration = null,
+292:         string AcquirerVersion = "adb-uiautomator/legacy",
+293:         HierarchyCapabilities? Capabilities = null,
+294:         CheckedExactProof? ExactProof = null,
+295:         CoordinateSpace? Space = null);
+296: 
+297:     /// <summary>
+298:     /// legacy XML 的默认能力声明（PER-013 Slice B）：semantic text /
+299:     /// content-description / collapsed checked。visible-to-user、hint、
+300:     /// drawing-order、window、Compose、WebView 未声明——对应字段一律
+301:     /// <c>Unsupported</c>（capability &gt; acquirer &gt; API level）。
+302:     /// </summary>
+303:     public static HierarchyCapabilities LegacyXmlDefaultCapabilities { get; } =
+304:         new(HierarchyCapability.SemanticText
+305:             | HierarchyCapability.ContentDescription
+306:             | HierarchyCapability.CheckedBooleanCollapsed);
+307: 
+308:     /// <summary>
+309:     /// PER-013 Slice B：legacy uiautomator XML → <see cref="UiHierarchyCaptureResult"/>
+310:     /// （typed、parse 层不再有 missing→false / bounds 默认值折叠）。
+311:     /// adapter field policy（显式声明，F-E4）：
+312:     /// - 结构非法（XmlException / 无根）→ outcome=Malformed，无部分节点；
+313:     /// - 字段级无法解析（布尔/checked/bounds 非法值、倒置 bounds）→ 该字段
+314:     ///   Unknown(reason)，不使整 capture Malformed、不猜默认值；
+315:     /// - 属性缺席 → Unknown(attribute-missing)；空串文本 → Observed("")（F-B1）；
+316:     /// - 未知属性名 → 忽略（不猜值、不报错、不进 ObservedValue；F-E1）；
+317:     /// - checked=false 按能力映射：默认 collapsed → Unknown(partial-unrepresentable)
+318:     ///   （PER-012 M-02）；仅 ExactProof 三项完整才 Unchecked（M-01）；
+319:     /// - checked="partial"：capability 声明 triState 才无损映射，否则
+320:     ///   Unknown(partial-unrepresentable)；
+321:     /// - password=true 节点的 Text/ContentDescription/Hint 脱敏为
+322:     ///   "[redacted:password]"，provenance.Normalization 记 redact:password（F-E2）。
+323:     /// 零节点 → Empty（≠ 世界 absence）；否则 Complete。
+324:     /// </summary>
+325:     public static UiHierarchyCaptureResult ParseHierarchyObservation(
+326:         string xml, UiHierarchyParseContext parseContext)
+327:     {
+328:         ArgumentNullException.ThrowIfNull(xml);
+329:         ArgumentNullException.ThrowIfNull(parseContext);
+330: 
+331:         var capabilities = parseContext.Capabilities ?? LegacyXmlDefaultCapabilities;
+332:         XDocument document;
+333:         try
+334:         {
+335:             document = XDocument.Parse(xml);
+336:         }
+337:         catch (XmlException ex)
+338:         {
+339:             return new UiHierarchyCaptureResult(
+340:                 UiHierarchyCaptureOutcome.Malformed, null, null,
+341:                 Diagnostic: $"xml-structure-unparseable:{ex.GetType().Name}");
+342:         }
+343: 
+344:         var root = document.Root;
+345:         if (root is null || root.Name != "hierarchy")
+346:         {
+347:             return new UiHierarchyCaptureResult(
+348:                 UiHierarchyCaptureOutcome.Malformed, null, null,
+349:                 Diagnostic: "xml-structure-unparseable:root-not-hierarchy");
+350:         }
+351: 
+352:         var metadata = new CaptureMetadata(
+353:             CaptureId: parseContext.CaptureId,
+354:             AndroidApiLevel: parseContext.AndroidApiLevel,
+355:             AcquirerKind: UiHierarchyAcquirerKind.LegacyUiAutomatorXml,
+356:             AcquirerVersion: parseContext.AcquirerVersion,
+357:             HierarchyFormat: UiHierarchyFormat.UiAutomatorXml,
+358:             CaptureTimestamp: parseContext.CaptureTimestamp,
+359:             CaptureDuration: parseContext.CaptureDuration,
+360:             DeviceId: parseContext.DeviceId,
+361:             SessionCorrelation: parseContext.SessionCorrelation,
+362:             ObservationCycleId: parseContext.ObservationCycleId,
+363:             Capabilities: capabilities,
+364:             Coverage: new HierarchyCoverage(CoverageCompleteness.CompleteWithinDeclaredSurface),
+365:             Space: parseContext.Space);
+366: 
+367:         var nodes = new List<UiNodeObservation>();
+368:         var localIndex = 0;
+369:         foreach (var element in root.Elements("node"))
+370:             AppendTypedNode(element, parseContext.CaptureId, capabilities, parseContext.ExactProof, nodes, ref localIndex, parent: null);
+371: 
+372:         var observation = new UiHierarchyObservation(metadata, Array.Empty<UiWindowOccurrence>(), nodes);
+373:         var outcome = nodes.Count == 0 ? UiHierarchyCaptureOutcome.Empty : UiHierarchyCaptureOutcome.Complete;
+374:         var result = new UiHierarchyCaptureResult(outcome, metadata, observation, Diagnostic: null);
+375:         result.Validate();
+376:         return result;
+377:     }
+
+## checked-parser: src/UniClaw.Host/UiAutomatorDump.cs:463
+463:     private static ObservedValue<CheckedState> CheckedField(
+464:         XElement element, HierarchyCapabilities capabilities, CheckedExactProof? exactProof, FieldProvenance provenance)
+465:     {
+466:         var raw = element.Attribute("checked")?.Value;
+467:         var declared = capabilities.ResolveCheckedCapability();
+468:         if (declared is null)
+469:         {
+470:             return ObservedValue<CheckedState>.Unsupported("capability:checked-absent", provenance);
+471:         }
+472: 
+473:         switch (raw)
+474:         {
+475:             case null:
+476:                 return ObservedValue<CheckedState>.Unknown("attribute-missing", provenance);
+477:             case "true":
+478:             case "false":
+479:                 return CheckedSemantics.MapBoolean(raw == "true", declared.Value, exactProof, provenance);
+480:             case "partial":
+481:                 return declared == CheckedCapability.CheckedTriState
+482:                     ? CheckedSemantics.MapTriState(CheckedState.Partial, provenance)
+483:                     : ObservedValue<CheckedState>.Unknown(CheckedSemantics.PartialUnrepresentableReason, provenance);
+484:             default:
+485:                 return ObservedValue<CheckedState>.Unknown("malformed-field", provenance with { SourceField = "checked" });
+486:         }
+487:     }
+488: 
+489:     private static ObservedValue<UiBounds> BoundsField(XElement element, FieldProvenance provenance)
+490:     {
+
+## live-exact-scope: src/UniClaw.Host/SettingsTraversalLiveFeed.cs:24
+24: public sealed class SettingsTraversalLiveFeed : IDisposable
+25: {
+26:     // The Android Settings Wi-Fi preference is a declared two-state test
+27:     // target. This is an explicit fixture-backed contract, not an inference
+28:     // from API level, class name, or a sample capture.
+29:     private static readonly HierarchyCapabilities WifiToggleCapabilities =
+30:         new(HierarchyCapability.SemanticText
+31:             | HierarchyCapability.ContentDescription
+32:             | HierarchyCapability.CheckedBooleanExact);
+33:     private static readonly CheckedExactProof WifiToggleExactProof = new(
+34:         "contract:settings.wifi-toggle/two-state",
+35:         "capability:android-settings-profile/wifi-switch/exact",
+36:         "testsets/android-settings/wifi-toggle-contract.json");
+37: 
+
+## live-exact-use: src/UniClaw.Host/SettingsTraversalLiveFeed.cs:314
+314:             var api = UiAutomatorDump.TryGetApiLevel(_assets.DeviceId);
+315:             if (api is not null)
+316:             {
+317:                 var typed = UiAutomatorDump.ParseHierarchyObservation(xmlResult.Xml,
+318:                     new UiAutomatorDump.UiHierarchyParseContext(
+319:                         captureId, _clock.Now, _assets.DeviceId,
+320:                         session, api.Value,
+321:                         ObservationCycleId: observationCycleId,
+322:                         Capabilities: WifiToggleCapabilities,
+323:                         ExactProof: WifiToggleExactProof,
+324:                         Space: CoordinateSpace.DeviceViewport(capture.Width, capture.Height)));
+325:                 if (typed.Observation is { } observation)
+326:                     proposals.AddRange(TypedHierarchyProposalProjector.Project(observation, directive.Context));
+327:             }
+328:         }
+
+## consumer-four-gates: src/UniClaw.Kernel/Assurance/RuntimeAssurance.PostAction.cs:151
+151:         }
+152: 
+153:         return input.Slice.ScopedClaims.TryGetValue(expectation.Subject, out var claim)
+154:             && claim == expectation.Value;
+155:     }
+156: 
+157:     /// <summary>
+158:     /// typed 验证路由执行（PER-014 R2）：经 <see cref="SemanticCheckedResolver"/>
+159:     /// （R1 只读缝）对 post-action belief 解析目标 role 的 typed checked 值。
+160:     /// 四门等价重述：
+161:     /// ① 权威域 = DesiredState ≠ null（Click 型非状态权威域 → 视觉路径）；
+162:     /// ② 身份唯一 = occurrence 解析恰一（缝内零/多候选 → Unknown → insufficient）；
+163:     /// ③ 属性有效 = typed claim 仅在 parser 能力/ExactProof 执法通过时发射
+164:     ///    （TypedHierarchyProposalProjector fail-closed），Observed 即证明；
+165:     ///    capability 缺席 → Unsupported → fail-closed insufficient；
+166:     /// ④ 时序 = capture timestamp 严格晚于 dispatchTime。
+167:     /// 值判定：CheckedState 与 typed DesiredState 相等才 verified；Partial
+168:     /// 不通过且不回视觉（explicit insufficient-evidence）；Unchecked/Checked
+169:     /// 不等 = 如实未验证（mismatch 留档）。任一 Unknown/Unsupported 或时序
+170:     /// 门失败都返回 insufficient（fail-closed，不猜值）。
+171:     /// </summary>
+172:     private static PostActionEffectVerification VerifyTypedPostActionEffect(
+173:         TargetSpec target,
+174:         PostActionBeliefFacts current,
+175:         DateTimeOffset dispatchTime)
+176:     {
+177:         var resolution = current.Checked;
+178: 
+179:         // 门②/③：occurrence 唯一解析 + typed claim 在案。Unknown（无 claim /
+180:         // 歧义 / capture 不可判）与 Unsupported（capability 缺席）一律
+181:         // fail-closed 为语义证据不足；不可降级到视觉 State。
+182:         if (resolution is null || !resolution.IsObserved)
+183:             return InsufficientTypedVerification(current.RevisionId, target,
+184:                 resolution?.Value.Reason ?? "semantic-checked-unresolved");
+185: 
+186:         // 门④：时序——capture 必须严格晚于 dispatch（事后新鲜度）。
+187:         if (resolution.CaptureTimestamp is not { } captureTime || captureTime <= dispatchTime)
+188:             return InsufficientTypedVerification(current.RevisionId, target, "capture-not-after-dispatch");
+189: 
+190:         var resolved = resolution.Value.Value!;
+191:         if (resolved == CheckedState.Partial)
+192:         {
+193:             // Partial：tri-state 语义，不得折叠为 off/true——显式证据不足。
+194:             return new PostActionEffectVerification(
+195:                 current.RevisionId, target, IsVerified: false,
+196:                 new[]
+197:                 {
+198:                     new AssuranceCheck("typed-route-four-gates", true),
+199:                     new AssuranceCheck("typed-checked-matches-desired", false),
+200:                 },
+201:                 $"typed-route: insufficient-evidence (partial at {resolution.CaptureId})");
+202:         }
+203: 
+204:         var verified = resolved == target.DesiredState;
+205:         return new PostActionEffectVerification(
+206:             current.RevisionId, target, verified,
+207:             new[]
+208:             {
+209:                 new AssuranceCheck("typed-route-four-gates", true),
+210:                 new AssuranceCheck("typed-checked-matches-desired", verified),
+211:             },
+212:             verified ? null : "post-action-desired-state-not-satisfied");
+213:     }
+214: 
+215:     private static PostActionEffectVerification InsufficientTypedVerification(
+216:         string revisionId,
+217:         TargetSpec target,
+218:         string reason) =>
+219:         new(
+220:             revisionId,
+221:             target,
+222:             IsVerified: false,
+223:             new[]
+224:             {
+225:                 new AssuranceCheck("typed-route-four-gates", false),
+226:                 new AssuranceCheck("typed-checked-matches-desired", false),
+227:             },
+228:             $"typed-route: insufficient-evidence ({reason})");
+229: 
+230: }
+
+## resolver: src/UniClaw.Kernel/Perception/UiHierarchy/SemanticCheckedResolver.cs:66
+66:         ArgumentNullException.ThrowIfNull(belief);
+67:         ArgumentNullException.ThrowIfNull(scope);
+68: 
+69:         // ① occurrence 解析（与 ResolveCurrent / DeriveEntityObligationFactKind
+70:         //    同一匹配语义；R1：不新增 Grounding authority，只读消费）。
+71:         var candidates = (belief.Occurrences ?? Array.Empty<OccurrenceBelief>())
+72:             .Where(o => OccurrenceDescriptorMatcher.Matches(
+73:                 o.Role, o.SemanticDescriptor, o.OwningContainerId,
+74:                 scope.Role, scope.SemanticDescriptor, scope.OwningContainerId,
+75:                 ContainerMatchMode.TargetEquality))
+76:             .ToArray();
+77:         if (candidates.Length == 0)
+78:             return Fail(ObservedValue<CheckedState>.Unknown("occurrence-absent"));
+79:         if (candidates.Length > 1)
+80:             return Fail(ObservedValue<CheckedState>.Unknown("occurrence-ambiguous"));
+81: 
+82:         // ② association evidence + typed claims。只在既有 occurrence/claim
+83:         // 证据能确定同一 typed node 时继续；role 全局唯一绝不构成 association。
+84:         var nodes = BuildTypedNodes(belief, canonical);
+85:         if (nodes.Count == 0)
+86:             return Fail(ObservedValue<CheckedState>.Unknown("no-checked-claim"));
+87: 
+88:         // A native resource id is a stronger node identity than geometric
+89:         // overlap.  Android rows contain the switch inside several ancestor
+90:         // rectangles; accepting every intersecting bounds record makes the
+91:         // checked claim ambiguous even when the switch resource id is unique.
+92:         // Prefer the exact native match and use geometry only when no native
+93:         // identity is available.
+94:         var occurrence = candidates[0];
+95:         var associated = occurrence.Native is { Kind: "android.resource-id" } native
+96:             ? nodes.Where(node => node.ResourceIds.Contains(native.Value, StringComparer.Ordinal)).ToArray()
+97:             : Array.Empty<TypedNode>();
+98:         // Some deterministic fixtures and older captures carry the native id
+99:         // only on the occurrence, while the typed claim still has the exact
+100:         // bounds association.  Keep that established association as a
+101:         // fallback; use the id match whenever it actually exists so ancestor
+102:         // rectangles cannot reintroduce ambiguity on Android.
+103:         if (associated.Length == 0)
+104:             associated = nodes.Where(node => IsAssociated(node, occurrence)).ToArray();
+105:         if (associated.Length > 1)
+106:         {
+107:             // Re-observations can retain older capture-local typed nodes while
+108:             // the current occurrence is re-grounded by geometry. Prefer one
+109:             // uniquely newest capture; equal-age candidates remain ambiguous.
+110:             var dated = associated.Where(node => node.CaptureTimestamp is not null).ToArray();
+111:             if (dated.Length > 0)
+112:             {
+113:                 var newest = dated.Max(node => node.CaptureTimestamp!.Value);
+114:                 var newestNodes = dated.Where(node => node.CaptureTimestamp == newest).ToArray();
+115:                 if (newestNodes.Length == 1)
+116:                     associated = newestNodes;
+117:             }
+118:         }
+119:         if (associated.Length == 0)
+120:             return Fail(ObservedValue<CheckedState>.Unknown("checked-occurrence-unassociated"));
+121:         if (associated.Length > 1)
+122:             return Fail(ObservedValue<CheckedState>.Unknown("checked-occurrence-ambiguous"));
+123:         var node = associated[0];
+124:         if (node.Claims.Count == 0)
+125:             return Fail(ObservedValue<CheckedState>.Unknown("no-checked-claim"));
+126:         if (node.Claims.Count > 1)
+127:             return Fail(ObservedValue<CheckedState>.Unknown("checked-claim-ambiguous"));
+128:         var claim = node.Claims[0];
+129:         var timestamp = TryCaptureTimestamp(claim, canonical, out var captured)
+130:             ? (DateTimeOffset?)captured
+131:             : null;
+132: 
+133:         // ⑤ Unsupported：最新 capture 声明无 checked 能力（capability 缺席）。
+134:         if (TryCaptureCapability(claim, canonical, out var capability)
+135:             && capability is null)
+136:         {
+137:             return new Resolution(
+138:                 ObservedValue<CheckedState>.Unsupported("capability:checked-absent"),
+139:                 claim.Node.CaptureId, timestamp,
+140:                 null);
+141:         }
+142: 
+143:         // ④ 唯一性定案。
+144:         return new Resolution(
+145:             ObservedValue<CheckedState>.Observed(claim.Value),
+146:             claim.Node.CaptureId,
+147:             timestamp,
+
+## occurrence-validity: src/UniClaw.Host/UiHierarchyOccurrenceStrategy.cs:144
+144:             // A clickable container owns the text in its subtree. Prefer that
+145:             // local label before an ancestor context label; otherwise every
+146:             // row under the same RecyclerView inherits the first row's text
+147:             // and becomes an ambiguous grounding candidate.
+148:             var label = FirstText(node.Text, node.ContentDescription, childText,
+149:                 siblingText, node.ResourceId);
+150:             var isSwitch = node.Checkable == true
+151:                 || (node.Class?.EndsWith("Switch", StringComparison.Ordinal) ?? false);
+152:             // AGT-005: a scrollable container is a grounded effect target on its
+153:             // own (swipe). Its stable identity is the resource id — subtree text
+154:             // would collide across nested scrollables on the same page.
+155:             if (node.Scrollable == true)
+156:             {
+157:                 result.Add(new ProposedOccurrence(owner, "scrollable",
+158:                     string.IsNullOrWhiteSpace(node.ResourceId) ? ScrollableDescriptor(pair.Key, nodes) : node.ResourceId, null,
+159:                     TryBounds(node.Bounds, space), null, space));
+160:                 continue;
+161:             }
+162:             if (node.Clickable != true && !isSwitch)
+163:                 continue;
+164: 
+165:             var role = isSwitch ? "switch" : "ui.element";
+166:             // Preserve the typed checked value when the hierarchy acquirer has
+167:             // declared a valid capability/proof.  The old projection kept only
+168:             // `checked`, silently turning a proven `unchecked` switch into
+169:             // Unknown; Control then refused the required enable action.
+170:             var state = isSwitch && node.Checked is "checked" or "unchecked" or "partial"
+171:                 ? node.Checked
+172:                 : null;
+173:             var native = string.IsNullOrWhiteSpace(node.ResourceId)
+174:                 ? null
+175:                 : new NativeLocator("android.resource-id", node.ResourceId);
+176:             result.Add(new ProposedOccurrence(owner, role, label, state,
+177:                 TryBounds(node.Bounds, space), native, space));
+178:         }
+179:         return result;
+180:     }
+
+## projection: src/UniClaw.Kernel/Perception/UiHierarchy/TypedHierarchyProposalProjector.cs:31
+31:         string producer = Producer)
+32:     {
+33:         ArgumentNullException.ThrowIfNull(observation);
+34:         if (!observation.IsValid || !observation.Metadata.IsValid)
+35:         {
+36:             throw new InvalidOperationException(
+37:                 "typed hierarchy observation failed capture-local/metadata validity (projector fail-closed)");
+38:         }
+39: 
+40:         var metadata = observation.Metadata;
+41:         var proposals = new List<ObservationProposal>();
+42:         foreach (var node in observation.Nodes)
+43:         {
+44:             var parentIndex = node.ParentOccurrenceRef is { } parent ? (int?)parent.LocalIndex : null;
+45: 
+46:             void Emit<T>(
+47:                 string field,
+48:                 ObservedValue<T> value,
+49:                 string render)
+50:             {
+51:                 if (value.State != FieldState.Observed || string.IsNullOrWhiteSpace(render))
+52:                 {
+53:                     return; // Unknown/Unsupported/空串：不产 claim（A8）
+54:                 }
+55: 
+56:                 var subject = $"ui.node.{metadata.CaptureId}#{node.OccurrenceRef.LocalIndex}.{field}";
+57:                 var descriptor = new HierarchyCaptureDescriptor(
+58:                     CaptureId: metadata.CaptureId,
+59:                     AndroidApiLevel: metadata.AndroidApiLevel,
+60:                     AcquirerKind: metadata.AcquirerKind,
+61:                     AcquirerVersion: metadata.AcquirerVersion,
+62:                     HierarchyFormat: metadata.HierarchyFormat,
+63:                     DeviceId: metadata.DeviceId,
+64:                     SessionCorrelation: metadata.SessionCorrelation,
+65:                     ObservationCycleId: metadata.ObservationCycleId,
+66:                     CaptureTimestamp: metadata.CaptureTimestamp,
+67:                     CaptureDuration: metadata.CaptureDuration,
+68:                     Capabilities: metadata.Capabilities.Declared,
+69:                     CoverageCompleteness: metadata.Coverage.Completeness,
+70:                     CoverageLimitation: metadata.Coverage.Limitation,
+71:                     NodeLocalIndex: node.OccurrenceRef.LocalIndex,
+72:                     ParentLocalIndex: parentIndex,
+73:                     Field: field,
+74:                     Space: metadata.Space);
+75:                 proposals.Add(new ObservationProposal(
+76:                     new ObservationClaim(subject, render),
+77:                     IngressKind.Observation,
+78:                     context,
+79:                     new Provenance(
+80:                         producer,
+81:                         metadata.CaptureTimestamp,
+82:                         $"scope:{subject}",
+83:                         new[] { LineageMarker },
+84:                         Hierarchy: descriptor)));
+85:             }
+86: 
+87:             Emit("class", node.Class, node.Class.Value ?? string.Empty);
+88:             Emit("resource_id", node.ResourceId, node.ResourceId.Value ?? string.Empty);
+89:             Emit("package", node.Package, node.Package.Value ?? string.Empty);
+90:             Emit("text", node.Text, node.Text.Value ?? string.Empty);
+91:             Emit("content_desc", node.ContentDescription, node.ContentDescription.Value ?? string.Empty);
+92:             Emit("hint", node.Hint, node.Hint.Value ?? string.Empty);
+93:             Emit("checked", node.Checked, node.Checked.Value is { } checkedState ? checkedState.ToString().ToLowerInvariant() : string.Empty);
+94:             Emit("checkable", node.Checkable, node.Checkable.Value is { } checkable ? checkable ? "true" : "false" : string.Empty);
+95:             Emit("clickable", node.Clickable, node.Clickable.Value is { } clickable ? clickable ? "true" : "false" : string.Empty);
+96:             Emit("enabled", node.Enabled, node.Enabled.Value is { } enabled ? enabled ? "true" : "false" : string.Empty);
+97:             Emit("focusable", node.Focusable, node.Focusable.Value is { } focusable ? focusable ? "true" : "false" : string.Empty);
+98:             Emit("focused", node.Focused, node.Focused.Value is { } focused ? focused ? "true" : "false" : string.Empty);
+
+## replay-ingress: tests/UniClaw.Simulation.Tests/RecordedOperationReplayTests.cs:115
+115:         var initial = false; var post = false; var released = !delayPost; var consultations = 0;
+116:         Slice? before = null; CoordinateSpace? targetSpace = null; var ingress = new List<Ingress>();
+117:         RunDriverInput Observe(Asset asset, ObservationDirective directive, int second)
+118:         {
+119:             var xml = ReadAsset(asset.Path, asset.Sha256); var captureId = input.Id + ":" + second; var time = T0.AddSeconds(second);
+120:             var parsed = UiAutomatorDump.ParseHierarchyObservation(xml,
+121:                 new(captureId, time, "recorded-api35", "sim010", 35, ObservationCycleId: captureId,
+122:                     Capabilities: UiAutomatorDump.LegacyXmlDefaultCapabilities, Space: CoordinateSpace.DeviceViewport(corpus.Width, corpus.Height, captureId: captureId)));
+123:             Assert.NotNull(parsed.Observation);
+124:             var proposals = new List<ObservationProposal>();
+125:             foreach (var subject in new[] { "ui.screen", "ui.screen.route" })
+126:                 proposals.Add(new(new(subject, asset.PageKey), IngressKind.Observation, directive.Context,
+127:                     new("replay.context", time, subject + ":" + captureId, ["recorded-xml:" + asset.Path, "sha256:" + asset.Sha256])));
+128:             proposals.AddRange(TypedHierarchyProposalProjector.Project(parsed.Observation!, directive.Context));
+129:             ingress.Add(new(asset.Path, asset.Sha256, captureId, directive.Context.ToString()));
+130:             return new RunDriverInput.Observation(proposals);
+
+## proof-rule: changes/PER-010/spec.md:118
+118: 
+119: ```text
+120: Checked | Unchecked | Partial
+121: ```
+122: 
+123: 外层仍使用 `ObservedValue<CheckedState>`，因此可表达 `Unknown` 与 `Unsupported`。能力必须区分：`checkedTriState` 可完整表达 `Checked/Unchecked/Partial`；`checkedBooleanExact` 只有在本节三项 exact proof 同时满足时才表达 `Checked/Unchecked`；`checkedBooleanCollapsed` 只能表达 lossy boolean。legacy XML 的 `checked=true` 可映射为 `Checked`；`checked=false` 仅在 exact proof 已满足时映射为 `Unchecked`，否则输出 `Unknown`，reason=`partial-unrepresentable`。不得把 boolean 伪造为 `Partial`，也不得在字段缺失时伪造 `Unchecked`。`checkable=false` 是后续状态权威使用的 validity guard，不会抹掉 raw observed checked evidence。
+124: 
+125: #### `checkedBooleanExact` proof rule
+126: 
+127: `checkedBooleanExact` MUST NOT be inferred from:
+128: 
+129: - `AndroidApiLevel`；
+130: - checked attribute presence；
+131: - class / role name alone；
+132: - historical absence of `Partial`；
+133: - empirical samples alone。
+134: 
+135: Exact 必须同时满足：
+136: 
+137: 1. 当前 semantic claim domain 有明确的 two-state contract；
+138: 2. adapter capability metadata 明确声明 Exact；
+139: 3. 有可追溯 contract / fixture evidence 支撑该声明。
+140: 
+141: 任一条件不满足，能力必须是 `checkedBooleanCollapsed`，不得输出
+142: `Observed(Unchecked)`；继续保持 `capability > acquirer > Android API level`。
+143: 
+144: ### Capabilities
+145: 
+146: Capabilities 是 adapter 声明并可被测试的能力集合，至少覆盖：
+147: 
+148: ```text
+149: checkedBooleanExact
+150: checkedBooleanCollapsed
+151: checkedTriState
+152: drawingOrder
+153: hint
+154: windowSupport
+155: visibility
+156: semanticText
+157: contentDescription
+158: composeSemantics
+159: webViewInnerContent
+
+## capture: src/UniClaw.Kernel/Perception/UiHierarchy/UiHierarchyCapture.cs:1
+1: namespace UniClaw.Kernel.Perception.UiHierarchy;
+2: 
+3: /// <summary>
+4: /// PER-010 §Capture result：五类 outcome，构造期 fail-closed 执法不可折叠规则：
+5: /// <see cref="SourceUnavailable"/> 与 <see cref="Empty"/> 永不可折叠；
+6: /// <see cref="Partial"/> 不可解释为完整页面；<see cref="Malformed"/> 不产生部分节点。
+7: /// </summary>
+8: public enum UiHierarchyCaptureOutcome
+9: {
+10:     /// <summary>树成功取得且声明覆盖完整（可生成完整 observation）。</summary>
+11:     Complete,
+12: 
+13:     /// <summary>采集成功、树没有节点（空采集 ≠ 世界中元素不存在）。</summary>
+14:     Empty,
+15: 
+16:     /// <summary>有树/窗口但声明覆盖或字段不完整（带 coverage limitation，不补值）。</summary>
+17:     Partial,
+18: 
+19:     /// <summary>超时、取消、权限/服务不可用或连接失败（无 observation，带诊断）。</summary>
+20:     SourceUnavailable,
+21: 
+22:     /// <summary>输入存在但 XML/节点结构不可解析（fail-closed，无部分节点，保留诊断）。</summary>
+23:     Malformed,
+24: }
+25: 
+26: /// <summary>
+27: /// acquisition adapter 的有界返回值（PER-010 acquisition boundary：timeout /
+28: /// cancellation / source unavailable / malformed / empty / partial 必须可表达）。
+29: /// 构造期用 <see cref="Validate"/> 执法 outcome 与载荷的一致性。
+30: /// </summary>
+31: /// <param name="Outcome">采集结果类别。</param>
+32: /// <param name="Metadata">capture metadata（成功类必带；失败尝试可带已知的部分事实）。</param>
+33: /// <param name="Observation">仅 Complete/Empty/Partial 携带；Malformed/SourceUnavailable 恒 null。</param>
+34: /// <param name="Diagnostic">SourceUnavailable/Malformed 必带的可分类有界诊断。</param>
+35: public sealed record UiHierarchyCaptureResult(
+36:     UiHierarchyCaptureOutcome Outcome,
+37:     CaptureMetadata? Metadata,
+38:     UiHierarchyObservation? Observation,
+39:     string? Diagnostic)
+40: {
+41:     /// <summary>
+42:     /// outcome ↔ 载荷一致性（构造期调用；违反抛
+43:     /// <see cref="ArgumentException"/>，不猜值、不降级）：
+44:     /// Complete ⇒ 有效 observation、非零节点、coverage 完整；
+45:     /// Empty ⇒ 有效 observation、零节点、零 window；
+46:     /// Partial ⇒ 有效 observation、coverage=Partial 且带 limitation；
+47:     /// SourceUnavailable/Malformed ⇒ 无 observation、诊断非空。
+48:     /// </summary>
+49:     public void Validate()
+50:     {
+51:         switch (Outcome)
+52:         {
+53:             case UiHierarchyCaptureOutcome.Complete:
+54:                 RequireObservation();
+55:                 if (Observation!.Nodes.Count == 0)
+56:                 {
+57:                     throw new ArgumentException("Complete capture with zero nodes must be Empty outcome", nameof(Observation));
+58:                 }
+59: 
+60:                 if (Observation.Metadata.Coverage.Completeness != CoverageCompleteness.CompleteWithinDeclaredSurface)
+61:                 {
+62:                     throw new ArgumentException("Complete outcome requires complete declared coverage", nameof(Observation));
+63:                 }
+64: 
+65:                 break;
+66: 
+67:             case UiHierarchyCaptureOutcome.Empty:
+68:                 RequireObservation();
+69:                 if (Observation!.Nodes.Count > 0 || Observation.Windows.Count > 0)
+70:                 {
+71:                     throw new ArgumentException("Empty capture must carry zero nodes and zero windows", nameof(Observation));
+72:                 }
+73: 
+74:                 break;
+75: 
+76:             case UiHierarchyCaptureOutcome.Partial:
+77:                 RequireObservation();
+78:                 if (Observation!.Metadata.Coverage.Completeness != CoverageCompleteness.Partial)
+79:                 {
+80:                     throw new ArgumentException("Partial outcome requires Partial coverage with limitation", nameof(Observation));
+81:                 }
+82: 
+83:                 break;
+84: 
+85:             case UiHierarchyCaptureOutcome.SourceUnavailable:
+86:             case UiHierarchyCaptureOutcome.Malformed:
+87:                 if (Observation is not null)
+88:                 {
+89:                     throw new ArgumentException($"{Outcome} outcome must not carry an observation (fail-closed, no partial nodes)", nameof(Observation));
+90:                 }
+91: 
+92:                 if (string.IsNullOrWhiteSpace(Diagnostic))
+93:                 {
+94:                     throw new ArgumentException($"{Outcome} outcome requires a bounded diagnostic", nameof(Diagnostic));
+95:                 }
+96: 
+97:                 break;
+98: 
+99:             default:
+100:                 throw new ArgumentOutOfRangeException(nameof(Outcome), Outcome, "unknown capture outcome");
+101:         }
+102: 
+103:         if (Observation is not null && !Observation.IsValid)
+104:         {
+105:             throw new ArgumentException("observation failed capture-local/validity checks", nameof(Observation));
+106:         }
+107:     }
+108: 
+109:     private void RequireObservation()
+110:     {
+111:         if (Observation is null || Metadata is null)
+112:         {
+113:             throw new ArgumentException($"{Outcome} outcome requires Metadata and Observation", nameof(Observation));
+114:         }
+115:     }
+116: }
+
+## metadata: src/UniClaw.Kernel/Perception/UiHierarchy/CaptureMetadata.cs:1
+1: namespace UniClaw.Kernel.Perception.UiHierarchy;
+2: 
+3: /// <summary>
+4: /// PER-010 §CaptureMetadata：AcquirerKind 至少区分三类采集器。
+5: /// 格式与采集器可任意组合，不能由 Android major version 猜测。
+6: /// </summary>
+7: public enum UiHierarchyAcquirerKind
+8: {
+9:     /// <summary>legacy uiautomator XML（adb shell uiautomator dump）。</summary>
+10:     LegacyUiAutomatorXml,
+11: 
+12:     /// <summary>AndroidX UiAutomator。</summary>
+13:     AndroidXUiAutomator,
+14: 
+15:     /// <summary>AccessibilityNodeInfo / richer source。</summary>
+16:     AccessibilityNodeInfo,
+17: }
+18: 
+19: /// <summary>PER-010：HierarchyFormat 至少区分四种格式。</summary>
+20: public enum UiHierarchyFormat
+21: {
+22:     /// <summary>传统 uiautomator XML。</summary>
+23:     UiAutomatorXml,
+24: 
+25:     /// <summary>Accessibility 树。</summary>
+26:     AccessibilityTree,
+27: 
+28:     /// <summary>Compose semantics 树（merged/unmerged 由 capability/provenance 记录）。</summary>
+29:     ComposeSemantics,
+30: 
+31:     /// <summary>未知格式。</summary>
+32:     Unknown,
+33: }
+34: 
+35: /// <summary>
+36: /// PER-010 §CaptureMetadata：每次 capture 的结构化 provenance 与跨 source 对齐输入。
+37: /// grill F-C1 裁决：<see cref="CaptureTimestamp"/> 语义 = 采集完成时刻；
+38: /// <see cref="CaptureDuration"/>（可选）记录采集窗口，供撕裂检测——二者皆为
+39: /// provenance 输入，不是 freshness/truth authority（freshness 由 Assurance 判）。
+40: /// </summary>
+41: /// <param name="CaptureId">capture 标识（occurrence 的作用域键）。</param>
+42: /// <param name="AndroidApiLevel">API level（仅 coverage/capability 事实输入）。</param>
+43: /// <param name="AcquirerKind">采集器类别。</param>
+44: /// <param name="AcquirerVersion">采集器版本。</param>
+45: /// <param name="HierarchyFormat">层级格式。</param>
+46: /// <param name="CaptureTimestamp">采集完成时刻（F-C1）。</param>
+47: /// <param name="CaptureDuration">采集窗口时长（可选，F-C1）。</param>
+48: /// <param name="DeviceId">设备标识。</param>
+49: /// <param name="SessionCorrelation">session/run 相关性标识。</param>
+50: /// <param name="ObservationCycleId">观察周期标识（可选但推荐；跨 source 对齐输入）。</param>
+51: /// <param name="Capabilities">本次 capture 的能力声明。</param>
+52: /// <param name="Coverage">本次 capture 的声明覆盖。</param>
+53: public sealed record CaptureMetadata(
+54:     string CaptureId,
+55:     int AndroidApiLevel,
+56:     UiHierarchyAcquirerKind AcquirerKind,
+57:     string AcquirerVersion,
+58:     UiHierarchyFormat HierarchyFormat,
+59:     DateTimeOffset CaptureTimestamp,
+60:     TimeSpan? CaptureDuration,
+61:     string DeviceId,
+62:     string SessionCorrelation,
+63:     string? ObservationCycleId,
+64:     HierarchyCapabilities Capabilities,
+65:     HierarchyCoverage Coverage,
+66:     CoordinateSpace? Space = null)
+67: {
+68:     /// <summary>构造期 fail-closed：必填标识非空、能力/覆盖有效、API level 合理。</summary>
+69:     public bool IsValid =>
+70:         !string.IsNullOrWhiteSpace(CaptureId)
+71:         && !string.IsNullOrWhiteSpace(AcquirerVersion)
+72:         && !string.IsNullOrWhiteSpace(DeviceId)
+73:         && !string.IsNullOrWhiteSpace(SessionCorrelation)
+74:         && AndroidApiLevel > 0
+75:         && Capabilities is not null
+76:         && Coverage is { } coverage
+77:         && coverage.IsValid
+78:         && (CaptureDuration is null || CaptureDuration >= TimeSpan.Zero);
+79: }

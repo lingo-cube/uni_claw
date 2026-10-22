@@ -1,0 +1,11 @@
+# 独立评审与父线处置
+
+Standards与Spec由两个fresh普通worker按用户指定模型顺序执行，各自只读并独立落盘，均无阻塞；Review不冒充测试执行。产品前置自身另有独立两轴评审，父线核对真实源码diff、30处变更来源与认证前后记录。
+
+来源文字曾写Human-reviewed，用户实际只选择了来源类别，没有逐项审阅11例。父线将其改为controlled synthetic且不声称human review；并独立证明11组状态输入及verified/phase期望与原RED相同。拒绝原因断言比首次更严格，未放宽错误期望。
+
+产品源只在SemanticCheckedResolver消费同capture+node checkable=true；Assurance只更新说明。原始checked继续留在Ledger/World，State验证拒绝无效guard。旧synthetic夹具按原测试意图显式补同节点guard，不改原断言；同名/旧capture/错误metadata不能借guard由7个公开接口测试证明。20个golden只改三个认证元数据字段，body与expectations/execution digest均不变，父线再次只读比对通过。
+
+当前父线独占快照full八工程2064/2064、34场景；Root公开链11例与新增Kernel公开接口7例均包括其中。闭包测试通过，Product Host/Simulation/Host tests/Kernel本体的Kernel DLL SHA256一致。仅为本轮Debug构建证据，不声称发布级资格认证。
+
+受控正例证明状态动作后验，不拥有目标终局Completed；真实设备/精确proof内容与范围校验/真实XML三态采集仍待后续。Unsupported来源当前在consumer只表现为无checked claim，拒绝安全成立，细分诊断能力未新增。

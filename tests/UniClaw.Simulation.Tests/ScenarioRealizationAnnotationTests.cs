@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Xunit;
+using UniClaw.Simulation.Tests.ComponentReplay;
 
 namespace UniClaw.Simulation.Tests;
 
@@ -66,13 +67,16 @@ public sealed class ScenarioRealizationAnnotationTests
             using var document = JsonDocument.Parse(File.ReadAllText(file));
             var root = document.RootElement;
             var name = Path.GetFileName(file);
+            violations.AddRange(ComponentScenarioScope.Validate(root).Select(v => $"{name}: {v}"));
+            var componentScope = root.TryGetProperty("testScope", out var testScope)
+                && testScope.ValueKind == JsonValueKind.String && testScope.GetString() == "component";
 
             if (!root.TryGetProperty("agentDecisionRealization", out var decision)
                 || decision.ValueKind != JsonValueKind.String)
                 violations.Add($"{name}: 缺 agentDecisionRealization（C7 v0.2 拆分标注）");
             else if (!LegalValues.Contains(decision.GetString()))
                 violations.Add($"{name}: agentDecisionRealization 非法值 '{decision.GetString()}'（legal: real|double）");
-            else if (decision.GetString() != ActualDecisionRealization)
+            else if (componentScope ? decision.GetString() != "not-applicable" : decision.GetString() != ActualDecisionRealization)
                 violations.Add(
                     $"{name}: agentDecisionRealization='{decision.GetString()}' 与实际构成不符"
                     + $"（Simulation Host 现组合 {ActualDecisionRealization}）");

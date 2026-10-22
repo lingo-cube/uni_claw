@@ -1,0 +1,15 @@
+{
+  "id": "SCN-REPLAY-007",
+  "name": "Recent recorded page layout identity recovery",
+  "source": "component-test",
+  "purpose": "Three recent original XML layouts: missing/wrong-capture identity pauses ownerless; controlled matching identity resumes the same Run without redispatch. Does not certify live Host recognition or original model decisions.",
+  "capability": "identity-continuity",
+  "components": ["kernel", "world-model", "assurance"],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "not-applicable",
+  "expectations": {"status": "TerminalNotProven", "classification": null, "effects": 1, "agentConsultations": 2, "unconsumedStimuli": 0, "goalSatisfaction": null},
+  "execution": {"kind": "none"},
+  "security": {"sensitiveReview": "cleared"}
+}

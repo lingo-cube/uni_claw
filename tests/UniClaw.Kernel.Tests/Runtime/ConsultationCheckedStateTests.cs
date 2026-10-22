@@ -26,7 +26,7 @@ public sealed class ConsultationCheckedStateTests
     public void AgentSeesTypedCheckedEvidence_WithoutFallingBackToPresentationState(
         string? typed, string presentation, string? expected)
     {
-        var scope = new HashSet<string> { Frame, Node + ".resource_id", Node + ".checked" };
+        var scope = new HashSet<string> { Frame, Node + ".resource_id", Node + ".checked", Node + ".checkable" };
         var ledger = new EvidenceLedger();
         var effects = new EffectBoundary(new NeverDeliver());
         var plan = new AgentPlanPolicy();
@@ -39,6 +39,7 @@ public sealed class ConsultationCheckedStateTests
             new(new ObservationClaim(Frame, "settings"), IngressKind.Observation,
                 ObservationContext.External, new Provenance("host.live", Captured, "scope:screen.frame", new[] { "test" })),
             Typed("resource_id", "switch-wifi"),
+            Typed("checkable", "true"),
         };
         if (typed is not null) observations.Add(Typed("checked", typed));
         AgentDecisionContext? capturedContext = null;

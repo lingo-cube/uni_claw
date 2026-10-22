@@ -1,0 +1,12 @@
+[
+  {
+    "method": "python3 tools/gen-protocol-machine.py --check",
+    "exitCode": 0,
+    "actual": "OK: protocol machine fresh (7 machines, 37 transitions, 45 edges, 27 steps, 12 domain cards) \u2014 graph audit passed: reachability, hang whitelist exact match, cycle bisection, anchors (details: --audit-report)"
+  },
+  {
+    "method": "python3 tools/scenario_certify.py --check",
+    "exitCode": 0,
+    "actual": "certification check: PASS (35 files, 0 violations)"
+  }
+]

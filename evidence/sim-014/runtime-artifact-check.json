@@ -1,0 +1,14 @@
+{
+  "sha256": {
+    "src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll": "04bb380869a8c01acf7dc388f0aa8cc78cf9855993e3612de2736cbf6e0aa079",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "04bb380869a8c01acf7dc388f0aa8cc78cf9855993e3612de2736cbf6e0aa079",
+    "tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "04bb380869a8c01acf7dc388f0aa8cc78cf9855993e3612de2736cbf6e0aa079",
+    "tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "04bb380869a8c01acf7dc388f0aa8cc78cf9855993e3612de2736cbf6e0aa079",
+    "tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "04bb380869a8c01acf7dc388f0aa8cc78cf9855993e3612de2736cbf6e0aa079",
+    "tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "04bb380869a8c01acf7dc388f0aa8cc78cf9855993e3612de2736cbf6e0aa079",
+    "tests/UniClaw.Agent.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "04bb380869a8c01acf7dc388f0aa8cc78cf9855993e3612de2736cbf6e0aa079"
+  },
+  "exports": 22,
+  "sameBuiltKernelArtifact": true,
+  "scope": "one isolated current-source Debug build; no release claim"
+}

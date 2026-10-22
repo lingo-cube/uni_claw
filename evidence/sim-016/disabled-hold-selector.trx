@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="0e194df6-4862-4be4-9efd-fe1d984731cc" name="@frandeMac-mini 2026-10-23 01:03:12" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-23T01:03:12.6886160+08:00" queuing="2026-10-23T01:03:12.6886160+08:00" start="2026-10-23T01:03:11.3375510+08:00" finish="2026-10-23T01:03:12.6910080+08:00" />
+  <TestSettings name="default" id="83359722-c97b-44f7-ac91-1ef60f0493be">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-23_01_03_12" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="6d543b73-ecaa-4ba9-b712-fa179f63326c" testId="747e6d22-e89b-0eb5-8b7b-43bf1ebec7be" testName="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget" computerName="frandeMac-mini" duration="00:00:00.6781389" startTime="2026-10-23T01:03:12.4959570+08:00" endTime="2026-10-23T01:03:12.4959640+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6d543b73-ecaa-4ba9-b712-fa179f63326c">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "TerminalNotProven"
+Actual:   "Completed"
+           ↑ (pos 0)</Message>
+          <StackTrace>   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId) in /private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs:line 108
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget() in /private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs:line 75
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget" storage="/private/tmp/uniclaw-sim016-zy6kokur/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="747e6d22-e89b-0eb5-8b7b-43bf1ebec7be">
+      <Execution id="6d543b73-ecaa-4ba9-b712-fa179f63326c" />
+      <TestMethod codeBase="/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests" name="InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="747e6d22-e89b-0eb5-8b7b-43bf1ebec7be" executionId="6d543b73-ecaa-4ba9-b712-fa179f63326c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Host.Tests
+[xUnit.net 00:00:00.07]   Discovered:  UniClaw.Host.Tests
+[xUnit.net 00:00:00.07]   Starting:    UniClaw.Host.Tests
+[xUnit.net 00:00:00.77]       Assert.Equal() Failure: Strings differ
+[xUnit.net 00:00:00.77]                  ↓ (pos 0)
+[xUnit.net 00:00:00.77]       Expected: "TerminalNotProven"
+[xUnit.net 00:00:00.77]       Actual:   "Completed"
+[xUnit.net 00:00:00.77]                  ↑ (pos 0)
+[xUnit.net 00:00:00.77]       Stack Trace:
+[xUnit.net 00:00:00.77]         /private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs(108,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId)
+[xUnit.net 00:00:00.77]         /private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs(75,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget()
+[xUnit.net 00:00:00.77]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.77]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.77]   Finished:    UniClaw.Host.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-23T01:03:12.4948220+08:00">
+        <Text>[xUnit.net 00:00:00.77]     UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

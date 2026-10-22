@@ -1,0 +1,19 @@
+{
+  "before": {
+    "SCN-FIXTURE-001": []
+  },
+  "after": {
+    "SCN-FIXTURE-001": [
+      "UniClaw.Verification.Fixture.TheoryTests.Case(text: \"hello world\", count: 1, expected: True)",
+      "UniClaw.Verification.Fixture.TheoryTests.Case(text: \"say \\\"hello\\\"\", count: 2, expected: False)",
+      "UniClaw.Verification.Fixture.TheoryTests.Case(text: \"hello world\", count: 3, expected: True)"
+    ]
+  },
+  "source": "real isolated xUnit binary, identical --list-tests --filter invocation, no build",
+  "trx": {
+    "UniClaw.Verification.Fixture.TheoryTests.Case(text: \"hello world\", count: 3, expected: True)": "Passed",
+    "UniClaw.Verification.Fixture.TheoryTests.Case(text: \"hello world\", count: 1, expected: True)": "Passed",
+    "UniClaw.Verification.Fixture.TheoryTests.Case(text: \"say \\\"hello\\\"\", count: 2, expected: False)": "Failed"
+  },
+  "derivedAfter": "failing"
+}

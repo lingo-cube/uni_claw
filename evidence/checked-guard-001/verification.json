@@ -1,0 +1,94 @@
+{
+  "change": "CHECKED-GUARD-001",
+  "result": "PASS",
+  "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+  "tuples": [
+    {
+      "id": "A1",
+      "level": "SCENARIO",
+      "method": "dotnet test tests/UniClaw.Simulation.Tests --no-restore --filter FullyQualifiedName~ControlledCheckedReplayTests; compare fixed input/expected before+after",
+      "expected": "11 cases pass; false/missing => VerificationFailed; raw checked retained",
+      "actual": "RED 9 PASS/2 FAIL, GREEN 11 PASS/0 FAIL; both invalid guard cases rejected; raw unchecked present",
+      "evidence": [
+        "controlled-red.trx",
+        "controlled-green.trx",
+        "behavior-before-after.json",
+        "output/green/not-checkable.json",
+        "output/green/checkable-missing.json"
+      ]
+    },
+    {
+      "id": "A2",
+      "level": "DETERMINISTIC",
+      "method": "public UniKernel.Process/VerifyPostActionEffect cases in CheckedGuardPublicTests, executed in kernel-fixtures.trx and final full",
+      "expected": "true passes; false/missing/malformed/other-node/old-capture/mismatched metadata refuse; raw retained",
+      "actual": "RED 1 PASS/6 FAIL; GREEN 7 PASS/0 FAIL within Kernel 1044 PASS",
+      "evidence": [
+        "guard-public-red.trx",
+        "kernel-fixtures.trx",
+        "full-verified.txt"
+      ]
+    },
+    {
+      "id": "A3",
+      "level": "SCENARIO",
+      "method": "unchanged RecordedOperationReplayTests in final Simulation full, original source XML + imported payload hash check",
+      "expected": "SIM010 collapsed false remains Unknown, no Exact upgrade, VerificationFailed",
+      "actual": "Stay awake after state null; no-checked-claim; isVerified=false; VerificationFailed; firstDivergence=null vs expectedBehavior; desired outcome remains unmet",
+      "evidence": [
+        "output/legacy/recorded-stay-awake-recovered.json",
+        "frozen-inputs.json",
+        "simulation-full.trx"
+      ]
+    },
+    {
+      "id": "A4",
+      "level": "SCENARIO",
+      "method": "python3 tools/verify-change CHECKED-GUARD-001 --scope full, genuine 8 project executions; fresh Simulation TRX consumed by scenario-coverage",
+      "expected": "8 projects all pass; 34 current scenarios valid/discovered",
+      "actual": "2064/2064 PASS; Simulation280, Kernel1044, Host413, HostDsh56, Agent36, AgentDsh212, Core14, FileSystem9; 34/34, 20 golden+14 descriptive; FINAL_STATUS=PASS",
+      "evidence": [
+        "full-first.txt",
+        "full-verified.txt",
+        "module-results.json",
+        "simulation-full.trx",
+        "certification-final.txt"
+      ]
+    },
+    {
+      "id": "A5",
+      "level": "CONTRACT",
+      "method": "verify-evidence.py assertions + exact hash proof for immutable before-images and final build inputs; scoped actual diff check",
+      "expected": "20 metadata-only updates preserve two digests and 34 scenario bodies; all protected input/expected hashes unchanged; owned source matches build; no out-of-scope writes",
+      "actual": "PASS: 507 frozen files; 887 build-input hashes identical; 30 immutable original images exact; 19838 protected existing files, no missing; 30 owned existing changes +2 new test files; 3 parallel external World docs listed without restoration",
+      "evidence": [
+        "certification-before.json",
+        "certification-diff.json",
+        "frozen-inputs.json",
+        "verified-input-hashes.json",
+        "entry/before-manifest.json",
+        "protection-audit.json",
+        "runtime-assembly-hashes.json",
+        "verify-final.txt"
+      ]
+    },
+    {
+      "id": "REVIEW",
+      "level": "CONTRACT",
+      "method": "one authorized fresh ordinary worker, independent Standards/Spec reading; Review separate from Verify",
+      "expected": "no unresolved implementation/spec blocker",
+      "actual": "both axes zero blockers; report wording corrected; no product edits by reviewer",
+      "evidence": [
+        "review.md",
+        "../../changes/CHECKED-GUARD-001/review-work-item.json"
+      ]
+    }
+  ],
+  "limits": [
+    "No device or real model execution; no real Stay awake off-state verification claimed.",
+    "Existing Partial/temporal fixtures lacking guard may reject earlier; unchanged SIM011 cases with true guard separately preserve those refusal paths.",
+    "Full emits pre-existing NU1900 vulnerability-cache permission warnings; all project tests executed and passed.",
+    "Build snapshot was updated for GREEN/full. Immutable before-images were reconstructed from original Git objects only when exact write-before SHA256 matched; failed Review entry and remedy documented in state.",
+    "No commit, push or messages to other chats."
+  ]
+}

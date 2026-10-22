@@ -1,0 +1,39 @@
+{
+  "source": "Independent fixture review: titled SIM dialog is a popup; Default apps is a normal cross-package page. Recorded trace popup labels describe old classifier output, not truth.",
+  "cases": [
+    {
+      "id": "sim-dialog",
+      "frameCount": 4,
+      "popupAtTrigger": true,
+      "knownMismatch": false,
+      "triggerTarget": "SIM name & color"
+    },
+    {
+      "id": "default-apps-cross-package",
+      "frameCount": 2,
+      "popupAtTrigger": false,
+      "knownMismatch": true,
+      "triggerTarget": "Default apps"
+    }
+  ],
+  "runtime": {
+    "clears": {
+      "deliveries": 1,
+      "popupAfter": "absent",
+      "status": "Completed",
+      "consultations": 2
+    },
+    "held": {
+      "maxDeliveries": 2,
+      "stopReason": "bounded-stop:popup-not-cleared",
+      "status": "TerminalNotProven",
+      "consultations": 3
+    },
+    "failed": {
+      "deliveries": 1,
+      "receiptOutcome": "DeliveryFailed",
+      "status": "UnconfirmedDelivery",
+      "consultations": 1
+    }
+  }
+}

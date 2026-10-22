@@ -1,0 +1,71 @@
+{
+  "level": "SCENARIO",
+  "method": "two real product component public seams, two controlled suppliers each, shared capture mismatch refusal/recovery, independent fixed oracle, cancellation/late/duplicate/conflict boundaries, five-kind before-factory content gate, data-only discovery, isolated full eight-project regression, exact binary Trait/TRX join, independent two-axis review and source protection",
+  "expected": "SIM-014 Acceptance1-5 and approved SIM-015 scoped Agent N/A; local components only",
+  "actual": {
+    "realProductComponentCasesPassed": 22,
+    "semanticCases": 14,
+    "worldCases": 8,
+    "compositionGateCasesPassed": 8,
+    "sourceRecordings": 3,
+    "layoutSourceKinds": 2,
+    "semanticSupplierKinds": 2,
+    "sourcePins": 70,
+    "sharedFaultDisabledDetected": 4,
+    "wrongOracleDetected": 2,
+    "nonEnforcingGuardDetected": 5,
+    "fullPassed": 2101,
+    "projects": 8,
+    "simulationPassed": 314,
+    "scenarioPassing": 37,
+    "certified": 20,
+    "descriptive": 17,
+    "newScenarioFullNamesJoined": 22,
+    "crossLanguageMatrixCases": 19,
+    "pythonToolTestsPassed": 10,
+    "oldScenariosUnchanged": 35,
+    "protectedUnchanged": 2213,
+    "authorizedMetadataChanges": 4,
+    "snapshotExecutableDrift": [],
+    "sameBuiltKernelArtifact": true,
+    "independentReviewBlockers": 0
+  },
+  "evidence": [
+    "component-green.trx",
+    "guard-red.trx",
+    "guard-green.trx",
+    "shared-fault-disabled.trx",
+    "wrong-independent-oracle.trx",
+    "data-only-growth.json",
+    "source-provenance.json",
+    "full.txt",
+    "simulation-full.trx",
+    "module-results.json",
+    "component-discovery.json",
+    "runtime-artifact-check.json",
+    "protection-check.json",
+    "protocol-check.txt",
+    "review-spec.md",
+    "review-standards.md",
+    "review-disposition.json",
+    "report.md"
+  ],
+  "limits": [
+    "three representative recent recordings, not entire week inventory",
+    "recorded XML layout is real; identity/semantic suppliers/catalogue/intent/replay time controlled; no original model decision or per-frame original clock claim",
+    "component closure and fixed five-kind pin list only; no arbitrary L2 equivalence, global dependency resolver or semantic compatibility guarantee",
+    "no live Host/device/model/whole-Run certification, no real LLM scenario generator execution",
+    "no product source, public protocol, old fixture or golden certification rewrite in this change; no commit/push"
+  ],
+  "attempts": [
+    {
+      "file": "attempt1-full.txt",
+      "result": "one documentation metadata failure; behavior suites and scene/certification passed",
+      "fix": "Owner-approved architecture delta Status ACCEPTED→CLOSED; no semantic/source/expected change"
+    },
+    {
+      "file": "full.txt",
+      "result": "PASS"
+    }
+  ]
+}

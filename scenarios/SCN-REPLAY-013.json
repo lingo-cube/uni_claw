@@ -1,0 +1,31 @@
+{
+  "id": "SCN-REPLAY-013",
+  "name": "交付失败注入与禁止盲重发",
+  "source": "component-test",
+  "purpose": "原弹窗输入经过真实处理链，受控driver返回DeliveryFailed；真实Runtime保留未确认屏障，零额外派发、不宣称关闭或任务完成。",
+  "capability": "popup-replay",
+  "components": [
+    "kernel",
+    "host-settings-director",
+    "effect-boundary"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "not-applicable",
+  "expectations": {
+    "status": "UnconfirmedDelivery",
+    "classification": null,
+    "effects": 1,
+    "agentConsultations": 1,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "none"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "既有Android模拟器录制弹窗布局；Agent、交付、路由/身份/时钟受控，关闭后布局为显式拼接；不执行原adb命令，不证明原窗口栈或原控制闭环。"
+  }
+}

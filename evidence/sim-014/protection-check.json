@@ -1,0 +1,13 @@
+{
+  "protectedFiles": 2217,
+  "unchanged": 2213,
+  "authorizedSim015MetadataChanges": [
+    "docs/architecture/simulation-baseline-v0.2-c7-amendment.md",
+    "scenarios/schema.json",
+    "tests/UniClaw.Simulation.Tests/ScenarioRealizationAnnotationTests.cs",
+    "tools/scenario-coverage.py"
+  ],
+  "oldScenarioEntriesUnchanged": 35,
+  "snapshotExecutableDrift": [],
+  "sourcePinsUnchanged": true
+}

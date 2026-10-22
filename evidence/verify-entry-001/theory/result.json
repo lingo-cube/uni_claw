@@ -1,0 +1,55 @@
+{
+  "project": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/verify-entry-theory-dlq06v8v",
+  "commands": [
+    {
+      "label": "build",
+      "args": [
+        "dotnet",
+        "build",
+        "TheoryFixture.csproj"
+      ],
+      "rc": 0
+    },
+    {
+      "label": "list-tests",
+      "args": [
+        "dotnet",
+        "test",
+        "TheoryFixture.csproj",
+        "--no-build",
+        "--no-restore",
+        "--list-tests",
+        "--filter",
+        "Scenario=SCN-FIXTURE-001"
+      ],
+      "rc": 0
+    },
+    {
+      "label": "execution",
+      "args": [
+        "dotnet",
+        "test",
+        "TheoryFixture.csproj",
+        "--no-build",
+        "--no-restore",
+        "--logger",
+        "trx;LogFileName=theory.trx",
+        "--results-directory",
+        "/Users/fran/Documents/Code/spacex/uni_claw/evidence/verify-entry-001/theory"
+      ],
+      "rc": 1
+    }
+  ],
+  "mapping": [
+    "UniClaw.Verification.Fixture.TheoryTests.Case(text: \"hello world\", count: 1, expected: True)",
+    "UniClaw.Verification.Fixture.TheoryTests.Case(text: \"say \\\"hello\\\"\", count: 2, expected: False)",
+    "UniClaw.Verification.Fixture.TheoryTests.Case(text: \"hello world\", count: 3, expected: True)"
+  ],
+  "trx": {
+    "UniClaw.Verification.Fixture.TheoryTests.Case(text: \"hello world\", count: 3, expected: True)": "Passed",
+    "UniClaw.Verification.Fixture.TheoryTests.Case(text: \"hello world\", count: 1, expected: True)": "Passed",
+    "UniClaw.Verification.Fixture.TheoryTests.Case(text: \"say \\\"hello\\\"\", count: 2, expected: False)": "Failed"
+  },
+  "derived": "failing",
+  "exactJoin": true
+}

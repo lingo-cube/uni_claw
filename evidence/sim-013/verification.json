@@ -1,0 +1,45 @@
+{
+  "level": "CONTRACT",
+  "method": "Current-source bounded audit, independent scenario/import audit and semantic design review, protocol-machine and scenario-certification verify-only, source anchor/local-link/protected-file validation",
+  "expected": "SIM-013 acceptance1-5; design-only, task does not modify existing product/test/baseline; no new protocol/interface shapes frozen",
+  "actual": {
+    "questionsAnswered": 7,
+    "executionScopes": 3,
+    "sourceManifestFiles": 18,
+    "sourceManifestDrift": [],
+    "explicitSourceAnchorsChecked": 22,
+    "localLinksChecked": 4,
+    "protocolMachine": {
+      "machines": 7,
+      "transitions": 37,
+      "edges": 45,
+      "steps": 27,
+      "cards": 12,
+      "status": "fresh graph audit passed"
+    },
+    "scenarioCertification": {
+      "files": 35,
+      "violations": 0
+    },
+    "independentReviewBlockers": 0,
+    "protectedFilesUnchanged": 2346,
+    "concurrentUnownedChanges": [
+      "changes/WORLD-UNCERTAINTY-001/design.md",
+      "changes/WORLD-UNCERTAINTY-001/state.md",
+      "changes/WORLD-UNCERTAINTY-001/world-gap-audit.md"
+    ],
+    "unexpectedChanges": [],
+    "productTestExecution": "NOTRUN (design-only)",
+    "deviceModelExecution": "NOTRUN"
+  },
+  "evidence": [
+    "source-manifest.json",
+    "source-audit.md",
+    "scenario-audit.md",
+    "design-review.md",
+    "checks.json",
+    "document-checks.json",
+    "delivered-files.json"
+  ],
+  "remaining": "Boundary recommendations and implementation sequence are review input, not Owner adoption, protocol freeze or implemented simulation infrastructure."
+}

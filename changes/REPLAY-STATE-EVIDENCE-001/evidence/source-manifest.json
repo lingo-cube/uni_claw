@@ -1,0 +1,100 @@
+[
+  {
+    "id": "checked-semantics",
+    "path": "src/UniClaw.Kernel/Perception/UiHierarchy/CheckedSemantics.cs",
+    "lineStart": 1,
+    "lineEnd": 140,
+    "sha256": "333bdeb20c31c109e66ad31bdd049f78284a8c7d2732cbb86b4d30c66c309d78"
+  },
+  {
+    "id": "capabilities",
+    "path": "src/UniClaw.Kernel/Perception/UiHierarchy/HierarchyCapabilities.cs",
+    "lineStart": 1,
+    "lineEnd": 67,
+    "sha256": "e9f6eb27a1ce407e3767a318ee4d5bbdfadd9d2724b10ab6132ea9b67baf5bc6"
+  },
+  {
+    "id": "parse-context-and-default",
+    "path": "src/UniClaw.Host/UiAutomatorDump.cs",
+    "lineStart": 280,
+    "lineEnd": 377,
+    "sha256": "a1ba1a9dc8b99a75b04a398758dec8a339ec335b651ac503eb41cb2fee5b4e34"
+  },
+  {
+    "id": "checked-parser",
+    "path": "src/UniClaw.Host/UiAutomatorDump.cs",
+    "lineStart": 463,
+    "lineEnd": 490,
+    "sha256": "a1ba1a9dc8b99a75b04a398758dec8a339ec335b651ac503eb41cb2fee5b4e34"
+  },
+  {
+    "id": "live-exact-scope",
+    "path": "src/UniClaw.Host/SettingsTraversalLiveFeed.cs",
+    "lineStart": 24,
+    "lineEnd": 37,
+    "sha256": "5589bf12824e7308c4ea142085c68f8818deb8cee6adc2344e6656e65669fc56"
+  },
+  {
+    "id": "live-exact-use",
+    "path": "src/UniClaw.Host/SettingsTraversalLiveFeed.cs",
+    "lineStart": 314,
+    "lineEnd": 328,
+    "sha256": "5589bf12824e7308c4ea142085c68f8818deb8cee6adc2344e6656e65669fc56"
+  },
+  {
+    "id": "consumer-four-gates",
+    "path": "src/UniClaw.Kernel/Assurance/RuntimeAssurance.PostAction.cs",
+    "lineStart": 151,
+    "lineEnd": 230,
+    "sha256": "d1972f355a45b60f14894b65a858900c5901ef6a9c23921ac6ab7ee297d4f7af"
+  },
+  {
+    "id": "resolver",
+    "path": "src/UniClaw.Kernel/Perception/UiHierarchy/SemanticCheckedResolver.cs",
+    "lineStart": 66,
+    "lineEnd": 147,
+    "sha256": "8cbfd720fe933b89a5a3b5168f5a75cc8962a7ffa2145f3b593febfd41cacd84"
+  },
+  {
+    "id": "occurrence-validity",
+    "path": "src/UniClaw.Host/UiHierarchyOccurrenceStrategy.cs",
+    "lineStart": 144,
+    "lineEnd": 180,
+    "sha256": "7492bd7d49c0fbd0ed56da65ef8181e38ae9282eeafdbbdb6fe58710b645c257"
+  },
+  {
+    "id": "projection",
+    "path": "src/UniClaw.Kernel/Perception/UiHierarchy/TypedHierarchyProposalProjector.cs",
+    "lineStart": 31,
+    "lineEnd": 98,
+    "sha256": "f052af652868033c296912b28ff43ecd33079264b0b4b80db90cf74e87570c22"
+  },
+  {
+    "id": "replay-ingress",
+    "path": "tests/UniClaw.Simulation.Tests/RecordedOperationReplayTests.cs",
+    "lineStart": 115,
+    "lineEnd": 130,
+    "sha256": "173b62e30fe8c856a793628f2e988d534e80b1eda9a63408e8ea7aeb8673b5d2"
+  },
+  {
+    "id": "proof-rule",
+    "path": "changes/PER-010/spec.md",
+    "lineStart": 118,
+    "lineEnd": 159,
+    "sha256": "0b2efdc92bcd2623994624089136a09c077b24bde104b0968d3b5b6091963b8b"
+  },
+  {
+    "id": "capture",
+    "path": "src/UniClaw.Kernel/Perception/UiHierarchy/UiHierarchyCapture.cs",
+    "lineStart": 1,
+    "lineEnd": 116,
+    "sha256": "1010fc319d53e60f089ae9d580f22aa895de8c0c785d4350aa94fe1b1611c052"
+  },
+  {
+    "id": "metadata",
+    "path": "src/UniClaw.Kernel/Perception/UiHierarchy/CaptureMetadata.cs",
+    "lineStart": 1,
+    "lineEnd": 79,
+    "sha256": "43b646cad295d534deaff52d733bb3e3d8d6e203c5acccb0eb2ba900d60e58d7"
+  }
+]

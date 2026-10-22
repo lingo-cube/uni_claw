@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-facts.v2",
+  "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900",
+  "status": "TerminalNotProven",
+  "reason": "agent-blocked:\u5F53\u524D World \u62A5\u544A ui.overlay.popup=present\uFF08revised\uFF09\uFF0C\u4F46\u5F53\u524D\u8BED\u4E49\u5C42\u7EA7\u4E2D\u6CA1\u6709\u4EFB\u4F55\u53EF\u8BC6\u522B\u7684\u5F39\u7A97/\u5BF9\u8BDD\u6846\u63A7\u4EF6\uFF0C\u5F39\u7A97\u5185\u5BB9\u4E0E\u53EF\u5173\u95ED\u8DEF\u5F84\u5747\u5C5E\u672A\u77E5\uFF1B\u540C\u65F6 plan-apps-subtree-traverse-1 \u5728\u7B2C2\u6B21\u5DF2 Verified \u5BFC\u822A\uFF08plan-attempt-2: Default apps, receipt-bind-intent-2-occ-872d781f120f-3-2\uFF09\u540E\u4EE5 traversal:navigation-cycle \u6682\u505C\uFF0C\u5BB9\u5668 ctr-02416d747094 \u5728\u8FDB\u5165 Default apps \u524D\u540E\u672A\u53D8\u3001traverse depth \u4ECD\u4E3A1\uFF0C\u5BB9\u5668\u8EAB\u4EFD\u65E0\u6CD5\u533A\u5206 Apps \u4E0E\u5176\u4E8C\u7EA7\u9875\u9762\u3002\u5728\u672A\u77E5\u906E\u7F69\u53E0\u52A0\u9875\u9762\u8EAB\u4EFD\u5F02\u5E38\u7684\u73B0\u72B6\u4E0B\uFF0C\u7EE7\u7EED tap\uFF08\u65E0\u8BBA\u662F returnStep \u7684\u4E0A\u5C42\u8FD4\u56DE\uFF0C\u8FD8\u662F\u8FDB\u5165 Special app access\uFF09\u90FD\u5C5E\u4E8E\u76F2\u8BD5\uFF0C\u53EF\u80FD\u843D\u5230\u672A\u6388\u6743\u63A7\u4EF6\u6216\u5F39\u7A97\u6309\u94AE\uFF0C\u56E0\u6B64\u65E0\u6CD5\u8BDA\u5B9E\u5730\u63A8\u8FDB\u5230\u7ED3\u675F\u4E8E Settings root \u7684\u5F3A\u5236\u4E49\u52A1\u3002\u4FDD\u7559\u7684\u7F3A\u53E3\uFF1ASpecial app access \u672A\u8FDB\u5165\u3001Default apps \u6761\u76EE\u4EC5\u4E3A\u5F53\u524D\u89C2\u5BDF\u3001backNavigation \u672A\u9A8C\u8BC1\u3001\u6EDA\u52A8\u53D1\u73B0\u662F\u5426\u7A77\u5C3D\u672A\u8BC1\u660E\uFF1B\u4E0D\u5BA3\u79F0 Settings \u5DF2\u7A77\u5C3D\u3002\u9700\u8981\u5728\u660E\u786E\u5F39\u7A97\u8EAB\u4EFD/\u5173\u95ED\u6388\u6743\uFF0C\u6216\u5BB9\u5668\u8EAB\u4EFD\u53EF\u533A\u5206\u4E8C\u7EA7\u8DEF\u7531\u540E\u518D\u7EE7\u7EED\u3002",
+  "outcome": null,
+  "delivered": 2,
+  "budgetRenewals": [],
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0.8333333333333334,
+  "stepSuccessRate": 1,
+  "uncovered": [
+    "back-navigation"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": null,
+  "diagnostics": {
+    "firstDivergence": null,
+    "terminalJustification": null,
+    "nextFiles": [
+      "facts.json",
+      "consult-bridge.json",
+      "environment-preflight.json",
+      "coverage-report.json",
+      "coverage-steps.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B firstDivergence/reason\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 coverage-steps.json\u3001trace.json \u548C exec.journal\u3002"
+  },
+  "languageInspection": {
+    "requested": false,
+    "file": null,
+    "findings": 0,
+    "persistenceHealthy": true,
+    "diagnostics": []
+  },
+  "consultMode": "advisory-direct",
+  "actionPolicy": {
+    "policyRef": "product/android-settings/forbidden-actions",
+    "digest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/product/policy/android-settings-forbidden-actions.json"
+  },
+  "evidenceDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence",
+  "evidenceFiles": 6,
+  "journalBytes": 3071,
+  "consults": [
+    {
+      "decisionId": "decision-c3f6b427ccbf-1",
+      "phase": "InitialPlanning",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "plan",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Apps is visible on the current verified root (coverage-event:2); a single bounded Traverse over settings.menu with maxDepth=2 limits work to the authorized whitelist routes (root-\u003EApps, Apps-\u003EDefault apps/Special app access), records switches/unauthorized entries read-only with no effect, and returns via Navigate up.",
+      "policyDigest": null,
+      "guardVerdict": null
+    },
+    {
+      "decisionId": "decision-c3f6b427ccbf-2",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "unknown",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": null,
+      "policyDigest": null,
+      "guardVerdict": null
+    }
+  ],
+  "steps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-3f72fba4700c-5-1"
+    },
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-872d781f120f-3-2"
+    }
+  ]
+}

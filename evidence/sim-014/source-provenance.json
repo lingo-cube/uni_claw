@@ -1,0 +1,82 @@
+{
+  "cases": [
+    {
+      "id": "sims",
+      "recordedAt": "2026-10-20T15:58:39.118709+00:00",
+      "recordedAtMeaning": "run preregistration frozenAtUtc; per-frame wall clock absent",
+      "layoutSource": "original recorded device XML and unchanged public Host frozen import",
+      "controlled": "identity/semantic suppliers/catalogue/intent/replay clock; not recorded model output",
+      "assets": {
+        "before": {
+          "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/evidence/capture-9ee244c9d11b4016aa7c5303c448fa19.xml",
+          "sha256": "619103cbf92f36af017abcf700861122e16156be810912f2347450cd36ba674a"
+        },
+        "imported-before": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/sims-before.json",
+          "sha256": "a279ca1866d7be8773c0fb0ee61ab0e1d86f345759ec9cb1a8d5e0542fa9a3f7"
+        },
+        "after": {
+          "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/evidence/capture-33a09ad228bb476b9c422d8f349b9bea.xml",
+          "sha256": "9c53323585e60ebdf4ebbbb9d3585dbd23534314dfd78ad9e8ae32e59d88e583"
+        },
+        "imported-after": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/sims-after.json",
+          "sha256": "f3c48004127986726788ab7b895138d7bb7895d9abc7dc67a61952f241849678"
+        }
+      }
+    },
+    {
+      "id": "all-apps",
+      "recordedAt": "2026-10-20T16:01:01.309672+00:00",
+      "recordedAtMeaning": "run preregistration frozenAtUtc; per-frame wall clock absent",
+      "layoutSource": "original recorded device XML and unchanged public Host frozen import",
+      "controlled": "identity/semantic suppliers/catalogue/intent/replay clock; not recorded model output",
+      "assets": {
+        "before": {
+          "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/evidence/capture-d0e219264e684ff2b90f5dbe6ae495d3.xml",
+          "sha256": "a9a83adfc331f28ef3b7324f23aadcfd27f567369b559bf7aaedeee4b002644c"
+        },
+        "imported-before": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/all-apps-before.json",
+          "sha256": "5a3ceb92c081ee614b311040b4188504ed0e6ad651f0f066a8e54004ff96d263"
+        },
+        "after": {
+          "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/evidence/capture-36ea6f9a6231489a92c83d7ed6bd3a75.xml",
+          "sha256": "a4138bf25879c79682f6b15f9689734d65c1433865350f26716e5db966610664"
+        },
+        "imported-after": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/all-apps-after.json",
+          "sha256": "615c357fa473c17ea02153d7a0b40b2912ccc33d293d31e4556ada6b207adb79"
+        }
+      }
+    },
+    {
+      "id": "default-apps",
+      "recordedAt": "2026-10-20T16:21:20.754458+00:00",
+      "recordedAtMeaning": "run preregistration frozenAtUtc; per-frame wall clock absent",
+      "layoutSource": "original recorded device XML and unchanged public Host frozen import",
+      "controlled": "identity/semantic suppliers/catalogue/intent/replay clock; not recorded model output",
+      "assets": {
+        "before": {
+          "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-406fca6d570e4152b7077c0df70ff81d.xml",
+          "sha256": "98412fd753f3b38c7902e2cefddeae190ef63b40a123994eeadc7b135a8baa52"
+        },
+        "imported-before": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-before.json",
+          "sha256": "04d23fb8be071146fa61138a037852e2c79f4eae1e1764047c431a92e5bcfcf2"
+        },
+        "after": {
+          "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-08173a863262439ca1bac49827ad4e6e.xml",
+          "sha256": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599"
+        },
+        "imported-after": {
+          "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-after.json",
+          "sha256": "712f4be002fbc8ec137ed07b623ee959f3ac95949afa67216d0e7ec559980821"
+        }
+      }
+    }
+  ],
+  "originalFramesAndImportsVerified": 12,
+  "weekScope": "three representative recent recordings; not entire week inventory",
+  "newFixturesSource": "evidence/sim-014/freeze-inputs.cs produces typed public input; oracle.json fixed independently; no output-to-expected recertification"
+}

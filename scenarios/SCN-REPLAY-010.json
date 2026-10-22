@@ -1,0 +1,31 @@
+{
+  "id": "SCN-REPLAY-010",
+  "name": "录制弹窗提取、原序观察及已知误判复现",
+  "source": "component-test",
+  "purpose": "复用2026-10-14真实弹窗和2026-10-20正常跨包页面；保留原帧/触发回执、缺失的CANCEL环节与语义误判。passing仅证明提取/重现，误判仍是SIM-017已知失败。另含缺失XML注入恢复。",
+  "capability": "popup-replay",
+  "components": [
+    "host-popup-classifier",
+    "recording-extractor"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "not-applicable",
+  "goalEvaluationRealization": "not-applicable",
+  "expectations": {
+    "status": "not-applicable",
+    "classification": null,
+    "effects": 0,
+    "agentConsultations": 0,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "none"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "既有Android模拟器Settings录制；不执行原adb命令，窗口与控制事实仅按声明来源使用。"
+  },
+  "testScope": "component"
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-facts.v2",
+  "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163",
+  "status": "AgentDecisionFailed",
+  "reason": "plan:traversal-revision-required",
+  "outcome": null,
+  "delivered": 0,
+  "budgetRenewals": [],
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0.6666666666666666,
+  "stepSuccessRate": 1,
+  "uncovered": [
+    "first-level-all-visible",
+    "back-navigation"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": null,
+  "diagnostics": {
+    "firstDivergence": null,
+    "terminalJustification": null,
+    "nextFiles": [
+      "facts.json",
+      "consult-bridge.json",
+      "environment-preflight.json",
+      "coverage-report.json",
+      "coverage-steps.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B firstDivergence/reason\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 coverage-steps.json\u3001trace.json \u548C exec.journal\u3002"
+  },
+  "languageInspection": {
+    "requested": false,
+    "file": null,
+    "findings": 0,
+    "persistenceHealthy": true,
+    "diagnostics": []
+  },
+  "consultMode": "advisory-direct",
+  "actionPolicy": {
+    "policyRef": "product/android-settings/forbidden-actions",
+    "digest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/product/policy/android-settings-forbidden-actions.json"
+  },
+  "evidenceDir": "/Users/fran/Documents/Code/spacex/uni_claw/evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/evidence",
+  "evidenceFiles": 10,
+  "journalBytes": 6147,
+  "consults": [
+    {
+      "decisionId": "decision-57bafbe8575b-1",
+      "phase": "InitialPlanning",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "plan",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Root viewport already contains all 5 registered roots, so no scroll is needed; one Traverse lets the Kernel re-read the World, select current candidates, verify each action and return, without pre-listing future nodes.",
+      "policyDigest": null,
+      "guardVerdict": null
+    },
+    {
+      "decisionId": "decision-57bafbe8575b-2",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "unknown",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": null,
+      "policyDigest": null,
+      "guardVerdict": null
+    }
+  ],
+  "steps": [
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-1-occ-f5a3a22da34a-3-1"
+    },
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-7962a9fc8ecf-3-2"
+    },
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-3-occ-fc5047e25402-1-3"
+    },
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-4-occ-1037a804508d-4-4"
+    }
+  ]
+}

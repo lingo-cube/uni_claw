@@ -1,0 +1,163 @@
+{
+  "localLinks": [
+    {
+      "from": "changes/SIM-013/design.md",
+      "target": "contract-boundaries.md",
+      "exists": true
+    },
+    {
+      "from": "changes/SIM-013/design.md",
+      "target": "../../evidence/sim-013/source-audit.md",
+      "exists": true
+    },
+    {
+      "from": "changes/SIM-013/design.md",
+      "target": "../../evidence/sim-013/scenario-audit.md",
+      "exists": true
+    },
+    {
+      "from": "changes/SIM-013/contract-boundaries.md",
+      "target": "design.md",
+      "exists": true
+    }
+  ],
+  "sourceAnchors": [
+    {
+      "path": "docs/architecture/simulation-baseline-v0.1.md",
+      "line": 40,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/SimContract.cs",
+      "line": 505,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/SimulationHost.cs",
+      "line": 211,
+      "valid": true
+    },
+    {
+      "path": "src/UniClaw.Kernel/UniKernel.cs",
+      "line": 92,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/SimulationHost.cs",
+      "line": 14,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioBuilder.cs",
+      "line": 12,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioImporter.cs",
+      "line": 54,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioLibrary.cs",
+      "line": 29,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/DeterministicEffectDriver.cs",
+      "line": 26,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioStimulus.cs",
+      "line": 67,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ProtocolAlignmentTests.cs",
+      "line": 24,
+      "valid": true
+    },
+    {
+      "path": "src/UniClaw.Kernel/Capability/CapabilityHub.cs",
+      "line": 191,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/PerceptionProtocolReplaceabilityTests.cs",
+      "line": 34,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/SimulatedCapabilityIntegrationTests.cs",
+      "line": 97,
+      "valid": true
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsTraversalLiveFeed.cs",
+      "line": 106,
+      "valid": true
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunDriverInputs.cs",
+      "line": 88,
+      "valid": true
+    },
+    {
+      "path": "tools/gen-protocol-machine.py",
+      "line": 1,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Protocol/ProtocolMachineTests.cs",
+      "line": 8,
+      "valid": true
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/ProtocolSchema.cs",
+      "line": 11,
+      "valid": true
+    },
+    {
+      "path": "tools/scenario_certify.py",
+      "line": 1,
+      "valid": true
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioCertification.cs",
+      "line": 6,
+      "valid": true
+    },
+    {
+      "path": "tools/verify-change",
+      "line": 34,
+      "valid": true
+    }
+  ],
+  "protectedCount": 2349,
+  "protectedChanged": [
+    "changes/WORLD-UNCERTAINTY-001/design.md",
+    "changes/WORLD-UNCERTAINTY-001/state.md",
+    "changes/WORLD-UNCERTAINTY-001/world-gap-audit.md"
+  ],
+  "unexpectedChanged": [],
+  "productSourceOrTestWrites": [],
+  "concurrentUnownedChanges": [
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/design.md",
+      "beforeSha256": "dd8cff030917ce5e96d84205482754c6ae7aeae7bdb45a746131470c0593626f",
+      "afterSha256": "e8097ea5d94c7397e9b1d340307ae90539423c243b035b78d2e10c8662ee9c4d"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/state.md",
+      "beforeSha256": "d73df0a755077d51a4a4383077e910073fc6239c430cb82ea2a89724405123ec",
+      "afterSha256": "46819ab531c06d2ebf395f940e1a60e6e3de9dd8de3571b0a40c068ddc7d4ce0"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/world-gap-audit.md",
+      "beforeSha256": "6cefddcfadfb23b04c077cc8facdb5a8c05bf003942f27f03f51cd44ee0a6c63",
+      "afterSha256": "0fcaf99e53f787006eada4c828c47a230742726ac4388a40c839797ea764e3aa"
+    }
+  ],
+  "sourceManifestDrift": [],
+  "attribution": "Three pre-existing World design documents changed concurrently outside this task write scope; none was edited, reset or accepted as a new simulation protocol by this task."
+}

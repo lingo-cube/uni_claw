@@ -1,0 +1,60 @@
+{
+  "source": "Literal expectations from accepted Semantic Perception and PageObservation contracts plus original XML text; not captured from SUT actual.",
+  "semantic": {
+    "rejectionStatus": "Unknown",
+    "rejectionDisposition": "Unaligned",
+    "successStatus": "Completed",
+    "successDisposition": "Supported",
+    "successRelation": "DifferentPage",
+    "successExpectedMatch": "Match",
+    "duplicateStatus": "Duplicate",
+    "unavailableStatus": "Unavailable",
+    "unavailableDisposition": "Unavailable",
+    "conflictedStatus": "Completed",
+    "conflictedDisposition": "Partial",
+    "conflictedMatch": "Conflicted",
+    "misboundStatus": "Failed",
+    "misboundDisposition": "Unaligned",
+    "cancelStatus": "Cancelled"
+  },
+  "world": {
+    "needsIdentityBefore": true,
+    "needsIdentityAfterWrong": true,
+    "needsIdentityAfterMatching": false,
+    "containersBefore": 1,
+    "containersAfter": 2,
+    "faultReceipts": 1
+  },
+  "cases": [
+    {
+      "id": "sims",
+      "pageKey": "sims",
+      "title": "SIMs",
+      "controls": [
+        "T-Mobile",
+        "Mobile data"
+      ]
+    },
+    {
+      "id": "all-apps",
+      "pageKey": "all-apps",
+      "title": "All apps",
+      "controls": [
+        "Android Keyboard (AOSP)",
+        "Calendar",
+        "Camera"
+      ]
+    },
+    {
+      "id": "default-apps",
+      "pageKey": "default-apps",
+      "title": "Default apps",
+      "controls": [
+        "Browser app",
+        "Home app",
+        "Phone app",
+        "Opening links"
+      ]
+    }
+  ]
+}

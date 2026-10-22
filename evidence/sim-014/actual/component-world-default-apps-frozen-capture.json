@@ -1,0 +1,424 @@
+{
+  "scope": "real product component; recorded layouts \u002B controlled suppliers; no device/model/whole-Run claim",
+  "composition": {
+    "manifestSha256": "bd557d1a93af47fe8d02edc97d5d26f35aba3bab52d170ce1e53c3af1cb034e4",
+    "pins": [
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/Capability/CapabilityHub.cs",
+        "sha256": "72caa9dfb3cedecbe2c745d32a0d2ffa057b0ba59d5e5311cbb4fda90e79c404"
+      },
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/Capability/IntegrationContracts.cs",
+        "sha256": "a33135a3c878c352c19df6159abef8200e2335622ffa3d489acb72d0907abe74"
+      },
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/Capability/SemanticPerception.cs",
+        "sha256": "dad53977b76ab78659676b232b3675bb3c32859ca5138046da92e46aa297a386"
+      },
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/Evidence/AdmissionRecord.cs",
+        "sha256": "3c2106517f3c42f5d17cfd5be2ec53ff373d15c9008e7201576020135a3d8548"
+      },
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/Evidence/EvidenceRecord.cs",
+        "sha256": "918e78ba88cb6fc1dbf320919cf0277b8ec5e704b5da854e7a73dd09ea81f512"
+      },
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/Evidence/ObservationOrigin.cs",
+        "sha256": "9872f626da134eba633aaa1d1734c27cf30d71c8c610d0783f5d6c08f6fa4af3"
+      },
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/Evidence/ObservationProposal.cs",
+        "sha256": "87cafbe15309b35ef82b02f57ec0008688553a8fe63c9973d714defcdac282e7"
+      },
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/Evidence/Provenance.cs",
+        "sha256": "6f14a5ef32fa8742721e19d077ec15b2aa69ac4464e3a5700626fb52654bd1b7"
+      },
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/Evidence/SharedSubjects.cs",
+        "sha256": "854123710576d531e724d29aef6403739f5766d9820390379eacdada7e01ae1f"
+      },
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/Perception/CoordinateSpace.cs",
+        "sha256": "c3776f9c0b2e9c3a86c551d0ccba8991bb26a81db635cebfb2081ac3acde8b4f"
+      },
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/Perception/UiHierarchy/UiHierarchyObservation.cs",
+        "sha256": "895bca57604c95ba5474170713864c84a24fc3caa91c39f15b84521722f0e705"
+      },
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/World/PageObservation.cs",
+        "sha256": "c859255b7a7ffcce03aaa0f63749a355a550c832007bd99c842b9ec136ce52ec"
+      },
+      {
+        "kind": "product-contract",
+        "path": "src/UniClaw.Kernel/World/WorldBeliefRevision.cs",
+        "sha256": "aa6946094c85a9b30ea54136f913c28c9c17ad5e8827ad3faefe07c4fed0df30"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/Capability/UniPerceptionCapability.Semantics.cs",
+        "sha256": "ac5416a85fe41e9452b2dd721eb9ddc0ffaf118dcfee63d1814f4dc95360d96b"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/Capability/UniPerceptionCapability.cs",
+        "sha256": "fffc3bf9d3fe2406d0ca8f55c9d6517715cbdd494be63b8139b4b6a8727abdf4"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/Evidence/EvidenceLedger.cs",
+        "sha256": "667a4beeff5abb8fb7d35a8766b37bf3bf1487bf2699d2a0fde28d0c1cf5a64b"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/Perception/SemanticObservationProjector.cs",
+        "sha256": "4e0a59ab38ab304811f91882ce80df113c4d269b6a39394f0100d60d963681b5"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/ConflictResolver.cs",
+        "sha256": "8210f3a275966619fc543b79f947f12c368d70037d73f8edd2e42fe21fc4b479"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/ConsumerViews.cs",
+        "sha256": "9a55c1ba5484d5cf3c4544c60d0b95b75ebe30f11906ca47e5107f53755dbba8"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/NativeLocator.cs",
+        "sha256": "8a825da4f58d2d858b11e48450e4461170598abbe32671d253182e28237bc92a"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/PersistentRevisionCollections.cs",
+        "sha256": "480c3324bf887fd475660c1a1b98e324d53536f4c0bd10d8bb24f1d665326c05"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/PostActionXmlRouter.cs",
+        "sha256": "49a04d51eff2f46fd7dbe744e990e4749cde4979413066d0cab03a9b5d4b8cbc"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/ProducerTrust.cs",
+        "sha256": "eab255859b8f31914d895a89892dce9cec714b201269b82ceef7ec65d3d02755"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/RelevanceJudgment.cs",
+        "sha256": "74fb1d315498d7ed69cb40e5386469ca71dfc1dabe25171b3e0efd2cbd94613e"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/Slice.cs",
+        "sha256": "9938141f4ec515a2b9298d00cad713a3ba4734e8eca5a78a90e4a37463e9c151"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/SpatialLocator.cs",
+        "sha256": "e19f88c17b1fe84b0e2ee328416daecb3dd9c1db01d5d10005ac42c53cc80115"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/TransitionContext.cs",
+        "sha256": "7a7fdb9760d10c482d75c6faf826f11916b8fa34d5b59d99c6ce68d056c96f3b"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/UiRealization/ContainerAssociation.cs",
+        "sha256": "e2ac95f7a2eea8ae0a262d33861dc96e43ba4b6fa8abda5991877126977a4d82"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/UiRealization/Continuity.cs",
+        "sha256": "4196461dda364510481f8d799daea4d642b66ea4627807e118678e3ded1d101b"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/UiRealization/GroundingSeam.cs",
+        "sha256": "f7d9ecd46945d3b1038d6d2322eb17d7143abe7f554a0913d1e20cd69bb5be4f"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/UiRealization/OccurrenceDescriptorMatcher.cs",
+        "sha256": "b7161ccc63a7cb49242d9792168966ea2f36a8b032a17e26fd46931190545004"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/UiRealization/ProductAssociationStrategy.cs",
+        "sha256": "54ad74cef0bd6a232fb3b18d64089db240fe0a8e83feb82c35a2c0478e9797f5"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/UiRealization/UiEntityModel.cs",
+        "sha256": "c869fa35591e85d48d4391730c3e5abba519fed6e56a8fd7f1250bccacac5d4f"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/ViewportTransition.cs",
+        "sha256": "c6337e7b6c97728b570023e732f895c7a98b16b5916a44aa01f5e854791ad315"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/WorldModel.Semantics.cs",
+        "sha256": "16a046850c50bde97f8a6ed0134fe0773d6e65f1eda9490d8f957e86c619c5bd"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/WorldModel.Viewports.cs",
+        "sha256": "58ca7a04f13b76a38224da0bbc9c84ca0bf9e3a2d88535ac2ca213a3f7240622"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/WorldModel.cs",
+        "sha256": "6db64bb4ee40b07b17516c2cb3a51d6290fa801397a48e04fac3572316e858f6"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/WorldRevisionIndex.cs",
+        "sha256": "bc5f3441fb8c812f88d39f50d36fc5cf387cfcc8aba00026944a1afd8a21fd50"
+      },
+      {
+        "kind": "simulation-adapter",
+        "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/CaptureMismatchFault.cs",
+        "sha256": "d335836ff3559a27ecf228e21f23a39367b262b56f9e0716fe4be7b6f9651d87"
+      },
+      {
+        "kind": "simulation-adapter",
+        "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ComponentReplayCases.cs",
+        "sha256": "11f20a1c1c2da624ac70d8f8d82e497245cb2126e46610792a796199d54e31db"
+      },
+      {
+        "kind": "simulation-adapter",
+        "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ComponentScenarioScope.cs",
+        "sha256": "c4e77aa2ec6e82b263d92196fc3fb7901c25509bd9fcf706e250097a8ae460f0"
+      },
+      {
+        "kind": "simulation-adapter",
+        "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/RecordedComponentInputs.cs",
+        "sha256": "6253b03e6115dcff987e18745d6984a4c4a4d798750c53a704b3b700cccb65ac"
+      },
+      {
+        "kind": "simulation-adapter",
+        "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs",
+        "sha256": "7484b6b65767ad7d631444a767e0a6afb88cfa822a03795085532169f4e1ceba"
+      },
+      {
+        "kind": "simulation-adapter",
+        "path": "tests/UniClaw.Simulation.Tests/ComponentReplayGovernanceTests.cs",
+        "sha256": "a30290179fca1a518069a5cae05b8789d9c9ee243981b1900ea055baff9c697f"
+      },
+      {
+        "kind": "simulation-adapter",
+        "path": "tests/UniClaw.Simulation.Tests/ComponentSemanticReplayTests.cs",
+        "sha256": "c1260a57645989eca303450e965711b69ddec2a4bb3cf46a332a39ed7b5fda39"
+      },
+      {
+        "kind": "simulation-adapter",
+        "path": "tests/UniClaw.Simulation.Tests/ComponentWorldReplayTests.cs",
+        "sha256": "74ebe14a70d793de9804271ed82e8b634688553a08e43891cd67ada7992077a9"
+      },
+      {
+        "kind": "replay-input",
+        "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/evidence/capture-33a09ad228bb476b9c422d8f349b9bea.xml",
+        "sha256": "9c53323585e60ebdf4ebbbb9d3585dbd23534314dfd78ad9e8ae32e59d88e583"
+      },
+      {
+        "kind": "replay-input",
+        "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/evidence/capture-9ee244c9d11b4016aa7c5303c448fa19.xml",
+        "sha256": "619103cbf92f36af017abcf700861122e16156be810912f2347450cd36ba674a"
+      },
+      {
+        "kind": "replay-input",
+        "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/evidence/capture-36ea6f9a6231489a92c83d7ed6bd3a75.xml",
+        "sha256": "a4138bf25879c79682f6b15f9689734d65c1433865350f26716e5db966610664"
+      },
+      {
+        "kind": "replay-input",
+        "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/evidence/capture-d0e219264e684ff2b90f5dbe6ae495d3.xml",
+        "sha256": "a9a83adfc331f28ef3b7324f23aadcfd27f567369b559bf7aaedeee4b002644c"
+      },
+      {
+        "kind": "replay-input",
+        "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-08173a863262439ca1bac49827ad4e6e.xml",
+        "sha256": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599"
+      },
+      {
+        "kind": "replay-input",
+        "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-406fca6d570e4152b7077c0df70ff81d.xml",
+        "sha256": "98412fd753f3b38c7902e2cefddeae190ef63b40a123994eeadc7b135a8baa52"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/all-apps-after.json",
+        "sha256": "0a309b9a3b5c27832330038e54ec2893d640fc6282c9cc446ea184599beac5fa"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/all-apps-before.json",
+        "sha256": "a940a13b849946740bc7107bab2c0bd5ea4cb46382341a1ce5bb1a7a54c1582a"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/default-apps-after.json",
+        "sha256": "12420c2225b5d2359a894b02e6429b58d1f6c82e554ddcddf9f33004ddaba837"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/default-apps-before.json",
+        "sha256": "5ff2934dff356b51dc0118bf2761e38f7462ceff5805aea56432bdd845bf7922"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/sims-after.json",
+        "sha256": "9fbf7204eac4259d419fa4934dccca76a13fb1511c38eef494eae9536d4447c2"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/sims-before.json",
+        "sha256": "36a8c2f3a3445d8b4cfeabfb957ff78cea3993a8559d55847c30117eee376ed6"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/responses/all-apps.json",
+        "sha256": "8e3a9bd9ec27219f46719bda8b1d3f20c17c1d6ee013d0cbfc5169d1197abf74"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/responses/default-apps.json",
+        "sha256": "1597fb6e62c0c8c046f255652fcc2206f91ee9408b35364207be1e0a00456c54"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/responses/sims.json",
+        "sha256": "6b02e3ca5cff8153c3b7f7c664e2ee48fe79140da470f858b0a528fb38c5dd9d"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/suite.json",
+        "sha256": "3a4edde0219c126af6f393265a994faf7ce43800865603297ad921006a6bebb1"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/all-apps-after.json",
+        "sha256": "615c357fa473c17ea02153d7a0b40b2912ccc33d293d31e4556ada6b207adb79"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/all-apps-before.json",
+        "sha256": "5a3ceb92c081ee614b311040b4188504ed0e6ad651f0f066a8e54004ff96d263"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-after.json",
+        "sha256": "712f4be002fbc8ec137ed07b623ee959f3ac95949afa67216d0e7ec559980821"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-before.json",
+        "sha256": "04d23fb8be071146fa61138a037852e2c79f4eae1e1764047c431a92e5bcfcf2"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/sims-after.json",
+        "sha256": "f3c48004127986726788ab7b895138d7bb7895d9abc7dc67a61952f241849678"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/sims-before.json",
+        "sha256": "a279ca1866d7be8773c0fb0ee61ab0e1d86f345759ec9cb1a8d5e0542fa9a3f7"
+      },
+      {
+        "kind": "replay-input",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+        "sha256": "6dbac2bebc83484183f828c9a3b3e0592ec040f50a3d5d9538e49685a0e5d26e"
+      },
+      {
+        "kind": "oracle",
+        "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/oracle.json",
+        "sha256": "1b0c862d1e7e7ba69b5957fa97fb280e1e34385dd7e5e1afc88925762674641a"
+      }
+    ],
+    "kernelAssembly": "UniClaw.Kernel",
+    "kernelAssemblySha256": "04bb380869a8c01acf7dc388f0aa8cc78cf9855993e3612de2736cbf6e0aa079"
+  },
+  "actual": {
+    "supplier": "frozen-capture",
+    "sourceHashes": {
+      "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-406fca6d570e4152b7077c0df70ff81d.xml": "98412fd753f3b38c7902e2cefddeae190ef63b40a123994eeadc7b135a8baa52",
+      "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-before.json": "04d23fb8be071146fa61138a037852e2c79f4eae1e1764047c431a92e5bcfcf2",
+      "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/default-apps-before.json": "5ff2934dff356b51dc0118bf2761e38f7462ceff5805aea56432bdd845bf7922",
+      "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-08173a863262439ca1bac49827ad4e6e.xml": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599",
+      "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-after.json": "712f4be002fbc8ec137ed07b623ee959f3ac95949afa67216d0e7ec559980821",
+      "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/default-apps-after.json": "12420c2225b5d2359a894b02e6429b58d1f6c82e554ddcddf9f33004ddaba837"
+    },
+    "fault": [
+      {
+        "invocation": 1,
+        "boundary": "page-identity.captureId",
+        "kind": "capture-mismatch",
+        "original": "capture-08173a863262439ca1bac49827ad4e6e",
+        "delivered": "fault:foreign:capture-08173a863262439ca1bac49827ad4e6e"
+      }
+    ],
+    "delivered": [
+      {
+        "evidenceId": "ev-f191b7cdf89c5b7f4362c73c5524b861e1c9a86de8a60af9d7c9cd08ecc2da7c",
+        "subject": "ui.page.capture",
+        "isRelevant": true,
+        "reason": "subject-in-relevance-scope"
+      },
+      {
+        "evidenceId": "ev-cd1e75371162d3a7c112c683f8caadffc3fbc811f77d980ee862de8104a795b8",
+        "subject": "ui.page.identity",
+        "isRelevant": true,
+        "reason": "subject-in-relevance-scope"
+      },
+      {
+        "evidenceId": "ev-9888865540f771566503a4943a357e0b2d3294d11b534acde2fbac39097b4a7f",
+        "subject": "ui.page.capture",
+        "isRelevant": true,
+        "reason": "subject-in-relevance-scope"
+      },
+      {
+        "evidenceId": "ev-f6b1e089dcd835b5aa2aff4a5e625a1f3c6e778b1188b3424eaa731a4d19abf1",
+        "subject": "ui.page.identity",
+        "isRelevant": true,
+        "reason": "subject-in-relevance-scope"
+      },
+      {
+        "evidenceId": "ev-4eabb2cb1012c7ba32dfb002040617f9da4f76c9fda253a70bd6b8d8ff3b1b35",
+        "subject": "ui.page.identity",
+        "isRelevant": true,
+        "reason": "subject-in-relevance-scope"
+      },
+      {
+        "evidenceId": "ev-0dc6fe59c19656da951cabe9cac9b3f64d404128f92b0ad0e5b40f922df07a72",
+        "subject": "ui.page.capture",
+        "isRelevant": true,
+        "reason": "subject-in-relevance-scope"
+      }
+    ],
+    "beforeContainer": "ctr-cd1e75371162",
+    "afterContainer": "ctr-4eabb2cb1012",
+    "currentCapture": "capture-08173a863262439ca1bac49827ad4e6e",
+    "containers": 2,
+    "identityNeeded": false,
+    "scope": "World \u002B real Ledger; Control/Assurance/Effect and goal evaluation not composed"
+  }
+}

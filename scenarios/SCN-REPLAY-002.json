@@ -1,0 +1,34 @@
+{
+  "id": "SCN-REPLAY-002",
+  "name": "操作回放：导航与正反滚动",
+  "source": "synthetic",
+  "purpose": "实际操作/回执/验证/World图关联；独立固定坐标检查往返内容坐标",
+  "capability": "world-operation-replay",
+  "components": [
+    "kernel",
+    "world-model",
+    "assurance",
+    "effect-boundary",
+    "evidence-ledger",
+    "runtime"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "not-applicable",
+  "expectations": {
+    "status": "TerminalNotProven",
+    "classification": null,
+    "effects": 4,
+    "agentConsultations": 5,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "none"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "手工合成输入，不含设备或账户信息；详细独立期望由专有回放 JSON/测试消费"
+  }
+}

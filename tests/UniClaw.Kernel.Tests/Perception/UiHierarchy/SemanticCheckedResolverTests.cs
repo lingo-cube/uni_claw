@@ -65,6 +65,7 @@ public sealed class SemanticCheckedResolverTests
         var belief = Belief(
             new Dictionary<string, WorldClaim>
             {
+                ["ui.node.cap-1#0.checkable"] = Claim("true", "ev-guard-T1_CheckedClaim_ResolvesChecked"),
                 ["ui.node.cap-1#0.checked"] = Claim("checked", "ev-checked-0001"),
             },
             Occ(evidenceBasis: new[] { "ev-checked-0001" }));
@@ -85,6 +86,7 @@ public sealed class SemanticCheckedResolverTests
         var belief = Belief(
             new Dictionary<string, WorldClaim>
             {
+                ["ui.node.cap-1#0.checkable"] = Claim("true", "ev-guard-T2_UncheckedClaim_ResolvesUnchecked"),
                 ["ui.node.cap-1#0.checked"] = Claim("unchecked", "ev-unchecked-01"),
             },
             Occ(evidenceBasis: new[] { "ev-unchecked-01" }));
@@ -103,6 +105,7 @@ public sealed class SemanticCheckedResolverTests
         var belief = Belief(
             new Dictionary<string, WorldClaim>
             {
+                ["ui.node.cap-1#0.checkable"] = Claim("true", "ev-guard-T3_PartialClaim_Preserved_NotCollapsed"),
                 ["ui.node.cap-1#0.checked"] = Claim("partial", "ev-partial-0001"),
             },
             Occ(evidenceBasis: new[] { "ev-partial-0001" }));
@@ -192,6 +195,7 @@ public sealed class SemanticCheckedResolverTests
         var belief = Belief(
             new Dictionary<string, WorldClaim>
             {
+                ["ui.node.cap-1#0.checkable"] = Claim("true", "ev-guard-Association_TargetA_ResolvesOnlyCheckedClaimA"),
                 ["ui.node.cap-1#0.checked"] = Claim("checked", "ev-a-0001"),
                 ["ui.node.cap-1#1.checked"] = Claim("unchecked", "ev-b-0001"),
             },
@@ -271,6 +275,7 @@ public sealed class SemanticCheckedResolverTests
         var belief = Belief(
             new Dictionary<string, WorldClaim>
             {
+                ["ui.node.cap-new#0.checkable"] = Claim("true", "ev-guard-NewestCapture_Wins_WhenCanonicalTimestampsAvailable"),
                 ["ui.node.cap-old#0.checked"] = Claim("checked", "ev-cap-old-0001"),
                 ["ui.node.cap-new#0.checked"] = Claim("unchecked", "ev-cap-new-0002"),
             },

@@ -26,6 +26,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SIM_PROJECT = "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj"
 SIM_TRX_DIR = os.path.join(ROOT, "tests", "UniClaw.Simulation.Tests", "TestResults")
+HOST_TRX_DIR = os.path.join(ROOT, "tests", "UniClaw.Host.Tests", "TestResults")
 # FULL_TEST_PROJECTS covers every solution test project (aggregated); the
 # simulation project is
 # executed once by the SIMULATION group and reused (A6: no duplicate runs).
@@ -35,6 +36,7 @@ OTHER_TEST_PROJECTS = (
     "tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj",
     "tests/UniClaw.FileSystemRealization.Tests/UniClaw.FileSystemRealization.Tests.csproj",
     "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj",
+    "tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj",
     "tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj",
 )
 TESTSET_MANIFEST = os.path.join(ROOT, "testsets", "simulation-baseline", "manifest.json")
@@ -164,6 +166,7 @@ def owner_basis(fqn):
         "UniClaw.Simulation.Tests": "simulation-harness/tests",
         "UniClaw.Kernel.Tests": "kernel",
         "UniClaw.Host.Tests": "host",
+        "UniClaw.Host.Dsh.Tests": "host-dsh",
         "UniClaw.Agent.Tests": "agent",
         "UniClaw.Agent.Dsh.Tests": "agent-dsh",
         "UniClaw.Core.Tests": "core",
@@ -461,7 +464,10 @@ def main():
         fs_rc, fs_out = 0, []
         for project in OTHER_TEST_PROJECTS:
             label = f"FULL_TEST_PROJECTS[{os.path.basename(os.path.dirname(project))}]"
-            prc, pout = run(label, ["dotnet", "test", project, "--no-restore", "--logger", "console;verbosity=minimal"])
+            command = ["dotnet", "test", project, "--no-restore", "--logger", "console;verbosity=minimal"]
+            if project == "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj":
+                command.extend(["--logger", "trx;LogFileName=sim006-full-host.trx"])
+            prc, pout = run(label, command)
             fs_rc = max(fs_rc, prc)
             fs_out.append(pout)
         results.append(("FULL_TEST_PROJECTS", fs_rc, "\n".join(fs_out)))
@@ -469,7 +475,8 @@ def main():
 
     rc, out = run("CERTIFICATION", ["python3", "tools/scenario_certify.py", "--check"]); results.append(("CERTIFICATION", rc, out))
     if ns.scope == "full":
-        rc, out = run("COVERAGE", ["python3", "tools/scenario-coverage.py", "--trx", os.path.relpath(sim_trx, ROOT)]); results.append(("COVERAGE", rc, out))
+        host_trx = os.path.join(HOST_TRX_DIR, "sim006-full-host.trx")
+        rc, out = run("COVERAGE", ["python3", "tools/scenario-coverage.py", "--trx", os.path.relpath(sim_trx, ROOT), "--trx", os.path.relpath(host_trx, ROOT)]); results.append(("COVERAGE", rc, out))
     if ns.live:
         rc, out = run("LIVE", ["tools/verify-live"]); results.append(("LIVE", rc, out))
         live_state = "executed"

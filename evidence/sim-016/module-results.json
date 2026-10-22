@@ -1,0 +1,63 @@
+{
+  "projects": [
+    {
+      "project": "UniClaw.Simulation.Tests",
+      "passed": 314,
+      "failed": 0,
+      "skipped": 0,
+      "total": 314
+    },
+    {
+      "project": "UniClaw.Agent.Tests",
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "total": 36
+    },
+    {
+      "project": "UniClaw.Agent.Dsh.Tests",
+      "passed": 212,
+      "failed": 0,
+      "skipped": 0,
+      "total": 212
+    },
+    {
+      "project": "UniClaw.Core.Tests",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "total": 14
+    },
+    {
+      "project": "UniClaw.FileSystemRealization.Tests",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "total": 9
+    },
+    {
+      "project": "UniClaw.Host.Tests",
+      "passed": 424,
+      "failed": 0,
+      "skipped": 0,
+      "total": 424
+    },
+    {
+      "project": "UniClaw.Host.Dsh.Tests",
+      "passed": 56,
+      "failed": 0,
+      "skipped": 0,
+      "total": 56
+    },
+    {
+      "project": "UniClaw.Kernel.Tests",
+      "passed": 1044,
+      "failed": 0,
+      "skipped": 0,
+      "total": 1044
+    }
+  ],
+  "passed": 2109,
+  "total": 2109,
+  "simulationExecutions": 1
+}

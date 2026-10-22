@@ -1,0 +1,29 @@
+  UniClaw.Core -> /private/tmp/uniclaw-sim016-zy6kokur/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /private/tmp/uniclaw-sim016-zy6kokur/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Host -> /private/tmp/uniclaw-sim016-zy6kokur/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/PageIdentityRecoveryTests.cs(48,24): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs(58,68): warning CS8604: “UiHierarchyCaptureResult UiAutomatorDump.ParseHierarchyObservation(string xml, UiHierarchyParseContext parseContext)”中的形参“xml”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(249,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(262,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(728,45): warning CS8620: 由于引用类型的可为 null 性差异，(string, string, string)[] 类型的实参不能用于 void SettingsCoverageLedger.RecordObservation(string route, IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> visibleOccurrences) 中 IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> 类型的形参 visibleOccurrences。 [/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/WorldCaptureIsolationTests.cs(39,38): warning CS8602: 解引用可能出现空引用。 [/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+  UniClaw.Host.Tests -> /private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll
+/private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.77]     UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget [FAIL]
+  失败 UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget [678 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "TerminalNotProven"
+Actual:   "Completed"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId) in /private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs:line 108
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget() in /private/tmp/uniclaw-sim016-zy6kokur/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs:line 75
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+警告: 正在覆盖结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/sim-016/disabled-hold-selector.trx
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/evidence/sim-016/disabled-hold-selector.trx
+
+失败!  - 失败:     1，通过:     0，已跳过:     0，总计:     1，持续时间: 678 ms - UniClaw.Host.Tests.dll (net10.0)

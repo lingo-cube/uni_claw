@@ -1,0 +1,45 @@
+{
+  "level": "SCENARIO",
+  "method": "source SHA/public Host offline import, three public KernelRunDriver recorded-layout recovery cases, controlled stale-signature producer fault, isolated current-source full, exact binary Trait/TRX join, independent Standards/Spec review, protection and same-runtime-artifact hashes",
+  "expected": "SIM-012 Acceptance1-4, bounded three-recording slice; no live Host or original whole-Run claim",
+  "actual": {
+    "hostImportPassed": 3,
+    "runtimeRecoveryPassed": 3,
+    "staleSignatureFaultsDetected": 3,
+    "fullPassed": 2070,
+    "projects": 8,
+    "scenariosPassing": 35,
+    "certified": 20,
+    "descriptive": 15,
+    "newFullDisplayNamesJoined": 3,
+    "independentReviewBlockers": 0,
+    "protectedFilesUnchanged": 2204,
+    "frozenInputsUnchanged": 25,
+    "snapshotExecutableDrift": [],
+    "sameBuiltKernelArtifact": true
+  },
+  "evidence": [
+    "focused.txt",
+    "host-focused.trx",
+    "simulation-focused.trx",
+    "behavior-summary.json",
+    "oracle-stale-signature.trx",
+    "oracle-mutation.json",
+    "full.txt",
+    "module-results.json",
+    "simulation-full.trx",
+    "recent-discovery.json",
+    "protection-check.json",
+    "runtime-artifact-check.json",
+    "spec-review.md",
+    "standards-review.md",
+    "report.md"
+  ],
+  "limits": [
+    "three representative recent recordings, not entire week inventory",
+    "controlled identity/agent/delivery and fixed replay clock; per-frame original timestamps absent",
+    "previous recorded post, no independent pre-action capture reference",
+    "live Host title/identity/popup producer and original model/whole Run not certified",
+    "legacy checked=false remains Unknown; no device/real model/commit/push"
+  ]
+}

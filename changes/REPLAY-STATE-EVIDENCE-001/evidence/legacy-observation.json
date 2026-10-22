@@ -1,0 +1,93 @@
+{
+  "diagnosticPath": "evidence/sim-010/output/recorded-stay-awake-direct-diagnostic.json",
+  "sha256": "5f113cd754e1007dd7c8473f6f015fb6a1bfd02fcb34d10cd480e01a4f7bc082",
+  "actualStatus": "TerminalNotProven",
+  "actualReason": "evidence-insufficient",
+  "actualVerifications": [
+    {
+      "revisionId": "rev-1217",
+      "target": {
+        "role": "switch",
+        "semanticDescriptor": "Stay awake",
+        "effectClass": "tap",
+        "desiredState": 1
+      },
+      "isVerified": false,
+      "checks": [
+        {
+          "name": "typed-route-four-gates",
+          "passed": false
+        },
+        {
+          "name": "typed-checked-matches-desired",
+          "passed": false
+        }
+      ],
+      "rejectionReason": "typed-route: insufficient-evidence (no-checked-claim)"
+    }
+  ],
+  "firstDivergence": {
+    "path": "verifiedEffects",
+    "expected": "1",
+    "actual": "0"
+  },
+  "frames": [
+    {
+      "path": "platforms/perception/evaluation/validation/fastscreen-v1/uia/1e572c8f5092.xml",
+      "sha256": "eb2635e40ec39cbf2645dd8b1e08fae55a7b5f7a3c2d5b5e8a43ff4fc179827e",
+      "association": "nearest ancestor of unique Stay awake label containing a checkable switchWidget; raw inspection, not product grounding",
+      "targetNodes": [
+        {
+          "index": "0",
+          "text": "",
+          "resource-id": "com.android.settings:id/switchWidget",
+          "class": "android.widget.Switch",
+          "package": "com.android.settings",
+          "content-desc": "",
+          "checkable": "true",
+          "checked": "true",
+          "clickable": "false",
+          "enabled": "true",
+          "focusable": "false",
+          "focused": "false",
+          "scrollable": "false",
+          "long-clickable": "false",
+          "password": "false",
+          "selected": "false",
+          "bounds": "[901,1712][1038,1838]"
+        }
+      ]
+    },
+    {
+      "path": "platforms/perception/evaluation/validation/fastscreen-v1/uia/4a1f3e1d4421.xml",
+      "sha256": "d055aab870bca5114d1f885dbf7f66f5810602d691104888f85ee3a7b404276f",
+      "association": "nearest ancestor of unique Stay awake label containing a checkable switchWidget; raw inspection, not product grounding",
+      "targetNodes": [
+        {
+          "index": "0",
+          "text": "",
+          "resource-id": "com.android.settings:id/switchWidget",
+          "class": "android.widget.Switch",
+          "package": "com.android.settings",
+          "content-desc": "",
+          "checkable": "true",
+          "checked": "false",
+          "clickable": "false",
+          "enabled": "true",
+          "focusable": "false",
+          "focused": "false",
+          "scrollable": "false",
+          "long-clickable": "false",
+          "password": "false",
+          "selected": "false",
+          "bounds": "[901,1712][1038,1838]"
+        }
+      ]
+    }
+  ],
+  "warning": "expected and sequence note are authoring data, not actual evidence",
+  "trx": {
+    "path": "evidence/sim-010/recorded-diagnostic.trx",
+    "sha256": "80c437b9eb89417509a603991dbe2c1ae9c67d180b7d0414b9fd831be40861b9"
+  }
+}

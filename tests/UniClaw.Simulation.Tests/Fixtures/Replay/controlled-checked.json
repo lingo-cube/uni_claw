@@ -1,0 +1,159 @@
+{
+  "source": "Controlled synthetic tri-state fixture v1, explicit field states and fixed virtual clock; no human review, device, XML proof or calibration claim",
+  "cases": [
+    {
+      "id": "turn off",
+      "before": "checked",
+      "after": "unchecked",
+      "desired": "off",
+      "checkable": "true",
+      "postSecond": 2,
+      "postNodes": 1,
+      "expected": {
+        "verified": true,
+        "phase": "StepVerified",
+        "rejectionReasonContains": null
+      }
+    },
+    {
+      "id": "turn on",
+      "before": "unchecked",
+      "after": "checked",
+      "desired": "on",
+      "checkable": "true",
+      "postSecond": 2,
+      "postNodes": 1,
+      "expected": {
+        "verified": true,
+        "phase": "StepVerified",
+        "rejectionReasonContains": null
+      }
+    },
+    {
+      "id": "partial",
+      "before": "checked",
+      "after": "partial",
+      "desired": "off",
+      "checkable": "true",
+      "postSecond": 2,
+      "postNodes": 1,
+      "expected": {
+        "verified": false,
+        "phase": "VerificationFailed",
+        "rejectionReasonContains": "partial"
+      }
+    },
+    {
+      "id": "unknown",
+      "before": "checked",
+      "after": "unknown",
+      "desired": "off",
+      "checkable": "true",
+      "postSecond": 2,
+      "postNodes": 1,
+      "expected": {
+        "verified": false,
+        "phase": "VerificationFailed",
+        "rejectionReasonContains": "no-checked-claim"
+      }
+    },
+    {
+      "id": "unsupported",
+      "before": "checked",
+      "after": "unsupported",
+      "desired": "off",
+      "checkable": "true",
+      "postSecond": 2,
+      "postNodes": 1,
+      "expected": {
+        "verified": false,
+        "phase": "VerificationFailed",
+        "rejectionReasonContains": "no-checked-claim"
+      }
+    },
+    {
+      "id": "unchanged",
+      "before": "checked",
+      "after": "checked",
+      "desired": "off",
+      "checkable": "true",
+      "postSecond": 2,
+      "postNodes": 1,
+      "expected": {
+        "verified": false,
+        "phase": "VerificationFailed",
+        "rejectionReasonContains": "post-action-desired-state-not-satisfied"
+      }
+    },
+    {
+      "id": "stale",
+      "before": "checked",
+      "after": "unchecked",
+      "desired": "off",
+      "checkable": "true",
+      "postSecond": 0,
+      "postNodes": 1,
+      "expected": {
+        "verified": false,
+        "phase": "VerificationFailed",
+        "rejectionReasonContains": "capture-not-after-dispatch"
+      }
+    },
+    {
+      "id": "equal timestamp",
+      "before": "checked",
+      "after": "unchecked",
+      "desired": "off",
+      "checkable": "true",
+      "postSecond": 1,
+      "postNodes": 1,
+      "expected": {
+        "verified": false,
+        "phase": "VerificationFailed",
+        "rejectionReasonContains": "capture-not-after-dispatch"
+      }
+    },
+    {
+      "id": "ambiguous post",
+      "before": "checked",
+      "after": "unchecked",
+      "desired": "off",
+      "checkable": "true",
+      "postSecond": 2,
+      "postNodes": 2,
+      "expected": {
+        "verified": false,
+        "phase": "VerificationFailed",
+        "rejectionReasonContains": "occurrence-ambiguous"
+      }
+    },
+    {
+      "id": "not checkable",
+      "before": "checked",
+      "after": "unchecked",
+      "desired": "off",
+      "checkable": "false",
+      "postSecond": 2,
+      "postNodes": 1,
+      "expected": {
+        "verified": false,
+        "phase": "VerificationFailed",
+        "rejectionReasonContains": "checkable"
+      }
+    },
+    {
+      "id": "checkable missing",
+      "before": "checked",
+      "after": "unchecked",
+      "desired": "off",
+      "checkable": "unknown",
+      "postSecond": 2,
+      "postNodes": 1,
+      "expected": {
+        "verified": false,
+        "phase": "VerificationFailed",
+        "rejectionReasonContains": "checkable"
+      }
+    }
+  ]
+}

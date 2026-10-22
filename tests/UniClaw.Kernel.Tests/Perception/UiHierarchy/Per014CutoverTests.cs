@@ -57,6 +57,7 @@ public sealed class Per014CutoverTests
         var belief = Belief(new Dictionary<string, WorldClaim>
         {
             ["ui.node.cap-1#0.checked"] = TypedClaim("checked", "ev-typed-0000001"),
+            ["ui.node.cap-1#0.checkable"] = TypedClaim("true", "ev-guard-0000001"),
             ["rendered.toggleAppearance"] = PlainClaim("off", "ev-rendered-0001"),
         }, Occ(evidenceBasis: new[] { "ev-typed-0000001" }));
 
@@ -92,6 +93,7 @@ public sealed class Per014CutoverTests
         var kernel = ComposeTypedKernel(typedSubject, includeLegacySubject: false);
 
         kernel.Process(FrameProposal());
+        kernel.Process(CheckedGuardFixture.Checkable(TypedCheckedProposal(typedSubject, "checked", T0.AddSeconds(1))));
         kernel.Process(TypedCheckedProposal(typedSubject, "checked", T0.AddSeconds(1)));
 
         // verification：typed 唯一证据源即通过（typed route 四门全过、值相等）。
@@ -113,6 +115,7 @@ public sealed class Per014CutoverTests
         var kernel = ComposeTypedKernel(typedSubject, includeLegacySubject: true);
 
         kernel.Process(FrameProposal());
+        kernel.Process(CheckedGuardFixture.Checkable(TypedCheckedProposal(typedSubject, "unchecked", T0.AddSeconds(1))));
         kernel.Process(TypedCheckedProposal(typedSubject, "unchecked", T0.AddSeconds(1)));
         var before = kernel.UnsatisfiedMandatoryObligations();
         var semanticBefore = SemanticCheckedResolver.Resolve(
@@ -122,6 +125,7 @@ public sealed class Per014CutoverTests
         // 帧批尾跟随（revision-local occurrence 语义）。
         kernel.Process(PlainProposal(legacySubject, "on", "host.live", T0));
         kernel.Process(FrameProposal());
+        kernel.Process(CheckedGuardFixture.Checkable(TypedCheckedProposal(typedSubject, "unchecked", T0.AddSeconds(2))));
         kernel.Process(TypedCheckedProposal(typedSubject, "unchecked", T0.AddSeconds(2)));
 
         var after = kernel.UnsatisfiedMandatoryObligations();
@@ -299,7 +303,7 @@ public sealed class Per014CutoverTests
     {
         var scope = new HashSet<string>
         {
-            SharedSubjects.Screen, SharedSubjects.Frame, typedSubject,
+            SharedSubjects.Screen, SharedSubjects.Frame, typedSubject, CheckedGuardFixture.SubjectFor(typedSubject),
         };
         if (includeLegacySubject)
             scope.Add("switch.state");

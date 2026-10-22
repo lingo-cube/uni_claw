@@ -1,0 +1,453 @@
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-PERC-005.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-POLICY-008.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-WIFI-005.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-REPLAY-003.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-POLICY-004.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-POLICY-005.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-REPLAY-002.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-WIFI-004.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-PERC-008.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-POLICY-009.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-PERC-004.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-WIFI-003.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-REPLAY-005.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-POLICY-002.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-PERC-003.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-BARRIER-001.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-PERC-002.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-POLICY-003.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-REPLAY-004.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-WIFI-002.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-REPLAY-007.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-WIFI-001.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-BARRIER-002.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-PERC-001.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-BARRIER-003.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-REPLAY-006.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-POLICY-001.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-PERC-007.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-POLICY-006.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-REPLAY-001.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-POLICY-010.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-POLICY-011.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-WIFI-006.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-POLICY-007.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_existing_scenarios_keep_scope_and_decision (test_component_scenario_scope.ComponentScenarioScopeTests) (case='SCN-PERC-006.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 32, in test_existing_scenarios_keep_scope_and_decision
+    self.assertEqual([], coverage.component_scope_violations(data))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='component-isolated')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='legacy-default-unchanged')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='component-effect-sut')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='missing-scope')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='unknown-scope')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='component-decision-double')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='component-golden')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='component-evaluation-real')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='agent-consulted')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='goal-completion-claim')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='runtime-status-claim')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='agent-in-components')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='uni-agent-in-components')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='wrong-source')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='classification-claim')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='empty-components')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='missing-expectations')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='missing-consultations')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+ERROR: test_python_policy_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='missing-decision')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 24, in test_python_policy_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.component_scope_violations(row['data']))
+AttributeError: module 'component_scope_coverage' has no attribute 'component_scope_violations'
+
+======================================================================
+FAIL: test_schema_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='component-isolated')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 19, in test_schema_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.validate_entry(schema, row['data'], row['id']))
+AssertionError: True != False
+
+======================================================================
+FAIL: test_schema_matches_literal_matrix (test_component_scenario_scope.ComponentScenarioScopeTests) (case='component-effect-sut')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_component_scenario_scope.py", line 19, in test_schema_matches_literal_matrix
+    self.assertEqual(row['valid'], not coverage.validate_entry(schema, row['data'], row['id']))
+AssertionError: True != False
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.014s
+
+FAILED (failures=2, errors=54)

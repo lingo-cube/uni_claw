@@ -1,0 +1,44 @@
+{
+  "workItemId": "WI-SIM016-EPISODE-AUDIT",
+  "status": "partial_source_found",
+  "episodes": [
+    {
+      "sourceRun": "evidence/settings-coverage-004/live-fix/run-20261014-232314-431",
+      "date": "2026-10-14",
+      "candidate": "SIM label and color popup",
+      "originalFrames": [
+        {
+          "captureId": "capture-d565ae3ca1bf4f9ab82b13211e7837cf",
+          "xml": "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/evidence/capture-d565ae3ca1bf4f9ab82b13211e7837cf.xml",
+          "png": "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/evidence/capture-d565ae3ca1bf4f9ab82b13211e7837cf.png",
+          "role": "popup present in settings-trace cycle 8"
+        },
+        {
+          "captureId": "capture-8d4fae45f6d743fb84c07d71badd03b3",
+          "xml": "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/evidence/capture-8d4fae45f6d743fb84c07d71badd03b3.xml",
+          "png": "evidence/settings-coverage-004/live-fix/run-20261014-232314-431/evidence/capture-8d4fae45f6d743fb84c07d71badd03b3.png",
+          "sha256Xml": "3b50e2d147d8fe4c42255caae8e0cce91369a898f3896acb126ad2c0ff677002",
+          "role": "popup present in settings-trace cycle 9; original XML contains title SIM label and color and clickable CANCEL (android:id/button2)"
+        }
+      ],
+      "trigger": {
+        "coverageStepIndex": 5,
+        "decisionId": "decision-d24d3d1dc90d-6",
+        "directive": "Enter dynamically discovered SIM name & color by tapping it.",
+        "receiptId": "receipt-bind-intent-6-occ-7372c47d37a5-2-6",
+        "receiptOutcome": "DeliveryCompleted",
+        "receiptCommand": "adb -s emulator-5556 shell input tap 1017 182",
+        "postCaptureId": "capture-b2e5aa3ef6ab44eb808c84fd61e98022"
+      },
+      "clearance": null,
+      "stageRecording": {
+        "prePopup": "not explicitly linked as trigger pre-capture in coverage-steps",
+        "popup": "yes, original XML and PNG captures; trace records popup present",
+        "cancelAction": "missing: no coverage step or receipt whose action targets CANCEL",
+        "postClearance": "missing for this popup episode"
+      },
+      "missingFields": ["trigger pre-capture association", "CANCEL action/receipt association", "post-CANCEL capture/clearance evidence"]
+    }
+  ],
+  "conclusion": "A real popup episode source with original XML is present, including a CANCEL control, but the source bundle does not link a CANCEL action/receipt or post-clearance frame. It is not yet a complete deterministic extraction episode."
+}

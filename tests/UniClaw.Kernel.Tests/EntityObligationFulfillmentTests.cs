@@ -104,7 +104,7 @@ public sealed class EntityObligationFulfillmentTests
     private static ExecutionContract SwitchContract() => new(
         Version: "v1",
         Objective: "turn-switch-on",
-        Scope: new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
+        Scope: new HashSet<string> { UIWorldDoubles.Observed, TypedSubject, CheckedGuardFixture.SubjectFor(TypedSubject) },
         AllowedEffects: new HashSet<string> { "toggle" },
         ForbiddenEffects: new HashSet<string>(),
         ProofCriteria: new[] { "switch-on" },
@@ -122,7 +122,7 @@ public sealed class EntityObligationFulfillmentTests
     {
         var cid = ProbeContainerId("switch:primary@off");
         var world = new WorldModel(
-            new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
+            new HashSet<string> { UIWorldDoubles.Observed, TypedSubject, CheckedGuardFixture.SubjectFor(TypedSubject) },
             new SeedContainerAssociationStrategy(),
             new StatefulObservationStrategy(cid, associateTyped: true),
             new RoleContinuityStrategy());
@@ -144,13 +144,16 @@ public sealed class EntityObligationFulfillmentTests
     {
         var ledger = new EvidenceLedger();
         var world = new WorldModel(
-            new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
+            new HashSet<string> { UIWorldDoubles.Observed, TypedSubject, CheckedGuardFixture.SubjectFor(TypedSubject) },
             associationStrategy: null, new StatefulObservationStrategy(associateTyped: true));
         var kernel = new UniKernel(
             ledger, world, DisabledRunTrace.Instance);
         kernel.Process(UIWorldDoubles.Observation(observedValue, UIWorldDoubles.T1)); // 批尾：承载 occurrence
         if (typedCheckedValue is not null)
+        {
+            kernel.Process(CheckedGuardFixture.Checkable(TypedCheckedClaim(typedCheckedValue, UIWorldDoubles.T0)));
             kernel.Process(TypedCheckedClaim(typedCheckedValue, UIWorldDoubles.T0));
+        }
 
         var view = world.DeriveOutcomeAssuranceView(
             Array.Empty<string>(),
@@ -191,10 +194,11 @@ public sealed class EntityObligationFulfillmentTests
     {
         var ledger = new EvidenceLedger();
         var world = new WorldModel(
-            new HashSet<string> { UIWorldDoubles.Observed, TypedSubject },
+            new HashSet<string> { UIWorldDoubles.Observed, TypedSubject, CheckedGuardFixture.SubjectFor(TypedSubject) },
             associationStrategy: null, new StatefulObservationStrategy(associateTyped: true));
         var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance);
         kernel.Process(UIWorldDoubles.Observation("switch:primary@on", UIWorldDoubles.T1));
+        kernel.Process(CheckedGuardFixture.Checkable(TypedCheckedClaim("checked", UIWorldDoubles.T0)));
         kernel.Process(TypedCheckedClaim("checked", UIWorldDoubles.T0));
 
         var view = world.DeriveOutcomeAssuranceView(
@@ -298,6 +302,7 @@ public sealed class EntityObligationFulfillmentTests
         // post-action：typed semantic.checked=checked（先）+ 帧批尾（State="on"）
         // → fact Satisfied → EvaluateTerminal → Completion
         kernel.Process(PostActionObservation("switch:primary@on", UIWorldDoubles.T1));
+        kernel.Process(CheckedGuardFixture.Checkable(TypedCheckedClaim("checked", UIWorldDoubles.T1)));
         kernel.Process(TypedCheckedClaim("checked", UIWorldDoubles.T1));
 
         var terminal = kernel.EvaluateTerminal();
@@ -327,6 +332,7 @@ public sealed class EntityObligationFulfillmentTests
         // post-action：typed semantic.checked=unchecked ≠ required → Unsatisfied
         // → 证据不足，不猜测
         kernel.Process(PostActionObservation("switch:primary@off", UIWorldDoubles.T1));
+        kernel.Process(CheckedGuardFixture.Checkable(TypedCheckedClaim("unchecked", UIWorldDoubles.T1)));
         kernel.Process(TypedCheckedClaim("unchecked", UIWorldDoubles.T1));
 
         var terminal = kernel.EvaluateTerminal();

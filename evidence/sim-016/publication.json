@@ -1,0 +1,86 @@
+{
+  "base": "9bc15b8974f5fb5746074e373e6c132bc4df0089",
+  "scope": [
+    "SIM-009 through SIM-017",
+    "CHECKED-GUARD-001",
+    "VERIFY-ENTRY-001",
+    "REPLAY-STATE-EVIDENCE-001 candidate design only"
+  ],
+  "target": {
+    "remote": "origin",
+    "repository": "lingo-cube/uni_claw",
+    "branch": "uni-harness"
+  },
+  "verification": {
+    "full": "PASS",
+    "projects": [
+      {
+        "project": "UniClaw.Simulation.Tests",
+        "passed": 314,
+        "total": 314
+      },
+      {
+        "project": "UniClaw.Agent.Tests",
+        "passed": 36,
+        "total": 36
+      },
+      {
+        "project": "UniClaw.Agent.Dsh.Tests",
+        "passed": 212,
+        "total": 212
+      },
+      {
+        "project": "UniClaw.Core.Tests",
+        "passed": 14,
+        "total": 14
+      },
+      {
+        "project": "UniClaw.FileSystemRealization.Tests",
+        "passed": 9,
+        "total": 9
+      },
+      {
+        "project": "UniClaw.Host.Tests",
+        "passed": 424,
+        "total": 424
+      },
+      {
+        "project": "UniClaw.Host.Dsh.Tests",
+        "passed": 56,
+        "total": 56
+      },
+      {
+        "project": "UniClaw.Kernel.Tests",
+        "passed": 1044,
+        "total": 1044
+      }
+    ],
+    "totalPassed": 2109,
+    "scenariosPassing": 41,
+    "certified": 20,
+    "descriptive": 21,
+    "toolTestsPassed": 18,
+    "sourcePinsMatch": 156,
+    "previousPinsUnchanged": 70
+  },
+  "assets": {
+    "requiredFiles": 55,
+    "newFilesRelativeToBase": 30,
+    "scope": "selected existing test dependencies, not a week-wide corpus or whole run directories"
+  },
+  "retention": {
+    "included": [
+      "implementation, tests, fixtures, scoped Change documents",
+      "required immutable XML/PNG/trace/steps/facts inputs",
+      "selected reports, review disposition, RED/mutation evidence and final TRX",
+      "fresh publication full/tool evidence"
+    ],
+    "localOnly": [
+      "whole dirty-tree before-images and protection inventories",
+      "temporary build snapshots, dependency caches and ignored resolved-config run envelopes",
+      "duplicate historical actual dumps and restore logs"
+    ]
+  },
+  "knownGap": "Default apps classifier false positive and stale/unknown product lifecycle intentionally unresolved; SIM-017 is design only. Controlled post-CANCEL splice is not original clearance evidence.",
+  "index": "generated from published states only; shared worktree changes/INDEX.md bytes preserved"
+}

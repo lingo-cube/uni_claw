@@ -160,8 +160,8 @@ public sealed partial class RuntimeAssurance
     /// 四门等价重述：
     /// ① 权威域 = DesiredState ≠ null（Click 型非状态权威域 → 视觉路径）；
     /// ② 身份唯一 = occurrence 解析恰一（缝内零/多候选 → Unknown → insufficient）；
-    /// ③ 属性有效 = typed claim 仅在 parser 能力/ExactProof 执法通过时发射
-    ///    （TypedHierarchyProposalProjector fail-closed），Observed 即证明；
+    /// ③ 属性有效 = parser 能力/ExactProof 执法通过，且 resolver 确认同一
+    ///    capture/node 的 checkable=Observed(true)；raw checked 单独不足以证明；
     ///    capability 缺席 → Unsupported → fail-closed insufficient；
     /// ④ 时序 = capture timestamp 严格晚于 dispatchTime。
     /// 值判定：CheckedState 与 typed DesiredState 相等才 verified；Partial

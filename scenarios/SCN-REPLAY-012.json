@@ -1,0 +1,31 @@
+{
+  "id": "SCN-REPLAY-012",
+  "name": "关闭无效注入与有界清障停止",
+  "source": "component-test",
+  "purpose": "真实处理链在已投递CANCEL后被注入原弹窗帧，达到两次清障预算后停止，未完成Root目标、不进入普通遍历；外部供给为受控模拟。",
+  "capability": "popup-replay",
+  "components": [
+    "kernel",
+    "host-settings-director",
+    "effect-boundary"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "not-applicable",
+  "expectations": {
+    "status": "TerminalNotProven",
+    "classification": null,
+    "effects": 2,
+    "agentConsultations": 3,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "none"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "既有Android模拟器录制弹窗布局；Agent、交付、路由/身份/时钟受控，关闭后布局为显式拼接；不执行原adb命令，不证明原窗口栈或原控制闭环。"
+  }
+}

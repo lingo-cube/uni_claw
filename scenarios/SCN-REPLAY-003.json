@@ -1,0 +1,34 @@
+{
+  "id": "SCN-REPLAY-003",
+  "name": "操作回放：空间证据不足",
+  "source": "synthetic",
+  "purpose": "重排、嵌套、歧义经真实操作链保留关系且偏移未知；禁止补画内容",
+  "capability": "world-operation-replay",
+  "components": [
+    "kernel",
+    "world-model",
+    "assurance",
+    "effect-boundary",
+    "evidence-ledger",
+    "runtime"
+  ],
+  "status": "passing",
+  "version": 1,
+  "agentDecisionRealization": "double",
+  "goalEvaluationRealization": "not-applicable",
+  "expectations": {
+    "status": "TerminalNotProven",
+    "classification": null,
+    "effects": 4,
+    "agentConsultations": 5,
+    "unconsumedStimuli": 0,
+    "goalSatisfaction": null
+  },
+  "execution": {
+    "kind": "none"
+  },
+  "security": {
+    "sensitiveReview": "cleared",
+    "reviewNote": "手工合成输入，不含设备或账户信息；详细独立期望由专有回放 JSON/测试消费"
+  }
+}
