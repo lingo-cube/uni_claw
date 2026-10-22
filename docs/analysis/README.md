@@ -44,3 +44,5 @@
 | `agt019-followup-optimization-and-research-2026-10-17.md` | AGT-019 Event Stream / Heartbeat / 事件触发咨询设计与裁决定稿（v3.4；RUN-006 真机弹窗死循环谱系；实现须经 change） | DRAFT / CANDIDATE |
 | `ui-automation-test-function-reuse-inventory-2026-10-20.md` | Agnes+YOLO+Jev UI 自动化测试：详细功能清单与当前代码复用评估（关联 UI-TEST-REUSE-001） | COMPLETE / READ_ONLY_INVENTORY |
 | `world-observation-recovery-grill-2026-10-21.md` | World 身份补证与遍历恢复讨论（Q1–Q4 已接受决定；正式范围与验收见 changes/WORLD-OBSERVATION-001） | DESIGN-DECISIONS-ACCEPTED / PERSISTED |
+| `jev-ui-layout-semantic-recognition-research.md` | Jev 用于 UI 布局识别/语义识别的可行性调研（布局不可承担；语义只在已枚举候选上判别） | CANDIDATE / NOT_ADOPTED |
+| `world-model-capability-gap-and-kernel-fallback-assessment-2026-10-22.md` | World 模型胜任性/当前-设计 Gap/Kernel 兜底健壮性评估（含设计缺陷 vs 实现缺陷归类） | COMPLETE / EVIDENCE-BOUNDED |
