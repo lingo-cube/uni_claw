@@ -46,3 +46,4 @@
 | `world-observation-recovery-grill-2026-10-21.md` | World 身份补证与遍历恢复讨论（Q1–Q4 已接受决定；正式范围与验收见 changes/WORLD-OBSERVATION-001） | DESIGN-DECISIONS-ACCEPTED / PERSISTED |
 | `jev-ui-layout-semantic-recognition-research.md` | Jev 用于 UI 布局识别/语义识别的可行性调研（布局不可承担；语义只在已枚举候选上判别） | CANDIDATE / NOT_ADOPTED |
 | `world-model-capability-gap-and-kernel-fallback-assessment-2026-10-22.md` | World 模型胜任性/当前-设计 Gap/Kernel 兜底健壮性评估（含设计缺陷 vs 实现缺陷归类） | COMPLETE / EVIDENCE-BOUNDED |
+| `world-model-uncertainty-and-verification-plan-2026-10-22.md` | 承接上篇的处方提案：未知清单+计数+看门狗路线（S0-S4）、验证体系四层（A/B1/B2/C）、回放式决策回归、场景库补题与不做清单 | DRAFT / CANDIDATE |
