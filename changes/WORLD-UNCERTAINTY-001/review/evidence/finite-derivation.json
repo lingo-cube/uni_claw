@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "world-finite-review.v1",
+  "level": "DETERMINISTIC_ABSTRACT_ONLY",
+  "productPass": false,
+  "method": "python3 changes/WORLD-UNCERTAINTY-001/review/evidence/finite-derivation.py",
+  "expected": "finite closure minimality, canonical scope equality, duplicate counting, and explicit counterexamples",
+  "actual": "all finite assertions satisfied; counterexamples reproduced in abstract domains",
+  "domains": {
+    "dependency": {
+      "nodes": 3,
+      "directedGraphsIncludingLoops": 512,
+      "seedSubsets": 8,
+      "graphSeedChecks": 4096,
+      "maxStrictGrowthRounds": 2
+    },
+    "scope": {
+      "symbols": [
+        "A",
+        "B",
+        "C"
+      ],
+      "sequenceLength": [
+        0,
+        4
+      ],
+      "sequences": 121,
+      "distinctSets": 8,
+      "pairChecks": 14641
+    },
+    "reuseBooleanAssignments": 64,
+    "attemptEventCounts": [
+      0,
+      1,
+      1,
+      1,
+      2
+    ],
+    "reminderCounts": [
+      0,
+      1,
+      1,
+      1,
+      2
+    ]
+  },
+  "counterexamples": {
+    "legacyScopeCollision": {
+      "revision": "rev-1",
+      "root": "A",
+      "leftScope": [
+        "A"
+      ],
+      "rightScope": [
+        "A",
+        "B"
+      ],
+      "id": "slice:rev-1:A"
+    },
+    "missingDependencyEdge": {
+      "fullReachability": [
+        0,
+        1,
+        2
+      ],
+      "recordedReachability": [
+        0,
+        1
+      ],
+      "omittedAffectedNode": 2
+    },
+    "sharedWrongLabel": {
+      "actualResource": "wifi",
+      "inheritedLabel": "bluetooth",
+      "localCheck": true,
+      "independentGoalCheck": false
+    }
+  },
+  "assumptions": [
+    "finite fixed dependency graph",
+    "complete recorded edges required for full impact",
+    "scope semantics are sets in this abstraction",
+    "execution producer supplied ids are genuine",
+    "Boolean reuse conditions are assumptions, not product evaluators"
+  ],
+  "notProved": [
+    "World implementation correctness",
+    "producer evidence sufficiency",
+    "temporal or spatial compatibility",
+    "concurrent dispatch behavior",
+    "actual Agent input or model behavior",
+    "global termination",
+    "external effect reversibility",
+    "cryptographic hash injectivity"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "world-review-entry.v1",
+  "capturedAt": "2026-10-22T18:18:54.431802+00:00",
+  "reviewedHead": "fddc69a6478e9b462c5f4bba9be736eac8f0b635",
+  "branch": "uni-harness",
+  "expectedFreeze": "fddc69a6478e9b462c5f4bba9be736eac8f0b635",
+  "simulationInput": "d53e19f44f11038224408597a5fd72001f7b5a67",
+  "stagedPaths": [],
+  "stagedPatchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedDirty": [
+    {
+      "path": "changes/AGT-019/state.md",
+      "sha256": "4f971a416ce2ba72ebc9c70d6a57a815aaaa31dc911f783a6761446641c01111"
+    },
+    {
+      "path": "changes/INDEX.md",
+      "sha256": "259d26071cfed566326a4cd0018a457f38b9f591b68010731affa21e54823040"
+    },
+    {
+      "path": "changes/RUNTIME-PLAN-002/execution-contract.md",
+      "sha256": "d352a0a1d3c394f14f67a9480285646903ce85c2521763ab22c907fa15323841"
+    },
+    {
+      "path": "changes/SETTINGS-COVERAGE-003/state.md",
+      "sha256": "e6b52a96a7c1f7244eef5a99ff48607675b374defdd9678438faf79e8af7e829"
+    },
+    {
+      "path": "changes/SETTINGS-COVERAGE-005/state.md",
+      "sha256": "bf7e96555b393fc703df0f4b8ba9ba0be73e22e2e21dc8fff3b9d7aee30b69b7"
+    },
+    {
+      "path": "changes/TRAJECTORY-001/state.md",
+      "sha256": "54d9f3511d24bc743d22e8a502eda56baec658c9970963b0b121d2da84508cb7"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/evidence/thread-dispatch.json",
+      "sha256": "84ec997b0c7998ca1e082b62008a025e620fe11f16ff9894d0e33b4e6e3e8efb"
+    }
+  ],
+  "trackedDiffSha256": "9a437c328969b2d342733e16e0265f0600a4df5e151daf89597658da666e8736",
+  "untrackedPathCount": 15888,
+  "delegation": {
+    "role": "worker",
+    "forkTurns": "none",
+    "model": "gpt-6-luna",
+    "task": "scenario_inventory",
+    "outcome": "two turns returned no usable artifact or source evidence; leader assumes audit; no model substitution"
+  },
+  "productTestsRun": false
+}

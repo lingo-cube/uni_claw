@@ -1,0 +1,766 @@
+{
+  "schemaVersion": "world-recording-pin-audit.v1",
+  "method": "read-only nested path/sha256 reference comparison and git object existence check",
+  "summary": {
+    "referencesChecked": 94,
+    "hashesMatched": 94,
+    "availableInReviewedCommit": 94,
+    "notAvailableInReviewedCommit": [],
+    "mismatches": []
+  },
+  "references": [
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Capability/CapabilityHub.cs",
+      "expectedSha256": "72caa9dfb3cedecbe2c745d32a0d2ffa057b0ba59d5e5311cbb4fda90e79c404",
+      "actualSha256": "72caa9dfb3cedecbe2c745d32a0d2ffa057b0ba59d5e5311cbb4fda90e79c404",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Capability/IntegrationContracts.cs",
+      "expectedSha256": "a33135a3c878c352c19df6159abef8200e2335622ffa3d489acb72d0907abe74",
+      "actualSha256": "a33135a3c878c352c19df6159abef8200e2335622ffa3d489acb72d0907abe74",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Capability/SemanticPerception.cs",
+      "expectedSha256": "dad53977b76ab78659676b232b3675bb3c32859ca5138046da92e46aa297a386",
+      "actualSha256": "dad53977b76ab78659676b232b3675bb3c32859ca5138046da92e46aa297a386",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Evidence/AdmissionRecord.cs",
+      "expectedSha256": "3c2106517f3c42f5d17cfd5be2ec53ff373d15c9008e7201576020135a3d8548",
+      "actualSha256": "3c2106517f3c42f5d17cfd5be2ec53ff373d15c9008e7201576020135a3d8548",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Evidence/EvidenceRecord.cs",
+      "expectedSha256": "918e78ba88cb6fc1dbf320919cf0277b8ec5e704b5da854e7a73dd09ea81f512",
+      "actualSha256": "918e78ba88cb6fc1dbf320919cf0277b8ec5e704b5da854e7a73dd09ea81f512",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Evidence/ObservationOrigin.cs",
+      "expectedSha256": "9872f626da134eba633aaa1d1734c27cf30d71c8c610d0783f5d6c08f6fa4af3",
+      "actualSha256": "9872f626da134eba633aaa1d1734c27cf30d71c8c610d0783f5d6c08f6fa4af3",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Evidence/ObservationProposal.cs",
+      "expectedSha256": "87cafbe15309b35ef82b02f57ec0008688553a8fe63c9973d714defcdac282e7",
+      "actualSha256": "87cafbe15309b35ef82b02f57ec0008688553a8fe63c9973d714defcdac282e7",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Evidence/Provenance.cs",
+      "expectedSha256": "6f14a5ef32fa8742721e19d077ec15b2aa69ac4464e3a5700626fb52654bd1b7",
+      "actualSha256": "6f14a5ef32fa8742721e19d077ec15b2aa69ac4464e3a5700626fb52654bd1b7",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Evidence/SharedSubjects.cs",
+      "expectedSha256": "854123710576d531e724d29aef6403739f5766d9820390379eacdada7e01ae1f",
+      "actualSha256": "854123710576d531e724d29aef6403739f5766d9820390379eacdada7e01ae1f",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Perception/CoordinateSpace.cs",
+      "expectedSha256": "c3776f9c0b2e9c3a86c551d0ccba8991bb26a81db635cebfb2081ac3acde8b4f",
+      "actualSha256": "c3776f9c0b2e9c3a86c551d0ccba8991bb26a81db635cebfb2081ac3acde8b4f",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/UiHierarchyObservation.cs",
+      "expectedSha256": "895bca57604c95ba5474170713864c84a24fc3caa91c39f15b84521722f0e705",
+      "actualSha256": "895bca57604c95ba5474170713864c84a24fc3caa91c39f15b84521722f0e705",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/PageObservation.cs",
+      "expectedSha256": "c859255b7a7ffcce03aaa0f63749a355a550c832007bd99c842b9ec136ce52ec",
+      "actualSha256": "c859255b7a7ffcce03aaa0f63749a355a550c832007bd99c842b9ec136ce52ec",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/WorldBeliefRevision.cs",
+      "expectedSha256": "aa6946094c85a9b30ea54136f913c28c9c17ad5e8827ad3faefe07c4fed0df30",
+      "actualSha256": "aa6946094c85a9b30ea54136f913c28c9c17ad5e8827ad3faefe07c4fed0df30",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Capability/UniPerceptionCapability.Semantics.cs",
+      "expectedSha256": "ac5416a85fe41e9452b2dd721eb9ddc0ffaf118dcfee63d1814f4dc95360d96b",
+      "actualSha256": "ac5416a85fe41e9452b2dd721eb9ddc0ffaf118dcfee63d1814f4dc95360d96b",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Capability/UniPerceptionCapability.cs",
+      "expectedSha256": "fffc3bf9d3fe2406d0ca8f55c9d6517715cbdd494be63b8139b4b6a8727abdf4",
+      "actualSha256": "fffc3bf9d3fe2406d0ca8f55c9d6517715cbdd494be63b8139b4b6a8727abdf4",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Evidence/EvidenceLedger.cs",
+      "expectedSha256": "667a4beeff5abb8fb7d35a8766b37bf3bf1487bf2699d2a0fde28d0c1cf5a64b",
+      "actualSha256": "667a4beeff5abb8fb7d35a8766b37bf3bf1487bf2699d2a0fde28d0c1cf5a64b",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/Perception/SemanticObservationProjector.cs",
+      "expectedSha256": "4e0a59ab38ab304811f91882ce80df113c4d269b6a39394f0100d60d963681b5",
+      "actualSha256": "4e0a59ab38ab304811f91882ce80df113c4d269b6a39394f0100d60d963681b5",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/ConflictResolver.cs",
+      "expectedSha256": "8210f3a275966619fc543b79f947f12c368d70037d73f8edd2e42fe21fc4b479",
+      "actualSha256": "8210f3a275966619fc543b79f947f12c368d70037d73f8edd2e42fe21fc4b479",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/ConsumerViews.cs",
+      "expectedSha256": "9a55c1ba5484d5cf3c4544c60d0b95b75ebe30f11906ca47e5107f53755dbba8",
+      "actualSha256": "9a55c1ba5484d5cf3c4544c60d0b95b75ebe30f11906ca47e5107f53755dbba8",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/NativeLocator.cs",
+      "expectedSha256": "8a825da4f58d2d858b11e48450e4461170598abbe32671d253182e28237bc92a",
+      "actualSha256": "8a825da4f58d2d858b11e48450e4461170598abbe32671d253182e28237bc92a",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/PersistentRevisionCollections.cs",
+      "expectedSha256": "480c3324bf887fd475660c1a1b98e324d53536f4c0bd10d8bb24f1d665326c05",
+      "actualSha256": "480c3324bf887fd475660c1a1b98e324d53536f4c0bd10d8bb24f1d665326c05",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/PostActionXmlRouter.cs",
+      "expectedSha256": "49a04d51eff2f46fd7dbe744e990e4749cde4979413066d0cab03a9b5d4b8cbc",
+      "actualSha256": "49a04d51eff2f46fd7dbe744e990e4749cde4979413066d0cab03a9b5d4b8cbc",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/ProducerTrust.cs",
+      "expectedSha256": "eab255859b8f31914d895a89892dce9cec714b201269b82ceef7ec65d3d02755",
+      "actualSha256": "eab255859b8f31914d895a89892dce9cec714b201269b82ceef7ec65d3d02755",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/RelevanceJudgment.cs",
+      "expectedSha256": "74fb1d315498d7ed69cb40e5386469ca71dfc1dabe25171b3e0efd2cbd94613e",
+      "actualSha256": "74fb1d315498d7ed69cb40e5386469ca71dfc1dabe25171b3e0efd2cbd94613e",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/Slice.cs",
+      "expectedSha256": "9938141f4ec515a2b9298d00cad713a3ba4734e8eca5a78a90e4a37463e9c151",
+      "actualSha256": "9938141f4ec515a2b9298d00cad713a3ba4734e8eca5a78a90e4a37463e9c151",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/SpatialLocator.cs",
+      "expectedSha256": "e19f88c17b1fe84b0e2ee328416daecb3dd9c1db01d5d10005ac42c53cc80115",
+      "actualSha256": "e19f88c17b1fe84b0e2ee328416daecb3dd9c1db01d5d10005ac42c53cc80115",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/TransitionContext.cs",
+      "expectedSha256": "7a7fdb9760d10c482d75c6faf826f11916b8fa34d5b59d99c6ce68d056c96f3b",
+      "actualSha256": "7a7fdb9760d10c482d75c6faf826f11916b8fa34d5b59d99c6ce68d056c96f3b",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/UiRealization/ContainerAssociation.cs",
+      "expectedSha256": "e2ac95f7a2eea8ae0a262d33861dc96e43ba4b6fa8abda5991877126977a4d82",
+      "actualSha256": "e2ac95f7a2eea8ae0a262d33861dc96e43ba4b6fa8abda5991877126977a4d82",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/UiRealization/Continuity.cs",
+      "expectedSha256": "4196461dda364510481f8d799daea4d642b66ea4627807e118678e3ded1d101b",
+      "actualSha256": "4196461dda364510481f8d799daea4d642b66ea4627807e118678e3ded1d101b",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/UiRealization/GroundingSeam.cs",
+      "expectedSha256": "f7d9ecd46945d3b1038d6d2322eb17d7143abe7f554a0913d1e20cd69bb5be4f",
+      "actualSha256": "f7d9ecd46945d3b1038d6d2322eb17d7143abe7f554a0913d1e20cd69bb5be4f",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/UiRealization/OccurrenceDescriptorMatcher.cs",
+      "expectedSha256": "b7161ccc63a7cb49242d9792168966ea2f36a8b032a17e26fd46931190545004",
+      "actualSha256": "b7161ccc63a7cb49242d9792168966ea2f36a8b032a17e26fd46931190545004",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/UiRealization/ProductAssociationStrategy.cs",
+      "expectedSha256": "54ad74cef0bd6a232fb3b18d64089db240fe0a8e83feb82c35a2c0478e9797f5",
+      "actualSha256": "54ad74cef0bd6a232fb3b18d64089db240fe0a8e83feb82c35a2c0478e9797f5",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/UiRealization/UiEntityModel.cs",
+      "expectedSha256": "c869fa35591e85d48d4391730c3e5abba519fed6e56a8fd7f1250bccacac5d4f",
+      "actualSha256": "c869fa35591e85d48d4391730c3e5abba519fed6e56a8fd7f1250bccacac5d4f",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/ViewportTransition.cs",
+      "expectedSha256": "c6337e7b6c97728b570023e732f895c7a98b16b5916a44aa01f5e854791ad315",
+      "actualSha256": "c6337e7b6c97728b570023e732f895c7a98b16b5916a44aa01f5e854791ad315",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/WorldModel.Semantics.cs",
+      "expectedSha256": "16a046850c50bde97f8a6ed0134fe0773d6e65f1eda9490d8f957e86c619c5bd",
+      "actualSha256": "16a046850c50bde97f8a6ed0134fe0773d6e65f1eda9490d8f957e86c619c5bd",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/WorldModel.Viewports.cs",
+      "expectedSha256": "58ca7a04f13b76a38224da0bbc9c84ca0bf9e3a2d88535ac2ca213a3f7240622",
+      "actualSha256": "58ca7a04f13b76a38224da0bbc9c84ca0bf9e3a2d88535ac2ca213a3f7240622",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/WorldModel.cs",
+      "expectedSha256": "6db64bb4ee40b07b17516c2cb3a51d6290fa801397a48e04fac3572316e858f6",
+      "actualSha256": "6db64bb4ee40b07b17516c2cb3a51d6290fa801397a48e04fac3572316e858f6",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "src/UniClaw.Kernel/World/WorldRevisionIndex.cs",
+      "expectedSha256": "bc5f3441fb8c812f88d39f50d36fc5cf387cfcc8aba00026944a1afd8a21fd50",
+      "actualSha256": "bc5f3441fb8c812f88d39f50d36fc5cf387cfcc8aba00026944a1afd8a21fd50",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/CaptureMismatchFault.cs",
+      "expectedSha256": "d335836ff3559a27ecf228e21f23a39367b262b56f9e0716fe4be7b6f9651d87",
+      "actualSha256": "d335836ff3559a27ecf228e21f23a39367b262b56f9e0716fe4be7b6f9651d87",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ComponentReplayCases.cs",
+      "expectedSha256": "11f20a1c1c2da624ac70d8f8d82e497245cb2126e46610792a796199d54e31db",
+      "actualSha256": "11f20a1c1c2da624ac70d8f8d82e497245cb2126e46610792a796199d54e31db",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ComponentScenarioScope.cs",
+      "expectedSha256": "c4e77aa2ec6e82b263d92196fc3fb7901c25509bd9fcf706e250097a8ae460f0",
+      "actualSha256": "c4e77aa2ec6e82b263d92196fc3fb7901c25509bd9fcf706e250097a8ae460f0",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/RecordedComponentInputs.cs",
+      "expectedSha256": "6253b03e6115dcff987e18745d6984a4c4a4d798750c53a704b3b700cccb65ac",
+      "actualSha256": "6253b03e6115dcff987e18745d6984a4c4a4d798750c53a704b3b700cccb65ac",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs",
+      "expectedSha256": "7484b6b65767ad7d631444a767e0a6afb88cfa822a03795085532169f4e1ceba",
+      "actualSha256": "7484b6b65767ad7d631444a767e0a6afb88cfa822a03795085532169f4e1ceba",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplayGovernanceTests.cs",
+      "expectedSha256": "a30290179fca1a518069a5cae05b8789d9c9ee243981b1900ea055baff9c697f",
+      "actualSha256": "a30290179fca1a518069a5cae05b8789d9c9ee243981b1900ea055baff9c697f",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentSemanticReplayTests.cs",
+      "expectedSha256": "c1260a57645989eca303450e965711b69ddec2a4bb3cf46a332a39ed7b5fda39",
+      "actualSha256": "c1260a57645989eca303450e965711b69ddec2a4bb3cf46a332a39ed7b5fda39",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentWorldReplayTests.cs",
+      "expectedSha256": "74ebe14a70d793de9804271ed82e8b634688553a08e43891cd67ada7992077a9",
+      "actualSha256": "74ebe14a70d793de9804271ed82e8b634688553a08e43891cd67ada7992077a9",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/evidence/capture-33a09ad228bb476b9c422d8f349b9bea.xml",
+      "expectedSha256": "9c53323585e60ebdf4ebbbb9d3585dbd23534314dfd78ad9e8ae32e59d88e583",
+      "actualSha256": "9c53323585e60ebdf4ebbbb9d3585dbd23534314dfd78ad9e8ae32e59d88e583",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/evidence/capture-9ee244c9d11b4016aa7c5303c448fa19.xml",
+      "expectedSha256": "619103cbf92f36af017abcf700861122e16156be810912f2347450cd36ba674a",
+      "actualSha256": "619103cbf92f36af017abcf700861122e16156be810912f2347450cd36ba674a",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/evidence/capture-36ea6f9a6231489a92c83d7ed6bd3a75.xml",
+      "expectedSha256": "a4138bf25879c79682f6b15f9689734d65c1433865350f26716e5db966610664",
+      "actualSha256": "a4138bf25879c79682f6b15f9689734d65c1433865350f26716e5db966610664",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/evidence/capture-d0e219264e684ff2b90f5dbe6ae495d3.xml",
+      "expectedSha256": "a9a83adfc331f28ef3b7324f23aadcfd27f567369b559bf7aaedeee4b002644c",
+      "actualSha256": "a9a83adfc331f28ef3b7324f23aadcfd27f567369b559bf7aaedeee4b002644c",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-08173a863262439ca1bac49827ad4e6e.xml",
+      "expectedSha256": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599",
+      "actualSha256": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-406fca6d570e4152b7077c0df70ff81d.xml",
+      "expectedSha256": "98412fd753f3b38c7902e2cefddeae190ef63b40a123994eeadc7b135a8baa52",
+      "actualSha256": "98412fd753f3b38c7902e2cefddeae190ef63b40a123994eeadc7b135a8baa52",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/all-apps-after.json",
+      "expectedSha256": "0a309b9a3b5c27832330038e54ec2893d640fc6282c9cc446ea184599beac5fa",
+      "actualSha256": "0a309b9a3b5c27832330038e54ec2893d640fc6282c9cc446ea184599beac5fa",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/all-apps-before.json",
+      "expectedSha256": "a940a13b849946740bc7107bab2c0bd5ea4cb46382341a1ce5bb1a7a54c1582a",
+      "actualSha256": "a940a13b849946740bc7107bab2c0bd5ea4cb46382341a1ce5bb1a7a54c1582a",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/default-apps-after.json",
+      "expectedSha256": "12420c2225b5d2359a894b02e6429b58d1f6c82e554ddcddf9f33004ddaba837",
+      "actualSha256": "12420c2225b5d2359a894b02e6429b58d1f6c82e554ddcddf9f33004ddaba837",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/default-apps-before.json",
+      "expectedSha256": "5ff2934dff356b51dc0118bf2761e38f7462ceff5805aea56432bdd845bf7922",
+      "actualSha256": "5ff2934dff356b51dc0118bf2761e38f7462ceff5805aea56432bdd845bf7922",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/sims-after.json",
+      "expectedSha256": "9fbf7204eac4259d419fa4934dccca76a13fb1511c38eef494eae9536d4447c2",
+      "actualSha256": "9fbf7204eac4259d419fa4934dccca76a13fb1511c38eef494eae9536d4447c2",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/sims-before.json",
+      "expectedSha256": "36a8c2f3a3445d8b4cfeabfb957ff78cea3993a8559d55847c30117eee376ed6",
+      "actualSha256": "36a8c2f3a3445d8b4cfeabfb957ff78cea3993a8559d55847c30117eee376ed6",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/responses/all-apps.json",
+      "expectedSha256": "8e3a9bd9ec27219f46719bda8b1d3f20c17c1d6ee013d0cbfc5169d1197abf74",
+      "actualSha256": "8e3a9bd9ec27219f46719bda8b1d3f20c17c1d6ee013d0cbfc5169d1197abf74",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/responses/default-apps.json",
+      "expectedSha256": "1597fb6e62c0c8c046f255652fcc2206f91ee9408b35364207be1e0a00456c54",
+      "actualSha256": "1597fb6e62c0c8c046f255652fcc2206f91ee9408b35364207be1e0a00456c54",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/responses/sims.json",
+      "expectedSha256": "6b02e3ca5cff8153c3b7f7c664e2ee48fe79140da470f858b0a528fb38c5dd9d",
+      "actualSha256": "6b02e3ca5cff8153c3b7f7c664e2ee48fe79140da470f858b0a528fb38c5dd9d",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/suite.json",
+      "expectedSha256": "3a4edde0219c126af6f393265a994faf7ce43800865603297ad921006a6bebb1",
+      "actualSha256": "3a4edde0219c126af6f393265a994faf7ce43800865603297ad921006a6bebb1",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/all-apps-after.json",
+      "expectedSha256": "615c357fa473c17ea02153d7a0b40b2912ccc33d293d31e4556ada6b207adb79",
+      "actualSha256": "615c357fa473c17ea02153d7a0b40b2912ccc33d293d31e4556ada6b207adb79",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/all-apps-before.json",
+      "expectedSha256": "5a3ceb92c081ee614b311040b4188504ed0e6ad651f0f066a8e54004ff96d263",
+      "actualSha256": "5a3ceb92c081ee614b311040b4188504ed0e6ad651f0f066a8e54004ff96d263",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-after.json",
+      "expectedSha256": "712f4be002fbc8ec137ed07b623ee959f3ac95949afa67216d0e7ec559980821",
+      "actualSha256": "712f4be002fbc8ec137ed07b623ee959f3ac95949afa67216d0e7ec559980821",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-before.json",
+      "expectedSha256": "04d23fb8be071146fa61138a037852e2c79f4eae1e1764047c431a92e5bcfcf2",
+      "actualSha256": "04d23fb8be071146fa61138a037852e2c79f4eae1e1764047c431a92e5bcfcf2",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/sims-after.json",
+      "expectedSha256": "f3c48004127986726788ab7b895138d7bb7895d9abc7dc67a61952f241849678",
+      "actualSha256": "f3c48004127986726788ab7b895138d7bb7895d9abc7dc67a61952f241849678",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/sims-before.json",
+      "expectedSha256": "a279ca1866d7be8773c0fb0ee61ab0e1d86f345759ec9cb1a8d5e0542fa9a3f7",
+      "actualSha256": "a279ca1866d7be8773c0fb0ee61ab0e1d86f345759ec9cb1a8d5e0542fa9a3f7",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "expectedSha256": "6dbac2bebc83484183f828c9a3b3e0592ec040f50a3d5d9538e49685a0e5d26e",
+      "actualSha256": "6dbac2bebc83484183f828c9a3b3e0592ec040f50a3d5d9538e49685a0e5d26e",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/oracle.json",
+      "expectedSha256": "1b0c862d1e7e7ba69b5957fa97fb280e1e34385dd7e5e1afc88925762674641a",
+      "actualSha256": "1b0c862d1e7e7ba69b5957fa97fb280e1e34385dd7e5e1afc88925762674641a",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-002/preregistration.json",
+      "expectedSha256": "0db1a9945903e45be6e500ba3ca5e3410338e747b0f800ee254ec8a609a4743c",
+      "actualSha256": "0db1a9945903e45be6e500ba3ca5e3410338e747b0f800ee254ec8a609a4743c",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/coverage-steps.json",
+      "expectedSha256": "926571cef3d0a5bc42685e01a1ae7a5c45f93c2b87a83c736eb9089a91b81456",
+      "actualSha256": "926571cef3d0a5bc42685e01a1ae7a5c45f93c2b87a83c736eb9089a91b81456",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/settings-trace.json",
+      "expectedSha256": "fc01dcf4c598768409defabcd622f5d823766d3fbc99e6978bf468ae481a95d8",
+      "actualSha256": "fc01dcf4c598768409defabcd622f5d823766d3fbc99e6978bf468ae481a95d8",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/facts.json",
+      "expectedSha256": "9d5178526221b9aaace71e5ba12545a1a0292e926883b2d22bc85106b0150a01",
+      "actualSha256": "9d5178526221b9aaace71e5ba12545a1a0292e926883b2d22bc85106b0150a01",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/evidence/capture-9ee244c9d11b4016aa7c5303c448fa19.xml",
+      "expectedSha256": "619103cbf92f36af017abcf700861122e16156be810912f2347450cd36ba674a",
+      "actualSha256": "619103cbf92f36af017abcf700861122e16156be810912f2347450cd36ba674a",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-002/run-20261020-155840-163/evidence/capture-33a09ad228bb476b9c422d8f349b9bea.xml",
+      "expectedSha256": "9c53323585e60ebdf4ebbbb9d3585dbd23534314dfd78ad9e8ae32e59d88e583",
+      "actualSha256": "9c53323585e60ebdf4ebbbb9d3585dbd23534314dfd78ad9e8ae32e59d88e583",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/sims-before.json",
+      "expectedSha256": "a279ca1866d7be8773c0fb0ee61ab0e1d86f345759ec9cb1a8d5e0542fa9a3f7",
+      "actualSha256": "a279ca1866d7be8773c0fb0ee61ab0e1d86f345759ec9cb1a8d5e0542fa9a3f7",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/sims-after.json",
+      "expectedSha256": "f3c48004127986726788ab7b895138d7bb7895d9abc7dc67a61952f241849678",
+      "actualSha256": "f3c48004127986726788ab7b895138d7bb7895d9abc7dc67a61952f241849678",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-003/preregistration.json",
+      "expectedSha256": "2f69cc389313e2f4de5693c26a857cf7ac110ea363ebe96c84ca78a55c230931",
+      "actualSha256": "2f69cc389313e2f4de5693c26a857cf7ac110ea363ebe96c84ca78a55c230931",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/coverage-steps.json",
+      "expectedSha256": "062de61f977fa3d18f56717e120ac2a436b6a67ad5a091c8036b7fc18deee561",
+      "actualSha256": "062de61f977fa3d18f56717e120ac2a436b6a67ad5a091c8036b7fc18deee561",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/settings-trace.json",
+      "expectedSha256": "53e5f5aad642d354fa8b464998ed14ed2387818257e61bfabc6ca8adb7cd77c8",
+      "actualSha256": "53e5f5aad642d354fa8b464998ed14ed2387818257e61bfabc6ca8adb7cd77c8",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/facts.json",
+      "expectedSha256": "3d862fcb6a70822933049681d28a72a604423694270db55dad181336d018e2d3",
+      "actualSha256": "3d862fcb6a70822933049681d28a72a604423694270db55dad181336d018e2d3",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/evidence/capture-d0e219264e684ff2b90f5dbe6ae495d3.xml",
+      "expectedSha256": "a9a83adfc331f28ef3b7324f23aadcfd27f567369b559bf7aaedeee4b002644c",
+      "actualSha256": "a9a83adfc331f28ef3b7324f23aadcfd27f567369b559bf7aaedeee4b002644c",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-003/run-20261020-160102-286/evidence/capture-36ea6f9a6231489a92c83d7ed6bd3a75.xml",
+      "expectedSha256": "a4138bf25879c79682f6b15f9689734d65c1433865350f26716e5db966610664",
+      "actualSha256": "a4138bf25879c79682f6b15f9689734d65c1433865350f26716e5db966610664",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/all-apps-before.json",
+      "expectedSha256": "5a3ceb92c081ee614b311040b4188504ed0e6ad651f0f066a8e54004ff96d263",
+      "actualSha256": "5a3ceb92c081ee614b311040b4188504ed0e6ad651f0f066a8e54004ff96d263",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/all-apps-after.json",
+      "expectedSha256": "615c357fa473c17ea02153d7a0b40b2912ccc33d293d31e4556ada6b207adb79",
+      "actualSha256": "615c357fa473c17ea02153d7a0b40b2912ccc33d293d31e4556ada6b207adb79",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-009/preregistration.json",
+      "expectedSha256": "a2fdf26919043fa25334a8976f4fd89a1d986229e8cd22d88d2a29c4dacc1d7a",
+      "actualSha256": "a2fdf26919043fa25334a8976f4fd89a1d986229e8cd22d88d2a29c4dacc1d7a",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/coverage-steps.json",
+      "expectedSha256": "9fd77ca4d9ab531aecabb553f12b30691b38f70925fb1834a821100b65e12adb",
+      "actualSha256": "9fd77ca4d9ab531aecabb553f12b30691b38f70925fb1834a821100b65e12adb",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/settings-trace.json",
+      "expectedSha256": "a31441cff21f16d95679458ebf8d766fdd39275a83c2e18c1b0bd86bb8998c15",
+      "actualSha256": "a31441cff21f16d95679458ebf8d766fdd39275a83c2e18c1b0bd86bb8998c15",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/facts.json",
+      "expectedSha256": "1e523d966310731a144d7888937e10ef7ff73ddc48574371551116c82940d522",
+      "actualSha256": "1e523d966310731a144d7888937e10ef7ff73ddc48574371551116c82940d522",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-406fca6d570e4152b7077c0df70ff81d.xml",
+      "expectedSha256": "98412fd753f3b38c7902e2cefddeae190ef63b40a123994eeadc7b135a8baa52",
+      "actualSha256": "98412fd753f3b38c7902e2cefddeae190ef63b40a123994eeadc7b135a8baa52",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-08173a863262439ca1bac49827ad4e6e.xml",
+      "expectedSha256": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599",
+      "actualSha256": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-before.json",
+      "expectedSha256": "04d23fb8be071146fa61138a037852e2c79f4eae1e1764047c431a92e5bcfcf2",
+      "actualSha256": "04d23fb8be071146fa61138a037852e2c79f4eae1e1764047c431a92e5bcfcf2",
+      "matches": true,
+      "availableInReviewedCommit": true
+    },
+    {
+      "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-after.json",
+      "expectedSha256": "712f4be002fbc8ec137ed07b623ee959f3ac95949afa67216d0e7ec559980821",
+      "actualSha256": "712f4be002fbc8ec137ed07b623ee959f3ac95949afa67216d0e7ec559980821",
+      "matches": true,
+      "availableInReviewedCommit": true
+    }
+  ],
+  "boundary": "bytes and availability only; not product test, original capture provenance, or final model input proof"
+}

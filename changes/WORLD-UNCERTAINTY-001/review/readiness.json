@@ -1,0 +1,1754 @@
+{
+  "schemaVersion": "world-uncertainty-independent-review.v1",
+  "clientDate": "2026-10-23",
+  "status": "ready",
+  "statusMeaning": "Independent design review ready for implementation; no product acceptance or CLOSED claim",
+  "reviewer": {
+    "role": "independent review Leader",
+    "threadIdFromCoordinatorEvidence": "01a164bf-de01-77d2-beee-ebcc5064b28d",
+    "requestedModel": "gpt-6.1-sol",
+    "requestedReasoningEffort": "ultra",
+    "modelEvidenceBoundary": "coordinator routing evidence records requested model/create success; no independent inference-time model attestation",
+    "worker": {
+      "agentType": "worker",
+      "forkTurns": "none",
+      "explicitModel": "gpt-6-luna",
+      "usableArtifact": false,
+      "disposition": "leader completed audit, no silent substitution"
+    }
+  },
+  "reviewedHead": "fddc69a6478e9b462c5f4bba9be736eac8f0b635",
+  "simulationInputHead": "d53e19f44f11038224408597a5fd72001f7b5a67",
+  "inputFiles": [
+    {
+      "path": ".agents/skills/capability-component/SKILL.md",
+      "sha256": "3239d9932651159f26fb300b9903d7d54c11a308a0b9b4dcbac74c85f8544275",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": ".agents/skills/codebase-design/SKILL.md",
+      "sha256": "2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": ".agents/skills/uniflow/SKILL.md",
+      "sha256": "ec9efcf6153b2f4ba94b544db24a40528a82605f1be0a0c97de6f413fd7dfd8e",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "ff69f550f5ca3904e579a1228ef7ab1ebcd51d012279c89e316fbc8bdae99a7f",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "CONTEXT.md",
+      "sha256": "2ac8ddd40b74f9ff701ab0bc5f8286a2a375f71e5fe90665f6d505aefd785637",
+      "role": "frozen_dependency_hash_verified_not_independently_researched"
+    },
+    {
+      "path": "changes/README.md",
+      "sha256": "80cc55c38693334d8a4d458214323c84cf8019a1b375bec11af1c38485c93acb",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/agent-information.md",
+      "sha256": "902dc7863e3f57684d66097512472e567af11bd993de409a2ee5d61ddb39d561",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/correction-effect-primary-sources.md",
+      "sha256": "57d9e9d77d393693a8163d19cd5975d6ce5ad4f91b067ea337ba5e971b80f63d",
+      "role": "frozen_dependency_hash_verified_not_independently_researched"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/correction-impact-design.md",
+      "sha256": "48c09f70c3749030fcb9087dd337b9b61ba2dc2b541003e0c7499da0271c429a",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/coverage-audit.md",
+      "sha256": "621cd59e8765484dff7c6b27968f6c1805188f95ee920162021a9ad7e3c40ac1",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/derivation-review-request.md",
+      "sha256": "82231b80338f234da7d86953c14b719c8fdc3b4d6dcb7cd8baf0c6767e1dbfcb",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/design.md",
+      "sha256": "de6bf7b8dd918bc7b489cd706ff8f06c8657295af882c2ff264f3be403827282",
+      "role": "frozen_dependency_hash_verified_not_independently_researched"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/discussion.md",
+      "sha256": "37f7b6fb7ada532fbde4bb277c7e732f3cf8add197961e8036dc9a366fc5023f",
+      "role": "frozen_dependency_hash_verified_not_independently_researched"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/evidence/freeze-manifest.json",
+      "sha256": "235638d22779320df062e18b24109c5872c23d55ea09a7336bd15a1849b2c94e",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/evidence/thread-dispatch.json",
+      "sha256": "84ec997b0c7998ca1e082b62008a025e620fe11f16ff9894d0e33b4e6e3e8efb",
+      "role": "coordinator_owned_working_routing_evidence_uncommitted_at_entry"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/goal-completion-mapping.md",
+      "sha256": "226268082030451becfb95a2e8d6b0840cdce37bee88f953e29faee8673edff8",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/handoff-coverage-audit.md",
+      "sha256": "7ab51c9b5630d07d9beb2161176403a61e20f1b043027dbfec83c06c94844730",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/implementation-handoff.md",
+      "sha256": "86ae270e830cc6996e634c152bd12e414190b887b8520a08221ea15310528c19",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/model-interface-review.md",
+      "sha256": "6d157e320449758b4bf010761cdb1790d30f3c2950a56c1fa307d6d8ce59ca37",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/multi-visit-completeness.md",
+      "sha256": "58ff9a02cc032f83b8d01eff2fa11c889c0756c7a2ae7b93471955c9bf5758d5",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/node-edge-design.md",
+      "sha256": "c2c225bed830563900deaf97597c18060753702f28b439abfb15d04de4139150",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/page-expression-design.md",
+      "sha256": "dce47a37661028934a8276b7ed86e0cd64e9a9f133d40733739d0505006db6d2",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/q5-design-assessment.md",
+      "sha256": "bbc19ca68cac6036203f8eacb9de15d6395f56e754c9c45c12b6407271f9ec58",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/q5-primary-sources.md",
+      "sha256": "663fe943c21697d6aeba6ee1354692731b2fd14e7edb39e968ca4e37bb6d3445",
+      "role": "frozen_dependency_hash_verified_not_independently_researched"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/replay-input-audit.md",
+      "sha256": "725c6faac5c58f8721112a814ceafe4619c52830964b7152286043a0c37a9b92",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/residual-analysis.md",
+      "sha256": "fc9788fd0a2b2a93245773bda617fce76b19dacd71a973d3e18b9a6a238f7d09",
+      "role": "frozen_dependency_hash_verified_not_independently_researched"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/residual-primary-sources.md",
+      "sha256": "3e4757fb01a57f751fca57e7b2aa5b7cd63ae999670415fbcb0db9f372e97048",
+      "role": "frozen_dependency_hash_verified_not_independently_researched"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/spec.md",
+      "sha256": "307899c6d7a07ec91efab6953b45d9159a92c390c2903bfbc1d641464a4774e8",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/state.md",
+      "sha256": "d583250fe4d9af46925dd9e9af2d20233fb69171cd52e98ce951a5970b536bb0",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/trusted-element-reuse-design.md",
+      "sha256": "5138bc27396f53e1059d75f1f526ef02369b161a5bc7626cf03ae089a7adc439",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/trusted-reuse-primary-sources.md",
+      "sha256": "e42d21ace03f06fe41cf7026bc102018119a7265ae8b934264393759e61327bb",
+      "role": "frozen_dependency_hash_verified_not_independently_researched"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/version-industry-research.md",
+      "sha256": "9a937a61beda99b5ef1762d5ae39fc623ebabe38f80e2a5eb4d974599b174e13",
+      "role": "frozen_dependency_hash_verified_not_independently_researched"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/version-layer-design.md",
+      "sha256": "15d6ce2a36ca33398d554a04e5c1cfafce9bfc67e762b07628c58b3892b56ddf",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/world-gap-audit.md",
+      "sha256": "d5089b7e86610e37a48a76fcc43ec4213193e7d142f77c80494bc19e2d172efb",
+      "role": "frozen_dependency_hash_verified_not_independently_researched"
+    },
+    {
+      "path": "changes/WORLD-VISUALIZATION-001/spec.md",
+      "sha256": "03a06014c1671e8bba01657127b3b8d9ba257d2b5caca5afb7f61039ebe1d172",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "changes/WORLD-VISUALIZATION-001/state.md",
+      "sha256": "8d7674a56a12ee921babc9b695af3d1f5e4f04584f9753a50ebc9b6d6437b365",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/adr/0010-freshness-is-consumption-relative-sufficiency-judgment.md",
+      "sha256": "43f3c3d0a208f6ba7da9f0b00cab84d01289086f9c6a00699bd859215ec3a603",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/adr/0011-consumer-views-are-owner-derived-immutable-projections.md",
+      "sha256": "3e66c2128b17810088ed5c587c8442e1d4ebccec60593b0278f451b001684363",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/adr/0012-runtime-transition-context-is-non-evidentiary-association-prior.md",
+      "sha256": "c10dd930861a197eb6a6c4e7d391d7d94924f565df668a6b369daeeb319331c9",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/adr/0014-continuity-demand-is-non-evidentiary-input-via-single-dual-mode-seam.md",
+      "sha256": "79ba8ae5b84f36109a95b6f9de2d15f0d682b5ae8a07de66472b8e5e4f7bfb45",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/adr/0015-ui-element-identity-is-demand-gated-logical-item-continuity.md",
+      "sha256": "f45be9042610f2577445bcf027de6904aba6c3ec73e44eedc4a845035c44b8d2",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/adr/0017-non-idempotent-action-safety-is-pre-dispatch.md",
+      "sha256": "b8fb163a19039ed1e22b9ff0de887459a78a837ae9561f5f09a8d5e536bbf225",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/adr/0023-reliable-execution-source-is-effect-boundary-owned-with-append-only-file-journal.md",
+      "sha256": "aa9fd55087e958a540e36affd8d684aefeb6c783bf3400d7a0a2b17dcd5c9d37",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/adr/0026-kernel-is-ui-domain-runtime-runtime-generalization-is-buyer-driven.md",
+      "sha256": "5fa51166a48fd2841a789512cd490c2cfd55b9d0fea0c4ad006c1adc3bfeef05",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/adr/0049-expected-effect-payload-for-post-action-verification.md",
+      "sha256": "363db66f5e6db605752a47ffe172585cd4bba3c591fc59a1ec6ffbb1d6e8561b",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/adr/0050-budget-grant-via-consultation-with-policy-hard-cap.md",
+      "sha256": "085d581f4d32c27ec9a9cb499048dc2edd5c9881ed3c6df849c194a985048f13",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/adr/0052-goal-directed-budget-review-and-continuation.md",
+      "sha256": "c63517cfd41a0bd0ff83e027704ab1f24e99483274a7724b01ec762df31539fd",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/adr/0054-confirmed-budget-recovery-and-unresolved-effect-barrier.md",
+      "sha256": "3c272e7294266cef6dd3f50360d26689b4bb755d10aabf6bbf59e141915fb8f3",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/agents/work-reporting.md",
+      "sha256": "60c00142b4dad111d107999da7114b7a8ac58380a0c53fb094b4cf32cfea794c",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/architecture/product-architecture-baseline-l0-l3.md",
+      "sha256": "f4d95f7acf3ebbce3297932bb0c7bd38c9ee4a771a807752f83617e90b5ed928",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md",
+      "sha256": "8dd9d7623a07828c7880ed706ce70d42977e4fd0d86cca12a14eac9d6c0a7e13",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/architecture/simulation-baseline-v0.1.md",
+      "sha256": "be99730090b64bd77f8a91fdeba7d74bd7a0f3c2cb1822062f866564751a9446",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/architecture/simulation-baseline-v0.2-c7-amendment.md",
+      "sha256": "1b2d522e36e5e395611ea730d31816613a2934625900a115352a4ab5c0ddba05",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/architecture/simulation-baseline-v0.2-c7-component-delta.md",
+      "sha256": "e3752b617e911f32ff3d8fc923cccc346bd2718c6452fc02aba37be0d91ed1e5",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/architecture/simulation-baseline-v0.2-c7-kind-none-delta.md",
+      "sha256": "82c223c06d70074edec422037908c16084f2b9dcadc0595b85d6732d9a67024e",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "docs/architecture/uworld-protocol-baseline-l4.md",
+      "sha256": "1831d3179f3f1c4726ec0da5d435aaf59e4223837eb859965660bf191229395c",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "dsh/uniclaw-decision-channel/src/index.js",
+      "sha256": "f58d882a16bdfccab25b493bcc97bcb2c7c1ebc25931adc960c81537b6454e6a",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "scenarios/README.md",
+      "sha256": "e7fba10b00488aa6bbb79ec51835894b987172dbc67c26d71facb16b673d6593",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "scenarios/SCN-BARRIER-001.json",
+      "sha256": "f85ff6b91afc270489fed38cd68373167a442f8961f205a6403d4ce2b2cc08d2",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-BARRIER-002.json",
+      "sha256": "b9b83e4331a1c39b40df40852917deec91723a4aca033c6d048c46d296000412",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-BARRIER-003.json",
+      "sha256": "cd0cab3b3b2d678e7964cf5361a49379832b8bdc567ffb9633ffc5da279cfe68",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-PERC-001.json",
+      "sha256": "eb47751b994df7de9999c482d2c9162de285b78d84dfcca197a104f71f315f94",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-PERC-002.json",
+      "sha256": "da3649bd806f5c86c6c41d9f488444583df3d72b3e68821fcefb3ba9f7853edc",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-PERC-003.json",
+      "sha256": "df576774e6a4959d5e0ae0de60081fd0939655819a9c6bd4c2befd820d73bedc",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-PERC-004.json",
+      "sha256": "ac95758ebc8f752e5a83924b9bc836ffaae51c12b4c374b6de8392f4af7d5255",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-PERC-005.json",
+      "sha256": "d3eb82084d0fddab0262dedac921b99881f3530b4663d38600bcdf84b7f039d0",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-PERC-006.json",
+      "sha256": "0362b8be6c0258e10210c96597129d2bd4e0f913f76fb96f2cdacfe2e68b8c3a",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-PERC-007.json",
+      "sha256": "2172461b4934aacf6e2b570c8ac1feb18e705020c6415277a5f7d9a78a11f5e3",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-PERC-008.json",
+      "sha256": "bce50ed8db99d69253f4680fb41a4b6cc74757a2446b69256327dee66ea76238",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-POLICY-001.json",
+      "sha256": "8b021096355999d8ff972baa2532ec98ba62abdb968a1f60d5990c640b202294",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-POLICY-002.json",
+      "sha256": "43417822c88a080a7dbaa5591530ec169f3e4d54ac846e473ecb80d8cf59480b",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-POLICY-003.json",
+      "sha256": "ccf9424d395cbd4107ad3cda9c8a07dacb1d7f25676f4136d1c67ac5c37b93a1",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-POLICY-004.json",
+      "sha256": "cb9f888c86331f2b2ee48693bca13d66d3c54f6b139a1bf3a489a972a413771e",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-POLICY-005.json",
+      "sha256": "d4a3cfef09b2248af70e72a00b3e18157323ddc35829a8bf48b11bf25cff72de",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-POLICY-006.json",
+      "sha256": "277b2e92bb26fb951326b639af1792faf7c5551a656086766af2d29e5d7bc6aa",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-POLICY-007.json",
+      "sha256": "2f6f3b990f041ef78606bceb38e3e350ac08fff58c4a3e2d7ec34f62568ed916",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-POLICY-008.json",
+      "sha256": "99ece15ef50114ef242887693a1343d14ca3bc6c86ddd622dd355b27f0b0d576",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-POLICY-009.json",
+      "sha256": "381a447e91426b3868fe83bf074bcb2a6b3b62eea9c4b5df36a96023d7997e82",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-POLICY-010.json",
+      "sha256": "34022e59acdaed546563cd0b2ca828f1e59dd1e759ea34cc9c3829a8bf0c5e2f",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-POLICY-011.json",
+      "sha256": "f21c906d997a8eaab8be658661deb26eb1ad9d1ae139214d7aa35c45cebb24c9",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-001.json",
+      "sha256": "0ac5e663540f0f521efb3af1518ea77901af4d434b5e67c9349e7aa24e3092f9",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-002.json",
+      "sha256": "b7e563511cedf515467007a3678eba9556fd53183ece0e5ecea50bd4c3ac2019",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-003.json",
+      "sha256": "52d335a032d4ebf4b320adf3e8afdd4cb03b81f9a16f722df97fedb89552e419",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-004.json",
+      "sha256": "27270b1ea2f6108930bc78e5c070038d3fc45928213043367ee350c4b3d90791",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-005.json",
+      "sha256": "49e4a08448a9680b93ab793aa3b0339f2c8c5346140196db6139ab459a0c8808",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-006.json",
+      "sha256": "cf0a3d0d5d9d69a6346db1438c2b0c04042d16d53c2d6df7149c0cc5868dd95a",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-007.json",
+      "sha256": "7c3aa51f6e8b1590026104f713b6e4661831f2c6aa1d3db0caf932b86ee931ff",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-008.json",
+      "sha256": "0a6328eef3a26491a77df72baec2615ed78dd9e367bc10d71620ff74c1de3323",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-009.json",
+      "sha256": "f2d026d0fd67ed5992b422d29faed2a990fbd5c146b9fb37bf01aee540b3381f",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-010.json",
+      "sha256": "95e154b14fe8fdf931ae547e4c4e4b0964cbf58629cbd11bf8a078f5c4dadd90",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-011.json",
+      "sha256": "bb806b14f0af7fb255b5e7d960c87a7fd76e2e6e850fc0016ac571d18754c72a",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-012.json",
+      "sha256": "f77711e1c95bc03563d6f9e8c71a65452f8e715200a27be243263f6f71f95051",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-013.json",
+      "sha256": "e16d4a37679fa379dd9d518fbaa6e4568a12ab1ecf9f9ef01c6b10aeb46e2738",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-WIFI-001.json",
+      "sha256": "2b73fb8388dde16b81afb6d005905dcec67c3eacc140956a8219c1f46a8819da",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-WIFI-002.json",
+      "sha256": "c1be88dc5b892fa0c94458886e17ff13c7f6c0901b5138825c00a58bba3677f0",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-WIFI-003.json",
+      "sha256": "e3c3163827ab3192da2fd304a49c9fbaf27053f926b1d4f729a401597f0f588e",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-WIFI-004.json",
+      "sha256": "e4708f0bfede2ca04e5ecff5bb12e9001895f70c97e4c8f22711d6463ae5f261",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-WIFI-005.json",
+      "sha256": "cfb0447c62e0ed9d6fff7f450cad2f5db598e8fc531126a695ab340d2ed6d2b3",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "scenarios/SCN-WIFI-006.json",
+      "sha256": "86ba65dd777d8d5da43384a95a9bf930b045f92d29196b31eded60b0257c8fd3",
+      "role": "catalog_metadata_parsed_not_test_result"
+    },
+    {
+      "path": "schemas/work-item.schema.json",
+      "sha256": "120e7cf32bc82dadbcb3e46713372dddec021c44fb1d614768ab36b27fc422c1",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/DshAgentAdapter.cs",
+      "sha256": "c1463fa035f3e589e4f2f357145e896ff9c32bfdea4f4fc83466a5b83b02210a",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/DshOpenedHttpPeer.cs",
+      "sha256": "3d68ae8b111caa7e2f2637cf7aa52659b4fb39a023d3f45412571f08f8d4cba0",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/ProtocolModels.cs",
+      "sha256": "e0c922f8750736c575faa31742d7889cbc8bbe31cf1945a5d66bcbce05c6a04b",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/ProtocolSchema.cs",
+      "sha256": "75d131dacc0a902ed8935e06b34575360b8ae1a7308acdf98139105dfe39d5b7",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Host/UiAutomatorDump.cs",
+      "sha256": "a1ba1a9dc8b99a75b04a398758dec8a339ec335b651ac503eb41cb2fee5b4e34",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Assurance/RuntimeAssurance.PostAction.cs",
+      "sha256": "69efa7951d0193959f74e6d8f50aaae6ca583e9fc212dcd3f32bbc2b62b61951",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Capability/SemanticPerception.cs",
+      "sha256": "dad53977b76ab78659676b232b3675bb3c32859ca5138046da92e46aa297a386",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/ObservationRecoveryControl.cs",
+      "sha256": "126aa634efc0c63fb8963f38bf23af0b4e247f74373212445474327043a20bd4",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Core/CoreSemanticProjection.cs",
+      "sha256": "1129016308c15d3d90ad4a9724bff00f47fdb1176b782df0883599820d55bfef",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/EffectBoundary.cs",
+      "sha256": "daa98d385b467e958164250e6aaafca5f59838d8ccb9ec3c9c9a418d9e6cee6c",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/EffectDispatch.cs",
+      "sha256": "45381697d9813b1bc8089aa1a0dcdcd3bb77d3136a8fa7f3981995df8c984586",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/TargetBinding.cs",
+      "sha256": "af0d394fa63a6b7231bf0fe9502c222dda8e300f333d6714294263580382b600",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Evidence/EvidenceRecord.cs",
+      "sha256": "918e78ba88cb6fc1dbf320919cf0277b8ec5e704b5da854e7a73dd09ea81f512",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Evidence/Provenance.cs",
+      "sha256": "6f14a5ef32fa8742721e19d077ec15b2aa69ac4464e3a5700626fb52654bd1b7",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/SemanticObservationProjector.cs",
+      "sha256": "4e0a59ab38ab304811f91882ce80df113c4d269b6a39394f0100d60d963681b5",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/HierarchyCoverage.cs",
+      "sha256": "dc6c35d3f639cfd3b3382281fd1171bb0ab2e68ad38530dc343a3102e2ba2e18",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/TypedHierarchyProposalProjector.cs",
+      "sha256": "f052af652868033c296912b28ff43ecd33079264b0b4b80db90cf74e87570c22",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/AgentDecision.cs",
+      "sha256": "8c657ba8ef01a64256d82316a9ba6d8e72debe37e0d127f1bc653362cfb0e788",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/ConsultationTypes.cs",
+      "sha256": "564b0d8828dc27a8fed27600fb388f69eefd8c212ac5c2d193438d5a6faf11e0",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+      "sha256": "b361a3b5c50d324419ef7b00a9c7ee12cf81371d70c0e8e9d9d6be4e8013ef46",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/PageObservation.cs",
+      "sha256": "c859255b7a7ffcce03aaa0f63749a355a550c832007bd99c842b9ec136ce52ec",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/Slice.cs",
+      "sha256": "9938141f4ec515a2b9298d00cad713a3ba4734e8eca5a78a90e4a37463e9c151",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/UiRealization/ContainerAssociation.cs",
+      "sha256": "e2ac95f7a2eea8ae0a262d33861dc96e43ba4b6fa8abda5991877126977a4d82",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/UiRealization/ProductAssociationStrategy.cs",
+      "sha256": "54ad74cef0bd6a232fb3b18d64089db240fe0a8e83feb82c35a2c0478e9797f5",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldBeliefRevision.cs",
+      "sha256": "aa6946094c85a9b30ea54136f913c28c9c17ad5e8827ad3faefe07c4fed0df30",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.Semantics.cs",
+      "sha256": "16a046850c50bde97f8a6ed0134fe0773d6e65f1eda9490d8f957e86c619c5bd",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.Viewports.cs",
+      "sha256": "58ca7a04f13b76a38224da0bbc9c84ca0bf9e3a2d88535ac2ca213a3f7240622",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.cs",
+      "sha256": "6db64bb4ee40b07b17516c2cb3a51d6290fa801397a48e04fac3572316e858f6",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/DecisionChannelClosureTests.cs",
+      "sha256": "00a3ed745cff83f6df98174459e714f0f3634976f9281da24865904a9d325287",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/CoreProjectionSeamTests.cs",
+      "sha256": "aab3e30fff1d322b68435f7fc656ac3f1dc7ef4ac0e0b75f807d5555c2bf4caf",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/FrameComputationReuseTests.cs",
+      "sha256": "c97629df7ffb218efeb070b3f846418f06142cbb9d00d0c6d77a6f3c5d52cd53",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/ObservationRecoveryControlTests.cs",
+      "sha256": "60e8f87848ba17133e35548e80992ea0342454fc8bfd688e6ffb6191a9358865",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/PageObservationRecoveryTests.cs",
+      "sha256": "7408623c726a9452631508a7aef546e34afd08194f8f2dd6d8ea506e56dac594",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldObservedNavigationTests.cs",
+      "sha256": "50e4c4f61b140b99faa449b1d1361da93c2188df383227d6281f0e8693501d05",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldSemanticEvidenceTests.cs",
+      "sha256": "5a05755767f41a8de942f228f15203c806bf4b84376f8628061fa4031b6fdf34",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldViewportTransitionTests.cs",
+      "sha256": "c379bc3f778864919bbbfb8724c0327d2c32c71b47183853ddc4b2d68851ca12",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/WorldModelCanonicalOracleTests.cs",
+      "sha256": "de29c29ebf3ff1c78a23c244298b37416355a178d222d4b8af98ff70139e53d5",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ComponentReplayCases.cs",
+      "sha256": "11f20a1c1c2da624ac70d8f8d82e497245cb2126e46610792a796199d54e31db",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/RecordedComponentInputs.cs",
+      "sha256": "6253b03e6115dcff987e18745d6984a4c4a4d798750c53a704b3b700cccb65ac",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs",
+      "sha256": "7484b6b65767ad7d631444a767e0a6afb88cfa822a03795085532169f4e1ceba",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentScenarioScopeTests.cs",
+      "sha256": "b0b9b6740e1e07742f6b652d1578d1af2906e2a2c497a9f9b164074ff80889a7",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentSemanticReplayTests.cs",
+      "sha256": "c1260a57645989eca303450e965711b69ddec2a4bb3cf46a332a39ed7b5fda39",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentWorldReplayTests.cs",
+      "sha256": "74ebe14a70d793de9804271ed82e8b634688553a08e43891cd67ada7992077a9",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ControlledCheckedReplayTests.cs",
+      "sha256": "2c3d18297d4b1c633c01b3602f8d3980994842c517669eb6b33efd6eb12215d5",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "sha256": "eb9e980ff52988dc9d74188df9254226edf6c0a7692bceea7c795344384dd471",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/suite.json",
+      "sha256": "3a4edde0219c126af6f393265a994faf7ce43800865603297ad921006a6bebb1",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "sha256": "6dbac2bebc83484183f828c9a3b3e0592ec040f50a3d5d9538e49685a0e5d26e",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/RecentRecordingReplayTests.cs",
+      "sha256": "2e68f695961cae94d598441a0ced3952bac35ffe8f4fb7afe7f1a29e57ae058e",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/WorldReconstructionTests.cs",
+      "sha256": "2ff49379db2a21c6d1085ca9aac623cda34d505fcfe6f7461c6c5b8e50ec50cd",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/WorldScenarioReplayTests.cs",
+      "sha256": "cb21bba346f4e8b07ca9845ace4a20c7705d657b74f5c2008848b908fa0e8851",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "testsets/simulation-baseline/manifest.json",
+      "sha256": "5e7deef71da224349fdb5ae8eac2900fbcaa97974f8189ff96a11d3b00db7bd6",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    },
+    {
+      "path": "tools/scenario_certify.py",
+      "sha256": "0a9cc0b6241619293452c636d3d36346e05a76b76b2c837c32c783dac5fbee54",
+      "role": "source_or_contract_examined_at_relevant_sections"
+    }
+  ],
+  "frozenInputVerification": [
+    {
+      "path": "CONTEXT.md",
+      "expectedSha256": "2ac8ddd40b74f9ff701ab0bc5f8286a2a375f71e5fe90665f6d505aefd785637",
+      "actualSha256": "2ac8ddd40b74f9ff701ab0bc5f8286a2a375f71e5fe90665f6d505aefd785637",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/agent-information.md",
+      "expectedSha256": "902dc7863e3f57684d66097512472e567af11bd993de409a2ee5d61ddb39d561",
+      "actualSha256": "902dc7863e3f57684d66097512472e567af11bd993de409a2ee5d61ddb39d561",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/correction-effect-primary-sources.md",
+      "expectedSha256": "57d9e9d77d393693a8163d19cd5975d6ce5ad4f91b067ea337ba5e971b80f63d",
+      "actualSha256": "57d9e9d77d393693a8163d19cd5975d6ce5ad4f91b067ea337ba5e971b80f63d",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/correction-impact-design.md",
+      "expectedSha256": "48c09f70c3749030fcb9087dd337b9b61ba2dc2b541003e0c7499da0271c429a",
+      "actualSha256": "48c09f70c3749030fcb9087dd337b9b61ba2dc2b541003e0c7499da0271c429a",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/coverage-audit.md",
+      "expectedSha256": "621cd59e8765484dff7c6b27968f6c1805188f95ee920162021a9ad7e3c40ac1",
+      "actualSha256": "621cd59e8765484dff7c6b27968f6c1805188f95ee920162021a9ad7e3c40ac1",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/derivation-review-request.md",
+      "expectedSha256": "82231b80338f234da7d86953c14b719c8fdc3b4d6dcb7cd8baf0c6767e1dbfcb",
+      "actualSha256": "82231b80338f234da7d86953c14b719c8fdc3b4d6dcb7cd8baf0c6767e1dbfcb",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/design.md",
+      "expectedSha256": "de6bf7b8dd918bc7b489cd706ff8f06c8657295af882c2ff264f3be403827282",
+      "actualSha256": "de6bf7b8dd918bc7b489cd706ff8f06c8657295af882c2ff264f3be403827282",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/discussion.md",
+      "expectedSha256": "37f7b6fb7ada532fbde4bb277c7e732f3cf8add197961e8036dc9a366fc5023f",
+      "actualSha256": "37f7b6fb7ada532fbde4bb277c7e732f3cf8add197961e8036dc9a366fc5023f",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/goal-completion-mapping.md",
+      "expectedSha256": "226268082030451becfb95a2e8d6b0840cdce37bee88f953e29faee8673edff8",
+      "actualSha256": "226268082030451becfb95a2e8d6b0840cdce37bee88f953e29faee8673edff8",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/handoff-coverage-audit.md",
+      "expectedSha256": "7ab51c9b5630d07d9beb2161176403a61e20f1b043027dbfec83c06c94844730",
+      "actualSha256": "7ab51c9b5630d07d9beb2161176403a61e20f1b043027dbfec83c06c94844730",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/implementation-handoff.md",
+      "expectedSha256": "86ae270e830cc6996e634c152bd12e414190b887b8520a08221ea15310528c19",
+      "actualSha256": "86ae270e830cc6996e634c152bd12e414190b887b8520a08221ea15310528c19",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/model-interface-review.md",
+      "expectedSha256": "6d157e320449758b4bf010761cdb1790d30f3c2950a56c1fa307d6d8ce59ca37",
+      "actualSha256": "6d157e320449758b4bf010761cdb1790d30f3c2950a56c1fa307d6d8ce59ca37",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/multi-visit-completeness.md",
+      "expectedSha256": "58ff9a02cc032f83b8d01eff2fa11c889c0756c7a2ae7b93471955c9bf5758d5",
+      "actualSha256": "58ff9a02cc032f83b8d01eff2fa11c889c0756c7a2ae7b93471955c9bf5758d5",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/node-edge-design.md",
+      "expectedSha256": "c2c225bed830563900deaf97597c18060753702f28b439abfb15d04de4139150",
+      "actualSha256": "c2c225bed830563900deaf97597c18060753702f28b439abfb15d04de4139150",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/page-expression-design.md",
+      "expectedSha256": "dce47a37661028934a8276b7ed86e0cd64e9a9f133d40733739d0505006db6d2",
+      "actualSha256": "dce47a37661028934a8276b7ed86e0cd64e9a9f133d40733739d0505006db6d2",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/q5-design-assessment.md",
+      "expectedSha256": "bbc19ca68cac6036203f8eacb9de15d6395f56e754c9c45c12b6407271f9ec58",
+      "actualSha256": "bbc19ca68cac6036203f8eacb9de15d6395f56e754c9c45c12b6407271f9ec58",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/q5-primary-sources.md",
+      "expectedSha256": "663fe943c21697d6aeba6ee1354692731b2fd14e7edb39e968ca4e37bb6d3445",
+      "actualSha256": "663fe943c21697d6aeba6ee1354692731b2fd14e7edb39e968ca4e37bb6d3445",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/replay-input-audit.md",
+      "expectedSha256": "725c6faac5c58f8721112a814ceafe4619c52830964b7152286043a0c37a9b92",
+      "actualSha256": "725c6faac5c58f8721112a814ceafe4619c52830964b7152286043a0c37a9b92",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/residual-analysis.md",
+      "expectedSha256": "fc9788fd0a2b2a93245773bda617fce76b19dacd71a973d3e18b9a6a238f7d09",
+      "actualSha256": "fc9788fd0a2b2a93245773bda617fce76b19dacd71a973d3e18b9a6a238f7d09",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/residual-primary-sources.md",
+      "expectedSha256": "3e4757fb01a57f751fca57e7b2aa5b7cd63ae999670415fbcb0db9f372e97048",
+      "actualSha256": "3e4757fb01a57f751fca57e7b2aa5b7cd63ae999670415fbcb0db9f372e97048",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/spec.md",
+      "expectedSha256": "307899c6d7a07ec91efab6953b45d9159a92c390c2903bfbc1d641464a4774e8",
+      "actualSha256": "307899c6d7a07ec91efab6953b45d9159a92c390c2903bfbc1d641464a4774e8",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/state.md",
+      "expectedSha256": "d583250fe4d9af46925dd9e9af2d20233fb69171cd52e98ce951a5970b536bb0",
+      "actualSha256": "d583250fe4d9af46925dd9e9af2d20233fb69171cd52e98ce951a5970b536bb0",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/trusted-element-reuse-design.md",
+      "expectedSha256": "5138bc27396f53e1059d75f1f526ef02369b161a5bc7626cf03ae089a7adc439",
+      "actualSha256": "5138bc27396f53e1059d75f1f526ef02369b161a5bc7626cf03ae089a7adc439",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/trusted-reuse-primary-sources.md",
+      "expectedSha256": "e42d21ace03f06fe41cf7026bc102018119a7265ae8b934264393759e61327bb",
+      "actualSha256": "e42d21ace03f06fe41cf7026bc102018119a7265ae8b934264393759e61327bb",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/version-industry-research.md",
+      "expectedSha256": "9a937a61beda99b5ef1762d5ae39fc623ebabe38f80e2a5eb4d974599b174e13",
+      "actualSha256": "9a937a61beda99b5ef1762d5ae39fc623ebabe38f80e2a5eb4d974599b174e13",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/version-layer-design.md",
+      "expectedSha256": "15d6ce2a36ca33398d554a04e5c1cfafce9bfc67e762b07628c58b3892b56ddf",
+      "actualSha256": "15d6ce2a36ca33398d554a04e5c1cfafce9bfc67e762b07628c58b3892b56ddf",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/world-gap-audit.md",
+      "expectedSha256": "d5089b7e86610e37a48a76fcc43ec4213193e7d142f77c80494bc19e2d172efb",
+      "actualSha256": "d5089b7e86610e37a48a76fcc43ec4213193e7d142f77c80494bc19e2d172efb",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-VISUALIZATION-001/spec.md",
+      "expectedSha256": "03a06014c1671e8bba01657127b3b8d9ba257d2b5caca5afb7f61039ebe1d172",
+      "actualSha256": "03a06014c1671e8bba01657127b3b8d9ba257d2b5caca5afb7f61039ebe1d172",
+      "matches": true
+    },
+    {
+      "path": "changes/WORLD-VISUALIZATION-001/state.md",
+      "expectedSha256": "8d7674a56a12ee921babc9b695af3d1f5e4f04584f9753a50ebc9b6d6437b365",
+      "actualSha256": "8d7674a56a12ee921babc9b695af3d1f5e4f04584f9753a50ebc9b6d6437b365",
+      "matches": true
+    },
+    {
+      "path": "docs/adr/0054-confirmed-budget-recovery-and-unresolved-effect-barrier.md",
+      "expectedSha256": "3c272e7294266cef6dd3f50360d26689b4bb755d10aabf6bbf59e141915fb8f3",
+      "actualSha256": "3c272e7294266cef6dd3f50360d26689b4bb755d10aabf6bbf59e141915fb8f3",
+      "matches": true
+    }
+  ],
+  "headDrift": [],
+  "inputDrift": [],
+  "reviewFiles": [
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/review/scenario-inventory.md",
+      "sha256": "bef5dd0bbeffcddc6b73dc1ea752abb518df86070511715b4e35d40f97680ea3"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/review/scenario-derivation.md",
+      "sha256": "dcf9a8bc099418d2bdcb65da62de2fdf6c838879825036a4f7549142c9d7aed6"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/review/architecture-review.md",
+      "sha256": "b3cc00fb29be1f5e3ef3b1ca76611c91d395bc36c535d0d829fb85cb11085740"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/review/model-interface-disposition.md",
+      "sha256": "ca8e1e1e4eeb5506cb7634703ee2c2eace341cc394187cba58bf203a600b72eb"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/review/optimization-disposition.md",
+      "sha256": "733e9e8d3414d30a552529084149f34d15d37b7a60c109e986c38f08952f63cc"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/review/evidence/entry.json",
+      "sha256": "38bfac7548c05c24fcd42af65e04353912f564cae48c7e27d8b1b681e9af29cb"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/review/evidence/scenario-catalog.json",
+      "sha256": "6e095727ad66944a4b378a1fab986afc4b6bc06b77452856cf650bab531e0b70"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/review/evidence/finite-derivation.py",
+      "sha256": "3df5964cfe92b9a5fbdf22ee8ce6667826f7c955a2f82cb5e79ab8bd5dd7f2f2"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/review/evidence/finite-derivation.json",
+      "sha256": "aa001eb3c8bbfb7899094fdc83941be48a56607fedfbe0fbafe63c8f86ef3fb7"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/review/evidence/assemble-readiness.py",
+      "sha256": "c4c0f29e4712d67d2141e141704795a697ff297936540240ac5f9e4939be8e4f"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/review/evidence/recording-pin-audit.json",
+      "sha256": "f9cbb72f4824d59bacaa93f98840fca99bcdcbb50712894d7962a20ae263a928"
+    },
+    {
+      "path": "changes/WORLD-UNCERTAINTY-001/review/evidence/scenario-certification-check.txt",
+      "sha256": "c197e8131c2ab9fc7e9549b8bb6abf09e346c195b5df5628bf6255b9685f2377"
+    }
+  ],
+  "selfHashPolicy": "readiness.json excludes itself; later validation/publication records are supplemental and never self-hash a commit",
+  "caseCoverage": {
+    "mapping": "scenario-derivation.md",
+    "currentAssertions": "scenario-inventory.md",
+    "decisions": [
+      {
+        "id": "Q1",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q2",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q3",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q4",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q5",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q6",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q7",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q8",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q9",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q10",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q11",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q12",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q13",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q14",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q15",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q16",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q17",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q18",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q19",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "Q20",
+        "disposition": "mapped_with_current_assertions_gap_and_validation_or_defer",
+        "productStatus": "not_run"
+      }
+    ],
+    "themes": [
+      {
+        "id": "MV01",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV02",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV03",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV04",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV05",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV06",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV07",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV08",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV09",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV10",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV11",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV12",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV13",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV14",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV15",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV16",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV17",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "MV18",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "RU01",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "RU02",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "RU03",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "RU04",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "RU05",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "RU06",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "RU07",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "RU08",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "CI01",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "CI02",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "CI03",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "CI04",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "CI05",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "CI06",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "CI07",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "CI08",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "CI09",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "CI10",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "CI11",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "CI12",
+        "disposition": "mapped_to_detailed_family_not_product_pass",
+        "productStatus": "not_run"
+      }
+    ],
+    "earlyRequirements": [
+      {
+        "id": "E01",
+        "requirement": "四类生产/消费/保持/解决及共因",
+        "validationCases": [
+          "K07",
+          "K12"
+        ],
+        "disposition": "required_implementation",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "E02",
+        "requirement": "真实独立尝试/结果、未采集不填零",
+        "validationCases": [
+          "K08"
+        ],
+        "disposition": "required_implementation",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "E03",
+        "requirement": "持续相关可见、解决/不相关分开",
+        "validationCases": [
+          "K08",
+          "K12"
+        ],
+        "disposition": "required_implementation",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "E04",
+        "requirement": "安全边界提醒去重、新结果再提醒、资源不重置",
+        "validationCases": [
+          "K08",
+          "K10"
+        ],
+        "disposition": "required_implementation",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "E05",
+        "requirement": "旧输入资格/统计分母/B1诊断非发布门槛",
+        "validationCases": [
+          "K11"
+        ],
+        "disposition": "required_implementation",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "E06",
+        "requirement": "scope-id/局部范围/历史依据稳定",
+        "validationCases": [
+          "K01"
+        ],
+        "disposition": "required_implementation",
+        "productStatus": "not_run"
+      },
+      {
+        "id": "E07",
+        "requirement": "正式Agent最终正文/第二次咨询/非首轮能力目录",
+        "validationCases": [
+          "K12"
+        ],
+        "disposition": "required_implementation",
+        "productStatus": "not_run"
+      }
+    ],
+    "detailedFamilies": [
+      "K01",
+      "K02",
+      "K03",
+      "K04",
+      "K05",
+      "K06",
+      "K07",
+      "K08",
+      "K09",
+      "K10",
+      "K11",
+      "K12"
+    ],
+    "catalog": {
+      "count": 41,
+      "source": {
+        "recorded": 10,
+        "synthetic": 12,
+        "component-test": 19
+      },
+      "executionKind": {
+        "golden-bundle": 20,
+        "none": 21
+      },
+      "explicitComponentScope": 3,
+      "certificationBlocks": 20,
+      "manifestTasks": 7
+    }
+  },
+  "axiomAssumptions": [
+    {
+      "id": "A1",
+      "assumption": "既有Owner authority与accepted evidence边界",
+      "source": "baseline sections 11-16; P2/P3/P22/P23"
+    },
+    {
+      "id": "A2",
+      "assumption": "固定记录不可变，发生/处理/接纳分轴，无canonical clock",
+      "source": "ADR-0010/0011/0023; Q17/Q20"
+    },
+    {
+      "id": "A3",
+      "assumption": "访问发生须合法来源，身份不等访问",
+      "source": "Q17; MV01/03/17/18"
+    },
+    {
+      "id": "A4",
+      "assumption": "固定scope语义可规范编码；hash碰撞不作严格数学无碰撞证明",
+      "source": "P4; Q17"
+    },
+    {
+      "id": "A5",
+      "assumption": "累计须整组时间/空间/对象兼容，不能假设两两相容可传递",
+      "source": "P4/UWM coverage; Q14"
+    },
+    {
+      "id": "A6",
+      "assumption": "对应/适用/反证充分由World判断，动态字段独立",
+      "source": "Q19; ADR-0010/0011/0015"
+    },
+    {
+      "id": "A7",
+      "assumption": "实际执行关联由producer给出且声明完整性",
+      "source": "Q6/Q8/Q10"
+    },
+    {
+      "id": "A8",
+      "assumption": "有限固定实际依赖图；完备边才有完整影响闭包，缺边仅下界；允许环和独立支撑",
+      "source": "Q15/Q20"
+    },
+    {
+      "id": "A9",
+      "assumption": "可靠提交边界/当前状态/授权及原Owner效果判定，不假设现实可逆",
+      "source": "baseline 24.3/24.4; ADR-0017/0023/0049/0054"
+    },
+    {
+      "id": "A10",
+      "assumption": "局部活性需来源最终可得/公平处理/足够预算授权，不证明全局停机或成功",
+      "source": "ADR-0052; Q7/Q10/Q19"
+    },
+    {
+      "id": "A11",
+      "assumption": "Unknown/Absent/Conflict/历史/未采集不可折叠；Oracle非真值",
+      "source": "UWM; Q1/Q5/Q9/Q11/Q18"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F01",
+      "severity": "high",
+      "owner": "World/Core",
+      "scope": "accepted first-period implementation",
+      "finding": "CoreSemanticProjection scope-id及页内范围/legacy依据",
+      "disposition": "resolved_in_review_as_required_implementation_change",
+      "reviewBlocking": false,
+      "implementationBlockingIfOmitted": true,
+      "validationCases": [
+        "K01"
+      ],
+      "evidence": [
+        "architecture-review.md",
+        "model-interface-disposition.md",
+        "scenario-inventory.md"
+      ]
+    },
+    {
+      "id": "F02",
+      "severity": "high",
+      "owner": "World",
+      "scope": "accepted first-period implementation",
+      "finding": "正式多轮累计与有目标历史归属纠错；current gate不放宽",
+      "disposition": "resolved_in_review_as_required_implementation_change",
+      "reviewBlocking": false,
+      "implementationBlockingIfOmitted": true,
+      "validationCases": [
+        "K02",
+        "K03",
+        "K04"
+      ],
+      "evidence": [
+        "architecture-review.md",
+        "model-interface-disposition.md",
+        "scenario-inventory.md"
+      ]
+    },
+    {
+      "id": "F03",
+      "severity": "high",
+      "owner": "World/Perception scheduling",
+      "scope": "accepted first-period implementation",
+      "finding": "历史先可读、字段适用后当前沿用；免重复慢调用",
+      "disposition": "resolved_in_review_as_required_implementation_change",
+      "reviewBlocking": false,
+      "implementationBlockingIfOmitted": true,
+      "validationCases": [
+        "K05",
+        "K06"
+      ],
+      "evidence": [
+        "architecture-review.md",
+        "model-interface-disposition.md",
+        "scenario-inventory.md"
+      ]
+    },
+    {
+      "id": "F04",
+      "severity": "high",
+      "owner": "World/observation producer",
+      "scope": "accepted first-period implementation",
+      "finding": "四类及最小上下文/覆盖来源完整生产消费",
+      "disposition": "resolved_in_review_as_required_implementation_change",
+      "reviewBlocking": false,
+      "implementationBlockingIfOmitted": true,
+      "validationCases": [
+        "K07",
+        "K12"
+      ],
+      "evidence": [
+        "architecture-review.md",
+        "model-interface-disposition.md",
+        "scenario-inventory.md"
+      ]
+    },
+    {
+      "id": "F05",
+      "severity": "high",
+      "owner": "Execution producer/Control/Runtime",
+      "scope": "accepted first-period implementation",
+      "finding": "真实尝试来源、持续可见与再提醒，不以schedule数代替",
+      "disposition": "resolved_in_review_as_required_implementation_change",
+      "reviewBlocking": false,
+      "implementationBlockingIfOmitted": true,
+      "validationCases": [
+        "K08"
+      ],
+      "evidence": [
+        "architecture-review.md",
+        "model-interface-disposition.md",
+        "scenario-inventory.md"
+      ]
+    },
+    {
+      "id": "F06",
+      "severity": "high",
+      "owner": "World/Control/Assurance/Effect/Run",
+      "scope": "accepted first-period implementation",
+      "finding": "实际消费依赖与未知影响边界；按原Owner核查效果",
+      "disposition": "resolved_in_review_as_required_implementation_change",
+      "reviewBlocking": false,
+      "implementationBlockingIfOmitted": true,
+      "validationCases": [
+        "K09",
+        "K10"
+      ],
+      "evidence": [
+        "architecture-review.md",
+        "model-interface-disposition.md",
+        "scenario-inventory.md"
+      ]
+    },
+    {
+      "id": "F07",
+      "severity": "high",
+      "owner": "Kernel/Host/Agent.Dsh",
+      "scope": "accepted first-period implementation",
+      "finding": "严格codec/生成物及实际咨询正文双轮证明",
+      "disposition": "resolved_in_review_as_required_implementation_change",
+      "reviewBlocking": false,
+      "implementationBlockingIfOmitted": true,
+      "validationCases": [
+        "K11",
+        "K12"
+      ],
+      "evidence": [
+        "architecture-review.md",
+        "model-interface-disposition.md",
+        "scenario-inventory.md"
+      ]
+    },
+    {
+      "id": "F08",
+      "severity": "medium",
+      "owner": "World/Replay consumer",
+      "scope": "accepted first-period implementation",
+      "finding": "复用非权威表达，产品无tests依赖，展示buyer信息保留",
+      "disposition": "resolved_in_review_as_required_implementation_change",
+      "reviewBlocking": false,
+      "implementationBlockingIfOmitted": true,
+      "validationCases": [
+        "K03",
+        "K12"
+      ],
+      "evidence": [
+        "architecture-review.md",
+        "model-interface-disposition.md",
+        "scenario-inventory.md"
+      ]
+    }
+  ],
+  "blockingFindings": [],
+  "requiredImplementationChanges": [
+    {
+      "findingRef": "F01",
+      "owner": "World/Core",
+      "change": "CoreSemanticProjection scope-id及页内范围/legacy依据",
+      "validationCases": [
+        "K01"
+      ],
+      "status": "required_not_implemented",
+      "contractDetail": "model-interface-disposition.md"
+    },
+    {
+      "findingRef": "F02",
+      "owner": "World",
+      "change": "正式多轮累计与有目标历史归属纠错；current gate不放宽",
+      "validationCases": [
+        "K02",
+        "K03",
+        "K04"
+      ],
+      "status": "required_not_implemented",
+      "contractDetail": "model-interface-disposition.md"
+    },
+    {
+      "findingRef": "F03",
+      "owner": "World/Perception scheduling",
+      "change": "历史先可读、字段适用后当前沿用；免重复慢调用",
+      "validationCases": [
+        "K05",
+        "K06"
+      ],
+      "status": "required_not_implemented",
+      "contractDetail": "model-interface-disposition.md"
+    },
+    {
+      "findingRef": "F04",
+      "owner": "World/observation producer",
+      "change": "四类及最小上下文/覆盖来源完整生产消费",
+      "validationCases": [
+        "K07",
+        "K12"
+      ],
+      "status": "required_not_implemented",
+      "contractDetail": "model-interface-disposition.md"
+    },
+    {
+      "findingRef": "F05",
+      "owner": "Execution producer/Control/Runtime",
+      "change": "真实尝试来源、持续可见与再提醒，不以schedule数代替",
+      "validationCases": [
+        "K08"
+      ],
+      "status": "required_not_implemented",
+      "contractDetail": "model-interface-disposition.md"
+    },
+    {
+      "findingRef": "F06",
+      "owner": "World/Control/Assurance/Effect/Run",
+      "change": "实际消费依赖与未知影响边界；按原Owner核查效果",
+      "validationCases": [
+        "K09",
+        "K10"
+      ],
+      "status": "required_not_implemented",
+      "contractDetail": "model-interface-disposition.md"
+    },
+    {
+      "findingRef": "F07",
+      "owner": "Kernel/Host/Agent.Dsh",
+      "change": "严格codec/生成物及实际咨询正文双轮证明",
+      "validationCases": [
+        "K11",
+        "K12"
+      ],
+      "status": "required_not_implemented",
+      "contractDetail": "model-interface-disposition.md"
+    },
+    {
+      "findingRef": "F08",
+      "owner": "World/Replay consumer",
+      "change": "复用非权威表达，产品无tests依赖，展示buyer信息保留",
+      "validationCases": [
+        "K03",
+        "K12"
+      ],
+      "status": "required_not_implemented",
+      "contractDetail": "model-interface-disposition.md"
+    }
+  ],
+  "architectureVerdict": {
+    "verdict": "ready_for_implementation_with_required_changes",
+    "unresolvedOwnerOrAdrConflicts": [],
+    "fivePrinciples": "architecture-review.md",
+    "newCanonicalOwners": false,
+    "newRegistryCapabilityRequired": false,
+    "worldVisualizationBuyer": "core lineage/scope/version/impact retained; visualization only after core CLOSED and pushed"
+  },
+  "deferred": [
+    "Q2 Runtime confirmed budget recovery implementation, ADR-0054 retained",
+    "formal Goal integration Q13",
+    "full Settings traversal/H7/navigation purpose",
+    "generic identity merge/full relations/lifecycle/cross-Container continuity",
+    "generic compensation/full runtime recovery",
+    "calibrated B1 publication threshold and B2/C divergent consequences"
+  ],
+  "verification": {
+    "reviewLevel": "CONTRACT + bounded abstract calculation",
+    "method": "source/contract cross-check + read-only catalog and recording-pin parsing + scenario_certify.py --check + finite-derivation.py + manifest coverage/hash validation",
+    "expected": "20 decisions/38 themes/early requirements mapped, sources and reports hashable, no unresolved review semantics/Owner/ADR blockers",
+    "actual": "review obligations mapped; eight implementation requirements retained; certification check 41 files/0 violations; recording/composition 94 references match and exist in reviewed commit; finite assertions satisfied only in declared abstract domains",
+    "evidence": [
+      "scenario-inventory.md",
+      "scenario-derivation.md",
+      "architecture-review.md",
+      "model-interface-disposition.md",
+      "optimization-disposition.md",
+      "evidence/finite-derivation.json",
+      "evidence/recording-pin-audit.json",
+      "evidence/scenario-certification-check.txt"
+    ],
+    "productTests": "not_run",
+    "productSimulation": "not_run",
+    "device": "not_run",
+    "realProductModel": "not_run",
+    "actualFinalProviderInput": "not_collected_in_review",
+    "performance": "not_measured",
+    "productPass": false,
+    "productClosed": false
+  }
+}

@@ -1,0 +1,987 @@
+{
+  "schemaVersion": "world-review-catalog.v1",
+  "summary": {
+    "count": 41,
+    "source": {
+      "recorded": 10,
+      "synthetic": 12,
+      "component-test": 19
+    },
+    "executionKind": {
+      "golden-bundle": 20,
+      "none": 21
+    },
+    "explicitComponentScope": 3,
+    "certificationBlocks": 20,
+    "manifestTasks": 7
+  },
+  "scope": "metadata inventory only; no test execution or certification freshness claim",
+  "scenarios": [
+    {
+      "path": "scenarios/SCN-BARRIER-001.json",
+      "sha256": "f85ff6b91afc270489fed38cd68373167a442f8961f205a6403d4ce2b2cc08d2",
+      "id": "SCN-BARRIER-001",
+      "source": "recorded",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "wifi-two-step-toggle-menu"
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "e70845d5e3000ddfb414741a304d86784719da988872676d98646580dfaaded5",
+        "executionDigest": "b772211aad026e21a4459e2b36d08f926623011ad712704046bd2eb85c7e3e9a",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-BARRIER-002.json",
+      "sha256": "b9b83e4331a1c39b40df40852917deec91723a4aca033c6d048c46d296000412",
+      "id": "SCN-BARRIER-002",
+      "source": "recorded",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "wifi-two-step-missing-middle",
+        "options": {
+          "phased": true
+        }
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "55ed6e38c5221c9ed84f111da61ee5637707a3db9b6f0ca307c62698fbb90442",
+        "executionDigest": "d02e4ff2ab99e50797abae43894280d905a27f8f291dc823e3226017cf122511",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-BARRIER-003.json",
+      "sha256": "cd0cab3b3b2d678e7964cf5361a49379832b8bdc567ffb9633ffc5da279cfe68",
+      "id": "SCN-BARRIER-003",
+      "source": "recorded",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "wifi-two-step-contradictory-post"
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "3757929670677752beec06cf9cb50d4929ae878704b296eab0d8b2ababfa9b9a",
+        "executionDigest": "a16959ae6376dd47c4195fef7709bc71079d23f2231eaaf438853496332cb194",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-PERC-001.json",
+      "sha256": "eb47751b994df7de9999c482d2c9162de285b78d84dfcca197a104f71f315f94",
+      "id": "SCN-PERC-001",
+      "source": "synthetic",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "world-model",
+        "assurance"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-PERC-002.json",
+      "sha256": "da3649bd806f5c86c6c41d9f488444583df3d72b3e68821fcefb3ba9f7853edc",
+      "id": "SCN-PERC-002",
+      "source": "synthetic",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "world-model",
+        "assurance"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-PERC-003.json",
+      "sha256": "df576774e6a4959d5e0ae0de60081fd0939655819a9c6bd4c2befd820d73bedc",
+      "id": "SCN-PERC-003",
+      "source": "synthetic",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "world-model",
+        "assurance"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-PERC-004.json",
+      "sha256": "ac95758ebc8f752e5a83924b9bc836ffaae51c12b4c374b6de8392f4af7d5255",
+      "id": "SCN-PERC-004",
+      "source": "synthetic",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "world-model",
+        "evidence-ledger"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-PERC-005.json",
+      "sha256": "d3eb82084d0fddab0262dedac921b99881f3530b4663d38600bcdf84b7f039d0",
+      "id": "SCN-PERC-005",
+      "source": "synthetic",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "world-model"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-PERC-006.json",
+      "sha256": "0362b8be6c0258e10210c96597129d2bd4e0f913f76fb96f2cdacfe2e68b8c3a",
+      "id": "SCN-PERC-006",
+      "source": "synthetic",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "world-model"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-PERC-007.json",
+      "sha256": "2172461b4934aacf6e2b570c8ac1feb18e705020c6415277a5f7d9a78a11f5e3",
+      "id": "SCN-PERC-007",
+      "source": "synthetic",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "assurance",
+        "run-model"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-PERC-008.json",
+      "sha256": "bce50ed8db99d69253f4680fb41a4b6cc74757a2446b69256327dee66ea76238",
+      "id": "SCN-PERC-008",
+      "source": "synthetic",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "world-model",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-POLICY-001.json",
+      "sha256": "8b021096355999d8ff972baa2532ec98ba62abdb968a1f60d5990c640b202294",
+      "id": "SCN-POLICY-001",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "run-driver",
+        "world-model",
+        "control-loop",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "policy-immediate-termination",
+        "options": {}
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "e0c2f65aaa35f1acf9ebc5097bc615ee35035e060d7555af25fecf90dc0ac7ad",
+        "executionDigest": "aa4ee84fe95c500d9a5973b7bb17ec5c0e75e864982270826a292a71cfead115",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-POLICY-002.json",
+      "sha256": "43417822c88a080a7dbaa5591530ec169f3e4d54ac846e473ecb80d8cf59480b",
+      "id": "SCN-POLICY-002",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "run-driver",
+        "world-model",
+        "control-loop",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "policy-repeated-application",
+        "options": {}
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "e70845d5e3000ddfb414741a304d86784719da988872676d98646580dfaaded5",
+        "executionDigest": "1cf543de0ab0abdd12a1c4ac8c3291c50ba832d60c329f8393778e7a736acba5",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-POLICY-003.json",
+      "sha256": "ccf9424d395cbd4107ad3cda9c8a07dacb1d7f25676f4136d1c67ac5c37b93a1",
+      "id": "SCN-POLICY-003",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "run-driver",
+        "world-model",
+        "control-loop",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "policy-no-match",
+        "options": {}
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "4b272fd73ef58ede4eb2a817e583e30dbd588b319d777a8d0daffe3b1b604eeb",
+        "executionDigest": "97328f1c56934f3048bcc70e31e85d98eac2ae1e0c75f2c70e3f959d85ca216a",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-POLICY-004.json",
+      "sha256": "cb9f888c86331f2b2ee48693bca13d66d3c54f6b139a1bf3a489a972a413771e",
+      "id": "SCN-POLICY-004",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "run-driver",
+        "world-model",
+        "control-loop",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "policy-bounds-exhausted",
+        "options": {}
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "5fc118241dc16870c7ab7655c6483647d1f9ee3b5c85a69ddd5e8641d7c7bec1",
+        "executionDigest": "405f5f1abfb87ce9aa2ec307038a5943a99fbffc730d9069f9eb87dbe665cada",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-POLICY-005.json",
+      "sha256": "d4a3cfef09b2248af70e72a00b3e18157323ddc35829a8bf48b11bf25cff72de",
+      "id": "SCN-POLICY-005",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "run-driver",
+        "world-model",
+        "control-loop",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "policy-guard-violated",
+        "options": {}
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "75cb1230027332536c2c6f01f9e5641bc671c7dd21a77047b8d70589b4bc711c",
+        "executionDigest": "0165142c66f75d024227d8925e78fea8ed0a6de04b46a032152ef9983eef69e6",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-POLICY-006.json",
+      "sha256": "277b2e92bb26fb951326b639af1792faf7c5551a656086766af2d29e5d7bc6aa",
+      "id": "SCN-POLICY-006",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "run-driver",
+        "world-model",
+        "control-loop",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "policy-guard-unknown",
+        "options": {}
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "4b272fd73ef58ede4eb2a817e583e30dbd588b319d777a8d0daffe3b1b604eeb",
+        "executionDigest": "e5304887067e744961d3a9ce2bc0f5b756653e62c8e614e761b2443a5b6755c3",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-POLICY-007.json",
+      "sha256": "2f6f3b990f041ef78606bceb38e3e350ac08fff58c4a3e2d7ec34f62568ed916",
+      "id": "SCN-POLICY-007",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "run-driver",
+        "world-model",
+        "control-loop",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "policy-verification-failure",
+        "options": {}
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "5fc118241dc16870c7ab7655c6483647d1f9ee3b5c85a69ddd5e8641d7c7bec1",
+        "executionDigest": "455438ba3398670dbe3be2e2cbc489960abb5e342f915b6157680d9613501a62",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-POLICY-008.json",
+      "sha256": "99ece15ef50114ef242887693a1343d14ca3bc6c86ddd622dd355b27f0b0d576",
+      "id": "SCN-POLICY-008",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "run-driver",
+        "world-model",
+        "control-loop",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "policy-lease-drift",
+        "options": {}
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "4b272fd73ef58ede4eb2a817e583e30dbd588b319d777a8d0daffe3b1b604eeb",
+        "executionDigest": "9a31eb8f902b05d064cb7f15716a88785365b214501f2be16ccc3a90a999bf28",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-POLICY-009.json",
+      "sha256": "381a447e91426b3868fe83bf074bcb2a6b3b62eea9c4b5df36a96023d7997e82",
+      "id": "SCN-POLICY-009",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "run-driver",
+        "world-model",
+        "control-loop",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "policy-forbidden-effect",
+        "options": {}
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "400b1755b0e41e92f3af95979a13117a0329550c4907c34c39fe755e049fd778",
+        "executionDigest": "d0d5aebf09d10aeca655585c170c27730b97031aab80a92a7b4be80f7946835a",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-POLICY-010.json",
+      "sha256": "34022e59acdaed546563cd0b2ca828f1e59dd1e759ea34cc9c3829a8bf0c5e2f",
+      "id": "SCN-POLICY-010",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "run-driver",
+        "world-model",
+        "control-loop",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "policy-budget-exceeds",
+        "options": {}
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "400b1755b0e41e92f3af95979a13117a0329550c4907c34c39fe755e049fd778",
+        "executionDigest": "f25cca230034edc1c384084496a34dc5496ed5d2915aa08e25dce7ca7302f94b",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-POLICY-011.json",
+      "sha256": "f21c906d997a8eaab8be658661deb26eb1ad9d1ae139214d7aa35c45cebb24c9",
+      "id": "SCN-POLICY-011",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "run-driver",
+        "world-model",
+        "control-loop",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "policy-unknown-ast",
+        "options": {}
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "400b1755b0e41e92f3af95979a13117a0329550c4907c34c39fe755e049fd778",
+        "executionDigest": "eb39919ae14f4cc3f8de9a70819e8fd94a8776d2906a21fae4d4d9b774857378",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-001.json",
+      "sha256": "0ac5e663540f0f521efb3af1518ea77901af4d434b5e67c9349e7aa24e3092f9",
+      "id": "SCN-REPLAY-001",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "world-model",
+        "assurance"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-002.json",
+      "sha256": "b7e563511cedf515467007a3678eba9556fd53183ece0e5ecea50bd4c3ac2019",
+      "id": "SCN-REPLAY-002",
+      "source": "synthetic",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "world-model",
+        "assurance",
+        "effect-boundary",
+        "evidence-ledger",
+        "runtime"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-003.json",
+      "sha256": "52d335a032d4ebf4b320adf3e8afdd4cb03b81f9a16f722df97fedb89552e419",
+      "id": "SCN-REPLAY-003",
+      "source": "synthetic",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "world-model",
+        "assurance",
+        "effect-boundary",
+        "evidence-ledger",
+        "runtime"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-004.json",
+      "sha256": "27270b1ea2f6108930bc78e5c070038d3fc45928213043367ee350c4b3d90791",
+      "id": "SCN-REPLAY-004",
+      "source": "recorded",
+      "testScope": null,
+      "components": [
+        "perception",
+        "evidence-ledger",
+        "world-model",
+        "control",
+        "effect-boundary",
+        "assurance",
+        "runtime"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-005.json",
+      "sha256": "49e4a08448a9680b93ab793aa3b0339f2c8c5346140196db6139ab459a0c8808",
+      "id": "SCN-REPLAY-005",
+      "source": "recorded",
+      "testScope": null,
+      "components": [
+        "perception",
+        "evidence-ledger",
+        "world-model",
+        "control",
+        "effect-boundary",
+        "assurance",
+        "runtime"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-006.json",
+      "sha256": "cf0a3d0d5d9d69a6346db1438c2b0c04042d16d53c2d6df7149c0cc5868dd95a",
+      "id": "SCN-REPLAY-006",
+      "source": "synthetic",
+      "testScope": null,
+      "components": [
+        "perception",
+        "evidence-ledger",
+        "world-model",
+        "control",
+        "effect-boundary",
+        "assurance",
+        "runtime"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-007.json",
+      "sha256": "7c3aa51f6e8b1590026104f713b6e4661831f2c6aa1d3db0caf932b86ee931ff",
+      "id": "SCN-REPLAY-007",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "world-model",
+        "assurance"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-008.json",
+      "sha256": "0a6328eef3a26491a77df72baec2615ed78dd9e367bc10d71620ff74c1de3323",
+      "id": "SCN-REPLAY-008",
+      "source": "component-test",
+      "testScope": "component",
+      "components": [
+        "perception",
+        "evidence-ledger"
+      ],
+      "agentDecisionRealization": "not-applicable",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-009.json",
+      "sha256": "f2d026d0fd67ed5992b422d29faed2a990fbd5c146b9fb37bf01aee540b3381f",
+      "id": "SCN-REPLAY-009",
+      "source": "component-test",
+      "testScope": "component",
+      "components": [
+        "world-model",
+        "evidence-ledger"
+      ],
+      "agentDecisionRealization": "not-applicable",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-010.json",
+      "sha256": "95e154b14fe8fdf931ae547e4c4e4b0964cbf58629cbd11bf8a078f5c4dadd90",
+      "id": "SCN-REPLAY-010",
+      "source": "component-test",
+      "testScope": "component",
+      "components": [
+        "host-popup-classifier",
+        "recording-extractor"
+      ],
+      "agentDecisionRealization": "not-applicable",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-011.json",
+      "sha256": "bb806b14f0af7fb255b5e7d960c87a7fd76e2e6e850fc0016ac571d18754c72a",
+      "id": "SCN-REPLAY-011",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "host-settings-director",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-012.json",
+      "sha256": "f77711e1c95bc03563d6f9e8c71a65452f8e715200a27be243263f6f71f95051",
+      "id": "SCN-REPLAY-012",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "host-settings-director",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-REPLAY-013.json",
+      "sha256": "e16d4a37679fa379dd9d518fbaa6e4568a12ab1ecf9f9ef01c6b10aeb46e2738",
+      "id": "SCN-REPLAY-013",
+      "source": "component-test",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "host-settings-director",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "not-applicable",
+      "execution": {
+        "kind": "none"
+      },
+      "certification": null
+    },
+    {
+      "path": "scenarios/SCN-WIFI-001.json",
+      "sha256": "2b73fb8388dde16b81afb6d005905dcec67c3eacc140956a8219c1f46a8819da",
+      "id": "SCN-WIFI-001",
+      "source": "recorded",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "assurance",
+        "effect-boundary",
+        "world-model"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "wifi-off-to-on"
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+        "executionDigest": "981ff6dac9b804f8e5e1208f622ef50567d89aba289df01f6410e1d635cbb8ae",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-WIFI-002.json",
+      "sha256": "c1be88dc5b892fa0c94458886e17ff13c7f6c0901b5138825c00a58bba3677f0",
+      "id": "SCN-WIFI-002",
+      "source": "recorded",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "control-loop"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "wifi-already-on"
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "e9f7b914e94096aeb03ac500921303d1b00e70239184a124664cdd00d71f341e",
+        "executionDigest": "0f1f21449f1f460ae9f58efffcc826c7f600aba4a1a2ba226c80a65ed8b6e654",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-WIFI-003.json",
+      "sha256": "e3c3163827ab3192da2fd304a49c9fbaf27053f926b1d4f729a401597f0f588e",
+      "id": "SCN-WIFI-003",
+      "source": "recorded",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "run-model"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "wifi-off-to-on",
+        "options": {
+          "duplicateActivation": true
+        }
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+        "executionDigest": "f6f9802bd5ce7d7b59222c82754e252a8ec4547ff9cb76587943397366fca864",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-WIFI-004.json",
+      "sha256": "e4708f0bfede2ca04e5ecff5bb12e9001895f70c97e4c8f22711d6463ae5f261",
+      "id": "SCN-WIFI-004",
+      "source": "recorded",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "wifi-missing-post-action"
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "e295392830356c6d8aabaa22617caaaac705343312001e6b86e8d73c90344f6a",
+        "executionDigest": "7faf1573ea6990aa3f9c437b310654f72a62fbb57bd4e0abcfb5aed60a2dcf9b",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-WIFI-005.json",
+      "sha256": "cfb0447c62e0ed9d6fff7f450cad2f5db598e8fc531126a695ab340d2ed6d2b3",
+      "id": "SCN-WIFI-005",
+      "source": "recorded",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "assurance",
+        "effect-boundary"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "wifi-cancel-late",
+        "options": {
+          "phased": true
+        }
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "7f4b1806e36b413ca49b16b4cdb7e702a181fb74ceb5da084945e2b252de70d6",
+        "executionDigest": "b823e11cbbeba98d2b21f47c496283b691f6ebf8bef86b52c9651eb2b0b14db2",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    },
+    {
+      "path": "scenarios/SCN-WIFI-006.json",
+      "sha256": "86ba65dd777d8d5da43384a95a9bf930b045f92d29196b31eded60b0257c8fd3",
+      "id": "SCN-WIFI-006",
+      "source": "synthetic",
+      "testScope": null,
+      "components": [
+        "kernel",
+        "assurance",
+        "effect-boundary",
+        "world-model",
+        "scenario-builder"
+      ],
+      "agentDecisionRealization": "double",
+      "goalEvaluationRealization": "real",
+      "execution": {
+        "kind": "golden-bundle",
+        "carrier": "wifi-off-to-on-generated"
+      },
+      "certification": {
+        "schemaVersion": 2,
+        "expectationsDigest": "7de541f28738e307e7f2a65f303e508ef1c461b0240e3019c3664235782ebdc2",
+        "executionDigest": "3860d1ec54225994504fa909570a0cc7e77fb294899627a8e324d143d61db740",
+        "runtimeSourceHash": "69cc730e1c7d042a585d395ab3ab11e23bdae37b3a31417e23d0b90d69be7994",
+        "certifiedByChange": "CHECKED-GUARD-001",
+        "certifiedAt": "2026-10-22"
+      }
+    }
+  ]
+}

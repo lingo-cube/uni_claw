@@ -1,0 +1,44 @@
+# 当前场景与断言清点
+
+2026-10-23；审阅源码，不运行测试。HEAD=fddc69a6478e9b462c5f4bba9be736eac8f0b635，包含仿真交付d53e19f4。本稿由Leader完成；指定Worker两轮均未提供可用产物，不采纳其未检查结论。
+
+## 编目与证据资格
+
+只读JSON解析得到41条场景：recorded=10、synthetic=12、component-test=19；golden-bundle=20、none=21；20条有certification块；3条显式testScope=component；simulation-baseline manifest仅7个任务。逐条路径/hash/标注见evidence/scenario-catalog.json。计数是当前文件事实，certification块存在不证明其runtimeSourceHash当前有效，更不是41个测试PASS。
+
+scenarios/README.md规定Trait→测试发现→TRX结果join才产生status，不能用JSON中的passing字段。本轮运行只读tools/scenario_certify.py --check，实际输出为certification check: PASS (41 files, 0 violations)，见evidence/scenario-certification-check.txt；这是当前认证/期望与Kernel+Agent源码哈希一致性检查，不是41个运行场景通过。未调用认证写入口。20条golden的期望变更和Kernel/Agent源码变化仍需实现会话按致因change检查/再认证；不能以本审查更新认证。
+
+ComponentReplay/suite.json列3份录制布局（sims/all-apps/default-apps）×两种layout供应、两种semantic供应。RecordedComponentInputs读取原XML与导入布局并核hash/capture，frozen-capture分支还比较规范编码；拒绝输入自带canonical owner/basis。ReplayCompositionGuard要求product-contract/product-implementation/simulation-adapter/replay-input/oracle五种pin，先验hash后才factory装配。本轮对composition与recent-recordings的94条嵌套path/sha引用做只读字节核对，94/94匹配且94/94在reviewed HEAD有Git对象（可能重复引用，非94份独立证据），见evidence/recording-pin-audit.json。ReplayTime/API/cycle/session是受控回放上下文，identity/semantic响应为受控供应；这些不能证明原采集时点/原模型响应/最终Agent输入完整，亦未运行上述装配代码。
+
+仿真v0.1 C1允许组件typed seam替换相邻件，但被测Owner必须是真件；C7 amendment将decision/evaluation分轴；kind-none delta允许专有载体不评价Goal；component delta只允许同时满足component-test+显式component scope+kind=none+无Agent的场景标Agent N/A。SCN-REPLAY-008/009符合这类构成；SCN-REPLAY-013是decision=double、evaluation=N/A的整条受控链，不能套用无Agent例外。N/A、double和真实模型三个结论不互换。
+
+## 可复用的实际断言（以下均未在本轮运行）
+
+| 锚点简称 | 文件/方法 | 实际断言及边界 |
+|---|---|---|
+| N | tests/UniClaw.Kernel.Tests/World/WorldObservedNavigationTests.cs：VerifiedEntryAndReturn_CreateObservedEdges_AndProjectionUsesCurrentAnchor；NavigationRegistrationIsIdempotentAndRejectsUnknownRevisionOrEvidence；IdenticallyNamedPagesWithDifferentParentContext_KeepSeparateIdentities | A→B→A两条有据导航边、current anchor回A、不同scope边为空；重复注册不推进revision，错revision/evidence及反向时间拒绝；同名不同父上下文身份分离。没有完整访问发生记录及同身份重新进入的断言 |
+| V | 同目录WorldViewportTransitionTests.cs：VerifiedScroll_RecordsOperationAndMeasuredOffset_PreservesHistory；VerifiedScroll_WithInsufficientSpatialEvidence_PreservesRelationButNoOffset | 有据滚动offset=.2、两个moving anchors、旧revision不变、重复幂等；no-overlap/duplicate/reflow/clipped/dimensions/rotation/frame/down/nested分别留原因且offset为空。没有跨轮当前覆盖闭合或历史纠错 |
+| P | 同目录PageObservationRecoveryTests.cs：CaptureNeedBlocksUiUntilCorrelatedIdentityThenRebindsOnlyThatCapture；ContradictionInConfirmedCapturePausesUntilNewObservation_WithoutChangingOldRevision | exact capture恢复、未确认不ground、矛盾后无主及旧revision保留。不是旧轮归属正式改判 |
+| S | 同目录WorldSemanticEvidenceTests.cs：FirstSemanticResultForRetiredCapture_DoesNotAnnotateCurrentPage；TypedCaptureCorrelation_MustAgreeBeforeSemanticAttachment；SemanticCategoryCannotMintContainerEvenWhenAssociationPluginProposesNew | 旧capture不得标当前语义，capture/cycle/session相关性须一致，语义类别不铸身份。没有旧观察正式纠错/跨轮稳定语义沿用 |
+| CW | tests/UniClaw.Simulation.Tests/ComponentWorldReplayTests.cs：SameWorldConsumerUsesTwoRecordedLayoutSources_SharedCaptureFaultPausesThenRecovers；ContradictoryIdentityAfterConfirmationBecomesUnknown_OriginalRevisionRemainsUnchanged | 真实Ledger/World、typed-import/frozen-capture两种布局供应；错误capture保持无主，正确补证归属，重复Reconcile返回同实例，旧快照序列化不变；晚到旧布局不替换current capture。身份响应是受控合成，未装Control/Assurance/Effect/Agent |
+| CS | 同目录ComponentSemanticReplayTests.cs：SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers；SameConsumerClosurePreservesFailureAndObservationDimensions；CancellationTerminatesAttempt_LateSupplierReplyCannotReplaceTheReturnedResult | 真实L2经registry取同实例，两种L3供应；错capture零供应调用、恢复一次调用、重复不再调用；Unavailable/Misbound无观察；ExpectedMatch冲突不染观察；取消后晚到不能替换结果。不是当前World稳定语义复用或Agent行为 |
+| RC | 同目录RecentRecordingReplayTests.cs：RecentRecordedPage_MissingAndWrongIdentityPause_MatchingEvidenceResumesWithoutRedispatch | hashes钉录制XML/布局；缺/错身份保持Waiting、ownerless、receipt/验证/depth不前进；补证后有一次verified且恢复零重发，旧快照保留。脚本Agent及受控时钟/身份不等原现场闭环 |
+| CK | 同目录ControlledCheckedReplayTests.cs：ControlledChecked_IndependentPositiveAndRefusalCases | on/off/partial/unknown/unsupported/stale/equal timestamp/ambiguous/not-checkable/checkable-missing等输入；一个receipt、两次决策、验证结果/rejection reason一致；明确TerminalNotProven。没有挑战用途标签共同错误的独立Oracle |
+| R | 同目录WorldReconstructionTests.cs：CompatibleContentOnlyAssets_ReconstructDeterministically；WrongParent_ReportsStableFirstDivergence；FrameMismatch_ReportsStableFirstDivergence；HumanOracleChanges_DoNotChangeActualSemanticDigest | 单Slice、7元素、ContentOnly、非权威、来源revision/frame及asset hashes；缺失/重复/错父/错frame首差异；改human GT不改actual digest。不是生产World累计或多Slice真值；产品不得引用该tests程序集 |
+| H | 同目录WorldScenarioReplayTests.cs：ScenarioReplay_PreservesEveryWorldRevisionAndCurrentSlices | 运行两次历史/semantic digest一致；每个occurrence依据属于revision basis；Slice重派生一致且owner在scope。固定输入重放，不是对不同输入/真实模型的泛化 |
+| C | tests/UniClaw.Kernel.Tests/CoreProjectionSeamTests.cs：ScrollThenTap_RealizationProjectsOntoCore_WithFixedHistoryAndSeparateAttemptTime | scroll/tap BasisSliceId、旧依据历史稳定、attempt time分离。没断言同revision/root不同scope的Id区别 |
+| F | tests/UniClaw.Kernel.Tests/Perception/FrameComputationReuseTests.cs：R2_SameBytesDifferentCaptureTime_HitsCache_RebuildsProvenance | fast策略同bytes命中一次，但重新发射新CaptureTime/new EvidenceId；相关测试比对缓存开关canonical输出一致。已有计算缓存不等Q19稳定语义当前采信 |
+
+## Producer资格核对
+
+PageCaptureObservation有capture/cycle/session/time/space/items；PageIdentityObservation有同源相关性/signature/title，均无独立访问发生id。World的ObservedNavigation有端点revision/evidence/verification ref，拒绝同端点；它能证明导航边，不能独自表示同Container重新进入。不能把capture数或导航边数当访问数。
+
+SemanticObservationProjector保留request引用、原capture时间、derived父/leaf、FusionRule/Version；当前没有完整模型/提示词/预处理版本的强制结构字段。需要执行Owner提供可核验处理来源，不能从model名称猜版本。EvidenceRecord的derived graph只覆盖证据血缘，不覆盖所有计划/绑定/验证消费边。
+
+HierarchyCoverage有声明面Complete/Partial/Unknown/Unavailable及limitation，TypedHierarchy投影可带到capture provenance；PageCaptureObservation本身没有完整覆盖声明。World不得将XML导出面完整提升为整页/虚拟列表/任务完整。ProductAssociationStrategy所有Relations为空，非导航关系gate存在但缺当前正式最小上下文生产/消费。有据导航和viewport输入已有，全部Contains/Overlays生产仍未购入。
+
+ObservationRecoveryControl.RequestsUsed在TrySchedule增加；NextInput随后可返回null/中断，故它不是实际provider尝试。Semantic request/result能关联一次供应，CS测试验证重复不再供应；尚无跨producer统一的真实开始/返回/超时/取消来源链及完整性声明。缺记录不得填0。
+
+Agent链可见源码为Owner projection→KernelRunDriver→AgentDecisionContext→DshAgentAdapter→DshOpenedHttpPeer→decision channel consultationPrompt的完整context JSON。现有字符串Unknowns/SourceFactRefs不包含本期四类有据摘要，且引用无已证通用详情工具。必须检查最终本轮prompt中的正文、schema严格编解码与第二次咨询更新，不能以字段出现证明模型看到；旧录制输入资格沿Q11限定。
+
+38主题与20决定的逐项处置、详细反例序列见scenario-derivation.md；本清点不承担产品验收结论。

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "world-review-validation.v1",
+  "reviewedHead": "fddc69a6478e9b462c5f4bba9be736eac8f0b635",
+  "method": "manifest hash/coverage verification and unchanged entry tracked/index patch hashes",
+  "expected": "152 source hashes/12 report hashes/30 frozen input hashes match; 20 decisions/38 themes/7 early requirements; protected tracked and staging unchanged",
+  "actual": {
+    "inputHashesMatched": 152,
+    "reviewHashesMatched": 12,
+    "frozenInputsMatched": 30,
+    "decisions": 20,
+    "themes": 38,
+    "earlyRequirements": 7,
+    "protectedTrackedUnchanged": true,
+    "entryIndexUnchanged": true,
+    "productPass": false
+  },
+  "evidence": [
+    "readiness.json",
+    "evidence/entry.json",
+    "evidence/recording-pin-audit.json",
+    "evidence/scenario-certification-check.txt",
+    "evidence/finite-derivation.json"
+  ],
+  "productTestsDevicesModels": "not_run"
+}
