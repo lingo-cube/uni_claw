@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-22T17:11:22.153465+00:00",
+  "clientDate": "2026-10-23",
+  "sourceHead": "9bc15b8974f5fb5746074e373e6c132bc4df0089",
+  "status": "behavior_spec_persisted_independent_review_required",
+  "decisionCount": 20,
+  "scenarioThemeCounts": {
+    "multiVisit": 18,
+    "trustedReuse": 8,
+    "correctionImpact": 12
+  },
+  "documents": {
+    "CONTEXT.md": "2ac8ddd40b74f9ff701ab0bc5f8286a2a375f71e5fe90665f6d505aefd785637",
+    "changes/WORLD-UNCERTAINTY-001/agent-information.md": "902dc7863e3f57684d66097512472e567af11bd993de409a2ee5d61ddb39d561",
+    "changes/WORLD-UNCERTAINTY-001/correction-effect-primary-sources.md": "57d9e9d77d393693a8163d19cd5975d6ce5ad4f91b067ea337ba5e971b80f63d",
+    "changes/WORLD-UNCERTAINTY-001/correction-impact-design.md": "48c09f70c3749030fcb9087dd337b9b61ba2dc2b541003e0c7499da0271c429a",
+    "changes/WORLD-UNCERTAINTY-001/coverage-audit.md": "621cd59e8765484dff7c6b27968f6c1805188f95ee920162021a9ad7e3c40ac1",
+    "changes/WORLD-UNCERTAINTY-001/derivation-review-request.md": "82231b80338f234da7d86953c14b719c8fdc3b4d6dcb7cd8baf0c6767e1dbfcb",
+    "changes/WORLD-UNCERTAINTY-001/design.md": "de6bf7b8dd918bc7b489cd706ff8f06c8657295af882c2ff264f3be403827282",
+    "changes/WORLD-UNCERTAINTY-001/discussion.md": "37f7b6fb7ada532fbde4bb277c7e732f3cf8add197961e8036dc9a366fc5023f",
+    "changes/WORLD-UNCERTAINTY-001/goal-completion-mapping.md": "226268082030451becfb95a2e8d6b0840cdce37bee88f953e29faee8673edff8",
+    "changes/WORLD-UNCERTAINTY-001/handoff-coverage-audit.md": "7ab51c9b5630d07d9beb2161176403a61e20f1b043027dbfec83c06c94844730",
+    "changes/WORLD-UNCERTAINTY-001/implementation-handoff.md": "86ae270e830cc6996e634c152bd12e414190b887b8520a08221ea15310528c19",
+    "changes/WORLD-UNCERTAINTY-001/model-interface-review.md": "6d157e320449758b4bf010761cdb1790d30f3c2950a56c1fa307d6d8ce59ca37",
+    "changes/WORLD-UNCERTAINTY-001/multi-visit-completeness.md": "58ff9a02cc032f83b8d01eff2fa11c889c0756c7a2ae7b93471955c9bf5758d5",
+    "changes/WORLD-UNCERTAINTY-001/node-edge-design.md": "c2c225bed830563900deaf97597c18060753702f28b439abfb15d04de4139150",
+    "changes/WORLD-UNCERTAINTY-001/page-expression-design.md": "dce47a37661028934a8276b7ed86e0cd64e9a9f133d40733739d0505006db6d2",
+    "changes/WORLD-UNCERTAINTY-001/q5-design-assessment.md": "bbc19ca68cac6036203f8eacb9de15d6395f56e754c9c45c12b6407271f9ec58",
+    "changes/WORLD-UNCERTAINTY-001/q5-primary-sources.md": "663fe943c21697d6aeba6ee1354692731b2fd14e7edb39e968ca4e37bb6d3445",
+    "changes/WORLD-UNCERTAINTY-001/replay-input-audit.md": "725c6faac5c58f8721112a814ceafe4619c52830964b7152286043a0c37a9b92",
+    "changes/WORLD-UNCERTAINTY-001/residual-analysis.md": "fc9788fd0a2b2a93245773bda617fce76b19dacd71a973d3e18b9a6a238f7d09",
+    "changes/WORLD-UNCERTAINTY-001/residual-primary-sources.md": "3e4757fb01a57f751fca57e7b2aa5b7cd63ae999670415fbcb0db9f372e97048",
+    "changes/WORLD-UNCERTAINTY-001/spec.md": "307899c6d7a07ec91efab6953b45d9159a92c390c2903bfbc1d641464a4774e8",
+    "changes/WORLD-UNCERTAINTY-001/state.md": "d583250fe4d9af46925dd9e9af2d20233fb69171cd52e98ce951a5970b536bb0",
+    "changes/WORLD-UNCERTAINTY-001/trusted-element-reuse-design.md": "5138bc27396f53e1059d75f1f526ef02369b161a5bc7626cf03ae089a7adc439",
+    "changes/WORLD-UNCERTAINTY-001/trusted-reuse-primary-sources.md": "e42d21ace03f06fe41cf7026bc102018119a7265ae8b934264393759e61327bb",
+    "changes/WORLD-UNCERTAINTY-001/version-industry-research.md": "9a937a61beda99b5ef1762d5ae39fc623ebabe38f80e2a5eb4d974599b174e13",
+    "changes/WORLD-UNCERTAINTY-001/version-layer-design.md": "15d6ce2a36ca33398d554a04e5c1cfafce9bfc67e762b07628c58b3892b56ddf",
+    "changes/WORLD-UNCERTAINTY-001/world-gap-audit.md": "d5089b7e86610e37a48a76fcc43ec4213193e7d142f77c80494bc19e2d172efb",
+    "changes/WORLD-VISUALIZATION-001/spec.md": "03a06014c1671e8bba01657127b3b8d9ba257d2b5caca5afb7f61039ebe1d172",
+    "changes/WORLD-VISUALIZATION-001/state.md": "8d7674a56a12ee921babc9b695af3d1f5e4f04584f9753a50ebc9b6d6437b365",
+    "docs/adr/0054-confirmed-budget-recovery-and-unresolved-effect-barrier.md": "3c272e7294266cef6dd3f50360d26689b4bb755d10aabf6bbf59e141915fb8f3"
+  },
+  "checks": {
+    "twenty_decisions": true,
+    "all_three_theme_groups": true,
+    "early_requirements_not_lost": true,
+    "review_before_implementation": true,
+    "latest_implementation_authority": true,
+    "commit_and_push_both_threads": true,
+    "concurrency_single_writer": true,
+    "requested_models_preserved": true,
+    "formal_proof_limits": true,
+    "readiness_not_product_pass": true,
+    "model_interface_separate": true,
+    "persisted": true,
+    "future_validation_not_pass": true,
+    "both_leaders_sol_ultra": true,
+    "visualization_after_core_closed_pushed": true
+  },
+  "protectedTrackedCount": 46,
+  "protectedDriftPaths": [
+    "tools/scenario-coverage.py"
+  ],
+  "driftDisposition": "record only; no reset/revert; unrelated parallel changes excluded from commit",
+  "productTestsDevicesModels": "not_run",
+  "restoreSnapshotsPublication": "local recovery snapshots and foreign dirty patches are excluded from the freeze commit",
+  "authority": "accepted behavior only; no new public contract or architecture authority",
+  "ownedSharedChanges": {
+    "CONTEXT.md": "only the three-line World Knowledge Gap glossary addition, verified against HEAD",
+    "docs/adr/0054-confirmed-budget-recovery-and-unresolved-effect-barrier.md": "accepted Q2 budget/recovery boundary authored in this conversation"
+  },
+  "excludedSharedChanges": [
+    "changes/INDEX.md and unrelated dirty product/tests/scenarios/tools",
+    "local recovery snapshots, originals and foreign dirty patches"
+  ],
+  "updatedAt": "2026-10-22T17:17:55.143241+00:00",
+  "followOnChange": "WORLD-VISUALIZATION-001"
+}

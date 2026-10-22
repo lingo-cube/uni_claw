@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "phase": "freeze_preparing_review_not_started",
+  "requestedModels": {
+    "derivationLeader": {
+      "model": "gpt-6.1-sol",
+      "reasoningEffort": "ultra"
+    },
+    "implementationLeader": {
+      "model": "gpt-6.1-sol",
+      "reasoningEffort": "ultra"
+    },
+    "workers": {
+      "agentType": "worker",
+      "model": "gpt-6-luna",
+      "forkTurns": "none",
+      "maxActivePerThread": 1
+    }
+  },
+  "projectId": "daff2c90-69af-46be-b8f5-86c4b4920015",
+  "sequence": [
+    "persist_and_push_owned_design",
+    "independent_derivation_architecture_review_commit_push",
+    "verify_review_then_create_implementation_thread",
+    "implementation_review_verify_commit_push"
+  ],
+  "derivationThread": null,
+  "implementationThread": null,
+  "publication": {
+    "remote": "origin",
+    "branch": "uni-harness",
+    "forcePush": false
+  },
+  "concurrency": {
+    "productWritesBeforeReview": false,
+    "samePathSingleWriter": true,
+    "gitWritesSerial": true,
+    "foreignDirtyExcluded": true
+  },
+  "followOnChange": "WORLD-VISUALIZATION-001",
+  "followOnPrerequisite": "core implementation accepted, CLOSED, committed and pushed"
+}

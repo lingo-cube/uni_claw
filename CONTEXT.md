@@ -483,6 +483,9 @@ Observation Control 据消费需求安排补证，World 根据接纳后的证据
 描述缺失信息不等于建立身份、授权动作或宣告失败；当前观察的身份补证由World表达缺口，Control有界调度，World采信后仍须Assurance验证到达，Traversal才继续。
 _Avoid_: CallVLM/RunOCR 类能力指令、provider命令、identity真值、priority policy
 
+**World Knowledge Gap（世界知识缺口）**: World Model 从具体观察或消费需求中识别、具有对象、范围与依据的未决世界知识，当前包括身份判别、元素归属、关系依据及观察覆盖四类；未建模能力或未探索区域本身不自动构成条目。缺口描述不等于身份、许可或任务失败，是否影响某次消费由该消费的既有Owner判断。
+_Avoid_: 所有未知的完整台账、能力缺失清单、自动失败或授权结论
+
 ### UI Entity Model & Continuity（UIW-002 落定）
 
 **ObservationOccurrence**: revision 内 revision-local 的 observed UI
