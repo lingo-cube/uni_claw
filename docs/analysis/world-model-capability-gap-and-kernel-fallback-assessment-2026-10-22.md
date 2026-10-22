@@ -251,11 +251,17 @@ Escalation）+ Delivery Closure。真机 97 周期零 divergence、零违规 con
 
 ## 6. 证据与限制（诚实申报）
 
-- 本评估**未自跑测试套件**：受限沙箱拒写 src/tests 子树（MSB3491，
-  obj 目录新建/写既有文件均被拒；src 链 DACL 修复并验证后仍拒）。
-  "当前全绿"依据仓库自带最新验证记录：ENG-OPT-001 全量 2024/2024 +
-  WORLD-OBSERVATION-001 的 4 项既有失败收口，均落在评估基线 HEAD
-  （d7aa7fc3）。
+- 本评估初次成稿时**未自跑测试套件**：受限沙箱拒写 src/tests 子树（MSB3491，
+  obj 目录新建/写既有文件均被拒；src 链 DACL 修复并验证后仍拒，疑似完整性
+  标签层）。
+- 补记（2026-10-22 权限放开后一次本机全量运行）：本机 NuGet 用户源为空、
+  包缓存不属于既往构建账户，按 csproj 精确钉版补源 restore 后全量
+  2027 项中出现 48 项失败（Agent.Dsh 23、Host 7、Kernel 7、Agent 5、
+  Host.Dsh 5、Simulation 1，含进程/TCP/时序/路径类用例），**未做归因**，
+  与本机环境差异（构建账户、locale、无 DSH 专线）混杂，不作为产品状态
+  结论；"当前全绿"仍以仓库自带验证记录为准（ENG-OPT-001 全量 2024/2024
+  + WORLD-OBSERVATION-001 的 4 项既有失败收口，均在评估基线 HEAD
+  d7aa7fc3）。后续若需定性，须在与既往验证一致的环境归因后另立记录。
 - 关键断言均在源码逐条复核（锚点即文中 文件:行号）；文档类结论（W1-W8
   等）溯源各 change 的 report/evidence，未重放其真机步骤。
 - 4 路素材提取中 3 路由 glm-5.3-flash worker 完成（World 审计 / 设计
