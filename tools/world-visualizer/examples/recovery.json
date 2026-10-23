@@ -1,0 +1,866 @@
+{
+  "schemaVersion": "world-visualization.v1",
+  "id": "world-visualization:recovery",
+  "title": "Bounded observation recovery review",
+  "provenance": {
+    "coreCommit": "56a75fd7",
+    "sourceTest": "WorldRecoveryReviewTests.Driver_ReconsultsForNewResultVersion_WithoutRenewingSupplierRequestQuota",
+    "inputClass": "\u53D7\u63A7\u6765\u6E90/\u771F\u5B9E\u6838\u5FC3",
+    "limitations": [
+      "controlled fixture/provider inputs; no live-device or live-model evidence"
+    ]
+  },
+  "frames": [
+    {
+      "key": "review-1",
+      "label": "Recovery review context 1 with actual result history",
+      "revision": {
+        "revisionId": "rev-1",
+        "parentRevisionId": null,
+        "revisionNumber": 1,
+        "worldState": {},
+        "worldGraph": [],
+        "evidenceBasis": [
+          "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+        ],
+        "freshnessBasis": {
+          "asOf": "2026-10-23T00:00:01+00:00"
+        },
+        "uncertainty": {
+          "conflictingClaimCount": 0
+        },
+        "conflicts": [],
+        "containers": [],
+        "relations": [],
+        "occurrences": [
+          {
+            "occurrenceId": "occ-d4733ef09b98-0",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 0.9,
+              "y2": 0.2,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.1
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "recovery-versioned"
+            }
+          },
+          {
+            "occurrenceId": "occ-d4733ef09b98-1",
+            "owningContainerId": null,
+            "role": "ui.element",
+            "semanticDescriptor": "Wi-Fi",
+            "evidenceBasis": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0.25,
+              "x2": 0.9,
+              "y2": 0.6,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.425
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "recovery-versioned"
+            }
+          }
+        ],
+        "logicalItems": null,
+        "currentPageObservation": {
+          "capture": {
+            "captureId": "recovery-versioned",
+            "observationCycleId": "cycle:recovery-versioned",
+            "sessionCorrelation": "recovery-session",
+            "captureTime": "2026-10-23T00:00:01+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "recovery-versioned"
+            },
+            "items": [
+              {
+                "id": "title",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 90,
+                  "y2": 20,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "row",
+                "kind": "ui.element",
+                "text": "Wi-Fi",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 25,
+                  "x2": 90,
+                  "y2": 60,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ]
+          },
+          "evidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+          "containerId": null,
+          "identityEvidenceId": null
+        },
+        "observationNeed": {
+          "sourceRevisionId": "rev-1",
+          "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+          "capture": {
+            "captureId": "recovery-versioned",
+            "observationCycleId": "cycle:recovery-versioned",
+            "sessionCorrelation": "recovery-session",
+            "captureTime": "2026-10-23T00:00:01+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "recovery-versioned"
+            },
+            "items": [
+              {
+                "id": "title",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 90,
+                  "y2": 20,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "row",
+                "kind": "ui.element",
+                "text": "Wi-Fi",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 25,
+                  "x2": 90,
+                  "y2": 60,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ]
+          },
+          "kind": "identity-disambiguation"
+        },
+        "semanticKnowledge": [],
+        "viewportTransitions": []
+      },
+      "knowledge": {
+        "sourceRevisionId": "rev-1",
+        "collectionStatus": "collected",
+        "gaps": [
+          {
+            "gapId": "world-gap:4b0d068c1d08407e953b069f0ef0bdaa4cfbfcd799e2e5cda5e46f2265db1ea6",
+            "kind": 0,
+            "objectRef": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+            "scope": "capture:recovery-versioned:viewport",
+            "reason": "capture-identity-unproven",
+            "sourceRevisionId": "rev-1",
+            "evidenceIds": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+          },
+          {
+            "gapId": "world-gap:7211f0aa317c6a9767176354dcd67dad4251aa2fe81df78ae6bd1838fb7df158",
+            "kind": 1,
+            "objectRef": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+            "scope": "capture:recovery-versioned:viewport",
+            "reason": "observed-content-owner-unproven",
+            "sourceRevisionId": "rev-1",
+            "evidenceIds": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+          },
+          {
+            "gapId": "world-gap:35763ecda81345a89b25468986cb335dd7c2c500b7e8e62b205faede219415fa",
+            "kind": 3,
+            "objectRef": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+            "scope": "capture:recovery-versioned:viewport",
+            "reason": "capture-coverage-not-collected",
+            "sourceRevisionId": "rev-1",
+            "evidenceIds": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+          }
+        ],
+        "semanticReferences": [],
+        "currentSemantics": [],
+        "corrections": []
+      },
+      "recovery": {
+        "gaps": [
+          {
+            "gapId": "world-gap:4b0d068c1d08407e953b069f0ef0bdaa4cfbfcd799e2e5cda5e46f2265db1ea6",
+            "knownExecutionCount": 1,
+            "recordCoverage": "recorded-executions-only",
+            "executions": [
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:22+00:00",
+                "outcome": "Partial",
+                "resultReferences": [
+                  "controlled-result:v2"
+                ],
+                "resultVersion": 2
+              }
+            ],
+            "resultHistory": [
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:20.001+00:00",
+                "outcome": "NoEvidence",
+                "resultReferences": [],
+                "resultVersion": 1
+              },
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:22+00:00",
+                "outcome": "Partial",
+                "resultReferences": [
+                  "controlled-result:v2"
+                ],
+                "resultVersion": 2
+              }
+            ]
+          },
+          {
+            "gapId": "world-gap:7211f0aa317c6a9767176354dcd67dad4251aa2fe81df78ae6bd1838fb7df158",
+            "knownExecutionCount": 1,
+            "recordCoverage": "recorded-executions-only",
+            "executions": [
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:22+00:00",
+                "outcome": "Partial",
+                "resultReferences": [
+                  "controlled-result:v2"
+                ],
+                "resultVersion": 2
+              }
+            ],
+            "resultHistory": [
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:20.001+00:00",
+                "outcome": "NoEvidence",
+                "resultReferences": [],
+                "resultVersion": 1
+              },
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:22+00:00",
+                "outcome": "Partial",
+                "resultReferences": [
+                  "controlled-result:v2"
+                ],
+                "resultVersion": 2
+              }
+            ]
+          },
+          {
+            "gapId": "world-gap:35763ecda81345a89b25468986cb335dd7c2c500b7e8e62b205faede219415fa",
+            "knownExecutionCount": null,
+            "recordCoverage": "not_collected",
+            "executions": [],
+            "resultHistory": []
+          }
+        ],
+        "reviewRequired": true,
+        "reviewKey": "world-review:e832f8162c5299cef8b874b4f5b7ee93bd895302bc01ce4daa85ad6425e6e0ce",
+        "reason": "page-identity-observation-exhausted"
+      },
+      "effectImpacts": [],
+      "terminal": false,
+      "outcome": null,
+      "actualConsultation": null,
+      "receipts": [],
+      "verifications": [],
+      "decisionUses": [
+        {
+          "decisionId": "decision-9125c01495c9-1",
+          "basis": {
+            "sourceRevisionId": "rev-1",
+            "containerId": null,
+            "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+            "identityEvidenceId": null,
+            "evidenceIds": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "coverage": "actually-supplied-page-elements-and-meaning;other-claims-and-model-reasoning-unproven"
+          }
+        }
+      ],
+      "capture": {
+        "captureId": "recovery-versioned",
+        "observationCycleId": "cycle:recovery-versioned",
+        "sessionCorrelation": "recovery-session",
+        "captureTime": "2026-10-23T00:00:01+00:00",
+        "space": {
+          "coordinateSpaceId": "device-viewport:100x100@0",
+          "pixelWidth": 100,
+          "pixelHeight": 100,
+          "rotation": 0,
+          "captureId": "recovery-versioned"
+        },
+        "items": [
+          {
+            "id": "title",
+            "kind": "text",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 90,
+              "y2": 20,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "row",
+            "kind": "ui.element",
+            "text": "Wi-Fi",
+            "bounds": {
+              "x1": 0,
+              "y1": 25,
+              "x2": 90,
+              "y2": 60,
+              "isValid": true
+            },
+            "confidence": null
+          }
+        ]
+      },
+      "pages": [],
+      "slices": []
+    },
+    {
+      "key": "review-2",
+      "label": "Recovery review context 2 with actual result history",
+      "revision": {
+        "revisionId": "rev-1",
+        "parentRevisionId": null,
+        "revisionNumber": 1,
+        "worldState": {},
+        "worldGraph": [],
+        "evidenceBasis": [
+          "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+        ],
+        "freshnessBasis": {
+          "asOf": "2026-10-23T00:00:01+00:00"
+        },
+        "uncertainty": {
+          "conflictingClaimCount": 0
+        },
+        "conflicts": [],
+        "containers": [],
+        "relations": [],
+        "occurrences": [
+          {
+            "occurrenceId": "occ-d4733ef09b98-0",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 0.9,
+              "y2": 0.2,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.1
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "recovery-versioned"
+            }
+          },
+          {
+            "occurrenceId": "occ-d4733ef09b98-1",
+            "owningContainerId": null,
+            "role": "ui.element",
+            "semanticDescriptor": "Wi-Fi",
+            "evidenceBasis": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0.25,
+              "x2": 0.9,
+              "y2": 0.6,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.425
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "recovery-versioned"
+            }
+          }
+        ],
+        "logicalItems": null,
+        "currentPageObservation": {
+          "capture": {
+            "captureId": "recovery-versioned",
+            "observationCycleId": "cycle:recovery-versioned",
+            "sessionCorrelation": "recovery-session",
+            "captureTime": "2026-10-23T00:00:01+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "recovery-versioned"
+            },
+            "items": [
+              {
+                "id": "title",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 90,
+                  "y2": 20,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "row",
+                "kind": "ui.element",
+                "text": "Wi-Fi",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 25,
+                  "x2": 90,
+                  "y2": 60,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ]
+          },
+          "evidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+          "containerId": null,
+          "identityEvidenceId": null
+        },
+        "observationNeed": {
+          "sourceRevisionId": "rev-1",
+          "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+          "capture": {
+            "captureId": "recovery-versioned",
+            "observationCycleId": "cycle:recovery-versioned",
+            "sessionCorrelation": "recovery-session",
+            "captureTime": "2026-10-23T00:00:01+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "recovery-versioned"
+            },
+            "items": [
+              {
+                "id": "title",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 90,
+                  "y2": 20,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "row",
+                "kind": "ui.element",
+                "text": "Wi-Fi",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 25,
+                  "x2": 90,
+                  "y2": 60,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ]
+          },
+          "kind": "identity-disambiguation"
+        },
+        "semanticKnowledge": [],
+        "viewportTransitions": []
+      },
+      "knowledge": {
+        "sourceRevisionId": "rev-1",
+        "collectionStatus": "collected",
+        "gaps": [
+          {
+            "gapId": "world-gap:4b0d068c1d08407e953b069f0ef0bdaa4cfbfcd799e2e5cda5e46f2265db1ea6",
+            "kind": 0,
+            "objectRef": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+            "scope": "capture:recovery-versioned:viewport",
+            "reason": "capture-identity-unproven",
+            "sourceRevisionId": "rev-1",
+            "evidenceIds": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+          },
+          {
+            "gapId": "world-gap:7211f0aa317c6a9767176354dcd67dad4251aa2fe81df78ae6bd1838fb7df158",
+            "kind": 1,
+            "objectRef": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+            "scope": "capture:recovery-versioned:viewport",
+            "reason": "observed-content-owner-unproven",
+            "sourceRevisionId": "rev-1",
+            "evidenceIds": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+          },
+          {
+            "gapId": "world-gap:35763ecda81345a89b25468986cb335dd7c2c500b7e8e62b205faede219415fa",
+            "kind": 3,
+            "objectRef": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+            "scope": "capture:recovery-versioned:viewport",
+            "reason": "capture-coverage-not-collected",
+            "sourceRevisionId": "rev-1",
+            "evidenceIds": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+          }
+        ],
+        "semanticReferences": [],
+        "currentSemantics": [],
+        "corrections": []
+      },
+      "recovery": {
+        "gaps": [
+          {
+            "gapId": "world-gap:4b0d068c1d08407e953b069f0ef0bdaa4cfbfcd799e2e5cda5e46f2265db1ea6",
+            "knownExecutionCount": 1,
+            "recordCoverage": "recorded-executions-only",
+            "executions": [
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:23+00:00",
+                "outcome": "Partial",
+                "resultReferences": [
+                  "controlled-result:v3"
+                ],
+                "resultVersion": 3
+              }
+            ],
+            "resultHistory": [
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:20.001+00:00",
+                "outcome": "NoEvidence",
+                "resultReferences": [],
+                "resultVersion": 1
+              },
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:22+00:00",
+                "outcome": "Partial",
+                "resultReferences": [
+                  "controlled-result:v2"
+                ],
+                "resultVersion": 2
+              },
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:23+00:00",
+                "outcome": "Partial",
+                "resultReferences": [
+                  "controlled-result:v3"
+                ],
+                "resultVersion": 3
+              }
+            ]
+          },
+          {
+            "gapId": "world-gap:7211f0aa317c6a9767176354dcd67dad4251aa2fe81df78ae6bd1838fb7df158",
+            "knownExecutionCount": 1,
+            "recordCoverage": "recorded-executions-only",
+            "executions": [
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:23+00:00",
+                "outcome": "Partial",
+                "resultReferences": [
+                  "controlled-result:v3"
+                ],
+                "resultVersion": 3
+              }
+            ],
+            "resultHistory": [
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:20.001+00:00",
+                "outcome": "NoEvidence",
+                "resultReferences": [],
+                "resultVersion": 1
+              },
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:22+00:00",
+                "outcome": "Partial",
+                "resultReferences": [
+                  "controlled-result:v2"
+                ],
+                "resultVersion": 2
+              },
+              {
+                "executionId": "versioned-supplier-run",
+                "sourceReference": "controlled-supplier:no-evidence",
+                "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+                "requestedSubjects": [
+                  "ui.container.current"
+                ],
+                "startedAt": "2026-10-23T00:00:20+00:00",
+                "completedAt": "2026-10-23T00:00:23+00:00",
+                "outcome": "Partial",
+                "resultReferences": [
+                  "controlled-result:v3"
+                ],
+                "resultVersion": 3
+              }
+            ]
+          },
+          {
+            "gapId": "world-gap:35763ecda81345a89b25468986cb335dd7c2c500b7e8e62b205faede219415fa",
+            "knownExecutionCount": null,
+            "recordCoverage": "not_collected",
+            "executions": [],
+            "resultHistory": []
+          }
+        ],
+        "reviewRequired": true,
+        "reviewKey": "world-review:641654ed99d007d5f92629f1b145c307a8a359ee80c97191d6e63710d37b8044",
+        "reason": "new-supplementation-result"
+      },
+      "effectImpacts": [],
+      "terminal": false,
+      "outcome": null,
+      "actualConsultation": null,
+      "receipts": [],
+      "verifications": [],
+      "decisionUses": [
+        {
+          "decisionId": "decision-9125c01495c9-1",
+          "basis": {
+            "sourceRevisionId": "rev-1",
+            "containerId": null,
+            "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+            "identityEvidenceId": null,
+            "evidenceIds": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "coverage": "actually-supplied-page-elements-and-meaning;other-claims-and-model-reasoning-unproven"
+          }
+        },
+        {
+          "decisionId": "decision-9125c01495c9-2",
+          "basis": {
+            "sourceRevisionId": "rev-1",
+            "containerId": null,
+            "captureEvidenceId": "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1",
+            "identityEvidenceId": null,
+            "evidenceIds": [
+              "ev-d4733ef09b9862f06fd07e17f1c1f99329909bf6c0850e17b5fe7229688c5fb1"
+            ],
+            "coverage": "actually-supplied-page-elements-and-meaning;other-claims-and-model-reasoning-unproven"
+          }
+        }
+      ],
+      "capture": {
+        "captureId": "recovery-versioned",
+        "observationCycleId": "cycle:recovery-versioned",
+        "sessionCorrelation": "recovery-session",
+        "captureTime": "2026-10-23T00:00:01+00:00",
+        "space": {
+          "coordinateSpaceId": "device-viewport:100x100@0",
+          "pixelWidth": 100,
+          "pixelHeight": 100,
+          "rotation": 0,
+          "captureId": "recovery-versioned"
+        },
+        "items": [
+          {
+            "id": "title",
+            "kind": "text",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 90,
+              "y2": 20,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "row",
+            "kind": "ui.element",
+            "text": "Wi-Fi",
+            "bounds": {
+              "x1": 0,
+              "y1": 25,
+              "x2": 90,
+              "y2": 60,
+              "isValid": true
+            },
+            "confidence": null
+          }
+        ]
+      },
+      "pages": [],
+      "slices": []
+    }
+  ]
+}

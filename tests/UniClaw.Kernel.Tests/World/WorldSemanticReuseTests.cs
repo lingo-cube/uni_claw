@@ -37,6 +37,11 @@ public sealed class WorldSemanticReuseTests
         var oldSliceBytes = JsonSerializer.Serialize(oldSlice);
         var oldView = setup.World.DerivePageView(first.ContainerId, oldRevision.RevisionId);
         var oldViewBytes = JsonSerializer.Serialize(oldView);
+        var visualization = new List<object>
+        {
+            WorldVisualizationExport.Frame("c1-verified", "C1 meaning verified against its native anchor",
+                setup.Kernel, setup.World, [first.ContainerId], capturedSlices: [oldSlice])
+        };
 
         var second = EstablishCapture(setup, Capture("c2", 2, "Bluetooth"));
         Assert.Equal(first.ContainerId, second.ContainerId);
@@ -51,6 +56,8 @@ public sealed class WorldSemanticReuseTests
         Assert.DoesNotContain(first.ContainerId + ".semantic.page", currentSliceBeforeAnchor.ScopedClaims.Keys);
         Assert.Contains(currentSliceBeforeAnchor.Occurrences, occurrence => occurrence.SemanticDescriptor == "Bluetooth");
         Assert.DoesNotContain(currentSliceBeforeAnchor.Occurrences, occurrence => occurrence.SemanticDescriptor == "Wi-Fi");
+        visualization.Add(WorldVisualizationExport.Frame("c2-before-anchor", "C2 has historical reference but no current correspondence",
+            setup.Kernel, setup.World, [second.ContainerId], capturedSlices: [currentSliceBeforeAnchor]));
 
         var secondTyped = AddTypedSources(setup, second.Capture, setup.Profile);
         var current = Assert.Single(setup.World.Current!.SemanticKnowledge);
@@ -76,6 +83,9 @@ public sealed class WorldSemanticReuseTests
         Assert.Equal(oldViewBytes, JsonSerializer.Serialize(oldView));
         Assert.Equal(oldRevisionBytes, JsonSerializer.Serialize(setup.World.RevisionHistory
             .Single(revision => revision.RevisionId == oldRevision.RevisionId)));
+        visualization.Add(WorldVisualizationExport.Frame("c2-reused", "C2 native correspondence permits verified meaning reuse",
+            setup.Kernel, setup.World, [second.ContainerId]));
+        WorldVisualizationExport.Write("reuse", visualization.ToArray());
     }
 
     [Fact]
@@ -148,8 +158,18 @@ public sealed class WorldSemanticReuseTests
             new SemanticPageCandidate("settings-home", "Settings", "Settings home"));
         var firstTyped = AddTypedSources(setup, first.Capture, setup.Profile);
         _ = Verify(setup, first, firstTyped.AnchorId);
+        var negativeFrames = new List<object>
+        {
+            WorldVisualizationExport.Frame("previous-capture", "C1 observed Wi-Fi with its own verified stable meaning",
+                setup.Kernel, setup.World, [first.ContainerId])
+        };
 
         var secondCapture = Capture("current", 2, "Bluetooth");
+        if (mismatch == "missing-anchor")
+            secondCapture = secondCapture with
+            {
+                Items = [secondCapture.Items[0], secondCapture.Items[1] with { Bounds = new UiBounds(10, 65, 90, 90) }]
+            };
         var second = EstablishCapture(setup, secondCapture);
         Assert.Equal(first.ContainerId, second.ContainerId);
         Assert.Empty(setup.World.Current!.SemanticKnowledge);
@@ -163,6 +183,13 @@ public sealed class WorldSemanticReuseTests
         Assert.Empty(setup.Kernel.DeriveSlice(second.ContainerId).SemanticKnowledge);
         Assert.Contains(setup.World.DeriveKnowledgeGaps().SemanticReferences,
             reference => reference.EvidenceId == first.SemanticId && reference.IsHistorical);
+        if (mismatch == "missing-anchor")
+        {
+            negativeFrames.Add(WorldVisualizationExport.Frame("current-capture-unmatched",
+                "C2 observes Bluetooth; the historical meaning remains reference-only without a current native anchor",
+                setup.Kernel, setup.World, [second.ContainerId]));
+            WorldVisualizationExport.Write("reuse-negative", negativeFrames.ToArray());
+        }
     }
 
     private static Setup Create(bool configureProfile)

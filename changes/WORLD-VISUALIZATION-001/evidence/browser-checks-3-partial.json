@@ -1,0 +1,30 @@
+[
+  {
+    "name": "播放状态反馈",
+    "passed": true
+  },
+  {
+    "name": "暂停反馈",
+    "passed": true
+  },
+  {
+    "name": "播放能推进后暂停",
+    "passed": true
+  },
+  {
+    "name": "键盘推进",
+    "passed": true
+  },
+  {
+    "name": "页面对象Space激活",
+    "passed": true
+  },
+  {
+    "name": "来源引用可追溯",
+    "passed": true
+  },
+  {
+    "name": "迟到结果维持当前观察",
+    "passed": true
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "base": "56a75fd74b5dff72db931edc96e343f0aea6d80b",
+  "productSourceDiff": [],
+  "protectedWorkingFiles": [
+    {
+      "path": "changes/AGT-019/state.md",
+      "workingSha256": "4f971a416ce2ba72ebc9c70d6a57a815aaaa31dc911f783a6761446641c01111"
+    },
+    {
+      "path": "changes/INDEX.md",
+      "workingSha256": "259d26071cfed566326a4cd0018a457f38b9f591b68010731affa21e54823040"
+    },
+    {
+      "path": "changes/RUNTIME-PLAN-002/execution-contract.md",
+      "workingSha256": "d352a0a1d3c394f14f67a9480285646903ce85c2521763ab22c907fa15323841"
+    },
+    {
+      "path": "changes/SETTINGS-COVERAGE-003/state.md",
+      "workingSha256": "e6b52a96a7c1f7244eef5a99ff48607675b374defdd9678438faf79e8af7e829"
+    },
+    {
+      "path": "changes/SETTINGS-COVERAGE-005/state.md",
+      "workingSha256": "bf7e96555b393fc703df0f4b8ba9ba0be73e22e2e21dc8fff3b9d7aee30b69b7"
+    },
+    {
+      "path": "changes/TRAJECTORY-001/state.md",
+      "workingSha256": "54d9f3511d24bc743d22e8a502eda56baec658c9970963b0b121d2da84508cb7"
+    }
+  ],
+  "stagingIndexInitiallyEmpty": true
+}

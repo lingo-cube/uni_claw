@@ -1,0 +1,3752 @@
+{
+  "schemaVersion": "world-visualization.v1",
+  "id": "world-visualization:context",
+  "title": "Current context knowledge gaps",
+  "provenance": {
+    "coreCommit": "56a75fd7",
+    "sourceTest": "WorldKnowledgeGapTests.FourGaps_AreProducedHeldThenResolvedOnlyByCurrentEvidence",
+    "inputClass": "\u53D7\u63A7\u6765\u6E90/\u771F\u5B9E\u6838\u5FC3",
+    "limitations": [
+      "controlled fixture/provider inputs; no live-device or live-model evidence"
+    ]
+  },
+  "frames": [
+    {
+      "key": "child-unidentified",
+      "label": "Four current gaps before child identity is confirmed",
+      "revision": {
+        "revisionId": "rev-3",
+        "parentRevisionId": "rev-2",
+        "revisionNumber": 3,
+        "worldState": {
+          "ui.container.signature.ctr-4ed4fedf3af1": {
+            "value": "com.example.settings:id/parent",
+            "evidenceId": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.current": {
+            "value": "ctr-4ed4fedf3af1",
+            "evidenceId": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.screen": {
+            "value": "com.example.settings:id/parent",
+            "evidenceId": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          }
+        },
+        "worldGraph": [
+          "ui.screen",
+          "ui.container.current",
+          "ui.container.signature.ctr-4ed4fedf3af1"
+        ],
+        "evidenceBasis": [
+          "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7",
+          "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+          "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+        ],
+        "freshnessBasis": {
+          "asOf": "2026-10-23T00:00:02+00:00"
+        },
+        "uncertainty": {
+          "conflictingClaimCount": 0
+        },
+        "conflicts": [],
+        "containers": [
+          {
+            "identity": {
+              "containerId": "ctr-4ed4fedf3af1"
+            },
+            "evidenceBasis": [
+              "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc"
+            ]
+          }
+        ],
+        "relations": [],
+        "occurrences": [
+          {
+            "occurrenceId": "occ-c008be9d0853-0",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 0.9,
+              "y2": 0.2,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.1
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child"
+            }
+          },
+          {
+            "occurrenceId": "occ-c008be9d0853-1",
+            "owningContainerId": null,
+            "role": "ui.element",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0.2,
+              "x2": 0.9,
+              "y2": 0.9,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.55
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child"
+            }
+          }
+        ],
+        "logicalItems": null,
+        "currentPageObservation": {
+          "capture": {
+            "captureId": "child",
+            "observationCycleId": "cycle:child",
+            "sessionCorrelation": "session",
+            "captureTime": "2026-10-23T00:00:02+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child"
+            },
+            "items": [
+              {
+                "id": "title",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 90,
+                  "y2": 20,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "context",
+                "kind": "ui.element",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 20,
+                  "x2": 90,
+                  "y2": 90,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ],
+            "coverage": {
+              "completeness": 1,
+              "limitation": "viewport-export;offscreen-unproven",
+              "isValid": true
+            },
+            "deviceId": "fixture-device"
+          },
+          "evidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+          "containerId": null,
+          "identityEvidenceId": null
+        },
+        "observationNeed": {
+          "sourceRevisionId": "rev-3",
+          "captureEvidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+          "capture": {
+            "captureId": "child",
+            "observationCycleId": "cycle:child",
+            "sessionCorrelation": "session",
+            "captureTime": "2026-10-23T00:00:02+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child"
+            },
+            "items": [
+              {
+                "id": "title",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 90,
+                  "y2": 20,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "context",
+                "kind": "ui.element",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 20,
+                  "x2": 90,
+                  "y2": 90,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ],
+            "coverage": {
+              "completeness": 1,
+              "limitation": "viewport-export;offscreen-unproven",
+              "isValid": true
+            },
+            "deviceId": "fixture-device"
+          },
+          "kind": "identity-disambiguation"
+        },
+        "semanticKnowledge": [],
+        "viewportTransitions": []
+      },
+      "knowledge": {
+        "sourceRevisionId": "rev-3",
+        "collectionStatus": "collected",
+        "gaps": [
+          {
+            "gapId": "world-gap:dbb245aa28bf38bbf87bb72eabeb4a3b4fd37c72fb4da8bdbfd3a860a10a16f5",
+            "kind": 0,
+            "objectRef": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+            "scope": "capture:child:viewport",
+            "reason": "capture-identity-unproven",
+            "sourceRevisionId": "rev-3",
+            "evidenceIds": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+          },
+          {
+            "gapId": "world-gap:d6dec3095d997b8718fa41510f3ad044a5b58145c7ee4c313a4a6a9a921534da",
+            "kind": 1,
+            "objectRef": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+            "scope": "capture:child:viewport",
+            "reason": "observed-content-owner-unproven",
+            "sourceRevisionId": "rev-3",
+            "evidenceIds": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+          },
+          {
+            "gapId": "world-gap:be5905332c48492de1713cd5ca1d2ddd699ab396333beea96379e61cc72a6c06",
+            "kind": 3,
+            "objectRef": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+            "scope": "capture:child:viewport",
+            "reason": "viewport-export;offscreen-unproven",
+            "sourceRevisionId": "rev-3",
+            "evidenceIds": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+          },
+          {
+            "gapId": "world-gap:37d961cbf1123548afa66ef75fab05c8676403fc34252ec1b8500987055f8c5e",
+            "kind": 2,
+            "objectRef": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+            "scope": "capture:child:viewport",
+            "reason": "context-child-identity-unproven",
+            "sourceRevisionId": "rev-3",
+            "evidenceIds": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+          }
+        ],
+        "semanticReferences": [],
+        "currentSemantics": [],
+        "corrections": []
+      },
+      "recovery": null,
+      "effectImpacts": null,
+      "terminal": null,
+      "outcome": null,
+      "actualConsultation": null,
+      "receipts": [],
+      "verifications": null,
+      "decisionUses": [],
+      "capture": {
+        "captureId": "child",
+        "observationCycleId": "cycle:child",
+        "sessionCorrelation": "session",
+        "captureTime": "2026-10-23T00:00:02+00:00",
+        "space": {
+          "coordinateSpaceId": "device-viewport:100x100@0",
+          "pixelWidth": 100,
+          "pixelHeight": 100,
+          "rotation": 0,
+          "captureId": "child"
+        },
+        "items": [
+          {
+            "id": "title",
+            "kind": "text",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 90,
+              "y2": 20,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "context",
+            "kind": "ui.element",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 20,
+              "x2": 90,
+              "y2": 90,
+              "isValid": true
+            },
+            "confidence": null
+          }
+        ],
+        "coverage": {
+          "completeness": 1,
+          "limitation": "viewport-export;offscreen-unproven",
+          "isValid": true
+        },
+        "deviceId": "fixture-device"
+      },
+      "pages": [
+        {
+          "sourceRevisionId": "rev-3",
+          "containerId": "ctr-4ed4fedf3af1",
+          "observations": [
+            {
+              "sourceRevisionId": "rev-2",
+              "captureEvidenceId": "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7",
+              "identityEvidenceId": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+              "capture": {
+                "captureId": "parent",
+                "observationCycleId": "cycle:parent",
+                "sessionCorrelation": "session",
+                "captureTime": "2026-10-23T00:00:01+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:100x100@0",
+                  "pixelWidth": 100,
+                  "pixelHeight": 100,
+                  "rotation": 0,
+                  "captureId": "parent"
+                },
+                "items": [
+                  {
+                    "id": "title",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 0,
+                      "x2": 90,
+                      "y2": 20,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "context",
+                    "kind": "ui.element",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 20,
+                      "x2": 90,
+                      "y2": 90,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "coverage": {
+                  "completeness": 0,
+                  "limitation": null,
+                  "isValid": true
+                },
+                "deviceId": "fixture-device"
+              },
+              "containerId": "ctr-4ed4fedf3af1",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-4ed4fedf3af1-0",
+                  "owningContainerId": "ctr-4ed4fedf3af1",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-4ed4fedf3af1-1",
+                  "owningContainerId": "ctr-4ed4fedf3af1",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": false,
+              "visitSourceRef": null
+            }
+          ],
+          "semanticReferences": [],
+          "viewportTransitions": [],
+          "unknown": [
+            "visit-occurrence-unproven",
+            "whole-page-coverage-unproven"
+          ],
+          "contentDigest": "e1fbfb0877512b277702df5c68ef3807d1bb7205b9adb3f42577372e2c7a577b",
+          "corrections": [],
+          "contextRelations": [],
+          "currentSemantics": [],
+          "accumulatedContent": {
+            "sourceRevisionId": "rev-3",
+            "containerId": "ctr-4ed4fedf3af1",
+            "currentCaptureEvidenceId": null,
+            "items": [],
+            "registrationSourceRefs": [],
+            "unknown": [
+              "page-not-current",
+              "whole-page-coverage-unproven"
+            ]
+          }
+        }
+      ],
+      "slices": [
+        {
+          "sliceId": "slice:v2:c886be361f5da56706bbeac46591738d6f726495bbc7ee6810198752bc5ea44f",
+          "slice": {
+            "sourceRevisionId": "rev-3",
+            "rootContainerId": "ctr-4ed4fedf3af1",
+            "freshnessBasis": {
+              "asOf": "2026-10-23T00:00:02+00:00"
+            },
+            "inScopeContainerIds": [
+              "ctr-4ed4fedf3af1"
+            ],
+            "occurrences": [],
+            "scopedClaims": {},
+            "region": null,
+            "semanticKnowledge": []
+          },
+          "coreSlice": {
+            "id": {
+              "value": "slice:v2:c886be361f5da56706bbeac46591738d6f726495bbc7ee6810198752bc5ea44f"
+            },
+            "segmentId": {
+              "value": "ctr-4ed4fedf3af1"
+            },
+            "observationEvidenceIds": [
+              {
+                "value": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc"
+              },
+              {
+                "value": "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7"
+              },
+              {
+                "value": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+              }
+            ],
+            "observedAt": "2026-10-23T00:00:02+00:00",
+            "scope": "{\u0022Containers\u0022:[\u0022ctr-4ed4fedf3af1\u0022],\u0022Region\u0022:null}",
+            "observedRecordIds": [],
+            "coverage": "partial"
+          },
+          "presentation": []
+        }
+      ]
+    },
+    {
+      "key": "child-identified",
+      "label": "Identity and attribution resolve; relation and coverage remain",
+      "revision": {
+        "revisionId": "rev-4",
+        "parentRevisionId": "rev-3",
+        "revisionNumber": 4,
+        "worldState": {
+          "ui.container.current": {
+            "value": "ctr-421029e3ba6c",
+            "evidenceId": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.signature.ctr-4ed4fedf3af1": {
+            "value": "com.example.settings:id/parent",
+            "evidenceId": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.signature.ctr-421029e3ba6c": {
+            "value": "com.example.settings:id/child",
+            "evidenceId": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.screen": {
+            "value": "com.example.settings:id/child",
+            "evidenceId": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          }
+        },
+        "worldGraph": [
+          "ui.screen",
+          "ui.container.current",
+          "ui.container.signature.ctr-4ed4fedf3af1",
+          "ui.container.signature.ctr-421029e3ba6c"
+        ],
+        "evidenceBasis": [
+          "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7",
+          "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+          "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+          "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636"
+        ],
+        "freshnessBasis": {
+          "asOf": "2026-10-23T00:00:02+00:00"
+        },
+        "uncertainty": {
+          "conflictingClaimCount": 0
+        },
+        "conflicts": [],
+        "containers": [
+          {
+            "identity": {
+              "containerId": "ctr-4ed4fedf3af1"
+            },
+            "evidenceBasis": [
+              "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc"
+            ]
+          },
+          {
+            "identity": {
+              "containerId": "ctr-421029e3ba6c"
+            },
+            "evidenceBasis": [
+              "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636"
+            ]
+          }
+        ],
+        "relations": [],
+        "occurrences": [
+          {
+            "occurrenceId": "occ-421029e3ba6c-0",
+            "owningContainerId": "ctr-421029e3ba6c",
+            "role": "text",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 0.9,
+              "y2": 0.2,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.1
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child"
+            }
+          },
+          {
+            "occurrenceId": "occ-421029e3ba6c-1",
+            "owningContainerId": "ctr-421029e3ba6c",
+            "role": "ui.element",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0.2,
+              "x2": 0.9,
+              "y2": 0.9,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.55
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child"
+            }
+          }
+        ],
+        "logicalItems": null,
+        "currentPageObservation": {
+          "capture": {
+            "captureId": "child",
+            "observationCycleId": "cycle:child",
+            "sessionCorrelation": "session",
+            "captureTime": "2026-10-23T00:00:02+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child"
+            },
+            "items": [
+              {
+                "id": "title",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 90,
+                  "y2": 20,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "context",
+                "kind": "ui.element",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 20,
+                  "x2": 90,
+                  "y2": 90,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ],
+            "coverage": {
+              "completeness": 1,
+              "limitation": "viewport-export;offscreen-unproven",
+              "isValid": true
+            },
+            "deviceId": "fixture-device"
+          },
+          "evidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+          "containerId": "ctr-421029e3ba6c",
+          "identityEvidenceId": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636"
+        },
+        "observationNeed": null,
+        "semanticKnowledge": [],
+        "viewportTransitions": []
+      },
+      "knowledge": {
+        "sourceRevisionId": "rev-4",
+        "collectionStatus": "collected",
+        "gaps": [
+          {
+            "gapId": "world-gap:be5905332c48492de1713cd5ca1d2ddd699ab396333beea96379e61cc72a6c06",
+            "kind": 3,
+            "objectRef": "ctr-421029e3ba6c",
+            "scope": "capture:child:viewport",
+            "reason": "viewport-export;offscreen-unproven",
+            "sourceRevisionId": "rev-4",
+            "evidenceIds": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+          },
+          {
+            "gapId": "world-gap:37d961cbf1123548afa66ef75fab05c8676403fc34252ec1b8500987055f8c5e",
+            "kind": 2,
+            "objectRef": "ctr-421029e3ba6c",
+            "scope": "capture:child:viewport",
+            "reason": "requested-current-context-relation-unproven",
+            "sourceRevisionId": "rev-4",
+            "evidenceIds": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+          }
+        ],
+        "semanticReferences": [],
+        "currentSemantics": [],
+        "corrections": []
+      },
+      "recovery": null,
+      "effectImpacts": null,
+      "terminal": null,
+      "outcome": null,
+      "actualConsultation": null,
+      "receipts": [],
+      "verifications": null,
+      "decisionUses": [],
+      "capture": {
+        "captureId": "child",
+        "observationCycleId": "cycle:child",
+        "sessionCorrelation": "session",
+        "captureTime": "2026-10-23T00:00:02+00:00",
+        "space": {
+          "coordinateSpaceId": "device-viewport:100x100@0",
+          "pixelWidth": 100,
+          "pixelHeight": 100,
+          "rotation": 0,
+          "captureId": "child"
+        },
+        "items": [
+          {
+            "id": "title",
+            "kind": "text",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 90,
+              "y2": 20,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "context",
+            "kind": "ui.element",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 20,
+              "x2": 90,
+              "y2": 90,
+              "isValid": true
+            },
+            "confidence": null
+          }
+        ],
+        "coverage": {
+          "completeness": 1,
+          "limitation": "viewport-export;offscreen-unproven",
+          "isValid": true
+        },
+        "deviceId": "fixture-device"
+      },
+      "pages": [
+        {
+          "sourceRevisionId": "rev-4",
+          "containerId": "ctr-4ed4fedf3af1",
+          "observations": [
+            {
+              "sourceRevisionId": "rev-2",
+              "captureEvidenceId": "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7",
+              "identityEvidenceId": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+              "capture": {
+                "captureId": "parent",
+                "observationCycleId": "cycle:parent",
+                "sessionCorrelation": "session",
+                "captureTime": "2026-10-23T00:00:01+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:100x100@0",
+                  "pixelWidth": 100,
+                  "pixelHeight": 100,
+                  "rotation": 0,
+                  "captureId": "parent"
+                },
+                "items": [
+                  {
+                    "id": "title",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 0,
+                      "x2": 90,
+                      "y2": 20,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "context",
+                    "kind": "ui.element",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 20,
+                      "x2": 90,
+                      "y2": 90,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "coverage": {
+                  "completeness": 0,
+                  "limitation": null,
+                  "isValid": true
+                },
+                "deviceId": "fixture-device"
+              },
+              "containerId": "ctr-4ed4fedf3af1",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-4ed4fedf3af1-0",
+                  "owningContainerId": "ctr-4ed4fedf3af1",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-4ed4fedf3af1-1",
+                  "owningContainerId": "ctr-4ed4fedf3af1",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": false,
+              "visitSourceRef": null
+            }
+          ],
+          "semanticReferences": [],
+          "viewportTransitions": [],
+          "unknown": [
+            "visit-occurrence-unproven",
+            "whole-page-coverage-unproven"
+          ],
+          "contentDigest": "e1fbfb0877512b277702df5c68ef3807d1bb7205b9adb3f42577372e2c7a577b",
+          "corrections": [],
+          "contextRelations": [],
+          "currentSemantics": [],
+          "accumulatedContent": {
+            "sourceRevisionId": "rev-4",
+            "containerId": "ctr-4ed4fedf3af1",
+            "currentCaptureEvidenceId": null,
+            "items": [],
+            "registrationSourceRefs": [],
+            "unknown": [
+              "page-not-current",
+              "whole-page-coverage-unproven"
+            ]
+          }
+        },
+        {
+          "sourceRevisionId": "rev-4",
+          "containerId": "ctr-421029e3ba6c",
+          "observations": [
+            {
+              "sourceRevisionId": "rev-4",
+              "captureEvidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+              "identityEvidenceId": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+              "capture": {
+                "captureId": "child",
+                "observationCycleId": "cycle:child",
+                "sessionCorrelation": "session",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:100x100@0",
+                  "pixelWidth": 100,
+                  "pixelHeight": 100,
+                  "rotation": 0,
+                  "captureId": "child"
+                },
+                "items": [
+                  {
+                    "id": "title",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 0,
+                      "x2": 90,
+                      "y2": 20,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "context",
+                    "kind": "ui.element",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 20,
+                      "x2": 90,
+                      "y2": 90,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "coverage": {
+                  "completeness": 1,
+                  "limitation": "viewport-export;offscreen-unproven",
+                  "isValid": true
+                },
+                "deviceId": "fixture-device"
+              },
+              "containerId": "ctr-421029e3ba6c",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-421029e3ba6c-0",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-421029e3ba6c-1",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": true,
+              "visitSourceRef": null
+            }
+          ],
+          "semanticReferences": [],
+          "viewportTransitions": [],
+          "unknown": [
+            "visit-occurrence-unproven",
+            "whole-page-coverage-unproven"
+          ],
+          "contentDigest": "e9b4533318cb45ce77ba8d71c22aa0aa05dcdac10b7b5ee4de66b21b538e6e8c",
+          "corrections": [],
+          "contextRelations": [],
+          "currentSemantics": [],
+          "accumulatedContent": {
+            "sourceRevisionId": "rev-4",
+            "containerId": "ctr-421029e3ba6c",
+            "currentCaptureEvidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+            "items": [
+              {
+                "presentationRef": "content:occ-421029e3ba6c-0",
+                "containerId": "ctr-421029e3ba6c",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2
+                },
+                "captureEvidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-421029e3ba6c-0"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-421029e3ba6c-1",
+                "containerId": "ctr-421029e3ba6c",
+                "role": "ui.element",
+                "semanticDescriptor": "Settings",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0.2,
+                  "x2": 0.9,
+                  "y2": 0.9
+                },
+                "captureEvidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-421029e3ba6c-1"
+                ]
+              }
+            ],
+            "registrationSourceRefs": [],
+            "unknown": [
+              "whole-page-coverage-unproven"
+            ]
+          }
+        }
+      ],
+      "slices": [
+        {
+          "sliceId": "slice:v2:7607bdbef83c445c6445f9e1d432e453c5138b99565f4caa83b871bea9b830dc",
+          "slice": {
+            "sourceRevisionId": "rev-4",
+            "rootContainerId": "ctr-4ed4fedf3af1",
+            "freshnessBasis": {
+              "asOf": "2026-10-23T00:00:02+00:00"
+            },
+            "inScopeContainerIds": [
+              "ctr-421029e3ba6c",
+              "ctr-4ed4fedf3af1"
+            ],
+            "occurrences": [
+              {
+                "occurrenceId": "occ-421029e3ba6c-0",
+                "owningContainerId": "ctr-421029e3ba6c",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.1
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-421029e3ba6c-1",
+                "owningContainerId": "ctr-421029e3ba6c",
+                "role": "ui.element",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0.2,
+                  "x2": 0.9,
+                  "y2": 0.9,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.55
+                },
+                "native": null
+              }
+            ],
+            "scopedClaims": {},
+            "region": null,
+            "semanticKnowledge": []
+          },
+          "coreSlice": {
+            "id": {
+              "value": "slice:v2:7607bdbef83c445c6445f9e1d432e453c5138b99565f4caa83b871bea9b830dc"
+            },
+            "segmentId": {
+              "value": "ctr-4ed4fedf3af1"
+            },
+            "observationEvidenceIds": [
+              {
+                "value": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636"
+              },
+              {
+                "value": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc"
+              },
+              {
+                "value": "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7"
+              },
+              {
+                "value": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+              }
+            ],
+            "observedAt": "2026-10-23T00:00:02+00:00",
+            "scope": "{\u0022Containers\u0022:[\u0022ctr-421029e3ba6c\u0022,\u0022ctr-4ed4fedf3af1\u0022],\u0022Region\u0022:null}",
+            "observedRecordIds": [
+              {
+                "value": "occ-421029e3ba6c-0"
+              },
+              {
+                "value": "occ-421029e3ba6c-1"
+              }
+            ],
+            "coverage": "partial"
+          },
+          "presentation": [
+            {
+              "sourceRevisionId": "rev-4",
+              "rootContainerId": "ctr-4ed4fedf3af1",
+              "isAuthoritative": false,
+              "elements": [
+                {
+                  "occurrenceId": "occ-421029e3ba6c-0",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  }
+                },
+                {
+                  "occurrenceId": "occ-421029e3ba6c-1",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sliceId": "slice:v2:469442326cf4035be4bf0fdd0e435a4a253e48ec8e1f54a834447f977add3a12",
+          "slice": {
+            "sourceRevisionId": "rev-4",
+            "rootContainerId": "ctr-421029e3ba6c",
+            "freshnessBasis": {
+              "asOf": "2026-10-23T00:00:02+00:00"
+            },
+            "inScopeContainerIds": [
+              "ctr-421029e3ba6c",
+              "ctr-4ed4fedf3af1"
+            ],
+            "occurrences": [
+              {
+                "occurrenceId": "occ-421029e3ba6c-0",
+                "owningContainerId": "ctr-421029e3ba6c",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.1
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-421029e3ba6c-1",
+                "owningContainerId": "ctr-421029e3ba6c",
+                "role": "ui.element",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0.2,
+                  "x2": 0.9,
+                  "y2": 0.9,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.55
+                },
+                "native": null
+              }
+            ],
+            "scopedClaims": {},
+            "region": null,
+            "semanticKnowledge": []
+          },
+          "coreSlice": {
+            "id": {
+              "value": "slice:v2:469442326cf4035be4bf0fdd0e435a4a253e48ec8e1f54a834447f977add3a12"
+            },
+            "segmentId": {
+              "value": "ctr-421029e3ba6c"
+            },
+            "observationEvidenceIds": [
+              {
+                "value": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636"
+              },
+              {
+                "value": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc"
+              },
+              {
+                "value": "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7"
+              },
+              {
+                "value": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+              }
+            ],
+            "observedAt": "2026-10-23T00:00:02+00:00",
+            "scope": "{\u0022Containers\u0022:[\u0022ctr-421029e3ba6c\u0022,\u0022ctr-4ed4fedf3af1\u0022],\u0022Region\u0022:null}",
+            "observedRecordIds": [
+              {
+                "value": "occ-421029e3ba6c-0"
+              },
+              {
+                "value": "occ-421029e3ba6c-1"
+              }
+            ],
+            "coverage": "partial"
+          },
+          "presentation": [
+            {
+              "sourceRevisionId": "rev-4",
+              "rootContainerId": "ctr-421029e3ba6c",
+              "isAuthoritative": false,
+              "elements": [
+                {
+                  "occurrenceId": "occ-421029e3ba6c-0",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  }
+                },
+                {
+                  "occurrenceId": "occ-421029e3ba6c-1",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "contains-confirmed",
+      "label": "Accepted direct typed relation resolves relation basis",
+      "revision": {
+        "revisionId": "rev-25",
+        "parentRevisionId": "rev-24",
+        "revisionNumber": 25,
+        "worldState": {
+          "ui.node.child#0.class": {
+            "value": "android.view.View",
+            "evidenceId": "ev-aae6b54cc0f8f85cb9b2f34247fa85c226db927561c3bd499568fde37cdbdf88",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.class",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.text": {
+            "value": "Settings",
+            "evidenceId": "ev-dff476d804cfb3d041b7e797026305386e87aae72bbddd816822eae915e5b122",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.text",
+            "supersededEvidenceIds": null
+          },
+          "ui.container.signature.ctr-421029e3ba6c": {
+            "value": "com.example.settings:id/child",
+            "evidenceId": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.screen": {
+            "value": "com.example.settings:id/child",
+            "evidenceId": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.signature.ctr-4ed4fedf3af1": {
+            "value": "com.example.settings:id/parent",
+            "evidenceId": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.package": {
+            "value": "com.example.settings",
+            "evidenceId": "ev-838fb669079218a49ff4fb32d97bce511e806a51e0ceb7132489fbd76bd20251",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.package",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.resource_id": {
+            "value": "com.example.settings:id/parent",
+            "evidenceId": "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.resource_id",
+            "supersededEvidenceIds": null
+          },
+          "ui.container.current": {
+            "value": "ctr-421029e3ba6c",
+            "evidenceId": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.clickable": {
+            "value": "false",
+            "evidenceId": "ev-ff8746a13e76a5ac36c6c17d3aac62c44534b3553b55eacd6ed2a50258b840ab",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.clickable",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.enabled": {
+            "value": "true",
+            "evidenceId": "ev-7f4736e1e576d3e17e1545a783c623865cd4bd5651f52ab14120be4eb1c1df6a",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.enabled",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.focusable": {
+            "value": "false",
+            "evidenceId": "ev-12cbbd1e54c4792e515a93cc961645ff476537cc6b699ccd9584b31ff538729c",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.focusable",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.scrollable": {
+            "value": "false",
+            "evidenceId": "ev-4828de50604595f7de6444a17e9c77be2c762ccb07bf93e3e0d5c7ac14832ee6",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.scrollable",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.visible_to_user": {
+            "value": "true",
+            "evidenceId": "ev-be091b2b3a0e88cd0c2edc822eda1affebb94b372640b4caf621ad3264776d81",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.visible_to_user",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.bounds": {
+            "value": "0,0,50,50",
+            "evidenceId": "ev-aedbe1a2fb3f929b11a3f06e2e10ef477b6388e6e5ee81b06328e0f5774e6f1e",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.bounds",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.class": {
+            "value": "android.view.View",
+            "evidenceId": "ev-dda4f22ec70c206a2518ec71344bdeb895884a43f2013b5b444859f38e024fc1",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.class",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.resource_id": {
+            "value": "com.example.settings:id/child",
+            "evidenceId": "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.resource_id",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.package": {
+            "value": "com.example.settings",
+            "evidenceId": "ev-28a9831c19ffd6a9ce249942356740a6d307fb7ec03c9efa882d01337b6baf3f",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.package",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.text": {
+            "value": "Settings",
+            "evidenceId": "ev-b1465b82abf6cb3aa94b09d1dbe8da9f562977f433de930b5c5dffed0a5ce3ef",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.text",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.clickable": {
+            "value": "false",
+            "evidenceId": "ev-92d221f73a4ac1a105638d2f4ccfc821cd7625db9168a8cded1728aa5f16584c",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.clickable",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.enabled": {
+            "value": "true",
+            "evidenceId": "ev-d90138f10809edb65d2639a63308691c4152a5069fd23abca543b31ccc643de5",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.enabled",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.focusable": {
+            "value": "false",
+            "evidenceId": "ev-91570d8f1170e9acec30ea071a20b9be00c77c3da4bd895eef6b187e03344f1b",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.focusable",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.scrollable": {
+            "value": "false",
+            "evidenceId": "ev-265b040e8b8d7d91ee463f38479a5cddb7b7d26a831dc690c83a0e07e9c40ce5",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.scrollable",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.visible_to_user": {
+            "value": "true",
+            "evidenceId": "ev-0a4727267559df404f9f9b1ad9ecf94ad4475212c9b3a4d5694b04ef20bbea6a",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.visible_to_user",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.bounds": {
+            "value": "0,0,50,50",
+            "evidenceId": "ev-1546b83da97c8929913046c3932366dcdaac8e134a803f23f7674bac1f259910",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.bounds",
+            "supersededEvidenceIds": null
+          }
+        },
+        "worldGraph": [
+          "ui.screen",
+          "ui.container.current",
+          "ui.container.signature.ctr-4ed4fedf3af1",
+          "ui.container.signature.ctr-421029e3ba6c",
+          "ui.node.child#0.class",
+          "ui.node.child#0.resource_id",
+          "ui.node.child#0.package",
+          "ui.node.child#0.text",
+          "ui.node.child#0.clickable",
+          "ui.node.child#0.enabled",
+          "ui.node.child#0.focusable",
+          "ui.node.child#0.scrollable",
+          "ui.node.child#0.visible_to_user",
+          "ui.node.child#0.bounds",
+          "ui.node.child#1.class",
+          "ui.node.child#1.resource_id",
+          "ui.node.child#1.package",
+          "ui.node.child#1.text",
+          "ui.node.child#1.clickable",
+          "ui.node.child#1.enabled",
+          "ui.node.child#1.focusable",
+          "ui.node.child#1.scrollable",
+          "ui.node.child#1.visible_to_user",
+          "ui.node.child#1.bounds"
+        ],
+        "evidenceBasis": [
+          "ev-dff476d804cfb3d041b7e797026305386e87aae72bbddd816822eae915e5b122",
+          "ev-b1465b82abf6cb3aa94b09d1dbe8da9f562977f433de930b5c5dffed0a5ce3ef",
+          "ev-d90138f10809edb65d2639a63308691c4152a5069fd23abca543b31ccc643de5",
+          "ev-91570d8f1170e9acec30ea071a20b9be00c77c3da4bd895eef6b187e03344f1b",
+          "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+          "ev-1546b83da97c8929913046c3932366dcdaac8e134a803f23f7674bac1f259910",
+          "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7",
+          "ev-92d221f73a4ac1a105638d2f4ccfc821cd7625db9168a8cded1728aa5f16584c",
+          "ev-dda4f22ec70c206a2518ec71344bdeb895884a43f2013b5b444859f38e024fc1",
+          "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe",
+          "ev-265b040e8b8d7d91ee463f38479a5cddb7b7d26a831dc690c83a0e07e9c40ce5",
+          "ev-838fb669079218a49ff4fb32d97bce511e806a51e0ceb7132489fbd76bd20251",
+          "ev-be091b2b3a0e88cd0c2edc822eda1affebb94b372640b4caf621ad3264776d81",
+          "ev-28a9831c19ffd6a9ce249942356740a6d307fb7ec03c9efa882d01337b6baf3f",
+          "ev-aedbe1a2fb3f929b11a3f06e2e10ef477b6388e6e5ee81b06328e0f5774e6f1e",
+          "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+          "ev-ff8746a13e76a5ac36c6c17d3aac62c44534b3553b55eacd6ed2a50258b840ab",
+          "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e",
+          "ev-12cbbd1e54c4792e515a93cc961645ff476537cc6b699ccd9584b31ff538729c",
+          "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+          "ev-aae6b54cc0f8f85cb9b2f34247fa85c226db927561c3bd499568fde37cdbdf88",
+          "ev-0a4727267559df404f9f9b1ad9ecf94ad4475212c9b3a4d5694b04ef20bbea6a",
+          "ev-208e52afa67ea2a0e4d3fac18450d6f2b25e0893a18fcd42ce85f37baac6e289",
+          "ev-4828de50604595f7de6444a17e9c77be2c762ccb07bf93e3e0d5c7ac14832ee6",
+          "ev-7f4736e1e576d3e17e1545a783c623865cd4bd5651f52ab14120be4eb1c1df6a"
+        ],
+        "freshnessBasis": {
+          "asOf": "2026-10-23T00:00:02+00:00"
+        },
+        "uncertainty": {
+          "conflictingClaimCount": 0
+        },
+        "conflicts": [],
+        "containers": [
+          {
+            "identity": {
+              "containerId": "ctr-4ed4fedf3af1"
+            },
+            "evidenceBasis": [
+              "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc"
+            ]
+          },
+          {
+            "identity": {
+              "containerId": "ctr-421029e3ba6c"
+            },
+            "evidenceBasis": [
+              "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636"
+            ]
+          }
+        ],
+        "relations": [
+          {
+            "kind": 0,
+            "sourceContainerId": "ctr-4ed4fedf3af1",
+            "targetContainerId": "ctr-421029e3ba6c",
+            "evidenceBasis": [
+              "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe",
+              "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e",
+              "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+              "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+              "ev-208e52afa67ea2a0e4d3fac18450d6f2b25e0893a18fcd42ce85f37baac6e289"
+            ],
+            "scope": "capture:child",
+            "verificationSourceRef": "native-profile-sha256:16a24ba196ef6ec4df703c98a3244d4de2d23894247615ded2d7613adbd23093",
+            "sourceRevisionId": "rev-24",
+            "targetRevisionId": "rev-24"
+          }
+        ],
+        "occurrences": [
+          {
+            "occurrenceId": "occ-421029e3ba6c-0",
+            "owningContainerId": "ctr-421029e3ba6c",
+            "role": "text",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 0.9,
+              "y2": 0.2,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.1
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child"
+            }
+          },
+          {
+            "occurrenceId": "occ-421029e3ba6c-1",
+            "owningContainerId": "ctr-421029e3ba6c",
+            "role": "ui.element",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0.2,
+              "x2": 0.9,
+              "y2": 0.9,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.55
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child"
+            }
+          }
+        ],
+        "logicalItems": null,
+        "currentPageObservation": {
+          "capture": {
+            "captureId": "child",
+            "observationCycleId": "cycle:child",
+            "sessionCorrelation": "session",
+            "captureTime": "2026-10-23T00:00:02+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child"
+            },
+            "items": [
+              {
+                "id": "title",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 90,
+                  "y2": 20,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "context",
+                "kind": "ui.element",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 20,
+                  "x2": 90,
+                  "y2": 90,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ],
+            "coverage": {
+              "completeness": 1,
+              "limitation": "viewport-export;offscreen-unproven",
+              "isValid": true
+            },
+            "deviceId": "fixture-device"
+          },
+          "evidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+          "containerId": "ctr-421029e3ba6c",
+          "identityEvidenceId": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636"
+        },
+        "observationNeed": null,
+        "semanticKnowledge": [],
+        "viewportTransitions": []
+      },
+      "knowledge": {
+        "sourceRevisionId": "rev-25",
+        "collectionStatus": "collected",
+        "gaps": [
+          {
+            "gapId": "world-gap:be5905332c48492de1713cd5ca1d2ddd699ab396333beea96379e61cc72a6c06",
+            "kind": 3,
+            "objectRef": "ctr-421029e3ba6c",
+            "scope": "capture:child:viewport",
+            "reason": "viewport-export;offscreen-unproven",
+            "sourceRevisionId": "rev-25",
+            "evidenceIds": [
+              "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+          }
+        ],
+        "semanticReferences": [],
+        "currentSemantics": [],
+        "corrections": []
+      },
+      "recovery": null,
+      "effectImpacts": null,
+      "terminal": null,
+      "outcome": null,
+      "actualConsultation": null,
+      "receipts": [],
+      "verifications": null,
+      "decisionUses": [],
+      "capture": {
+        "captureId": "child",
+        "observationCycleId": "cycle:child",
+        "sessionCorrelation": "session",
+        "captureTime": "2026-10-23T00:00:02+00:00",
+        "space": {
+          "coordinateSpaceId": "device-viewport:100x100@0",
+          "pixelWidth": 100,
+          "pixelHeight": 100,
+          "rotation": 0,
+          "captureId": "child"
+        },
+        "items": [
+          {
+            "id": "title",
+            "kind": "text",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 90,
+              "y2": 20,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "context",
+            "kind": "ui.element",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 20,
+              "x2": 90,
+              "y2": 90,
+              "isValid": true
+            },
+            "confidence": null
+          }
+        ],
+        "coverage": {
+          "completeness": 1,
+          "limitation": "viewport-export;offscreen-unproven",
+          "isValid": true
+        },
+        "deviceId": "fixture-device"
+      },
+      "pages": [
+        {
+          "sourceRevisionId": "rev-25",
+          "containerId": "ctr-4ed4fedf3af1",
+          "observations": [
+            {
+              "sourceRevisionId": "rev-2",
+              "captureEvidenceId": "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7",
+              "identityEvidenceId": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+              "capture": {
+                "captureId": "parent",
+                "observationCycleId": "cycle:parent",
+                "sessionCorrelation": "session",
+                "captureTime": "2026-10-23T00:00:01+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:100x100@0",
+                  "pixelWidth": 100,
+                  "pixelHeight": 100,
+                  "rotation": 0,
+                  "captureId": "parent"
+                },
+                "items": [
+                  {
+                    "id": "title",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 0,
+                      "x2": 90,
+                      "y2": 20,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "context",
+                    "kind": "ui.element",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 20,
+                      "x2": 90,
+                      "y2": 90,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "coverage": {
+                  "completeness": 0,
+                  "limitation": null,
+                  "isValid": true
+                },
+                "deviceId": "fixture-device"
+              },
+              "containerId": "ctr-4ed4fedf3af1",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-4ed4fedf3af1-0",
+                  "owningContainerId": "ctr-4ed4fedf3af1",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-4ed4fedf3af1-1",
+                  "owningContainerId": "ctr-4ed4fedf3af1",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": false,
+              "visitSourceRef": null
+            }
+          ],
+          "semanticReferences": [],
+          "viewportTransitions": [],
+          "unknown": [
+            "visit-occurrence-unproven",
+            "whole-page-coverage-unproven"
+          ],
+          "contentDigest": "af992baf3ee7342b35ca494c0e43d9dd9cecb2a7ddf97bd2a0664fbc1ce80df7",
+          "corrections": [],
+          "contextRelations": [
+            {
+              "kind": 0,
+              "sourceContainerId": "ctr-4ed4fedf3af1",
+              "targetContainerId": "ctr-421029e3ba6c",
+              "evidenceBasis": [
+                "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe",
+                "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e",
+                "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+                "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+                "ev-208e52afa67ea2a0e4d3fac18450d6f2b25e0893a18fcd42ce85f37baac6e289"
+              ],
+              "scope": "capture:child",
+              "verificationSourceRef": "native-profile-sha256:16a24ba196ef6ec4df703c98a3244d4de2d23894247615ded2d7613adbd23093",
+              "sourceRevisionId": "rev-24",
+              "targetRevisionId": "rev-24"
+            }
+          ],
+          "currentSemantics": [],
+          "accumulatedContent": {
+            "sourceRevisionId": "rev-25",
+            "containerId": "ctr-4ed4fedf3af1",
+            "currentCaptureEvidenceId": null,
+            "items": [],
+            "registrationSourceRefs": [],
+            "unknown": [
+              "page-not-current",
+              "whole-page-coverage-unproven"
+            ]
+          }
+        },
+        {
+          "sourceRevisionId": "rev-25",
+          "containerId": "ctr-421029e3ba6c",
+          "observations": [
+            {
+              "sourceRevisionId": "rev-25",
+              "captureEvidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+              "identityEvidenceId": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+              "capture": {
+                "captureId": "child",
+                "observationCycleId": "cycle:child",
+                "sessionCorrelation": "session",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:100x100@0",
+                  "pixelWidth": 100,
+                  "pixelHeight": 100,
+                  "rotation": 0,
+                  "captureId": "child"
+                },
+                "items": [
+                  {
+                    "id": "title",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 0,
+                      "x2": 90,
+                      "y2": 20,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "context",
+                    "kind": "ui.element",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 20,
+                      "x2": 90,
+                      "y2": 90,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "coverage": {
+                  "completeness": 1,
+                  "limitation": "viewport-export;offscreen-unproven",
+                  "isValid": true
+                },
+                "deviceId": "fixture-device"
+              },
+              "containerId": "ctr-421029e3ba6c",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-421029e3ba6c-0",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-421029e3ba6c-1",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": true,
+              "visitSourceRef": null
+            }
+          ],
+          "semanticReferences": [],
+          "viewportTransitions": [],
+          "unknown": [
+            "visit-occurrence-unproven",
+            "whole-page-coverage-unproven"
+          ],
+          "contentDigest": "4ef919a6ff9f384eb49cf20c62c3080470f9b7fad2ecf9dc7ce70aa4ff212574",
+          "corrections": [],
+          "contextRelations": [
+            {
+              "kind": 0,
+              "sourceContainerId": "ctr-4ed4fedf3af1",
+              "targetContainerId": "ctr-421029e3ba6c",
+              "evidenceBasis": [
+                "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe",
+                "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e",
+                "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+                "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+                "ev-208e52afa67ea2a0e4d3fac18450d6f2b25e0893a18fcd42ce85f37baac6e289"
+              ],
+              "scope": "capture:child",
+              "verificationSourceRef": "native-profile-sha256:16a24ba196ef6ec4df703c98a3244d4de2d23894247615ded2d7613adbd23093",
+              "sourceRevisionId": "rev-24",
+              "targetRevisionId": "rev-24"
+            }
+          ],
+          "currentSemantics": [],
+          "accumulatedContent": {
+            "sourceRevisionId": "rev-25",
+            "containerId": "ctr-421029e3ba6c",
+            "currentCaptureEvidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+            "items": [
+              {
+                "presentationRef": "content:occ-421029e3ba6c-0",
+                "containerId": "ctr-421029e3ba6c",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2
+                },
+                "captureEvidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-421029e3ba6c-0"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-421029e3ba6c-1",
+                "containerId": "ctr-421029e3ba6c",
+                "role": "ui.element",
+                "semanticDescriptor": "Settings",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0.2,
+                  "x2": 0.9,
+                  "y2": 0.9
+                },
+                "captureEvidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-421029e3ba6c-1"
+                ]
+              }
+            ],
+            "registrationSourceRefs": [],
+            "unknown": [
+              "whole-page-coverage-unproven"
+            ]
+          }
+        }
+      ],
+      "slices": [
+        {
+          "sliceId": "slice:v2:cf9dd5bc6a03a363e99d2a11d80338c544126a2f57ae629f1744db1fa41a6d4a",
+          "slice": {
+            "sourceRevisionId": "rev-25",
+            "rootContainerId": "ctr-4ed4fedf3af1",
+            "freshnessBasis": {
+              "asOf": "2026-10-23T00:00:02+00:00"
+            },
+            "inScopeContainerIds": [
+              "ctr-421029e3ba6c",
+              "ctr-4ed4fedf3af1"
+            ],
+            "occurrences": [
+              {
+                "occurrenceId": "occ-421029e3ba6c-0",
+                "owningContainerId": "ctr-421029e3ba6c",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.1
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-421029e3ba6c-1",
+                "owningContainerId": "ctr-421029e3ba6c",
+                "role": "ui.element",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0.2,
+                  "x2": 0.9,
+                  "y2": 0.9,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.55
+                },
+                "native": null
+              }
+            ],
+            "scopedClaims": {},
+            "region": null,
+            "semanticKnowledge": []
+          },
+          "coreSlice": {
+            "id": {
+              "value": "slice:v2:cf9dd5bc6a03a363e99d2a11d80338c544126a2f57ae629f1744db1fa41a6d4a"
+            },
+            "segmentId": {
+              "value": "ctr-4ed4fedf3af1"
+            },
+            "observationEvidenceIds": [
+              {
+                "value": "ev-0a4727267559df404f9f9b1ad9ecf94ad4475212c9b3a4d5694b04ef20bbea6a"
+              },
+              {
+                "value": "ev-12cbbd1e54c4792e515a93cc961645ff476537cc6b699ccd9584b31ff538729c"
+              },
+              {
+                "value": "ev-1546b83da97c8929913046c3932366dcdaac8e134a803f23f7674bac1f259910"
+              },
+              {
+                "value": "ev-208e52afa67ea2a0e4d3fac18450d6f2b25e0893a18fcd42ce85f37baac6e289"
+              },
+              {
+                "value": "ev-265b040e8b8d7d91ee463f38479a5cddb7b7d26a831dc690c83a0e07e9c40ce5"
+              },
+              {
+                "value": "ev-28a9831c19ffd6a9ce249942356740a6d307fb7ec03c9efa882d01337b6baf3f"
+              },
+              {
+                "value": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636"
+              },
+              {
+                "value": "ev-4828de50604595f7de6444a17e9c77be2c762ccb07bf93e3e0d5c7ac14832ee6"
+              },
+              {
+                "value": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc"
+              },
+              {
+                "value": "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe"
+              },
+              {
+                "value": "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7"
+              },
+              {
+                "value": "ev-7f4736e1e576d3e17e1545a783c623865cd4bd5651f52ab14120be4eb1c1df6a"
+              },
+              {
+                "value": "ev-838fb669079218a49ff4fb32d97bce511e806a51e0ceb7132489fbd76bd20251"
+              },
+              {
+                "value": "ev-91570d8f1170e9acec30ea071a20b9be00c77c3da4bd895eef6b187e03344f1b"
+              },
+              {
+                "value": "ev-92d221f73a4ac1a105638d2f4ccfc821cd7625db9168a8cded1728aa5f16584c"
+              },
+              {
+                "value": "ev-aae6b54cc0f8f85cb9b2f34247fa85c226db927561c3bd499568fde37cdbdf88"
+              },
+              {
+                "value": "ev-aedbe1a2fb3f929b11a3f06e2e10ef477b6388e6e5ee81b06328e0f5774e6f1e"
+              },
+              {
+                "value": "ev-b1465b82abf6cb3aa94b09d1dbe8da9f562977f433de930b5c5dffed0a5ce3ef"
+              },
+              {
+                "value": "ev-be091b2b3a0e88cd0c2edc822eda1affebb94b372640b4caf621ad3264776d81"
+              },
+              {
+                "value": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+              },
+              {
+                "value": "ev-d90138f10809edb65d2639a63308691c4152a5069fd23abca543b31ccc643de5"
+              },
+              {
+                "value": "ev-dda4f22ec70c206a2518ec71344bdeb895884a43f2013b5b444859f38e024fc1"
+              },
+              {
+                "value": "ev-dff476d804cfb3d041b7e797026305386e87aae72bbddd816822eae915e5b122"
+              },
+              {
+                "value": "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e"
+              },
+              {
+                "value": "ev-ff8746a13e76a5ac36c6c17d3aac62c44534b3553b55eacd6ed2a50258b840ab"
+              }
+            ],
+            "observedAt": "2026-10-23T00:00:02+00:00",
+            "scope": "{\u0022Containers\u0022:[\u0022ctr-421029e3ba6c\u0022,\u0022ctr-4ed4fedf3af1\u0022],\u0022Region\u0022:null}",
+            "observedRecordIds": [
+              {
+                "value": "occ-421029e3ba6c-0"
+              },
+              {
+                "value": "occ-421029e3ba6c-1"
+              }
+            ],
+            "coverage": "partial"
+          },
+          "presentation": [
+            {
+              "sourceRevisionId": "rev-25",
+              "rootContainerId": "ctr-4ed4fedf3af1",
+              "isAuthoritative": false,
+              "elements": [
+                {
+                  "occurrenceId": "occ-421029e3ba6c-0",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  }
+                },
+                {
+                  "occurrenceId": "occ-421029e3ba6c-1",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sliceId": "slice:v2:02ad7648a89bbdac46568d565a7e1cddd5279a9416e8284ae7364e651c24244b",
+          "slice": {
+            "sourceRevisionId": "rev-25",
+            "rootContainerId": "ctr-421029e3ba6c",
+            "freshnessBasis": {
+              "asOf": "2026-10-23T00:00:02+00:00"
+            },
+            "inScopeContainerIds": [
+              "ctr-421029e3ba6c",
+              "ctr-4ed4fedf3af1"
+            ],
+            "occurrences": [
+              {
+                "occurrenceId": "occ-421029e3ba6c-0",
+                "owningContainerId": "ctr-421029e3ba6c",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.1
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-421029e3ba6c-1",
+                "owningContainerId": "ctr-421029e3ba6c",
+                "role": "ui.element",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0.2,
+                  "x2": 0.9,
+                  "y2": 0.9,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.55
+                },
+                "native": null
+              }
+            ],
+            "scopedClaims": {},
+            "region": null,
+            "semanticKnowledge": []
+          },
+          "coreSlice": {
+            "id": {
+              "value": "slice:v2:02ad7648a89bbdac46568d565a7e1cddd5279a9416e8284ae7364e651c24244b"
+            },
+            "segmentId": {
+              "value": "ctr-421029e3ba6c"
+            },
+            "observationEvidenceIds": [
+              {
+                "value": "ev-0a4727267559df404f9f9b1ad9ecf94ad4475212c9b3a4d5694b04ef20bbea6a"
+              },
+              {
+                "value": "ev-12cbbd1e54c4792e515a93cc961645ff476537cc6b699ccd9584b31ff538729c"
+              },
+              {
+                "value": "ev-1546b83da97c8929913046c3932366dcdaac8e134a803f23f7674bac1f259910"
+              },
+              {
+                "value": "ev-208e52afa67ea2a0e4d3fac18450d6f2b25e0893a18fcd42ce85f37baac6e289"
+              },
+              {
+                "value": "ev-265b040e8b8d7d91ee463f38479a5cddb7b7d26a831dc690c83a0e07e9c40ce5"
+              },
+              {
+                "value": "ev-28a9831c19ffd6a9ce249942356740a6d307fb7ec03c9efa882d01337b6baf3f"
+              },
+              {
+                "value": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636"
+              },
+              {
+                "value": "ev-4828de50604595f7de6444a17e9c77be2c762ccb07bf93e3e0d5c7ac14832ee6"
+              },
+              {
+                "value": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc"
+              },
+              {
+                "value": "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe"
+              },
+              {
+                "value": "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7"
+              },
+              {
+                "value": "ev-7f4736e1e576d3e17e1545a783c623865cd4bd5651f52ab14120be4eb1c1df6a"
+              },
+              {
+                "value": "ev-838fb669079218a49ff4fb32d97bce511e806a51e0ceb7132489fbd76bd20251"
+              },
+              {
+                "value": "ev-91570d8f1170e9acec30ea071a20b9be00c77c3da4bd895eef6b187e03344f1b"
+              },
+              {
+                "value": "ev-92d221f73a4ac1a105638d2f4ccfc821cd7625db9168a8cded1728aa5f16584c"
+              },
+              {
+                "value": "ev-aae6b54cc0f8f85cb9b2f34247fa85c226db927561c3bd499568fde37cdbdf88"
+              },
+              {
+                "value": "ev-aedbe1a2fb3f929b11a3f06e2e10ef477b6388e6e5ee81b06328e0f5774e6f1e"
+              },
+              {
+                "value": "ev-b1465b82abf6cb3aa94b09d1dbe8da9f562977f433de930b5c5dffed0a5ce3ef"
+              },
+              {
+                "value": "ev-be091b2b3a0e88cd0c2edc822eda1affebb94b372640b4caf621ad3264776d81"
+              },
+              {
+                "value": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+              },
+              {
+                "value": "ev-d90138f10809edb65d2639a63308691c4152a5069fd23abca543b31ccc643de5"
+              },
+              {
+                "value": "ev-dda4f22ec70c206a2518ec71344bdeb895884a43f2013b5b444859f38e024fc1"
+              },
+              {
+                "value": "ev-dff476d804cfb3d041b7e797026305386e87aae72bbddd816822eae915e5b122"
+              },
+              {
+                "value": "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e"
+              },
+              {
+                "value": "ev-ff8746a13e76a5ac36c6c17d3aac62c44534b3553b55eacd6ed2a50258b840ab"
+              }
+            ],
+            "observedAt": "2026-10-23T00:00:02+00:00",
+            "scope": "{\u0022Containers\u0022:[\u0022ctr-421029e3ba6c\u0022,\u0022ctr-4ed4fedf3af1\u0022],\u0022Region\u0022:null}",
+            "observedRecordIds": [
+              {
+                "value": "occ-421029e3ba6c-0"
+              },
+              {
+                "value": "occ-421029e3ba6c-1"
+              }
+            ],
+            "coverage": "partial"
+          },
+          "presentation": [
+            {
+              "sourceRevisionId": "rev-25",
+              "rootContainerId": "ctr-421029e3ba6c",
+              "isAuthoritative": false,
+              "elements": [
+                {
+                  "occurrenceId": "occ-421029e3ba6c-0",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  }
+                },
+                {
+                  "occurrenceId": "occ-421029e3ba6c-1",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "new-capture-no-inherited-relation",
+      "label": "New complete capture does not inherit the prior capture relation",
+      "revision": {
+        "revisionId": "rev-27",
+        "parentRevisionId": "rev-26",
+        "revisionNumber": 27,
+        "worldState": {
+          "ui.node.child#0.class": {
+            "value": "android.view.View",
+            "evidenceId": "ev-aae6b54cc0f8f85cb9b2f34247fa85c226db927561c3bd499568fde37cdbdf88",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.class",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.text": {
+            "value": "Settings",
+            "evidenceId": "ev-dff476d804cfb3d041b7e797026305386e87aae72bbddd816822eae915e5b122",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.text",
+            "supersededEvidenceIds": null
+          },
+          "ui.container.signature.ctr-421029e3ba6c": {
+            "value": "com.example.settings:id/child",
+            "evidenceId": "ev-34c66b391bdb58d99ebc985d19ed79559191dcd030b2331b264a9b2e5d3bde84",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.screen": {
+            "value": "com.example.settings:id/child",
+            "evidenceId": "ev-34c66b391bdb58d99ebc985d19ed79559191dcd030b2331b264a9b2e5d3bde84",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.signature.ctr-4ed4fedf3af1": {
+            "value": "com.example.settings:id/parent",
+            "evidenceId": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.package": {
+            "value": "com.example.settings",
+            "evidenceId": "ev-838fb669079218a49ff4fb32d97bce511e806a51e0ceb7132489fbd76bd20251",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.package",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.resource_id": {
+            "value": "com.example.settings:id/parent",
+            "evidenceId": "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.resource_id",
+            "supersededEvidenceIds": null
+          },
+          "ui.container.current": {
+            "value": "ctr-421029e3ba6c",
+            "evidenceId": "ev-34c66b391bdb58d99ebc985d19ed79559191dcd030b2331b264a9b2e5d3bde84",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.clickable": {
+            "value": "false",
+            "evidenceId": "ev-ff8746a13e76a5ac36c6c17d3aac62c44534b3553b55eacd6ed2a50258b840ab",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.clickable",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.enabled": {
+            "value": "true",
+            "evidenceId": "ev-7f4736e1e576d3e17e1545a783c623865cd4bd5651f52ab14120be4eb1c1df6a",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.enabled",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.focusable": {
+            "value": "false",
+            "evidenceId": "ev-12cbbd1e54c4792e515a93cc961645ff476537cc6b699ccd9584b31ff538729c",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.focusable",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.scrollable": {
+            "value": "false",
+            "evidenceId": "ev-4828de50604595f7de6444a17e9c77be2c762ccb07bf93e3e0d5c7ac14832ee6",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.scrollable",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.visible_to_user": {
+            "value": "true",
+            "evidenceId": "ev-be091b2b3a0e88cd0c2edc822eda1affebb94b372640b4caf621ad3264776d81",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.visible_to_user",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#0.bounds": {
+            "value": "0,0,50,50",
+            "evidenceId": "ev-aedbe1a2fb3f929b11a3f06e2e10ef477b6388e6e5ee81b06328e0f5774e6f1e",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#0.bounds",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.class": {
+            "value": "android.view.View",
+            "evidenceId": "ev-dda4f22ec70c206a2518ec71344bdeb895884a43f2013b5b444859f38e024fc1",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.class",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.resource_id": {
+            "value": "com.example.settings:id/child",
+            "evidenceId": "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.resource_id",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.package": {
+            "value": "com.example.settings",
+            "evidenceId": "ev-28a9831c19ffd6a9ce249942356740a6d307fb7ec03c9efa882d01337b6baf3f",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.package",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.text": {
+            "value": "Settings",
+            "evidenceId": "ev-b1465b82abf6cb3aa94b09d1dbe8da9f562977f433de930b5c5dffed0a5ce3ef",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.text",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.clickable": {
+            "value": "false",
+            "evidenceId": "ev-92d221f73a4ac1a105638d2f4ccfc821cd7625db9168a8cded1728aa5f16584c",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.clickable",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.enabled": {
+            "value": "true",
+            "evidenceId": "ev-d90138f10809edb65d2639a63308691c4152a5069fd23abca543b31ccc643de5",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.enabled",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.focusable": {
+            "value": "false",
+            "evidenceId": "ev-91570d8f1170e9acec30ea071a20b9be00c77c3da4bd895eef6b187e03344f1b",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.focusable",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.scrollable": {
+            "value": "false",
+            "evidenceId": "ev-265b040e8b8d7d91ee463f38479a5cddb7b7d26a831dc690c83a0e07e9c40ce5",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.scrollable",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.visible_to_user": {
+            "value": "true",
+            "evidenceId": "ev-0a4727267559df404f9f9b1ad9ecf94ad4475212c9b3a4d5694b04ef20bbea6a",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.visible_to_user",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.child#1.bounds": {
+            "value": "0,0,50,50",
+            "evidenceId": "ev-1546b83da97c8929913046c3932366dcdaac8e134a803f23f7674bac1f259910",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.child#1.bounds",
+            "supersededEvidenceIds": null
+          }
+        },
+        "worldGraph": [
+          "ui.screen",
+          "ui.container.current",
+          "ui.container.signature.ctr-4ed4fedf3af1",
+          "ui.container.signature.ctr-421029e3ba6c",
+          "ui.node.child#0.class",
+          "ui.node.child#0.resource_id",
+          "ui.node.child#0.package",
+          "ui.node.child#0.text",
+          "ui.node.child#0.clickable",
+          "ui.node.child#0.enabled",
+          "ui.node.child#0.focusable",
+          "ui.node.child#0.scrollable",
+          "ui.node.child#0.visible_to_user",
+          "ui.node.child#0.bounds",
+          "ui.node.child#1.class",
+          "ui.node.child#1.resource_id",
+          "ui.node.child#1.package",
+          "ui.node.child#1.text",
+          "ui.node.child#1.clickable",
+          "ui.node.child#1.enabled",
+          "ui.node.child#1.focusable",
+          "ui.node.child#1.scrollable",
+          "ui.node.child#1.visible_to_user",
+          "ui.node.child#1.bounds"
+        ],
+        "evidenceBasis": [
+          "ev-dff476d804cfb3d041b7e797026305386e87aae72bbddd816822eae915e5b122",
+          "ev-b1465b82abf6cb3aa94b09d1dbe8da9f562977f433de930b5c5dffed0a5ce3ef",
+          "ev-36508eb0c89500ae10e7ae0f2c33cccdea1bd88888c6236baca7cb2f0419463c",
+          "ev-d90138f10809edb65d2639a63308691c4152a5069fd23abca543b31ccc643de5",
+          "ev-91570d8f1170e9acec30ea071a20b9be00c77c3da4bd895eef6b187e03344f1b",
+          "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+          "ev-1546b83da97c8929913046c3932366dcdaac8e134a803f23f7674bac1f259910",
+          "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7",
+          "ev-92d221f73a4ac1a105638d2f4ccfc821cd7625db9168a8cded1728aa5f16584c",
+          "ev-dda4f22ec70c206a2518ec71344bdeb895884a43f2013b5b444859f38e024fc1",
+          "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe",
+          "ev-265b040e8b8d7d91ee463f38479a5cddb7b7d26a831dc690c83a0e07e9c40ce5",
+          "ev-34c66b391bdb58d99ebc985d19ed79559191dcd030b2331b264a9b2e5d3bde84",
+          "ev-838fb669079218a49ff4fb32d97bce511e806a51e0ceb7132489fbd76bd20251",
+          "ev-be091b2b3a0e88cd0c2edc822eda1affebb94b372640b4caf621ad3264776d81",
+          "ev-28a9831c19ffd6a9ce249942356740a6d307fb7ec03c9efa882d01337b6baf3f",
+          "ev-aedbe1a2fb3f929b11a3f06e2e10ef477b6388e6e5ee81b06328e0f5774e6f1e",
+          "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+          "ev-ff8746a13e76a5ac36c6c17d3aac62c44534b3553b55eacd6ed2a50258b840ab",
+          "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e",
+          "ev-12cbbd1e54c4792e515a93cc961645ff476537cc6b699ccd9584b31ff538729c",
+          "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+          "ev-aae6b54cc0f8f85cb9b2f34247fa85c226db927561c3bd499568fde37cdbdf88",
+          "ev-0a4727267559df404f9f9b1ad9ecf94ad4475212c9b3a4d5694b04ef20bbea6a",
+          "ev-208e52afa67ea2a0e4d3fac18450d6f2b25e0893a18fcd42ce85f37baac6e289",
+          "ev-4828de50604595f7de6444a17e9c77be2c762ccb07bf93e3e0d5c7ac14832ee6",
+          "ev-7f4736e1e576d3e17e1545a783c623865cd4bd5651f52ab14120be4eb1c1df6a"
+        ],
+        "freshnessBasis": {
+          "asOf": "2026-10-23T00:00:03+00:00"
+        },
+        "uncertainty": {
+          "conflictingClaimCount": 0
+        },
+        "conflicts": [],
+        "containers": [
+          {
+            "identity": {
+              "containerId": "ctr-4ed4fedf3af1"
+            },
+            "evidenceBasis": [
+              "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc"
+            ]
+          },
+          {
+            "identity": {
+              "containerId": "ctr-421029e3ba6c"
+            },
+            "evidenceBasis": [
+              "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+              "ev-34c66b391bdb58d99ebc985d19ed79559191dcd030b2331b264a9b2e5d3bde84"
+            ]
+          }
+        ],
+        "relations": [
+          {
+            "kind": 0,
+            "sourceContainerId": "ctr-4ed4fedf3af1",
+            "targetContainerId": "ctr-421029e3ba6c",
+            "evidenceBasis": [
+              "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe",
+              "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e",
+              "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+              "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+              "ev-208e52afa67ea2a0e4d3fac18450d6f2b25e0893a18fcd42ce85f37baac6e289"
+            ],
+            "scope": "capture:child",
+            "verificationSourceRef": "native-profile-sha256:16a24ba196ef6ec4df703c98a3244d4de2d23894247615ded2d7613adbd23093",
+            "sourceRevisionId": "rev-24",
+            "targetRevisionId": "rev-24"
+          }
+        ],
+        "occurrences": [
+          {
+            "occurrenceId": "occ-34c66b391bdb-0",
+            "owningContainerId": "ctr-421029e3ba6c",
+            "role": "text",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-36508eb0c89500ae10e7ae0f2c33cccdea1bd88888c6236baca7cb2f0419463c"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 0.9,
+              "y2": 0.2,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.1
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child-complete"
+            }
+          },
+          {
+            "occurrenceId": "occ-34c66b391bdb-1",
+            "owningContainerId": "ctr-421029e3ba6c",
+            "role": "ui.element",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-36508eb0c89500ae10e7ae0f2c33cccdea1bd88888c6236baca7cb2f0419463c"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0.2,
+              "x2": 0.9,
+              "y2": 0.9,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.55
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child-complete"
+            }
+          }
+        ],
+        "logicalItems": null,
+        "currentPageObservation": {
+          "capture": {
+            "captureId": "child-complete",
+            "observationCycleId": "cycle:child-complete",
+            "sessionCorrelation": "session",
+            "captureTime": "2026-10-23T00:00:03+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "child-complete"
+            },
+            "items": [
+              {
+                "id": "title",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 90,
+                  "y2": 20,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "context",
+                "kind": "ui.element",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 20,
+                  "x2": 90,
+                  "y2": 90,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ],
+            "coverage": {
+              "completeness": 0,
+              "limitation": null,
+              "isValid": true
+            },
+            "deviceId": "fixture-device"
+          },
+          "evidenceId": "ev-36508eb0c89500ae10e7ae0f2c33cccdea1bd88888c6236baca7cb2f0419463c",
+          "containerId": "ctr-421029e3ba6c",
+          "identityEvidenceId": "ev-34c66b391bdb58d99ebc985d19ed79559191dcd030b2331b264a9b2e5d3bde84"
+        },
+        "observationNeed": null,
+        "semanticKnowledge": [],
+        "viewportTransitions": []
+      },
+      "knowledge": {
+        "sourceRevisionId": "rev-27",
+        "collectionStatus": "collected",
+        "gaps": [
+          {
+            "gapId": "world-gap:193dcdf3343b0673a78595f8bf67661d8baa279324d934f2da22d1b6a29491d5",
+            "kind": 2,
+            "objectRef": "ctr-421029e3ba6c",
+            "scope": "capture:child-complete:viewport",
+            "reason": "requested-current-context-relation-unproven",
+            "sourceRevisionId": "rev-27",
+            "evidenceIds": [
+              "ev-36508eb0c89500ae10e7ae0f2c33cccdea1bd88888c6236baca7cb2f0419463c"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-36508eb0c89500ae10e7ae0f2c33cccdea1bd88888c6236baca7cb2f0419463c"
+          }
+        ],
+        "semanticReferences": [],
+        "currentSemantics": [],
+        "corrections": []
+      },
+      "recovery": null,
+      "effectImpacts": null,
+      "terminal": null,
+      "outcome": null,
+      "actualConsultation": null,
+      "receipts": [],
+      "verifications": null,
+      "decisionUses": [],
+      "capture": {
+        "captureId": "child-complete",
+        "observationCycleId": "cycle:child-complete",
+        "sessionCorrelation": "session",
+        "captureTime": "2026-10-23T00:00:03+00:00",
+        "space": {
+          "coordinateSpaceId": "device-viewport:100x100@0",
+          "pixelWidth": 100,
+          "pixelHeight": 100,
+          "rotation": 0,
+          "captureId": "child-complete"
+        },
+        "items": [
+          {
+            "id": "title",
+            "kind": "text",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 90,
+              "y2": 20,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "context",
+            "kind": "ui.element",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 20,
+              "x2": 90,
+              "y2": 90,
+              "isValid": true
+            },
+            "confidence": null
+          }
+        ],
+        "coverage": {
+          "completeness": 0,
+          "limitation": null,
+          "isValid": true
+        },
+        "deviceId": "fixture-device"
+      },
+      "pages": [
+        {
+          "sourceRevisionId": "rev-27",
+          "containerId": "ctr-4ed4fedf3af1",
+          "observations": [
+            {
+              "sourceRevisionId": "rev-2",
+              "captureEvidenceId": "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7",
+              "identityEvidenceId": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+              "capture": {
+                "captureId": "parent",
+                "observationCycleId": "cycle:parent",
+                "sessionCorrelation": "session",
+                "captureTime": "2026-10-23T00:00:01+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:100x100@0",
+                  "pixelWidth": 100,
+                  "pixelHeight": 100,
+                  "rotation": 0,
+                  "captureId": "parent"
+                },
+                "items": [
+                  {
+                    "id": "title",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 0,
+                      "x2": 90,
+                      "y2": 20,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "context",
+                    "kind": "ui.element",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 20,
+                      "x2": 90,
+                      "y2": 90,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "coverage": {
+                  "completeness": 0,
+                  "limitation": null,
+                  "isValid": true
+                },
+                "deviceId": "fixture-device"
+              },
+              "containerId": "ctr-4ed4fedf3af1",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-4ed4fedf3af1-0",
+                  "owningContainerId": "ctr-4ed4fedf3af1",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-4ed4fedf3af1-1",
+                  "owningContainerId": "ctr-4ed4fedf3af1",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": false,
+              "visitSourceRef": null
+            }
+          ],
+          "semanticReferences": [],
+          "viewportTransitions": [],
+          "unknown": [
+            "visit-occurrence-unproven",
+            "whole-page-coverage-unproven"
+          ],
+          "contentDigest": "af992baf3ee7342b35ca494c0e43d9dd9cecb2a7ddf97bd2a0664fbc1ce80df7",
+          "corrections": [],
+          "contextRelations": [
+            {
+              "kind": 0,
+              "sourceContainerId": "ctr-4ed4fedf3af1",
+              "targetContainerId": "ctr-421029e3ba6c",
+              "evidenceBasis": [
+                "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe",
+                "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e",
+                "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+                "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+                "ev-208e52afa67ea2a0e4d3fac18450d6f2b25e0893a18fcd42ce85f37baac6e289"
+              ],
+              "scope": "capture:child",
+              "verificationSourceRef": "native-profile-sha256:16a24ba196ef6ec4df703c98a3244d4de2d23894247615ded2d7613adbd23093",
+              "sourceRevisionId": "rev-24",
+              "targetRevisionId": "rev-24"
+            }
+          ],
+          "currentSemantics": [],
+          "accumulatedContent": {
+            "sourceRevisionId": "rev-27",
+            "containerId": "ctr-4ed4fedf3af1",
+            "currentCaptureEvidenceId": null,
+            "items": [],
+            "registrationSourceRefs": [],
+            "unknown": [
+              "page-not-current",
+              "whole-page-coverage-unproven"
+            ]
+          }
+        },
+        {
+          "sourceRevisionId": "rev-27",
+          "containerId": "ctr-421029e3ba6c",
+          "observations": [
+            {
+              "sourceRevisionId": "rev-25",
+              "captureEvidenceId": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d",
+              "identityEvidenceId": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+              "capture": {
+                "captureId": "child",
+                "observationCycleId": "cycle:child",
+                "sessionCorrelation": "session",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:100x100@0",
+                  "pixelWidth": 100,
+                  "pixelHeight": 100,
+                  "rotation": 0,
+                  "captureId": "child"
+                },
+                "items": [
+                  {
+                    "id": "title",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 0,
+                      "x2": 90,
+                      "y2": 20,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "context",
+                    "kind": "ui.element",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 20,
+                      "x2": 90,
+                      "y2": 90,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "coverage": {
+                  "completeness": 1,
+                  "limitation": "viewport-export;offscreen-unproven",
+                  "isValid": true
+                },
+                "deviceId": "fixture-device"
+              },
+              "containerId": "ctr-421029e3ba6c",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-421029e3ba6c-0",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-421029e3ba6c-1",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": false,
+              "visitSourceRef": null
+            },
+            {
+              "sourceRevisionId": "rev-27",
+              "captureEvidenceId": "ev-36508eb0c89500ae10e7ae0f2c33cccdea1bd88888c6236baca7cb2f0419463c",
+              "identityEvidenceId": "ev-34c66b391bdb58d99ebc985d19ed79559191dcd030b2331b264a9b2e5d3bde84",
+              "capture": {
+                "captureId": "child-complete",
+                "observationCycleId": "cycle:child-complete",
+                "sessionCorrelation": "session",
+                "captureTime": "2026-10-23T00:00:03+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:100x100@0",
+                  "pixelWidth": 100,
+                  "pixelHeight": 100,
+                  "rotation": 0,
+                  "captureId": "child-complete"
+                },
+                "items": [
+                  {
+                    "id": "title",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 0,
+                      "x2": 90,
+                      "y2": 20,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "context",
+                    "kind": "ui.element",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 20,
+                      "x2": 90,
+                      "y2": 90,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "coverage": {
+                  "completeness": 0,
+                  "limitation": null,
+                  "isValid": true
+                },
+                "deviceId": "fixture-device"
+              },
+              "containerId": "ctr-421029e3ba6c",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-34c66b391bdb-0",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-34c66b391bdb-1",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": true,
+              "visitSourceRef": null
+            }
+          ],
+          "semanticReferences": [],
+          "viewportTransitions": [],
+          "unknown": [
+            "visit-occurrence-unproven",
+            "whole-page-coverage-unproven"
+          ],
+          "contentDigest": "56d6c31f7a493f8d6074748474136bee8677f7627a78b595332e4bcd126bd3f4",
+          "corrections": [],
+          "contextRelations": [
+            {
+              "kind": 0,
+              "sourceContainerId": "ctr-4ed4fedf3af1",
+              "targetContainerId": "ctr-421029e3ba6c",
+              "evidenceBasis": [
+                "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe",
+                "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e",
+                "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc",
+                "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636",
+                "ev-208e52afa67ea2a0e4d3fac18450d6f2b25e0893a18fcd42ce85f37baac6e289"
+              ],
+              "scope": "capture:child",
+              "verificationSourceRef": "native-profile-sha256:16a24ba196ef6ec4df703c98a3244d4de2d23894247615ded2d7613adbd23093",
+              "sourceRevisionId": "rev-24",
+              "targetRevisionId": "rev-24"
+            }
+          ],
+          "currentSemantics": [],
+          "accumulatedContent": {
+            "sourceRevisionId": "rev-27",
+            "containerId": "ctr-421029e3ba6c",
+            "currentCaptureEvidenceId": "ev-36508eb0c89500ae10e7ae0f2c33cccdea1bd88888c6236baca7cb2f0419463c",
+            "items": [
+              {
+                "presentationRef": "content:occ-34c66b391bdb-0",
+                "containerId": "ctr-421029e3ba6c",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2
+                },
+                "captureEvidenceId": "ev-36508eb0c89500ae10e7ae0f2c33cccdea1bd88888c6236baca7cb2f0419463c",
+                "captureTime": "2026-10-23T00:00:03+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-34c66b391bdb-0"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-34c66b391bdb-1",
+                "containerId": "ctr-421029e3ba6c",
+                "role": "ui.element",
+                "semanticDescriptor": "Settings",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0.2,
+                  "x2": 0.9,
+                  "y2": 0.9
+                },
+                "captureEvidenceId": "ev-36508eb0c89500ae10e7ae0f2c33cccdea1bd88888c6236baca7cb2f0419463c",
+                "captureTime": "2026-10-23T00:00:03+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-34c66b391bdb-1"
+                ]
+              }
+            ],
+            "registrationSourceRefs": [],
+            "unknown": [
+              "whole-page-coverage-unproven"
+            ]
+          }
+        }
+      ],
+      "slices": [
+        {
+          "sliceId": "slice:v2:995a763f6767b246401673e1cc32dbc5e1b82dd143a051a9432b7baa6324b8f3",
+          "slice": {
+            "sourceRevisionId": "rev-27",
+            "rootContainerId": "ctr-4ed4fedf3af1",
+            "freshnessBasis": {
+              "asOf": "2026-10-23T00:00:03+00:00"
+            },
+            "inScopeContainerIds": [
+              "ctr-421029e3ba6c",
+              "ctr-4ed4fedf3af1"
+            ],
+            "occurrences": [
+              {
+                "occurrenceId": "occ-34c66b391bdb-0",
+                "owningContainerId": "ctr-421029e3ba6c",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.1
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-34c66b391bdb-1",
+                "owningContainerId": "ctr-421029e3ba6c",
+                "role": "ui.element",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0.2,
+                  "x2": 0.9,
+                  "y2": 0.9,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.55
+                },
+                "native": null
+              }
+            ],
+            "scopedClaims": {},
+            "region": null,
+            "semanticKnowledge": []
+          },
+          "coreSlice": {
+            "id": {
+              "value": "slice:v2:995a763f6767b246401673e1cc32dbc5e1b82dd143a051a9432b7baa6324b8f3"
+            },
+            "segmentId": {
+              "value": "ctr-4ed4fedf3af1"
+            },
+            "observationEvidenceIds": [
+              {
+                "value": "ev-0a4727267559df404f9f9b1ad9ecf94ad4475212c9b3a4d5694b04ef20bbea6a"
+              },
+              {
+                "value": "ev-12cbbd1e54c4792e515a93cc961645ff476537cc6b699ccd9584b31ff538729c"
+              },
+              {
+                "value": "ev-1546b83da97c8929913046c3932366dcdaac8e134a803f23f7674bac1f259910"
+              },
+              {
+                "value": "ev-208e52afa67ea2a0e4d3fac18450d6f2b25e0893a18fcd42ce85f37baac6e289"
+              },
+              {
+                "value": "ev-265b040e8b8d7d91ee463f38479a5cddb7b7d26a831dc690c83a0e07e9c40ce5"
+              },
+              {
+                "value": "ev-28a9831c19ffd6a9ce249942356740a6d307fb7ec03c9efa882d01337b6baf3f"
+              },
+              {
+                "value": "ev-34c66b391bdb58d99ebc985d19ed79559191dcd030b2331b264a9b2e5d3bde84"
+              },
+              {
+                "value": "ev-36508eb0c89500ae10e7ae0f2c33cccdea1bd88888c6236baca7cb2f0419463c"
+              },
+              {
+                "value": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636"
+              },
+              {
+                "value": "ev-4828de50604595f7de6444a17e9c77be2c762ccb07bf93e3e0d5c7ac14832ee6"
+              },
+              {
+                "value": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc"
+              },
+              {
+                "value": "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe"
+              },
+              {
+                "value": "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7"
+              },
+              {
+                "value": "ev-7f4736e1e576d3e17e1545a783c623865cd4bd5651f52ab14120be4eb1c1df6a"
+              },
+              {
+                "value": "ev-838fb669079218a49ff4fb32d97bce511e806a51e0ceb7132489fbd76bd20251"
+              },
+              {
+                "value": "ev-91570d8f1170e9acec30ea071a20b9be00c77c3da4bd895eef6b187e03344f1b"
+              },
+              {
+                "value": "ev-92d221f73a4ac1a105638d2f4ccfc821cd7625db9168a8cded1728aa5f16584c"
+              },
+              {
+                "value": "ev-aae6b54cc0f8f85cb9b2f34247fa85c226db927561c3bd499568fde37cdbdf88"
+              },
+              {
+                "value": "ev-aedbe1a2fb3f929b11a3f06e2e10ef477b6388e6e5ee81b06328e0f5774e6f1e"
+              },
+              {
+                "value": "ev-b1465b82abf6cb3aa94b09d1dbe8da9f562977f433de930b5c5dffed0a5ce3ef"
+              },
+              {
+                "value": "ev-be091b2b3a0e88cd0c2edc822eda1affebb94b372640b4caf621ad3264776d81"
+              },
+              {
+                "value": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+              },
+              {
+                "value": "ev-d90138f10809edb65d2639a63308691c4152a5069fd23abca543b31ccc643de5"
+              },
+              {
+                "value": "ev-dda4f22ec70c206a2518ec71344bdeb895884a43f2013b5b444859f38e024fc1"
+              },
+              {
+                "value": "ev-dff476d804cfb3d041b7e797026305386e87aae72bbddd816822eae915e5b122"
+              },
+              {
+                "value": "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e"
+              },
+              {
+                "value": "ev-ff8746a13e76a5ac36c6c17d3aac62c44534b3553b55eacd6ed2a50258b840ab"
+              }
+            ],
+            "observedAt": "2026-10-23T00:00:03+00:00",
+            "scope": "{\u0022Containers\u0022:[\u0022ctr-421029e3ba6c\u0022,\u0022ctr-4ed4fedf3af1\u0022],\u0022Region\u0022:null}",
+            "observedRecordIds": [
+              {
+                "value": "occ-34c66b391bdb-0"
+              },
+              {
+                "value": "occ-34c66b391bdb-1"
+              }
+            ],
+            "coverage": "partial"
+          },
+          "presentation": [
+            {
+              "sourceRevisionId": "rev-27",
+              "rootContainerId": "ctr-4ed4fedf3af1",
+              "isAuthoritative": false,
+              "elements": [
+                {
+                  "occurrenceId": "occ-34c66b391bdb-0",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  }
+                },
+                {
+                  "occurrenceId": "occ-34c66b391bdb-1",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sliceId": "slice:v2:7c83e05c4a69000e5fc0206e0e6d0e77ba276352e6c6e66affc810d37b8ac21e",
+          "slice": {
+            "sourceRevisionId": "rev-27",
+            "rootContainerId": "ctr-421029e3ba6c",
+            "freshnessBasis": {
+              "asOf": "2026-10-23T00:00:03+00:00"
+            },
+            "inScopeContainerIds": [
+              "ctr-421029e3ba6c",
+              "ctr-4ed4fedf3af1"
+            ],
+            "occurrences": [
+              {
+                "occurrenceId": "occ-34c66b391bdb-0",
+                "owningContainerId": "ctr-421029e3ba6c",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.1
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-34c66b391bdb-1",
+                "owningContainerId": "ctr-421029e3ba6c",
+                "role": "ui.element",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0.2,
+                  "x2": 0.9,
+                  "y2": 0.9,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.55
+                },
+                "native": null
+              }
+            ],
+            "scopedClaims": {},
+            "region": null,
+            "semanticKnowledge": []
+          },
+          "coreSlice": {
+            "id": {
+              "value": "slice:v2:7c83e05c4a69000e5fc0206e0e6d0e77ba276352e6c6e66affc810d37b8ac21e"
+            },
+            "segmentId": {
+              "value": "ctr-421029e3ba6c"
+            },
+            "observationEvidenceIds": [
+              {
+                "value": "ev-0a4727267559df404f9f9b1ad9ecf94ad4475212c9b3a4d5694b04ef20bbea6a"
+              },
+              {
+                "value": "ev-12cbbd1e54c4792e515a93cc961645ff476537cc6b699ccd9584b31ff538729c"
+              },
+              {
+                "value": "ev-1546b83da97c8929913046c3932366dcdaac8e134a803f23f7674bac1f259910"
+              },
+              {
+                "value": "ev-208e52afa67ea2a0e4d3fac18450d6f2b25e0893a18fcd42ce85f37baac6e289"
+              },
+              {
+                "value": "ev-265b040e8b8d7d91ee463f38479a5cddb7b7d26a831dc690c83a0e07e9c40ce5"
+              },
+              {
+                "value": "ev-28a9831c19ffd6a9ce249942356740a6d307fb7ec03c9efa882d01337b6baf3f"
+              },
+              {
+                "value": "ev-34c66b391bdb58d99ebc985d19ed79559191dcd030b2331b264a9b2e5d3bde84"
+              },
+              {
+                "value": "ev-36508eb0c89500ae10e7ae0f2c33cccdea1bd88888c6236baca7cb2f0419463c"
+              },
+              {
+                "value": "ev-421029e3ba6c318a077c37da5003a41d1b64fbcfb9a7bbdb32bad1b56a6f5636"
+              },
+              {
+                "value": "ev-4828de50604595f7de6444a17e9c77be2c762ccb07bf93e3e0d5c7ac14832ee6"
+              },
+              {
+                "value": "ev-4ed4fedf3af1fe61428258ec7edfa17627c022968f228f6763505e277af5eebc"
+              },
+              {
+                "value": "ev-5e1c2e5f5152cd8324871a6cea434d61c5454685bc24d4d82c5a4275c5dc4efe"
+              },
+              {
+                "value": "ev-7132efa8de8308a4fbbb59d9e48409bc2e8cdf6b08974bee6e6123a3fd3f70a7"
+              },
+              {
+                "value": "ev-7f4736e1e576d3e17e1545a783c623865cd4bd5651f52ab14120be4eb1c1df6a"
+              },
+              {
+                "value": "ev-838fb669079218a49ff4fb32d97bce511e806a51e0ceb7132489fbd76bd20251"
+              },
+              {
+                "value": "ev-91570d8f1170e9acec30ea071a20b9be00c77c3da4bd895eef6b187e03344f1b"
+              },
+              {
+                "value": "ev-92d221f73a4ac1a105638d2f4ccfc821cd7625db9168a8cded1728aa5f16584c"
+              },
+              {
+                "value": "ev-aae6b54cc0f8f85cb9b2f34247fa85c226db927561c3bd499568fde37cdbdf88"
+              },
+              {
+                "value": "ev-aedbe1a2fb3f929b11a3f06e2e10ef477b6388e6e5ee81b06328e0f5774e6f1e"
+              },
+              {
+                "value": "ev-b1465b82abf6cb3aa94b09d1dbe8da9f562977f433de930b5c5dffed0a5ce3ef"
+              },
+              {
+                "value": "ev-be091b2b3a0e88cd0c2edc822eda1affebb94b372640b4caf621ad3264776d81"
+              },
+              {
+                "value": "ev-c008be9d0853c116acf0c4c9f6367da9dab772668bf8955651d8bf554cf55f0d"
+              },
+              {
+                "value": "ev-d90138f10809edb65d2639a63308691c4152a5069fd23abca543b31ccc643de5"
+              },
+              {
+                "value": "ev-dda4f22ec70c206a2518ec71344bdeb895884a43f2013b5b444859f38e024fc1"
+              },
+              {
+                "value": "ev-dff476d804cfb3d041b7e797026305386e87aae72bbddd816822eae915e5b122"
+              },
+              {
+                "value": "ev-e11f6f0f30c1017af738daa6056aa1dbcdc4cf9af338f22fcc8092c71ac4032e"
+              },
+              {
+                "value": "ev-ff8746a13e76a5ac36c6c17d3aac62c44534b3553b55eacd6ed2a50258b840ab"
+              }
+            ],
+            "observedAt": "2026-10-23T00:00:03+00:00",
+            "scope": "{\u0022Containers\u0022:[\u0022ctr-421029e3ba6c\u0022,\u0022ctr-4ed4fedf3af1\u0022],\u0022Region\u0022:null}",
+            "observedRecordIds": [
+              {
+                "value": "occ-34c66b391bdb-0"
+              },
+              {
+                "value": "occ-34c66b391bdb-1"
+              }
+            ],
+            "coverage": "partial"
+          },
+          "presentation": [
+            {
+              "sourceRevisionId": "rev-27",
+              "rootContainerId": "ctr-421029e3ba6c",
+              "isAuthoritative": false,
+              "elements": [
+                {
+                  "occurrenceId": "occ-34c66b391bdb-0",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  }
+                },
+                {
+                  "occurrenceId": "occ-34c66b391bdb-1",
+                  "owningContainerId": "ctr-421029e3ba6c",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.2,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.55
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

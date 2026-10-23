@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "world-visualization.index.v1",
+  "examples": [
+    {
+      "id": "world-visualization:reuse",
+      "family": "reuse",
+      "title": "已核实页面语义沿用",
+      "file": "reuse.json",
+      "sha256": "e1532e1c1b351cbdf438272db48077b1edbf7d4438a0cf999c092b42cb56781f"
+    },
+    {
+      "id": "world-visualization:context",
+      "family": "context",
+      "title": "页面上下文知识缺口",
+      "file": "context.json",
+      "sha256": "b318b9e3aa4e1fe89b0f44c9087f681c0cee25451bdeea94261f1299dc765437"
+    },
+    {
+      "id": "world-visualization:recovery",
+      "family": "recovery",
+      "title": "有界观察恢复审查",
+      "file": "recovery.json",
+      "sha256": "60eef61c42e85531bd551b5075183ae40104675b169c74a762312f15bb225e96"
+    },
+    {
+      "id": "world-visualization:terminal",
+      "family": "terminal",
+      "title": "终局后的影响复核",
+      "file": "terminal.json",
+      "sha256": "836ac19465aabe557aa17d5e63830d65496c03bef1e3b51023f17762e6403ec1"
+    },
+    {
+      "id": "world-visualization:correction",
+      "family": "correction",
+      "title": "历史身份纠正及消费影响",
+      "file": "correction.json",
+      "sha256": "d20cb23604ac4ff138c470e72d14fe38dcdb65a45d66037fc35dde228bdc00e2"
+    },
+    {
+      "id": "world-visualization:correction-conflict",
+      "family": "correction-conflict",
+      "title": "纠正证据被拒绝时保留原归属",
+      "file": "correction-conflict.json",
+      "sha256": "8316f5e34576b9a0c1d7e389c9ceccf94dd58d806b772001c8180f280bffeeb8"
+    },
+    {
+      "id": "world-visualization:late-result",
+      "family": "late-result",
+      "title": "迟到解释仍绑定原观察",
+      "file": "late-result.json",
+      "sha256": "2fa2ca3940793b608142fc12fc54ef9e993a3a77da34ddf2b0c757693d2baedf"
+    },
+    {
+      "id": "world-visualization:reuse-negative",
+      "family": "reuse-negative",
+      "title": "当前变化不沿用历史定位与状态",
+      "file": "reuse-negative.json",
+      "sha256": "a0dc2102d65722a8bbda5d4155a5625ad5e3d71f5a73382c258ed1d438946332"
+    },
+    {
+      "id": "world-visualization:scroll",
+      "family": "scroll",
+      "title": "滚动页面累计内容",
+      "file": "scroll.json",
+      "sha256": "0f5afd5d74888531b3b2f4f5adb8d3327d463a1a6060c8baa511012c7e3892bb"
+    },
+    {
+      "id": "world-visualization:recorded",
+      "family": "recorded",
+      "title": "录制布局的真实 World 与咨询",
+      "file": "recorded.json",
+      "sha256": "5534b6d077bb7a2d216b4414ce9766a577f09caf18541953007e302330dc728e"
+    }
+  ]
+}

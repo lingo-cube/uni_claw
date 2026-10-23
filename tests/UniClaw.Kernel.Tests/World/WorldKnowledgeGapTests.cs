@@ -36,6 +36,11 @@ public sealed class WorldKnowledgeGapTests
             WorldKnowledgeGapKind.RelationBasis, WorldKnowledgeGapKind.ObservationCoverage },
             initial.Gaps.Select(g => g.Kind).OrderBy(k => k));
         var oldSnapshot = world.DeriveKnowledgeGaps(parent, unresolvedRevision);
+        var visualization = new List<object>
+        {
+            WorldVisualizationExport.Frame("child-unidentified", "Four current gaps before child identity is confirmed",
+                kernel, world, [parent], knowledge: oldSnapshot, capture: childCapture)
+        };
 
         kernel.Process(IdentityProposal(childCapture, childEvidence, "com.example.settings:id/child"));
         var afterIdentity = world.DeriveKnowledgeGaps(parent);
@@ -43,6 +48,9 @@ public sealed class WorldKnowledgeGapTests
         Assert.Contains(afterIdentity.Gaps, g => g.Kind == WorldKnowledgeGapKind.RelationBasis);
         Assert.Contains(afterIdentity.Gaps, g => g.Kind == WorldKnowledgeGapKind.ObservationCoverage);
         Assert.Equal(4, world.DeriveKnowledgeGaps(parent, unresolvedRevision).Gaps.Count);
+        visualization.Add(WorldVisualizationExport.Frame("child-identified", "Identity and attribution resolve; relation and coverage remain",
+            kernel, world, [parent, world.Current!.CurrentPageObservation!.ContainerId!],
+            knowledge: afterIdentity, capture: childCapture));
 
         var profile = Profile();
         var hierarchy = Hierarchy(childCapture, childContextParent: 0);
@@ -67,6 +75,9 @@ public sealed class WorldKnowledgeGapTests
             && r.SourceContainerId == parent && r.TargetContainerId == world.Current.CurrentPageObservation!.ContainerId);
         Assert.DoesNotContain(world.DeriveKnowledgeGaps(parent).Gaps, g => g.Kind == WorldKnowledgeGapKind.RelationBasis);
         Assert.Contains(world.DeriveKnowledgeGaps(parent).Gaps, g => g.Kind == WorldKnowledgeGapKind.ObservationCoverage);
+        visualization.Add(WorldVisualizationExport.Frame("contains-confirmed", "Accepted direct typed relation resolves relation basis",
+            kernel, world, [parent, world.Current!.CurrentPageObservation!.ContainerId!],
+            knowledge: world.DeriveKnowledgeGaps(parent), capture: childCapture));
 
         // A new complete viewport capture resolves only its own coverage gap;
         // the prior capture-scoped Contains relation is not inherited as current.
@@ -77,6 +88,10 @@ public sealed class WorldKnowledgeGapTests
         Assert.DoesNotContain(world.DeriveKnowledgeGaps().Gaps, g => g.Kind == WorldKnowledgeGapKind.RelationBasis);
         Assert.Contains(world.DeriveKnowledgeGaps(parent).Gaps, g => g.Kind == WorldKnowledgeGapKind.RelationBasis);
         Assert.Equal(4, oldSnapshot.Gaps.Count);
+        visualization.Add(WorldVisualizationExport.Frame("new-capture-no-inherited-relation", "New complete capture does not inherit the prior capture relation",
+            kernel, world, [parent, world.Current!.CurrentPageObservation!.ContainerId!],
+            knowledge: world.DeriveKnowledgeGaps(parent), capture: third));
+        WorldVisualizationExport.Write("context", visualization.ToArray());
     }
 
     [Fact]

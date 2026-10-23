@@ -1,0 +1,14 @@
+[
+  {
+    "name": "迟到结果不替换当前capture",
+    "passed": true
+  },
+  {
+    "name": "缺当前对应时保留历史参考",
+    "passed": true
+  },
+  {
+    "name": "不符依据拒绝纠正",
+    "passed": true
+  }
+]

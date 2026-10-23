@@ -10,6 +10,7 @@ using UniClaw.Agent.Dsh;
 using UniClaw.Kernel;
 using UniClaw.Kernel.Assurance;
 using UniClaw.Kernel.Capability;
+using UniClaw.Kernel.Core;
 using UniClaw.Kernel.Control;
 using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
@@ -304,6 +305,42 @@ public sealed class WorldKnowledgeChannelTests
                 new JsonSerializerOptions { WriteIndented = true }), new UTF8Encoding(false));
             File.WriteAllText(Path.Combine(directory, "channel-consults.json"),
                 JsonSerializer.Serialize(consults.Select(r => r.Body).ToArray()), new UTF8Encoding(false));
+        }
+
+        var visualizationSourcePath = Environment.GetEnvironmentVariable("UNICLAW_WORLD_VIS_RECORDED_EXPORT");
+        if (!string.IsNullOrWhiteSpace(visualizationSourcePath))
+        {
+            if (!Path.IsPathFullyQualified(visualizationSourcePath))
+                throw new InvalidOperationException("UNICLAW_WORLD_VIS_RECORDED_EXPORT must be an absolute path");
+            var sourceDirectory = Path.GetDirectoryName(visualizationSourcePath)!;
+            Directory.CreateDirectory(sourceDirectory);
+            var current = world.Current!;
+            var graph = kernel.ProjectWorldGraph("recorded-source:viewport-v1")!;
+            var coreSlice = CoreSemanticProjection.ProjectSlice(slice, current);
+            var visualizationSource = new
+            {
+                schemaVersion = "world-visualization-recorded-source.v1",
+                source = new
+                {
+                    file = Path.GetRelativePath(repository, sourcePath),
+                    sha256 = sourceSha256,
+                    inputClass = "recorded XML plus controlled correlation metadata and provider double",
+                    finalProviderEnvelopeProven = false,
+                },
+                current,
+                revisions = world.RevisionHistory,
+                graph,
+                knowledge = kernel.ProjectWorldKnowledge(),
+                worldPage = page,
+                slice,
+                sliceId = CoreSemanticProjection.SliceId(slice).Value,
+                coreSlice,
+                slicePresentation = presentation,
+                consultationGapCounts = new[] { first.GetProperty("gaps").GetArrayLength(), second.GetProperty("gaps").GetArrayLength() },
+                httpConsultBodies = consults.Select(r => r.Body).ToArray(),
+            };
+            File.WriteAllText(visualizationSourcePath, JsonSerializer.Serialize(visualizationSource,
+                new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }), new UTF8Encoding(false));
         }
     }
 

@@ -1,0 +1,619 @@
+{
+  "schemaVersion": "world-visualization.v1",
+  "id": "world-visualization:correction-conflict",
+  "title": "correction-conflict",
+  "provenance": {
+    "coreCommit": "56a75fd7",
+    "sourceTest": "correction-conflict",
+    "inputClass": "\u53D7\u63A7\u6765\u6E90/\u771F\u5B9E\u6838\u5FC3",
+    "limitations": [
+      "controlled fixture/provider inputs; no live-device or live-model evidence"
+    ]
+  },
+  "frames": [
+    {
+      "key": "rejected-signature-correction",
+      "label": "Native support disagrees with the declared replacement; original attribution remains",
+      "revision": {
+        "revisionId": "rev-6",
+        "parentRevisionId": "rev-5",
+        "revisionNumber": 6,
+        "worldState": {
+          "ui.node.target-a#0.resource_id": {
+            "value": "native:page:B",
+            "evidenceId": "ev-6e8f582bdf469803046d617bbe1baf2427e81847758f7eecb8d7fbc7eefb380d",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "context:target-a",
+            "supersededEvidenceIds": null
+          },
+          "ui.screen": {
+            "value": "page:A",
+            "evidenceId": "ev-0a7c66425fe42fd4c97963118f2ac90aa75323c0761ba60c246ebbe0a5906519",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.current": {
+            "value": "ctr-0a7c66425fe4",
+            "evidenceId": "ev-0a7c66425fe42fd4c97963118f2ac90aa75323c0761ba60c246ebbe0a5906519",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.signature.ctr-0a7c66425fe4": {
+            "value": "page:A",
+            "evidenceId": "ev-0a7c66425fe42fd4c97963118f2ac90aa75323c0761ba60c246ebbe0a5906519",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.signature.ctr-daddd4b5c78d": {
+            "value": "native:page:B",
+            "evidenceId": "ev-daddd4b5c78d70c233c3860eab968921d00728dcb83bdb8f6b21e04e4dd5b128",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          }
+        },
+        "worldGraph": [
+          "ui.screen",
+          "ui.container.current",
+          "ui.container.signature.ctr-daddd4b5c78d",
+          "ui.container.signature.ctr-0a7c66425fe4",
+          "ui.node.target-a#0.resource_id"
+        ],
+        "evidenceBasis": [
+          "ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0",
+          "ev-daddd4b5c78d70c233c3860eab968921d00728dcb83bdb8f6b21e04e4dd5b128",
+          "ev-ef5425ef8d384c64499a4a60e635a9c133044011676cd4159707fe0ed5a2fa82",
+          "ev-0a7c66425fe42fd4c97963118f2ac90aa75323c0761ba60c246ebbe0a5906519",
+          "ev-1d80d5c4bc925de7e9bee8ca979db56479ef07ebcbe71d65914c5c3ffe2df381",
+          "ev-6e8f582bdf469803046d617bbe1baf2427e81847758f7eecb8d7fbc7eefb380d"
+        ],
+        "freshnessBasis": {
+          "asOf": "2026-10-23T00:00:02+00:00"
+        },
+        "uncertainty": {
+          "conflictingClaimCount": 0
+        },
+        "conflicts": [],
+        "containers": [
+          {
+            "identity": {
+              "containerId": "ctr-daddd4b5c78d"
+            },
+            "evidenceBasis": [
+              "ev-daddd4b5c78d70c233c3860eab968921d00728dcb83bdb8f6b21e04e4dd5b128"
+            ]
+          },
+          {
+            "identity": {
+              "containerId": "ctr-0a7c66425fe4"
+            },
+            "evidenceBasis": [
+              "ev-0a7c66425fe42fd4c97963118f2ac90aa75323c0761ba60c246ebbe0a5906519"
+            ]
+          }
+        ],
+        "relations": [],
+        "occurrences": [
+          {
+            "occurrenceId": "occ-0a7c66425fe4-0",
+            "owningContainerId": "ctr-0a7c66425fe4",
+            "role": "text",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 0.9,
+              "y2": 0.2,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.1
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "target-a"
+            }
+          },
+          {
+            "occurrenceId": "occ-0a7c66425fe4-1",
+            "owningContainerId": "ctr-0a7c66425fe4",
+            "role": "ui.element",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0.3,
+              "x2": 0.9,
+              "y2": 0.6,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.44999999999999996
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "target-a"
+            }
+          }
+        ],
+        "logicalItems": null,
+        "currentPageObservation": {
+          "capture": {
+            "captureId": "target-a",
+            "observationCycleId": "cycle:target-a",
+            "sessionCorrelation": "session",
+            "captureTime": "2026-10-23T00:00:02+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "target-a"
+            },
+            "items": [
+              {
+                "id": "title",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 90,
+                  "y2": 20,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "row",
+                "kind": "ui.element",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 30,
+                  "x2": 90,
+                  "y2": 60,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ],
+            "deviceId": "fixture-device"
+          },
+          "evidenceId": "ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0",
+          "containerId": "ctr-0a7c66425fe4",
+          "identityEvidenceId": "ev-0a7c66425fe42fd4c97963118f2ac90aa75323c0761ba60c246ebbe0a5906519"
+        },
+        "observationNeed": null,
+        "semanticKnowledge": [],
+        "viewportTransitions": []
+      },
+      "knowledge": {
+        "sourceRevisionId": "rev-6",
+        "collectionStatus": "collected",
+        "gaps": [
+          {
+            "gapId": "world-gap:41aae69fa715112b52a4a2bbcc0fb997a0bd598540fc82810c7474420060fb97",
+            "kind": 3,
+            "objectRef": "ctr-0a7c66425fe4",
+            "scope": "capture:target-a:viewport",
+            "reason": "capture-coverage-not-collected",
+            "sourceRevisionId": "rev-6",
+            "evidenceIds": [
+              "ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0"
+          }
+        ],
+        "semanticReferences": [],
+        "currentSemantics": [],
+        "corrections": [
+          {
+            "sourceRevisionId": "rev-6",
+            "correctionEvidenceId": "ev-ef5425ef8d384c64499a4a60e635a9c133044011676cd4159707fe0ed5a2fa82",
+            "targetCaptureEvidenceId": "ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0",
+            "supersededIdentityEvidenceId": "ev-0a7c66425fe42fd4c97963118f2ac90aa75323c0761ba60c246ebbe0a5906519",
+            "previousContainerId": "ctr-0a7c66425fe4",
+            "correctedContainerId": null,
+            "replacementIdentity": {
+              "captureId": "target-a",
+              "observationCycleId": "cycle:target-a",
+              "sessionCorrelation": "session",
+              "captureTime": "2026-10-23T00:00:02+00:00",
+              "signature": "native:page:NOT-B",
+              "observedTitle": "Settings"
+            },
+            "supportingEvidenceIds": [
+              "ev-6e8f582bdf469803046d617bbe1baf2427e81847758f7eecb8d7fbc7eefb380d"
+            ],
+            "processingSourceRef": "controlled-native-context:v1",
+            "applied": false,
+            "reason": "native-context-support-unproven",
+            "revokedInterpretationEvidenceIds": []
+          }
+        ]
+      },
+      "recovery": null,
+      "effectImpacts": null,
+      "terminal": null,
+      "outcome": null,
+      "actualConsultation": null,
+      "receipts": [],
+      "verifications": null,
+      "decisionUses": [],
+      "capture": {
+        "captureId": "target-a",
+        "observationCycleId": "cycle:target-a",
+        "sessionCorrelation": "session",
+        "captureTime": "2026-10-23T00:00:02+00:00",
+        "space": {
+          "coordinateSpaceId": "device-viewport:100x100@0",
+          "pixelWidth": 100,
+          "pixelHeight": 100,
+          "rotation": 0,
+          "captureId": "target-a"
+        },
+        "items": [
+          {
+            "id": "title",
+            "kind": "text",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 90,
+              "y2": 20,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "row",
+            "kind": "ui.element",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 30,
+              "x2": 90,
+              "y2": 60,
+              "isValid": true
+            },
+            "confidence": null
+          }
+        ],
+        "deviceId": "fixture-device"
+      },
+      "pages": [
+        {
+          "sourceRevisionId": "rev-6",
+          "containerId": "ctr-0a7c66425fe4",
+          "observations": [
+            {
+              "sourceRevisionId": "rev-6",
+              "captureEvidenceId": "ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0",
+              "identityEvidenceId": "ev-0a7c66425fe42fd4c97963118f2ac90aa75323c0761ba60c246ebbe0a5906519",
+              "capture": {
+                "captureId": "target-a",
+                "observationCycleId": "cycle:target-a",
+                "sessionCorrelation": "session",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:100x100@0",
+                  "pixelWidth": 100,
+                  "pixelHeight": 100,
+                  "rotation": 0,
+                  "captureId": "target-a"
+                },
+                "items": [
+                  {
+                    "id": "title",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 0,
+                      "x2": 90,
+                      "y2": 20,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "row",
+                    "kind": "ui.element",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 30,
+                      "x2": 90,
+                      "y2": 60,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "deviceId": "fixture-device"
+              },
+              "containerId": "ctr-0a7c66425fe4",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-0a7c66425fe4-0",
+                  "owningContainerId": "ctr-0a7c66425fe4",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-0a7c66425fe4-1",
+                  "owningContainerId": "ctr-0a7c66425fe4",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.3,
+                    "x2": 0.9,
+                    "y2": 0.6,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.44999999999999996
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": true,
+              "visitSourceRef": null
+            }
+          ],
+          "semanticReferences": [],
+          "viewportTransitions": [],
+          "unknown": [
+            "capture-coverage-not-collected:ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0",
+            "visit-occurrence-unproven",
+            "whole-page-coverage-unproven"
+          ],
+          "contentDigest": "4bc12d56d0766c5d1e8b2dce7fc2510c532d95fe02061d39b4f721e0cb997f8c",
+          "corrections": [
+            {
+              "sourceRevisionId": "rev-6",
+              "correctionEvidenceId": "ev-ef5425ef8d384c64499a4a60e635a9c133044011676cd4159707fe0ed5a2fa82",
+              "targetCaptureEvidenceId": "ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0",
+              "supersededIdentityEvidenceId": "ev-0a7c66425fe42fd4c97963118f2ac90aa75323c0761ba60c246ebbe0a5906519",
+              "previousContainerId": "ctr-0a7c66425fe4",
+              "correctedContainerId": null,
+              "replacementIdentity": {
+                "captureId": "target-a",
+                "observationCycleId": "cycle:target-a",
+                "sessionCorrelation": "session",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "signature": "native:page:NOT-B",
+                "observedTitle": "Settings"
+              },
+              "supportingEvidenceIds": [
+                "ev-6e8f582bdf469803046d617bbe1baf2427e81847758f7eecb8d7fbc7eefb380d"
+              ],
+              "processingSourceRef": "controlled-native-context:v1",
+              "applied": false,
+              "reason": "native-context-support-unproven",
+              "revokedInterpretationEvidenceIds": []
+            }
+          ],
+          "contextRelations": [],
+          "currentSemantics": [],
+          "accumulatedContent": {
+            "sourceRevisionId": "rev-6",
+            "containerId": "ctr-0a7c66425fe4",
+            "currentCaptureEvidenceId": "ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0",
+            "items": [
+              {
+                "presentationRef": "content:occ-0a7c66425fe4-0",
+                "containerId": "ctr-0a7c66425fe4",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2
+                },
+                "captureEvidenceId": "ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-0a7c66425fe4-0"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-0a7c66425fe4-1",
+                "containerId": "ctr-0a7c66425fe4",
+                "role": "ui.element",
+                "semanticDescriptor": "Settings",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0.3,
+                  "x2": 0.9,
+                  "y2": 0.6
+                },
+                "captureEvidenceId": "ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-0a7c66425fe4-1"
+                ]
+              }
+            ],
+            "registrationSourceRefs": [],
+            "unknown": [
+              "whole-page-coverage-unproven"
+            ]
+          }
+        }
+      ],
+      "slices": [
+        {
+          "sliceId": "slice:v2:5993bcfa232df691cfbb70ec72e4bb5b3b7e2e448eff74c855d318270691d7a5",
+          "slice": {
+            "sourceRevisionId": "rev-6",
+            "rootContainerId": "ctr-0a7c66425fe4",
+            "freshnessBasis": {
+              "asOf": "2026-10-23T00:00:02+00:00"
+            },
+            "inScopeContainerIds": [
+              "ctr-0a7c66425fe4"
+            ],
+            "occurrences": [
+              {
+                "occurrenceId": "occ-0a7c66425fe4-0",
+                "owningContainerId": "ctr-0a7c66425fe4",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.1
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-0a7c66425fe4-1",
+                "owningContainerId": "ctr-0a7c66425fe4",
+                "role": "ui.element",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0.3,
+                  "x2": 0.9,
+                  "y2": 0.6,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.44999999999999996
+                },
+                "native": null
+              }
+            ],
+            "scopedClaims": {},
+            "region": null,
+            "semanticKnowledge": []
+          },
+          "coreSlice": {
+            "id": {
+              "value": "slice:v2:5993bcfa232df691cfbb70ec72e4bb5b3b7e2e448eff74c855d318270691d7a5"
+            },
+            "segmentId": {
+              "value": "ctr-0a7c66425fe4"
+            },
+            "observationEvidenceIds": [
+              {
+                "value": "ev-0a7c66425fe42fd4c97963118f2ac90aa75323c0761ba60c246ebbe0a5906519"
+              },
+              {
+                "value": "ev-1d80d5c4bc925de7e9bee8ca979db56479ef07ebcbe71d65914c5c3ffe2df381"
+              },
+              {
+                "value": "ev-6e8f582bdf469803046d617bbe1baf2427e81847758f7eecb8d7fbc7eefb380d"
+              },
+              {
+                "value": "ev-a7036b7ea7147d98de520ed223f504bff8b02327108b4f60bdaa4c83aa3a4cd0"
+              },
+              {
+                "value": "ev-daddd4b5c78d70c233c3860eab968921d00728dcb83bdb8f6b21e04e4dd5b128"
+              },
+              {
+                "value": "ev-ef5425ef8d384c64499a4a60e635a9c133044011676cd4159707fe0ed5a2fa82"
+              }
+            ],
+            "observedAt": "2026-10-23T00:00:02+00:00",
+            "scope": "{\u0022Containers\u0022:[\u0022ctr-0a7c66425fe4\u0022],\u0022Region\u0022:null}",
+            "observedRecordIds": [
+              {
+                "value": "occ-0a7c66425fe4-0"
+              },
+              {
+                "value": "occ-0a7c66425fe4-1"
+              }
+            ],
+            "coverage": "partial"
+          },
+          "presentation": [
+            {
+              "sourceRevisionId": "rev-6",
+              "rootContainerId": "ctr-0a7c66425fe4",
+              "isAuthoritative": false,
+              "elements": [
+                {
+                  "occurrenceId": "occ-0a7c66425fe4-0",
+                  "owningContainerId": "ctr-0a7c66425fe4",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  }
+                },
+                {
+                  "occurrenceId": "occ-0a7c66425fe4-1",
+                  "owningContainerId": "ctr-0a7c66425fe4",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.3,
+                    "x2": 0.9,
+                    "y2": 0.6,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.44999999999999996
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

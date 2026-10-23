@@ -1,0 +1,3954 @@
+{
+  "schemaVersion": "world-visualization.v1",
+  "id": "world-visualization:recorded",
+  "title": "录制布局的真实 World 与咨询",
+  "provenance": {
+    "coreCommit": "56a75fd7",
+    "sourceTest": "WorldKnowledgeChannelTests.RecordedSettingsLayout_FlowsThroughWorldDriverAndDshConsults_AndExportsFormalViewsWhenRequested",
+    "inputClass": "受控来源/真实核心",
+    "limitations": [
+      "输入节点与 bounds 来自录制 XML；session/time/device 标签由测试控制。",
+      "DSH HTTP provider 是 double；最终 provider envelope 与 live model 未证。"
+    ]
+  },
+  "frames": [
+    {
+      "key": "recorded-current",
+      "label": "真实 Kernel/World current 与同 W 的录制来源页面",
+      "revision": {
+        "revisionId": "rev-2",
+        "parentRevisionId": "rev-1",
+        "revisionNumber": 2,
+        "worldState": {
+          "ui.screen": {
+            "value": "recorded-settings",
+            "evidenceId": "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.signature.ctr-81086c8ab0af": {
+            "value": "recorded-settings",
+            "evidenceId": "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.current": {
+            "value": "ctr-81086c8ab0af",
+            "evidenceId": "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          }
+        },
+        "worldGraph": [
+          "ui.screen",
+          "ui.container.current",
+          "ui.container.signature.ctr-81086c8ab0af"
+        ],
+        "evidenceBasis": [
+          "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+          "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc"
+        ],
+        "freshnessBasis": {
+          "asOf": "2026-10-23T00:00:00+00:00"
+        },
+        "uncertainty": {
+          "conflictingClaimCount": 0
+        },
+        "conflicts": [],
+        "containers": [
+          {
+            "identity": {
+              "containerId": "ctr-81086c8ab0af"
+            },
+            "evidenceBasis": [
+              "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc"
+            ]
+          }
+        ],
+        "relations": [],
+        "occurrences": [
+          {
+            "occurrenceId": "occ-81086c8ab0af-0",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.058333333333333334,
+              "y1": 0.17041666666666666,
+              "x2": 0.37777777777777777,
+              "y2": 0.22333333333333333,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.21805555555555556,
+              "centerY": 0.196875
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-1",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Search settings",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.18518518518518517,
+              "y1": 0.2633333333333333,
+              "x2": 0.5120370370370371,
+              "y2": 0.29291666666666666,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3486111111111111,
+              "centerY": 0.27812499999999996
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-2",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Network & internet",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.3466666666666667,
+              "x2": 0.5787037037037037,
+              "y2": 0.37625,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3768518518518519,
+              "centerY": 0.3614583333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-3",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Mobile, Wi‑Fi, hotspot",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.37625,
+              "x2": 0.5,
+              "y2": 0.3975,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3375,
+              "centerY": 0.38687499999999997
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-4",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Connected devices",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.4429166666666667,
+              "x2": 0.5888888888888889,
+              "y2": 0.4725,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3819444444444444,
+              "centerY": 0.45770833333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-5",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Bluetooth, pairing",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.4725,
+              "x2": 0.44074074074074077,
+              "y2": 0.49375,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.30787037037037035,
+              "centerY": 0.483125
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-6",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Apps",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.5391666666666667,
+              "x2": 0.287962962962963,
+              "y2": 0.56875,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.23148148148148148,
+              "centerY": 0.5539583333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-7",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Recent apps, default apps",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.56875,
+              "x2": 0.5685185185185185,
+              "y2": 0.59,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.37175925925925923,
+              "centerY": 0.579375
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-8",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Notifications",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.6354166666666666,
+              "x2": 0.4527777777777778,
+              "y2": 0.665,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3138888888888889,
+              "centerY": 0.6502083333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-9",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Notification history, conversations",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.665,
+              "x2": 0.6898148148148148,
+              "y2": 0.68625,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.43240740740740735,
+              "centerY": 0.675625
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-10",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Battery",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.7316666666666667,
+              "x2": 0.33055555555555555,
+              "y2": 0.76125,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.25277777777777777,
+              "centerY": 0.7464583333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-11",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "100%",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.76125,
+              "x2": 0.25833333333333336,
+              "y2": 0.7825,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.21666666666666667,
+              "centerY": 0.771875
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-12",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Storage",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.8279166666666666,
+              "x2": 0.3435185185185185,
+              "y2": 0.8575,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.25925925925925924,
+              "centerY": 0.8427083333333334
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-13",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "38% used - 9.96 GB free",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.8575,
+              "x2": 0.5370370370370371,
+              "y2": 0.87875,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3560185185185185,
+              "centerY": 0.868125
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-14",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Sound & vibration",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.9241666666666667,
+              "x2": 0.5564814814814815,
+              "y2": 0.9475,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3657407407407407,
+              "centerY": 0.9358333333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          }
+        ],
+        "logicalItems": null,
+        "currentPageObservation": {
+          "capture": {
+            "captureId": "recorded-settings-c1",
+            "observationCycleId": "recorded-settings-cycle1",
+            "sessionCorrelation": "controlled-recording-session",
+            "captureTime": "2026-10-23T00:00:00+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            },
+            "items": [
+              {
+                "id": "recording-node-7",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 63,
+                  "y1": 409,
+                  "x2": 408,
+                  "y2": 536,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-12",
+                "kind": "text",
+                "text": "Search settings",
+                "bounds": {
+                  "x1": 200,
+                  "y1": 632,
+                  "x2": 553,
+                  "y2": 703,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-23",
+                "kind": "text",
+                "text": "Network & internet",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 832,
+                  "x2": 625,
+                  "y2": 903,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-24",
+                "kind": "text",
+                "text": "Mobile, Wi‑Fi, hotspot",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 903,
+                  "x2": 540,
+                  "y2": 954,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-29",
+                "kind": "text",
+                "text": "Connected devices",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1063,
+                  "x2": 636,
+                  "y2": 1134,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-30",
+                "kind": "text",
+                "text": "Bluetooth, pairing",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1134,
+                  "x2": 476,
+                  "y2": 1185,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-35",
+                "kind": "text",
+                "text": "Apps",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1294,
+                  "x2": 311,
+                  "y2": 1365,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-36",
+                "kind": "text",
+                "text": "Recent apps, default apps",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1365,
+                  "x2": 614,
+                  "y2": 1416,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-41",
+                "kind": "text",
+                "text": "Notifications",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1525,
+                  "x2": 489,
+                  "y2": 1596,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-42",
+                "kind": "text",
+                "text": "Notification history, conversations",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1596,
+                  "x2": 745,
+                  "y2": 1647,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-47",
+                "kind": "text",
+                "text": "Battery",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1756,
+                  "x2": 357,
+                  "y2": 1827,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-48",
+                "kind": "text",
+                "text": "100%",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1827,
+                  "x2": 279,
+                  "y2": 1878,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-53",
+                "kind": "text",
+                "text": "Storage",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1987,
+                  "x2": 371,
+                  "y2": 2058,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-54",
+                "kind": "text",
+                "text": "38% used - 9.96 GB free",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 2058,
+                  "x2": 580,
+                  "y2": 2109,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-59",
+                "kind": "text",
+                "text": "Sound & vibration",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 2218,
+                  "x2": 601,
+                  "y2": 2274,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ],
+            "deviceId": "recorded-source:fastscreen-v1"
+          },
+          "evidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+          "containerId": "ctr-81086c8ab0af",
+          "identityEvidenceId": "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc"
+        },
+        "observationNeed": null,
+        "semanticKnowledge": [],
+        "viewportTransitions": []
+      },
+      "knowledge": {
+        "sourceRevisionId": "rev-2",
+        "collectionStatus": "collected",
+        "gaps": [
+          {
+            "gapId": "world-gap:3001d8e2e83dc437ce7e3ca72704ec6b99f941c5e904c88dfa0a3a8704108fe4",
+            "kind": 3,
+            "objectRef": "ctr-81086c8ab0af",
+            "scope": "capture:recorded-settings-c1:viewport",
+            "reason": "capture-coverage-not-collected",
+            "sourceRevisionId": "rev-2",
+            "evidenceIds": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+          }
+        ],
+        "semanticReferences": [],
+        "currentSemantics": [],
+        "corrections": []
+      },
+      "pages": [
+        {
+          "sourceRevisionId": "rev-2",
+          "containerId": "ctr-81086c8ab0af",
+          "observations": [
+            {
+              "sourceRevisionId": "rev-2",
+              "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+              "identityEvidenceId": "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc",
+              "capture": {
+                "captureId": "recorded-settings-c1",
+                "observationCycleId": "recorded-settings-cycle1",
+                "sessionCorrelation": "controlled-recording-session",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:1080x2400@0",
+                  "pixelWidth": 1080,
+                  "pixelHeight": 2400,
+                  "rotation": 0,
+                  "captureId": "recorded-settings-c1"
+                },
+                "items": [
+                  {
+                    "id": "recording-node-7",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 63,
+                      "y1": 409,
+                      "x2": 408,
+                      "y2": 536,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-12",
+                    "kind": "text",
+                    "text": "Search settings",
+                    "bounds": {
+                      "x1": 200,
+                      "y1": 632,
+                      "x2": 553,
+                      "y2": 703,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-23",
+                    "kind": "text",
+                    "text": "Network & internet",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 832,
+                      "x2": 625,
+                      "y2": 903,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-24",
+                    "kind": "text",
+                    "text": "Mobile, Wi‑Fi, hotspot",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 903,
+                      "x2": 540,
+                      "y2": 954,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-29",
+                    "kind": "text",
+                    "text": "Connected devices",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 1063,
+                      "x2": 636,
+                      "y2": 1134,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-30",
+                    "kind": "text",
+                    "text": "Bluetooth, pairing",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 1134,
+                      "x2": 476,
+                      "y2": 1185,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-35",
+                    "kind": "text",
+                    "text": "Apps",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 1294,
+                      "x2": 311,
+                      "y2": 1365,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-36",
+                    "kind": "text",
+                    "text": "Recent apps, default apps",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 1365,
+                      "x2": 614,
+                      "y2": 1416,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-41",
+                    "kind": "text",
+                    "text": "Notifications",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 1525,
+                      "x2": 489,
+                      "y2": 1596,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-42",
+                    "kind": "text",
+                    "text": "Notification history, conversations",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 1596,
+                      "x2": 745,
+                      "y2": 1647,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-47",
+                    "kind": "text",
+                    "text": "Battery",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 1756,
+                      "x2": 357,
+                      "y2": 1827,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-48",
+                    "kind": "text",
+                    "text": "100%",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 1827,
+                      "x2": 279,
+                      "y2": 1878,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-53",
+                    "kind": "text",
+                    "text": "Storage",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 1987,
+                      "x2": 371,
+                      "y2": 2058,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-54",
+                    "kind": "text",
+                    "text": "38% used - 9.96 GB free",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 2058,
+                      "x2": 580,
+                      "y2": 2109,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "recording-node-59",
+                    "kind": "text",
+                    "text": "Sound & vibration",
+                    "bounds": {
+                      "x1": 189,
+                      "y1": 2218,
+                      "x2": 601,
+                      "y2": 2274,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "deviceId": "recorded-source:fastscreen-v1"
+              },
+              "containerId": "ctr-81086c8ab0af",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-81086c8ab0af-0",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.058333333333333334,
+                    "y1": 0.17041666666666666,
+                    "x2": 0.37777777777777777,
+                    "y2": 0.22333333333333333,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.21805555555555556,
+                    "centerY": 0.196875
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-1",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Search settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.18518518518518517,
+                    "y1": 0.2633333333333333,
+                    "x2": 0.5120370370370371,
+                    "y2": 0.29291666666666666,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.3486111111111111,
+                    "centerY": 0.27812499999999996
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-2",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Network & internet",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.3466666666666667,
+                    "x2": 0.5787037037037037,
+                    "y2": 0.37625,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.3768518518518519,
+                    "centerY": 0.3614583333333333
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-3",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Mobile, Wi‑Fi, hotspot",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.37625,
+                    "x2": 0.5,
+                    "y2": 0.3975,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.3375,
+                    "centerY": 0.38687499999999997
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-4",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Connected devices",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.4429166666666667,
+                    "x2": 0.5888888888888889,
+                    "y2": 0.4725,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.3819444444444444,
+                    "centerY": 0.45770833333333333
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-5",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Bluetooth, pairing",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.4725,
+                    "x2": 0.44074074074074077,
+                    "y2": 0.49375,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.30787037037037035,
+                    "centerY": 0.483125
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-6",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Apps",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.5391666666666667,
+                    "x2": 0.287962962962963,
+                    "y2": 0.56875,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.23148148148148148,
+                    "centerY": 0.5539583333333333
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-7",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Recent apps, default apps",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.56875,
+                    "x2": 0.5685185185185185,
+                    "y2": 0.59,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.37175925925925923,
+                    "centerY": 0.579375
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-8",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Notifications",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.6354166666666666,
+                    "x2": 0.4527777777777778,
+                    "y2": 0.665,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.3138888888888889,
+                    "centerY": 0.6502083333333333
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-9",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Notification history, conversations",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.665,
+                    "x2": 0.6898148148148148,
+                    "y2": 0.68625,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.43240740740740735,
+                    "centerY": 0.675625
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-10",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Battery",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.7316666666666667,
+                    "x2": 0.33055555555555555,
+                    "y2": 0.76125,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.25277777777777777,
+                    "centerY": 0.7464583333333333
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-11",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "100%",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.76125,
+                    "x2": 0.25833333333333336,
+                    "y2": 0.7825,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.21666666666666667,
+                    "centerY": 0.771875
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-12",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Storage",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.8279166666666666,
+                    "x2": 0.3435185185185185,
+                    "y2": 0.8575,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.25925925925925924,
+                    "centerY": 0.8427083333333334
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-13",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "38% used - 9.96 GB free",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.8575,
+                    "x2": 0.5370370370370371,
+                    "y2": 0.87875,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.3560185185185185,
+                    "centerY": 0.868125
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-81086c8ab0af-14",
+                  "owningContainerId": "ctr-81086c8ab0af",
+                  "role": "text",
+                  "semanticDescriptor": "Sound & vibration",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.175,
+                    "y1": 0.9241666666666667,
+                    "x2": 0.5564814814814815,
+                    "y2": 0.9475,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.3657407407407407,
+                    "centerY": 0.9358333333333333
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": true,
+              "visitSourceRef": null
+            }
+          ],
+          "semanticReferences": [],
+          "viewportTransitions": [],
+          "unknown": [
+            "capture-coverage-not-collected:ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+            "visit-occurrence-unproven",
+            "whole-page-coverage-unproven"
+          ],
+          "contentDigest": "7230dfc84b686ec0d090b6dfc7ae356fc2f5e9d7876bbedf1405a7b342ed1aa1",
+          "corrections": [],
+          "contextRelations": [],
+          "currentSemantics": [],
+          "accumulatedContent": {
+            "sourceRevisionId": "rev-2",
+            "containerId": "ctr-81086c8ab0af",
+            "currentCaptureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+            "items": [
+              {
+                "presentationRef": "content:occ-81086c8ab0af-0",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.058333333333333334,
+                  "y1": 0.17041666666666666,
+                  "x2": 0.37777777777777777,
+                  "y2": 0.22333333333333333
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-0"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-1",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Search settings",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.18518518518518517,
+                  "y1": 0.2633333333333333,
+                  "x2": 0.5120370370370371,
+                  "y2": 0.29291666666666666
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-1"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-2",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Network & internet",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.3466666666666667,
+                  "x2": 0.5787037037037037,
+                  "y2": 0.37625
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-2"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-3",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Mobile, Wi‑Fi, hotspot",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.37625,
+                  "x2": 0.5,
+                  "y2": 0.3975
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-3"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-4",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Connected devices",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.4429166666666667,
+                  "x2": 0.5888888888888889,
+                  "y2": 0.4725
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-4"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-5",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Bluetooth, pairing",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.4725,
+                  "x2": 0.44074074074074077,
+                  "y2": 0.49375
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-5"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-6",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Apps",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.5391666666666667,
+                  "x2": 0.287962962962963,
+                  "y2": 0.56875
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-6"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-7",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Recent apps, default apps",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.56875,
+                  "x2": 0.5685185185185185,
+                  "y2": 0.59
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-7"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-8",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Notifications",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.6354166666666666,
+                  "x2": 0.4527777777777778,
+                  "y2": 0.665
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-8"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-9",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Notification history, conversations",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.665,
+                  "x2": 0.6898148148148148,
+                  "y2": 0.68625
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-9"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-10",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Battery",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.7316666666666667,
+                  "x2": 0.33055555555555555,
+                  "y2": 0.76125
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-10"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-11",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "100%",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.76125,
+                  "x2": 0.25833333333333336,
+                  "y2": 0.7825
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-11"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-12",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Storage",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.8279166666666666,
+                  "x2": 0.3435185185185185,
+                  "y2": 0.8575
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-12"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-13",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "38% used - 9.96 GB free",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.8575,
+                  "x2": 0.5370370370370371,
+                  "y2": 0.87875
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-13"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-81086c8ab0af-14",
+                "containerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Sound & vibration",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.175,
+                  "y1": 0.9241666666666667,
+                  "x2": 0.5564814814814815,
+                  "y2": 0.9475
+                },
+                "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+                "captureTime": "2026-10-23T00:00:00+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-81086c8ab0af-14"
+                ]
+              }
+            ],
+            "registrationSourceRefs": [],
+            "unknown": [
+              "whole-page-coverage-unproven"
+            ]
+          }
+        }
+      ],
+      "slices": [
+        {
+          "sliceId": "slice:v2:8a35c808eb98cd42fd7d1439c0bb1060dc67edf537eecce92dd9c33d1d03e2ca",
+          "slice": {
+            "sourceRevisionId": "rev-2",
+            "rootContainerId": "ctr-81086c8ab0af",
+            "freshnessBasis": {
+              "asOf": "2026-10-23T00:00:00+00:00"
+            },
+            "inScopeContainerIds": [
+              "ctr-81086c8ab0af"
+            ],
+            "occurrences": [
+              {
+                "occurrenceId": "occ-81086c8ab0af-0",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0.058333333333333334,
+                  "y1": 0.17041666666666666,
+                  "x2": 0.37777777777777777,
+                  "y2": 0.22333333333333333,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.21805555555555556,
+                  "centerY": 0.196875
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-1",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Search settings",
+                "state": null,
+                "locator": {
+                  "x1": 0.18518518518518517,
+                  "y1": 0.2633333333333333,
+                  "x2": 0.5120370370370371,
+                  "y2": 0.29291666666666666,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3486111111111111,
+                  "centerY": 0.27812499999999996
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-2",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Network & internet",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.3466666666666667,
+                  "x2": 0.5787037037037037,
+                  "y2": 0.37625,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3768518518518519,
+                  "centerY": 0.3614583333333333
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-3",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Mobile, Wi‑Fi, hotspot",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.37625,
+                  "x2": 0.5,
+                  "y2": 0.3975,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3375,
+                  "centerY": 0.38687499999999997
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-4",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Connected devices",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.4429166666666667,
+                  "x2": 0.5888888888888889,
+                  "y2": 0.4725,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3819444444444444,
+                  "centerY": 0.45770833333333333
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-5",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Bluetooth, pairing",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.4725,
+                  "x2": 0.44074074074074077,
+                  "y2": 0.49375,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.30787037037037035,
+                  "centerY": 0.483125
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-6",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Apps",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.5391666666666667,
+                  "x2": 0.287962962962963,
+                  "y2": 0.56875,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.23148148148148148,
+                  "centerY": 0.5539583333333333
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-7",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Recent apps, default apps",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.56875,
+                  "x2": 0.5685185185185185,
+                  "y2": 0.59,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.37175925925925923,
+                  "centerY": 0.579375
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-8",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Notifications",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.6354166666666666,
+                  "x2": 0.4527777777777778,
+                  "y2": 0.665,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3138888888888889,
+                  "centerY": 0.6502083333333333
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-9",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Notification history, conversations",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.665,
+                  "x2": 0.6898148148148148,
+                  "y2": 0.68625,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.43240740740740735,
+                  "centerY": 0.675625
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-10",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Battery",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.7316666666666667,
+                  "x2": 0.33055555555555555,
+                  "y2": 0.76125,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.25277777777777777,
+                  "centerY": 0.7464583333333333
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-11",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "100%",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.76125,
+                  "x2": 0.25833333333333336,
+                  "y2": 0.7825,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.21666666666666667,
+                  "centerY": 0.771875
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-12",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Storage",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.8279166666666666,
+                  "x2": 0.3435185185185185,
+                  "y2": 0.8575,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.25925925925925924,
+                  "centerY": 0.8427083333333334
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-13",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "38% used - 9.96 GB free",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.8575,
+                  "x2": 0.5370370370370371,
+                  "y2": 0.87875,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3560185185185185,
+                  "centerY": 0.868125
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-14",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Sound & vibration",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.9241666666666667,
+                  "x2": 0.5564814814814815,
+                  "y2": 0.9475,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3657407407407407,
+                  "centerY": 0.9358333333333333
+                },
+                "native": null
+              }
+            ],
+            "scopedClaims": {},
+            "region": null,
+            "semanticKnowledge": []
+          },
+          "coreSlice": {
+            "id": {
+              "value": "slice:v2:8a35c808eb98cd42fd7d1439c0bb1060dc67edf537eecce92dd9c33d1d03e2ca"
+            },
+            "segmentId": {
+              "value": "ctr-81086c8ab0af"
+            },
+            "observationEvidenceIds": [
+              {
+                "value": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+              },
+              {
+                "value": "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc"
+              }
+            ],
+            "observedAt": "2026-10-23T00:00:00+00:00",
+            "scope": "{\"Containers\":[\"ctr-81086c8ab0af\"],\"Region\":null}",
+            "observedRecordIds": [
+              {
+                "value": "occ-81086c8ab0af-0"
+              },
+              {
+                "value": "occ-81086c8ab0af-1"
+              },
+              {
+                "value": "occ-81086c8ab0af-2"
+              },
+              {
+                "value": "occ-81086c8ab0af-3"
+              },
+              {
+                "value": "occ-81086c8ab0af-4"
+              },
+              {
+                "value": "occ-81086c8ab0af-5"
+              },
+              {
+                "value": "occ-81086c8ab0af-6"
+              },
+              {
+                "value": "occ-81086c8ab0af-7"
+              },
+              {
+                "value": "occ-81086c8ab0af-8"
+              },
+              {
+                "value": "occ-81086c8ab0af-9"
+              },
+              {
+                "value": "occ-81086c8ab0af-10"
+              },
+              {
+                "value": "occ-81086c8ab0af-11"
+              },
+              {
+                "value": "occ-81086c8ab0af-12"
+              },
+              {
+                "value": "occ-81086c8ab0af-13"
+              },
+              {
+                "value": "occ-81086c8ab0af-14"
+              }
+            ],
+            "coverage": "partial"
+          },
+          "presentation": {
+            "sourceRevisionId": "rev-2",
+            "rootContainerId": "ctr-81086c8ab0af",
+            "isAuthoritative": false,
+            "elements": []
+          }
+        }
+      ],
+      "historicalSlices": [],
+      "actualConsultation": {
+        "requestId": "dsh-req-00000002",
+        "generation": 2,
+        "productSessionId": "controlled-recording-session",
+        "productRunId": "run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810",
+        "context": {
+          "decisionId": "decision-94441e086810-2",
+          "runId": "run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810",
+          "contractVersion": "recording-v1",
+          "objective": "inspect recorded Settings page",
+          "allowedEffects": [
+            "tap"
+          ],
+          "currentWorldClaims": {
+            "ui.screen": {
+              "value": "recorded-settings",
+              "disposition": "established",
+              "inConflict": false
+            },
+            "ui.container.signature.ctr-81086c8ab0af": {
+              "value": "recorded-settings",
+              "disposition": "established",
+              "inConflict": false
+            },
+            "ui.container.current": {
+              "value": "ctr-81086c8ab0af",
+              "disposition": "established",
+              "inConflict": false
+            }
+          },
+          "pendingObligations": [
+            {
+              "obligationId": "pending",
+              "kind": "MaterialEffect",
+              "subject": "recording.pending",
+              "requiredValue": "done",
+              "mandatory": true
+            }
+          ],
+          "phase": "InitialPlanning",
+          "screen": {
+            "containerId": "ctr-81086c8ab0af",
+            "signature": "recorded-settings"
+          },
+          "elements": [
+            {
+              "role": "text",
+              "text": "Settings",
+              "bounds": "0.0583,0.1704,0.3778,0.2233",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "Search settings",
+              "bounds": "0.1852,0.2633,0.512,0.2929",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "Network & internet",
+              "bounds": "0.175,0.3467,0.5787,0.3763",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "Mobile, Wi‑Fi, hotspot",
+              "bounds": "0.175,0.3763,0.5,0.3975",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "Connected devices",
+              "bounds": "0.175,0.4429,0.5889,0.4725",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "Bluetooth, pairing",
+              "bounds": "0.175,0.4725,0.4407,0.4938",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "Apps",
+              "bounds": "0.175,0.5392,0.288,0.5688",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "Recent apps, default apps",
+              "bounds": "0.175,0.5688,0.5685,0.59",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "Notifications",
+              "bounds": "0.175,0.6354,0.4528,0.665",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "Notification history, conversations",
+              "bounds": "0.175,0.665,0.6898,0.6863",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "Battery",
+              "bounds": "0.175,0.7317,0.3306,0.7613",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "100%",
+              "bounds": "0.175,0.7613,0.2583,0.7825",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "Storage",
+              "bounds": "0.175,0.8279,0.3435,0.8575",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "38% used - 9.96 GB free",
+              "bounds": "0.175,0.8575,0.537,0.8788",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            },
+            {
+              "role": "text",
+              "text": "Sound & vibration",
+              "bounds": "0.175,0.9242,0.5565,0.9475",
+              "clickable": false,
+              "checkable": false,
+              "enabled": true,
+              "epistemic": 1
+            }
+          ],
+          "progress": {
+            "roundsUsed": 2,
+            "stepsDispatched": 0,
+            "stepsVerified": 0,
+            "stagnantConsultations": 0,
+            "sameRouteConsultations": 0
+          },
+          "budgetRemaining": {
+            "roundsRemaining": 14,
+            "stepsRemaining": 256
+          },
+          "productSessionId": "controlled-recording-session",
+          "contractViewRef": "recording-contract",
+          "decisionBoundaryId": "run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810:boundary-2",
+          "executionOverview": {
+            "overviewId": "run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810:overview-2",
+            "runId": "run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810",
+            "contractVersion": "recording-v1",
+            "objective": "inspect recorded Settings page",
+            "initialSteps": 256,
+            "initialRounds": 16,
+            "grantedSteps": 0,
+            "grantedRounds": 0,
+            "stepsConsumed": 0,
+            "roundsConsumed": 2,
+            "stepsRemaining": 256,
+            "roundsRemaining": 14,
+            "segmentStepsConsumed": 0,
+            "segmentRoundsConsumed": 2,
+            "previousSegmentStepsConsumed": 0,
+            "previousSegmentRoundsConsumed": 0,
+            "currentSegmentExpectation": "inspect recorded Settings page",
+            "currentSegmentActual": "verified=0;new-progress-facts=unknown;owner-actual=unknown",
+            "previousOverviewStepsConsumed": 0,
+            "previousOverviewRoundsConsumed": 1,
+            "stepsConsumedSincePreviousOverview": 0,
+            "roundsConsumedSincePreviousOverview": 1,
+            "newlyVerifiedStepsSincePreviousOverview": 0,
+            "newSourceFactRefsSincePreviousOverview": [],
+            "newlyKnownItemsSincePreviousOverview": [],
+            "newlyUnknownItemsSincePreviousOverview": [],
+            "segmentStepsVerified": 0
+          },
+          "worldKnowledge": {
+            "sourceRevisionId": "rev-2",
+            "collectionStatus": "collected",
+            "gaps": [
+              {
+                "gapId": "world-gap:3001d8e2e83dc437ce7e3ca72704ec6b99f941c5e904c88dfa0a3a8704108fe4",
+                "kind": "ObservationCoverage",
+                "objectRef": "ctr-81086c8ab0af",
+                "scope": "capture:recorded-settings-c1:viewport",
+                "reason": "capture-coverage-not-collected",
+                "sourceRevisionId": "rev-2",
+                "evidenceIds": [
+                  "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+                ],
+                "conflicted": false,
+                "causeRef": "capture:ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+              }
+            ],
+            "semanticReferences": [],
+            "currentSemantics": [],
+            "corrections": []
+          },
+          "worldRecovery": {
+            "gaps": [
+              {
+                "gapId": "world-gap:3001d8e2e83dc437ce7e3ca72704ec6b99f941c5e904c88dfa0a3a8704108fe4",
+                "recordCoverage": "not_collected",
+                "executions": [],
+                "resultHistory": []
+              }
+            ],
+            "reviewRequired": false
+          },
+          "worldEffectImpacts": []
+        },
+        "turnTimeoutMs": 180000,
+        "dshSessionId": "fixture-dsh-session"
+      },
+      "capture": {
+        "captureId": "recorded-settings-c1",
+        "observationCycleId": "recorded-settings-cycle1",
+        "sessionCorrelation": "controlled-recording-session",
+        "captureTime": "2026-10-23T00:00:00+00:00",
+        "space": {
+          "coordinateSpaceId": "device-viewport:1080x2400@0",
+          "pixelWidth": 1080,
+          "pixelHeight": 2400,
+          "rotation": 0,
+          "captureId": "recorded-settings-c1"
+        },
+        "items": [
+          {
+            "id": "recording-node-7",
+            "kind": "text",
+            "text": "Settings",
+            "bounds": {
+              "x1": 63,
+              "y1": 409,
+              "x2": 408,
+              "y2": 536,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-12",
+            "kind": "text",
+            "text": "Search settings",
+            "bounds": {
+              "x1": 200,
+              "y1": 632,
+              "x2": 553,
+              "y2": 703,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-23",
+            "kind": "text",
+            "text": "Network & internet",
+            "bounds": {
+              "x1": 189,
+              "y1": 832,
+              "x2": 625,
+              "y2": 903,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-24",
+            "kind": "text",
+            "text": "Mobile, Wi‑Fi, hotspot",
+            "bounds": {
+              "x1": 189,
+              "y1": 903,
+              "x2": 540,
+              "y2": 954,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-29",
+            "kind": "text",
+            "text": "Connected devices",
+            "bounds": {
+              "x1": 189,
+              "y1": 1063,
+              "x2": 636,
+              "y2": 1134,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-30",
+            "kind": "text",
+            "text": "Bluetooth, pairing",
+            "bounds": {
+              "x1": 189,
+              "y1": 1134,
+              "x2": 476,
+              "y2": 1185,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-35",
+            "kind": "text",
+            "text": "Apps",
+            "bounds": {
+              "x1": 189,
+              "y1": 1294,
+              "x2": 311,
+              "y2": 1365,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-36",
+            "kind": "text",
+            "text": "Recent apps, default apps",
+            "bounds": {
+              "x1": 189,
+              "y1": 1365,
+              "x2": 614,
+              "y2": 1416,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-41",
+            "kind": "text",
+            "text": "Notifications",
+            "bounds": {
+              "x1": 189,
+              "y1": 1525,
+              "x2": 489,
+              "y2": 1596,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-42",
+            "kind": "text",
+            "text": "Notification history, conversations",
+            "bounds": {
+              "x1": 189,
+              "y1": 1596,
+              "x2": 745,
+              "y2": 1647,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-47",
+            "kind": "text",
+            "text": "Battery",
+            "bounds": {
+              "x1": 189,
+              "y1": 1756,
+              "x2": 357,
+              "y2": 1827,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-48",
+            "kind": "text",
+            "text": "100%",
+            "bounds": {
+              "x1": 189,
+              "y1": 1827,
+              "x2": 279,
+              "y2": 1878,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-53",
+            "kind": "text",
+            "text": "Storage",
+            "bounds": {
+              "x1": 189,
+              "y1": 1987,
+              "x2": 371,
+              "y2": 2058,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-54",
+            "kind": "text",
+            "text": "38% used - 9.96 GB free",
+            "bounds": {
+              "x1": 189,
+              "y1": 2058,
+              "x2": 580,
+              "y2": 2109,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "recording-node-59",
+            "kind": "text",
+            "text": "Sound & vibration",
+            "bounds": {
+              "x1": 189,
+              "y1": 2218,
+              "x2": 601,
+              "y2": 2274,
+              "isValid": true
+            },
+            "confidence": null
+          }
+        ],
+        "deviceId": "recorded-source:fastscreen-v1"
+      },
+      "graph": {
+        "sourceRevisionId": "rev-2",
+        "scope": "recorded-source:viewport-v1",
+        "currentContainerId": "ctr-81086c8ab0af",
+        "nodes": [
+          {
+            "identity": {
+              "containerId": "ctr-81086c8ab0af"
+            },
+            "evidenceBasis": [
+              "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc"
+            ]
+          }
+        ],
+        "edges": [],
+        "unknown": [
+          "navigation-graph-is-observation-bounded",
+          "no-navigation-edge-observed-in-scope"
+        ],
+        "viewportTransitions": []
+      }
+    }
+  ],
+  "artifacts": {
+    "source": {
+      "file": "platforms/perception/evaluation/validation/fastscreen-v1/uia/7e41f85e06e4.xml",
+      "sha256": "561cab6f3858a5dde6d3580b74b24654e0fa1b70c1892869be3477860b1bc2ec",
+      "inputClass": "recorded XML plus controlled correlation metadata and provider double",
+      "finalProviderEnvelopeProven": false
+    },
+    "consultationGapCounts": [
+      3,
+      1
+    ],
+    "httpConsultBodies": [
+      "{\"requestId\":\"dsh-req-00000001\",\"generation\":1,\"productSessionId\":\"controlled-recording-session\",\"productRunId\":\"run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810\",\"context\":{\"decisionId\":\"decision-94441e086810-1\",\"runId\":\"run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810\",\"contractVersion\":\"recording-v1\",\"objective\":\"inspect recorded Settings page\",\"allowedEffects\":[\"tap\"],\"currentWorldClaims\":{},\"pendingObligations\":[{\"obligationId\":\"pending\",\"kind\":\"MaterialEffect\",\"subject\":\"recording.pending\",\"requiredValue\":\"done\",\"mandatory\":true}],\"phase\":\"InitialPlanning\",\"elements\":[],\"progress\":{\"roundsUsed\":1,\"stepsDispatched\":0,\"stepsVerified\":0,\"stagnantConsultations\":0,\"sameRouteConsultations\":0},\"budgetRemaining\":{\"roundsRemaining\":15,\"stepsRemaining\":256},\"productSessionId\":\"controlled-recording-session\",\"contractViewRef\":\"recording-contract\",\"decisionBoundaryId\":\"run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810:boundary-1\",\"executionOverview\":{\"overviewId\":\"run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810:overview-1\",\"runId\":\"run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810\",\"contractVersion\":\"recording-v1\",\"objective\":\"inspect recorded Settings page\",\"initialSteps\":256,\"initialRounds\":16,\"grantedSteps\":0,\"grantedRounds\":0,\"stepsConsumed\":0,\"roundsConsumed\":1,\"stepsRemaining\":256,\"roundsRemaining\":15,\"segmentStepsConsumed\":0,\"segmentRoundsConsumed\":1,\"previousSegmentStepsConsumed\":0,\"previousSegmentRoundsConsumed\":0,\"currentSegmentExpectation\":\"inspect recorded Settings page\",\"currentSegmentActual\":\"verified=0;new-progress-facts=unknown;owner-actual=unknown\",\"previousOverviewStepsConsumed\":0,\"previousOverviewRoundsConsumed\":0,\"stepsConsumedSincePreviousOverview\":0,\"roundsConsumedSincePreviousOverview\":1,\"newlyVerifiedStepsSincePreviousOverview\":0,\"newSourceFactRefsSincePreviousOverview\":[],\"newlyKnownItemsSincePreviousOverview\":[],\"newlyUnknownItemsSincePreviousOverview\":[],\"segmentStepsVerified\":0},\"worldKnowledge\":{\"sourceRevisionId\":\"rev-1\",\"collectionStatus\":\"collected\",\"gaps\":[{\"gapId\":\"world-gap:5c02e991425a28ec5b3190654d0eaaf255c4b6c57003052efd31fb2641d9ca9b\",\"kind\":\"Identity\",\"objectRef\":\"ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3\",\"scope\":\"capture:recorded-settings-c1:viewport\",\"reason\":\"capture-identity-unproven\",\"sourceRevisionId\":\"rev-1\",\"evidenceIds\":[\"ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3\"],\"conflicted\":false,\"causeRef\":\"capture:ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3\"},{\"gapId\":\"world-gap:470476b646a9419dfa2b6eb27fe3390a1b62854a2ad63bda06dde426af110a2a\",\"kind\":\"Attribution\",\"objectRef\":\"ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3\",\"scope\":\"capture:recorded-settings-c1:viewport\",\"reason\":\"observed-content-owner-unproven\",\"sourceRevisionId\":\"rev-1\",\"evidenceIds\":[\"ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3\"],\"conflicted\":false,\"causeRef\":\"capture:ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3\"},{\"gapId\":\"world-gap:3001d8e2e83dc437ce7e3ca72704ec6b99f941c5e904c88dfa0a3a8704108fe4\",\"kind\":\"ObservationCoverage\",\"objectRef\":\"ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3\",\"scope\":\"capture:recorded-settings-c1:viewport\",\"reason\":\"capture-coverage-not-collected\",\"sourceRevisionId\":\"rev-1\",\"evidenceIds\":[\"ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3\"],\"conflicted\":false,\"causeRef\":\"capture:ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3\"}],\"semanticReferences\":[],\"currentSemantics\":[],\"corrections\":[]},\"worldRecovery\":{\"gaps\":[{\"gapId\":\"world-gap:5c02e991425a28ec5b3190654d0eaaf255c4b6c57003052efd31fb2641d9ca9b\",\"recordCoverage\":\"not_collected\",\"executions\":[],\"resultHistory\":[]},{\"gapId\":\"world-gap:470476b646a9419dfa2b6eb27fe3390a1b62854a2ad63bda06dde426af110a2a\",\"recordCoverage\":\"not_collected\",\"executions\":[],\"resultHistory\":[]},{\"gapId\":\"world-gap:3001d8e2e83dc437ce7e3ca72704ec6b99f941c5e904c88dfa0a3a8704108fe4\",\"recordCoverage\":\"not_collected\",\"executions\":[],\"resultHistory\":[]}],\"reviewRequired\":false},\"worldEffectImpacts\":[]},\"turnTimeoutMs\":180000,\"dshSessionId\":\"fixture-dsh-session\"}",
+      "{\"requestId\":\"dsh-req-00000002\",\"generation\":2,\"productSessionId\":\"controlled-recording-session\",\"productRunId\":\"run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810\",\"context\":{\"decisionId\":\"decision-94441e086810-2\",\"runId\":\"run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810\",\"contractVersion\":\"recording-v1\",\"objective\":\"inspect recorded Settings page\",\"allowedEffects\":[\"tap\"],\"currentWorldClaims\":{\"ui.screen\":{\"value\":\"recorded-settings\",\"disposition\":\"established\",\"inConflict\":false},\"ui.container.signature.ctr-81086c8ab0af\":{\"value\":\"recorded-settings\",\"disposition\":\"established\",\"inConflict\":false},\"ui.container.current\":{\"value\":\"ctr-81086c8ab0af\",\"disposition\":\"established\",\"inConflict\":false}},\"pendingObligations\":[{\"obligationId\":\"pending\",\"kind\":\"MaterialEffect\",\"subject\":\"recording.pending\",\"requiredValue\":\"done\",\"mandatory\":true}],\"phase\":\"InitialPlanning\",\"screen\":{\"containerId\":\"ctr-81086c8ab0af\",\"signature\":\"recorded-settings\"},\"elements\":[{\"role\":\"text\",\"text\":\"Settings\",\"bounds\":\"0.0583,0.1704,0.3778,0.2233\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"Search settings\",\"bounds\":\"0.1852,0.2633,0.512,0.2929\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"Network \\u0026 internet\",\"bounds\":\"0.175,0.3467,0.5787,0.3763\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"Mobile, Wi\\u2011Fi, hotspot\",\"bounds\":\"0.175,0.3763,0.5,0.3975\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"Connected devices\",\"bounds\":\"0.175,0.4429,0.5889,0.4725\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"Bluetooth, pairing\",\"bounds\":\"0.175,0.4725,0.4407,0.4938\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"Apps\",\"bounds\":\"0.175,0.5392,0.288,0.5688\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"Recent apps, default apps\",\"bounds\":\"0.175,0.5688,0.5685,0.59\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"Notifications\",\"bounds\":\"0.175,0.6354,0.4528,0.665\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"Notification history, conversations\",\"bounds\":\"0.175,0.665,0.6898,0.6863\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"Battery\",\"bounds\":\"0.175,0.7317,0.3306,0.7613\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"100%\",\"bounds\":\"0.175,0.7613,0.2583,0.7825\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"Storage\",\"bounds\":\"0.175,0.8279,0.3435,0.8575\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"38% used - 9.96 GB free\",\"bounds\":\"0.175,0.8575,0.537,0.8788\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1},{\"role\":\"text\",\"text\":\"Sound \\u0026 vibration\",\"bounds\":\"0.175,0.9242,0.5565,0.9475\",\"clickable\":false,\"checkable\":false,\"enabled\":true,\"epistemic\":1}],\"progress\":{\"roundsUsed\":2,\"stepsDispatched\":0,\"stepsVerified\":0,\"stagnantConsultations\":0,\"sameRouteConsultations\":0},\"budgetRemaining\":{\"roundsRemaining\":14,\"stepsRemaining\":256},\"productSessionId\":\"controlled-recording-session\",\"contractViewRef\":\"recording-contract\",\"decisionBoundaryId\":\"run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810:boundary-2\",\"executionOverview\":{\"overviewId\":\"run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810:overview-2\",\"runId\":\"run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810\",\"contractVersion\":\"recording-v1\",\"objective\":\"inspect recorded Settings page\",\"initialSteps\":256,\"initialRounds\":16,\"grantedSteps\":0,\"grantedRounds\":0,\"stepsConsumed\":0,\"roundsConsumed\":2,\"stepsRemaining\":256,\"roundsRemaining\":14,\"segmentStepsConsumed\":0,\"segmentRoundsConsumed\":2,\"previousSegmentStepsConsumed\":0,\"previousSegmentRoundsConsumed\":0,\"currentSegmentExpectation\":\"inspect recorded Settings page\",\"currentSegmentActual\":\"verified=0;new-progress-facts=unknown;owner-actual=unknown\",\"previousOverviewStepsConsumed\":0,\"previousOverviewRoundsConsumed\":1,\"stepsConsumedSincePreviousOverview\":0,\"roundsConsumedSincePreviousOverview\":1,\"newlyVerifiedStepsSincePreviousOverview\":0,\"newSourceFactRefsSincePreviousOverview\":[],\"newlyKnownItemsSincePreviousOverview\":[],\"newlyUnknownItemsSincePreviousOverview\":[],\"segmentStepsVerified\":0},\"worldKnowledge\":{\"sourceRevisionId\":\"rev-2\",\"collectionStatus\":\"collected\",\"gaps\":[{\"gapId\":\"world-gap:3001d8e2e83dc437ce7e3ca72704ec6b99f941c5e904c88dfa0a3a8704108fe4\",\"kind\":\"ObservationCoverage\",\"objectRef\":\"ctr-81086c8ab0af\",\"scope\":\"capture:recorded-settings-c1:viewport\",\"reason\":\"capture-coverage-not-collected\",\"sourceRevisionId\":\"rev-2\",\"evidenceIds\":[\"ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3\"],\"conflicted\":false,\"causeRef\":\"capture:ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3\"}],\"semanticReferences\":[],\"currentSemantics\":[],\"corrections\":[]},\"worldRecovery\":{\"gaps\":[{\"gapId\":\"world-gap:3001d8e2e83dc437ce7e3ca72704ec6b99f941c5e904c88dfa0a3a8704108fe4\",\"recordCoverage\":\"not_collected\",\"executions\":[],\"resultHistory\":[]}],\"reviewRequired\":false},\"worldEffectImpacts\":[]},\"turnTimeoutMs\":180000,\"dshSessionId\":\"fixture-dsh-session\"}"
+    ],
+    "graph": {
+      "sourceRevisionId": "rev-2",
+      "scope": "recorded-source:viewport-v1",
+      "currentContainerId": "ctr-81086c8ab0af",
+      "nodes": [
+        {
+          "identity": {
+            "containerId": "ctr-81086c8ab0af"
+          },
+          "evidenceBasis": [
+            "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc"
+          ]
+        }
+      ],
+      "edges": [],
+      "unknown": [
+        "navigation-graph-is-observation-bounded",
+        "no-navigation-edge-observed-in-scope"
+      ],
+      "viewportTransitions": []
+    },
+    "revisionHistory": [
+      {
+        "revisionId": "rev-1",
+        "parentRevisionId": null,
+        "revisionNumber": 1,
+        "worldState": {},
+        "worldGraph": [],
+        "evidenceBasis": [
+          "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+        ],
+        "freshnessBasis": {
+          "asOf": "2026-10-23T00:00:00+00:00"
+        },
+        "uncertainty": {
+          "conflictingClaimCount": 0
+        },
+        "conflicts": [],
+        "containers": [],
+        "relations": [],
+        "occurrences": [
+          {
+            "occurrenceId": "occ-1fe04b908107-0",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.058333333333333334,
+              "y1": 0.17041666666666666,
+              "x2": 0.37777777777777777,
+              "y2": 0.22333333333333333,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.21805555555555556,
+              "centerY": 0.196875
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-1",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Search settings",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.18518518518518517,
+              "y1": 0.2633333333333333,
+              "x2": 0.5120370370370371,
+              "y2": 0.29291666666666666,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3486111111111111,
+              "centerY": 0.27812499999999996
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-2",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Network & internet",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.3466666666666667,
+              "x2": 0.5787037037037037,
+              "y2": 0.37625,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3768518518518519,
+              "centerY": 0.3614583333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-3",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Mobile, Wi‑Fi, hotspot",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.37625,
+              "x2": 0.5,
+              "y2": 0.3975,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3375,
+              "centerY": 0.38687499999999997
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-4",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Connected devices",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.4429166666666667,
+              "x2": 0.5888888888888889,
+              "y2": 0.4725,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3819444444444444,
+              "centerY": 0.45770833333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-5",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Bluetooth, pairing",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.4725,
+              "x2": 0.44074074074074077,
+              "y2": 0.49375,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.30787037037037035,
+              "centerY": 0.483125
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-6",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Apps",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.5391666666666667,
+              "x2": 0.287962962962963,
+              "y2": 0.56875,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.23148148148148148,
+              "centerY": 0.5539583333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-7",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Recent apps, default apps",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.56875,
+              "x2": 0.5685185185185185,
+              "y2": 0.59,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.37175925925925923,
+              "centerY": 0.579375
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-8",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Notifications",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.6354166666666666,
+              "x2": 0.4527777777777778,
+              "y2": 0.665,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3138888888888889,
+              "centerY": 0.6502083333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-9",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Notification history, conversations",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.665,
+              "x2": 0.6898148148148148,
+              "y2": 0.68625,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.43240740740740735,
+              "centerY": 0.675625
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-10",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Battery",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.7316666666666667,
+              "x2": 0.33055555555555555,
+              "y2": 0.76125,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.25277777777777777,
+              "centerY": 0.7464583333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-11",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "100%",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.76125,
+              "x2": 0.25833333333333336,
+              "y2": 0.7825,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.21666666666666667,
+              "centerY": 0.771875
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-12",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Storage",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.8279166666666666,
+              "x2": 0.3435185185185185,
+              "y2": 0.8575,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.25925925925925924,
+              "centerY": 0.8427083333333334
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-13",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "38% used - 9.96 GB free",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.8575,
+              "x2": 0.5370370370370371,
+              "y2": 0.87875,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3560185185185185,
+              "centerY": 0.868125
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-1fe04b908107-14",
+            "owningContainerId": null,
+            "role": "text",
+            "semanticDescriptor": "Sound & vibration",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.9241666666666667,
+              "x2": 0.5564814814814815,
+              "y2": 0.9475,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3657407407407407,
+              "centerY": 0.9358333333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          }
+        ],
+        "logicalItems": null,
+        "currentPageObservation": {
+          "capture": {
+            "captureId": "recorded-settings-c1",
+            "observationCycleId": "recorded-settings-cycle1",
+            "sessionCorrelation": "controlled-recording-session",
+            "captureTime": "2026-10-23T00:00:00+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            },
+            "items": [
+              {
+                "id": "recording-node-7",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 63,
+                  "y1": 409,
+                  "x2": 408,
+                  "y2": 536,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-12",
+                "kind": "text",
+                "text": "Search settings",
+                "bounds": {
+                  "x1": 200,
+                  "y1": 632,
+                  "x2": 553,
+                  "y2": 703,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-23",
+                "kind": "text",
+                "text": "Network & internet",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 832,
+                  "x2": 625,
+                  "y2": 903,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-24",
+                "kind": "text",
+                "text": "Mobile, Wi‑Fi, hotspot",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 903,
+                  "x2": 540,
+                  "y2": 954,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-29",
+                "kind": "text",
+                "text": "Connected devices",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1063,
+                  "x2": 636,
+                  "y2": 1134,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-30",
+                "kind": "text",
+                "text": "Bluetooth, pairing",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1134,
+                  "x2": 476,
+                  "y2": 1185,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-35",
+                "kind": "text",
+                "text": "Apps",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1294,
+                  "x2": 311,
+                  "y2": 1365,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-36",
+                "kind": "text",
+                "text": "Recent apps, default apps",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1365,
+                  "x2": 614,
+                  "y2": 1416,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-41",
+                "kind": "text",
+                "text": "Notifications",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1525,
+                  "x2": 489,
+                  "y2": 1596,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-42",
+                "kind": "text",
+                "text": "Notification history, conversations",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1596,
+                  "x2": 745,
+                  "y2": 1647,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-47",
+                "kind": "text",
+                "text": "Battery",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1756,
+                  "x2": 357,
+                  "y2": 1827,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-48",
+                "kind": "text",
+                "text": "100%",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1827,
+                  "x2": 279,
+                  "y2": 1878,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-53",
+                "kind": "text",
+                "text": "Storage",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1987,
+                  "x2": 371,
+                  "y2": 2058,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-54",
+                "kind": "text",
+                "text": "38% used - 9.96 GB free",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 2058,
+                  "x2": 580,
+                  "y2": 2109,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-59",
+                "kind": "text",
+                "text": "Sound & vibration",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 2218,
+                  "x2": 601,
+                  "y2": 2274,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ],
+            "deviceId": "recorded-source:fastscreen-v1"
+          },
+          "evidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+          "containerId": null,
+          "identityEvidenceId": null
+        },
+        "observationNeed": {
+          "sourceRevisionId": "rev-1",
+          "captureEvidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+          "capture": {
+            "captureId": "recorded-settings-c1",
+            "observationCycleId": "recorded-settings-cycle1",
+            "sessionCorrelation": "controlled-recording-session",
+            "captureTime": "2026-10-23T00:00:00+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            },
+            "items": [
+              {
+                "id": "recording-node-7",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 63,
+                  "y1": 409,
+                  "x2": 408,
+                  "y2": 536,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-12",
+                "kind": "text",
+                "text": "Search settings",
+                "bounds": {
+                  "x1": 200,
+                  "y1": 632,
+                  "x2": 553,
+                  "y2": 703,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-23",
+                "kind": "text",
+                "text": "Network & internet",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 832,
+                  "x2": 625,
+                  "y2": 903,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-24",
+                "kind": "text",
+                "text": "Mobile, Wi‑Fi, hotspot",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 903,
+                  "x2": 540,
+                  "y2": 954,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-29",
+                "kind": "text",
+                "text": "Connected devices",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1063,
+                  "x2": 636,
+                  "y2": 1134,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-30",
+                "kind": "text",
+                "text": "Bluetooth, pairing",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1134,
+                  "x2": 476,
+                  "y2": 1185,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-35",
+                "kind": "text",
+                "text": "Apps",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1294,
+                  "x2": 311,
+                  "y2": 1365,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-36",
+                "kind": "text",
+                "text": "Recent apps, default apps",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1365,
+                  "x2": 614,
+                  "y2": 1416,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-41",
+                "kind": "text",
+                "text": "Notifications",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1525,
+                  "x2": 489,
+                  "y2": 1596,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-42",
+                "kind": "text",
+                "text": "Notification history, conversations",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1596,
+                  "x2": 745,
+                  "y2": 1647,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-47",
+                "kind": "text",
+                "text": "Battery",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1756,
+                  "x2": 357,
+                  "y2": 1827,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-48",
+                "kind": "text",
+                "text": "100%",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1827,
+                  "x2": 279,
+                  "y2": 1878,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-53",
+                "kind": "text",
+                "text": "Storage",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1987,
+                  "x2": 371,
+                  "y2": 2058,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-54",
+                "kind": "text",
+                "text": "38% used - 9.96 GB free",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 2058,
+                  "x2": 580,
+                  "y2": 2109,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-59",
+                "kind": "text",
+                "text": "Sound & vibration",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 2218,
+                  "x2": 601,
+                  "y2": 2274,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ],
+            "deviceId": "recorded-source:fastscreen-v1"
+          },
+          "kind": "identity-disambiguation"
+        },
+        "semanticKnowledge": [],
+        "viewportTransitions": []
+      },
+      {
+        "revisionId": "rev-2",
+        "parentRevisionId": "rev-1",
+        "revisionNumber": 2,
+        "worldState": {
+          "ui.screen": {
+            "value": "recorded-settings",
+            "evidenceId": "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.signature.ctr-81086c8ab0af": {
+            "value": "recorded-settings",
+            "evidenceId": "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.current": {
+            "value": "ctr-81086c8ab0af",
+            "evidenceId": "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          }
+        },
+        "worldGraph": [
+          "ui.screen",
+          "ui.container.current",
+          "ui.container.signature.ctr-81086c8ab0af"
+        ],
+        "evidenceBasis": [
+          "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+          "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc"
+        ],
+        "freshnessBasis": {
+          "asOf": "2026-10-23T00:00:00+00:00"
+        },
+        "uncertainty": {
+          "conflictingClaimCount": 0
+        },
+        "conflicts": [],
+        "containers": [
+          {
+            "identity": {
+              "containerId": "ctr-81086c8ab0af"
+            },
+            "evidenceBasis": [
+              "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc"
+            ]
+          }
+        ],
+        "relations": [],
+        "occurrences": [
+          {
+            "occurrenceId": "occ-81086c8ab0af-0",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.058333333333333334,
+              "y1": 0.17041666666666666,
+              "x2": 0.37777777777777777,
+              "y2": 0.22333333333333333,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.21805555555555556,
+              "centerY": 0.196875
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-1",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Search settings",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.18518518518518517,
+              "y1": 0.2633333333333333,
+              "x2": 0.5120370370370371,
+              "y2": 0.29291666666666666,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3486111111111111,
+              "centerY": 0.27812499999999996
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-2",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Network & internet",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.3466666666666667,
+              "x2": 0.5787037037037037,
+              "y2": 0.37625,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3768518518518519,
+              "centerY": 0.3614583333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-3",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Mobile, Wi‑Fi, hotspot",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.37625,
+              "x2": 0.5,
+              "y2": 0.3975,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3375,
+              "centerY": 0.38687499999999997
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-4",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Connected devices",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.4429166666666667,
+              "x2": 0.5888888888888889,
+              "y2": 0.4725,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3819444444444444,
+              "centerY": 0.45770833333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-5",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Bluetooth, pairing",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.4725,
+              "x2": 0.44074074074074077,
+              "y2": 0.49375,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.30787037037037035,
+              "centerY": 0.483125
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-6",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Apps",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.5391666666666667,
+              "x2": 0.287962962962963,
+              "y2": 0.56875,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.23148148148148148,
+              "centerY": 0.5539583333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-7",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Recent apps, default apps",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.56875,
+              "x2": 0.5685185185185185,
+              "y2": 0.59,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.37175925925925923,
+              "centerY": 0.579375
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-8",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Notifications",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.6354166666666666,
+              "x2": 0.4527777777777778,
+              "y2": 0.665,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3138888888888889,
+              "centerY": 0.6502083333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-9",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Notification history, conversations",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.665,
+              "x2": 0.6898148148148148,
+              "y2": 0.68625,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.43240740740740735,
+              "centerY": 0.675625
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-10",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Battery",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.7316666666666667,
+              "x2": 0.33055555555555555,
+              "y2": 0.76125,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.25277777777777777,
+              "centerY": 0.7464583333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-11",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "100%",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.76125,
+              "x2": 0.25833333333333336,
+              "y2": 0.7825,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.21666666666666667,
+              "centerY": 0.771875
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-12",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Storage",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.8279166666666666,
+              "x2": 0.3435185185185185,
+              "y2": 0.8575,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.25925925925925924,
+              "centerY": 0.8427083333333334
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-13",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "38% used - 9.96 GB free",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.8575,
+              "x2": 0.5370370370370371,
+              "y2": 0.87875,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3560185185185185,
+              "centerY": 0.868125
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          },
+          {
+            "occurrenceId": "occ-81086c8ab0af-14",
+            "owningContainerId": "ctr-81086c8ab0af",
+            "role": "text",
+            "semanticDescriptor": "Sound & vibration",
+            "evidenceBasis": [
+              "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.175,
+              "y1": 0.9241666666666667,
+              "x2": 0.5564814814814815,
+              "y2": 0.9475,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.3657407407407407,
+              "centerY": 0.9358333333333333
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            }
+          }
+        ],
+        "logicalItems": null,
+        "currentPageObservation": {
+          "capture": {
+            "captureId": "recorded-settings-c1",
+            "observationCycleId": "recorded-settings-cycle1",
+            "sessionCorrelation": "controlled-recording-session",
+            "captureTime": "2026-10-23T00:00:00+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:1080x2400@0",
+              "pixelWidth": 1080,
+              "pixelHeight": 2400,
+              "rotation": 0,
+              "captureId": "recorded-settings-c1"
+            },
+            "items": [
+              {
+                "id": "recording-node-7",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 63,
+                  "y1": 409,
+                  "x2": 408,
+                  "y2": 536,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-12",
+                "kind": "text",
+                "text": "Search settings",
+                "bounds": {
+                  "x1": 200,
+                  "y1": 632,
+                  "x2": 553,
+                  "y2": 703,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-23",
+                "kind": "text",
+                "text": "Network & internet",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 832,
+                  "x2": 625,
+                  "y2": 903,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-24",
+                "kind": "text",
+                "text": "Mobile, Wi‑Fi, hotspot",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 903,
+                  "x2": 540,
+                  "y2": 954,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-29",
+                "kind": "text",
+                "text": "Connected devices",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1063,
+                  "x2": 636,
+                  "y2": 1134,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-30",
+                "kind": "text",
+                "text": "Bluetooth, pairing",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1134,
+                  "x2": 476,
+                  "y2": 1185,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-35",
+                "kind": "text",
+                "text": "Apps",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1294,
+                  "x2": 311,
+                  "y2": 1365,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-36",
+                "kind": "text",
+                "text": "Recent apps, default apps",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1365,
+                  "x2": 614,
+                  "y2": 1416,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-41",
+                "kind": "text",
+                "text": "Notifications",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1525,
+                  "x2": 489,
+                  "y2": 1596,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-42",
+                "kind": "text",
+                "text": "Notification history, conversations",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1596,
+                  "x2": 745,
+                  "y2": 1647,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-47",
+                "kind": "text",
+                "text": "Battery",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1756,
+                  "x2": 357,
+                  "y2": 1827,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-48",
+                "kind": "text",
+                "text": "100%",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1827,
+                  "x2": 279,
+                  "y2": 1878,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-53",
+                "kind": "text",
+                "text": "Storage",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 1987,
+                  "x2": 371,
+                  "y2": 2058,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-54",
+                "kind": "text",
+                "text": "38% used - 9.96 GB free",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 2058,
+                  "x2": 580,
+                  "y2": 2109,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "recording-node-59",
+                "kind": "text",
+                "text": "Sound & vibration",
+                "bounds": {
+                  "x1": 189,
+                  "y1": 2218,
+                  "x2": 601,
+                  "y2": 2274,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ],
+            "deviceId": "recorded-source:fastscreen-v1"
+          },
+          "evidenceId": "ev-1fe04b9081076f2794b70384fe555dbd411a856a63b08f5c0847ed10f73ca9f3",
+          "containerId": "ctr-81086c8ab0af",
+          "identityEvidenceId": "ev-81086c8ab0af78fc262bb5dd44d41d777eea1f4013737336529c563f061c8adc"
+        },
+        "observationNeed": null,
+        "semanticKnowledge": [],
+        "viewportTransitions": []
+      }
+    ]
+  }
+}
