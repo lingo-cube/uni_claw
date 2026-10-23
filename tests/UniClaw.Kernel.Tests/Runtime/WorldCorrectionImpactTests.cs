@@ -9,6 +9,7 @@ using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
+using UniClaw.Kernel.Tests.World;
 using Xunit;
 
 namespace UniClaw.Kernel.Tests.Runtime;
@@ -53,6 +54,10 @@ public sealed class WorldCorrectionImpactTests
         var knownB = Capture("known-b", 1);
         Identify(kernel, knownB, "native:page:B");
         var c1 = Capture("c1-misattributed", 2);
+        var visualFrames = new List<object>
+        {
+            WorldVisualizationExport.Frame("known-b", "先认识页面 B", kernel, world)
+        };
         var c1CaptureId = EvidenceLedger.ComputeEvidenceId(CaptureProposal(c1));
         var c1IdentityId = EvidenceLedger.ComputeEvidenceId(IdentityProposal(c1, c1CaptureId, "native:page:A"));
         var c2 = Capture("c2-current", 11);
@@ -84,6 +89,9 @@ public sealed class WorldCorrectionImpactTests
             {
                 if (directive.Context == ObservationContext.PostActionEffectFlow)
                 {
+                    visualFrames.Add(WorldVisualizationExport.Frame("delivered-awaiting-verify",
+                        "动作已经发出，验证尚未返回", kernel, world,
+                        effectImpacts: kernel.EffectCorrectionReviews));
                     postActionPull++;
                     Assert.Equal(1, postActionPull);
                     return new RunDriverInput.Observation([CaptureProposal(c2, directive.Context),
@@ -95,6 +103,8 @@ public sealed class WorldCorrectionImpactTests
                     return new RunDriverInput.Observation([CaptureProposal(c1), IdentityProposal(c1, c1CaptureId, "native:page:A")]);
                 if (externalPull == 2)
                 {
+                    visualFrames.Add(WorldVisualizationExport.Frame("verified-before-correction",
+                        "按原依据验证通过；随后核查旧观察", kernel, world));
                     var originalRevision = world.RevisionHistory.Last(r =>
                         r.CurrentPageObservation?.EvidenceId == c1CaptureId
                         && r.CurrentPageObservation.IdentityEvidenceId == c1IdentityId);
@@ -110,13 +120,22 @@ public sealed class WorldCorrectionImpactTests
             {
                 consultations++;
                 if (consultations == 1)
+                {
+                    visualFrames.Add(WorldVisualizationExport.Frame("misattributed-before-plan",
+                        "原观察误归页面 A，并被计划消费", kernel, world, actualConsultation: context));
                     return new AgentDecision.Plan(context.DecisionId, new AgentPlanProposal(new PlanItem[]
                     {
                         new PlanItem.ActItem("button", "Wi-Fi", "tap", null),
                         new PlanItem.ObserveItem("reinterpret-original-capture"),
                         new PlanItem.ActItem("button", "Bluetooth", "tap", null),
                     }, "first action, then review historical identity before continuing", "corrected-plan"));
+                }
                 correctionConsult = context;
+                visualFrames.Add(WorldVisualizationExport.Frame("corrected-and-blocked",
+                    "旧观察更正到 B，原效果未决，后续动作停止", kernel, world,
+                    world.Current!.Containers!.Select(c => c.Identity.ContainerId).ToArray(),
+                    effectImpacts: kernel.EffectCorrectionReviews, terminal: kernel.IsRunTerminal,
+                    actualConsultation: context));
                 return new AgentDecision.Blocked(context.DecisionId, "review-corrected-world-basis");
             }
         };
@@ -152,6 +171,7 @@ public sealed class WorldCorrectionImpactTests
             kernel.Act(control.IntentLog.Single(i => i.Kind == ControlIntentKind.Act), null,
                 [kernel.WorldDecisionUses.First().DecisionId])).Message);
         Assert.Single(external.Requests);
+        WorldVisualizationExport.Write("correction", visualFrames.ToArray());
         if (Environment.GetEnvironmentVariable("UNICLAW_WORLD_CORRECTION_EXPORT") is { Length: > 0 } output)
         {
             var example = new
@@ -405,6 +425,12 @@ public sealed class WorldCorrectionImpactTests
         Assert.Single(external.Requests);
         var receiptBefore = System.Text.Json.JsonSerializer.Serialize(Assert.Single(kernel.EffectReceipts));
         var outcomeBefore = System.Text.Json.JsonSerializer.Serialize(kernel.RunState!.Outcome);
+        var terminalFrames = new List<object>
+        {
+            WorldVisualizationExport.Frame("terminal-recorded", "Terminal outcome and receipt recorded before correction",
+                kernel, world, terminal: kernel.IsRunTerminal, outcome: kernel.RunState.Outcome,
+                effectImpacts: kernel.EffectCorrectionReviews)
+        };
 
         // A later historical correction may append a review, but cannot reopen
         // delivery or mutate the already-recorded terminal outcome.
@@ -419,6 +445,11 @@ public sealed class WorldCorrectionImpactTests
         Assert.Equal(outcomeBefore, System.Text.Json.JsonSerializer.Serialize(kernel.RunState!.Outcome));
         Assert.Equal(RunDriveStatus.AlreadyTerminal, driver.Drive().Status);
         Assert.Single(external.Requests); // no redispatch/compensation after terminal
+        terminalFrames.Add(WorldVisualizationExport.Frame("terminal-correction-review",
+            "Correction appends an unresolved effect review without reopening terminal run",
+            kernel, world, terminal: kernel.IsRunTerminal, outcome: kernel.RunState!.Outcome,
+            effectImpacts: kernel.EffectCorrectionReviews));
+        WorldVisualizationExport.Write("terminal", terminalFrames.ToArray());
     }
 
     private sealed class LegacyPolicy : IControlPolicy

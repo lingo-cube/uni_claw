@@ -1,0 +1,58 @@
+[
+  {
+    "name": "历史参考先可读",
+    "passed": true
+  },
+  {
+    "name": "有据后沿用稳定语义",
+    "passed": true
+  },
+  {
+    "name": "真实三个范围",
+    "passed": true
+  },
+  {
+    "name": "上半与下半范围布局有别",
+    "passed": true
+  },
+  {
+    "name": "累计只用已采信配准",
+    "passed": true
+  },
+  {
+    "name": "确认返回环保留两条有据导航边",
+    "passed": true
+  },
+  {
+    "name": "关系过滤",
+    "passed": true
+  },
+  {
+    "name": "缩放反馈",
+    "passed": true
+  },
+  {
+    "name": "筛选空态",
+    "passed": true
+  },
+  {
+    "name": "聚焦反馈",
+    "passed": true
+  },
+  {
+    "name": "四类缺口可见",
+    "passed": true
+  },
+  {
+    "name": "Contains来自正式关系",
+    "passed": true
+  },
+  {
+    "name": "同W补证差分",
+    "passed": true
+  },
+  {
+    "name": "新结果仍为一次执行",
+    "passed": true
+  }
+]

@@ -10,6 +10,7 @@ using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
+using UniClaw.Kernel.Tests.World;
 using Xunit;
 
 namespace UniClaw.Kernel.Tests.Runtime;
@@ -233,6 +234,7 @@ public sealed class WorldRecoveryReviewTests
         var pollAfterFirstReview = false;
         var pollCallsAfterReview = 0;
         var captureEvidenceId = "";
+        var visualization = new List<object>();
         SupplementationExecution? v1 = null;
         SupplementationExecution? v2 = null;
         SupplementationExecution? v3 = null;
@@ -276,6 +278,10 @@ public sealed class WorldRecoveryReviewTests
             ConsultAgent = context =>
             {
                 contexts.Add(context);
+                visualization.Add(WorldVisualizationExport.Frame("review-" + contexts.Count,
+                    "Recovery review context " + contexts.Count + " with actual result history",
+                    kernel, world, knowledge: context.WorldKnowledge, recovery: context.WorldRecovery,
+                    effectImpacts: context.WorldEffectImpacts, terminal: kernel.IsRunTerminal, capture: capture));
                 return contexts.Count == 1
                     ? new AgentDecision.Defer(context.DecisionId, new ObserveSpec(null, MaxRounds: 1))
                     : new AgentDecision.Blocked(context.DecisionId, "review-new-result-version");
@@ -317,6 +323,7 @@ public sealed class WorldRecoveryReviewTests
         Assert.Equal(new[] { 1, 2, 3 }, updated.ResultHistory.Select(e => e.ResultVersion));
         Assert.Equal("controlled-result:v3", Assert.Single(updated.Executions).ResultReferences.Single());
         Assert.Empty(kernel.EffectReceipts);
+        WorldVisualizationExport.Write("recovery", visualization.ToArray());
     }
 
     private static PageCaptureObservation Capture(string id, int second) => new(id, "cycle:" + id,

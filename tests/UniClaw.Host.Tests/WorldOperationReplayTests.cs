@@ -3,6 +3,7 @@ using UniClaw.Host;
 using UniClaw.Kernel;
 using UniClaw.Kernel.Assurance;
 using UniClaw.Kernel.Control;
+using UniClaw.Kernel.Core;
 using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception;
@@ -142,6 +143,36 @@ public sealed class WorldOperationReplayTests
             ? new[] { ("root", 0), ("child", 0), ("root", 0), ("other", 0), ("root", 0) }
             : new[] { ("root", 0), ("child", 0), ("child", -200), ("child", 0), ("root", 0) };
         var captureIndex = 0;
+        var visualFrames = new List<object>();
+        var visualOutput = includePageCaptures && !navigationCycle
+            ? Environment.GetEnvironmentVariable("UNICLAW_WORLD_VIS_SCROLL_EXPORT") : null;
+        void CaptureVisualization()
+        {
+            if (string.IsNullOrWhiteSpace(visualOutput) || world.Current?.CurrentPageObservation?.ContainerId is not { } root)
+                return;
+            var revision = world.Current;
+            var capture = revision.CurrentPageObservation.Capture;
+            var full = kernel.DeriveSlice(root);
+            var upper = kernel.DeriveSlice(root, region: new SliceRegion(capture.CaptureId, capture.Space,
+                new SpatialLocator(0, 0, 1, .5, "device-viewport")));
+            var lower = kernel.DeriveSlice(root, region: new SliceRegion(capture.CaptureId, capture.Space,
+                new SpatialLocator(0, .5, 1, 1, "device-viewport")));
+            var slices = new[] { full, upper, lower }.Select(slice => new
+            {
+                sliceId = CoreSemanticProjection.SliceId(slice).Value, slice,
+                coreSlice = CoreSemanticProjection.ProjectSlice(slice, revision),
+                presentation = SliceContentPresentation.Project(slice, "device-viewport",
+                    slice.Region?.Bounds ?? new SpatialLocator(0, 0, 1, 1, "device-viewport"))
+            }).ToArray();
+            visualFrames.Add(new
+            {
+                key = "capture-" + capture.CaptureId, label = "实际运行边界：" + capture.CaptureId,
+                revision, knowledge = kernel.ProjectWorldKnowledge(),
+                graph = kernel.ProjectWorldGraph($"{kernel.RunId}:{kernel.RunView!.Version}"),
+                pages = new[] { world.DerivePageView(root, revision.RevisionId) }, slices,
+                receipts = effects.ReceiptLog.ToArray(), verifications = kernel.PostActionVerifications.ToArray()
+            });
+        }
         string[]? recorded = null;
         if (recordedSequence is not null)
         {
@@ -152,6 +183,7 @@ public sealed class WorldOperationReplayTests
         {
             NextInput = directive =>
             {
+                CaptureVisualization();
                 if (captureIndex >= captures.Length) return null;
                 var (page, shift) = captures[captureIndex];
                 var time = T0.AddSeconds(captureIndex * 10); var capture = "capture-" + captureIndex++;
@@ -210,6 +242,23 @@ public sealed class WorldOperationReplayTests
             TaskInstanceId: "viewport-task", ProductSessionId: "viewport-session", ContractRef: "viewport-contract")).Accepted);
         Assert.True(driver.Activate().Accepted);
         var result = driver.Drive();
+        CaptureVisualization();
+        if (!string.IsNullOrWhiteSpace(visualOutput))
+        {
+            if (!Path.IsPathFullyQualified(visualOutput)) throw new InvalidOperationException("visual export must be absolute");
+            var payload = new
+            {
+                schemaVersion = "world-visualization.v1", id = "world-visualization:scroll",
+                title = "滚动、返回与三个实际 Slice 范围",
+                provenance = new { coreCommit = "56a75fd7", inputClass = "真实运行链 / 受控布局与delivery",
+                    sourceTest = nameof(RuntimePageCaptures_ExposeOwnerAccumulationAfterActualScrollVerification),
+                    limitations = new[] { "受控XML、时钟、咨询与delivery，不是真机或实时模型。", "只导出运行边界；中间修订未逐帧采集。" } },
+                frames = visualFrames
+            };
+            Directory.CreateDirectory(Path.GetDirectoryName(visualOutput)!);
+            File.WriteAllText(visualOutput, JsonSerializer.Serialize(payload,
+                new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }));
+        }
         Assert.True(captureIndex == 5, $"{result.Status}:{result.Reason}; consumed={captureIndex}");
         Assert.All(kernel.PostActionVerifications, v => Assert.True(v.IsVerified, v.RejectionReason));
         if (ordinaryRecapture)

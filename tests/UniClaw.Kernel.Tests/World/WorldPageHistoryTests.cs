@@ -116,6 +116,9 @@ public sealed class WorldPageHistoryTests
         Assert.Equal("c2", world.Current!.CurrentPageObservation!.Capture.CaptureId);
         Assert.Equal(current.ContentDigest, world.DerivePageView(root).ContentDigest);
         Assert.Equal(currentBytes, System.Text.Json.JsonSerializer.Serialize(current));
+        WorldVisualizationExport.Write("late-result", WorldVisualizationExport.Frame(
+            "late-c1-interpretation", "Late interpretation remains tied to C1; C2 stays the current capture",
+            kernel, world, [root]));
         _ = ledger;
     }
 

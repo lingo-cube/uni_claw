@@ -56,6 +56,10 @@ public sealed class WorldPageCorrectionTests
         Assert.Equal(oldOwner, world.DerivePageView(oldOwner).Observations.Single(o => o.CaptureEvidenceId == captureId).ContainerId);
         Assert.NotEqual(targetB, oldOwner);
         Assert.Contains(captureId, ledger.CanonicalRecords.Keys);
+        if (defect == "wrong-signature")
+            WorldVisualizationExport.Write("correction-conflict", WorldVisualizationExport.Frame(
+                "rejected-signature-correction", "Native support disagrees with the declared replacement; original attribution remains",
+                kernel, world, [oldOwner]));
     }
 
     [Fact]

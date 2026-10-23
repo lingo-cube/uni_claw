@@ -1,0 +1,11 @@
+{
+  "invalid": {
+    "error": "导入失败：页面来源版本与所选 World 不一致。 原视图保留。",
+    "position": "1 / 3"
+  },
+  "valid": {
+    "metadata": "本地导入 reuse.json · 3 个时点",
+    "position": "1 / 3"
+  },
+  "passed": true
+}

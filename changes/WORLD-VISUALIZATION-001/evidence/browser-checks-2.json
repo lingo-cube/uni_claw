@@ -1,0 +1,50 @@
+[
+  {
+    "name": "旧时点页面真实保留",
+    "passed": true
+  },
+  {
+    "name": "更正后解释显式标识两版",
+    "passed": true
+  },
+  {
+    "name": "解释对齐原capture",
+    "passed": true
+  },
+  {
+    "name": "选中更正后对象标最新来源",
+    "passed": true
+  },
+  {
+    "name": "在途快照回执已记录",
+    "passed": true
+  },
+  {
+    "name": "原效果保持未决",
+    "passed": true
+  },
+  {
+    "name": "比较页面和Slice",
+    "passed": true
+  },
+  {
+    "name": "比较定位来源与Slice",
+    "passed": true
+  },
+  {
+    "name": "终局不因纠正而复活",
+    "passed": true
+  },
+  {
+    "name": "实际咨询正文独立可追溯",
+    "passed": true
+  },
+  {
+    "name": "正文包含worldKnowledge",
+    "passed": true
+  },
+  {
+    "name": "录制输入限制清楚",
+    "passed": true
+  }
+]

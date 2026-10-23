@@ -1,0 +1,1425 @@
+{
+  "schemaVersion": "world-visualization.v1",
+  "id": "world-visualization:reuse-negative",
+  "title": "reuse-negative",
+  "provenance": {
+    "coreCommit": "56a75fd7",
+    "sourceTest": "reuse-negative",
+    "inputClass": "\u53D7\u63A7\u6765\u6E90/\u771F\u5B9E\u6838\u5FC3",
+    "limitations": [
+      "controlled fixture/provider inputs; no live-device or live-model evidence"
+    ]
+  },
+  "frames": [
+    {
+      "key": "previous-capture",
+      "label": "C1 observed Wi-Fi with its own verified stable meaning",
+      "revision": {
+        "revisionId": "rev-6",
+        "parentRevisionId": "rev-5",
+        "revisionNumber": 6,
+        "worldState": {
+          "ui.semantic.page": {
+            "value": "{\u0022pageKey\u0022:\u0022settings-home\u0022,\u0022pageName\u0022:\u0022Settings\u0022,\u0022pagePurpose\u0022:\u0022Settings home\u0022,\u0022observedTitle\u0022:\u0022Settings\u0022,\u0022captureId\u0022:\u0022source\u0022,\u0022observationCycleId\u0022:\u0022cycle:source\u0022,\u0022sessionCorrelation\u0022:\u0022fixture-session\u0022}",
+            "evidenceId": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+            "establishingProducer": "uni.perception",
+            "establishingScope": "capture:source",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.source#0.resource_id": {
+            "value": "com.example.settings:id/home",
+            "evidenceId": "ev-dd07f4c9e1bd5ca248af19102133fe1b629b2000be6d41316ac80902d0efda51",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.source#0.resource_id",
+            "supersededEvidenceIds": null
+          },
+          "ui.screen": {
+            "value": "com.example.settings:id/home",
+            "evidenceId": "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.current": {
+            "value": "ctr-7df2e712926e",
+            "evidenceId": "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ctr-7df2e712926e.semantic.page": {
+            "value": "{\u0022pageKey\u0022:\u0022settings-home\u0022,\u0022pageName\u0022:\u0022Settings\u0022,\u0022pagePurpose\u0022:\u0022Settings home\u0022,\u0022observedTitle\u0022:\u0022Settings\u0022,\u0022captureId\u0022:\u0022source\u0022,\u0022observationCycleId\u0022:\u0022cycle:source\u0022,\u0022sessionCorrelation\u0022:\u0022fixture-session\u0022}",
+            "evidenceId": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+            "establishingProducer": "uni.perception",
+            "establishingScope": "capture:source",
+            "supersededEvidenceIds": null
+          },
+          "ui.container.signature.ctr-7df2e712926e": {
+            "value": "com.example.settings:id/home",
+            "evidenceId": "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.node.source#0.package": {
+            "value": "com.example.settings",
+            "evidenceId": "ev-f1e0dd7541c126b21ced6c6cef2d0b2ab99963aaae8a5679b8e7ec92cb6035ab",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.source#0.package",
+            "supersededEvidenceIds": null
+          }
+        },
+        "worldGraph": [
+          "ui.screen",
+          "ui.container.current",
+          "ui.container.signature.ctr-7df2e712926e",
+          "ui.semantic.page",
+          "ctr-7df2e712926e.semantic.page",
+          "ui.node.source#0.resource_id",
+          "ui.node.source#0.package"
+        ],
+        "evidenceBasis": [
+          "ev-f1e0dd7541c126b21ced6c6cef2d0b2ab99963aaae8a5679b8e7ec92cb6035ab",
+          "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+          "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239",
+          "ev-b6ce1f087abc372f21c5e40358200840ea373e277a1d8969a33d7276f2bf33c4",
+          "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+          "ev-dd07f4c9e1bd5ca248af19102133fe1b629b2000be6d41316ac80902d0efda51"
+        ],
+        "freshnessBasis": {
+          "asOf": "2026-10-23T00:00:01+00:00"
+        },
+        "uncertainty": {
+          "conflictingClaimCount": 0
+        },
+        "conflicts": [],
+        "containers": [
+          {
+            "identity": {
+              "containerId": "ctr-7df2e712926e"
+            },
+            "evidenceBasis": [
+              "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239"
+            ]
+          }
+        ],
+        "relations": [],
+        "occurrences": [
+          {
+            "occurrenceId": "occ-7df2e712926e-0",
+            "owningContainerId": "ctr-7df2e712926e",
+            "role": "text",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 0.9,
+              "y2": 0.2,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.1
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "source"
+            }
+          },
+          {
+            "occurrenceId": "occ-7df2e712926e-1",
+            "owningContainerId": "ctr-7df2e712926e",
+            "role": "ui.element",
+            "semanticDescriptor": "Wi-Fi",
+            "evidenceBasis": [
+              "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0.3,
+              "x2": 0.9,
+              "y2": 0.6,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.44999999999999996
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "source"
+            }
+          }
+        ],
+        "logicalItems": null,
+        "currentPageObservation": {
+          "capture": {
+            "captureId": "source",
+            "observationCycleId": "cycle:source",
+            "sessionCorrelation": "fixture-session",
+            "captureTime": "2026-10-23T00:00:01+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "source"
+            },
+            "items": [
+              {
+                "id": "title",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 90,
+                  "y2": 20,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "row",
+                "kind": "ui.element",
+                "text": "Wi-Fi",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 30,
+                  "x2": 90,
+                  "y2": 60,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ],
+            "coverage": {
+              "completeness": 1,
+              "limitation": "viewport-export-only",
+              "isValid": true
+            },
+            "deviceId": "fixture-device"
+          },
+          "evidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+          "containerId": "ctr-7df2e712926e",
+          "identityEvidenceId": "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239"
+        },
+        "observationNeed": null,
+        "semanticKnowledge": [
+          {
+            "containerId": "ctr-7df2e712926e",
+            "currentCaptureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+            "captureId": "source",
+            "observationCycleId": "cycle:source",
+            "sessionCorrelation": "fixture-session",
+            "pageKey": "settings-home",
+            "pageName": "Settings",
+            "pagePurpose": "Settings home",
+            "originalSemanticEvidenceId": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+            "verificationEvidenceId": "ev-b6ce1f087abc372f21c5e40358200840ea373e277a1d8969a33d7276f2bf33c4",
+            "correspondenceEvidenceIds": [
+              "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+              "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239",
+              "ev-dd07f4c9e1bd5ca248af19102133fe1b629b2000be6d41316ac80902d0efda51"
+            ],
+            "sourceRevisionId": "rev-6",
+            "applicableRevisionId": "rev-6",
+            "reused": false
+          }
+        ],
+        "viewportTransitions": []
+      },
+      "knowledge": {
+        "sourceRevisionId": "rev-6",
+        "collectionStatus": "collected",
+        "gaps": [
+          {
+            "gapId": "world-gap:b29fb0d5726fa5ce082929ffe508a7331427fad71c463095ade196f0a5eca03e",
+            "kind": 3,
+            "objectRef": "ctr-7df2e712926e",
+            "scope": "capture:source:viewport",
+            "reason": "viewport-export-only",
+            "sourceRevisionId": "rev-6",
+            "evidenceIds": [
+              "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62"
+          }
+        ],
+        "semanticReferences": [
+          {
+            "evidenceId": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+            "captureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+            "meaning": {
+              "pageKey": "settings-home",
+              "pageName": "Settings",
+              "pagePurpose": "Settings home",
+              "observedTitle": "Settings",
+              "captureId": "source",
+              "observationCycleId": "cycle:source",
+              "sessionCorrelation": "fixture-session"
+            },
+            "isHistorical": false,
+            "conflicted": false,
+            "verificationEvidenceId": "ev-b6ce1f087abc372f21c5e40358200840ea373e277a1d8969a33d7276f2bf33c4"
+          }
+        ],
+        "currentSemantics": [
+          {
+            "containerId": "ctr-7df2e712926e",
+            "currentCaptureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+            "captureId": "source",
+            "observationCycleId": "cycle:source",
+            "sessionCorrelation": "fixture-session",
+            "pageKey": "settings-home",
+            "pageName": "Settings",
+            "pagePurpose": "Settings home",
+            "originalSemanticEvidenceId": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+            "verificationEvidenceId": "ev-b6ce1f087abc372f21c5e40358200840ea373e277a1d8969a33d7276f2bf33c4",
+            "correspondenceEvidenceIds": [
+              "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+              "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239",
+              "ev-dd07f4c9e1bd5ca248af19102133fe1b629b2000be6d41316ac80902d0efda51"
+            ],
+            "sourceRevisionId": "rev-6",
+            "applicableRevisionId": "rev-6",
+            "reused": false
+          }
+        ],
+        "corrections": []
+      },
+      "recovery": null,
+      "effectImpacts": null,
+      "terminal": null,
+      "outcome": null,
+      "actualConsultation": null,
+      "receipts": [],
+      "verifications": null,
+      "decisionUses": [],
+      "capture": {
+        "captureId": "source",
+        "observationCycleId": "cycle:source",
+        "sessionCorrelation": "fixture-session",
+        "captureTime": "2026-10-23T00:00:01+00:00",
+        "space": {
+          "coordinateSpaceId": "device-viewport:100x100@0",
+          "pixelWidth": 100,
+          "pixelHeight": 100,
+          "rotation": 0,
+          "captureId": "source"
+        },
+        "items": [
+          {
+            "id": "title",
+            "kind": "text",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 90,
+              "y2": 20,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "row",
+            "kind": "ui.element",
+            "text": "Wi-Fi",
+            "bounds": {
+              "x1": 0,
+              "y1": 30,
+              "x2": 90,
+              "y2": 60,
+              "isValid": true
+            },
+            "confidence": null
+          }
+        ],
+        "coverage": {
+          "completeness": 1,
+          "limitation": "viewport-export-only",
+          "isValid": true
+        },
+        "deviceId": "fixture-device"
+      },
+      "pages": [
+        {
+          "sourceRevisionId": "rev-6",
+          "containerId": "ctr-7df2e712926e",
+          "observations": [
+            {
+              "sourceRevisionId": "rev-6",
+              "captureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+              "identityEvidenceId": "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239",
+              "capture": {
+                "captureId": "source",
+                "observationCycleId": "cycle:source",
+                "sessionCorrelation": "fixture-session",
+                "captureTime": "2026-10-23T00:00:01+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:100x100@0",
+                  "pixelWidth": 100,
+                  "pixelHeight": 100,
+                  "rotation": 0,
+                  "captureId": "source"
+                },
+                "items": [
+                  {
+                    "id": "title",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 0,
+                      "x2": 90,
+                      "y2": 20,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "row",
+                    "kind": "ui.element",
+                    "text": "Wi-Fi",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 30,
+                      "x2": 90,
+                      "y2": 60,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "coverage": {
+                  "completeness": 1,
+                  "limitation": "viewport-export-only",
+                  "isValid": true
+                },
+                "deviceId": "fixture-device"
+              },
+              "containerId": "ctr-7df2e712926e",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-7df2e712926e-0",
+                  "owningContainerId": "ctr-7df2e712926e",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-7df2e712926e-1",
+                  "owningContainerId": "ctr-7df2e712926e",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Wi-Fi",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.3,
+                    "x2": 0.9,
+                    "y2": 0.6,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.44999999999999996
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": true,
+              "visitSourceRef": null
+            }
+          ],
+          "semanticReferences": [
+            {
+              "evidenceId": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+              "captureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+              "meaning": {
+                "pageKey": "settings-home",
+                "pageName": "Settings",
+                "pagePurpose": "Settings home",
+                "observedTitle": "Settings",
+                "captureId": "source",
+                "observationCycleId": "cycle:source",
+                "sessionCorrelation": "fixture-session"
+              },
+              "isHistorical": false,
+              "conflicted": false,
+              "verificationEvidenceId": "ev-b6ce1f087abc372f21c5e40358200840ea373e277a1d8969a33d7276f2bf33c4"
+            }
+          ],
+          "viewportTransitions": [],
+          "unknown": [
+            "visit-occurrence-unproven",
+            "whole-page-coverage-unproven"
+          ],
+          "contentDigest": "3191fb9315ebc50701c70054e220eaee462f3d5cb5093e2f0a999b20f8a1692f",
+          "corrections": [],
+          "contextRelations": [],
+          "currentSemantics": [
+            {
+              "containerId": "ctr-7df2e712926e",
+              "currentCaptureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+              "captureId": "source",
+              "observationCycleId": "cycle:source",
+              "sessionCorrelation": "fixture-session",
+              "pageKey": "settings-home",
+              "pageName": "Settings",
+              "pagePurpose": "Settings home",
+              "originalSemanticEvidenceId": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+              "verificationEvidenceId": "ev-b6ce1f087abc372f21c5e40358200840ea373e277a1d8969a33d7276f2bf33c4",
+              "correspondenceEvidenceIds": [
+                "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+                "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239",
+                "ev-dd07f4c9e1bd5ca248af19102133fe1b629b2000be6d41316ac80902d0efda51"
+              ],
+              "sourceRevisionId": "rev-6",
+              "applicableRevisionId": "rev-6",
+              "reused": false
+            }
+          ],
+          "accumulatedContent": {
+            "sourceRevisionId": "rev-6",
+            "containerId": "ctr-7df2e712926e",
+            "currentCaptureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+            "items": [
+              {
+                "presentationRef": "content:occ-7df2e712926e-0",
+                "containerId": "ctr-7df2e712926e",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2
+                },
+                "captureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+                "captureTime": "2026-10-23T00:00:01+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-7df2e712926e-0"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-7df2e712926e-1",
+                "containerId": "ctr-7df2e712926e",
+                "role": "ui.element",
+                "semanticDescriptor": "Wi-Fi",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0.3,
+                  "x2": 0.9,
+                  "y2": 0.6
+                },
+                "captureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+                "captureTime": "2026-10-23T00:00:01+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-7df2e712926e-1"
+                ]
+              }
+            ],
+            "registrationSourceRefs": [],
+            "unknown": [
+              "whole-page-coverage-unproven"
+            ]
+          }
+        }
+      ],
+      "slices": [
+        {
+          "sliceId": "slice:v2:677b113a387195905b7558e5193e41178f1a0d3bf9e33d8bbaaf1adcd218c86b",
+          "slice": {
+            "sourceRevisionId": "rev-6",
+            "rootContainerId": "ctr-7df2e712926e",
+            "freshnessBasis": {
+              "asOf": "2026-10-23T00:00:01+00:00"
+            },
+            "inScopeContainerIds": [
+              "ctr-7df2e712926e"
+            ],
+            "occurrences": [
+              {
+                "occurrenceId": "occ-7df2e712926e-0",
+                "owningContainerId": "ctr-7df2e712926e",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.1
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-7df2e712926e-1",
+                "owningContainerId": "ctr-7df2e712926e",
+                "role": "ui.element",
+                "semanticDescriptor": "Wi-Fi",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0.3,
+                  "x2": 0.9,
+                  "y2": 0.6,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.44999999999999996
+                },
+                "native": null
+              }
+            ],
+            "scopedClaims": {
+              "ctr-7df2e712926e.semantic.page": "{\u0022pageKey\u0022:\u0022settings-home\u0022,\u0022pageName\u0022:\u0022Settings\u0022,\u0022pagePurpose\u0022:\u0022Settings home\u0022,\u0022observedTitle\u0022:\u0022Settings\u0022,\u0022captureId\u0022:\u0022source\u0022,\u0022observationCycleId\u0022:\u0022cycle:source\u0022,\u0022sessionCorrelation\u0022:\u0022fixture-session\u0022}"
+            },
+            "region": null,
+            "semanticKnowledge": [
+              {
+                "containerId": "ctr-7df2e712926e",
+                "currentCaptureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+                "captureId": "source",
+                "observationCycleId": "cycle:source",
+                "sessionCorrelation": "fixture-session",
+                "pageKey": "settings-home",
+                "pageName": "Settings",
+                "pagePurpose": "Settings home",
+                "originalSemanticEvidenceId": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+                "verificationEvidenceId": "ev-b6ce1f087abc372f21c5e40358200840ea373e277a1d8969a33d7276f2bf33c4",
+                "correspondenceEvidenceIds": [
+                  "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+                  "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239",
+                  "ev-dd07f4c9e1bd5ca248af19102133fe1b629b2000be6d41316ac80902d0efda51"
+                ],
+                "sourceRevisionId": "rev-6",
+                "applicableRevisionId": "rev-6",
+                "reused": false
+              }
+            ]
+          },
+          "coreSlice": {
+            "id": {
+              "value": "slice:v2:677b113a387195905b7558e5193e41178f1a0d3bf9e33d8bbaaf1adcd218c86b"
+            },
+            "segmentId": {
+              "value": "ctr-7df2e712926e"
+            },
+            "observationEvidenceIds": [
+              {
+                "value": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53"
+              },
+              {
+                "value": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62"
+              },
+              {
+                "value": "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239"
+              },
+              {
+                "value": "ev-b6ce1f087abc372f21c5e40358200840ea373e277a1d8969a33d7276f2bf33c4"
+              },
+              {
+                "value": "ev-dd07f4c9e1bd5ca248af19102133fe1b629b2000be6d41316ac80902d0efda51"
+              },
+              {
+                "value": "ev-f1e0dd7541c126b21ced6c6cef2d0b2ab99963aaae8a5679b8e7ec92cb6035ab"
+              }
+            ],
+            "observedAt": "2026-10-23T00:00:01+00:00",
+            "scope": "{\u0022Containers\u0022:[\u0022ctr-7df2e712926e\u0022],\u0022Region\u0022:null}",
+            "observedRecordIds": [
+              {
+                "value": "occ-7df2e712926e-0"
+              },
+              {
+                "value": "occ-7df2e712926e-1"
+              }
+            ],
+            "coverage": "partial"
+          },
+          "presentation": [
+            {
+              "sourceRevisionId": "rev-6",
+              "rootContainerId": "ctr-7df2e712926e",
+              "isAuthoritative": false,
+              "elements": [
+                {
+                  "occurrenceId": "occ-7df2e712926e-0",
+                  "owningContainerId": "ctr-7df2e712926e",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  }
+                },
+                {
+                  "occurrenceId": "occ-7df2e712926e-1",
+                  "owningContainerId": "ctr-7df2e712926e",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Wi-Fi",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.3,
+                    "x2": 0.9,
+                    "y2": 0.6,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.44999999999999996
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "current-capture-unmatched",
+      "label": "C2 observes Bluetooth; the historical meaning remains reference-only without a current native anchor",
+      "revision": {
+        "revisionId": "rev-8",
+        "parentRevisionId": "rev-7",
+        "revisionNumber": 8,
+        "worldState": {
+          "ui.semantic.page": {
+            "value": "{\u0022pageKey\u0022:\u0022settings-home\u0022,\u0022pageName\u0022:\u0022Settings\u0022,\u0022pagePurpose\u0022:\u0022Settings home\u0022,\u0022observedTitle\u0022:\u0022Settings\u0022,\u0022captureId\u0022:\u0022source\u0022,\u0022observationCycleId\u0022:\u0022cycle:source\u0022,\u0022sessionCorrelation\u0022:\u0022fixture-session\u0022}",
+            "evidenceId": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+            "establishingProducer": "uni.perception",
+            "establishingScope": "capture:source",
+            "supersededEvidenceIds": null
+          },
+          "ui.node.source#0.resource_id": {
+            "value": "com.example.settings:id/home",
+            "evidenceId": "ev-dd07f4c9e1bd5ca248af19102133fe1b629b2000be6d41316ac80902d0efda51",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.source#0.resource_id",
+            "supersededEvidenceIds": null
+          },
+          "ui.screen": {
+            "value": "com.example.settings:id/home",
+            "evidenceId": "ev-705690e31733392f98fa0702b7fec588f8275ca15a05623f2ceb5b06c05a8a9d",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.container.current": {
+            "value": "ctr-7df2e712926e",
+            "evidenceId": "ev-705690e31733392f98fa0702b7fec588f8275ca15a05623f2ceb5b06c05a8a9d",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ctr-7df2e712926e.semantic.page": {
+            "value": "{\u0022pageKey\u0022:\u0022settings-home\u0022,\u0022pageName\u0022:\u0022Settings\u0022,\u0022pagePurpose\u0022:\u0022Settings home\u0022,\u0022observedTitle\u0022:\u0022Settings\u0022,\u0022captureId\u0022:\u0022source\u0022,\u0022observationCycleId\u0022:\u0022cycle:source\u0022,\u0022sessionCorrelation\u0022:\u0022fixture-session\u0022}",
+            "evidenceId": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+            "establishingProducer": "uni.perception",
+            "establishingScope": "capture:source",
+            "supersededEvidenceIds": null
+          },
+          "ui.container.signature.ctr-7df2e712926e": {
+            "value": "com.example.settings:id/home",
+            "evidenceId": "ev-705690e31733392f98fa0702b7fec588f8275ca15a05623f2ceb5b06c05a8a9d",
+            "establishingProducer": null,
+            "establishingScope": null,
+            "supersededEvidenceIds": null
+          },
+          "ui.node.source#0.package": {
+            "value": "com.example.settings",
+            "evidenceId": "ev-f1e0dd7541c126b21ced6c6cef2d0b2ab99963aaae8a5679b8e7ec92cb6035ab",
+            "establishingProducer": "platform.uiautomator",
+            "establishingScope": "scope:ui.node.source#0.package",
+            "supersededEvidenceIds": null
+          }
+        },
+        "worldGraph": [
+          "ui.screen",
+          "ui.container.current",
+          "ui.container.signature.ctr-7df2e712926e",
+          "ui.semantic.page",
+          "ctr-7df2e712926e.semantic.page",
+          "ui.node.source#0.resource_id",
+          "ui.node.source#0.package"
+        ],
+        "evidenceBasis": [
+          "ev-f6ac4948f4ec19e3a1f29007c84389967f5e33d0399a55be30e043c37393c799",
+          "ev-b6ce1f087abc372f21c5e40358200840ea373e277a1d8969a33d7276f2bf33c4",
+          "ev-f1e0dd7541c126b21ced6c6cef2d0b2ab99963aaae8a5679b8e7ec92cb6035ab",
+          "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239",
+          "ev-dd07f4c9e1bd5ca248af19102133fe1b629b2000be6d41316ac80902d0efda51",
+          "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+          "ev-705690e31733392f98fa0702b7fec588f8275ca15a05623f2ceb5b06c05a8a9d",
+          "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62"
+        ],
+        "freshnessBasis": {
+          "asOf": "2026-10-23T00:00:02+00:00"
+        },
+        "uncertainty": {
+          "conflictingClaimCount": 0
+        },
+        "conflicts": [],
+        "containers": [
+          {
+            "identity": {
+              "containerId": "ctr-7df2e712926e"
+            },
+            "evidenceBasis": [
+              "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239",
+              "ev-705690e31733392f98fa0702b7fec588f8275ca15a05623f2ceb5b06c05a8a9d"
+            ]
+          }
+        ],
+        "relations": [],
+        "occurrences": [
+          {
+            "occurrenceId": "occ-705690e31733-0",
+            "owningContainerId": "ctr-7df2e712926e",
+            "role": "text",
+            "semanticDescriptor": "Settings",
+            "evidenceBasis": [
+              "ev-f6ac4948f4ec19e3a1f29007c84389967f5e33d0399a55be30e043c37393c799"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 0.9,
+              "y2": 0.2,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.45,
+              "centerY": 0.1
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "current"
+            }
+          },
+          {
+            "occurrenceId": "occ-705690e31733-1",
+            "owningContainerId": "ctr-7df2e712926e",
+            "role": "ui.element",
+            "semanticDescriptor": "Bluetooth",
+            "evidenceBasis": [
+              "ev-f6ac4948f4ec19e3a1f29007c84389967f5e33d0399a55be30e043c37393c799"
+            ],
+            "state": null,
+            "locator": {
+              "x1": 0.1,
+              "y1": 0.65,
+              "x2": 0.9,
+              "y2": 0.9,
+              "spatialFrameId": "device-viewport",
+              "centerX": 0.5,
+              "centerY": 0.775
+            },
+            "native": null,
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "current"
+            }
+          }
+        ],
+        "logicalItems": null,
+        "currentPageObservation": {
+          "capture": {
+            "captureId": "current",
+            "observationCycleId": "cycle:current",
+            "sessionCorrelation": "fixture-session",
+            "captureTime": "2026-10-23T00:00:02+00:00",
+            "space": {
+              "coordinateSpaceId": "device-viewport:100x100@0",
+              "pixelWidth": 100,
+              "pixelHeight": 100,
+              "rotation": 0,
+              "captureId": "current"
+            },
+            "items": [
+              {
+                "id": "title",
+                "kind": "text",
+                "text": "Settings",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 90,
+                  "y2": 20,
+                  "isValid": true
+                },
+                "confidence": null
+              },
+              {
+                "id": "row",
+                "kind": "ui.element",
+                "text": "Bluetooth",
+                "bounds": {
+                  "x1": 10,
+                  "y1": 65,
+                  "x2": 90,
+                  "y2": 90,
+                  "isValid": true
+                },
+                "confidence": null
+              }
+            ],
+            "coverage": {
+              "completeness": 1,
+              "limitation": "viewport-export-only",
+              "isValid": true
+            },
+            "deviceId": "fixture-device"
+          },
+          "evidenceId": "ev-f6ac4948f4ec19e3a1f29007c84389967f5e33d0399a55be30e043c37393c799",
+          "containerId": "ctr-7df2e712926e",
+          "identityEvidenceId": "ev-705690e31733392f98fa0702b7fec588f8275ca15a05623f2ceb5b06c05a8a9d"
+        },
+        "observationNeed": null,
+        "semanticKnowledge": [],
+        "viewportTransitions": []
+      },
+      "knowledge": {
+        "sourceRevisionId": "rev-8",
+        "collectionStatus": "collected",
+        "gaps": [
+          {
+            "gapId": "world-gap:997380edf895798eab1100003158870c4abe27ac2b67fc8154f6b6e52cca2ae0",
+            "kind": 3,
+            "objectRef": "ctr-7df2e712926e",
+            "scope": "capture:current:viewport",
+            "reason": "viewport-export-only",
+            "sourceRevisionId": "rev-8",
+            "evidenceIds": [
+              "ev-f6ac4948f4ec19e3a1f29007c84389967f5e33d0399a55be30e043c37393c799"
+            ],
+            "conflicted": false,
+            "causeRef": "capture:ev-f6ac4948f4ec19e3a1f29007c84389967f5e33d0399a55be30e043c37393c799"
+          }
+        ],
+        "semanticReferences": [
+          {
+            "evidenceId": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+            "captureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+            "meaning": {
+              "pageKey": "settings-home",
+              "pageName": "Settings",
+              "pagePurpose": "Settings home",
+              "observedTitle": "Settings",
+              "captureId": "source",
+              "observationCycleId": "cycle:source",
+              "sessionCorrelation": "fixture-session"
+            },
+            "isHistorical": true,
+            "conflicted": false,
+            "verificationEvidenceId": "ev-b6ce1f087abc372f21c5e40358200840ea373e277a1d8969a33d7276f2bf33c4"
+          }
+        ],
+        "currentSemantics": [],
+        "corrections": []
+      },
+      "recovery": null,
+      "effectImpacts": null,
+      "terminal": null,
+      "outcome": null,
+      "actualConsultation": null,
+      "receipts": [],
+      "verifications": null,
+      "decisionUses": [],
+      "capture": {
+        "captureId": "current",
+        "observationCycleId": "cycle:current",
+        "sessionCorrelation": "fixture-session",
+        "captureTime": "2026-10-23T00:00:02+00:00",
+        "space": {
+          "coordinateSpaceId": "device-viewport:100x100@0",
+          "pixelWidth": 100,
+          "pixelHeight": 100,
+          "rotation": 0,
+          "captureId": "current"
+        },
+        "items": [
+          {
+            "id": "title",
+            "kind": "text",
+            "text": "Settings",
+            "bounds": {
+              "x1": 0,
+              "y1": 0,
+              "x2": 90,
+              "y2": 20,
+              "isValid": true
+            },
+            "confidence": null
+          },
+          {
+            "id": "row",
+            "kind": "ui.element",
+            "text": "Bluetooth",
+            "bounds": {
+              "x1": 10,
+              "y1": 65,
+              "x2": 90,
+              "y2": 90,
+              "isValid": true
+            },
+            "confidence": null
+          }
+        ],
+        "coverage": {
+          "completeness": 1,
+          "limitation": "viewport-export-only",
+          "isValid": true
+        },
+        "deviceId": "fixture-device"
+      },
+      "pages": [
+        {
+          "sourceRevisionId": "rev-8",
+          "containerId": "ctr-7df2e712926e",
+          "observations": [
+            {
+              "sourceRevisionId": "rev-6",
+              "captureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+              "identityEvidenceId": "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239",
+              "capture": {
+                "captureId": "source",
+                "observationCycleId": "cycle:source",
+                "sessionCorrelation": "fixture-session",
+                "captureTime": "2026-10-23T00:00:01+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:100x100@0",
+                  "pixelWidth": 100,
+                  "pixelHeight": 100,
+                  "rotation": 0,
+                  "captureId": "source"
+                },
+                "items": [
+                  {
+                    "id": "title",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 0,
+                      "x2": 90,
+                      "y2": 20,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "row",
+                    "kind": "ui.element",
+                    "text": "Wi-Fi",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 30,
+                      "x2": 90,
+                      "y2": 60,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "coverage": {
+                  "completeness": 1,
+                  "limitation": "viewport-export-only",
+                  "isValid": true
+                },
+                "deviceId": "fixture-device"
+              },
+              "containerId": "ctr-7df2e712926e",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-7df2e712926e-0",
+                  "owningContainerId": "ctr-7df2e712926e",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-7df2e712926e-1",
+                  "owningContainerId": "ctr-7df2e712926e",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Wi-Fi",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0.3,
+                    "x2": 0.9,
+                    "y2": 0.6,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.44999999999999996
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": false,
+              "visitSourceRef": null
+            },
+            {
+              "sourceRevisionId": "rev-8",
+              "captureEvidenceId": "ev-f6ac4948f4ec19e3a1f29007c84389967f5e33d0399a55be30e043c37393c799",
+              "identityEvidenceId": "ev-705690e31733392f98fa0702b7fec588f8275ca15a05623f2ceb5b06c05a8a9d",
+              "capture": {
+                "captureId": "current",
+                "observationCycleId": "cycle:current",
+                "sessionCorrelation": "fixture-session",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "space": {
+                  "coordinateSpaceId": "device-viewport:100x100@0",
+                  "pixelWidth": 100,
+                  "pixelHeight": 100,
+                  "rotation": 0,
+                  "captureId": "current"
+                },
+                "items": [
+                  {
+                    "id": "title",
+                    "kind": "text",
+                    "text": "Settings",
+                    "bounds": {
+                      "x1": 0,
+                      "y1": 0,
+                      "x2": 90,
+                      "y2": 20,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  },
+                  {
+                    "id": "row",
+                    "kind": "ui.element",
+                    "text": "Bluetooth",
+                    "bounds": {
+                      "x1": 10,
+                      "y1": 65,
+                      "x2": 90,
+                      "y2": 90,
+                      "isValid": true
+                    },
+                    "confidence": null
+                  }
+                ],
+                "coverage": {
+                  "completeness": 1,
+                  "limitation": "viewport-export-only",
+                  "isValid": true
+                },
+                "deviceId": "fixture-device"
+              },
+              "containerId": "ctr-7df2e712926e",
+              "occurrences": [
+                {
+                  "occurrenceId": "occ-705690e31733-0",
+                  "owningContainerId": "ctr-7df2e712926e",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  },
+                  "native": null
+                },
+                {
+                  "occurrenceId": "occ-705690e31733-1",
+                  "owningContainerId": "ctr-7df2e712926e",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Bluetooth",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.1,
+                    "y1": 0.65,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.5,
+                    "centerY": 0.775
+                  },
+                  "native": null
+                }
+              ],
+              "isCurrentCapture": true,
+              "visitSourceRef": null
+            }
+          ],
+          "semanticReferences": [
+            {
+              "evidenceId": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53",
+              "captureEvidenceId": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62",
+              "meaning": {
+                "pageKey": "settings-home",
+                "pageName": "Settings",
+                "pagePurpose": "Settings home",
+                "observedTitle": "Settings",
+                "captureId": "source",
+                "observationCycleId": "cycle:source",
+                "sessionCorrelation": "fixture-session"
+              },
+              "isHistorical": true,
+              "conflicted": false,
+              "verificationEvidenceId": "ev-b6ce1f087abc372f21c5e40358200840ea373e277a1d8969a33d7276f2bf33c4"
+            }
+          ],
+          "viewportTransitions": [],
+          "unknown": [
+            "visit-occurrence-unproven",
+            "whole-page-coverage-unproven"
+          ],
+          "contentDigest": "e204edc6e13502c1b3665453ccc8e461c8d32b5cf5eafbce6803355dddf4b68f",
+          "corrections": [],
+          "contextRelations": [],
+          "currentSemantics": [],
+          "accumulatedContent": {
+            "sourceRevisionId": "rev-8",
+            "containerId": "ctr-7df2e712926e",
+            "currentCaptureEvidenceId": "ev-f6ac4948f4ec19e3a1f29007c84389967f5e33d0399a55be30e043c37393c799",
+            "items": [
+              {
+                "presentationRef": "content:occ-705690e31733-0",
+                "containerId": "ctr-7df2e712926e",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2
+                },
+                "captureEvidenceId": "ev-f6ac4948f4ec19e3a1f29007c84389967f5e33d0399a55be30e043c37393c799",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-705690e31733-0"
+                ]
+              },
+              {
+                "presentationRef": "content:occ-705690e31733-1",
+                "containerId": "ctr-7df2e712926e",
+                "role": "ui.element",
+                "semanticDescriptor": "Bluetooth",
+                "currentState": null,
+                "observedState": null,
+                "currentPresence": "observed-current",
+                "bounds": {
+                  "x1": 0.1,
+                  "y1": 0.65,
+                  "x2": 0.9,
+                  "y2": 0.9
+                },
+                "captureEvidenceId": "ev-f6ac4948f4ec19e3a1f29007c84389967f5e33d0399a55be30e043c37393c799",
+                "captureTime": "2026-10-23T00:00:02+00:00",
+                "observationOccurrenceRefs": [
+                  "occ-705690e31733-1"
+                ]
+              }
+            ],
+            "registrationSourceRefs": [],
+            "unknown": [
+              "whole-page-coverage-unproven"
+            ]
+          }
+        }
+      ],
+      "slices": [
+        {
+          "sliceId": "slice:v2:79b8c7ef86c259724fcf1b8f56d25ffa7b20e228674f667a5392d33bd4a3e28d",
+          "slice": {
+            "sourceRevisionId": "rev-8",
+            "rootContainerId": "ctr-7df2e712926e",
+            "freshnessBasis": {
+              "asOf": "2026-10-23T00:00:02+00:00"
+            },
+            "inScopeContainerIds": [
+              "ctr-7df2e712926e"
+            ],
+            "occurrences": [
+              {
+                "occurrenceId": "occ-705690e31733-0",
+                "owningContainerId": "ctr-7df2e712926e",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0,
+                  "y1": 0,
+                  "x2": 0.9,
+                  "y2": 0.2,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.45,
+                  "centerY": 0.1
+                },
+                "native": null
+              },
+              {
+                "occurrenceId": "occ-705690e31733-1",
+                "owningContainerId": "ctr-7df2e712926e",
+                "role": "ui.element",
+                "semanticDescriptor": "Bluetooth",
+                "state": null,
+                "locator": {
+                  "x1": 0.1,
+                  "y1": 0.65,
+                  "x2": 0.9,
+                  "y2": 0.9,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.5,
+                  "centerY": 0.775
+                },
+                "native": null
+              }
+            ],
+            "scopedClaims": {},
+            "region": null,
+            "semanticKnowledge": []
+          },
+          "coreSlice": {
+            "id": {
+              "value": "slice:v2:79b8c7ef86c259724fcf1b8f56d25ffa7b20e228674f667a5392d33bd4a3e28d"
+            },
+            "segmentId": {
+              "value": "ctr-7df2e712926e"
+            },
+            "observationEvidenceIds": [
+              {
+                "value": "ev-002453476dd7665e51e08d2e0df6f91676277ed8202a408d8baccd49b81c1a53"
+              },
+              {
+                "value": "ev-4768b55bf30f13763850aac2dfc6f55f7e11b355ebf7a009d704284312141c62"
+              },
+              {
+                "value": "ev-705690e31733392f98fa0702b7fec588f8275ca15a05623f2ceb5b06c05a8a9d"
+              },
+              {
+                "value": "ev-7df2e712926e4ba85cddd72ad3ed9cb0c03e4fff4d1613e927248e291313d239"
+              },
+              {
+                "value": "ev-b6ce1f087abc372f21c5e40358200840ea373e277a1d8969a33d7276f2bf33c4"
+              },
+              {
+                "value": "ev-dd07f4c9e1bd5ca248af19102133fe1b629b2000be6d41316ac80902d0efda51"
+              },
+              {
+                "value": "ev-f1e0dd7541c126b21ced6c6cef2d0b2ab99963aaae8a5679b8e7ec92cb6035ab"
+              },
+              {
+                "value": "ev-f6ac4948f4ec19e3a1f29007c84389967f5e33d0399a55be30e043c37393c799"
+              }
+            ],
+            "observedAt": "2026-10-23T00:00:02+00:00",
+            "scope": "{\u0022Containers\u0022:[\u0022ctr-7df2e712926e\u0022],\u0022Region\u0022:null}",
+            "observedRecordIds": [
+              {
+                "value": "occ-705690e31733-0"
+              },
+              {
+                "value": "occ-705690e31733-1"
+              }
+            ],
+            "coverage": "partial"
+          },
+          "presentation": [
+            {
+              "sourceRevisionId": "rev-8",
+              "rootContainerId": "ctr-7df2e712926e",
+              "isAuthoritative": false,
+              "elements": [
+                {
+                  "occurrenceId": "occ-705690e31733-0",
+                  "owningContainerId": "ctr-7df2e712926e",
+                  "role": "text",
+                  "semanticDescriptor": "Settings",
+                  "state": null,
+                  "locator": {
+                    "x1": 0,
+                    "y1": 0,
+                    "x2": 0.9,
+                    "y2": 0.2,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.45,
+                    "centerY": 0.1
+                  }
+                },
+                {
+                  "occurrenceId": "occ-705690e31733-1",
+                  "owningContainerId": "ctr-7df2e712926e",
+                  "role": "ui.element",
+                  "semanticDescriptor": "Bluetooth",
+                  "state": null,
+                  "locator": {
+                    "x1": 0.1,
+                    "y1": 0.65,
+                    "x2": 0.9,
+                    "y2": 0.9,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.5,
+                    "centerY": 0.775
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

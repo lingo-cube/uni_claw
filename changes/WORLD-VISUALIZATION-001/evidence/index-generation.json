@@ -1,0 +1,9 @@
+{
+  "base": "56a75fd74b5dff72db931edc96e343f0aea6d80b",
+  "inputs": "HEAD state.md files + only WORLD-VISUALIZATION-001 own closed overlay",
+  "generator": "tools/gen-open-changes.py",
+  "result": "changes/INDEX.md: 235 changes, 7 open",
+  "workingIndexSha256": "259d26071cfed566326a4cd0018a457f38b9f591b68010731affa21e54823040",
+  "generatedIndexSha256": "a7a8ffa21c93175d269ebe4d2dd068dd5edccbb79d00b00f8803f15eb1ac66e2",
+  "workingIndexUntouched": true
+}
