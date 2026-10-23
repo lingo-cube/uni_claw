@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="2aa75569-dc40-4dfa-9728-f490a12b9cdd" name="vs-dr-zhangfan@VS-DR-05 2026-10-23 15:54:54" runUser="DFMC\vs-dr-zhangfan" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-23T15:54:54.8877872+08:00" queuing="2026-10-23T15:54:54.8877876+08:00" start="2026-10-23T15:54:53.6079958+08:00" finish="2026-10-23T15:54:54.8981298+08:00" />
+  <TestSettings name="default" id="53da5ea4-32d1-40ee-8961-b0ec3a88406f">
+    <Deployment runDeploymentRoot="vs-dr-zhangfan_VS-DR-05_2026-10-23_15_54_54" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="8b747e10-e352-4f5a-a372-247bf8d68000" testId="bc5f6612-703e-de94-c845-96581f3241c0" testName="UniClaw.Host.Tests.RecordedPopupClassificationTests.RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged" computerName="VS-DR-05" duration="00:00:00.0090594" startTime="2026-10-23T15:54:54.7515100+08:00" endTime="2026-10-23T15:54:54.7515307+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8b747e10-e352-4f5a-a372-247bf8d68000">
+      <Output>
+        <ErrorInfo>
+          <Message>Recorded normal Default apps page was asserted as popup: present</Message>
+          <StackTrace>   at UniClaw.Host.Tests.RecordedPopupClassificationTests.RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged() in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupClassificationTests.cs:line 39&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupClassificationTests.RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="bc5f6612-703e-de94-c845-96581f3241c0">
+      <Execution id="8b747e10-e352-4f5a-a372-247bf8d68000" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupClassificationTests" name="RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="bc5f6612-703e-de94-c845-96581f3241c0" executionId="8b747e10-e352-4f5a-a372-247bf8d68000" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.0)&#xD;
+[xUnit.net 00:00:00.09]   Discovering: UniClaw.Host.Tests&#xD;
+[xUnit.net 00:00:00.21]   Discovered:  UniClaw.Host.Tests&#xD;
+[xUnit.net 00:00:00.22]   Starting:    UniClaw.Host.Tests&#xD;
+[xUnit.net 00:00:00.29]       Recorded normal Default apps page was asserted as popup: present&#xD;
+[xUnit.net 00:00:00.29]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.29]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupClassificationTests.cs(39,0): at UniClaw.Host.Tests.RecordedPopupClassificationTests.RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged()&#xD;
+[xUnit.net 00:00:00.29]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.29]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.30]   Finished:    UniClaw.Host.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="VS-DR-05" outcome="Error" timestamp="2026-10-23T15:54:54.7485681+08:00">
+        <Text>[xUnit.net 00:00:00.29]     UniClaw.Host.Tests.RecordedPopupClassificationTests.RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

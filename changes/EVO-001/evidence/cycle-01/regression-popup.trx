@@ -1,0 +1,457 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="a569ec78-2c9c-4478-8a4e-e0d3811c4e68" name="vs-dr-zhangfan@VS-DR-05 2026-10-23 15:56:26" runUser="DFMC\vs-dr-zhangfan" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-23T15:56:26.9746445+08:00" queuing="2026-10-23T15:56:26.9746448+08:00" start="2026-10-23T15:56:25.9586732+08:00" finish="2026-10-23T15:57:23.1715995+08:00" />
+  <TestSettings name="default" id="bb89de5b-3956-42ae-9ebe-94c4e10e4ebc">
+    <Deployment runDeploymentRoot="vs-dr-zhangfan_VS-DR-05_2026-10-23_15_56_26" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="b4775673-d902-4d22-ae97-f7d692359f11" testId="70ca016a-16da-2c71-e916-e5cea794c31f" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.IllegalDesiredStateOnDirectiveStep_IsRejectedByDirector" computerName="VS-DR-05" duration="00:00:00.1096169" startTime="2026-10-23T15:56:37.4708859+08:00" endTime="2026-10-23T15:56:37.4708865+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b4775673-d902-4d22-ae97-f7d692359f11" />
+    <UnitTestResult executionId="85f64eee-3e57-453f-a238-1b6716ec40cf" testId="9fa723b8-223f-92d2-3433-bbf931e85526" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.SameCaptureIdentitySupplement_PreservesVerifiedRoutesAndCoverage" computerName="VS-DR-05" duration="00:00:00.4569649" startTime="2026-10-23T15:56:37.9333966+08:00" endTime="2026-10-23T15:56:37.9333969+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="85f64eee-3e57-453f-a238-1b6716ec40cf">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.IOException : The process cannot access the file 'exec.journal' because it is being used by another process.</Message>
+          <StackTrace>   at System.IO.FileSystem.RemoveDirectoryRecursive(String fullPath, WIN32_FIND_DATA&amp; findData, Boolean topLevel)&#xD;
+   at System.IO.FileSystem.RemoveDirectory(String fullPath, Boolean recursive)&#xD;
+   at UniClaw.Host.Tests.SettingsCoverageScenarioTests.SameCaptureIdentitySupplement_PreservesVerifiedRoutesAndCoverage() in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\SettingsCoverageScenarioTests.cs:line 872&#xD;
+   at UniClaw.Host.Tests.SettingsCoverageScenarioTests.SameCaptureIdentitySupplement_PreservesVerifiedRoutesAndCoverage()&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="17314bcd-c1aa-49dc-af75-7e9cc311b6ec" testId="cd498942-7c5d-8e3e-a030-dc37eeae1d67" testName="UniClaw.Host.Tests.RecordedPopupReplayTests.MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers" computerName="VS-DR-05" duration="00:00:00.0054450" startTime="2026-10-23T15:56:26.8982505+08:00" endTime="2026-10-23T15:56:26.8982509+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="17314bcd-c1aa-49dc-af75-7e9cc311b6ec">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Kernel/World/WorldBeliefRevision.cs</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in D:\space-x\uni_claw\tests\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs:line 41&#xD;
+   at UniClaw.Host.Tests.RecordedPopupReplayTests.MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers() in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupReplayTests.cs:line 36&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="3b4aba2c-fe8b-4dab-9b81-1c5e03b24b57" testId="3e0f0711-740b-e9f8-744e-6c68209884bf" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost(rule: True, observeAfterCoverage: False)" computerName="VS-DR-05" duration="00:00:00.4632548" startTime="2026-10-23T15:57:13.3890224+08:00" endTime="2026-10-23T15:57:13.3890229+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3b4aba2c-fe8b-4dab-9b81-1c5e03b24b57" />
+    <UnitTestResult executionId="58b221ea-9d14-4105-a36c-f3922093ffb4" testId="99642049-86e0-fa08-cfa9-4d562434c426" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.WriteEvidenceFile_PersistsPayloadUnderCaptureId" computerName="VS-DR-05" duration="00:00:00.0203687" startTime="2026-10-23T15:57:05.2074331+08:00" endTime="2026-10-23T15:57:05.2074334+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="58b221ea-9d14-4105-a36c-f3922093ffb4" />
+    <UnitTestResult executionId="318be247-e64f-455c-8ec9-aa1d3f1a3a6c" testId="d2c2cbe5-e1b6-10da-be34-5a3d7f0a0bcf" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.UnconfirmedPageCapture_DoesNotCountAsObservedCoverage" computerName="VS-DR-05" duration="00:00:00.0712565" startTime="2026-10-23T15:57:15.9641812+08:00" endTime="2026-10-23T15:57:15.9641816+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="318be247-e64f-455c-8ec9-aa1d3f1a3a6c">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.IOException : The process cannot access the file 'exec.journal' because it is being used by another process.</Message>
+          <StackTrace>   at System.IO.FileSystem.RemoveDirectoryRecursive(String fullPath, WIN32_FIND_DATA&amp; findData, Boolean topLevel)&#xD;
+   at System.IO.FileSystem.RemoveDirectory(String fullPath, Boolean recursive)&#xD;
+   at UniClaw.Host.Tests.SettingsCoverageScenarioTests.UnconfirmedPageCapture_DoesNotCountAsObservedCoverage() in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\SettingsCoverageScenarioTests.cs:line 894&#xD;
+   at UniClaw.Host.Tests.SettingsCoverageScenarioTests.UnconfirmedPageCapture_DoesNotCountAsObservedCoverage()&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="95c67ad3-c72c-4cf8-9b89-408858a475ed" testId="6865d261-7375-29b0-78e1-d4430660e21c" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.FixedLanguageInspection_BindsAfterAdmission_AndPersistsPerCapture" computerName="VS-DR-05" duration="00:00:07.6011747" startTime="2026-10-23T15:56:37.3651682+08:00" endTime="2026-10-23T15:56:37.3651686+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="95c67ad3-c72c-4cf8-9b89-408858a475ed">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.IOException : The process cannot access the file 'exec.journal' because it is being used by another process.</Message>
+          <StackTrace>   at System.IO.FileSystem.RemoveDirectoryRecursive(String fullPath, WIN32_FIND_DATA&amp; findData, Boolean topLevel)&#xD;
+   at System.IO.FileSystem.RemoveDirectory(String fullPath, Boolean recursive)&#xD;
+   at UniClaw.Host.Tests.SettingsCoverageScenarioTests.FixedLanguageInspection_BindsAfterAdmission_AndPersistsPerCapture() in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\SettingsCoverageScenarioTests.cs:line 783&#xD;
+   at UniClaw.Host.Tests.SettingsCoverageScenarioTests.FixedLanguageInspection_BindsAfterAdmission_AndPersistsPerCapture()&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="424e5d79-1735-4027-9c14-f9c42b4dff32" testId="e18d8848-9d22-a9ad-2927-68052df1a9de" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.MaxStepsBound_StopsHonestlyWithUncoveredItems" computerName="VS-DR-05" duration="00:00:00.6742676" startTime="2026-10-23T15:56:57.6609751+08:00" endTime="2026-10-23T15:56:57.6609756+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="424e5d79-1735-4027-9c14-f9c42b4dff32" />
+    <UnitTestResult executionId="b9dd60bd-414c-4f82-8d05-5aeb09b563cd" testId="c4feebc9-7d72-a8f0-b8bf-c835293b4b3f" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.FullCoverageMission_CompletesWithTraceableSteps" computerName="VS-DR-05" duration="00:00:06.8484206" startTime="2026-10-23T15:56:51.7964327+08:00" endTime="2026-10-23T15:56:51.7964332+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b9dd60bd-414c-4f82-8d05-5aeb09b563cd" />
+    <UnitTestResult executionId="d33c4e86-9bb4-40dc-b26e-75035651a11c" testId="7df6a76a-62b2-618f-d905-71a052f53321" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.PersistentUnknownPage_StopsHonestlyAfterDeferBudget" computerName="VS-DR-05" duration="00:00:00.0795742" startTime="2026-10-23T15:56:51.8767004+08:00" endTime="2026-10-23T15:56:51.8767008+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d33c4e86-9bb4-40dc-b26e-75035651a11c" />
+    <UnitTestResult executionId="0957284a-9424-47bd-8281-2ccdd1bb6c79" testId="fa83b632-def1-71d0-103d-b1de5d621dc1" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ConditionalPlan_VisitsNewChildAndReturnsBeforeContinuingRootWithoutUiNamesInPlan" computerName="VS-DR-05" duration="00:00:00.8390817" startTime="2026-10-23T15:57:12.9255567+08:00" endTime="2026-10-23T15:57:12.9255573+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0957284a-9424-47bd-8281-2ccdd1bb6c79" />
+    <UnitTestResult executionId="bddb17c7-8271-48e0-bc82-fc07c78f9836" testId="28bf9613-6712-2fc8-ee5f-45cdb378a76c" testName="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.RecordedPopupClears_ThenControlledTaskResumes" computerName="VS-DR-05" duration="00:00:00.0073988" startTime="2026-10-23T15:56:26.8525683+08:00" endTime="2026-10-23T15:56:26.8525684+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bddb17c7-8271-48e0-bc82-fc07c78f9836">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Kernel/World/WorldBeliefRevision.cs</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in D:\space-x\uni_claw\tests\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs:line 41&#xD;
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId) in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupRuntimeReplayTests.cs:line 83&#xD;
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.RecordedPopupClears_ThenControlledTaskResumes() in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupRuntimeReplayTests.cs:line 72&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="dffd80bf-8fa1-4851-86a3-d78efc964310" testId="525aa1ad-2545-f4a4-4b74-7f434c27f8ef" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.PersistentlyDeviatingModel_FailsClosed" computerName="VS-DR-05" duration="00:00:00.0734955" startTime="2026-10-23T15:56:57.7347208+08:00" endTime="2026-10-23T15:56:57.7347220+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dffd80bf-8fa1-4851-86a3-d78efc964310" />
+    <UnitTestResult executionId="b26c5a4d-5b5b-4c88-9792-c46d656f7b1c" testId="9715c514-d452-97ca-06a1-3c5870b2ca64" testName="UniClaw.Host.Tests.RecordedPopupClassificationTests.EveryHostScenarioTraitResolvesToAnExistingScenario" computerName="VS-DR-05" duration="00:00:00.0126309" startTime="2026-10-23T15:56:26.8271716+08:00" endTime="2026-10-23T15:56:26.8285726+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b26c5a4d-5b5b-4c88-9792-c46d656f7b1c" />
+    <UnitTestResult executionId="2c705433-8153-4aae-bf1d-19e64ef0e05b" testId="0f3f33ad-d66f-c671-96ae-c48caecd3e1d" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.PopupEpisode_ObstaclePlanClearsPopup_AndResumesTraversalToCompletion" computerName="VS-DR-05" duration="00:00:07.4521249" startTime="2026-10-23T15:57:05.1869384+08:00" endTime="2026-10-23T15:57:05.1869389+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2c705433-8153-4aae-bf1d-19e64ef0e05b" />
+    <UnitTestResult executionId="c6a64a39-f323-4cb9-857b-1a4097ba2855" testId="cb5d3d4c-3ca8-cc74-a019-8ae09166de54" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ConfiguredRenewal_ReachesRunner_AndKeepsFinalTotalBounded" computerName="VS-DR-05" duration="00:00:02.9510435" startTime="2026-10-23T15:56:29.7585544+08:00" endTime="2026-10-23T15:56:29.7585550+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c6a64a39-f323-4cb9-857b-1a4097ba2855" />
+    <UnitTestResult executionId="289544ea-690a-49f6-b29f-275dd2c81f47" testId="6afd25f0-74f8-db4c-0406-ac94d187bd0f" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost(rule: True, observeAfterCoverage: True)" computerName="VS-DR-05" duration="00:00:00.9960420" startTime="2026-10-23T15:57:14.8930806+08:00" endTime="2026-10-23T15:57:14.8930809+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="289544ea-690a-49f6-b29f-275dd2c81f47" />
+    <UnitTestResult executionId="b507cc21-2ea4-4cee-a9e6-772a9693551e" testId="ed2cca07-1319-f816-c2a3-1c22d47a6a30" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost(rule: False, observeAfterCoverage: True)" computerName="VS-DR-05" duration="00:00:00.9961111" startTime="2026-10-23T15:57:15.8892967+08:00" endTime="2026-10-23T15:57:15.8892972+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b507cc21-2ea4-4cee-a9e6-772a9693551e" />
+    <UnitTestResult executionId="a90fa719-46e2-4f1f-bdd3-d80cdaf05d11" testId="f51f7033-7623-2746-64f4-57f1c9f976ba" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ScrollAtBottom_ContentUnchanged_FailsVerification_BoundedStop" computerName="VS-DR-05" duration="00:00:05.1100052" startTime="2026-10-23T15:56:56.9864638+08:00" endTime="2026-10-23T15:56:56.9864642+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a90fa719-46e2-4f1f-bdd3-d80cdaf05d11" />
+    <UnitTestResult executionId="34d8a363-7316-4f47-913f-a49c4cffe3fe" testId="d73ded80-29c5-ec7f-9aa5-c0d6cdb42b88" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.NewCaptureWithoutRouteOrIdentity_DoesNotBorrowPriorCoverage" computerName="VS-DR-05" duration="00:00:00.2307806" startTime="2026-10-23T15:57:22.8561336+08:00" endTime="2026-10-23T15:57:22.8561339+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="34d8a363-7316-4f47-913f-a49c4cffe3fe">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.IOException : The process cannot access the file 'exec.journal' because it is being used by another process.</Message>
+          <StackTrace>   at System.IO.FileSystem.RemoveDirectoryRecursive(String fullPath, WIN32_FIND_DATA&amp; findData, Boolean topLevel)&#xD;
+   at System.IO.FileSystem.RemoveDirectory(String fullPath, Boolean recursive)&#xD;
+   at UniClaw.Host.Tests.SettingsCoverageScenarioTests.NewCaptureWithoutRouteOrIdentity_DoesNotBorrowPriorCoverage() in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\SettingsCoverageScenarioTests.cs:line 928&#xD;
+   at UniClaw.Host.Tests.SettingsCoverageScenarioTests.NewCaptureWithoutRouteOrIdentity_DoesNotBorrowPriorCoverage()&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="ac67201e-8797-45f6-ad34-e7ad68076a35" testId="d03c8e70-094c-6135-f18c-46be42ed1f12" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.TransitionalStartupScreen_DefersUntilSettled_ThenCompletes" computerName="VS-DR-05" duration="00:00:06.8783538" startTime="2026-10-23T15:57:12.0862429+08:00" endTime="2026-10-23T15:57:12.0862433+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ac67201e-8797-45f6-ad34-e7ad68076a35" />
+    <UnitTestResult executionId="3753716b-abed-4594-9003-e4a07735b46f" testId="b2328bd4-8052-5679-8f37-b5764ff2d1ec" testName="UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: &quot;default-apps-cross-package&quot;)" computerName="VS-DR-05" duration="00:00:00.0270892" startTime="2026-10-23T15:56:26.8518681+08:00" endTime="2026-10-23T15:56:26.8518683+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3753716b-abed-4594-9003-e4a07735b46f">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Kernel/World/WorldBeliefRevision.cs</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in D:\space-x\uni_claw\tests\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs:line 41&#xD;
+   at UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(String id) in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupReplayTests.cs:line 15&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="1aeac669-5a74-4ed5-aaf6-89327c37545a" testId="067b9c8d-11a0-c2c3-e1e2-c65fecd2905a" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.DeviatingModel_RecoversViaBoundedCorrectiveReconsult" computerName="VS-DR-05" duration="00:00:06.6605657" startTime="2026-10-23T15:57:22.6223616+08:00" endTime="2026-10-23T15:57:22.6223619+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1aeac669-5a74-4ed5-aaf6-89327c37545a" />
+    <UnitTestResult executionId="97267230-3eaf-4958-8390-0566f5c2d88b" testId="ca31dfea-a89b-279c-e0ae-6b5b9ca725a5" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.AgentLanguageInspectionSelection_BindsBeforePayloadExecution" computerName="VS-DR-05" duration="00:00:07.0187525" startTime="2026-10-23T15:56:44.9502079+08:00" endTime="2026-10-23T15:56:44.9502081+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="97267230-3eaf-4958-8390-0566f5c2d88b">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.IOException : The process cannot access the file 'exec.journal' because it is being used by another process.</Message>
+          <StackTrace>   at System.IO.FileSystem.RemoveDirectoryRecursive(String fullPath, WIN32_FIND_DATA&amp; findData, Boolean topLevel)&#xD;
+   at System.IO.FileSystem.RemoveDirectory(String fullPath, Boolean recursive)&#xD;
+   at UniClaw.Host.Tests.SettingsCoverageScenarioTests.AgentLanguageInspectionSelection_BindsBeforePayloadExecution() in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\SettingsCoverageScenarioTests.cs:line 827&#xD;
+   at UniClaw.Host.Tests.SettingsCoverageScenarioTests.AgentLanguageInspectionSelection_BindsBeforePayloadExecution()&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="8442ebb3-0a4d-4df2-80c6-f4be1eb95ad0" testId="5280fa1d-f1d7-37b7-f2b9-df9cb6c763ea" testName="UniClaw.Host.Tests.RecordedPopupClassificationTests.KnownGap_RecordedNormalPageFalsePositiveIsReproduced_NotCertifiedAsCorrect" computerName="VS-DR-05" duration="00:00:00.0043377" startTime="2026-10-23T15:56:26.8372760+08:00" endTime="2026-10-23T15:56:26.8372762+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8442ebb3-0a4d-4df2-80c6-f4be1eb95ad0" />
+    <UnitTestResult executionId="2ed40c0a-2590-4039-9700-c4bfa021a63b" testId="735dbde8-25dd-8c09-eff9-551f96b1b7c0" testName="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch" computerName="VS-DR-05" duration="00:00:00.0270375" startTime="2026-10-23T15:56:26.8508675+08:00" endTime="2026-10-23T15:56:26.8508680+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2ed40c0a-2590-4039-9700-c4bfa021a63b">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Kernel/World/WorldBeliefRevision.cs</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in D:\space-x\uni_claw\tests\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs:line 41&#xD;
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId) in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupRuntimeReplayTests.cs:line 83&#xD;
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch() in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupRuntimeReplayTests.cs:line 78&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="91c19469-b686-43bc-93af-6df9412c9eb6" testId="b0c11599-7418-0c46-5e25-aa145bcd3531" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.GoalDirectedCompletion_RequiresDeclaredCoverageEvidenceBeyondRootPresence" computerName="VS-DR-05" duration="00:00:00.0726300" startTime="2026-10-23T15:57:22.9915028+08:00" endTime="2026-10-23T15:57:22.9915031+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="91c19469-b686-43bc-93af-6df9412c9eb6" />
+    <UnitTestResult executionId="162f7b75-73b9-437d-b4ff-053e848ed63a" testId="b6615389-221f-abe8-067d-8915b7a8b472" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost(rule: False, observeAfterCoverage: False)" computerName="VS-DR-05" duration="00:00:00.5076910" startTime="2026-10-23T15:57:13.8968422+08:00" endTime="2026-10-23T15:57:13.8968426+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="162f7b75-73b9-437d-b4ff-053e848ed63a" />
+    <UnitTestResult executionId="055069f6-440b-45d1-99fe-343e411a202b" testId="bc5f6612-703e-de94-c845-96581f3241c0" testName="UniClaw.Host.Tests.RecordedPopupClassificationTests.RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged" computerName="VS-DR-05" duration="00:00:00.0077238" startTime="2026-10-23T15:56:26.8336904+08:00" endTime="2026-10-23T15:56:26.8336905+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="055069f6-440b-45d1-99fe-343e411a202b" />
+    <UnitTestResult executionId="42f51f21-72f2-4e10-a534-2a2e0e9232fb" testId="ba31b40d-6540-10bd-037f-48f30755018d" testName="UniClaw.Host.Tests.SettingsCoverageScenarioTests.MultiStepActProposal_IsRejectedAsDirectiveDeviation" computerName="VS-DR-05" duration="00:00:00.0644740" startTime="2026-10-23T15:57:22.9183698+08:00" endTime="2026-10-23T15:57:22.9183702+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="42f51f21-72f2-4e10-a534-2a2e0e9232fb" />
+    <UnitTestResult executionId="18475f83-4010-4d25-98fb-1b8e52842000" testId="747e6d22-e89b-0eb5-8b7b-43bf1ebec7be" testName="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget" computerName="VS-DR-05" duration="00:00:00.0049082" startTime="2026-10-23T15:56:26.8970739+08:00" endTime="2026-10-23T15:56:26.8970742+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="18475f83-4010-4d25-98fb-1b8e52842000">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Kernel/World/WorldBeliefRevision.cs</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in D:\space-x\uni_claw\tests\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs:line 41&#xD;
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId) in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupRuntimeReplayTests.cs:line 83&#xD;
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget() in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupRuntimeReplayTests.cs:line 75&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="6bad429c-ab43-483c-a9c1-697cf38182b5" testId="5ad770c3-9d3e-7713-2dc4-f71efdfd9277" testName="UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: &quot;sim-dialog&quot;)" computerName="VS-DR-05" duration="00:00:00.0088336" startTime="2026-10-23T15:56:26.8531342+08:00" endTime="2026-10-23T15:56:26.8531343+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6bad429c-ab43-483c-a9c1-697cf38182b5">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Kernel/World/WorldBeliefRevision.cs</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in D:\space-x\uni_claw\tests\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs:line 41&#xD;
+   at UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(String id) in D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupReplayTests.cs:line 15&#xD;
+   at InvokeStub_RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost(rule: True, observeAfterCoverage: True)" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="6afd25f0-74f8-db4c-0406-ac94d187bd0f">
+      <Execution id="289544ea-690a-49f6-b29f-275dd2c81f47" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.PersistentlyDeviatingModel_FailsClosed" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="525aa1ad-2545-f4a4-4b74-7f434c27f8ef">
+      <Execution id="dffd80bf-8fa1-4851-86a3-d78efc964310" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="PersistentlyDeviatingModel_FailsClosed" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupClassificationTests.KnownGap_RecordedNormalPageFalsePositiveIsReproduced_NotCertifiedAsCorrect" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="5280fa1d-f1d7-37b7-f2b9-df9cb6c763ea">
+      <Execution id="8442ebb3-0a4d-4df2-80c6-f4be1eb95ad0" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupClassificationTests" name="KnownGap_RecordedNormalPageFalsePositiveIsReproduced_NotCertifiedAsCorrect" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.AgentLanguageInspectionSelection_BindsBeforePayloadExecution" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="ca31dfea-a89b-279c-e0ae-6b5b9ca725a5">
+      <Execution id="97267230-3eaf-4958-8390-0566f5c2d88b" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="AgentLanguageInspectionSelection_BindsBeforePayloadExecution" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.MaxStepsBound_StopsHonestlyWithUncoveredItems" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="e18d8848-9d22-a9ad-2927-68052df1a9de">
+      <Execution id="424e5d79-1735-4027-9c14-f9c42b4dff32" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="MaxStepsBound_StopsHonestlyWithUncoveredItems" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.DeviatingModel_RecoversViaBoundedCorrectiveReconsult" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="067b9c8d-11a0-c2c3-e1e2-c65fecd2905a">
+      <Execution id="1aeac669-5a74-4ed5-aaf6-89327c37545a" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="DeviatingModel_RecoversViaBoundedCorrectiveReconsult" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ScrollAtBottom_ContentUnchanged_FailsVerification_BoundedStop" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="f51f7033-7623-2746-64f4-57f1c9f976ba">
+      <Execution id="a90fa719-46e2-4f1f-bdd3-d80cdaf05d11" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="ScrollAtBottom_ContentUnchanged_FailsVerification_BoundedStop" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.FixedLanguageInspection_BindsAfterAdmission_AndPersistsPerCapture" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="6865d261-7375-29b0-78e1-d4430660e21c">
+      <Execution id="95c67ad3-c72c-4cf8-9b89-408858a475ed" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="FixedLanguageInspection_BindsAfterAdmission_AndPersistsPerCapture" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.UnconfirmedPageCapture_DoesNotCountAsObservedCoverage" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="d2c2cbe5-e1b6-10da-be34-5a3d7f0a0bcf">
+      <Execution id="318be247-e64f-455c-8ec9-aa1d3f1a3a6c" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="UnconfirmedPageCapture_DoesNotCountAsObservedCoverage" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.IllegalDesiredStateOnDirectiveStep_IsRejectedByDirector" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="70ca016a-16da-2c71-e916-e5cea794c31f">
+      <Execution id="b4775673-d902-4d22-ae97-f7d692359f11" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="IllegalDesiredStateOnDirectiveStep_IsRejectedByDirector" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupClassificationTests.EveryHostScenarioTraitResolvesToAnExistingScenario" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="9715c514-d452-97ca-06a1-3c5870b2ca64">
+      <Execution id="b26c5a4d-5b5b-4c88-9792-c46d656f7b1c" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupClassificationTests" name="EveryHostScenarioTraitResolvesToAnExistingScenario" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.GoalDirectedCompletion_RequiresDeclaredCoverageEvidenceBeyondRootPresence" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="b0c11599-7418-0c46-5e25-aa145bcd3531">
+      <Execution id="91c19469-b686-43bc-93af-6df9412c9eb6" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="GoalDirectedCompletion_RequiresDeclaredCoverageEvidenceBeyondRootPresence" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupClassificationTests.RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="bc5f6612-703e-de94-c845-96581f3241c0">
+      <Execution id="055069f6-440b-45d1-99fe-343e411a202b" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupClassificationTests" name="RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.FullCoverageMission_CompletesWithTraceableSteps" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="c4feebc9-7d72-a8f0-b8bf-c835293b4b3f">
+      <Execution id="b9dd60bd-414c-4f82-8d05-5aeb09b563cd" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="FullCoverageMission_CompletesWithTraceableSteps" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.PersistentUnknownPage_StopsHonestlyAfterDeferBudget" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="7df6a76a-62b2-618f-d905-71a052f53321">
+      <Execution id="d33c4e86-9bb4-40dc-b26e-75035651a11c" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="PersistentUnknownPage_StopsHonestlyAfterDeferBudget" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupReplayTests.MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="cd498942-7c5d-8e3e-a030-dc37eeae1d67">
+      <Execution id="17314bcd-c1aa-49dc-af75-7e9cc311b6ec" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupReplayTests" name="MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.MultiStepActProposal_IsRejectedAsDirectiveDeviation" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="ba31b40d-6540-10bd-037f-48f30755018d">
+      <Execution id="42f51f21-72f2-4e10-a534-2a2e0e9232fb" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="MultiStepActProposal_IsRejectedAsDirectiveDeviation" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.WriteEvidenceFile_PersistsPayloadUnderCaptureId" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="99642049-86e0-fa08-cfa9-4d562434c426">
+      <Execution id="58b221ea-9d14-4105-a36c-f3922093ffb4" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="WriteEvidenceFile_PersistsPayloadUnderCaptureId" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost(rule: True, observeAfterCoverage: False)" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="3e0f0711-740b-e9f8-744e-6c68209884bf">
+      <Execution id="3b4aba2c-fe8b-4dab-9b81-1c5e03b24b57" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.TransitionalStartupScreen_DefersUntilSettled_ThenCompletes" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="d03c8e70-094c-6135-f18c-46be42ed1f12">
+      <Execution id="ac67201e-8797-45f6-ad34-e7ad68076a35" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="TransitionalStartupScreen_DefersUntilSettled_ThenCompletes" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="735dbde8-25dd-8c09-eff9-551f96b1b7c0">
+      <Execution id="2ed40c0a-2590-4039-9700-c4bfa021a63b" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests" name="InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost(rule: False, observeAfterCoverage: True)" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="ed2cca07-1319-f816-c2a3-1c22d47a6a30">
+      <Execution id="b507cc21-2ea4-4cee-a9e6-772a9693551e" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: &quot;default-apps-cross-package&quot;)" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="b2328bd4-8052-5679-8f37-b5764ff2d1ec">
+      <Execution id="3753716b-abed-4594-9003-e4a07735b46f" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupReplayTests" name="OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.SameCaptureIdentitySupplement_PreservesVerifiedRoutesAndCoverage" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="9fa723b8-223f-92d2-3433-bbf931e85526">
+      <Execution id="85f64eee-3e57-453f-a238-1b6716ec40cf" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="SameCaptureIdentitySupplement_PreservesVerifiedRoutesAndCoverage" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: &quot;sim-dialog&quot;)" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="5ad770c3-9d3e-7713-2dc4-f71efdfd9277">
+      <Execution id="6bad429c-ab43-483c-a9c1-697cf38182b5" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupReplayTests" name="OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.RecordedPopupClears_ThenControlledTaskResumes" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="28bf9613-6712-2fc8-ee5f-45cdb378a76c">
+      <Execution id="bddb17c7-8271-48e0-bc82-fc07c78f9836" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests" name="RecordedPopupClears_ThenControlledTaskResumes" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="747e6d22-e89b-0eb5-8b7b-43bf1ebec7be">
+      <Execution id="18475f83-4010-4d25-98fb-1b8e52842000" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests" name="InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.PopupEpisode_ObstaclePlanClearsPopup_AndResumesTraversalToCompletion" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="0f3f33ad-d66f-c671-96ae-c48caecd3e1d">
+      <Execution id="2c705433-8153-4aae-bf1d-19e64ef0e05b" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="PopupEpisode_ObstaclePlanClearsPopup_AndResumesTraversalToCompletion" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ConditionalPlan_VisitsNewChildAndReturnsBeforeContinuingRootWithoutUiNamesInPlan" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="fa83b632-def1-71d0-103d-b1de5d621dc1">
+      <Execution id="0957284a-9424-47bd-8281-2ccdd1bb6c79" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="ConditionalPlan_VisitsNewChildAndReturnsBeforeContinuingRootWithoutUiNamesInPlan" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost(rule: False, observeAfterCoverage: False)" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="b6615389-221f-abe8-067d-8915b7a8b472">
+      <Execution id="162f7b75-73b9-437d-b4ff-053e848ed63a" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="ComposablePlan_CurrentStepGuardAndReceiptAttributionRunThroughSameHost" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.NewCaptureWithoutRouteOrIdentity_DoesNotBorrowPriorCoverage" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="d73ded80-29c5-ec7f-9aa5-c0d6cdb42b88">
+      <Execution id="34d8a363-7316-4f47-913f-a49c4cffe3fe" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="NewCaptureWithoutRouteOrIdentity_DoesNotBorrowPriorCoverage" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsCoverageScenarioTests.ConfiguredRenewal_ReachesRunner_AndKeepsFinalTotalBounded" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="cb5d3d4c-3ca8-cc74-a019-8ae09166de54">
+      <Execution id="c6a64a39-f323-4cb9-857b-1a4097ba2855" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsCoverageScenarioTests" name="ConfiguredRenewal_ReachesRunner_AndKeepsFinalTotalBounded" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="70ca016a-16da-2c71-e916-e5cea794c31f" executionId="b4775673-d902-4d22-ae97-f7d692359f11" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9fa723b8-223f-92d2-3433-bbf931e85526" executionId="85f64eee-3e57-453f-a238-1b6716ec40cf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cd498942-7c5d-8e3e-a030-dc37eeae1d67" executionId="17314bcd-c1aa-49dc-af75-7e9cc311b6ec" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3e0f0711-740b-e9f8-744e-6c68209884bf" executionId="3b4aba2c-fe8b-4dab-9b81-1c5e03b24b57" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="99642049-86e0-fa08-cfa9-4d562434c426" executionId="58b221ea-9d14-4105-a36c-f3922093ffb4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d2c2cbe5-e1b6-10da-be34-5a3d7f0a0bcf" executionId="318be247-e64f-455c-8ec9-aa1d3f1a3a6c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6865d261-7375-29b0-78e1-d4430660e21c" executionId="95c67ad3-c72c-4cf8-9b89-408858a475ed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e18d8848-9d22-a9ad-2927-68052df1a9de" executionId="424e5d79-1735-4027-9c14-f9c42b4dff32" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c4feebc9-7d72-a8f0-b8bf-c835293b4b3f" executionId="b9dd60bd-414c-4f82-8d05-5aeb09b563cd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7df6a76a-62b2-618f-d905-71a052f53321" executionId="d33c4e86-9bb4-40dc-b26e-75035651a11c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fa83b632-def1-71d0-103d-b1de5d621dc1" executionId="0957284a-9424-47bd-8281-2ccdd1bb6c79" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="28bf9613-6712-2fc8-ee5f-45cdb378a76c" executionId="bddb17c7-8271-48e0-bc82-fc07c78f9836" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="525aa1ad-2545-f4a4-4b74-7f434c27f8ef" executionId="dffd80bf-8fa1-4851-86a3-d78efc964310" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9715c514-d452-97ca-06a1-3c5870b2ca64" executionId="b26c5a4d-5b5b-4c88-9792-c46d656f7b1c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0f3f33ad-d66f-c671-96ae-c48caecd3e1d" executionId="2c705433-8153-4aae-bf1d-19e64ef0e05b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cb5d3d4c-3ca8-cc74-a019-8ae09166de54" executionId="c6a64a39-f323-4cb9-857b-1a4097ba2855" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6afd25f0-74f8-db4c-0406-ac94d187bd0f" executionId="289544ea-690a-49f6-b29f-275dd2c81f47" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ed2cca07-1319-f816-c2a3-1c22d47a6a30" executionId="b507cc21-2ea4-4cee-a9e6-772a9693551e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f51f7033-7623-2746-64f4-57f1c9f976ba" executionId="a90fa719-46e2-4f1f-bdd3-d80cdaf05d11" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d73ded80-29c5-ec7f-9aa5-c0d6cdb42b88" executionId="34d8a363-7316-4f47-913f-a49c4cffe3fe" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d03c8e70-094c-6135-f18c-46be42ed1f12" executionId="ac67201e-8797-45f6-ad34-e7ad68076a35" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b2328bd4-8052-5679-8f37-b5764ff2d1ec" executionId="3753716b-abed-4594-9003-e4a07735b46f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="067b9c8d-11a0-c2c3-e1e2-c65fecd2905a" executionId="1aeac669-5a74-4ed5-aaf6-89327c37545a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ca31dfea-a89b-279c-e0ae-6b5b9ca725a5" executionId="97267230-3eaf-4958-8390-0566f5c2d88b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5280fa1d-f1d7-37b7-f2b9-df9cb6c763ea" executionId="8442ebb3-0a4d-4df2-80c6-f4be1eb95ad0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="735dbde8-25dd-8c09-eff9-551f96b1b7c0" executionId="2ed40c0a-2590-4039-9700-c4bfa021a63b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b0c11599-7418-0c46-5e25-aa145bcd3531" executionId="91c19469-b686-43bc-93af-6df9412c9eb6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b6615389-221f-abe8-067d-8915b7a8b472" executionId="162f7b75-73b9-437d-b4ff-053e848ed63a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bc5f6612-703e-de94-c845-96581f3241c0" executionId="055069f6-440b-45d1-99fe-343e411a202b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ba31b40d-6540-10bd-037f-48f30755018d" executionId="42f51f21-72f2-4e10-a534-2a2e0e9232fb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="747e6d22-e89b-0eb5-8b7b-43bf1ebec7be" executionId="18475f83-4010-4d25-98fb-1b8e52842000" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5ad770c3-9d3e-7713-2dc4-f71efdfd9277" executionId="6bad429c-ab43-483c-a9c1-697cf38182b5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="32" executed="32" passed="21" failed="11" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.0)&#xD;
+[xUnit.net 00:00:00.09]   Discovering: UniClaw.Host.Tests&#xD;
+[xUnit.net 00:00:00.22]   Discovered:  UniClaw.Host.Tests&#xD;
+[xUnit.net 00:00:00.22]   Starting:    UniClaw.Host.Tests&#xD;
+[xUnit.net 00:00:00.31]       System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Kernel/World/WorldBeliefRevision.cs&#xD;
+[xUnit.net 00:00:00.31]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.31]         D:\space-x\uni_claw\tests\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs(41,0): at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes)&#xD;
+[xUnit.net 00:00:00.31]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupRuntimeReplayTests.cs(83,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId)&#xD;
+[xUnit.net 00:00:00.31]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupRuntimeReplayTests.cs(78,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch()&#xD;
+[xUnit.net 00:00:00.31]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.31]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.32]       System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Kernel/World/WorldBeliefRevision.cs&#xD;
+[xUnit.net 00:00:00.32]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.32]         D:\space-x\uni_claw\tests\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs(41,0): at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes)&#xD;
+[xUnit.net 00:00:00.32]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupReplayTests.cs(15,0): at UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(String id)&#xD;
+[xUnit.net 00:00:00.32]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.32]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.32]       System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Kernel/World/WorldBeliefRevision.cs&#xD;
+[xUnit.net 00:00:00.32]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.32]         D:\space-x\uni_claw\tests\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs(41,0): at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes)&#xD;
+[xUnit.net 00:00:00.32]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupRuntimeReplayTests.cs(83,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId)&#xD;
+[xUnit.net 00:00:00.32]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupRuntimeReplayTests.cs(72,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.RecordedPopupClears_ThenControlledTaskResumes()&#xD;
+[xUnit.net 00:00:00.32]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.32]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.32]       System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Kernel/World/WorldBeliefRevision.cs&#xD;
+[xUnit.net 00:00:00.32]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.32]         D:\space-x\uni_claw\tests\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs(41,0): at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes)&#xD;
+[xUnit.net 00:00:00.32]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupReplayTests.cs(15,0): at UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(String id)&#xD;
+[xUnit.net 00:00:00.32]            at InvokeStub_RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.32]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.36]       System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Kernel/World/WorldBeliefRevision.cs&#xD;
+[xUnit.net 00:00:00.36]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.36]         D:\space-x\uni_claw\tests\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs(41,0): at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes)&#xD;
+[xUnit.net 00:00:00.36]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupRuntimeReplayTests.cs(83,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId)&#xD;
+[xUnit.net 00:00:00.36]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupRuntimeReplayTests.cs(75,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget()&#xD;
+[xUnit.net 00:00:00.36]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.36]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.36]       System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Kernel/World/WorldBeliefRevision.cs&#xD;
+[xUnit.net 00:00:00.36]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.36]         D:\space-x\uni_claw\tests\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs(41,0): at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes)&#xD;
+[xUnit.net 00:00:00.36]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\RecordedPopupReplayTests.cs(36,0): at UniClaw.Host.Tests.RecordedPopupReplayTests.MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers()&#xD;
+[xUnit.net 00:00:00.36]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.36]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:10.83]       System.IO.IOException : The process cannot access the file 'exec.journal' because it is being used by another process.&#xD;
+[xUnit.net 00:00:10.83]       Stack Trace:&#xD;
+[xUnit.net 00:00:10.83]            at System.IO.FileSystem.RemoveDirectoryRecursive(String fullPath, WIN32_FIND_DATA&amp; findData, Boolean topLevel)&#xD;
+[xUnit.net 00:00:10.83]            at System.IO.FileSystem.RemoveDirectory(String fullPath, Boolean recursive)&#xD;
+[xUnit.net 00:00:10.83]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\SettingsCoverageScenarioTests.cs(783,0): at UniClaw.Host.Tests.SettingsCoverageScenarioTests.FixedLanguageInspection_BindsAfterAdmission_AndPersistsPerCapture()&#xD;
+[xUnit.net 00:00:10.83]            at UniClaw.Host.Tests.SettingsCoverageScenarioTests.FixedLanguageInspection_BindsAfterAdmission_AndPersistsPerCapture()&#xD;
+[xUnit.net 00:00:10.83]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:10.83]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:11.39]       System.IO.IOException : The process cannot access the file 'exec.journal' because it is being used by another process.&#xD;
+[xUnit.net 00:00:11.39]       Stack Trace:&#xD;
+[xUnit.net 00:00:11.39]            at System.IO.FileSystem.RemoveDirectoryRecursive(String fullPath, WIN32_FIND_DATA&amp; findData, Boolean topLevel)&#xD;
+[xUnit.net 00:00:11.40]            at System.IO.FileSystem.RemoveDirectory(String fullPath, Boolean recursive)&#xD;
+[xUnit.net 00:00:11.40]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\SettingsCoverageScenarioTests.cs(872,0): at UniClaw.Host.Tests.SettingsCoverageScenarioTests.SameCaptureIdentitySupplement_PreservesVerifiedRoutesAndCoverage()&#xD;
+[xUnit.net 00:00:11.40]            at UniClaw.Host.Tests.SettingsCoverageScenarioTests.SameCaptureIdentitySupplement_PreservesVerifiedRoutesAndCoverage()&#xD;
+[xUnit.net 00:00:11.40]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:11.40]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:18.41]       System.IO.IOException : The process cannot access the file 'exec.journal' because it is being used by another process.&#xD;
+[xUnit.net 00:00:18.41]       Stack Trace:&#xD;
+[xUnit.net 00:00:18.41]            at System.IO.FileSystem.RemoveDirectoryRecursive(String fullPath, WIN32_FIND_DATA&amp; findData, Boolean topLevel)&#xD;
+[xUnit.net 00:00:18.41]            at System.IO.FileSystem.RemoveDirectory(String fullPath, Boolean recursive)&#xD;
+[xUnit.net 00:00:18.41]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\SettingsCoverageScenarioTests.cs(827,0): at UniClaw.Host.Tests.SettingsCoverageScenarioTests.AgentLanguageInspectionSelection_BindsBeforePayloadExecution()&#xD;
+[xUnit.net 00:00:18.41]            at UniClaw.Host.Tests.SettingsCoverageScenarioTests.AgentLanguageInspectionSelection_BindsBeforePayloadExecution()&#xD;
+[xUnit.net 00:00:18.41]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:18.41]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:49.43]       System.IO.IOException : The process cannot access the file 'exec.journal' because it is being used by another process.&#xD;
+[xUnit.net 00:00:49.43]       Stack Trace:&#xD;
+[xUnit.net 00:00:49.43]            at System.IO.FileSystem.RemoveDirectoryRecursive(String fullPath, WIN32_FIND_DATA&amp; findData, Boolean topLevel)&#xD;
+[xUnit.net 00:00:49.43]            at System.IO.FileSystem.RemoveDirectory(String fullPath, Boolean recursive)&#xD;
+[xUnit.net 00:00:49.43]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\SettingsCoverageScenarioTests.cs(894,0): at UniClaw.Host.Tests.SettingsCoverageScenarioTests.UnconfirmedPageCapture_DoesNotCountAsObservedCoverage()&#xD;
+[xUnit.net 00:00:49.43]            at UniClaw.Host.Tests.SettingsCoverageScenarioTests.UnconfirmedPageCapture_DoesNotCountAsObservedCoverage()&#xD;
+[xUnit.net 00:00:49.43]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:49.43]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:56.32]       System.IO.IOException : The process cannot access the file 'exec.journal' because it is being used by another process.&#xD;
+[xUnit.net 00:00:56.32]       Stack Trace:&#xD;
+[xUnit.net 00:00:56.32]            at System.IO.FileSystem.RemoveDirectoryRecursive(String fullPath, WIN32_FIND_DATA&amp; findData, Boolean topLevel)&#xD;
+[xUnit.net 00:00:56.32]            at System.IO.FileSystem.RemoveDirectory(String fullPath, Boolean recursive)&#xD;
+[xUnit.net 00:00:56.32]         D:\space-x\uni_claw\tests\UniClaw.Host.Tests\SettingsCoverageScenarioTests.cs(928,0): at UniClaw.Host.Tests.SettingsCoverageScenarioTests.NewCaptureWithoutRouteOrIdentity_DoesNotBorrowPriorCoverage()&#xD;
+[xUnit.net 00:00:56.32]            at UniClaw.Host.Tests.SettingsCoverageScenarioTests.NewCaptureWithoutRouteOrIdentity_DoesNotBorrowPriorCoverage()&#xD;
+[xUnit.net 00:00:56.32]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:56.32]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:56.46]   Finished:    UniClaw.Host.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="VS-DR-05" outcome="Error" timestamp="2026-10-23T15:56:26.8474511+08:00">
+        <Text>[xUnit.net 00:00:00.31]     UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="VS-DR-05" outcome="Error" timestamp="2026-10-23T15:56:26.8514321+08:00">
+        <Text>[xUnit.net 00:00:00.32]     UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: "default-apps-cross-package") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="VS-DR-05" outcome="Error" timestamp="2026-10-23T15:56:26.8521145+08:00">
+        <Text>[xUnit.net 00:00:00.32]     UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.RecordedPopupClears_ThenControlledTaskResumes [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="VS-DR-05" outcome="Error" timestamp="2026-10-23T15:56:26.8527615+08:00">
+        <Text>[xUnit.net 00:00:00.32]     UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: "sim-dialog") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="VS-DR-05" outcome="Error" timestamp="2026-10-23T15:56:26.9877514+08:00">
+        <Text>[xUnit.net 00:00:00.36]     UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="VS-DR-05" outcome="Error" timestamp="2026-10-23T15:56:26.9878060+08:00">
+        <Text>[xUnit.net 00:00:00.36]     UniClaw.Host.Tests.RecordedPopupReplayTests.MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="VS-DR-05" outcome="Error" timestamp="2026-10-23T15:56:37.3618101+08:00">
+        <Text>[xUnit.net 00:00:10.82]     UniClaw.Host.Tests.SettingsCoverageScenarioTests.FixedLanguageInspection_BindsAfterAdmission_AndPersistsPerCapture [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="VS-DR-05" outcome="Error" timestamp="2026-10-23T15:56:37.9301813+08:00">
+        <Text>[xUnit.net 00:00:11.39]     UniClaw.Host.Tests.SettingsCoverageScenarioTests.SameCaptureIdentitySupplement_PreservesVerifiedRoutesAndCoverage [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="VS-DR-05" outcome="Error" timestamp="2026-10-23T15:56:44.9485709+08:00">
+        <Text>[xUnit.net 00:00:18.41]     UniClaw.Host.Tests.SettingsCoverageScenarioTests.AgentLanguageInspectionSelection_BindsBeforePayloadExecution [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="VS-DR-05" outcome="Error" timestamp="2026-10-23T15:57:15.9622264+08:00">
+        <Text>[xUnit.net 00:00:49.43]     UniClaw.Host.Tests.SettingsCoverageScenarioTests.UnconfirmedPageCapture_DoesNotCountAsObservedCoverage [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="VS-DR-05" outcome="Error" timestamp="2026-10-23T15:57:22.8544479+08:00">
+        <Text>[xUnit.net 00:00:56.32]     UniClaw.Host.Tests.SettingsCoverageScenarioTests.NewCaptureWithoutRouteOrIdentity_DoesNotBorrowPriorCoverage [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

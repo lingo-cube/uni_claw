@@ -107,6 +107,13 @@ diagnosing-bugs 的上游，不在本 skill 内）。
 - escalation（如触及 §4 边界，否则 none）
 ```
 
+**序列化与落盘（packet v0）**：E2+ 诊断、或结论将被下游消费（立案 /
+evolution case / 触发器）时，必须按
+[references/evidence-packet.md](./references/evidence-packet.md) 落盘
+`diagnosis.packet.json`（非权威标记恒定；下游只引用 path+sha256，不复制）。
+只在对话里回文本、不留 packet 文件 = 下游无法消费，视为未完成诊断输出。
+本 skill 依然只产证据：packet 不立案、不修复、不宣布任何完成状态。
+
 典型案例见 [references/canonical-cases.md](./references/canonical-cases.md)。
 
 ## 6. World Model consistency route（WMP-002 / DBG-001）

@@ -1,0 +1,57 @@
+﻿diff --git a/src/UniClaw.Host/SettingsPopupClassifier.cs b/src/UniClaw.Host/SettingsPopupClassifier.cs
+index c4f05016..9fb2cdaa 100644
+--- a/src/UniClaw.Host/SettingsPopupClassifier.cs
++++ b/src/UniClaw.Host/SettingsPopupClassifier.cs
+@@ -14,10 +14,16 @@ public static class SettingsPopupClassifier
+         catch (Exception) { return null; }
+         if (root is null) return null;
+         var nodes = root.Descendants("node").ToList();
+-        var windowPackage = (string?)nodes.FirstOrDefault()?.Attribute("package");
+-        if (windowPackage is not null && windowPackage != hostPackage) return "present";
++        // Whitelist (dialog structure ids) is checked BEFORE the package branch:
++        // a package mismatch alone is not proof of an overlay window (SIM-017),
++        // so cross-package without a whitelist hit yields no claim instead of
++        // "present" (EVO-001 candidate; window-stack evidence still pending).
+         var whitelist = popupResourceIds.ToHashSet(StringComparer.Ordinal);
+-        return nodes.Any(node => node.Attribute("resource-id") is { } id && whitelist.Contains(id.Value))
+-            ? "present" : "absent";
++        if (nodes.Any(node => node.Attribute("resource-id") is { } id && whitelist.Contains(id.Value)))
++            return "present";
++        var windowPackage = (string?)nodes.FirstOrDefault()?.Attribute("package");
++        return windowPackage is not null && windowPackage != hostPackage
++            ? null
++            : "absent";
+     }
+ }
+diff --git a/tests/UniClaw.Host.Tests/RecordedPopupClassificationTests.cs b/tests/UniClaw.Host.Tests/RecordedPopupClassificationTests.cs
+index b269d62e..3b6f43de 100644
+--- a/tests/UniClaw.Host.Tests/RecordedPopupClassificationTests.cs
++++ b/tests/UniClaw.Host.Tests/RecordedPopupClassificationTests.cs
+@@ -21,11 +21,22 @@ public sealed class RecordedPopupClassificationTests
+         var source = corpus.RootElement.GetProperty("cases").EnumerateArray().Single(c => c.GetProperty("id").GetString() == "default-apps");
+         var xml = File.ReadAllText(Path.Combine(Repo(), source.GetProperty("after").GetProperty("path").GetString()!));
+         var actual = SettingsPopupClassifier.Classify(xml, "com.android.settings", PopupClearanceConfig.DefaultPopupResourceIds);
+-        // Owner explicitly deferred classifier semantics (SIM-017). This test
+-        // proves reproducibility of the known mismatch, never semantic correctness.
+-        Assert.Equal("present", actual);
+-        var expectedPopupPresent = false; // independent curated case label, not an original window-stack fact
+-        Assert.NotEqual(expectedPopupPresent, actual == "present");
++        // EVO-001 candidate semantics: whitelist (dialog structure) first;
++        // cross-package without a whitelist hit yields NO claim, not "present".
++        // Owner decision on window-stack evidence (SIM-017) is still pending —
++        // this reproves the recorded case under the candidate, not a full fix.
++        Assert.NotEqual("present", actual);
++    }
++
++    [Fact]
++    public void RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged()
++    {
++        using var corpus = JsonDocument.Parse(File.ReadAllText(Path.Combine(Repo(),
++            "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json")));
++        var source = corpus.RootElement.GetProperty("cases").EnumerateArray().Single(c => c.GetProperty("id").GetString() == "default-apps");
++        var xml = File.ReadAllText(Path.Combine(Repo(), source.GetProperty("after").GetProperty("path").GetString()!));
++        var actual = SettingsPopupClassifier.Classify(xml, "com.android.settings", PopupClearanceConfig.DefaultPopupResourceIds);
++        Assert.True(actual != "present", $"Recorded normal Default apps page was asserted as popup: {actual}");
+     }
+ 
+     [Fact]

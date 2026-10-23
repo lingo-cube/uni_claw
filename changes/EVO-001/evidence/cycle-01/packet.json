@@ -1,0 +1,74 @@
+{
+  "schema": "uniclaw.evolution.packet.v0",
+  "cycleId": "cycle-01",
+  "executedAt": "2026-10-23",
+  "case": {
+    "id": "default-apps-cross-package",
+    "sourceChange": "SIM-016",
+    "manifestSha256": "0a4d42fe1d41b6a9f9762e25f9075f3a57ea55fb83f65c680559aa609a41ee9f"
+  },
+  "inputs": [
+    { "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json", "sha256": "6dbac2bebc83484183f828c9a3b3e0592ec040f50a3d5d9538e49685a0e5d26e", "role": "corpus" },
+    { "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-08173a863262439ca1bac49827ad4e6e.xml", "sha256": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599", "role": "capture-xml" },
+    { "path": "evidence/sim-016/classification-red.cs.txt", "sha256": "3315f71ad93fa1c7490c3bd287fd5145ff76f427ed58da2f85db83c5880b9ec1", "role": "red-test-archive" },
+    { "path": "src/UniClaw.Host/SettingsPopupClassifier.cs", "sha256": "78619759f6bbc0421628205bfdd06f362176425def8492c51cfa3918c3d40e69", "role": "source-baseline" }
+  ],
+  "red": {
+    "command": "dotnet test tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj --no-restore -m:1 -nr:false --filter FullyQualifiedName~RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged --logger trx",
+    "exitCode": 1,
+    "trx": "red.trx",
+    "failure": "Recorded normal Default apps page was asserted as popup: present",
+    "matchedExpected": true,
+    "matchesSim016Archive": true
+  },
+  "fdp": {
+    "level": "E2",
+    "failureClass": "B",
+    "firstDivergence": "SettingsPopupClassifier.Classify（base 版第 18 行）：windowPackage != hostPackage 直接返回 'present'，先于任何覆盖窗结构证据（白名单 resource-id）被检查",
+    "owner": "UniClaw.Host — SettingsPopupClassifier（Host 观察/分类 adapter；清障授权不在此缝）",
+    "evidenceRefs": ["red.trx", "candidate.diff（base 行号见 diff 上下文）", "evidence/sim-016/classification-red.txt（SIM-016 同消息失败输出）"]
+  },
+  "candidate": {
+    "diff": "candidate.diff",
+    "diffSha256": "0f452205cbd92dc12fdc4d1d7b193e3370a787cd82cf83f1fb08c54bda195dc1",
+    "files": [
+      "src/UniClaw.Host/SettingsPopupClassifier.cs",
+      "tests/UniClaw.Host.Tests/RecordedPopupClassificationTests.cs"
+    ],
+    "hypothesis": "跨包不是覆盖证明：白名单（dialog 结构 id：parentPanel/alertTitle/buttonPanel）先于包名判定；跨包且无白名单命中 → 无声明（null）而非 present。真实弹窗（e1，含 parentPanel）仍 present；Default apps 跨包内容页（无 dialog id）不再误判。",
+    "changesExpected": true,
+    "expectedChangeReason": "known-gap 测试 KnownGap_RecordedNormalPageFalsePositiveIsReproduced_NotCertifiedAsCorrect 原 Assert.Equal(\"present\") 在候选语义下必失败；期望迁移搭乘致因 change EVO-001（C8），非凭感觉改期望。测试内新增红测方法为归档红例的逐字恢复（evidence/sim-016/classification-red.cs.txt）。",
+    "notAppliedToWorktree": true,
+    "applyWith": "git apply changes/EVO-001/evidence/cycle-01/candidate.diff"
+  },
+  "green": {
+    "command": "dotnet test tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj --no-restore -m:1 -nr:false --filter FullyQualifiedName~RecordedPopupClassificationTests|FullyQualifiedName~SettingsPopupClassifierTests --logger trx",
+    "exitCode": 0,
+    "trx": "green.trx",
+    "passed": 18,
+    "failed": 0,
+    "sameCase": true,
+    "repeatable": true,
+    "repeatNote": "候选应用后两次运行均 18/18（第一次 green 与还原→重应用后的最终 green）；中间含一次无候选对照运行（control-no-candidate.trx）"
+  },
+  "residualRisk": [
+    "XML-only 结构签名不是窗口证据：无 parentPanel/alertTitle/buttonPanel 的真实覆盖窗将不再被判 present（返回无声明），live 漏检面未量化，需 SIM-017 窗口来源落地后收口",
+    "返回 null ≠ unknown：旧 present 在缺证后的 stale/有界补采/恢复语义未实现（SIM-017 生命周期未落地），误判 present 期间的清障副作用依旧只能靠 Director 侧既有约束兜底",
+    "扩大回归（RecordedPopupReplay/RecordedPopupRuntimeReplay/SettingsCoverageScenario）被两类与候选无关的工作区状态阻断（2026-10-23 复核修正归因）：①在途 WORLD-VISUALIZATION-001（未提交）改了 WorldBeliefRevision/WorldModel/UniKernel 并新增 WorldRevisionTimeline/WorldModel.Visualization，重签了 ComponentReplay manifest（30/30 绿）但漏签 Host.Tests 的 PopupReplay manifest → 弹窗回放线在工作区红；注意 HEAD 本身是绿的（HEAD blob 879ff136 与 PopupReplay pin 一致，56a75fd7 当时已正确随迁）。②exec.journal 并发文件锁（另一会话同时在跑）。对照实验 control-no-candidate.trx 证明还原候选后同样失败；该对照的盲区：只排除了本候选，未排查工作区在途变更（已记摩擦）",
+    "未跑八工程 full 与真机/模型（ENVIRONMENT 级证据缺）；单测绿不等于 live 分类修复"
+  ],
+  "gate": {
+    "status": "decision-required",
+    "decisionRequest": [
+      "SIM-017 五项 Owner 裁决（窗口证据提供者 / absent 最小证据 / unknown 预算 / late evidence / 生命周期归属）",
+      "新增：是否接受『白名单优先 + 跨包无声明』作为窗口证据落地前的过渡分类语义（本候选），还是保持现判定直到窗口证据链就位",
+      "新增：known-gap 测试期望迁移是否随本候选一并批准（C8 搭乘 EVO-001）",
+      "新发现（2026-10-23 归因修正）：在途 WORLD-VISUALIZATION-001 漏签 Host.Tests PopupReplay composition manifest（Simulation 侧已重签且 30/30 绿）；该会话提交前须补签，否则其自身 VERIFY 面不闭合。EVO-001 不接管"
+    ],
+    "mergeAuthorized": false
+  },
+  "harnessEnvironment": {
+    "msbuild": "-m:1 -nr:false（DSH 沙箱命名管道限制：多节点 MSBuild/testhost 死锁；danger-full-access 后 testhost 正常）",
+    "isolationAttempted": "temp 全量副本构建成功因同限制放弃，最终主树直接执行并回滚"
+  }
+}

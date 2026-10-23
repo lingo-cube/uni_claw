@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="6344954b-0d52-431b-9431-7b9d69ff144b" name="vs-dr-zhangfan@VS-DR-05 2026-10-23 15:59:01" runUser="DFMC\vs-dr-zhangfan" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-23T15:59:01.5233594+08:00" queuing="2026-10-23T15:59:01.5233598+08:00" start="2026-10-23T15:59:00.3430938+08:00" finish="2026-10-23T15:59:01.5764177+08:00" />
+  <TestSettings name="default" id="dbbd77c8-f7cd-4356-beb5-7e08baeacf8f">
+    <Deployment runDeploymentRoot="vs-dr-zhangfan_VS-DR-05_2026-10-23_15_59_01" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="2f3d63fe-fc4b-41f2-b7d2-71dcd41c2074" testId="6aad7ac3-5cce-4593-5d65-874023801c31" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupProposal_NullState_ProducesNoProposal" computerName="VS-DR-05" duration="00:00:00.0000762" startTime="2026-10-23T15:59:01.4857220+08:00" endTime="2026-10-23T15:59:01.4857221+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2f3d63fe-fc4b-41f2-b7d2-71dcd41c2074" />
+    <UnitTestResult executionId="95a80d50-45ac-4310-a171-a21d7fcb1f8e" testId="73b48b5c-b074-7a95-4ed4-a30d2e41f5e3" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.HostPackageRoot_WithoutWhitelist_ClassifiesAbsent" computerName="VS-DR-05" duration="00:00:00.0000896" startTime="2026-10-23T15:59:01.4552605+08:00" endTime="2026-10-23T15:59:01.4552606+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="95a80d50-45ac-4310-a171-a21d7fcb1f8e" />
+    <UnitTestResult executionId="30d80f10-7aec-4cd2-ad72-da84cd12aa41" testId="e55a351a-19fa-6972-72fa-ad9d99eabc7c" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowRequest_BuildsFromTrigger_WithBoundedContext" computerName="VS-DR-05" duration="00:00:00.0021303" startTime="2026-10-23T15:59:01.4856231+08:00" endTime="2026-10-23T15:59:01.4856232+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="30d80f10-7aec-4cd2-ad72-da84cd12aa41" />
+    <UnitTestResult executionId="3e476111-0610-4664-a264-9238f01595d4" testId="c8d5da96-7fb6-e94c-8dd3-ac4ed6bf3ad1" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrigger_NoXml_Predicted" computerName="VS-DR-05" duration="00:00:00.0000760" startTime="2026-10-23T15:59:01.4857065+08:00" endTime="2026-10-23T15:59:01.4857065+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3e476111-0610-4664-a264-9238f01595d4" />
+    <UnitTestResult executionId="b8d7948f-cc82-4b0e-9a6f-a80811578933" testId="afb1a739-adb9-e7c6-80d8-185104e125c2" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.WhitelistedResourceId_ClassifiesPresent_EvenUnderHostPackage" computerName="VS-DR-05" duration="00:00:00.0001494" startTime="2026-10-23T15:59:01.4854753+08:00" endTime="2026-10-23T15:59:01.4854754+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b8d7948f-cc82-4b0e-9a6f-a80811578933" />
+    <UnitTestResult executionId="abf071ba-8aef-4ab9-bdb1-e1a2c5d47838" testId="e4ea2a33-ff4a-e500-c2df-3f85acc26820" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupProposal_IsAdmittedByKernelP2_WhenInScope" computerName="VS-DR-05" duration="00:00:00.2082942" startTime="2026-10-23T15:59:01.4488487+08:00" endTime="2026-10-23T15:59:01.4488496+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="abf071ba-8aef-4ab9-bdb1-e1a2c5d47838" />
+    <UnitTestResult executionId="14d346ed-2d15-4590-a9e9-b6698fedb470" testId="bc5f6612-703e-de94-c845-96581f3241c0" testName="UniClaw.Host.Tests.RecordedPopupClassificationTests.RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged" computerName="VS-DR-05" duration="00:00:00.0058140" startTime="2026-10-23T15:59:01.2609704+08:00" endTime="2026-10-23T15:59:01.2609706+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="14d346ed-2d15-4590-a9e9-b6698fedb470" />
+    <UnitTestResult executionId="5e7238d0-bd8e-423e-8e58-7de27df3f389" testId="1e1e937b-a290-09fd-c7e0-c5362d8247b7" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.NullXml_YieldsNoClaim" computerName="VS-DR-05" duration="00:00:00.0000667" startTime="2026-10-23T15:59:01.4856601+08:00" endTime="2026-10-23T15:59:01.4856602+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5e7238d0-bd8e-423e-8e58-7de27df3f389" />
+    <UnitTestResult executionId="9ac30a7e-2366-497a-9ec6-489bb6bcf8c3" testId="00a3b729-da30-ceae-89f5-c815c06ffebc" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.SettingsNamespacedPopupIds_ClassifyPresent" computerName="VS-DR-05" duration="00:00:00.0001290" startTime="2026-10-23T15:59:01.4551469+08:00" endTime="2026-10-23T15:59:01.4551470+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9ac30a7e-2366-497a-9ec6-489bb6bcf8c3" />
+    <UnitTestResult executionId="69f3f8c4-a533-4583-9171-35f9573b16e6" testId="56056fec-1840-aaa7-a2c8-e4d922aaa5f4" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.UnparseableXml_YieldsNoClaim" computerName="VS-DR-05" duration="00:00:00.0014823" startTime="2026-10-23T15:59:01.4857542+08:00" endTime="2026-10-23T15:59:01.4857543+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="69f3f8c4-a533-4583-9171-35f9573b16e6" />
+    <UnitTestResult executionId="4a2ed56a-0d20-48a9-b4c8-51f40d2f51ab" testId="d4155a4e-819b-f8d4-e24c-6b00a0f97c72" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrigger_StructuralVisualConflict_Predicted" computerName="VS-DR-05" duration="00:00:00.0000677" startTime="2026-10-23T15:59:01.4857379+08:00" endTime="2026-10-23T15:59:01.4857380+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4a2ed56a-0d20-48a9-b4c8-51f40d2f51ab" />
+    <UnitTestResult executionId="350b9e46-d8ad-4e7c-bfbc-932bf389aa0e" testId="69a1382c-7938-a564-3f84-a9a87c748a0c" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrigger_PopupStreakAndSemanticUnclear_Predicted" computerName="VS-DR-05" duration="00:00:00.0004746" startTime="2026-10-23T15:59:01.4557841+08:00" endTime="2026-10-23T15:59:01.4557844+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="350b9e46-d8ad-4e7c-bfbc-932bf389aa0e" />
+    <UnitTestResult executionId="4c54afac-f9c7-41fb-ad80-d6805d5084e3" testId="5280fa1d-f1d7-37b7-f2b9-df9cb6c763ea" testName="UniClaw.Host.Tests.RecordedPopupClassificationTests.KnownGap_RecordedNormalPageFalsePositiveIsReproduced_NotCertifiedAsCorrect" computerName="VS-DR-05" duration="00:00:00.0059308" startTime="2026-10-23T15:59:01.2670007+08:00" endTime="2026-10-23T15:59:01.2670010+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4c54afac-f9c7-41fb-ad80-d6805d5084e3" />
+    <UnitTestResult executionId="b45d484e-94f5-4621-a8d8-8a2011885bcf" testId="9715c514-d452-97ca-06a1-3c5870b2ca64" testName="UniClaw.Host.Tests.RecordedPopupClassificationTests.EveryHostScenarioTraitResolvesToAnExistingScenario" computerName="VS-DR-05" duration="00:00:00.0115627" startTime="2026-10-23T15:59:01.2558915+08:00" endTime="2026-10-23T15:59:01.2559243+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b45d484e-94f5-4621-a8d8-8a2011885bcf" />
+    <UnitTestResult executionId="df767374-6d3a-4039-bc31-b670dfdc935c" testId="36d17251-0832-efa2-18fa-11ddbbd602de" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.RealNormalSettingsXml_ClassifiesAbsent" computerName="VS-DR-05" duration="00:00:00.0049273" startTime="2026-10-23T15:59:01.4538604+08:00" endTime="2026-10-23T15:59:01.4538609+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="df767374-6d3a-4039-bc31-b670dfdc935c" />
+    <UnitTestResult executionId="f62e10f9-8a67-4435-83e3-c89bd973f557" testId="6a6c4dab-4691-7907-91dc-b39417fe5ca3" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.RealPopupXml_ClassifiesPresent" computerName="VS-DR-05" duration="00:00:00.0010570" startTime="2026-10-23T15:59:01.4550063+08:00" endTime="2026-10-23T15:59:01.4550065+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f62e10f9-8a67-4435-83e3-c89bd973f557" />
+    <UnitTestResult executionId="191c0684-fc94-46e2-aa4f-a8031e5ae0b7" testId="33af13fe-b2d8-b0c8-6a08-c66fc81d38c5" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrace_FormatCarriesStatusAndProjection" computerName="VS-DR-05" duration="00:00:00.0015263" startTime="2026-10-23T15:59:01.4856889+08:00" endTime="2026-10-23T15:59:01.4856890+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="191c0684-fc94-46e2-aa4f-a8031e5ae0b7" />
+    <UnitTestResult executionId="40b66cfd-ffe7-41e6-85d9-1b1961490705" testId="ddd4e485-b0aa-1b79-adcf-ae6dc6a853e5" testName="UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupProposal_EntersCycleBatch_WithProvenanceShape" computerName="VS-DR-05" duration="00:00:00.0032250" startTime="2026-10-23T15:59:01.4856437+08:00" endTime="2026-10-23T15:59:01.4856438+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="40b66cfd-ffe7-41e6-85d9-1b1961490705" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrigger_NoXml_Predicted" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="c8d5da96-7fb6-e94c-8dd3-ac4ed6bf3ad1">
+      <Execution id="3e476111-0610-4664-a264-9238f01595d4" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="SlowTrigger_NoXml_Predicted" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrigger_PopupStreakAndSemanticUnclear_Predicted" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="69a1382c-7938-a564-3f84-a9a87c748a0c">
+      <Execution id="350b9e46-d8ad-4e7c-bfbc-932bf389aa0e" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="SlowTrigger_PopupStreakAndSemanticUnclear_Predicted" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.WhitelistedResourceId_ClassifiesPresent_EvenUnderHostPackage" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="afb1a739-adb9-e7c6-80d8-185104e125c2">
+      <Execution id="b8d7948f-cc82-4b0e-9a6f-a80811578933" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="WhitelistedResourceId_ClassifiesPresent_EvenUnderHostPackage" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.UnparseableXml_YieldsNoClaim" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="56056fec-1840-aaa7-a2c8-e4d922aaa5f4">
+      <Execution id="69f3f8c4-a533-4583-9171-35f9573b16e6" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="UnparseableXml_YieldsNoClaim" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.HostPackageRoot_WithoutWhitelist_ClassifiesAbsent" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="73b48b5c-b074-7a95-4ed4-a30d2e41f5e3">
+      <Execution id="95a80d50-45ac-4310-a171-a21d7fcb1f8e" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="HostPackageRoot_WithoutWhitelist_ClassifiesAbsent" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupProposal_EntersCycleBatch_WithProvenanceShape" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="ddd4e485-b0aa-1b79-adcf-ae6dc6a853e5">
+      <Execution id="40b66cfd-ffe7-41e6-85d9-1b1961490705" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="PopupProposal_EntersCycleBatch_WithProvenanceShape" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrace_FormatCarriesStatusAndProjection" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="33af13fe-b2d8-b0c8-6a08-c66fc81d38c5">
+      <Execution id="191c0684-fc94-46e2-aa4f-a8031e5ae0b7" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="SlowTrace_FormatCarriesStatusAndProjection" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupClassificationTests.KnownGap_RecordedNormalPageFalsePositiveIsReproduced_NotCertifiedAsCorrect" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="5280fa1d-f1d7-37b7-f2b9-df9cb6c763ea">
+      <Execution id="4c54afac-f9c7-41fb-ad80-d6805d5084e3" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupClassificationTests" name="KnownGap_RecordedNormalPageFalsePositiveIsReproduced_NotCertifiedAsCorrect" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupClassificationTests.RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="bc5f6612-703e-de94-c845-96581f3241c0">
+      <Execution id="14d346ed-2d15-4590-a9e9-b6698fedb470" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupClassificationTests" name="RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.SettingsNamespacedPopupIds_ClassifyPresent" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="00a3b729-da30-ceae-89f5-c815c06ffebc">
+      <Execution id="9ac30a7e-2366-497a-9ec6-489bb6bcf8c3" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="SettingsNamespacedPopupIds_ClassifyPresent" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupClassificationTests.EveryHostScenarioTraitResolvesToAnExistingScenario" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="9715c514-d452-97ca-06a1-3c5870b2ca64">
+      <Execution id="b45d484e-94f5-4621-a8d8-8a2011885bcf" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupClassificationTests" name="EveryHostScenarioTraitResolvesToAnExistingScenario" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.NullXml_YieldsNoClaim" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="1e1e937b-a290-09fd-c7e0-c5362d8247b7">
+      <Execution id="5e7238d0-bd8e-423e-8e58-7de27df3f389" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="NullXml_YieldsNoClaim" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.RealNormalSettingsXml_ClassifiesAbsent" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="36d17251-0832-efa2-18fa-11ddbbd602de">
+      <Execution id="df767374-6d3a-4039-bc31-b670dfdc935c" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="RealNormalSettingsXml_ClassifiesAbsent" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.RealPopupXml_ClassifiesPresent" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="6a6c4dab-4691-7907-91dc-b39417fe5ca3">
+      <Execution id="f62e10f9-8a67-4435-83e3-c89bd973f557" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="RealPopupXml_ClassifiesPresent" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowTrigger_StructuralVisualConflict_Predicted" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="d4155a4e-819b-f8d4-e24c-6b00a0f97c72">
+      <Execution id="4a2ed56a-0d20-48a9-b4c8-51f40d2f51ab" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="SlowTrigger_StructuralVisualConflict_Predicted" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupProposal_IsAdmittedByKernelP2_WhenInScope" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="e4ea2a33-ff4a-e500-c2df-3f85acc26820">
+      <Execution id="abf071ba-8aef-4ab9-bdb1-e1a2c5d47838" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="PopupProposal_IsAdmittedByKernelP2_WhenInScope" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.SlowRequest_BuildsFromTrigger_WithBoundedContext" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="e55a351a-19fa-6972-72fa-ad9d99eabc7c">
+      <Execution id="30d80f10-7aec-4cd2-ad72-da84cd12aa41" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="SlowRequest_BuildsFromTrigger_WithBoundedContext" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsPopupClassifierTests.PopupProposal_NullState_ProducesNoProposal" storage="d:\space-x\uni_claw\tests\uniclaw.host.tests\bin\debug\net10.0\uniclaw.host.tests.dll" id="6aad7ac3-5cce-4593-5d65-874023801c31">
+      <Execution id="2f3d63fe-fc4b-41f2-b7d2-71dcd41c2074" />
+      <TestMethod codeBase="D:\space-x\uni_claw\tests\UniClaw.Host.Tests\bin\Debug\net10.0\UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsPopupClassifierTests" name="PopupProposal_NullState_ProducesNoProposal" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="6aad7ac3-5cce-4593-5d65-874023801c31" executionId="2f3d63fe-fc4b-41f2-b7d2-71dcd41c2074" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="73b48b5c-b074-7a95-4ed4-a30d2e41f5e3" executionId="95a80d50-45ac-4310-a171-a21d7fcb1f8e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e55a351a-19fa-6972-72fa-ad9d99eabc7c" executionId="30d80f10-7aec-4cd2-ad72-da84cd12aa41" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c8d5da96-7fb6-e94c-8dd3-ac4ed6bf3ad1" executionId="3e476111-0610-4664-a264-9238f01595d4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="afb1a739-adb9-e7c6-80d8-185104e125c2" executionId="b8d7948f-cc82-4b0e-9a6f-a80811578933" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e4ea2a33-ff4a-e500-c2df-3f85acc26820" executionId="abf071ba-8aef-4ab9-bdb1-e1a2c5d47838" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bc5f6612-703e-de94-c845-96581f3241c0" executionId="14d346ed-2d15-4590-a9e9-b6698fedb470" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1e1e937b-a290-09fd-c7e0-c5362d8247b7" executionId="5e7238d0-bd8e-423e-8e58-7de27df3f389" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="00a3b729-da30-ceae-89f5-c815c06ffebc" executionId="9ac30a7e-2366-497a-9ec6-489bb6bcf8c3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="56056fec-1840-aaa7-a2c8-e4d922aaa5f4" executionId="69f3f8c4-a533-4583-9171-35f9573b16e6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d4155a4e-819b-f8d4-e24c-6b00a0f97c72" executionId="4a2ed56a-0d20-48a9-b4c8-51f40d2f51ab" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="69a1382c-7938-a564-3f84-a9a87c748a0c" executionId="350b9e46-d8ad-4e7c-bfbc-932bf389aa0e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5280fa1d-f1d7-37b7-f2b9-df9cb6c763ea" executionId="4c54afac-f9c7-41fb-ad80-d6805d5084e3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9715c514-d452-97ca-06a1-3c5870b2ca64" executionId="b45d484e-94f5-4621-a8d8-8a2011885bcf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="36d17251-0832-efa2-18fa-11ddbbd602de" executionId="df767374-6d3a-4039-bc31-b670dfdc935c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6a6c4dab-4691-7907-91dc-b39417fe5ca3" executionId="f62e10f9-8a67-4435-83e3-c89bd973f557" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="33af13fe-b2d8-b0c8-6a08-c66fc81d38c5" executionId="191c0684-fc94-46e2-aa4f-a8031e5ae0b7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ddd4e485-b0aa-1b79-adcf-ae6dc6a853e5" executionId="40b66cfd-ffe7-41e6-85d9-1b1961490705" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="18" executed="18" passed="18" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.0)&#xD;
+[xUnit.net 00:00:00.11]   Discovering: UniClaw.Host.Tests&#xD;
+[xUnit.net 00:00:00.22]   Discovered:  UniClaw.Host.Tests&#xD;
+[xUnit.net 00:00:00.23]   Starting:    UniClaw.Host.Tests&#xD;
+[xUnit.net 00:00:00.52]   Finished:    UniClaw.Host.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

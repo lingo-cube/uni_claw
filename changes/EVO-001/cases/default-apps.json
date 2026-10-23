@@ -1,0 +1,65 @@
+{
+  "schema": "uniclaw.evolution.case.v0",
+  "id": "default-apps-cross-package",
+  "sourceChange": "SIM-016",
+  "designRef": "changes/SIM-017/design.md",
+  "signal": {
+    "kind": "red-test",
+    "ref": "evidence/sim-016/classification-red.cs.txt"
+  },
+  "inputs": [
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "sha256": "6dbac2bebc83484183f828c9a3b3e0592ec040f50a3d5d9538e49685a0e5d26e",
+      "role": "corpus"
+    },
+    {
+      "path": "evidence/runtime-plan-006/depth2/epoch-009/run-20261020-162121-900/evidence/capture-08173a863262439ca1bac49827ad4e6e.xml",
+      "sha256": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599",
+      "role": "capture-xml"
+    },
+    {
+      "path": "evidence/sim-016/classification-red.cs.txt",
+      "sha256": "3315f71ad93fa1c7490c3bd287fd5145ff76f427ed58da2f85db83c5880b9ec1",
+      "role": "red-test-archive"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsPopupClassifier.cs",
+      "sha256": "78619759f6bbc0421628205bfdd06f362176425def8492c51cfa3918c3d40e69",
+      "role": "source-baseline"
+    }
+  ],
+  "expected": {
+    "claim": "Default apps 跨包正常页不得被判为 popup present；跨包本身只支持 package 不同",
+    "oracle": "changes/SIM-017/design.md 正反例表第一行 + changes/SIM-016/component-contracts.md §独立oracle",
+    "assertion": "SettingsPopupClassifier.Classify(xml, \"com.android.settings\", PopupClearanceConfig.DefaultPopupResourceIds) != \"present\""
+  },
+  "reproduce": {
+    "project": "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj",
+    "filter": "FullyQualifiedName~RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged",
+    "command": "dotnet test tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj --filter \"FullyQualifiedName~RecordedDefaultAppsPage_IsNotProofOfPopupSolelyBecausePackageChanged\""
+  },
+  "owner": "UniClaw.Host.SettingsPopupClassifier.Classify",
+  "fdpExpectation": "package 分支在覆盖关系判断之前返回 present（SettingsPopupClassifier.cs:18）",
+  "candidateDirection": "先判 dialog 结构（parentPanel/alertTitle/buttonPanel），跨包但无 dialog 结构时返回无声明；不改 expected",
+  "gate": {
+    "required": true,
+    "refs": [
+      "changes/SIM-017/design.md §尚待 Owner 裁决",
+      "changes/SIM-016/component-contracts.md §已知失败"
+    ],
+    "decisions": [
+      "允许的窗口证据提供者与权限边界",
+      "足以证明 absent 的最小证据组合与冲突优先级",
+      "unknown 补采次数/时限复用哪层预算、耗尽时 stop 还是等待人工",
+      "late evidence 是否只审计；回填需哪些可验证条件",
+      "stale/unknown/conflict 是否建模为 popup 专用生命周期"
+    ]
+  },
+  "residualRisks": [
+    "XML-only 结构签名不是窗口证据，可能漏掉无 parentPanel 的真实覆盖窗",
+    "返回无声明不等于 unknown；旧 present 在缺证后仍可能延续",
+    "只证明单测/录制 case，不证明 live 分类或设备行为",
+    "红例归档来自隔离发布副本，恢复时可能需要最小路径/资产适配"
+  ]
+}
