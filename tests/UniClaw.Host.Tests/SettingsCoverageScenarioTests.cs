@@ -260,7 +260,7 @@ public sealed class SettingsCoverageScenarioTests
                 proposals.RemoveAll(p => p.Claim.Subject ==
                     UniClaw.Kernel.World.UiRealization.ProductAssociationStrategy.ScreenIdentitySubject);
                 var capture = PageIdentityRecovery.Capture(captureId, $"sim-cycle-{_captureCounter:D4}",
-                    "settings:sim", captureTime, Width, Height, xml, null);
+                    "settings:sim", captureTime, Width, Height, xml, null) with { DeviceId = "emulator-sim" };
                 proposals.Insert(0, new ObservationProposal(
                     new ObservationClaim(UniClaw.Kernel.World.PageObservationCodec.CaptureSubject,
                         UniClaw.Kernel.World.PageObservationCodec.Encode(capture)),

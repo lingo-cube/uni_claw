@@ -16,6 +16,53 @@ import { dirname, join } from 'node:path'
 const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 const plugin = await import(join(PACKAGE_ROOT, 'src', 'index.js'))
 
+test('WORLD-UNCERTAINTY: real Kernel HTTP contexts reach both final consultation prompt bodies',
+  { skip: !process.env.UNICLAW_WORLD_CHANNEL_EXPORT }, async () => {
+    const bodies = JSON.parse(readFileSync(process.env.UNICLAW_WORLD_CHANNEL_EXPORT, 'utf8')).map(body => JSON.parse(body))
+    assert.equal(bodies.length, 2)
+    const harness = mockCtx()
+    applyHost(harness, { promptMount: 'per-turn' })
+    await call(harness.routes, '/api/uniclaw-agent/detach', {})
+    const handshake = await call(harness.routes, '/api/uniclaw-agent/handshake', handshakeBody({
+      productSessionId: bodies[0].productSessionId, productRunId: bodies[0].productRunId,
+    }))
+    assert.equal(handshake.body.accepted, true)
+    const recorded = []
+    try {
+      for (const [index, body] of bodies.entries()) {
+        const consultation = call(harness.routes, '/api/uniclaw-agent/consult', {
+          ...body, dshSessionId: handshake.body.dshSessionId, turnTimeoutMs: 1000,
+        })
+        for (let i = 0; i < 50 && harness.controller.promptCalls.length <= index; i++)
+          await new Promise(resolve => setTimeout(resolve, 5))
+        assert.equal(harness.controller.promptCalls.length, index + 1)
+        const prompt = harness.controller.promptCalls[index].content[0].text
+        const decoded = JSON.parse(prompt.split('=== AgentDecisionContext (JSON) ===\n')[1])
+        assert.deepEqual(decoded, body.context)
+        assert.equal(decoded.worldKnowledge.gaps.length, index === 0 ? 3 : 1)
+        assert.match(prompt, /semanticReferences仅供历史参考/)
+        recorded.push({ requestId: body.requestId, generation: body.generation, prompt,
+          sha256: createHash('sha256').update(prompt).digest('hex'),
+          evidenceKind: 'controlled-real-kernel-channel-turn-body',
+          comparisonEligibility: 'diagnostic-only-provider-envelope-unproven' })
+        const tool = harness.ctx.tools.registered.find(t => t.name === 'submit_decision')
+        const payload = index === 0
+          ? { kind: 'defer', decisionId: body.context.decisionId, spec: { maxRounds: 1, depth: 'Normal' } }
+          : { kind: 'blocked', decisionId: body.context.decisionId, reason: 'controlled-provider-stop' }
+        const submitted = submitTask(tool, payload)
+        assert.equal(submitted.accepted, true, JSON.stringify(submitted))
+        emitTurnEnd(harness, harness.controller.promptCalls[index].sessionId)
+        const result = await consultation
+        assert.equal(result.body.task.payload.kind, payload.kind)
+      }
+      assert.notEqual(bodies[0].context.worldKnowledge.sourceRevisionId, bodies[1].context.worldKnowledge.sourceRevisionId)
+      if (process.env.UNICLAW_WORLD_PROMPT_EXPORT)
+        writeFileSync(process.env.UNICLAW_WORLD_PROMPT_EXPORT, JSON.stringify(recorded, null, 2) + '\n')
+    } finally {
+      await call(harness.routes, '/api/uniclaw-agent/detach', {})
+    }
+  })
+
 const SCHEMA_HASH = readFileSync(join(PACKAGE_ROOT, 'schema', 'schema-hash.txt'), 'utf8').trim()
 const SKILL_DIR = join(PACKAGE_ROOT, 'skill', 'android-automotive-ui-testing')
 const CANONICAL_SKILL_DIR = join(PACKAGE_ROOT, '..', '..', 'product', 'skills', 'android-automotive-ui-testing')

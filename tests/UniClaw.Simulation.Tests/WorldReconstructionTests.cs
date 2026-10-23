@@ -313,7 +313,7 @@ public sealed class WorldReconstructionTests
     public void ReconstructionOracle_RemainsOutsideProductSource()
     {
         var productRoot = Path.Combine(GoldenPaths.RepoRoot(), "src");
-        var forbiddenNames = new[] { "WorldReconstruction", "WorldPresentation", "HumanGroundTruthElement" };
+        var forbiddenNames = new[] { "WorldReconstruction", "HumanGroundTruthElement" };
 
         var offenders = Directory.EnumerateFiles(productRoot, "*.cs", SearchOption.AllDirectories)
             .Where(path => forbiddenNames.Any(name => File.ReadAllText(path).Contains(name, StringComparison.Ordinal)))
@@ -324,6 +324,7 @@ public sealed class WorldReconstructionTests
         Assert.DoesNotContain(
             typeof(Slice).Assembly.GetReferencedAssemblies(),
             reference => reference.Name == typeof(WorldReconstruction).Assembly.GetName().Name);
+        Assert.Equal(typeof(Slice).Assembly, typeof(WorldPresentation).Assembly);
         Assert.True(typeof(WorldReconstruction).IsNotPublic);
         Assert.False(typeof(WorldReconstruction).IsInterface);
     }

@@ -1022,3 +1022,7 @@ WORLD-OBSERVATION-001以Settings身份不足为实际buyer启用既有Observatio
 - 补证采信不等于到达。Assurance另验本次dispatch之后的capture及effect谓词，Traversal只在verified后推进；已投递点击不重发，step/round/plan预算不重置。未知、错相关性、迟到、重复、取消不得越过该顺序。
 
 不扩张Agent AGT-002协议或P22意图；本边为World信息需求，观察/语义已有正式消费缝继续复用。
+
+### World uncertainty 只读供给补充（2026-10-23，WORLD-UNCERTAINTY-001）
+
+P25 增加可选、逐轮动态的 WorldKnowledge / WorldRecovery / WorldEffectImpacts，纳入请求 fingerprint；P27 保留原观察补证权威，增加真实执行/结果版本只读记账与安全边界复核。P2/P3 复用精确历史纠正及 native 语义验证观察；P4 增加 region/scope 规范引用与 World 派生历史/累计表达。Owner、串行 post-action、terminal 不变及未决效果屏障不变。字段来源、缺失语义、消费范围及限制见 [World 不确定性只读供给](../world-uncertainty-read-views.md)；这取代上节仅指旧实现的“不扩张Agent AGT-002协议”适用范围。

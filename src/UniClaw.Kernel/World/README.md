@@ -54,3 +54,20 @@ belief/reconciliation/世界投影语义进本目录；UI realization 细节进
 
 - 基线 §12；协议：`docs/architecture/uworld-protocol-baseline-l4.md`；
 - ADR-0012/0015/0016/0024/0028；上游：`../Evidence/README.md`。
+
+## WORLD-UNCERTAINTY-001 实现
+
+- `WorldConsumptionBasis`：Owner派生的实际页面/目标来源及未证明范围。
+- `WorldPageView`：固定World修订的页面观察、解释、上下文与未知读模型。
+- `SliceContentPresentation`：Replay共用的无权威Slice纯展示投影。
+- `WorldAccumulatedContent`：非执行的累计内容、当前/历史状态及配准来源。
+- `WorldModel.Corrections`：精确历史归属纠正与受影响解释/关系撤回。
+- `WorldModel.Knowledge`：依实际来源和显式buyer派生四类知识缺口。
+- `WorldModel.History`：固定修订的历史解释、访问来源与页面读供给。
+- `SemanticVerificationObservation`：独立语义验证载荷、严格codec与当前知识来源。
+- `WorldModel.Content`：沿World已证滚动链派生累计页面片段。
+- `WorldModel.Context`：同capture原生父子上下文关联的World裁决。
+- `WorldModel.SemanticKnowledge`：核验native profile与本轮对应后派生稳定语义沿用。
+- `PageInterpretationCorrection`：指定原capture与旧解释的纠正载荷和处置记录。
+- `WorldKnowledgeView`：身份/归属/关系依据/观察覆盖四类只读摘要。
+- `ContainerContextObservation`：原生父子上下文证据载荷及严格codec。

@@ -15,8 +15,12 @@ public sealed partial class RuntimeAssurance
     internal PostActionEffectVerification? TryVerifyPostActionFromBelief(
         TargetSpec target,
         PostActionBeliefFacts? current,
-        DateTimeOffset? dispatchTime)
+        DateTimeOffset? dispatchTime, string? receiptId = null)
     {
+        if (receiptId is not null && _effectCorrectionReviews.Any(r => r.ReceiptId == receiptId
+            && r.Resolution is "Unresolved" or "DependenciesUnknown"))
+            return RecordPostActionVerification(new(current?.RevisionId ?? "unknown", target, false,
+                [new("post-action-consumption-basis-not-retracted", false)], "post-action-consumption-basis-retracted"));
         if (current is { PageCaptureTime: { } captureTime } captured)
         {
             var confirmed = !captured.HasObservationNeed && captured.PageContainerId is not null;

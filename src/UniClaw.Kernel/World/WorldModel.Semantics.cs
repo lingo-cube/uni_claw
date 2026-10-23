@@ -16,12 +16,48 @@ public sealed partial class WorldModel
     // container, not a second evidence ledger or a new identity authority.
     private readonly Dictionary<string, EvidenceRecord> _containerObservations = new(StringComparer.Ordinal);
 
+    private static bool CurrentScopedMeaning(string subject, WorldClaim claim, WorldBeliefRevision revision)
+    {
+        // Legacy observations have their own current-only gate. With an exact
+        // page capture, an older scoped claim is history rather than current meaning.
+        if (revision.CurrentPageObservation is not { } page) return true;
+        if (page.ContainerId is null || subject != page.ContainerId + ".semantic.page"
+            || revision.ObservationNeed is not null) return false;
+        try
+        {
+            var meaning = JsonSerializer.Deserialize<SemanticPageClaim>(claim.Value, SemanticJson);
+            return meaning is not null && meaning.CaptureId == page.Capture.CaptureId
+                && meaning.ObservationCycleId == page.Capture.ObservationCycleId
+                && meaning.SessionCorrelation == page.Capture.SessionCorrelation;
+        }
+        catch (JsonException) { return false; }
+    }
+
     private string? SemanticContainer(EvidenceRecord record, WorldBeliefRevision? previous, out string? reason)
     {
         reason = "semantic-current-observation-unproven";
         SemanticPageClaim? claim;
         try { claim = JsonSerializer.Deserialize<SemanticPageClaim>(record.Claim.Value, SemanticJson); }
         catch (JsonException) { return null; }
+        if (claim is not null && previous?.CurrentPageObservation is { } page)
+        {
+            // Identity recovery and meaning can be siblings derived from the
+            // original capture. Do not require an invented parent edge between
+            // the two interpretations. The current capture gate stays exact.
+            if (page.ContainerId is not { } container || page.Capture.CaptureId != claim.CaptureId
+                || previous.WorldState.GetValueOrDefault(CurrentContainerSubject)?.Value != container
+                || previous.ObservationNeed is not null
+                || page.Capture.ObservationCycleId != claim.ObservationCycleId
+                || page.Capture.SessionCorrelation != claim.SessionCorrelation
+                || page.Capture.CaptureTime != record.Provenance.CaptureTime
+                || !record.DerivedFromEvidenceIds.Contains(page.EvidenceId)
+                    && !record.TransitiveEvidenceBasis.Contains(page.EvidenceId)
+                || string.IsNullOrWhiteSpace(claim.PageKey) || claim.PageKey == "unknown"
+                || string.IsNullOrWhiteSpace(claim.PageName) || string.IsNullOrWhiteSpace(claim.PagePurpose))
+                return null;
+            reason = null;
+            return container;
+        }
         if (claim is null || string.IsNullOrWhiteSpace(claim.PageKey) || claim.PageKey == "unknown"
             || string.IsNullOrWhiteSpace(claim.PageName) || string.IsNullOrWhiteSpace(claim.PagePurpose)
             || string.IsNullOrWhiteSpace(claim.CaptureId) || string.IsNullOrWhiteSpace(claim.ObservationCycleId)

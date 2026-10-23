@@ -65,20 +65,6 @@ internal sealed record WorldCoverageManifest(
     int PresentedElements,
     IReadOnlyList<string> ExcludedRegions);
 
-internal sealed record WorldPresentationElement(
-    string OccurrenceId,
-    string OwningContainerId,
-    string Role,
-    string SemanticDescriptor,
-    string? State,
-    SpatialLocator? Locator);
-
-internal sealed record WorldPresentation(
-    string SourceRevisionId,
-    string RootContainerId,
-    bool IsAuthoritative,
-    IReadOnlyList<WorldPresentationElement> Elements);
-
 internal sealed record ReconstructionLineage(
     string SourceRevisionId,
     string RootContainerId,
@@ -136,28 +122,18 @@ internal sealed class WorldReconstruction
         var expected = request.HumanGroundTruth.Elements
             .Where(item => request.ContentRegion.Contains(item.Bounds))
             .ToArray();
-        var presentationElements = request.SourceSlice.Occurrences
-            .Where(occurrence => IsWithinContentCoverage(occurrence, request))
-            .Select(ToPresentationElement)
-            .OrderBy(element => element.Locator!.Y1)
-            .ThenBy(element => element.Locator!.X1)
-            .ThenBy(element => element.Role, StringComparer.Ordinal)
-            .ThenBy(element => element.SemanticDescriptor, StringComparer.Ordinal)
-            .ThenBy(element => element.OccurrenceId, StringComparer.Ordinal)
-            .ToArray();
+        var presentation = SliceContentPresentation.Project(request.SourceSlice, request.SpatialFrameId,
+            new SpatialLocator(request.ContentRegion.X1, request.ContentRegion.Y1,
+                request.ContentRegion.X2, request.ContentRegion.Y2, request.SpatialFrameId));
+        var presentationElements = presentation.Elements;
         var coverage = new WorldCoverageManifest(
             WorldCoverageKind.ContentOnly,
             request.SourceSlice.SourceRevisionId,
             request.SourceSlice.RootContainerId,
             request.SpatialFrameId,
             request.ContentRegion,
-            presentationElements.Length,
+            presentationElements.Count,
             new[] { "system-bars", "app-bar-and-search" });
-        var presentation = new WorldPresentation(
-            request.SourceSlice.SourceRevisionId,
-            request.SourceSlice.RootContainerId,
-            IsAuthoritative: false,
-            presentationElements);
         var lineage = new ReconstructionLineage(
             request.SourceSlice.SourceRevisionId,
             request.SourceSlice.RootContainerId,
@@ -208,15 +184,6 @@ internal sealed class WorldReconstruction
             && request.ContentRegion.Contains(new NormalizedRegion(
                 locator.X1, locator.Y1, locator.X2, locator.Y2));
     }
-
-    private static WorldPresentationElement ToPresentationElement(OccurrenceFact occurrence)
-        => new(
-            occurrence.OccurrenceId,
-            occurrence.OwningContainerId ?? "<missing-parent>",
-            occurrence.Role,
-            occurrence.SemanticDescriptor ?? "<missing-descriptor>",
-            occurrence.State,
-            occurrence.Locator);
 
     private static WorldDivergence? FindFirstDivergence(
         WorldReconstructionRequest request,

@@ -1,8 +1,10 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.World.UiRealization;
 using UniClaw.Kernel.Perception;
+using UniClaw.Kernel.Perception.UiHierarchy;
 
 namespace UniClaw.Kernel.World;
 
@@ -12,6 +14,10 @@ public sealed record PageCaptureObservation(
     IReadOnlyList<SemanticLayoutItem> Items)
 {
     public IReadOnlyList<SemanticLayoutItem> Items { get; init; } = Array.AsReadOnly((Items ?? []).ToArray());
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public HierarchyCoverage? Coverage { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DeviceId { get; init; }
 }
 
 public sealed record PageIdentityObservation(
@@ -19,7 +25,11 @@ public sealed record PageIdentityObservation(
     DateTimeOffset CaptureTime, string Signature, string? ObservedTitle);
 
 public sealed record PageObservationState(
-    PageCaptureObservation Capture, string EvidenceId, string? ContainerId);
+    PageCaptureObservation Capture, string EvidenceId, string? ContainerId)
+{
+    /// <summary>Exact accepted identity interpretation; null when unconfirmed or contradicted.</summary>
+    public string? IdentityEvidenceId { get; init; }
+}
 
 public sealed record ObservationNeed(
     string SourceRevisionId, string CaptureEvidenceId, PageCaptureObservation Capture,
@@ -61,8 +71,11 @@ public static class PageObservationCodec
         if (value is PageCaptureObservation capture)
         {
             if (string.IsNullOrWhiteSpace(capture.CaptureId) || string.IsNullOrWhiteSpace(capture.ObservationCycleId) || string.IsNullOrWhiteSpace(capture.SessionCorrelation) || capture.CaptureTime == default || capture.Space is null || capture.Items is null
-                || capture.Space.CaptureId is not null && capture.Space.CaptureId != capture.CaptureId || capture.Items.Count > 2048)
+                || capture.Space.CaptureId is not null && capture.Space.CaptureId != capture.CaptureId || capture.Items.Count > 2048
+                || capture.DeviceId is not null && string.IsNullOrWhiteSpace(capture.DeviceId))
                 throw new ArgumentException("capture correlation is required");
+            if (capture.Coverage is { } coverage && (!Enum.IsDefined(coverage.Completeness) || !coverage.IsValid))
+                throw new ArgumentException("capture coverage must declare a valid bounded surface");
             if (capture.Items.Any(i => i is null || string.IsNullOrWhiteSpace(i.Id) || string.IsNullOrWhiteSpace(i.Kind)
                 || i.Bounds is null || !i.Bounds.IsValid || i.Bounds.X1 < 0 || i.Bounds.Y1 < 0
                 || i.Bounds.X2 > capture.Space.PixelWidth || i.Bounds.Y2 > capture.Space.PixelHeight

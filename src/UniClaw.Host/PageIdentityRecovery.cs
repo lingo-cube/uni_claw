@@ -5,7 +5,9 @@ using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.Perception.UiHierarchy;
+using UniClaw.Kernel;
 using UniClaw.Kernel.World;
+using UniClaw.Kernel.Control;
 
 namespace UniClaw.Host;
 
@@ -17,6 +19,7 @@ internal static class PageIdentityRecovery
         DateTimeOffset time, int width, int height, string? xml, FastTextBasis? fast)
     {
         var items = new List<SemanticLayoutItem>();
+        var xmlLayoutExtracted = false;
         if (xml is not null)
         {
             try
@@ -34,6 +37,7 @@ internal static class PageIdentityRecovery
                     if (string.IsNullOrWhiteSpace(text) && role == "text") continue;
                     items.Add(new($"xml-{items.Count}", role, text?.Trim(), new(b[0], b[1], b[2], b[3])));
                 }
+                xmlLayoutExtracted = items.Count > 0;
             }
             catch (System.Xml.XmlException) { /* Invalid XML supplies no items. */ }
         }
@@ -57,7 +61,13 @@ internal static class PageIdentityRecovery
             }
         }
         return new(captureId, cycle, session, time,
-            CoordinateSpace.DeviceViewport(width, height, captureId: captureId), items.AsReadOnly());
+            CoordinateSpace.DeviceViewport(width, height, captureId: captureId), items.AsReadOnly())
+        {
+            Coverage = xmlLayoutExtracted
+                ? new HierarchyCoverage(CoverageCompleteness.Partial,
+                    "viewport-export;offscreen-and-virtualized-content-unproven")
+                : null,
+        };
     }
 
     internal static ObservationProposal? Identity(PageObservationState source, string? title,
@@ -78,25 +88,34 @@ internal static class PageIdentityRecovery
         };
     }
 
-    internal static async Task<(string? Title, IReadOnlyList<ObservationProposal> Meaning)> RecognizeAsync(
+    internal static async Task<(string? Title, IReadOnlyList<ObservationProposal> Meaning, SupplementationExecution? Execution)> RecognizeAsync(
         ISemanticPerception? perception, IReadOnlyList<SemanticPageCandidate> candidates,
-        ObservationNeed need, TimeSpan budget, ObservationContext context, CancellationToken token)
+        ObservationNeed need, TimeSpan budget, ObservationContext context, CancellationToken token, UniKernel? kernel = null)
     {
-        if (perception is null || candidates.Count == 0 || budget <= TimeSpan.Zero) return (null, []);
+        if (perception is null || candidates.Count == 0 || budget <= TimeSpan.Zero) return (null, [], null);
         var c = need.Capture;
         var request = new SemanticPerceptionRequest($"page-identity:{c.CaptureId}:{Guid.NewGuid():N}",
             new CapabilityCorrelation(c.SessionCorrelation, captureId: c.CaptureId, observationCycleId: c.ObservationCycleId),
             new(c.CaptureId, c.ObservationCycleId, c.SessionCorrelation, c.CaptureTime, c.Space,
-                c.Items, [need.CaptureEvidenceId]), candidates, Budget: budget);
+                c.Items, [need.CaptureEvidenceId], RevisionId: kernel?.CurrentBelief?.RevisionId), candidates, Budget: budget);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
         timeout.CancelAfter(budget);
+        var started = DateTimeOffset.UtcNow;
+        SupplementationExecution Execution(string outcome, IReadOnlyList<string> results) => new(
+            request.RequestId, "semantic-perception:" + request.RequestId, need.CaptureEvidenceId,
+            [WorldModel.CurrentContainerSubject], started, DateTimeOffset.UtcNow, outcome, results);
         try
         {
-            var result = await perception.ObserveSemanticsAsync(request, timeout.Token).AsTask()
+            var supplied = await PageSemanticReadSupply.ReadAsync(kernel, perception, request, timeout.Token).AsTask()
                 .WaitAsync(budget, token).ConfigureAwait(false);
+            if (supplied.Current is { } known)
+                return (c.Items.Any(i => i.Text?.Trim() == known.PageName) ? known.PageName : null, [], null);
+            var result = supplied.Observation!;
             var meaning = SemanticObservationProjector.CreateProposals(request, result, context: context);
-            return (meaning.Count > 0 ? result.Observation?.ObservedTitle : null, meaning);
+            return (meaning.Count > 0 ? result.Observation?.ObservedTitle : null, meaning,
+                Execution(meaning.Count > 0 ? "Observed" : result.Status.ToString(), ["semantic-result:" + result.RequestId]));
         }
-        catch (Exception e) when (e is TimeoutException or OperationCanceledException) { return (null, []); }
+        catch (Exception e) when (e is TimeoutException or OperationCanceledException)
+        { return (null, [], Execution(token.IsCancellationRequested ? "Cancelled" : "TimedOut", [])); }
     }
 }

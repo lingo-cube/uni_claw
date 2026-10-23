@@ -190,7 +190,8 @@ public sealed class OperationReplayRegressionTests
                 var captureId = "replay:" + index;
                 var capture = new PageCaptureObservation(captureId, "cycle:" + index, "sim009", time,
                     CoordinateSpace.DeviceViewport(corpus.Width, corpus.Height, captureId: captureId),
-                    f.Items.Select(i => new SemanticLayoutItem(i.Id, i.Kind, i.Text, new(i.X1, i.Y1, i.X2, i.Y2))).ToArray());
+                    f.Items.Select(i => new SemanticLayoutItem(i.Id, i.Kind, i.Text, new(i.X1, i.Y1, i.X2, i.Y2))).ToArray())
+                { DeviceId = "controlled-sim009-device" };
                 return new RunDriverInput.Observation([
                     new(new(PageObservationCodec.CaptureSubject, PageObservationCodec.Encode(capture)), IngressKind.Observation,
                         directive.Context, new("replay.capture", time, "capture:" + index, ["synthetic-replay"])),

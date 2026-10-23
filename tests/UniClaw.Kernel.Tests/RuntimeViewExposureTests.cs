@@ -93,6 +93,7 @@ public sealed class RuntimeViewExposureTests
             ("TargetOccurrenceSpace", typeof(UniClaw.Kernel.Perception.CoordinateSpace))); // CSC-001 解锁：grounded 坐标空间 fact
 
         AssertShape(typeof(ActionAssuranceView),
+            ("ContainerId", typeof(string)),
             ("RevisionId", typeof(string)),
             ("RevisionNumber", typeof(int)),
             ("FreshnessBasis", typeof(FreshnessBasis)),

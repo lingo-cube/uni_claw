@@ -1,0 +1,44 @@
+[
+  {
+    "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+    "beforeSha256": "b4a29df115aa0a6be3d9d3735b247784497b2e7855696dc11f34939921ee4391",
+    "afterSha256": "278936c9f2d4e83a78a979ad3b9b67f40486a2585e5423646739875a7c3f2e92",
+    "changedPins": [
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/WorldModel.Context.cs",
+        "sha256": "ef18d54639b0703fc43c4551ce129b5674ba136bd77574e0b4e98ac089af3ded",
+        "newSha256": "283c2b9b860e186bcb1b4e0b3f2ab6abeb055f662ab0f417200aba50b3a9a694"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/WorldModel.History.cs",
+        "sha256": "e322e768cb274a117e7d7941f29a29c9cb378032256cd0b01e22d43ccb616e27",
+        "newSha256": "2d78e5b503d0cc607260100fb655c5505731fc290d5e3952752ddd3da7006de7"
+      }
+    ],
+    "addedImplementationPins": [],
+    "oracleAndReplayInputUnchanged": true
+  },
+  {
+    "manifest": "tests/UniClaw.Host.Tests/Fixtures/PopupReplay/composition.json",
+    "beforeSha256": "d02b01c5aeaa6b552c747913580c8ff9be9f2b021a295b287d85d6d734e774a9",
+    "afterSha256": "84bb83bd9d3d8e382f9950bf1b4b48bc67d19c0efd674020daa96a1ae32854e0",
+    "changedPins": [
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/WorldModel.Context.cs",
+        "sha256": "ef18d54639b0703fc43c4551ce129b5674ba136bd77574e0b4e98ac089af3ded",
+        "newSha256": "283c2b9b860e186bcb1b4e0b3f2ab6abeb055f662ab0f417200aba50b3a9a694"
+      },
+      {
+        "kind": "product-implementation",
+        "path": "src/UniClaw.Kernel/World/WorldModel.History.cs",
+        "sha256": "e322e768cb274a117e7d7941f29a29c9cb378032256cd0b01e22d43ccb616e27",
+        "newSha256": "2d78e5b503d0cc607260100fb655c5505731fc290d5e3952752ddd3da7006de7"
+      }
+    ],
+    "addedImplementationPins": [],
+    "oracleAndReplayInputUnchanged": true
+  }
+]

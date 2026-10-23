@@ -88,3 +88,7 @@ Fast内部两个strategy接口按PER-022收为internal；公开live构造入口�
   `docs/capability-hub/customization-integration-development-protocol-v0.1.md`
 - ADR：0020（双 artifact 确定性锚）、0021（provider 黑盒变体选择）
 - Provider 侧（Python）：`platforms/perception/README.md`
+
+## WORLD-UNCERTAINTY-001 实现
+
+- `NativeContextObservationProjector`：显式native profile标记与独立语义验证proposal来源。

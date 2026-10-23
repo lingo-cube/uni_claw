@@ -97,6 +97,8 @@ public sealed record WorldBeliefRevision(
 {
     public PageObservationState? CurrentPageObservation { get; init; }
     public ObservationNeed? ObservationNeed { get; init; }
+    public IReadOnlyList<WorldSemanticKnowledge> SemanticKnowledge { get; init; } =
+        System.Collections.Immutable.ImmutableArray<WorldSemanticKnowledge>.Empty;
     public IReadOnlyList<ViewportTransition> ViewportTransitions { get; init; } =
         System.Collections.Immutable.ImmutableArray<ViewportTransition>.Empty;
 }

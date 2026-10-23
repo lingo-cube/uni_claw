@@ -1,0 +1,49 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/SettingsTraversalLiveFeed.cs(15,7): warning CS0105: “UniClaw.Kernel.Perception.UiHierarchy”的 using 指令以前在此命名空间中出现过 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UiHierarchyOccurrenceStrategy.cs(67,24): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UiAutomatorDump.cs(130,31): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UiAutomatorDump.cs(134,31): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UiAutomatorDump.cs(137,31): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UiAutomatorDump.cs(138,41): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UiAutomatorDump.cs(142,27): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.cs(887,55): warning CS0162: 检测到无法访问的代码 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.cs(904,55): warning CS0162: 检测到无法访问的代码 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+  UniClaw.Host -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/PageIdentityRecoveryTests.cs(71,24): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs(58,68): warning CS8604: “UiHierarchyCaptureResult UiAutomatorDump.ParseHierarchyObservation(string xml, UiHierarchyParseContext parseContext)”中的形参“xml”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(249,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(262,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/WorldOperationReplayTests.cs(37,22): warning CS8604: “IEnumerable<WorldPageObservation> Enumerable.SelectMany<WorldPageView, WorldPageObservation>(IEnumerable<WorldPageView> source, Func<WorldPageView, IEnumerable<WorldPageObservation>> selector)”中的形参“source”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(728,45): warning CS8620: 由于引用类型的可为 null 性差异，(string, string, string)[] 类型的实参不能用于 void SettingsCoverageLedger.RecordObservation(string route, IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> visibleOccurrences) 中 IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> 类型的形参 visibleOccurrences。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/WorldCaptureIsolationTests.cs(39,38): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+  UniClaw.Host.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.15]     UniClaw.Host.Tests.WorldSemanticHostCompositionTests.SettingsCoverageComposition_OnlyExplicitProfileAllowsCurrentSemantics(configureProfile: False) [FAIL]
+[xUnit.net 00:00:00.15]     UniClaw.Host.Tests.WorldSemanticHostCompositionTests.SettingsCoverageComposition_OnlyExplicitProfileAllowsCurrentSemantics(configureProfile: True) [FAIL]
+  失败 UniClaw.Host.Tests.WorldSemanticHostCompositionTests.SettingsCoverageComposition_OnlyExplicitProfileAllowsCurrentSemantics(configureProfile: False) [71 ms]
+  错误消息:
+   System.InvalidOperationException : language-inspection-capability-registry-unavailable
+  堆栈跟踪:
+     at UniClaw.Host.Capability.LanguageInspectionBindingFactory.Create(CapabilityRegistry registry, String runId, LanguageInspectionTaskRequest request, LanguageInspectionSelection agentSelection) in /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/Capability/LanguageInspectionBinding.cs:line 103
+   at UniClaw.Host.SettingsCoverage.SettingsCoverageRunner.<>c__DisplayClass7_1.<RunAsync>g__TryBindLanguageInspection|7() in /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs:line 257
+   at UniClaw.Host.SettingsCoverage.SettingsCoverageRunner.RunAsync(String runRoot, Options options, CancellationToken cancellationToken) in /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs:line 479
+   at UniClaw.Host.SettingsCoverage.SettingsCoverageRunner.Run(String runRoot, Options options) in /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs:line 128
+   at UniClaw.Host.Tests.WorldSemanticHostCompositionTests.SettingsCoverageComposition_OnlyExplicitProfileAllowsCurrentSemantics(Boolean configureProfile) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/WorldSemanticHostCompositionTests.cs:line 50
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  失败 UniClaw.Host.Tests.WorldSemanticHostCompositionTests.SettingsCoverageComposition_OnlyExplicitProfileAllowsCurrentSemantics(configureProfile: True) [1 ms]
+  错误消息:
+   System.InvalidOperationException : language-inspection-capability-registry-unavailable
+  堆栈跟踪:
+     at UniClaw.Host.Capability.LanguageInspectionBindingFactory.Create(CapabilityRegistry registry, String runId, LanguageInspectionTaskRequest request, LanguageInspectionSelection agentSelection) in /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/Capability/LanguageInspectionBinding.cs:line 103
+   at UniClaw.Host.SettingsCoverage.SettingsCoverageRunner.<>c__DisplayClass7_1.<RunAsync>g__TryBindLanguageInspection|7() in /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs:line 257
+   at UniClaw.Host.SettingsCoverage.SettingsCoverageRunner.RunAsync(String runRoot, Options options, CancellationToken cancellationToken) in /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs:line 479
+   at UniClaw.Host.SettingsCoverage.SettingsCoverageRunner.Run(String runRoot, Options options) in /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs:line 128
+   at UniClaw.Host.Tests.WorldSemanticHostCompositionTests.SettingsCoverageComposition_OnlyExplicitProfileAllowsCurrentSemantics(Boolean configureProfile) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/WorldSemanticHostCompositionTests.cs:line 50
+   at InvokeStub_WorldSemanticHostCompositionTests.SettingsCoverageComposition_OnlyExplicitProfileAllowsCurrentSemantics(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失败!  - 失败:     2，通过:     6，已跳过:     0，总计:     8，持续时间: 2 s - UniClaw.Host.Tests.dll (net10.0)

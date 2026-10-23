@@ -1,0 +1,45 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tools/validate-workspace-schemas.py:9: DeprecationWarning: jsonschema.RefResolver is deprecated as of v4.18.0, in favor of the https://github.com/python-jsonschema/referencing library, which provides more compliant referencing behavior as well as more flexible APIs for customization. A future release will remove RefResolver. Please file a feature request (on referencing) if you are missing an API for the kind of customization you need.
+  from jsonschema import Draft202012Validator, FormatChecker, RefResolver
+OK schemas/workspace/examples/valid/capabilities.json -> capability.schema
+OK schemas/workspace/examples/valid/capability-response-failure.json -> capability.schema
+OK schemas/workspace/examples/valid/capability-response-success.json -> capability.schema
+OK schemas/workspace/examples/valid/detail-query.json -> capability.schema
+OK schemas/workspace/examples/valid/evidence-query.json -> capability.schema
+OK schemas/workspace/examples/valid/launch-stage-record.json -> launch-stage-record.schema
+OK schemas/workspace/examples/valid/local-storage-namespace.json -> local-storage-namespace.schema
+OK schemas/workspace/examples/valid/query-error-not-found.json -> query-error.schema
+OK schemas/workspace/examples/valid/query-error-permission-denied.json -> query-error.schema
+OK schemas/workspace/examples/valid/query-error-timeout.json -> query-error.schema
+OK schemas/workspace/examples/valid/query-error-unavailable.json -> query-error.schema
+OK schemas/workspace/examples/valid/query-error-uncorrelated.json -> query-error.schema
+OK schemas/workspace/examples/valid/query-error.json -> query-error.schema
+OK schemas/workspace/examples/valid/record-envelope-relative-detail-ref.json -> record-envelope.schema
+OK schemas/workspace/examples/valid/record-envelope.json -> record-envelope.schema
+OK schemas/workspace/examples/valid/run-report.json -> run-report.schema
+OK schemas/workspace/examples/valid/runtime-run-event.json -> runtime-run-event.schema
+OK schemas/workspace/examples/valid/runtime-run-events-response.json -> runtime-run-events-response.schema
+OK schemas/workspace/examples/valid/runtime-run-list-response.json -> runtime-run-list-response.schema
+OK schemas/workspace/examples/valid/runtime-run-projection.json -> runtime-run-projection.schema
+OK schemas/workspace/examples/valid/runtime-run-response-failure.json -> runtime-run-response.schema
+OK schemas/workspace/examples/valid/runtime-run-response.json -> runtime-run-response.schema
+OK schemas/workspace/examples/valid/session-query.json -> capability.schema
+OK schemas/workspace/examples/valid/task-launch-ack-partial-failed.json -> task-launch-ack.schema
+OK schemas/workspace/examples/valid/task-launch-ack.json -> task-launch-ack.schema
+OK schemas/workspace/examples/valid/task-launch-request.json -> task-launch-request.schema
+OK schemas/workspace/examples/valid/trace-query.json -> capability.schema
+OK schemas/workspace/examples/invalid/absolute-detail-ref.json rejected (record-envelope.schema detailRef.refId: '/etc/passwd' does not match '^(?!/)(?!//)(?![A-Za-z]:[\\\\/])(?![A-Za-z][A-Za-z0-9+.-]*://)(?!.*[\\u0000-\\u001F\\u007F]).+$')
+OK schemas/workspace/examples/invalid/bad-version.json rejected (record-envelope.schema schemaVersion: 'uniclaw.workspace.record-envelope.v1' was expected)
+OK schemas/workspace/examples/invalid/capability-missing-error.json rejected (capability.schema $: 'error' is a required property)
+OK schemas/workspace/examples/invalid/capability-unknown-field.json rejected (capability.schema $: Additional properties are not allowed ('criticalField' was unexpected))
+OK schemas/workspace/examples/invalid/launch-stage-record-bad-origin.json rejected (launch-stage-record.schema $: 'runId' is a required property)
+OK schemas/workspace/examples/invalid/local-storage-namespace-physical-path.json rejected (local-storage-namespace.schema namespaceRef.id: '/Users/fran/.cache/uniclaw/task-001' does not match '^[A-Za-z0-9][A-Za-z0-9._:-]*$')
+OK schemas/workspace/examples/invalid/missing-product-session.json rejected (record-envelope.schema $: 'productSessionId' is a required property)
+OK schemas/workspace/examples/invalid/runtime-run-list-response-missing-error.json rejected (runtime-run-list-response.schema $: 'error' is a required property)
+OK schemas/workspace/examples/invalid/runtime-run-projection-absolute-detail.json rejected (runtime-run-projection.schema artifacts.0.detailEndpoint: '/Users/fran/.dsh/runs/facts.json' does not match '^(?!/)(?![A-Za-z][A-Za-z0-9+.-]*://)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*[\\u0000-\\u001F]).+$')
+OK schemas/workspace/examples/invalid/runtime-run-response-missing-error.json rejected (runtime-run-response.schema $: 'error' is a required property)
+OK schemas/workspace/examples/invalid/task-launch-ack-bad-availability.json rejected (task-launch-ack.schema stages.0.availability: 'missing' is not one of ['present', 'partial', 'unavailable', 'not-collected', 'not-applicable', 'not-associated', 'permission-denied'])
+OK schemas/workspace/examples/invalid/task-launch-request-physical-path.json rejected (task-launch-request.schema $: 'taskInstanceId' is a required property)
+OK schemas/workspace/examples/invalid/undeclared-capability.json rejected (capability.schema $: {'schemaVersion': 'uniclaw.workspace.capability.v1', 'contractVersion': 'uniclaw.workspace.contract.v1', 'capability': 'WriteTask', 'capabilityVersion': 'v1', 'requestId': 'bad-003', 'ok': False} is not valid under any of the given schemas)
+OK schemas/workspace/examples/invalid/unknown-field.json rejected (query-error.schema $: Additional properties are not allowed ('unexpected' was unexpected))
+OK schemas/workspace/examples/invalid/url-detail-ref.json rejected (record-envelope.schema detailRef.refId: 'https://example.com/evidence' does not match '^(?!/)(?!//)(?![A-Za-z]:[\\\\/])(?![A-Za-z][A-Za-z0-9+.-]*://)(?!.*[\\u0000-\\u001F\\u007F]).+$')
+PASSED 13 schema(s) and examples

@@ -1,0 +1,21 @@
+  FAIL SCN-BARRIER-001.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-BARRIER-002.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-BARRIER-003.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-POLICY-001.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-POLICY-002.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-POLICY-003.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-POLICY-004.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-POLICY-005.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-POLICY-006.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-POLICY-007.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-POLICY-008.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-POLICY-009.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-POLICY-010.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-POLICY-011.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-WIFI-001.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-WIFI-002.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-WIFI-003.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-WIFI-004.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-WIFI-005.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+  FAIL SCN-WIFI-006.json: 运行时源码哈希不匹配——Kernel/Agent 源在认证后变更（经 scenario_certify.py --change <致因change> 重认证）
+certification check: FAIL (41 files, 20 violations)

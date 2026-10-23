@@ -2,7 +2,7 @@
 
 > 派生索引：列出所有 lifecycle_state ≠ closed 的 change。
 > 再生：`python3 tools/gen-open-changes.py`（GATE-001 P-E′；一致性执法二期）。
-> 统计：233 changes · 7 open。
+> 统计：235 changes · 8 open。
 
 | change | lifecycle_state | disposition | depth | title |
 |---|---|---|---|---|
@@ -13,3 +13,4 @@
 | SETTINGS-COVERAGE-003 | verified | blocked | decision-heavy | SETTINGS-COVERAGE-003 — 动态前沿驱动的 Android Settings 可达界面遍历 |
 | SETTINGS-COVERAGE-005 | implemented | none | standard | SETTINGS-COVERAGE-005 — 弹窗到达事实接入遍历待办与跳过后继续 |
 | TRAJECTORY-001 | verified | blocked | decision-heavy | TRAJECTORY-001 — Event Stream / Heartbeat / 事件触发咨询（Agent 介入判断基础设施） |
+| WORLD-VISUALIZATION-001 | persisted | deferred_until_predecessor_closed | standard | WORLD-VISUALIZATION-001 — World模型运行过程可视化 |

@@ -21,6 +21,53 @@ public sealed class WorldOperationReplayTests
     private static readonly DateTimeOffset T0 = new(2026, 10, 20, 0, 0, 0, TimeSpan.Zero);
 
     [Fact]
+    public void RuntimePageCaptures_ExposeOwnerAccumulationAfterActualScrollVerification()
+    {
+        var result = Execute(includePageCaptures: true);
+        Assert.Equal(4, result.Receipts.Count);
+        var aligned = result.PageViews!.Where(v => v.AccumulatedContent!.RegistrationSourceRefs.Count > 0).ToArray();
+        Assert.NotEmpty(aligned);
+        Assert.All(aligned, view =>
+        {
+            Assert.Contains(view.AccumulatedContent!.Items, item => item.SemanticDescriptor == "Alpha");
+            Assert.Contains("whole-page-coverage-unproven", view.AccumulatedContent.Unknown);
+            foreach (var source in view.AccumulatedContent.RegistrationSourceRefs)
+                Assert.Contains(result.Receipts, receipt => source.Contains(receipt.ReceiptId, StringComparison.Ordinal));
+        });
+        var visits = result.PageViews.SelectMany(v => v.Observations)
+            .Where(o => o.VisitSourceRef is not null).Select(o => o.VisitSourceRef).Distinct().ToArray();
+        Assert.Equal(2, visits.Length); // confirmed root→child and child→root, never one visit per capture
+        if (Environment.GetEnvironmentVariable("UNICLAW_WORLD_CAPTURE_EXPORT") is { Length: > 0 } output)
+            File.WriteAllText(output, JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
+    }
+
+    [Fact]
+    public void ConfirmedNavigationCycle_ReusesRootIdentityButDistinguishesThreeObservationRounds()
+    {
+        var result = Execute(includePageCaptures: true, navigationCycle: true);
+        Assert.Equal(4, result.Graph.Edges.Count);
+        Assert.Empty(result.Graph.ViewportTransitions);
+        var final = result.PageViews!.Last();
+        Assert.Equal(3, final.Observations.Count);
+        Assert.Equal(3, final.Observations.Select(o => o.CaptureEvidenceId).Distinct().Count());
+        Assert.Equal(2, final.Observations.Count(o => o.VisitSourceRef is not null));
+        Assert.Single(final.Observations.Where(o => o.IsCurrentCapture));
+        Assert.Equal(3, result.Graph.Nodes.Count);
+        Assert.All(final.Observations, o => Assert.Equal(final.ContainerId, o.ContainerId));
+    }
+
+    [Fact]
+    public void OrdinaryRecaptureAfterReturn_DoesNotBorrowThePreviousNavigationVisit()
+    {
+        var result = Execute(includePageCaptures: true, navigationCycle: true, ordinaryRecapture: true);
+        var page = result.PageViews!.Last();
+        Assert.Equal(4, page.Observations.Count);
+        Assert.Equal(2, page.Observations.Count(o => o.VisitSourceRef is not null));
+        Assert.Null(Assert.Single(page.Observations.Where(o => o.IsCurrentCapture)).VisitSourceRef);
+        Assert.Equal(4, result.Graph.Edges.Count);
+    }
+
+    [Fact]
     public void RuntimeReplay_UsesActualNavigationEdgesReceiptsAndScrollTransforms()
     {
         var first = Execute(); var second = Execute();
@@ -77,18 +124,23 @@ public sealed class WorldOperationReplayTests
 
     private sealed record ContentPoint(string OperationReceiptId, string RevisionId, string Label, double X, double Y);
     private sealed record ReplayResult(WorldGraphProjection Graph, IReadOnlyList<EffectReceipt> Receipts,
-        IReadOnlyList<WorldBeliefRevision> Revisions, IReadOnlyList<ContentPoint> Content, string Status);
+        IReadOnlyList<WorldBeliefRevision> Revisions, IReadOnlyList<ContentPoint> Content, string Status,
+        IReadOnlyList<WorldPageView>? PageViews = null);
 
-    private static ReplayResult Execute(string? recordedSequence = null)
+    private static ReplayResult Execute(string? recordedSequence = null, bool includePageCaptures = false,
+        bool navigationCycle = false, bool ordinaryRecapture = false)
     {
-        var world = new WorldModel(new HashSet<string> { "ui.screen", "ui.screen.route", "ui.node.*" },
+        var world = new WorldModel(new HashSet<string> { "ui.screen", "ui.screen.route", "ui.node.*",
+                PageObservationCodec.CaptureSubject, PageObservationCodec.IdentitySubject },
             new ProductAssociationStrategy(), new UiHierarchyOccurrenceStrategy());
         var effects = new EffectBoundary(new RecordedDriver());
         var plan = new AgentPlanPolicy();
         var kernel = new UniKernel(new EvidenceLedger(), world, DisabledRunTrace.Instance,
             new RunModel(), new ControlLoop(plan),
             new RuntimeAssurance(new ProductFreshnessEvaluator(() => T0.AddMinutes(1), TimeSpan.FromMinutes(5))), effects);
-        var captures = new[] { ("root", 0), ("child", 0), ("child", -200), ("child", 0), ("root", 0) };
+        var captures = navigationCycle
+            ? new[] { ("root", 0), ("child", 0), ("root", 0), ("other", 0), ("root", 0) }
+            : new[] { ("root", 0), ("child", 0), ("child", -200), ("child", 0), ("root", 0) };
         var captureIndex = 0;
         string[]? recorded = null;
         if (recordedSequence is not null)
@@ -104,16 +156,34 @@ public sealed class WorldOperationReplayTests
                 var (page, shift) = captures[captureIndex];
                 var time = T0.AddSeconds(captureIndex * 10); var capture = "capture-" + captureIndex++;
                 var proposals = new List<ObservationProposal>();
-                foreach (var subject in new[] { "ui.screen", "ui.screen.route" })
+                foreach (var subject in includePageCaptures ? new[] { "ui.screen.route" } : new[] { "ui.screen", "ui.screen.route" })
                     proposals.Add(new(new(subject, page), IngressKind.Observation, directive.Context,
                         new("replay.page", time, "scope:" + subject + ":" + capture, new[] { "recorded-input:" + capture })));
                 var xml = page == "child" && recorded is not null
                     ? File.ReadAllText(Path.Combine(WorldReplayDiagnostics.Corpus, "uia", recorded[shift == 0 ? 0 : 1] + ".xml"))
                     : PageXml(page, shift);
+                if (includePageCaptures && page == "root")
+                    xml = xml.Replace("<hierarchy>", "<hierarchy><node text=\"Root\" bounds=\"[0,0][1000,90]\"/>", StringComparison.Ordinal);
+                if (includePageCaptures)
+                {
+                    var observation = PageIdentityRecovery.Capture(capture, capture, "replay-session", time,
+                        1000, 1000, xml, null) with { DeviceId = "fixture-device" };
+                    var proposal = new ObservationProposal(new(PageObservationCodec.CaptureSubject,
+                        PageObservationCodec.Encode(observation)), IngressKind.Observation, directive.Context,
+                        new("controlled-layout", time, "capture:" + capture, ["controlled-xml:" + capture]));
+                    proposals.Add(proposal);
+                    var evidenceId = new EvidenceLedger().Admit(proposal).Admission.EvidenceId!;
+                    var title = page == "root" ? "Root" : "Back";
+                    var identity = PageIdentityRecovery.Identity(new(observation, evidenceId, null), title,
+                        page, directive.Context);
+                    Assert.NotNull(identity);
+                    proposals.Add(identity!);
+                }
                 var parsed = UiAutomatorDump.ParseHierarchyObservation(xml,
                     new(capture, time, "fixture-device", "replay-session", 35,
                         ObservationCycleId: capture, Space: page == "child" && recorded is not null
-                            ? CoordinateSpace.DeviceViewport(1080, 2400) : CoordinateSpace.DeviceViewport(1000, 1000)));
+                            ? CoordinateSpace.DeviceViewport(1080, 2400) : CoordinateSpace.DeviceViewport(1000, 1000,
+                                captureId: includePageCaptures ? capture : null)));
                 proposals.AddRange(TypedHierarchyProposalProjector.Project(parsed.Observation!, directive.Context));
                 return new RunDriverInput.Observation(proposals);
             },
@@ -124,7 +194,8 @@ public sealed class WorldOperationReplayTests
                 var scrollables = context.Elements?.Where(e => e.Role == "scrollable").ToArray() ?? [];
                 var scroll = scrollables.FirstOrDefault(e => e.Text == "com.android.settings:id/recycler_view")
                     ?? scrollables.FirstOrDefault();
-                var step = completed switch
+                var step = navigationCycle ? new AgentActionStep("ui.element", completed % 2 == 0 ? "Open" : "Back", "tap", null)
+                    : completed switch
                 {
                     0 => new AgentActionStep("ui.element", "Open", "tap", null),
                     1 => new AgentActionStep("scrollable", scroll?.Text, "swipe-up", null),
@@ -141,6 +212,20 @@ public sealed class WorldOperationReplayTests
         var result = driver.Drive();
         Assert.True(captureIndex == 5, $"{result.Status}:{result.Reason}; consumed={captureIndex}");
         Assert.All(kernel.PostActionVerifications, v => Assert.True(v.IsVerified, v.RejectionReason));
+        if (ordinaryRecapture)
+        {
+            var observed = PageIdentityRecovery.Capture("ordinary", "ordinary-cycle", "replay-session",
+                T0.AddSeconds(60), 1000, 1000,
+                "<hierarchy><node text=\"Root\" bounds=\"[0,0][1000,90]\"/><node text=\"Open\" bounds=\"[100,300][800,340]\"/></hierarchy>", null)
+                with { DeviceId = "fixture-device" };
+            var admitted = kernel.Process(new(new(PageObservationCodec.CaptureSubject, PageObservationCodec.Encode(observed)),
+                IngressKind.Observation, ObservationContext.External,
+                new("controlled-layout", observed.CaptureTime, "capture:ordinary", ["controlled-xml:ordinary"])));
+            var identity = PageIdentityRecovery.Identity(new(observed, admitted.Admission.EvidenceId!, null),
+                "Root", "root", ObservationContext.External);
+            Assert.NotNull(identity);
+            kernel.Process(identity!);
+        }
         var graph = kernel.ProjectWorldGraph($"{kernel.RunId}:{kernel.RunView!.Version}")!;
         var ids = graph.Edges.SelectMany(edge => new[] { edge.SourceRevisionId, edge.TargetRevisionId })
             .Concat(graph.ViewportTransitions.SelectMany(edge => new[] { edge.SourceRevisionId, edge.TargetRevisionId })).ToHashSet();
@@ -158,7 +243,9 @@ public sealed class WorldOperationReplayTests
                 content.Add(new(edge.OperationReceiptId, target.RevisionId, occurrence.SemanticDescriptor!, occurrence.Locator!.X1 + x, occurrence.Locator.Y1 + y));
             }
         }
-        return new(graph, effects.ReceiptLog, revisions, content, result.Status.ToString());
+        var views = includePageCaptures ? world.RevisionHistory.Where(r => r.CurrentPageObservation?.ContainerId is not null)
+            .Select(r => world.DerivePageView(r.CurrentPageObservation!.ContainerId!, r.RevisionId)).ToArray() : null;
+        return new(graph, effects.ReceiptLog, revisions, content, result.Status.ToString(), views);
     }
 
     private sealed class RecordedDriver : IEffectDriver

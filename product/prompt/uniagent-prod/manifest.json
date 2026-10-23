@@ -1,10 +1,10 @@
 {
   "schemaVersion": "uniagent.prompt/v1",
-  "promptRevision": 25,
+  "promptRevision": 26,
   "protocol": {
     "protocolVersion": "uniclaw.agent.protocol.v1",
     "schemaVersion": "uniclaw.agent.schema.v1",
-    "schemaHash": "e1839918aa7e0c0dfb86654fa9982bfe4cdc2641dc89f536481eb05950a4260d"
+    "schemaHash": "71640fe6b0e546426053de0cca94836cffe8536fdb7c35af0ebe32fb77693a25"
   },
   "segments": [
     "01-identity.txt",

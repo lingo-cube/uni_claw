@@ -34,6 +34,7 @@ public sealed class UiHierarchyOccurrenceStrategy : IUiObservationStrategy
 
     private readonly Dictionary<string, Dictionary<int, NodeFields>> _captures = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string?> _captureOwners = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string?> _captureOwnerIdentityEvidence = new(StringComparer.Ordinal);
     private string? _activeCaptureId;
     private DateTimeOffset _latestCaptureTime;
 
@@ -61,11 +62,22 @@ public sealed class UiHierarchyOccurrenceStrategy : IUiObservationStrategy
         if (hierarchy.CaptureTimestamp < _latestCaptureTime
             || (_captures.ContainsKey(hierarchy.CaptureId) && _activeCaptureId != hierarchy.CaptureId)
             || (_captureOwners.TryGetValue(hierarchy.CaptureId, out var captureOwner) && captureOwner != owner
-                && !(captureOwner is null && pageObservation?.ContainerId == owner)))
+                && !(captureOwner is null && pageObservation?.ContainerId == owner)
+                && !(pageObservation?.ContainerId == owner && owner is not null
+                    && pageObservation.IdentityEvidenceId is { } currentIdentityEvidence
+                    && _captureOwnerIdentityEvidence.TryGetValue(hierarchy.CaptureId, out var priorIdentityEvidence)
+                    && priorIdentityEvidence != currentIdentityEvidence)))
             return previous?.Occurrences?.Select(Copy).ToArray() ?? Array.Empty<ProposedOccurrence>();
         _activeCaptureId = hierarchy.CaptureId;
         _latestCaptureTime = hierarchy.CaptureTimestamp;
-        _captureOwners.TryAdd(hierarchy.CaptureId, owner);
+        if (!_captureOwners.TryAdd(hierarchy.CaptureId, owner) && _captureOwners[hierarchy.CaptureId] != owner
+            && owner is not null && pageObservation?.IdentityEvidenceId is { } changedIdentityEvidence)
+        {
+            _captureOwners[hierarchy.CaptureId] = owner;
+            _captureOwnerIdentityEvidence[hierarchy.CaptureId] = changedIdentityEvidence;
+        }
+        else if (pageObservation?.IdentityEvidenceId is { } identityEvidence)
+            _captureOwnerIdentityEvidence.TryAdd(hierarchy.CaptureId, identityEvidence);
         var nodes = _captures.GetValueOrDefault(hierarchy.CaptureId);
         if (nodes is null)
         {

@@ -1,4 +1,5 @@
 using UniClaw.Kernel.Capability;
+using UniClaw.Kernel.World;
 
 namespace UniClaw.Kernel.Runtime;
 
@@ -74,7 +75,10 @@ public sealed record AgentDecisionContext(
     BudgetReview? BudgetReview = null,
     PlanExecutionView? PlanExecution = null,
     IReadOnlyDictionary<string, string>? AvailablePlanSources = null,
-    IReadOnlyDictionary<string, string>? AvailablePlanConditions = null);
+    IReadOnlyDictionary<string, string>? AvailablePlanConditions = null,
+    WorldKnowledgeView? WorldKnowledge = null,
+    UniClaw.Kernel.Control.WorldRecoveryView? WorldRecovery = null,
+    IReadOnlyList<UniClaw.Kernel.Assurance.EffectCorrectionReview>? WorldEffectImpacts = null);
 
 /// <summary>
 /// obligation 的非权威摘要视图（P7 派生投影，只读）。

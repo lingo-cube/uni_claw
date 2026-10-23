@@ -1,0 +1,15 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Host -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/PageIdentityRecoveryTests.cs(71,24): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs(58,68): warning CS8604: “UiHierarchyCaptureResult UiAutomatorDump.ParseHierarchyObservation(string xml, UiHierarchyParseContext parseContext)”中的形参“xml”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(249,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(262,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(728,45): warning CS8620: 由于引用类型的可为 null 性差异，(string, string, string)[] 类型的实参不能用于 void SettingsCoverageLedger.RecordObservation(string route, IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> visibleOccurrences) 中 IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> 类型的形参 visibleOccurrences。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/WorldCaptureIsolationTests.cs(39,38): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+  UniClaw.Host.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    11，已跳过:     0，总计:    11，持续时间: 62 ms - UniClaw.Host.Tests.dll (net10.0)

@@ -82,8 +82,10 @@ public sealed class ComponentSemanticReplayTests
             captureId: fault.Deliver(setup.Request.Current.CaptureId, "semantic-request.correlation.captureId"),
             observationCycleId: setup.Request.Current.ObservationCycleId) };
         var actual = await setup.Consumer.ObserveSemanticsAsync(corrected);
-        Assert.Equal(oracle.Semantic.SuccessStatus, actual.Status.ToString());
-        Assert.Equal(oracle.Semantic.SuccessDisposition, actual.Assessment.Disposition.ToString());
+        Assert.True(oracle.Semantic.SuccessStatus == actual.Status.ToString(),
+            "semantic replay product result: " + JsonSerializer.Serialize(actual, RecordedComponentInputs.Json));
+        Assert.True(oracle.Semantic.SuccessDisposition == actual.Assessment.Disposition.ToString(),
+            "semantic replay product result: " + JsonSerializer.Serialize(actual, RecordedComponentInputs.Json));
         Assert.Equal(oracle.Semantic.SuccessRelation, actual.Relation.ToString());
         Assert.Equal(oracle.Semantic.SuccessExpectedMatch, actual.ExpectedMatch.ToString());
         Assert.Equal(expected.PageKey, actual.Observation!.PageKey); Assert.Equal(expected.Title, actual.Observation.ObservedTitle);
@@ -132,8 +134,10 @@ public sealed class ComponentSemanticReplayTests
         var actual = await setup.Consumer.ObserveSemanticsAsync(setup.Request);
         if (variant == "conflicted-intent")
         {
-            Assert.Equal(oracle.Semantic.ConflictedStatus, actual.Status.ToString());
-            Assert.Equal(oracle.Semantic.ConflictedDisposition, actual.Assessment.Disposition.ToString());
+            Assert.True(oracle.Semantic.ConflictedStatus == actual.Status.ToString(),
+                "conflicted-intent product result: " + JsonSerializer.Serialize(actual, RecordedComponentInputs.Json));
+            Assert.True(oracle.Semantic.ConflictedDisposition == actual.Assessment.Disposition.ToString(),
+                "conflicted-intent product result: " + JsonSerializer.Serialize(actual, RecordedComponentInputs.Json));
             Assert.Equal(oracle.Semantic.ConflictedMatch, actual.ExpectedMatch.ToString());
             Assert.Equal("sims", actual.Observation!.PageKey);
             var claim = Assert.Single(SemanticObservationProjector.CreateProposals(setup.Request, actual));

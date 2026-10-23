@@ -27,3 +27,8 @@ Boundary，intent 的**安全裁决**归 Assurance，进度真值归 Run Model�
 
 - 基线 §14；组件间协议：`docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md`；
 - 决策缝消费（Agent 咨询）：`../Runtime/`（AgentDecision/PolicyRuntime）。
+
+## WORLD-UNCERTAINTY-001 实现
+
+- `ControlLoop.WorldConsumption`：Control记录实际决策供给来源并识别撤回的计划依据。
+- `WorldRecoveryControl`：Control去重真实执行/结果版本并管理安全边界复核提醒。

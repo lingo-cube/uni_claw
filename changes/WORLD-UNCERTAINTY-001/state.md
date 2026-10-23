@@ -1,10 +1,10 @@
 # WORLD-UNCERTAINTY-001 — World未知表达、消费闭环与验证体系设计
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: 9bc15b8974f5fb5746074e373e6c132bc4df0089
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: f541a8971a8880e5c70a0841a03c45c6eeb1b06a
 
 ## Intent（WHAT/WHY）
 用户2026-10-22明确要求针对前轮全部问题与信息启动`.agents/skills/grill-with-docs/SKILL.md`。本Change统一记录World评估、S0-S4候选、Jev研究及既有闭环之间的设计取舍，逐轮分清已接受决定、实现事实、证据缺口与待裁决事项；不将讨论范围等同实施授权。
 
-最新授权（2026-10-23）：用户明确要求固化Change，另开推导会话先作场景库/流程/数学公理推导、优化及整体架构检查，随后新实现会话实施；两个会话Leader均按用户最新修改使用6.1 Sol Ultra，Worker为6 Luna；各自完成后都提交推送，并注意并发。这取代此前仅设计/不实施提交的阶段限制，原业务范围和Owner不扩大。spec.md固化全部行为，implementation-handoff.md及derivation-review-request.md交接，不依赖旧聊天。前置审查尚未完成，不得先改产品。
+最新授权（2026-10-23）：用户明确要求固化Change，另开推导会话先作场景库/流程/数学公理推导、优化及整体架构检查，随后新实现会话实施；两个会话Leader均按用户最新修改使用6.1 Sol Ultra，Worker为6 Luna；各自完成后都提交推送，并注意并发。这取代此前仅设计/不实施提交的阶段限制，原业务范围和Owner不扩大。spec.md固化全部行为，implementation-handoff.md及derivation-review-request.md交接，不依赖旧聊天。独立审查及发布已完成；实现入场复验164项hash一致、无产品漂移，blockingFindings为空。F01–F08为待实施要求，不是产品PASS。
 
 ## Scope / Out of Scope
 - 最新所有者收敛：先聚焦World模型，正式整体Goal评价接通延后（Q13接受B的延期方向）。本期只推进四类缺口的依据/范围/版本、延续与解决、必要只读消费及Agent实际可见、对应拟验收。World不接管任务进展、完成或执行许可。
@@ -66,7 +66,7 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
 - 限定旧回放材料未证明最终输入完整、历史截断或全部配置钉定；只能按Q11范围使用。新对照语料、非确定结果统计及独立标定仍需后续回放线实际交付。
 - 普通claim迟到保护覆盖、新鲜窗常量/遥测及自定义scope读取一致性留作World证据演进的独立技术核验；未声称已解决，也不将其自动扩入四类未知分类实施。
 
-## Verification
+## Verification（设计阶段历史）
 level: CONTRACT
 method: 当前git/Change State/证据与冻结协议交叉核验；限定只读源码检查；逐轮设计树与裁决检查
 expected: 事实可溯源，现有决定不被DRAFT替代，问题不依赖未答前提，产品及保护文件无本轮修改
@@ -74,6 +74,7 @@ actual: Q1-Q20均已有答案（Q5 B、Q13延期方向B，其余A）；Q17版本
 evidence: evidence/entry.json；evidence/round-2-verification.json；evidence/q5-verification.json；evidence/agent-entry.json；evidence/round-4-entry.json；evidence/round-4-verification.json；evidence/round-5-entry.json；evidence/round-5-verification.json；evidence/round-6-entry.json；evidence/round-6-verification.json；evidence/coverage-entry.json；evidence/coverage-verification.json；evidence/residual-entry.json；evidence/residual-verification.json；evidence/q12-entry.json；evidence/q12-source-manifest.json；evidence/q12-verification.json；discussion.md；design.md；coverage-audit.md；residual-primary-sources.md；residual-analysis.md；goal-completion-mapping.md；agent-information.md；q5-design-assessment.md；replay-input-audit.md；ADR-0054；既有Change证据均标为历史记录
 
 ## Status log
+- 2026-10-23 实现入场PERSIST→PLAN→IMPLEMENT：复验HEAD f541a897、空index及164项输入/报告hash；基线后无src/tests语义漂移。独立implementation-model.md单列具体Interface，切片1经唯一Worker只读审阅后修订capture/space精确匹配、不可变及legacy规则；计划见plans/WORLD-UNCERTAINTY-001.md。已获scope碰撞行为RED，产品尚未通过；全部主题保持待验。保护快照见evidence/implementation-entry/，不夹带其他线dirty。
 - 2026-10-23 最新追加：核心模型实现完成、验收及提交推送后，顺序推进独立WORLD-VISUALIZATION-001；展示图模型、Slice、分层版本、变化来源和影响流程，复用Replay基础并用本线已有例子做可视化验收，不提前耦合产品写入。
 - 2026-10-23 RESOLVE→PERSIST（最新）：用户授权固化并建立独立推导/架构审查→实现会话，指定Leader/Worker模型、完成后提交推送及并发约束。spec.md固化20项决定、38主题及早期验收，implementation-handoff.md及derivation-review-request.md交接，handoff-coverage-audit.md独立逐题防漏。前置审查先于产品写入；固化提交/推送及会话身份写执行证据，PERSIST不是产品CLOSED。
 - 2026-10-22 UNDERSTAND→RESOLVE：用户明确调用grill-with-docs；加载grilling/domain-modeling，复验共享现场；新建本线独立设计记录、保护快照与首轮前沿；S1/S2事实核验后补入Q4，等待Q1-Q4裁决。
@@ -105,3 +106,14 @@ evidence: evidence/entry.json；evidence/round-2-verification.json；evidence/q5
 - 2026-10-23 已验证元素信息复用：用户提出新版本直接参考过去已验证高置信度信息、避免等待。Leader限定核对当前LogicalItem/occurrence、连续性gate、Host保留来源与当前grounding及ADR；一名Worker反例审阅并整理RFC5861/9111官方资料。新增trusted-element-reuse-design.md及RU01-RU08，推荐历史参考立即可读、当前对应充分后沿用稳定语义而不等重复慢模型，动态事实及执行条件仍由原Owner判定；Q19具体边界待确认，Q1-Q18不重开。仅文档，无产品运行/性能通过，保护与核对见evidence/trusted-reuse-entry.json及evidence/trusted-reuse-verification.json。
 - 2026-10-23 Q19接受及第一版错误追问：用户答“按推荐”，Q19记Accepted A，继而问错误UI操作及后续影响是否最后完整修复。Leader限定核对现有StepVerify/ExpectedEffect、绑定/receipt及终局和UnknownOutcome屏障；一名Worker研究Azure官方补偿原则并审阅共同来源误判等反例。新增correction-impact-design.md及CI01-CI12，Q20推荐发现即处理受影响链路、分阶段核查真实效果、收尾按影响范围复核，不许诺通用自动回滚。保持World最小影响信息与原Owner责任，Q20待确认；仅文档，无产品实现/运行，见evidence/correction-impact-entry.json及evidence/correction-impact-verification.json。
 - 2026-10-23 Q20接受与当前前沿收口：用户答“可以”，并指出仅记录时无现实修复问题，追问下一问题。记录Q20 Accepted A，澄清未被消费的原始/历史记录只需保留并关联更正；已被认识/判断/动作消费仍按实际依赖处理，不放宽执行/终局屏障。一名Worker只读核对无新增必须用户决定的范围，不制造Q21。Q1-Q20产品裁决前沿为空，后续核心模型/接口与兼容、详细用例/仿真由本线工程细化，尚无产品实现/通过结论。保护与核对见evidence/q20-accepted-entry.json及evidence/q20-accepted-verification.json。
+- 2026-10-23 REVIEW：五条核心纵向切片已实现，独立Spec/Standards审阅发现的访问来源、设备未知匹配、Host profile装配及恢复状态归属问题已修改并复核；review文档见evidence/implementation-entry/。Kernel/Host/DSH局部和全套已有通过记录，录制纵向例子与最终全量Verify仍在运行；未CLOSED、未提交推送，不把受控来源称为live或全体模型依赖证明。
+
+## 核心实施验收（2026-10-23）
+
+level: SCENARIO（含CONTRACT/DETERMINISTIC；无ENVIRONMENT）
+method: 独立Spec/Standards Review及处置复核；tools/verify-change --scope full；插件整套；K01–K12逐项真实来源与四元组。
+expected: 核心未知/累计/纠正/沿用/实际消费与Owner屏障被证明，协议/认证同步，原dirty不被纳入。
+actual: 全量FINAL_STATUS=PASS，八项目2181项通过，Node插件52项通过，材料资格6项通过，41份认证0违规；已知失败修复并留原日志。当前最终HTTP/turn正文仍为diagnostic-only（provider封套与真实模型未证）。范围及具体方法见验收索引，不把核心关闭等同整体Goal或后继UI完成。
+evidence: evidence/implementation-entry/verify-final.md；coverage-ledger.md；verify-full-final.txt；plugin-full-final.txt；input-eligibility-tests-final.txt；review-followup.md；protected-diff-audit.json。
+
+- 2026-10-23 VERIFY→CLOSED：独立审查处置和最终全量通过。源码可选null字段编码保持旧EvidenceId，Contains端点限制同设备/session，仿真显式补受控Device来源；冻结录制/响应/独立Oracle不改。核心负责路径单独提交推送并核对远端，随后继续WORLD-VISUALIZATION-001。真实生产profile/真机/模型、完整依赖图、通用补偿及整体Goal仍按原scope未购入。

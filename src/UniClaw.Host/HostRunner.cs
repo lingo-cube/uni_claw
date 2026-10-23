@@ -14,6 +14,7 @@ using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
+using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Host.Capability;
 using UniClaw.Host.Runtime;
 using UniClaw.Host.SettingsCoverage;
@@ -67,7 +68,8 @@ public sealed class HostRunner
         LanguageInspectionTaskRequest? LanguageInspection = null,
         LanguageInspectionSelection? LanguageInspectionSelection = null,
         Func<LanguageInspectionSelection?>? LanguageInspectionSelectionProvider = null,
-        UniClaw.Kernel.Capability.CapabilityRegistry? RuntimeIntegrationCapabilities = null);
+        UniClaw.Kernel.Capability.CapabilityRegistry? RuntimeIntegrationCapabilities = null,
+        NativeContextSignatureProfile? NativeContextProfile = null);
 
     public sealed record HostRunResult(
         string RunDir,
@@ -124,6 +126,9 @@ public sealed class HostRunner
             ProductAssociationStrategy.ScreenRouteSubject,
             SharedSubjects.Frame,
             "ui.node.*",
+            PageInterpretationCodec.Subject,
+            ContainerContextCodec.Subject,
+            SemanticVerificationCodec.Subject,
         };
         LivePerception.LiveFrameFeed? liveFeed = null;
         SettingsTraversalLiveFeed? settingsFeed = null;
@@ -135,7 +140,8 @@ public sealed class HostRunner
             // AGT-011 §4：SettingsTraversal 模式证据持久化（AGT-008 缺省全开）。
             settingsFeed = new SettingsTraversalLiveFeed(
                 clock, options.Live, Path.Combine(runDir, "evidence"),
-                uniPerceptionFetch: options.UniPerceptionFetch);
+                uniPerceptionFetch: options.UniPerceptionFetch,
+                nativeContextProfile: options.NativeContextProfile);
             // Environment preparation is completed before the formal driver
             // loop starts. Keep a small durable marker so a failed warmup is
             // visible without reading the later Agent/Kernel artifacts.
@@ -160,7 +166,9 @@ public sealed class HostRunner
             var world = new WorldModel(
                 scope,
                 new ProductAssociationStrategy(),
-                observationStrategy);
+                observationStrategy,
+                nativeContextProfiles: options.NativeContextProfile is { } nativeProfile
+                    ? [nativeProfile] : null);
             var assurance = new RuntimeAssurance(
                 new ProductFreshnessEvaluator(() => clock.Now, TimeSpan.FromMinutes(5)));
             // journal 必注入（D3）：产品路径不存在「未注入执行源」的默认

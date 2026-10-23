@@ -42,3 +42,7 @@ UniClaw.Core 候选语义记录。UI 专用字段保留在 Kernel；本缝只投
 - 组件间协议基线：`docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md`
 - 公开面白名单执法：`tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs`
 - 词汇面：根 `CONTEXT.md`
+
+## WORLD-UNCERTAINTY-001 实现
+
+- `UniKernel.WorldConsumption`：组合实际咨询、回执、核验来源和Control恢复操作。

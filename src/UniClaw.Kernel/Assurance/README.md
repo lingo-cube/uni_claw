@@ -27,3 +27,7 @@ ADR-0017。
 
 - 基线 §15；四语义门：ADR-0004；ADR-0009/0010/0017；
 - 输入：`../Evidence/`、`../World/`、`../Run/`；约束：`../Effects/`。
+
+## WORLD-UNCERTAINTY-001 实现
+
+- `RuntimeAssurance.WorldImpact`：追加已投递效果的纠错审查，保留原回执和终局。

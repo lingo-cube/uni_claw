@@ -1,0 +1,1095 @@
+TAP version 13
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount per-turn); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'controlled-recording-session',
+#   productRunId: 'run-9183cb206de41bd47a1d1fde24e92c3bc2231ece3c5c64a2913694441e086810',
+#   dshSessionId: 'session-test-1-1'
+# }
+# [uniclaw-decision-channel] consult captured { requestId: 'dsh-req-00000001', kind: 'defer', durationMs: 8 }
+# [uniclaw-decision-channel] consult captured { requestId: 'dsh-req-00000002', kind: 'blocked', durationMs: 7 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: WORLD-UNCERTAINTY: real Kernel HTTP contexts reach both final consultation prompt bodies
+ok 1 - WORLD-UNCERTAINTY: real Kernel HTTP contexts reach both final consultation prompt bodies
+  ---
+  duration_ms: 41.654083
+  type: 'test'
+  ...
+# Subtest: apply registers five routes and the schema-derived tool
+ok 2 - apply registers five routes and the schema-derived tool
+  ---
+  duration_ms: 2.428208
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: Slow route returns assistant JSON text and accepts image content
+ok 3 - Slow route returns assistant JSON text and accepts image content
+  ---
+  duration_ms: 8.63125
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: Slow no-output archives its isolated session and ignores late output
+ok 4 - Slow no-output archives its isolated session and ignores late output
+  ---
+  duration_ms: 4.143584
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: Slow timeout archives its isolated session and ignores late output
+ok 5 - Slow timeout archives its isolated session and ignores late output
+  ---
+  duration_ms: 103.242625
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: Slow prompt-failure archives its isolated session and ignores late output
+ok 6 - Slow prompt-failure archives its isolated session and ignores late output
+  ---
+  duration_ms: 4.18075
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: Slow abort archives its isolated session and ignores late output
+ok 7 - Slow abort archives its isolated session and ignores late output
+  ---
+  duration_ms: 4.21675
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: Slow detach archives its isolated session and ignores late output
+ok 8 - Slow detach archives its isolated session and ignores late output
+  ---
+  duration_ms: 3.796083
+  type: 'test'
+  ...
+# Subtest: Section mode rejects a session whose actual scope is missing the static instructions
+ok 9 - Section mode rejects a session whose actual scope is missing the static instructions
+  ---
+  duration_ms: 2.153959
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult captured { requestId: 'renewal-correction', kind: 'act', durationMs: 2 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: Rejected misplaced renewal exposes the offending field and a corrected proposal is captured intact
+ok 10 - Rejected misplaced renewal exposes the offending field and a corrected proposal is captured intact
+  ---
+  duration_ms: 3.857917
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult captured { requestId: 'review-response', kind: 'act', durationMs: 2 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-shared',
+#   productRunId: 'run-shared',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: Explicit budget review is validated and captured at the decision union top level
+ok 11 - Explicit budget review is validated and captured at the decision union top level
+  ---
+  duration_ms: 4.219625
+  type: 'test'
+  ...
+# Subtest: B2: product schemaHash != DSH-local artifact → attach refused
+ok 12 - B2: product schemaHash != DSH-local artifact → attach refused
+  ---
+  duration_ms: 1.707916
+  type: 'test'
+  ...
+# Subtest: RUNTIME-PLAN-004: missing or malformed artifact pins fail before session creation
+ok 13 - RUNTIME-PLAN-004: missing or malformed artifact pins fail before session creation
+  ---
+  duration_ms: 5.0685
+  type: 'test'
+  ...
+# Subtest: RUNTIME-PLAN-004: prompt and skill pins reject drift before session creation
+ok 14 - RUNTIME-PLAN-004: prompt and skill pins reject drift before session creation
+  ---
+  duration_ms: 4.86275
+  type: 'test'
+  ...
+# Subtest: RUNTIME-PLAN-004: same-revision Skill content and its package hash can drift together but Profile pin rejects it
+ok 15 - RUNTIME-PLAN-004: same-revision Skill content and its package hash can drift together but Profile pin rejects it
+  ---
+  duration_ms: 7.674084
+  type: 'test'
+  ...
+# Subtest: B1: session tool catalog != manifest → attach refused
+ok 16 - B1: session tool catalog != manifest → attach refused
+  ---
+  duration_ms: 1.758666
+  type: 'test'
+  ...
+# Subtest: B1: session is created under the uniagent-prod preset
+ok 17 - B1: session is created under the uniagent-prod preset
+  ---
+  duration_ms: 1.755459
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult captured { requestId: 'req-shared-1', kind: 'noAction', durationMs: 6 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: shared project and turn lifecycle follow explicit configuration
+ok 18 - shared project and turn lifecycle follow explicit configuration
+  ---
+  duration_ms: 8.125625
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-agentscope',
+#   productRunId: 'run-agentscope',
+#   dshSessionId: 'session-test-1-1'
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-release',
+#   productRunId: 'run-release',
+#   dshSessionId: 'session-test-1-1'
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: configured project and title are applied to slow sessions
+ok 19 - configured project and title are applied to slow sessions
+  ---
+  duration_ms: 8.327209
+  type: 'test'
+  ...
+# Subtest: B1: submit_decision is registered into the AGENT scope, not the host scope
+ok 20 - B1: submit_decision is registered into the AGENT scope, not the host scope
+  ---
+  duration_ms: 1.734833
+  type: 'test'
+  ...
+# Subtest: B1: detach releases the agent-scope registration
+ok 21 - B1: detach releases the agent-scope registration
+  ---
+  duration_ms: 1.583458
+  type: 'test'
+  ...
+# Subtest: session mapping rejects a wrong DSH session or Product Run
+ok 22 - session mapping rejects a wrong DSH session or Product Run
+  ---
+  duration_ms: 1.73175
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult retry { requestId: 'req-prose-1', reason: 'no-submit-decision' }
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-prose-1',
+#   code: 'no-submit-decision',
+#   durationMs: 30009
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: B3: prose containing valid-looking JSON but no submit_decision → fail closed
+ok 23 - B3: prose containing valid-looking JSON but no submit_decision → fail closed
+  ---
+  duration_ms: 30012.431583
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult retry { requestId: 'req-retry-context-1', reason: 'no-submit-decision' }
+# [uniclaw-decision-channel] consult retry captured { requestId: 'req-retry-context-1', kind: 'noAction', durationMs: 23 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: retry after no-submit keeps the original consultation decisionId
+ok 24 - retry after no-submit keeps the original consultation decisionId
+  ---
+  duration_ms: 32.068
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult retry { requestId: 'req-turn-error-retry', reason: 'MALFORMED_RESPONSE' }
+# [uniclaw-decision-channel] consult retry captured { requestId: 'req-turn-error-retry', kind: 'noAction', durationMs: 12 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: turn/end provider parse failure is included in the single nudge and the original decision can be captured
+ok 25 - turn/end provider parse failure is included in the single nudge and the original decision can be captured
+  ---
+  duration_ms: 18.061916
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult retry { requestId: 'req-retry-prompt-error', reason: 'no-submit-decision' }
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-retry-prompt-error',
+#   code: 'no-submit-decision',
+#   durationMs: 6
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: retry prompt-error preserves the physical turn fence until turn/end
+ok 26 - retry prompt-error preserves the physical turn fence until turn/end
+  ---
+  duration_ms: 13.512334
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult retry { requestId: 'req-retry-deadline', reason: 'no-submit-decision' }
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-retry-deadline',
+#   code: 'no-submit-decision',
+#   durationMs: 30007
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount per-turn); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: retry deadline preserves the physical turn fence until turn/end
+ok 27 - retry deadline preserves the physical turn fence until turn/end
+  ---
+  duration_ms: 30014.368208
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult retry { requestId: 'req-effect-token-1', reason: 'no-submit-decision' }
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-effect-token-1',
+#   code: 'no-submit-decision',
+#   durationMs: 30007
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount per-turn); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: B3: consultation prompt binds effectClass to runtime allowedEffects
+ok 28 - B3: consultation prompt binds effectClass to runtime allowedEffects
+  ---
+  duration_ms: 30017.012
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-missing-1',
+#   code: 'decision-schema-invalid',
+#   durationMs: 6
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount per-turn); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: B3: missing Product-required fields → schema-invalid, never completed
+ok 29 - B3: missing Product-required fields → schema-invalid, never completed
+  ---
+  duration_ms: 14.780834
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-semvar-1',
+#   code: 'decision-schema-invalid',
+#   durationMs: 5
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount per-turn); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: B3: effect/target variant is NOT synthesized into steps (no semantic defaulting)
+ok 30 - B3: effect/target variant is NOT synthesized into steps (no semantic defaulting)
+  ---
+  duration_ms: 10.784791
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult captured { requestId: 'req-repr-1', kind: 'act', durationMs: 6 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-four-kinds',
+#   productRunId: 'run-four-kinds',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: B3: representation normalization still accepts {item} wrapping and JSON strings
+ok 31 - B3: representation normalization still accepts {item} wrapping and JSON strings
+  ---
+  duration_ms: 11.815333
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult captured { requestId: 'req-four-kinds-1', kind: 'act', durationMs: 6 }
+# [uniclaw-decision-channel] consult captured { requestId: 'req-four-kinds-2', kind: 'policy', durationMs: 6 }
+# [uniclaw-decision-channel] consult captured { requestId: 'req-four-kinds-3', kind: 'noAction', durationMs: 6 }
+# [uniclaw-decision-channel] consult captured { requestId: 'req-four-kinds-4', kind: 'defer', durationMs: 5 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-bounds',
+#   productRunId: 'run-bounds',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: B3: act, policy, noAction and defer are accepted with traceable identities
+ok 32 - B3: act, policy, noAction and defer are accepted with traceable identities
+  ---
+  duration_ms: 29.94575
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-bounds-1',
+#   code: 'decision-schema-invalid',
+#   durationMs: 7
+# }
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-bounds-2',
+#   code: 'decision-schema-invalid',
+#   durationMs: 5
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: B3: bounded policy and defer fields reject invalid generated output
+ok 33 - B3: bounded policy and defer fields reject invalid generated output
+  ---
+  duration_ms: 17.983041
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult captured { requestId: 'req-serial-1', kind: 'noAction', durationMs: 6 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-B',
+#   productRunId: 'run-B',
+#   dshSessionId: 'session-test-1-2'
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-detach',
+#   productRunId: 'run-detach',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: task session serializes consultations until the physical turn ends
+ok 34 - task session serializes consultations until the physical turn ends
+  ---
+  duration_ms: 11.962916
+  type: 'test'
+  ...
+# Subtest: S1: detach releases the mapping; attach B then succeeds without restart
+ok 35 - S1: detach releases the mapping; attach B then succeeds without restart
+  ---
+  duration_ms: 4.040375
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] consult failed { requestId: 'req-detach-1', code: 'turn-aborted', durationMs: 7 }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-pnl',
+#   productRunId: 'run-pnl',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: S1: detach during in-flight turn drops the late decision
+ok 36 - S1: detach during in-flight turn drops the late decision
+  ---
+  duration_ms: 10.579709
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult captured { requestId: 'req-pnl-1', kind: 'noAction', durationMs: 6 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-pnl-bad',
+#   productRunId: 'run-pnl-bad',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: PNL-001: ledger records attach, consult lifecycle and decision events
+ok 37 - PNL-001: ledger records attach, consult lifecycle and decision events
+  ---
+  duration_ms: 10.3005
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult captured { requestId: 'req-pnl-bad', kind: 'noAction', durationMs: 6 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount per-turn); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount per-turn); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: PNL-001: ledger records decision rejection and detach
+ok 38 - PNL-001: ledger records decision rejection and detach
+  ---
+  duration_ms: 9.137625
+  type: 'test'
+  ...
+# Subtest: PRF-003: package prompt artifact stays byte-identical with product/prompt canonical
+ok 39 - PRF-003: package prompt artifact stays byte-identical with product/prompt canonical
+  ---
+  duration_ms: 0.812167
+  type: 'test'
+  ...
+# Subtest: PRF-003: prompt artifact hash mismatch fails closed at load
+ok 40 - PRF-003: prompt artifact hash mismatch fails closed at load
+  ---
+  duration_ms: 2.947625
+  type: 'test'
+  ...
+# Subtest: PRF-009: package skill artifact stays byte-identical with product canonical
+ok 41 - PRF-009: package skill artifact stays byte-identical with product canonical
+  ---
+  duration_ms: 0.588334
+  type: 'test'
+  ...
+# Subtest: PRF-009: skill path/name/revision/hash drift fails closed at boot
+ok 42 - PRF-009: skill path/name/revision/hash drift fails closed at boot
+  ---
+  duration_ms: 1.528208
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult retry { requestId: 'req-skill-perturn-1', reason: 'no-submit-decision' }
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-skill-perturn-1',
+#   code: 'no-submit-decision',
+#   durationMs: 30009
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: PRF-009: per-turn fallback carries Skill guidance with the static prompt
+ok 43 - PRF-009: per-turn fallback carries Skill guidance with the static prompt
+  ---
+  duration_ms: 30013.297917
+  type: 'test'
+  ...
+# Subtest: PRF-003: prompt manifest protocol coupling mismatch fails closed at load
+ok 44 - PRF-003: prompt manifest protocol coupling mismatch fails closed at load
+  ---
+  duration_ms: 5.027208
+  type: 'test'
+  ...
+# Subtest: PRF-003: preset mount registers the scoped product-prompt section; host mount does not
+ok 45 - PRF-003: preset mount registers the scoped product-prompt section; host mount does not
+  ---
+  duration_ms: 6.105042
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult retry { requestId: 'req-prompt-section-1', reason: 'no-submit-decision' }
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-prompt-section-1',
+#   code: 'no-submit-decision',
+#   durationMs: 30009
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount per-turn); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: PRF-003: section mount keeps per-turn content dynamic-only; consult-start carries promptRevision
+ok 46 - PRF-003: section mount keeps per-turn content dynamic-only; consult-start carries promptRevision
+  ---
+  duration_ms: 30015.9185
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult retry { requestId: 'req-prompt-perturn-1', reason: 'no-submit-decision' }
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-prompt-perturn-1',
+#   code: 'no-submit-decision',
+#   durationMs: 30008
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: PRF-003: per-turn fallback mounts the full static text in every turn
+ok 47 - PRF-003: per-turn fallback mounts the full static text in every turn
+  ---
+  duration_ms: 30017.831667
+  type: 'test'
+  ...
+# Subtest: PRF-004: handshake records the actual session isolation-probe inventory; host route exposes it read-only
+ok 48 - PRF-004: handshake records the actual session isolation-probe inventory; host route exposes it read-only
+  ---
+  duration_ms: 7.993708
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult captured { requestId: 'plan-wire-0', kind: 'plan', durationMs: 2 }
+# [uniclaw-decision-channel] consult captured { requestId: 'plan-wire-1', kind: 'continuePlan', durationMs: 2 }
+# [uniclaw-decision-channel] consult captured { requestId: 'plan-wire-2', kind: 'plan', durationMs: 2 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: ADR-0053: dynamic Plan and exact-position continuation use the same formal tool
+ok 49 - ADR-0053: dynamic Plan and exact-position continuation use the same formal tool
+  ---
+  duration_ms: 13.126666
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult captured { requestId: 'traverse-plugin-request', kind: 'plan', durationMs: 1 }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: RUNTIME-PLAN-002: DSH accepts typed TraverseItem and rejects malformed operation bindings
+ok 50 - RUNTIME-PLAN-002: DSH accepts typed TraverseItem and rejects malformed operation bindings
+  ---
+  duration_ms: 7.533042
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 26, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 26, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: Slow high effort is applied only to its isolated request and attested in diagnostics
+ok 51 - Slow high effort is applied only to its isolated request and attested in diagnostics
+  ---
+  duration_ms: 9.72
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] detached { hadAttachment: false }
+# Subtest: Correlated Slow abort ignores an expired request and leaves the main session alone
+ok 52 - Correlated Slow abort ignores an expired request and leaves the main session alone
+  ---
+  duration_ms: 10.220167
+  type: 'test'
+  ...
+1..52
+# tests 52
+# suites 0
+# pass 52
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 240635.870166

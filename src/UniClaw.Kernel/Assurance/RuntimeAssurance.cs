@@ -88,6 +88,7 @@ public sealed partial class RuntimeAssurance
             new("effect-class-not-forbidden",
                 intent.EffectClass is null || !view.ForbiddenEffects.Contains(intent.EffectClass)),
             new("target-declared", !string.IsNullOrWhiteSpace(target)),
+            new("no-unresolved-corrected-effect-on-context", !HasUnresolvedEffectInContext(belief.ContainerId)),
             new("binding-intent-correlation", binding.IntentId == intent.IntentId),
             new("binding-revision-currentness", binding.RevisionId == belief.RevisionId),
             new("no-unresolved-conflict", target is null || !belief.HasConflictOnTarget),
@@ -230,7 +231,7 @@ public sealed partial class RuntimeAssurance
             return ProofOf(TerminalClassification.Escalation, "mandatory-escalation-evidence");
         // 成功终局要求「存在 mandatory」且全部满足——空 mandatory 集不得
         // 因 vacuous truth 伪装成 completion（Review F2，任务 四.4）
-        if (mandatory.Count > 0 && mandatory.All(s => s.Satisfied))
+        if (mandatory.Count > 0 && mandatory.All(s => s.Satisfied) && !HasUnresolvedWorldEffectBasis)
             return ProofOf(TerminalClassification.Completion,
                 $"all-mandatory-run-obligations-satisfied:objective:{view.Objective}");
 

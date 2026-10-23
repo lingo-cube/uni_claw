@@ -69,7 +69,7 @@ public sealed record TerminalEvaluation(
 /// delivery closure → immutable envelope（exactly once）；Kernel 不重判完成、
 /// 不解析 Evidence、不覆盖 Outcome State、不改 classification。
 /// </summary>
-public sealed class UniKernel
+public sealed partial class UniKernel
 {
     private readonly EvidenceLedger _ledger;
     private readonly WorldModel _world;
@@ -116,6 +116,13 @@ public sealed class UniKernel
     /// <summary>Read-only World-owned graph view; does not authorize navigation.</summary>
     public WorldGraphProjection? ProjectWorldGraph(string scope) => _world.Current is { } current
         ? _world.DeriveGraphProjection(current.RevisionId, scope) : null;
+
+    /// <summary>Read-only World page supply. Historical fragments do not authorize effects.</summary>
+    public WorldPageView ProjectWorldPage(string containerId, string? sourceRevisionId = null) =>
+        _world.DerivePageView(containerId, sourceRevisionId);
+
+    public WorldKnowledgeView ProjectWorldKnowledge(string? requiredParentContextId = null) =>
+        _world.DeriveKnowledgeGaps(requiredParentContextId);
 
     /// <summary>Container Association decision log 透传（owner-internal；R-UW-02/03）。</summary>
     public IReadOnlyList<AssociationDecision> AssociationLog => _world.AssociationLog;
@@ -362,6 +369,10 @@ public sealed class UniKernel
 
         // 幂等（验收 8）：reconcile 未产生新 revision 时如实报告
         var resulting = ReferenceEquals(revision, before) ? null : revision;
+        if (resulting is not null && _assurance is not null
+            && _world.PageCorrectionLog.LastOrDefault(c => c.CorrectionEvidenceId == record.EvidenceId) is { Applied: true } correction)
+            _assurance.ReassessCorrection(correction, _world.DeriveConsumptionBasis(), EffectReceipts, IsRunTerminal,
+                EffectReceipts.ToDictionary(r => r.ReceiptId, r => _world.DeriveConsumptionBasis(r.RevisionId, r.TargetSubject, onlyTarget: true)));
         // LAT-001：量化观察（input = parent world-state entries scanned；
         // output = 是否产生新 revision）
         _metrics?.Record(RuntimeStage.WorldReconciliation, reconcileTicks,
@@ -424,14 +435,15 @@ public sealed class UniKernel
     /// LAT-001：组合缝观察——world.derive-slice span + 规模计数
     /// （input = occurrences scanned；secondary = world-state entries
     /// scanned；output = slice occurrences）。</summary>
-    public Slice DeriveSlice(string rootContainerId, IReadOnlyList<string>? inScopeContainerIds = null)
+    public Slice DeriveSlice(string rootContainerId, IReadOnlyList<string>? inScopeContainerIds = null,
+        SliceRegion? region = null)
     {
         var current = _world.Current;
         var span = StartTraced(TraceCatalog.WorldDeriveSlice, parent: null, RevisionRefs(current));
         var start = Stopwatch.GetTimestamp();
         try
         {
-            var slice = _world.DeriveSlice(rootContainerId, inScopeContainerIds);
+            var slice = _world.DeriveSlice(rootContainerId, inScopeContainerIds, region);
             var ticks = Stopwatch.GetTimestamp() - start;
             TryComplete(span, StructuralOutcome.Completed);
             _metrics?.Record(RuntimeStage.SliceDerivation, ticks,
@@ -469,11 +481,15 @@ public sealed class UniKernel
         TargetSpec target,
         IReadOnlyList<KernelResult> processedObservations,
         DateTimeOffset? dispatchTime = null,
-        WorldBeliefRevision? preActionBelief = null)
+        WorldBeliefRevision? preActionBelief = null, string? receiptId = null)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(processedObservations);
 
+        var matchingReceipts = EffectReceipts.Where(r => receiptId is not null ? r.ReceiptId == receiptId
+            : dispatchTime is not null && preActionBelief is not null
+                && r.DispatchedAt == dispatchTime && r.RevisionId == preActionBelief.RevisionId).ToArray();
+        var verifyingReceipt = matchingReceipts.Length == 1 ? matchingReceipts[0] : null;
         var current = _world.Current;
         var beliefFacts = current is null ? null : new PostActionBeliefFacts(
             current.RevisionId,
@@ -483,9 +499,12 @@ public sealed class UniKernel
             target.DesiredState is null ? null : SemanticCheckedResolver.ResolveDetailed(
                 current, new World.UiRealization.TargetDescriptor(target.Role, target.SemanticDescriptor),
                 _ledger.CanonicalRecords));
-        var beliefVerification = Assurance.TryVerifyPostActionFromBelief(target, beliefFacts, dispatchTime);
+        var beliefVerification = Assurance.TryVerifyPostActionFromBelief(target, beliefFacts, dispatchTime, verifyingReceipt?.ReceiptId);
         if (beliefVerification is not null)
+        {
+            if (verifyingReceipt is { } receipt) RecordEffectVerificationSources(receipt.ReceiptId, beliefVerification);
             return beliefVerification;
+        }
 
         var root = CurrentInteractionContainer(_world.Current)
             ?? throw new InvalidOperationException("post-action verification requires a current container");
@@ -538,7 +557,7 @@ public sealed class UniKernel
         // from accepted observations and may honestly leave it unknown.
         if (result.IsVerified && isSwipe && preActionBelief is { } scrollSource
             && _world.Current is { } scrollTarget && dispatchTime is { } dispatchedAt
-            && EffectReceipts.LastOrDefault() is { Outcome: DispatchOutcome.DeliveryCompleted } scrollReceipt
+            && verifyingReceipt is { Outcome: DispatchOutcome.DeliveryCompleted } scrollReceipt
             && scrollReceipt.DispatchedAt == dispatchedAt && scrollReceipt.RevisionId == scrollSource.RevisionId
             && Effects.BindingLog.Select(item => item.Canonical).OfType<CanonicalBinding>()
                 .SingleOrDefault(binding => binding.BindingId == scrollReceipt.BindingId) is { } scrollBinding
@@ -569,8 +588,9 @@ public sealed class UniKernel
             _world.RecordObservedNavigation(new ObservedNavigation(
                 beforeBelief.RevisionId, sourceId, sourceSignature.EvidenceId,
                 afterBelief.RevisionId, targetId, targetSignature.EvidenceId,
-                NavigationScope, $"verification:{result.RevisionId}:{EffectReceipts.LastOrDefault()?.ReceiptId}"));
+                NavigationScope, $"verification:{result.RevisionId}:{verifyingReceipt?.ReceiptId}"));
         }
+        if (verifyingReceipt is { } verifiedReceipt) RecordEffectVerificationSources(verifiedReceipt.ReceiptId, result);
         return result;
     }
 
@@ -660,7 +680,7 @@ public sealed class UniKernel
     /// terminal 后 fail-closed：新 Control Intent 即使存在也不能变成
     /// effect（不变量 42，任务 八）。
     /// </summary>
-    public ActResult Act(ControlIntent intent, CandidateBinding? candidate)
+    public ActResult Act(ControlIntent intent, CandidateBinding? candidate, IReadOnlyList<string>? decisionReferences = null)
     {
         ArgumentNullException.ThrowIfNull(intent);
         if (Run.IsTerminal)
@@ -669,6 +689,8 @@ public sealed class UniKernel
             throw new ArgumentException("Act pipeline 只接受 act-intent", nameof(intent));
         if (!Control.IsIssued(intent))
             throw new InvalidOperationException("intent 未经 Control Loop 签发（sole Control Intent Authority）");
+        if (decisionReferences is not null && HasCorrectedPlanningBasis(decisionReferences))
+            throw new InvalidOperationException("world-interpretation-corrected;planning-basis-retracted");
 
         var view = Run.View ?? throw new InvalidOperationException("尚无已接受的 Execution Contract");
         _ = _world.Current ?? throw new InvalidOperationException("尚无 WorldBelief revision");
@@ -691,6 +713,7 @@ public sealed class UniKernel
 
         // 3) Gate 执法 + Dispatch（judgment 拒绝也执法并拒绝——D6；
         //    拒绝即零 effect 副作用，decision 留痕非副作用）
+        var actionBasis = _world.DeriveConsumptionBasis(targetSubject: canonical.TargetSubject, onlyTarget: true);
         var (gate, receipt) = Effects.Dispatch(canonical, judgment, bindingView);
 
         // 4) Receipt 已在 Owner log 留痕；回流走既有 E2B 路径（P3，验收 8）。
@@ -700,6 +723,7 @@ public sealed class UniKernel
         TransitionContext? transition = null;
         if (receipt is not null)
         {
+            Assurance.RecordEffectWorldUse(receipt, actionBasis, Control.DecisionUses(decisionReferences));
             Assurance.NoteOutcome(receipt);
             Control.NoteDispatchOutcome(receipt);
             reflux = Process(Effects.ExportAttemptEvidence(receipt));
@@ -721,7 +745,8 @@ public sealed class UniKernel
     /// creates information）。intent 校验与 Act 内既有 fail-closed 全适用
     /// （经 Act(intent, candidate) 复用）。
     /// </summary>
-    public GroundedActResult ActViaCurrentGrounding(ControlIntent intent, TargetDescriptor descriptor)
+    public GroundedActResult ActViaCurrentGrounding(ControlIntent intent, TargetDescriptor descriptor,
+        IReadOnlyList<string>? decisionReferences = null)
     {
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(descriptor);
@@ -756,7 +781,7 @@ public sealed class UniKernel
         // 收拢在工厂内（RVR-001 F3）。
         var candidate = CandidateBinding.ForUiTarget(
             new UiTargetReference(fact.OccurrenceId, view.SourceRevisionId));
-        return new GroundedActResult(view, Act(intent, candidate));
+        return new GroundedActResult(view, Act(intent, candidate, decisionReferences));
     }
 
     /// <summary>

@@ -696,7 +696,8 @@ public sealed class WorldModelCanonicalOracleTests(ITestOutputHelper output)
             "Slice.RootContainerId", current, key, root, slice.RootContainerId, context);
         CanonicalOracle.EqualSequence(
             "Slice.InScopeEcho", current, key,
-            inScope.Select(id => new CanonicalOracle.OracleEntry(id)).ToArray(),
+            inScope.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)
+                .Select(id => new CanonicalOracle.OracleEntry(id)).ToArray(),
             slice.InScopeContainerIds.Select(id => new CanonicalOracle.OracleEntry(id)).ToArray(),
             entry => entry.Id, _ => "-", context);
         Assert.Equal(current.FreshnessBasis, slice.FreshnessBasis);

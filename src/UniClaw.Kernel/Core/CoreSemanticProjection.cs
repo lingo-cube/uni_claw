@@ -68,8 +68,18 @@ public static class CoreSemanticProjection
     public static Segment ProjectSegment(string containerId, string semanticKind) =>
         new(new CoreId(containerId), semanticKind);
 
+    // Structured arrays keep scope member boundaries unambiguous. Legacy stored
+    // references are opaque historical values; only newly derived views use v2.
     public static CoreId SliceId(KernelSlice slice) =>
-        new($"slice:{slice.SourceRevisionId}:{slice.RootContainerId}");
+        new("slice:v2:" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+            System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(new
+            {
+                Version = 2, slice.SourceRevisionId, slice.RootContainerId,
+                Scope = CanonicalScope(slice), slice.Region,
+            }))).ToLowerInvariant());
+
+    private static string[] CanonicalScope(KernelSlice slice) => slice.InScopeContainerIds
+        .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
 
     public static CoreSlice ProjectSlice(KernelSlice slice, WorldBeliefRevision source)
     {
@@ -87,7 +97,7 @@ public static class CoreSemanticProjection
                 .OrderBy(id => id.Value, StringComparer.Ordinal)
                 .ToArray(),
             slice.FreshnessBasis.AsOf,
-            string.Join("+", slice.InScopeContainerIds),
+            System.Text.Json.JsonSerializer.Serialize(new { Containers = CanonicalScope(slice), slice.Region }),
             slice.Occurrences.Select(o => new CoreId(o.OccurrenceId)).ToArray(),
             Coverage: "partial");
     }

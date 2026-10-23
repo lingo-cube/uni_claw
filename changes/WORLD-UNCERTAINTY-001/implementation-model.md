@@ -1,0 +1,107 @@
+# 实施模型与Interface（独立审阅载体）
+
+2026-10-23，基线 f541a897。继承全部20决定、38主题及review/model-interface-disposition.md；只读入场164项hash匹配，无产品漂移。本文随纵向切片细化真实字段，不能以本文替代实现或验收。
+
+## Owner与最小数据流
+
+Ledger接纳→World.Reconcile→一致revision→World派生当前/固定历史局部读取→Core/Agent/Replay只读消费。历史解释是World的记录，当前occurrence仍仅来自当前观察；影响与实际效果分别由World和原消费Owner处理。无新增Registry能力，无新缓存/补偿/查询Owner。
+
+后续累计以原观察EvidenceId、capture/cycle/session/time/space及原解释定位，World保留每次解释来源与纠正关联。归属纠错使用显式窄观察载荷，经既有Ledger准入后核对原目标、旧解释、新支持及反证；不足不选择新归属，独立当前依据不倒退。范围、版本和历史读取先落实，再逐条冻结此载荷。历史参考与当前采信分开，当前采信必须保存旧来源及本轮对应/适用依据；不继承动态状态/locator。Control真实尝试只取执行来源，调度次数不充当实际调用。Agent载荷通过Owner投影，动态正文每轮更新。详细接口逐切片独立复审，不先堆公开类型。
+
+## 切片1：固定范围引用（F01/K01）
+
+- 既有Interface：WorldModel.DeriveSlice(root, inScope)；CoreSemanticProjection.SliceId/ProjectSlice；UniKernel.DeriveSlice。范围集合改为ordinal去重排序；返回不可变集合，不保留caller数组。非法root/成员保持fail-closed。
+- 最小增量：SliceRegion(CaptureId, CoordinateSpace, Bounds)表示单个capture内归一化局部矩形；Bounds沿用SpatialLocator，Space须与capture/locator声明一致。Slice追加可选Region，DeriveSlice尾部可选region。只筛选有相同capture/space且完全位于region的当前occurrence；跨界不冒充完整纳入，无frame依据的条目不进区域投影。ScopedClaims保持container级上下文，无谓声称其是区域内事实。
+- Id输入：版本2、SourceRevisionId、RootContainerId、ordinal规范scope、可选Region完整来源/空间/边界；结构JSON编码→SHA256，前缀slice:v2:。编码在Core投影单处实现；新写统一v2。Core Scope也采用无歧义结构编码。固定相同输入稳定；不同W/范围不混同。不宣称hash数学单射。
+- legacy：现有保存的slice:<revision>:<root>及BasisSliceId原字节保留，作为旧材料命名空间解释，不重算/批量迁移；新派生/新binding使用v2。引用自身不给执行许可，现有currency/freshness/即时binding保持。
+- 顺序/幂等/失败：纯同步Owner读取，无外部timeout/retry/部分写入；非法region拒绝，不换frame、不修改W。相同读取稳定。caller不能传任意predicate。
+- 独立Interface审阅处置：采纳capture精确相等、CoordinateSpace完整record相等（不能用只比较尺寸/旋转的Matches），locator frame须等于CoordinateSpaceId或既有device-viewport前缀语义；仅支持当前观察确证的capture/space，来源缺失拒绝region读取。Region和被纳入locator须有正面积，包含边界。World为唯一规范化点，scope和occurrences输出ImmutableArray，ScopedClaims冻结；空间/locator本身为不可变值。legacy只读解释/新写v2约束纳入实际回归。不同capture/dimensions/rotation/frame负例及caller数组更改后旧S不变均需断言。审阅建议在UniKernel再规范化会重复Owner职责，不采纳；Kernel仅透传。
+- 测试缝已由授权交接确认：正式World/UniKernel→Slice→Core→BasisSliceId及原Assurance/Effect；外部布局/模型可受控，核心不得double。先碰撞RED，再最小修复GREEN，继而区域负例。更新原canonical oracle的scope回显预期以匹配新规范含义，不放宽事实断言。
+- 真实负责路径：World/Slice.cs、World/WorldModel.cs的DeriveSlice hunk、Core/CoreSemanticProjection.cs、UniKernel.cs的DeriveSlice hunk；相应新scope测试及既有oracle范围断言。后续切片同路径串行写。
+
+## 后续纵向顺序与验收账
+
+### 切片2具体读模型（待独立审阅）
+
+WorldModel.DerivePageView(containerId, sourceRevisionId=null)从Owner保留的revision历史派生一个固定版本的页面表达输入；null选current，未知版本/Container显式拒绝。它不接收外部Slice数组，避免renderer把历史拼成真值。输出WorldPageView包含选定W/Container、观察片段、稳定语义参考、相关缺口和限制；各列表不可变。
+
+观察片段WorldPageObservation以原capture EvidenceId为键，保存原capture/cycle/session/time/space、该次观察的已接纳归属依据及occurrence内容/来源。仅纳入选定W之前Owner实际确认的观察；独立capture不能凭同时间/同标题合并。使用同capture最后一个合法归属快照，当前/历史分开；每条历史元素不提供当前执行target。字段为SourceRevisionId、CaptureEvidenceId、IdentityEvidenceId（可未知）、Capture、ContainerId（可未知）、Occurrences、IsCurrentCapture。旧轮迟到不改变当前标记。
+
+访问分界仅从已验证导航来源建立：nav target revision为访问锚，返回同C可分；新capture/失败请求不建立访问。没有可证发生的访问标明unknown，而非由capture数猜导航次数。同C真实重新进入需要后续原验证出口最小发生记录；普通capture不得伪装。
+
+局部累计只保留可溯源片段，并由同一选定W的ViewportTransitions提供空间对应。无有效配准/跨访问/重排时保留各局部原frame与Unknown，不能返回假完整页面坐标。固定栏按Stationary对应不平移。真实当前定位仍取current occurrences；观察累计不回填旧occurrence。
+
+历史稳定语义参考由每次已确认观察对应的accepted semantic claim派生，带原观察/解释Evidence及处理lineage。被推翻或存在未解矛盾的条目不作为可信参考。参考可在新capture身份未确认时读取，但标history_only；当前采信的后续切片须另核当前对应和字段适用。旧claim无完整处理配置时如实not_collected，不能补造model/prompt版本。
+
+现有PageCaptureObservation只携带布局，无覆盖事实。新增可选HierarchyCoverage仅声明该capture导出surface，codec验证枚举/Partial limitation；缺=Unknown。Host在实际XML来源时写Partial("viewport-export;offscreen-and-virtualized-content-unproven")，不凭XML非空写全页Complete。这不改旧材料内容hash：旧载荷缺字段照旧读取，新载荷产生新EvidenceId。
+
+测试先经正式Ledger/World/Kernel建立capture→identity→hierarchy/semantic，再读多scope/多观察；不得用viewer/Oracle灌真值。当前读取必须在慢任务未完成时返回有源history_only参考；此处只证明参考先可用，当前沿用/零重复调用在切片3补正式消费者证明。Review与Verify分离，逐片证据不能冒充全部K03/05已完成。
+
+独立审阅后固定：扫描Owner的不可变RevisionHistory至选定W，按CurrentPageObservation.EvidenceId分组；最后状态必须包含null归属，不能回退找更早非空值。布局只选EvidenceBasis含该capture EvidenceId的最近快照；身份来源取同历史快照的signature claim且须在其basis中；语义只读原快照的scoped claim并严格匹配capture/cycle/session，不能用当前Container claim填过去。无精确关联即Unknown。Worker复审该限定算法未找到具体反例，确认可实施。所有输出及嵌套列表复制冻结。
+
+具体返回：WorldPageObservation(SourceRevisionId,CaptureEvidenceId,IdentityEvidenceId?,Capture,ContainerId?,Occurrences,IsCurrentCapture,VisitSourceRef?)；WorldSemanticReference(EvidenceId,CaptureEvidenceId,Meaning,IsHistorical,Conflicted)；WorldPageView(SourceRevisionId,ContainerId,Observations,SemanticReferences,ViewportTransitions,Unknown,ContentDigest)。ContentDigest为非权威纯表达内容键，不替代W/固定S/freshness。此片不造通用访问计数或宣称完整页面；新类型只为Agent/页面表达真实读取。
+
+来源审阅处置：PageObservationState增加可选IdentityEvidenceId，只在既有exact-capture身份确认成功时写本次record ID；身份矛盾清空。历史查询不从Container最终signature猜身份来源。旧材料无该字段=unknown；不补造。ContentDigest仅用于有限展示内容，排除来源完整性、执行许可与验证可信度含义。
+
+### 切片2b：精确归属纠错Interface草案（待独立审阅）
+
+新增窄载荷PageInterpretationCorrection：TargetCaptureEvidenceId、SupersededIdentityEvidenceId、ReplacementIdentity（复用PageIdentityObservation）、SupportingEvidenceIds（实际新判别依据，不是confidence）、ProcessingSourceRef（诊断来源，不是优先级）。它是观察/解释提案，经P2 Ledger正常准入，独立subject ui.page.interpretation.correction；不修改原record/不放宽ui.page.identity current-only入口。旧图重处理的Provenance.CaptureTime仍为原采集时点。
+
+World核对精确原capture、当时已采信的身份解释、原采集/cycle/session及布局标题；支持集必须已accepted、在新record的derived graph中，至少含一条原解释未使用的具体判别观察（不是重传、引用自身、模型版本或分数）。新支持不能仅为TargetCaptureEvidenceId或SupersededIdentityEvidenceId。支持来源的具体capture/时点/字段与新解释对应须由World检查，不把任意accepted unrelated evidence当充分。新增解释仍经原association strategy proposal及World authority gates（known target/accepted support/contradiction block）；strategy对新窄载荷的消费需显式修改ProductAssociationStrategy，不伪造同EvidenceId不同Claim的record。证据不足/目标不明/旧解释不匹配仅保留诊断/冲突，不能半迁移。
+
+成功一次publish新W，保存不可变Correction记录：目标capture/旧解释/原旧Container/新Container/新依据/处理来源/接纳W。不迁移旧Container的全部观察，不造导航。当前仍依赖该capture时调整当前归属、当前occurrence及相关派生视图；当前为独立新capture时保持当前anchor/occurrence。旧W/S不变。历史读取提供原时点视图和选定W下的纠正解释；纠错链W1→W2→W3可解释，重复canonical correction零新W。受影响关系/viewport按依据关联重判或显式unresolved，不无依据重定向全部端点。新增World影响信息只提供被推翻依据和已知关联，不判断Effect成功/补偿。
+
+消费侧将在后续切片保存实际消费引用并在动作边界重核依据；此片完成不等于Q20效果核查完成。必须先做A旧capture误归属→B、当前独立capture保留、重复/错目标/反向纠错以及旧current-only门回归。所有公共字段/codec/生成物按实际diff复审。
+
+首个可判定adapter限定为原生页面上下文签名profile：支持观察须为原capture的typed hierarchy resource_id字段，原生页锚值与Replacement.Signature精确相等；同device/session/cycle/time/space，且source由既有平台观察producer提供并在旧解释的实际依据之外。它继承ProductAssociationStrategy“签名由观察者保证可判别上下文”的现有profile约束，不将任意控件resource-id认作通用页面身份：必须有该签名对应的既有独立Container候选且唯一，相关原始布局中有该页锚的可核对来源。没有这种已观测上下文锚、签名是标题推测/任务期待/模型类别、或输入只带新模型版本时保持unresolved。首版不是通用身份merge/全重识别，其他来源的判别profile需真实buyer另证；同样不能因首个adapter有限而省略真实合法正例。
+
+具体来源执法：typed source须带page-context-signature:native:v1来源profile marker、platform.uiautomator producer、规范ui.node.<capture>#<index>.resource_id subject，metadata的device/capture/cycle/session/time/space逐项精确匹配，值等于replacement signature。PageCaptureObservation新增可选DeviceId；Host SettingsTraversalLiveFeed填实际_assets.DeviceId，旧材料缺=unknown，native profile不猜补。Worker独立审阅该窄门未发现新增Owner/ADR冲突，要求上述来源标记及唯一既有候选不能放宽。
+
+真实实现选择不扩AssociationInput：支持record由World的只读provenance索引核验，ProductAssociationStrategy仅显式解析新subject的signature，仍走同一Propose/Associate gates。World保留PageCorrectionLog及指向新W的结果，DerivePageView按选定W应用截至当时的纠正解释；旧revision读取不受未来纠错影响。支持源索引只保存World已reconcile的canonical record引用，不提供admission/store能力、不成为Ledger副本。
+
+### 切片2c/四类来源具体稿（待独立审阅）
+
+最小结构来源采用真实UI上下文节点，业务device或任意几何区域不自动铸Container（node-edge-design边界继承）。NativeContextSignatureProfile(ProfileRef,ContextResourceIds)是观察者的显式原生上下文识别profile，不含canonical IDs/意图；只有被profile声明为交互上下文锚的实际typed resource_id可带native-context marker，普通控件不标。NativeContextObservationProjector.Project(UiHierarchyObservation,profile,context)复用TypedHierarchyProposalProjector，不重建解析器；保留原native字段/metadata/发生时间并附可核对profile ref。首个实际buyer为有该原生profile的录制/受控供应与正式World消费，普通live没有profile时明确unknown，不将所有XML字段升格为页身份。
+
+最小关系载荷ContainerContextObservation(ParentContextEvidenceId,ChildContextEvidenceId)引用同capture、同device/session/cycle/time/space的两个已接纳native context支持。来源factory从它们的typed ParentLocalIndex直接父子事实产生Contains提案，不从导航/标题/URL造包含。World核对原字段、profile marker及source lineage，两端signature必须唯一对应既有Container；不足保持关系gap，不新造业务设备节点或通用身份merge。新revision一次接纳该窄关系；当前anchor不变。后续纠错按实际支持依据使关系失效，不将旧关系端点机械迁移。多级关系/Overlays/生命周期仍按延期。
+
+WorldKnowledgeGapKind四值Identity/Attribution/RelationBasis/ObservationCoverage与Conflicted独立。WorldKnowledgeGap包含稳定问题键、具体对象/capture、scope、reason、sourceW/evidence refs、共同CauseRef。World.DeriveKnowledgeGaps(requiredParentContextId=null)为真实当前页及显式上层上下文读取buyer派生；不枚举所有节点对。身份/无主来自当前PageState/occurrences，coverage限本capture声明viewport，未知不当Absent；关系只有明确请求父context且缺合法Contains才出现。每类由真实补证后新W派生消除，旧W保持原gap；移出当前相关视图不标已解决。Control另提供实际尝试/提醒/资源，不由World计数或投票销gap。
+
+实际Agent载荷将使用这些小的Owner只读摘要及可读中文说明，不跨缝倾倒全量WorldPageView/EvidenceBasis。本片各类先做真实World产生/保持/解决，随后K08/K12串行接最终正文，不能以枚举/单测取代交付。
+
+1. 固定范围与来源→多轮观察/局部累计及最小上下文（K01–03）。
+2. 精确旧观察纠错及独立当前保护（K04），四类gap合法生产/保持/解决（K07）。
+3. 有源历史先读与当前字段沿用/零额外慢调用（K05–06）。
+4. 实际消费依赖与未知边界、原Owner效果核查（K09–10）。
+5. 执行尝试/持续可见/再提醒及最终DSH正文/复用表达（K08/K11–12）。
+
+覆盖映射沿review/scenario-derivation.md；每族补初态、步骤、中间/终态、不变量及四元组，未运行保持not_run。范围未全部实现不得CLOSED。核心关闭并发布后另行WORLD-VISUALIZATION-001；不将界面提前算核心通过。
+
+### 切片3：Agent动态摘要和历史沿用工程草案
+
+每轮AgentDecisionContext新增可选WorldKnowledge，直接由本轮Kernel.ProjectWorldKnowledge即时派生，不走首次AvailableCapabilities。RunDriverInputs.RequiredWorldParentContext是consumer的明确读取需求（已知canonical parent ID），不声明关系真值；默认无需求不枚举节点对。四类gap有原capture/范围/W/原因/依据及共同cause；缺历史输入仍unknown。咨询fingerprint纳入该动态摘要，codec、反射生成schema、HTTP/DSH及最终consultationPrompt同一路径验证。恢复期间的Owner interruption允许先咨询；实测发现旧slot含consult序号导致咨询后同一补证被拒，修复为沿用未完成pull slot，原期限/RequestsUsed继续，完成后才释放。
+
+待独立审阅的稳定语义最小形状：NativeContextSignatureProfile可带显式native-context→SemanticPageCandidate映射（观察者静态profile，不带任务Expected/Container）。独立原生profile和原capture锚与旧模型语义精确对照，通过窄SemanticVerification观察经Ledger/World校验，保留旧semantic ID和独立validation source；不让同一个模型标签自证。后续capture需当前身份已确认、same device/session/native profile fingerprint及实际原生锚相同且无冲突，才沿用该profile声明稳定的PageName/PagePurpose/PageKey；不沿用控件state/位置/存在/enabled。新依据仍可推翻沿用。
+
+沿用值是World派生认识，不伪造旧EvidenceId+新capture的ObservationClaim。新增source-bound WorldSemanticKnowledge（ContainerId、适用当前CaptureEvidenceId、Meaning、原SemanticEvidenceId、VerificationEvidenceId、当前CorrespondenceEvidenceIds、来源/当前W、Reused），附在immutable WorldBeliefRevision及Slice只读供给；原record/旧W不回写。历史页摘要先给参考，验证/对应不足无current沿用。先由新native anchor使World采信，再由Host只读当前Owner状态决定跳过重复慢调用；默认无profile保留Unknown/正常补证。反例包括错profile/包/设备/不同context、原模型误标与独立profile不符、缺新对应、旧纠正/源冲突、动态状态变化、same page不同详情实例不能通用合并。此稿为工程候选，未实施/未通过。
+
+
+接口复审处置（切片3）：worker独立审查要求profile映射进入hash、World不能信任verification本身、每次新capture必须自己的identity/native anchor、consumer只读current Owner结果；已采纳。World构造只接受显式冻结nativeContextProfiles，默认无配置不会因marker或模型值通过验证。World另核对同node的accepted package字段及acquirer/device/session/cycle/time/space，候选映射全字段精确比较；重复PageKey首片拒绝以保持单义，不支持通用详情实例合并。采用WorldSemanticKnowledge而非改写SemanticPageClaim的capture；Slice和Agent逐轮知识摘要只读供给，历史reference保留独立verification引用。
+
+真实回归又暴露辅助revision与下一普通观察的存储兼容问题：普通Reconcile仅继承PersistentRevisionSet/Dictionary，辅助更新采用Immutable集合会使下一观察丢失原依据/claim，C1验证引用到C2时消失。PublishRevision统一规范化不可变的persistent存储，不回写旧W，所有返回路径返回实际发布对象；后续再核对旧快照/索引/辅助纠错后普通观察。此前失败记录semantic-reuse-retry.txt保留，不能标为测试通过。
+
+累计表达最小实现：World按选定W中verified/aligned viewport transition追溯当前capture的唯一前驱链，且同Container/device/session、时间严格向前；配准不足/多前驱/嵌套滚动不拼接。只在实际SourceRegion内平移历史内容，固定栏不平移；只有明确ViewportCorrespondence可去重，重复文字不自行合并。输出WorldAccumulatedContent与非执行WorldContentBounds；旧片段CurrentPresence/CurrentState明确unknown，ObservedState/采集来源保留。它是Owner对已观测内容的累计认识，不宣称离屏项当前存在或全页穷尽。独立新capture无verified链时只供当前片段，历史另列。Replay原WorldReconstruction的纯Slice→WorldPresentation逻辑抽成产品SliceContentPresentation，Oracle/GT比较仍只在tests；产品不引用tests程序集。上述累计及Replay复用还需实际受控滚动纵向验证，不能据代码写成PASS。
+
+## 实际实现与独立Review处置（2026-10-23）
+
+以上草案保留形成过程；当前实现来源与字段约束详见 docs/architecture/world-uncertainty-read-views.md，各Owner源码为准。World派生历史/有据累计/四类缺口及当前稳定语义，ControlLoop私有持有真实补证执行/结果历史与提醒状态，Assurance记录实际决策/动作/验证消费后的纠错审查；Driver仅通过Kernel转交和读取，不持有Control可变对象。没有新增Registry能力、通用补偿或Goal评价。
+
+独立Spec Review指出旧nav可能被后续普通capture借用、Device缺失被当相等、Host缺profile装配；独立Standards Review指出恢复对象持有位置。均已修改并复核：访问必须精确targetW/capture/identity；新page匹配要求非空且同设备/session；Host显式profile透传World和实际typed projector；Control对象私有持有并经窄操作转接。历史Container保留，但仅由撤回解释支撑的signature不再参与未来匹配。详见本线evidence/implementation-entry/review-{spec,standards,followup}.md；审阅不替代Verify。
+
+实际效果分轴：新计划继续前检查被撤回的实际决策供给，Kernel.Act对显式旧decision refs同样阻断；receipt、原verification和terminal Outcome均不可变。纠正追加EffectCorrectionReview；已知独立C2不受牵连，legacy实际动作缺原page血缘则DependenciesUnknown。在途StepVerify不被提醒打断，但核验消费的依据被撤回时不能继续证明通过。所有未知效果仍需原Owner当前可靠依据，当前最小实现不自动补偿或保证可逆恢复。完整模型推理及未记录依赖不在已证影响范围。
+
+执行事实与调度次数分开，SupplementationExecution.ResultVersion允许同一次执行的真实结果修订，KnownExecutionCount仍1；结果历史不可变。同输入不再主动提醒，新结果可再次提醒，单独可控Owner时钟证实原deadline不被更新；无执行来源是null/not_collected。跨capture未证明连续性时生成独立问题，不凭route销账。
+
+Verify前已跑：Kernel 1100项通过、Agent.Dsh 213项通过、Host 436项通过；后续新录制纵向例子/legacy范围与最终全量检查仍按实际最终日志为准。Host与Component Replay旧composition源码指纹因本次产品变化被真实拒绝，失败保留；显式重认证只更新致因变更和产品pins/新增实现pins，独立oracle与录制input未改。旧Settings仿真正例补明确设备来源，不放松新匹配门。
+
+当前两轮最终consultationPrompt已构造和传送，封套完整性未证，材料资格工具判两项diagnostic-only、统计分母0。完整材料正例要求明确provider封套和实际规范JSON摘要，配置/内容变化不共享键，同源副本不升级；此工具不认证采集真实性或模型质量。真实生产profile、真机或真实模型行为仍未验证，默认未配置时Unknown。交互可视化按原顺序待核心关闭/推送后另做。

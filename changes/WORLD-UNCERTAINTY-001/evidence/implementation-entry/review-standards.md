@@ -1,0 +1,5 @@
+# Standards review
+
+- **硬边界违反：Recovery 记账状态落在 Runtime Driver。** 基线规定 UniKernel 不是六类状态/judgment 的兜底 Owner（`docs/architecture/product-architecture-baseline-l0-l3.md:181-189`）；P27 明确“Consumer=Control Observation Recovery；driver仅转送，不成为新Owner”（`docs/architecture/protocols/inter-component-protocol-baseline-l1-l3.md:1015`）。但 `KernelRunDriver` 持有可变 `WorldRecoveryControl`（`src/UniClaw.Kernel/Runtime/KernelRunDriver.cs:158-160`），并直接记录供应执行、请求复核、投影提醒、标记已阅（同文件 `469-487,2872-2876,3114,3831-3888`）。该类自己声明“Control owns execution accounting”（`src/UniClaw.Kernel/Control/WorldRecoveryControl.cs:23-25`），目录也把 Control Recovery 列为职责（`src/UniClaw.Kernel/Control/README.md:12`），所以命名空间不能补足实际 Owner。最小修正：将该有状态对象及 Record/RequestReview/Project/Reviewed 调用移入既有 ControlLoop 的恢复缝；Driver 只传执行事实/读取不可变投影并执行安全边界转移，不新增 T2 Owner。
+
+- **Fowler 判断：未发现需拦截的抽象膨胀。** World 派生视图/历史、Kernel 协调引用、Host 语义读取调度各留在对应层；`PageSemanticReadSupply` 是可组合读取缝而非新能力或缓存 Owner。Native profile 属显式配置输入，缺配置保持未知。未把命名、重复或方法长度单独列为问题；不重复工具已报出的 README/allowlist/固定检查项问题。

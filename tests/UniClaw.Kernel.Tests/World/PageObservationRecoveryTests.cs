@@ -13,7 +13,8 @@ public sealed class PageObservationRecoveryTests
     private static PageCaptureObservation Capture(string id = "capture-a") =>
         new(id, "cycle-a", "session-a", new DateTimeOffset(2026, 10, 21, 0, 0, 0, TimeSpan.Zero),
             CoordinateSpace.DeviceViewport(100, 100, captureId: id),
-            new[] { new SemanticLayoutItem("title", "text", "Settings", new UiBounds(0, 0, 80, 20)) });
+            new[] { new SemanticLayoutItem("title", "text", "Settings", new UiBounds(0, 0, 80, 20)) })
+        { DeviceId = "fixture-device" };
 
     [Fact]
     public void CodecRoundTripPreservesCaptureCorrelationAndItems()

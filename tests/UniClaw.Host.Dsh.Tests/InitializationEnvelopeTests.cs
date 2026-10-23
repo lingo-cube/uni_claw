@@ -38,9 +38,9 @@ public sealed class InitializationEnvelopeTests
             Assert.Equal("run-1", root.GetProperty("firstRunId").GetString());
             // 五要素齐备：profile/协议/工件修订 + Skill 快照 + 模型路由。
             // ADR-0052：明确复核、overview与提示词装配随动。
-            Assert.Equal(26, root.GetProperty("runtimeProfileRevision").GetInt32());
+            Assert.Equal(27, root.GetProperty("runtimeProfileRevision").GetInt32());
             Assert.Equal(64, root.GetProperty("protocolSchemaHash").GetString()!.Length);
-            Assert.Equal(25, root.GetProperty("productPromptRevision").GetInt32());
+            Assert.Equal(26, root.GetProperty("productPromptRevision").GetInt32());
             Assert.Equal(1, root.GetProperty("safetyPolicyRevision").GetInt32());
             Assert.Equal("android-automotive-ui-testing", root.GetProperty("skill").GetProperty("name").GetString());
             // RUNTIME-PLAN-004: 计划生成Skill revision 4。

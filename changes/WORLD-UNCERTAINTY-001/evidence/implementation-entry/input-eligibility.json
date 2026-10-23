@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "decision-input-eligibility/v1",
+  "purpose": "material-qualification-only; not provider replay or model-quality evidence",
+  "sourcePath": "changes/WORLD-UNCERTAINTY-001/evidence/implementation-entry/channel-final-prompts.json",
+  "materials": [
+    {
+      "materialId": "dsh-req-00000001-1",
+      "sourceId": "dsh-req-00000001",
+      "sourceDigest": "95d6a84dadb61a461c0b275a0b7462801e3912a0f3ae346bdd051971bc4fe3ee",
+      "comparisonEligibility": "diagnostic-only",
+      "eligibleForSameInputStatistics": false,
+      "sameInputKey": null,
+      "reasons": [
+        "configuration-version-missing",
+        "final-messages-missing",
+        "final-provider-input-envelope-unproven",
+        "provider-capture-evidence-missing",
+        "provider-input-sha256-missing",
+        "tools-not-recorded",
+        "truncation-rule-missing"
+      ]
+    },
+    {
+      "materialId": "dsh-req-00000002-2",
+      "sourceId": "dsh-req-00000002",
+      "sourceDigest": "08b50dca614677f06dde9fd6340691c9d50515d34a6ce80a7e5948f65a98a580",
+      "comparisonEligibility": "diagnostic-only",
+      "eligibleForSameInputStatistics": false,
+      "sameInputKey": null,
+      "reasons": [
+        "configuration-version-missing",
+        "final-messages-missing",
+        "final-provider-input-envelope-unproven",
+        "provider-capture-evidence-missing",
+        "provider-input-sha256-missing",
+        "tools-not-recorded",
+        "truncation-rule-missing"
+      ]
+    }
+  ],
+  "sameInputEligibleCount": 0,
+  "sameInputEligibleKeys": [],
+  "diagnosticOnlyCount": 2
+}

@@ -63,12 +63,14 @@ public sealed partial class WorldModel
     /// adjudication）；均 null（既有调用形态）时行为逐字节不变。
     /// </summary>
     public WorldModel(IReadOnlySet<string> relevanceScope, IAssociationStrategy? associationStrategy = null,
-        IUiObservationStrategy? observationStrategy = null, IContinuityStrategy? continuityStrategy = null)
+        IUiObservationStrategy? observationStrategy = null, IContinuityStrategy? continuityStrategy = null,
+        IReadOnlyList<UniClaw.Kernel.Perception.UiHierarchy.NativeContextSignatureProfile>? nativeContextProfiles = null)
     {
         _relevanceScope = relevanceScope;
         _associationStrategy = associationStrategy;
         _observationStrategy = observationStrategy;
         _continuityStrategy = continuityStrategy;
+        _nativeSemanticProfiles = (nativeContextProfiles ?? []).DistinctBy(p => p.Fingerprint).ToImmutableArray();
         _revisionHistoryView = _revisionHistory.AsReadOnly();
         _relevanceLogView = _relevanceLog.AsReadOnly();
         _associationLogView = _associationLog.AsReadOnly();
@@ -215,7 +217,7 @@ public sealed partial class WorldModel
           CurrentPageObservation = current.CurrentPageObservation,
           ObservationNeed = current.ObservationNeed };
 
-        PublishRevision(revision);
+        revision = PublishRevision(revision);
         return true;
     }
 
@@ -350,7 +352,7 @@ public sealed partial class WorldModel
         _conflictResolutionLog.Add(new ConflictResolution(
             subject, tier, resolvedValue, overruledProducer, basis,
             revision.RevisionId, resolvedAt));
-        PublishRevision(revision);
+        revision = PublishRevision(revision);
         return revision;
     }
 
@@ -422,6 +424,13 @@ public sealed partial class WorldModel
                 copiedEntries: 0, outputEntries: 0);
             return parent;
         }
+
+        if (record.Claim.Subject == PageInterpretationCodec.Subject)
+            return ReconcilePageInterpretation(record, parent);
+        if (record.Claim.Subject == ContainerContextCodec.Subject)
+            return ReconcileContainerContext(record, parent);
+        if (record.Claim.Subject == SemanticVerificationCodec.Subject)
+            return ReconcileSemanticVerification(record, parent);
 
         // P-UW-16 owner 侧执法：裸 spatial subject（无 SpatialFrame）不得进入 belief
         ValidateSpatialSubject(record.Claim.Subject);
@@ -672,11 +681,13 @@ public sealed partial class WorldModel
             LogicalItems: logicalItems)
         { ViewportTransitions = parent?.ViewportTransitions ?? ImmutableArray<ViewportTransition>.Empty,
           CurrentPageObservation = pageIdentityContradicts && parent?.CurrentPageObservation is { } contradictedObservation
-              ? contradictedObservation with { ContainerId = null }
+              ? contradictedObservation with { ContainerId = null, IdentityEvidenceId = null }
               : pageCapture is not null && applicable
               ? new PageObservationState(pageCapture, record.EvidenceId, associatedContainer)
               : pageIdentity is not null && parent?.CurrentPageObservation is { } priorObservation
-                  ? priorObservation with { ContainerId = associatedContainer ?? priorObservation.ContainerId }
+                  ? associatedContainer is not null
+                      ? priorObservation with { ContainerId = associatedContainer, IdentityEvidenceId = record.EvidenceId }
+                      : priorObservation
                   : parent?.CurrentPageObservation,
           ObservationNeed = pageIdentityContradicts && parent?.CurrentPageObservation is { } conflictedObservation
               ? new ObservationNeed($"rev-{number}", conflictedObservation.EvidenceId, conflictedObservation.Capture)
@@ -684,7 +695,8 @@ public sealed partial class WorldModel
               ? new ObservationNeed($"rev-{number}", record.EvidenceId, pageCapture)
               : pageIdentity is not null && associatedContainer is not null ? null : parent?.ObservationNeed };
 
-        PublishRevision(revision);
+        _worldEvidence[record.EvidenceId] = record;
+        revision = PublishRevision(revision);
         if (identityObservation && applicable)
             _latestPageObservationTime = record.Provenance.CaptureTime;
         if (associatedContainer is not null)
@@ -709,8 +721,24 @@ public sealed partial class WorldModel
             allocatedBytes: GC.GetAllocatedBytesForCurrentThread() - allocationStart,
             elapsedTicks: Stopwatch.GetTimestamp() - operationStart);
 
-    private void PublishRevision(WorldBeliefRevision revision, WorldRevisionIndex? continuityParentIndex = null)
+    private WorldBeliefRevision PublishRevision(WorldBeliefRevision revision, WorldRevisionIndex? continuityParentIndex = null)
     {
+        // Auxiliary reconciliations must preserve the same persistent storage
+        // contract as ordinary observations. Otherwise Next(parent as ...) would
+        // treat their immutable collection as an empty parent on the next input.
+        if (revision.WorldState is not PersistentRevisionDictionary<string, WorldClaim>)
+        {
+            var normalized = PersistentRevisionDictionary<string, WorldClaim>.Next(null, StringComparer.Ordinal);
+            foreach (var pair in revision.WorldState) normalized.Add(pair.Key, pair.Value);
+            revision = revision with { WorldState = normalized.Build() };
+        }
+        if (revision.EvidenceBasis is not PersistentRevisionSet<string>)
+        {
+            var normalized = PersistentRevisionSet<string>.Next(null, StringComparer.Ordinal);
+            foreach (var id in revision.EvidenceBasis) normalized.Add(id);
+            revision = revision with { EvidenceBasis = normalized.Build() };
+        }
+        revision = RefreshSemanticKnowledge(revision);
         var parentRevision = Current;
         var index = continuityParentIndex is null
             ? WorldRevisionIndex.Create(
@@ -721,6 +749,7 @@ public sealed partial class WorldModel
             : WorldRevisionIndex.ForContinuityRevision(revision, continuityParentIndex, _performanceMetrics);
         _revisionIndexes.Add(revision, index);
         _revisionHistory.Add(revision);
+        return revision;
     }
 
     private WorldRevisionIndex IndexFor(WorldBeliefRevision revision) =>
@@ -746,10 +775,10 @@ public sealed partial class WorldModel
         ref long scannedEntries,
         ref long copiedEntries,
         out string? currentContainerId,
-        string? ineligibleReason = null)
+        string? ineligibleReason = null, AssociationProposal? proposed = null)
     {
         currentContainerId = null;
-        var proposal = _associationStrategy!.Propose(new AssociationInput(parent, record, transitionContext));
+        var proposal = proposed ?? _associationStrategy!.Propose(new AssociationInput(parent, record, transitionContext));
         var number = (parent?.RevisionNumber ?? 0) + 1;
 
         if (ineligibleReason is not null)
@@ -776,7 +805,8 @@ public sealed partial class WorldModel
                 || candidate is null
                 || candidate.SupportingEvidenceIds.Count == 0
                 || candidate.ContradictingEvidenceIds.Count > 0
-                || !candidate.SupportingEvidenceIds.All(IsValidEvidence);
+                || !candidate.SupportingEvidenceIds.All(IsValidEvidence)
+                || !IdentitySourceScopeMatches(record, id);
             if (blocked)
             {
                 effective = AssociationDispositionKind.Insufficient;
@@ -1296,7 +1326,7 @@ public sealed partial class WorldModel
         { ViewportTransitions = parent.ViewportTransitions,
           CurrentPageObservation = parent.CurrentPageObservation,
           ObservationNeed = parent.ObservationNeed };
-        PublishRevision(revision, parentIndex);
+        revision = PublishRevision(revision, parentIndex);
         return revision;
     }
 
@@ -1387,7 +1417,8 @@ public sealed partial class WorldModel
     /// subject 以 &lt;containerId&gt;. 为前缀的 WorldState 条目（分区兼容
     /// 通道，realization 约定）。
     /// </summary>
-    public Slice DeriveSlice(string rootContainerId, IReadOnlyList<string>? inScopeContainerIds = null)
+    public Slice DeriveSlice(string rootContainerId, IReadOnlyList<string>? inScopeContainerIds = null,
+        SliceRegion? region = null)
     {
         var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 Slice");
         var start = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
@@ -1396,11 +1427,16 @@ public sealed partial class WorldModel
         if (!index.ContainerPositions.ContainsKey(rootContainerId))
             throw new InvalidOperationException(
                 $"root container '{rootContainerId}' 不存在于 current revision（fail-closed）");
+        if (region is not null && (current.CurrentPageObservation is not { ContainerId: not null } page
+            || page.ContainerId != rootContainerId || page.Capture.CaptureId != region.CaptureId
+            || page.Capture.Space != region.Space))
+            throw new InvalidOperationException("region source is not the confirmed current capture/frame");
         var inScope = inScopeContainerIds ?? new[] { rootContainerId };
         if (inScope.Any(id => !index.ContainerPositions.ContainsKey(id)))
             throw new InvalidOperationException(
                 "in-scope container 不存在于 current revision（fail-closed）");
-        var distinctScope = inScope.Distinct(StringComparer.Ordinal).ToArray();
+        var distinctScope = inScope.Distinct(StringComparer.Ordinal)
+            .OrderBy(id => id, StringComparer.Ordinal).ToArray();
         var indexedOccurrences = distinctScope
             .SelectMany(id => index.OccurrencesByContainer.TryGetValue(id, out var entries)
                 ? entries
@@ -1409,6 +1445,8 @@ public sealed partial class WorldModel
             .ToArray();
         var occurrences = indexedOccurrences
             .Select(entry => entry.Occurrence)
+            .Where(o => region is null || o.Space == region.Space && o.Locator is { } locator
+                && SliceRegion.FrameMatches(locator, region.Space) && region.Contains(locator))
             .Select(o => new OccurrenceFact(
                 o.OccurrenceId, o.OwningContainerId, o.Role, o.SemanticDescriptor,
                 o.State, o.Locator, o.Native))
@@ -1419,12 +1457,15 @@ public sealed partial class WorldModel
                 : ImmutableList<WorldRevisionIndex.IndexedClaim>.Empty)
             .OrderBy(entry => entry.Ordinal)
             .ToArray();
-        var scopedClaims = indexedClaims.ToFrozenDictionary(
+        var scopedClaims = indexedClaims.Where(entry => !entry.Subject.EndsWith(".semantic.page", StringComparison.Ordinal)
+                || CurrentScopedMeaning(entry.Subject, entry.Claim, current))
+            .ToFrozenDictionary(
             entry => entry.Subject,
             entry => entry.Claim.Value);
         var slice = new Slice(
             current.RevisionId, rootContainerId, current.FreshnessBasis,
-            inScope.ToArray(), occurrences, scopedClaims);
+            distinctScope.ToImmutableArray(), occurrences.ToImmutableArray(), scopedClaims, region)
+        { SemanticKnowledge = current.SemanticKnowledge.Where(k => distinctScope.Contains(k.ContainerId)).ToImmutableArray() };
         _performanceMetrics?.RecordWorldModel(
             WorldModelOperation.DeriveSlice,
             scannedEntries: distinctScope.Length + indexedOccurrences.Length + indexedClaims.Length,
@@ -1486,7 +1527,8 @@ public sealed partial class WorldModel
             current.RevisionId,
             current.RevisionNumber,
             current.FreshnessBasis,
-            HasConflictOnTarget: subject is not null && IndexFor(current).ConflictSubjects.Contains(subject));
+            HasConflictOnTarget: subject is not null && IndexFor(current).ConflictSubjects.Contains(subject))
+        { ContainerId = current.CurrentPageObservation?.ContainerId };
         RecordConsumerViewPerformance(
             start, allocationStart,
             scannedEntries: subject is null ? 0 : 1,

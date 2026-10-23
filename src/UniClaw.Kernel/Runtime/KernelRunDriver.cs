@@ -176,6 +176,8 @@ public sealed class KernelRunDriver
     private readonly List<(int DecisionN, int StepIndex, string ReceiptId)> _completedSteps = new();
     private readonly HashSet<(int DecisionN, int StepIndex)> _linearStepAnchors = new();
     private WorldBeliefRevision? _preDispatchBelief;
+    private string? _inFlightReceiptId;
+    private IReadOnlyList<string> _executionWorldDecisionRefs = Array.Empty<string>();
 
     /// <summary>裁决⑧层3：等待人工终裁旗。</summary>
     private bool _awaitingRuling;
@@ -463,6 +465,40 @@ public sealed class KernelRunDriver
                     return CancelPath(cancel);
             }
 
+            if (_phase != DrivePhase.StepVerify && _inputs.PollSupplementationExecutions is { } pollExecutions)
+            {
+                var knowledge = _kernel.ProjectWorldKnowledge(_inputs.RequiredWorldParentContext?.Invoke());
+                var beforeRecords = _kernel.RelevantWorldExecutionRecords;
+                IReadOnlyList<SupplementationExecution> executions;
+                try { executions = pollExecutions(); }
+                catch (Exception e)
+                { return new(RunDriveStatus.UnexpectedInput, "supplementation-poll-failed:" + e.GetType().Name, null, _kernel.EffectReceipts.Count); }
+                if (executions is null || executions.Any(execution => !_kernel.RecordWorldSupplementation(execution, knowledge)))
+                    return new(RunDriveStatus.UnexpectedInput, "invalid-supplementation-execution", null, _kernel.EffectReceipts.Count);
+                if (_kernel.HasWorldReview && _kernel.RelevantWorldExecutionRecords > beforeRecords
+                    && _kernel.RequestWorldReview(knowledge, "new-supplementation-result"))
+                {
+                    VoidActivePolicyForStepFailure(AgentDecisionPhase.PolicyInvalidated, "new-supplementation-result");
+                    if (_planItems is not null) PausePlan("new-supplementation-result");
+                    _pendingInterruption = new(_kernel.ProjectWorldRecovery(knowledge).ReviewKey!, "world-knowledge-review",
+                        _kernel.CurrentBelief?.RevisionNumber ?? 0, Reason: "new-supplementation-result");
+                    _adoptedDecision = null;
+                    _phase = DrivePhase.NeedDecision;
+                }
+            }
+
+            if (_phase is DrivePhase.StepAct or DrivePhase.PlanExpand or DrivePhase.PolicyExpand
+                && _kernel.HasCorrectedPlanningBasis(_executionWorldDecisionRefs))
+            {
+                const string reason = "world-interpretation-corrected;planning-basis-retracted";
+                VoidActivePolicyForStepFailure(AgentDecisionPhase.PolicyInvalidated, reason);
+                VoidActivePlanForStepFailure();
+                _pendingFailureReason = reason;
+                _pendingFailurePhase = AgentDecisionPhase.PolicyInvalidated;
+                _adoptedDecision = null;
+                _phase = DrivePhase.NeedDecision;
+                continue;
+            }
             switch (_phase)
             {
                 case DrivePhase.NeedInitialObservation:
@@ -471,6 +507,7 @@ public sealed class KernelRunDriver
                     var initial = PullObservations(ObservationContext.External, "initial-observation");
                     if (initial.Stop is not null)
                         return initial.Stop;
+                    if (initial.RequiresDecision) continue;
                     _phase = DrivePhase.NeedDecision;
                     continue;
                 }
@@ -823,6 +860,7 @@ public sealed class KernelRunDriver
                                         ObservationContext.External, "defer-observation");
                                     if (granted.Stop is not null)
                                         return granted.Stop;
+                                    if (granted.RequiresDecision) continue;
                                     continue;
                                 }
                                 _adoptedDecision = null;
@@ -851,6 +889,7 @@ public sealed class KernelRunDriver
                             var observed = PullObservations(ObservationContext.External, "defer-observation");
                             if (observed.Stop is not null)
                                 return observed.Stop;
+                            if (observed.RequiresDecision) continue;
                             continue; // 回到 NeedDecision 咨询
                         }
                         case AgentDecision.Act act:
@@ -861,6 +900,7 @@ public sealed class KernelRunDriver
                             // PROTOCOL-FIX-003 D3：Act 可携带续授提案（规则侧封顶）
                             if (!_plan.GoalDirectedContinuationEnabled) ProcessRenewal(act.Proposal.Renewal);
                             _lastAnswer = _adoptedDecision;
+                            _executionWorldDecisionRefs = new[] { act.Proposal.DecisionId };
                             AbandonPausedPlan("plan:replaced-by-act");
                             _deferRoundsUsed = 0;
                             _deferExhaustedPending = false;
@@ -889,6 +929,7 @@ public sealed class KernelRunDriver
                                 policy.Proposal,
                                 ApplicationsUsed: 0,
                                 LastTerminationStatus: null);
+                            _executionWorldDecisionRefs = new[] { policy.DecisionId };
                             AbandonPausedPlan("plan:replaced-by-policy");
                             _guardCursors = new PolicyGuardCursor?[
                                 policy.Proposal.Guards?.Count ?? 0];
@@ -909,6 +950,7 @@ public sealed class KernelRunDriver
 
                             // 采纳（V7 通过即采纳，原子）：计划项进入 ephemeral
                             // 游标；PlanExpand 逐项物化——每次最多一个 Act。
+                            _executionWorldDecisionRefs = new[] { plan.DecisionId };
                             AbandonPausedPlan("plan:replaced-by-new-version");
                             _planBlocks.Clear();
                             _inheritedPlanCandidate = null;
@@ -930,6 +972,16 @@ public sealed class KernelRunDriver
                         }
                         case AgentDecision.ContinuePlan resume:
                         {
+                            if (_kernel.HasCorrectedPlanningBasis(_executionWorldDecisionRefs))
+                            {
+                                _pendingFailureReason = "plan:corrected-basis-requires-new-plan";
+                                _pendingFailurePhase = AgentDecisionPhase.PolicyInvalidated;
+                                _adoptedDecision = null;
+                                if (CurrentBudget(view).RoundsRemaining <= 0)
+                                    return new(RunDriveStatus.AgentDecisionFailed, _pendingFailureReason, null, _kernel.EffectReceipts.Count);
+                                continue;
+                            }
+                            _executionWorldDecisionRefs = _executionWorldDecisionRefs.Append(resume.DecisionId).Distinct(StringComparer.Ordinal).ToArray();
                             var rejection = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
                             if (rejection is not null)
                                 return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, rejection, null, 0);
@@ -1151,6 +1203,7 @@ public sealed class KernelRunDriver
                                 new[] { intent.TargetSubject });
                             if (focused.Stop is not null)
                                 return focused.Stop;
+                            if (focused.RequiresDecision) continue;
                             continue; // 重新 DeriveSlice → SelectIntent
                         }
                         if (intent.Kind == ControlIntentKind.Observe && intent.TargetSubject is not null)
@@ -1166,7 +1219,7 @@ public sealed class KernelRunDriver
 
                     _preDispatchBelief = _kernel.CurrentBelief;
                     var grounded = _kernel.ActViaCurrentGrounding(
-                        intent, new TargetDescriptor(step.TargetRole, step.TargetDescriptor));
+                        intent, new TargetDescriptor(step.TargetRole, step.TargetDescriptor), _executionWorldDecisionRefs);
                     if (grounded.Act is null)
                     {
                         var reason = $"grounding:{grounded.View.Result}";
@@ -1203,6 +1256,7 @@ public sealed class KernelRunDriver
                         return new RunDriveResult(RunDriveStatus.GateRejected, reason, null, 0);
                     }
                     _lastDispatchAt = grounded.Act.Receipt.DispatchedAt;
+                    _inFlightReceiptId = grounded.Act.Receipt.ReceiptId;
                     _stepsDispatched++;
                     if (grounded.Act.Receipt.Outcome.IsUnconfirmedOutcome())
                     {
@@ -1254,7 +1308,7 @@ public sealed class KernelRunDriver
                         step.TargetRole, step.TargetDescriptor, step.EffectClass,
                         CheckedSemantics.FromPresentation(step.DesiredState));
                     var verification = _kernel.VerifyPostActionEffect(
-                        target, post.ProcessedObservations, _lastDispatchAt, _preDispatchBelief);
+                        target, post.ProcessedObservations, _lastDispatchAt, _preDispatchBelief, _inFlightReceiptId);
                     if (!verification.IsVerified)
                     {
                         var reason = verification.RejectionReason ?? "verification-failed";
@@ -1292,6 +1346,7 @@ public sealed class KernelRunDriver
                         post.ProcessedObservations.Select(o => o.Admission.EvidenceId)
                             .Where(id => id is not null).Cast<string>().ToArray(), null);
                     _preDispatchBelief = null;
+                    _inFlightReceiptId = null;
                     _stepIndex++;
                     if (_policy is not null)
                     {
@@ -1342,6 +1397,7 @@ public sealed class KernelRunDriver
                     var observed = PullObservations(ObservationContext.External, "policy-observation");
                     if (observed.Stop is not null)
                         return observed.Stop;
+                    if (observed.RequiresDecision) continue;
 
                     // 2. lease check（v0.3.1 约束）：current active lease ==
                     //    adopted lease（exact 等值）；零/多根/身份漂移一律
@@ -1696,6 +1752,7 @@ public sealed class KernelRunDriver
                                     var observed = PullObservations(ObservationContext.External, "plan-observe",
                                         subjects: observe.Subject is null ? null : new[] { observe.Subject });
                                     if (observed.Stop is not null) return observed.Stop;
+                                    if (observed.RequiresDecision) continue;
                                     _planWorkUsed++;
                                     AdvancePlanItem();
                                     continue;
@@ -1733,6 +1790,7 @@ public sealed class KernelRunDriver
                                 subjects: observe.Subject is null ? null : new[] { observe.Subject });
                             if (observed.Stop is not null)
                                 return observed.Stop;
+                            if (observed.RequiresDecision) continue;
                             _planWorkUsed++;
                             _planItemIndex++;
                             continue;
@@ -1757,6 +1815,7 @@ public sealed class KernelRunDriver
                                         ObservationContext.External, "plan-reobserve");
                                     if (reobserved.Stop is not null)
                                         return reobserved.Stop;
+                                    if (reobserved.RequiresDecision) continue;
                                     continue;
                                 case PlanControlKind.Replan:
                                     // 重新规划：废弃剩余计划，回决策边界（全局
@@ -1869,7 +1928,7 @@ public sealed class KernelRunDriver
     /// <summary>一次外部输入拉取：Stop 非 null 表示等待/拒绝；否则携带 P2/P3 处理结果。</summary>
     private readonly record struct ObservationPull(
         RunDriveResult? Stop,
-        IReadOnlyList<KernelResult> ProcessedObservations);
+        IReadOnlyList<KernelResult> ProcessedObservations, bool RequiresDecision = false);
 
     /// <summary>
     /// 当前预算快照（§2.1）。PROTOCOL-FIX-003：契约预算 = 初始额度，已授续授
@@ -2788,11 +2847,12 @@ public sealed class KernelRunDriver
         var claims = _kernel.CurrentBelief?.WorldState;
         var summaries = claims is null
             ? new Dictionary<string, ClaimSummary>()
-            : claims.Where(kv => !kv.Key.StartsWith("ui.node.", StringComparison.Ordinal))
+            : claims.Where(kv => !kv.Key.StartsWith("ui.node.", StringComparison.Ordinal)
+                    && !kv.Key.EndsWith(".semantic.page", StringComparison.Ordinal))
                 .ToDictionary(kv => kv.Key,
                     kv => new ClaimSummary(kv.Value.Value, DispositionOf(kv.Key, kv.Value),
                         _kernel.CurrentConflictedSubjects.Contains(kv.Key)), StringComparer.Ordinal);
-        return new AgentDecisionContext(
+        return AttachWorldKnowledge(new AgentDecisionContext(
             DecisionId: DecisionIdForRun(_consultCounter), RunId: _kernel.RunId,
             ContractVersion: view.Version, Objective: view.Objective,
             AllowedEffects: view.AllowedEffects,
@@ -2804,7 +2864,15 @@ public sealed class KernelRunDriver
             Progress: new ConsultationProgress(_consultCounter, _stepsDispatched, _completedSteps.Count),
             BudgetRemaining: CurrentBudget(view), PlanExecution: AgentPlanExecutionView(),
             AvailablePlanSources: _inputs.AvailablePlanSources,
-            AvailablePlanConditions: _inputs.AvailablePlanConditions);
+            AvailablePlanConditions: _inputs.AvailablePlanConditions,
+            WorldKnowledge: null));
+    }
+
+    private AgentDecisionContext AttachWorldKnowledge(AgentDecisionContext context)
+    {
+        var knowledge = _kernel.ProjectWorldKnowledge(_inputs.RequiredWorldParentContext?.Invoke());
+        return context with { WorldKnowledge = knowledge, WorldRecovery = _kernel.ProjectWorldRecovery(knowledge),
+            WorldEffectImpacts = _kernel.EffectCorrectionReviews.ToArray() };
     }
 
     private static BudgetReviewResponse? ReviewResponseFor(AgentDecision? decision) => decision switch
@@ -2912,7 +2980,8 @@ public sealed class KernelRunDriver
         var claimSummaries = claims is null
             ? new Dictionary<string, ClaimSummary>()
             : claims
-                .Where(kv => !kv.Key.StartsWith("ui.node.", StringComparison.Ordinal))
+                .Where(kv => !kv.Key.StartsWith("ui.node.", StringComparison.Ordinal)
+                    && !kv.Key.EndsWith(".semantic.page", StringComparison.Ordinal))
                 .ToDictionary(
                     kv => kv.Key,
                     kv => new ClaimSummary(
@@ -2920,7 +2989,7 @@ public sealed class KernelRunDriver
                         DispositionOf(kv.Key, kv.Value),
                         _kernel.CurrentConflictedSubjects.Contains(kv.Key)));
 
-        var context = new AgentDecisionContext(
+        var context = AttachWorldKnowledge(new AgentDecisionContext(
             DecisionId: decisionId,
             RunId: _kernel.RunId,
             ContractVersion: view.Version,
@@ -2948,7 +3017,8 @@ public sealed class KernelRunDriver
             BudgetReview: BuildBudgetReview(view),
                             PlanExecution: AgentPlanExecutionView(),
             AvailablePlanSources: _consultCounter == 1 ? _inputs.AvailablePlanSources : null,
-            AvailablePlanConditions: _consultCounter == 1 ? _inputs.AvailablePlanConditions : null);
+            AvailablePlanConditions: _consultCounter == 1 ? _inputs.AvailablePlanConditions : null,
+            WorldKnowledge: null));
 
         if (_pendingInterruption is { } interruption)
         {
@@ -2982,6 +3052,7 @@ public sealed class KernelRunDriver
         AgentDecision? decision;
         try
         {
+            _kernel.RecordWorldConsultation(context);
             decision = _inputs.ConsultAgent(context);
         }
         catch (Exception ex)
@@ -3039,6 +3110,7 @@ public sealed class KernelRunDriver
         _pendingFailedStepIndex = null;
         _pendingPolicyOutcome = null;
         _pendingInterruption = null;
+        _kernel.MarkWorldReviewRead();
         return new ConsultOutcome(decision, null);
     }
 
@@ -3066,6 +3138,9 @@ public sealed class KernelRunDriver
             context.CasePacket,
             context.ExecutionOverview,
             context.BudgetReview,
+            context.WorldKnowledge,
+            context.WorldRecovery,
+            context.WorldEffectImpacts,
         });
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)))
             .ToLowerInvariant();
@@ -3685,7 +3760,7 @@ public sealed class KernelRunDriver
             _inputs.ObservationRecoveryTimeout, _inputs.MaxObservationRecoveryRequests);
         // The slot is the original execution position, never the capture id.
         // Changing scene/capture cannot renew its deadline or its run subquota.
-        var slot = $"{_phase}:{_consultCounter}:{_stepIndex}:{_planItemIndex}:{_lastDispatchAt:O}";
+        var slot = _observationPullSlot ?? $"{_phase}:{_consultCounter}:{_stepIndex}:{_planItemIndex}:{_lastDispatchAt:O}";
         if (_observationPullSlot != slot)
         {
             _observationPullSlot = slot;
@@ -3693,8 +3768,8 @@ public sealed class KernelRunDriver
         }
         var processed = _observationRecoveryEvidence;
         if (_observationRecovery.IsExpired(slot))
-            return new ObservationPull(RecordObservationRecoveryFailure(slot,
-                "page-identity-observation-expired", expected, processed), processed.ToArray());
+            return RecordObservationRecoveryFailure(slot,
+                "page-identity-observation-expired", expected, processed);
         while (true)
         {
         var need = _kernel.CurrentBelief?.ObservationNeed;
@@ -3704,16 +3779,17 @@ public sealed class KernelRunDriver
             if (_inputs.PollCancellation?.Invoke() is { } cancelled)
                 return new ObservationPull(CancelPath(cancelled), processed.ToArray());
             if (!_observationRecovery.TrySchedule(slot, out var available))
-                return new ObservationPull(RecordObservationRecoveryFailure(slot,
-                    "page-identity-observation-exhausted", expected, processed), processed.ToArray());
+                return RecordObservationRecoveryFailure(slot,
+                    "page-identity-observation-exhausted", expected, processed);
             remaining = available;
         }
+        var knowledgeBeforeInput = _kernel.ProjectWorldKnowledge(_inputs.RequiredWorldParentContext?.Invoke());
         var input = _inputs.NextInput(new ObservationDirective(expected,
             need is null ? depth : ObservationDepth.Slow,
             need is null ? subjects : new[] { WorldModel.CurrentContainerSubject }, need, remaining));
         if (need is not null && input is RunDriverInput.Observation && !_observationRecovery.CanAccept(slot))
-            return new ObservationPull(RecordObservationRecoveryFailure(slot,
-                "page-identity-observation-timeout", expected, processed), processed.ToArray());
+            return RecordObservationRecoveryFailure(slot,
+                "page-identity-observation-timeout", expected, processed);
         switch (input)
         {
             case null:
@@ -3752,8 +3828,9 @@ public sealed class KernelRunDriver
                 return new ObservationPull(null, Array.Empty<KernelResult>());
 
             case RunDriverInput.Observation observation:
-                if (observation.Proposals.Count == 0
-                    || observation.Proposals.Any(p => p.Context != expected))
+                if (observation.Proposals.Count == 0 && observation.Execution is null
+                    || observation.Proposals.Any(p => p.Context != expected)
+                    || observation.Execution is { } execution && !_kernel.RecordWorldSupplementation(execution, knowledgeBeforeInput))
                     return new ObservationPull(
                         new RunDriveResult(
                             RunDriveStatus.UnexpectedInput, $"{phaseLabel}:context-mismatch", null,
@@ -3777,7 +3854,7 @@ public sealed class KernelRunDriver
         }
     }
 
-    private RunDriveResult RecordObservationRecoveryFailure(string slot, string reason,
+    private ObservationPull RecordObservationRecoveryFailure(string slot, string reason,
         ObservationContext context, IReadOnlyList<KernelResult> observations)
     {
         if (_observationRecoveryFailures.Add(slot) && context == ObservationContext.PostActionEffectFlow)
@@ -3796,11 +3873,26 @@ public sealed class KernelRunDriver
                 _inputs.ObserveTraversalRecovery?.Invoke(facts);
             }
         }
-        // No Run failure or automatic Back. The original verification position
-        // stays closed to late authorization; existing Recovery receives facts.
-        return new RunDriveResult(context == ObservationContext.PostActionEffectFlow
+        if (context != ObservationContext.PostActionEffectFlow)
+        {
+            var knowledge = _kernel.ProjectWorldKnowledge(_inputs.RequiredWorldParentContext?.Invoke());
+            if (_kernel.RequestWorldReview(knowledge, reason))
+            {
+                VoidActivePolicyForStepFailure(AgentDecisionPhase.PolicyInvalidated, reason);
+                if (_planItems is not null) PausePlan(reason);
+                _pendingFailureReason = reason;
+                _pendingInterruption = new(_kernel.ProjectWorldRecovery(knowledge).ReviewKey!, "world-knowledge-review",
+                    _kernel.CurrentBelief?.RevisionNumber ?? 0, Reason: reason);
+                _adoptedDecision = null;
+                _phase = DrivePhase.NeedDecision;
+                return new(null, observations.ToArray(), RequiresDecision: true);
+            }
+        }
+        // In-flight verification remains blocked; review never grants a retry,
+        // resources, proof or an inverse action.
+        return new(new RunDriveResult(context == ObservationContext.PostActionEffectFlow
             ? RunDriveStatus.VerificationFailed : RunDriveStatus.GroundingFailed,
-            reason, null, _kernel.EffectReceipts.Count);
+            reason, null, _kernel.EffectReceipts.Count), observations.ToArray());
     }
 
     /// <summary>

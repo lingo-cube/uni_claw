@@ -2,6 +2,7 @@ using UniClaw.Host.SettingsCoverage;
 using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception;
+using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
 using Xunit;
@@ -15,6 +16,28 @@ public sealed class PageIdentityRecoveryTests
         <hierarchy><node text="SIMs" class="android.widget.TextView" clickable="false" enabled="true" bounds="[10,10][100,40]"/>
         <node text="Mobile network" class="android.widget.Button" clickable="true" enabled="true" bounds="[10,60][180,100]"/></hierarchy>
         """;
+
+    [Fact]
+    public void Capture_DeclaresOnlyPartialCoverageForSuccessfullyExtractedXml()
+    {
+        var fromXml = PageIdentityRecovery.Capture("c", "cycle", "session", Now, 200, 200, Xml, null);
+        Assert.Equal(new HierarchyCoverage(CoverageCompleteness.Partial,
+            "viewport-export;offscreen-and-virtualized-content-unproven"), fromXml.Coverage);
+        Assert.All(fromXml.Items, item => Assert.InRange(item.Bounds.X2, 0, 200));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("<hierarchy><node")]
+    [InlineData("<hierarchy><node bounds=\"[0,0][0,0]\"/></hierarchy>")]
+    public void Capture_DoesNotClaimXmlCoverageWithoutValidExtractedXmlLayout(string? xml)
+    {
+        var fast = new FastTextBasis("c", "session", "cycle", [],
+            ["""{"text":"from fast","boundsPx":[1,1,10,10]}"""], Now);
+        var capture = PageIdentityRecovery.Capture("c", "cycle", "session", Now, 200, 200, xml, fast);
+        Assert.Null(capture.Coverage);
+        Assert.Contains(capture.Items, item => item.Text == "from fast");
+    }
 
     [Theory]
     [InlineData(true)]

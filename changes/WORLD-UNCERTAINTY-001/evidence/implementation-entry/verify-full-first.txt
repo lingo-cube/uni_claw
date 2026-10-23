@@ -1,0 +1,505 @@
+CHANGE=WORLD-UNCERTAINTY-001
+SCENARIO_CAVEAT=SCN-PERC-001 execution.kind=none: dedicated carrier; expectations are descriptive-only (no golden certification), goalEvaluationRealization=not-applicable, decision=double via ConsultAgent seam; carrier PASS proves local behavior only
+SCENARIO_CAVEATS_SUMMARY=1/7 selected scenario(s) with descriptive-only local carriers; baseline claims are partial for them
+SCOPE=full
+FOCUSED=SKIPPED (change-specific tests remain change-owned)
+[DIFF_CHECK] git diff --check
+[ARCHITECTURE] dotnet test tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj --no-restore --filter FullyQualifiedName~LegacyStateSurfaceFreezeTests|FullyQualifiedName~Per014CutoverTests|FullyQualifiedName~ConflictResolverTests|FullyQualifiedName~Per009RemediationTests|FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~SemanticCheckedResolverTests --logger console;verbosity=minimal
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Kernel.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    43，已跳过:     0，总计:    43，持续时间: 43 ms - UniClaw.Kernel.Tests.dll (net10.0)
+[ARCHITECTURE_HOST] dotnet test tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj --no-restore --filter FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~LiveDeviceSelectorTests|FullyQualifiedName~LegacySurfaceRemovalTripwireTests --logger console;verbosity=minimal
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/SettingsTraversalLiveFeed.cs(15,7): warning CS0105: “UniClaw.Kernel.Perception.UiHierarchy”的 using 指令以前在此命名空间中出现过 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UiAutomatorDump.cs(130,31): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UiAutomatorDump.cs(134,31): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UiAutomatorDump.cs(137,31): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UiAutomatorDump.cs(138,41): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UiAutomatorDump.cs(142,27): warning CS8123: 由于目标类型“(string? Xml, bool IsStructuralFailure)”指定了其他名称或未指定名称，因此元组元素名称“IsStructural”被忽略。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UiHierarchyOccurrenceStrategy.cs(67,24): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.cs(887,55): warning CS0162: 检测到无法访问的代码 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.cs(904,55): warning CS0162: 检测到无法访问的代码 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/UniClaw.Host.csproj]
+  UniClaw.Host -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/PageIdentityRecoveryTests.cs(71,24): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs(58,68): warning CS8604: “UiHierarchyCaptureResult UiAutomatorDump.ParseHierarchyObservation(string xml, UiHierarchyParseContext parseContext)”中的形参“xml”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(249,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(262,22): warning CS8604: “void Assert.Empty(IEnumerable collection)”中的形参“collection”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/WorldOperationReplayTests.cs(37,22): warning CS8604: “IEnumerable<WorldPageObservation> Enumerable.SelectMany<WorldPageView, WorldPageObservation>(IEnumerable<WorldPageView> source, Func<WorldPageView, IEnumerable<WorldPageObservation>> selector)”中的形参“source”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs(728,45): warning CS8620: 由于引用类型的可为 null 性差异，(string, string, string)[] 类型的实参不能用于 void SettingsCoverageLedger.RecordObservation(string route, IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> visibleOccurrences) 中 IReadOnlyList<(string Role, string? Descriptor, string? NativeRid)> 类型的形参 visibleOccurrences。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/WorldCaptureIsolationTests.cs(39,38): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj]
+  UniClaw.Host.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    26，已跳过:     0，总计:    26，持续时间: 13 ms - UniClaw.Host.Tests.dll (net10.0)
+[SIMULATION] dotnet test tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj --no-restore --logger console;verbosity=minimal --logger trx;LogFileName=sim006-full.trx
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfile.cs(13,12): warning CS1591: 缺少对公共可见类型或成员“ProfileCharter.ProfileCharter(string, IReadOnlyList<string>, IReadOnlyList<string>, IReadOnlyList<string>, IReadOnlyList<string>)”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfile.cs(28,19): warning CS1591: 缺少对公共可见类型或成员“ProfileCharter.Role”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfile.cs(29,34): warning CS1591: 缺少对公共可见类型或成员“ProfileCharter.Responsibilities”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfile.cs(30,34): warning CS1591: 缺少对公共可见类型或成员“ProfileCharter.Boundaries”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfile.cs(31,34): warning CS1591: 缺少对公共可见类型或成员“ProfileCharter.PlanningPrinciples”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfile.cs(32,34): warning CS1591: 缺少对公共可见类型或成员“ProfileCharter.SkillUse”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs(15,25): warning CS1591: 缺少对公共可见类型或成员“UniAgentProfileYaml.SchemaVersion”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs(16,25): warning CS1591: 缺少对公共可见类型或成员“UniAgentProfileYaml.DefaultConfigRelativePath”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs(17,25): warning CS1591: 缺少对公共可见类型或成员“UniAgentProfileYaml.ConfigPathEnvironmentVariable”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs(27,26): warning CS1591: 缺少对公共可见类型或成员“UniAgentProfileYaml.ResolveDefaultPath()”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs(44,35): warning CS1591: 缺少对公共可见类型或成员“UniAgentProfileYaml.Load(string)”的 XML 注释 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/UniClaw.Agent.csproj]
+  UniClaw.Agent -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/AsyncTraceWriterTests.cs(235,48): warning CS8603: 可能返回 null 引用。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/DevV0Runtime.cs(126,34): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/ExecutableExpectationBindingTests.cs(347,32): warning CS8625: 无法将 null 字面量转换为非 null 的引用类型。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs(45,21): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs(198,23): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/ScenarioRealizationAnnotationTests.cs(77,44): warning CS8604: “bool HashSet<string>.Contains(string item)”中的形参“item”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/ScenarioRealizationAnnotationTests.cs(87,44): warning CS8604: “bool HashSet<string>.Contains(string item)”中的形参“item”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/RecordedOperationReplayTests.cs(217,79): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs(82,31): warning CS8604: “void Assert.DoesNotContain<TraversalOperationRecord>(IEnumerable<TraversalOperationRecord> collection, Predicate<TraversalOperationRecord> filter)”中的形参“collection”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs(107,25): warning CS8604: “void Assert.Contains<TraversalOperationRecord>(IEnumerable<TraversalOperationRecord> collection, Predicate<TraversalOperationRecord> filter)”中的形参“collection”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs(188,31): warning CS8604: “void Assert.DoesNotContain<TraversalOperationRecord>(IEnumerable<TraversalOperationRecord> collection, Predicate<TraversalOperationRecord> filter)”中的形参“collection”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/ScenarioStimulus.cs(327,30): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs(625,31): warning CS8604: “void Assert.DoesNotContain<TraversalOperationRecord>(IEnumerable<TraversalOperationRecord> collection, Predicate<TraversalOperationRecord> filter)”中的形参“collection”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/ComponentReplayGovernanceTests.cs(30,65): warning xUnit1026: Theory method 'EveryContentCategoryRejectsBeforeFactory' on test class 'ComponentReplayGovernanceTests' does not use parameter 'kind'. Use the parameter, or remove the parameter and associated data. (https://xunit.net/xunit.analyzers/rules/xUnit1026) [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/Runtime/PageObservationExecutionTests.cs(96,25): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/HandlerTraversalScenarioTests.cs(105,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs(193,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TwoStepBarrierTests.cs(70,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs(80,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs(104,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/SeamOverrideTests.cs(113,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/SeamOverrideTests.cs(136,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj]
+  UniClaw.Simulation.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.26]     UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "content") [FAIL]
+[xUnit.net 00:00:00.27]     UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "offset") [FAIL]
+[xUnit.net 00:00:00.27]     UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "navigation-direction") [FAIL]
+  失败 UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "content") [179 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "content.Alpha"
+Actual:   "receipts"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(String mutation) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/OperationReplayRegressionTests.cs:line 108
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  失败 UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "offset") [6 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "transitions[0].offsetY"
+Actual:   "receipts"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(String mutation) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/OperationReplayRegressionTests.cs:line 108
+   at InvokeStub_OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失败 UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "navigation-direction") [5 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "navigation[0]"
+Actual:   "receipts"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(String mutation) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/OperationReplayRegressionTests.cs:line 108
+   at InvokeStub_OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.28]     UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "relation") [FAIL]
+  失败 UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "relation") [7 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "navigationEdges"
+Actual:   "receipts"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(String mutation) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/OperationReplayRegressionTests.cs:line 108
+   at InvokeStub_OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.29]     UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "verification") [FAIL]
+[xUnit.net 00:00:00.29]     UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "navigation-kind") [FAIL]
+[xUnit.net 00:00:00.29]     UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "navigation-target") [FAIL]
+[xUnit.net 00:00:00.30]     UniClaw.Simulation.Tests.OperationReplayRegressionTests.ReplayFixture_InsufficientRecoveryBudget_ReproducesFailure_BeforeBudgetCorrection [FAIL]
+  失败 UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "verification") [4 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "postActionVerifications"
+Actual:   "receipts"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(String mutation) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/OperationReplayRegressionTests.cs:line 108
+   at InvokeStub_OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失败 UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "navigation-kind") [7 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "navigation[0]"
+Actual:   "receipts"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(String mutation) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/OperationReplayRegressionTests.cs:line 108
+   at InvokeStub_OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失败 UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "navigation-target") [1 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "navigation[0]"
+Actual:   "receipts"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(String mutation) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/OperationReplayRegressionTests.cs:line 108
+   at InvokeStub_OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失败 UniClaw.Simulation.Tests.OperationReplayRegressionTests.ReplayFixture_InsufficientRecoveryBudget_ReproducesFailure_BeforeBudgetCorrection [3 ms]
+  错误消息:
+   Assert.Equal() Failure: Values differ
+Expected: 4
+Actual:   2
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.OperationReplayRegressionTests.ReplayFixture_InsufficientRecoveryBudget_ReproducesFailure_BeforeBudgetCorrection() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/OperationReplayRegressionTests.cs:line 77
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.30]     UniClaw.Simulation.Tests.OperationReplayRegressionTests.OperationReplay_ConsumesOwnerGraph_AndMatchesIndependentRoundTrip [FAIL]
+[xUnit.net 00:00:00.32]     UniClaw.Simulation.Tests.OperationReplayRegressionTests.OperationReplay_SpatialFailuresRemainUnknown [FAIL]
+  失败 UniClaw.Simulation.Tests.OperationReplayRegressionTests.OperationReplay_ConsumesOwnerGraph_AndMatchesIndependentRoundTrip [7 ms]
+  错误消息:
+   {
+  "divergence": {
+    "path": "receipts",
+    "expected": "4",
+    "actual": "2"
+  },
+  "status": "VerificationFailed",
+  "reason": "page-identity-observation-exhausted"
+}
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.OperationReplayRegressionTests.OperationReplay_ConsumesOwnerGraph_AndMatchesIndependentRoundTrip() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/OperationReplayRegressionTests.cs:line 50
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失败 UniClaw.Simulation.Tests.OperationReplayRegressionTests.OperationReplay_SpatialFailuresRemainUnknown [11 ms]
+  错误消息:
+   {
+  "divergence": {
+    "path": "receipts",
+    "expected": "4",
+    "actual": "2"
+  },
+  "status": "VerificationFailed",
+  "reason": "page-identity-observation-exhausted"
+}
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.OperationReplayRegressionTests.OperationReplay_SpatialFailuresRemainUnknown() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/OperationReplayRegressionTests.cs:line 63
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.49]     UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SameConsumerClosurePreservesFailureAndObservationDimensions(supplier: "frozen-response", variant: "conflicted-intent") [FAIL]
+  失败 UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SameConsumerClosurePreservesFailureAndObservationDimensions(supplier: "frozen-response", variant: "conflicted-intent") [76 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "Completed"
+Actual:   "Failed"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SameConsumerClosurePreservesFailureAndObservationDimensions(String supplier, String variant) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/ComponentSemanticReplayTests.cs:line 135
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:00.63]     UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: "sims", supplier: "frozen-response") [FAIL]
+  失败 UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: "sims", supplier: "frozen-response") [15 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "Completed"
+Actual:   "Failed"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(String id, String supplier) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/ComponentSemanticReplayTests.cs:line 85
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:00.65]     UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: "all-apps", supplier: "frozen-response") [FAIL]
+[xUnit.net 00:00:00.67]     UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: "default-apps", supplier: "frozen-response") [FAIL]
+  失败 UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: "all-apps", supplier: "frozen-response") [22 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "Completed"
+Actual:   "Failed"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(String id, String supplier) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/ComponentSemanticReplayTests.cs:line 85
+--- End of stack trace from previous location ---
+  失败 UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: "default-apps", supplier: "frozen-response") [15 ms]
+  错误消息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "Completed"
+Actual:   "Failed"
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(String id, String supplier) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/ComponentSemanticReplayTests.cs:line 85
+--- End of stack trace from previous location ---
+
+失败!  - 失败:    14，通过:   300，已跳过:     0，总计:   314，持续时间: 7 s - UniClaw.Simulation.Tests.dll (net10.0)
+警告: 正在覆盖结果文件: /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TestResults/sim006-full.trx
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/TestResults/sim006-full.trx
+[FULL_TEST_PROJECTS[UniClaw.Agent.Tests]] dotnet test tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj --no-restore --logger console;verbosity=minimal
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Agent -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/GoalEvaluationTests.cs(482,61): warning CS8604: “ContainerBelief Enumerable.Single<ContainerBelief>(IEnumerable<ContainerBelief> source)”中的形参“source”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj]
+  UniClaw.Agent.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/bin/Debug/net10.0/UniClaw.Agent.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/bin/Debug/net10.0/UniClaw.Agent.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.07]     UniClaw.Agent.Tests.UniAgentProfileYamlTests.Repo_Profile_Loads_With_Assembly_And_Revision [FAIL]
+  失败 UniClaw.Agent.Tests.UniAgentProfileYamlTests.Repo_Profile_Loads_With_Assembly_And_Revision [< 1 ms]
+  错误消息:
+   Assert.Equal() Failure: Values differ
+Expected: 26
+Actual:   27
+  堆栈跟踪:
+     at UniClaw.Agent.Tests.UniAgentProfileYamlTests.Repo_Profile_Loads_With_Assembly_And_Revision() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Tests/UniAgentProfileYamlTests.cs:line 282
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失败!  - 失败:     1，通过:    35，已跳过:     0，总计:    36，持续时间: 49 ms - UniClaw.Agent.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Agent.Dsh.Tests]] dotnet test tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj --no-restore --logger console;verbosity=minimal
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Agent -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+  UniClaw.Agent.Dsh -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent.Dsh/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll
+  UniClaw.Agent.Dsh.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:   214，已跳过:     0，总计:   214，持续时间: 3 s - UniClaw.Agent.Dsh.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Core.Tests]] dotnet test tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj --no-restore --logger console;verbosity=minimal
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Core.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Core.Tests/bin/Debug/net10.0/UniClaw.Core.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    14，已跳过:     0，总计:    14，持续时间: 156 ms - UniClaw.Core.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.FileSystemRealization.Tests]] dotnet test tests/UniClaw.FileSystemRealization.Tests/UniClaw.FileSystemRealization.Tests.csproj --no-restore --logger console;verbosity=minimal
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.FileSystemRealization.Tests/UniClaw.FileSystemRealization.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.FileSystemRealization.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.FileSystemRealization.Tests/bin/Debug/net10.0/UniClaw.FileSystemRealization.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:     9，已跳过:     0，总计:     9，持续时间: 18 ms - UniClaw.FileSystemRealization.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Host.Tests]] dotnet test tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj --no-restore --logger console;verbosity=minimal --logger trx;LogFileName=sim006-full-host.trx
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Host -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+  UniClaw.Host.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:   436，已跳过:     0，总计:   436，持续时间: 21 s - UniClaw.Host.Tests.dll (net10.0)
+结果文件: /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Tests/TestResults/sim006-full-host.trx
+[FULL_TEST_PROJECTS[UniClaw.Host.Dsh.Tests]] dotnet test tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj --no-restore --logger console;verbosity=minimal
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Agent -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent/bin/Debug/net10.0/UniClaw.Agent.dll
+  UniClaw.Host -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host/bin/Debug/net10.0/UniClaw.Host.dll
+  UniClaw.Agent.Dsh -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Agent.Dsh/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll
+  UniClaw.Simulation.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Simulation.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host.Dsh/Program.cs(344,33): warning CS8602: 解引用可能出现空引用。 [/Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host.Dsh/UniClaw.Host.Dsh.csproj]
+  UniClaw.Host.Dsh -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Host.Dsh/bin/Debug/net10.0/UniClaw.Host.Dsh.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs(153,38): warning CS8604: “IEnumerable<TraversalOperationRecord> Enumerable.Where<TraversalOperationRecord>(IEnumerable<TraversalOperationRecord> source, Func<TraversalOperationRecord, bool> predicate)”中的形参“source”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs(276,45): warning CS8604: “IEnumerable<TraversalOperationRecord> Enumerable.Where<TraversalOperationRecord>(IEnumerable<TraversalOperationRecord> source, Func<TraversalOperationRecord, bool> predicate)”中的形参“source”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/RuntimePlanComparisonLiveTests.cs(132,41): warning CS8604: “void List<AgentDecision>.Add(AgentDecision item)”中的形参“item”可能传入 null 引用实参。 [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/SettingsTraversalPlanLiveTests.cs(254,47): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj]
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/SettingsDepthTraversalLiveTests.cs(121,153): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj]
+  UniClaw.Host.Dsh.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    56，已跳过:     0，总计:    56，持续时间: 261 ms - UniClaw.Host.Dsh.Tests.dll (net10.0)
+[FULL_TEST_PROJECTS[UniClaw.Kernel.Tests]] dotnet test tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj --no-restore --logger console;verbosity=minimal
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Kernel.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:  1102，已跳过:     0，总计:  1102，持续时间: 2 s - UniClaw.Kernel.Tests.dll (net10.0)
+FULL_TEST_PROJECTS_NOTE=all solution test projects, aggregated; simulation portion reused from SIMULATION (single execution; TRX shared with COVERAGE)
+[CERTIFICATION] python3 tools/scenario_certify.py --check
+certification check: PASS (41 files, 0 violations)
+[COVERAGE] python3 tools/scenario-coverage.py --trx tests/UniClaw.Simulation.Tests/TestResults/sim006-full.trx --trx tests/UniClaw.Host.Tests/TestResults/sim006-full-host.trx
+============================================================
+ Scenario Library Coverage Report (truth: sim006-full.trx, sim006-full-host.trx)
+============================================================
+ Total: 41 scenarios
+
+── By Status (derived from TRX) ──
+  failing            3  █ 7%
+  not-implemented    0   0%
+  passing           38  ██████████████████ 92%
+  pending-env        0   0%
+
+  Pass rate: 38/41 = 92%
+
+── By Capability ──
+  activation-idempotency         1/1 passing
+  ambiguity-safety               1/1 passing
+  controlled-checked-verification 1/1 passing
+  desired-state-satisfaction     1/1 passing
+  effect-verification            3/3 passing
+  evidence-deduplication         1/1 passing
+  evidence-revision              4/4 passing
+  identity-continuity            2/2 passing
+  page-observation               1/1 passing
+  policy-protocol                11/11 passing
+  popup-replay                   4/4 passing
+  recorded-navigation-recovery   1/1 passing
+  recorded-state-verification    1/1 passing
+  safe-stop                      1/1 passing
+  semantic-perception            0/1 passing
+  serial-verification-barrier    4/4 passing
+  terminal-distinction           1/1 passing
+  world-operation-replay         0/2 passing
+
+── By Source ──
+  component-test        19
+  recorded              10 (refs: SR-104, SR-105, SR-134, SR-001, SR-007, SR-047, SR-052, SR-067)
+  synthetic             12 (refs: SR-001, SR-009, SR-017, SR-012, SR-022, SR-056, SR-063, SR-086)
+
+── Attention (3) ──
+  SCN-REPLAY-002       failing          操作回放：导航与正反滚动
+  SCN-REPLAY-003       failing          操作回放：空间证据不足
+  SCN-REPLAY-008       failing          真实感知组件录制输入与供应替换
+
+── Golden Certification (SIM-002 G2) ──
+  certified by WORLD-UNCERTAINTY-001: 20 scenarios
+  uncertified descriptive scenarios: 21 (SCN-PERC-001, SCN-PERC-002, SCN-PERC-003, SCN-PERC-004, SCN-PERC-005, SCN-PERC-006, SCN-PERC-007, SCN-PERC-008, SCN-REPLAY-001, SCN-REPLAY-002, SCN-REPLAY-003, SCN-REPLAY-004, SCN-REPLAY-005, SCN-REPLAY-006, SCN-REPLAY-007, SCN-REPLAY-008, SCN-REPLAY-009, SCN-REPLAY-010, SCN-REPLAY-011, SCN-REPLAY-012, SCN-REPLAY-013)
+
+  FAIL (3 violations):
+    SCN-REPLAY-002.json: 结果不匹配——JSON 声明 'passing'，真实执行派生 'failing'（outcomes=['Failed', 'Failed']）
+    SCN-REPLAY-003.json: 结果不匹配——JSON 声明 'passing'，真实执行派生 'failing'（outcomes=['Failed']）
+    SCN-REPLAY-008.json: 结果不匹配——JSON 声明 'passing'，真实执行派生 'failing'（outcomes=['Passed', 'Failed', 'Passed', 'Failed', 'Passed', 'Failed', 'Passed', 'Passed', 'Passed', 'Failed', 'Passed', 'Passed', 'Passed', 'Passed']）
+
+============================================================
+LIVE=SKIPPED (use --live to run environment gate)
+GROUP_DIFF_CHECK=PASS
+GROUP_ARCHITECTURE=PASS
+GROUP_ARCHITECTURE_HOST=PASS
+GROUP_SIMULATION=FAIL
+GROUP_FULL_TEST_PROJECTS=FAIL
+GROUP_CERTIFICATION=PASS
+GROUP_COVERAGE=FAIL
+FIRST_FAILURE=SIMULATION
+FIRST_FAILURE_SEMANTIC=execution-order group; not the first behavioral divergence (see Failure details)
+EXPECTATIONS_DIGEST=UNCHANGED
+FINAL_STATUS=BEHAVIOR_REGRESSION
+── Failure details (expected/actual; classification; owner basis) ──
+  FAIL UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "verification") ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      Assert.Equal() Failure: Strings differ
+                 ↓ (pos 0)
+      Expected: "postActionVerifications"
+      Actual:   "receipts"
+                 ↑ (pos 0)
+  FAIL UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: "default-apps", supplier: "frozen-response") ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      Assert.Equal() Failure: Strings differ
+                 ↓ (pos 0)
+      Expected: "Completed"
+      Actual:   "Failed"
+                 ↑ (pos 0)
+  FAIL UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "navigation-direction") ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      Assert.Equal() Failure: Strings differ
+                 ↓ (pos 0)
+      Expected: "navigation[0]"
+      Actual:   "receipts"
+                 ↑ (pos 0)
+  FAIL UniClaw.Simulation.Tests.OperationReplayRegressionTests.OperationReplay_ConsumesOwnerGraph_AndMatchesIndependentRoundTrip ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      {
+        "divergence": {
+          "path": "receipts",
+          "expected": "4",
+          "actual": "2"
+        },
+        "status": "VerificationFailed",
+        "reason": "page-identity-observation-exhausted"
+      }
+  FAIL UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: "all-apps", supplier: "frozen-response") ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      Assert.Equal() Failure: Strings differ
+                 ↓ (pos 0)
+      Expected: "Completed"
+      Actual:   "Failed"
+                 ↑ (pos 0)
+  FAIL UniClaw.Simulation.Tests.OperationReplayRegressionTests.ReplayFixture_InsufficientRecoveryBudget_ReproducesFailure_BeforeBudgetCorrection ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      Assert.Equal() Failure: Values differ
+      Expected: 4
+      Actual:   2
+  FAIL UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SharedCaptureFaultIsRejectedBeforeSupply_ThenSamePublicContractRecovers(id: "sims", supplier: "frozen-response") ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      Assert.Equal() Failure: Strings differ
+                 ↓ (pos 0)
+      Expected: "Completed"
+      Actual:   "Failed"
+                 ↑ (pos 0)
+  FAIL UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "navigation-kind") ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      Assert.Equal() Failure: Strings differ
+                 ↓ (pos 0)
+      Expected: "navigation[0]"
+      Actual:   "receipts"
+                 ↑ (pos 0)
+  FAIL UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "content") ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      Assert.Equal() Failure: Strings differ
+                 ↓ (pos 0)
+      Expected: "content.Alpha"
+      Actual:   "receipts"
+                 ↑ (pos 0)
+  FAIL UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "navigation-target") ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      Assert.Equal() Failure: Strings differ
+                 ↓ (pos 0)
+      Expected: "navigation[0]"
+      Actual:   "receipts"
+                 ↑ (pos 0)
+  FAIL UniClaw.Simulation.Tests.ComponentSemanticReplayTests.SameConsumerClosurePreservesFailureAndObservationDimensions(supplier: "frozen-response", variant: "conflicted-intent") ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      Assert.Equal() Failure: Strings differ
+                 ↓ (pos 0)
+      Expected: "Completed"
+      Actual:   "Failed"
+                 ↑ (pos 0)
+  FAIL UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "relation") ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      Assert.Equal() Failure: Strings differ
+                 ↓ (pos 0)
+      Expected: "navigationEdges"
+      Actual:   "receipts"
+                 ↑ (pos 0)
+  FAIL UniClaw.Simulation.Tests.OperationReplayRegressionTests.IndependentOracle_DetectsWrongReplayResult_AtFirstDivergence(mutation: "offset") ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      Assert.Equal() Failure: Strings differ
+                 ↓ (pos 0)
+      Expected: "transitions[0].offsetY"
+      Actual:   "receipts"
+                 ↑ (pos 0)
+  FAIL UniClaw.Simulation.Tests.OperationReplayRegressionTests.OperationReplay_SpatialFailuresRemainUnknown ownerBasis=simulation-harness/tests classification=BEHAVIOR_REGRESSION firstDivergence=unknown (message follows; expected values live in the scenario's certified expectations)
+      {
+        "divergence": {
+          "path": "receipts",
+          "expected": "4",
+          "actual": "2"
+        },
+        "status": "VerificationFailed",
+        "reason": "page-identity-observation-exhausted"
+      }
+  FAIL UniClaw.Agent.Tests.UniAgentProfileYamlTests.Repo_Profile_Loads_With_Assembly_And_Revision ownerBasis=agent classification=BEHAVIOR_REGRESSION firstDivergence=unknown (console excerpt follows; expected values live in the owning contract)
+      失败 UniClaw.Agent.Tests.UniAgentProfileYamlTests.Repo_Profile_Loads_With_Assembly_And_Revision [< 1 ms]
+  GROUP COVERAGE: rc=1 classification=UNCLASSIFIED firstDivergence=unknown ownerBasis=see-group-output
+RESOLVED_CONFIG=evidence/sim-006/runs/WORLD-UNCERTAINTY-001-full-20261023T001955Z/resolved-config.json

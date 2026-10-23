@@ -1,5 +1,31 @@
 namespace UniClaw.Kernel.World;
 
+/// <summary>A read scope in one observed frame, never an entity or delivery target.</summary>
+public sealed record SliceRegion
+{
+    public string CaptureId { get; }
+    public UniClaw.Kernel.Perception.CoordinateSpace Space { get; }
+    public SpatialLocator Bounds { get; }
+
+    public SliceRegion(string captureId, UniClaw.Kernel.Perception.CoordinateSpace space, SpatialLocator bounds)
+    {
+        ArgumentNullException.ThrowIfNull(space);
+        ArgumentNullException.ThrowIfNull(bounds);
+        if (string.IsNullOrWhiteSpace(captureId) || space.CaptureId != captureId
+            || bounds.X1 >= bounds.X2 || bounds.Y1 >= bounds.Y2 || !FrameMatches(bounds, space))
+            throw new ArgumentException("region requires a positive area and an exact capture/frame source");
+        CaptureId = captureId; Space = space; Bounds = bounds;
+    }
+
+    internal static bool FrameMatches(SpatialLocator locator, UniClaw.Kernel.Perception.CoordinateSpace space) =>
+        locator.SpatialFrameId == space.CoordinateSpaceId
+        || locator.SpatialFrameId == UniClaw.Kernel.Perception.CoordinateSpace.DeviceViewportPrefix
+            && space.CoordinateSpaceId.StartsWith(locator.SpatialFrameId + ":", StringComparison.Ordinal);
+
+    internal bool Contains(SpatialLocator b) => b.X1 < b.X2 && b.Y1 < b.Y2
+        && b.X1 >= Bounds.X1 && b.Y1 >= Bounds.Y1 && b.X2 <= Bounds.X2 && b.Y2 <= Bounds.Y2;
+}
+
 /// <summary>
 /// OccurrenceFact — Slice 携带的 occurrence 景观 fact（revision-local
 /// ObservationOccurrence 的协议侧表示；无 EvidenceBasis 溯源——slice 是
@@ -38,4 +64,9 @@ public sealed record Slice(
     FreshnessBasis FreshnessBasis,
     IReadOnlyList<string> InScopeContainerIds,
     IReadOnlyList<OccurrenceFact> Occurrences,
-    IReadOnlyDictionary<string, string> ScopedClaims);
+    IReadOnlyDictionary<string, string> ScopedClaims,
+    SliceRegion? Region = null)
+{
+    public IReadOnlyList<WorldSemanticKnowledge> SemanticKnowledge { get; init; } =
+        System.Collections.Immutable.ImmutableArray<WorldSemanticKnowledge>.Empty;
+}

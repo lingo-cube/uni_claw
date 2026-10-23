@@ -35,3 +35,5 @@ The first request's context.availablePlanSources declares the read-only sources
 and their semantics. Later requests may refer only to sources already declared.
 Tool arguments must be complete JSON objects with every nested object closed.
 Do not copy placeholders from examples as live values.
+
+Read context.worldKnowledge, worldRecovery and worldEffectImpacts on every relevant turn. Historical semantic references are prior knowledge; currentSemantics require their current correspondence. Unknown coverage is not complete coverage. Missing execution records are not zero attempts. A correction retracts its stated consumed basis; original receipts and terminal outcomes remain historical records. An unresolved effect is not recovered merely because the latest World graph looks correct. These views grant no execution authority and do not prove the overall goal complete.

@@ -77,3 +77,7 @@ transport/模型解析进 `../UniClaw.Host.Dsh/`；新能力注册 = 既有组�
 ## RUNTIME-PLAN-002 菜单买方接线
 
 `SettingsCoverage/SettingsTraversalProjection.cs`从当前World图/occurrence形成引用视图，只把任务明确分类的入口标为navigation，泛化clickable保持Unknown；live发现穷尽不作无依据声明。`Capability/TraversalLanguageInspection.cs`通过既有task binding调用注册的ILanguageInspector，输入仅为当前目标文字标签，原目标缺失给出typed Unknown，不替换目标；运行态生命周期失效使binding不可用。SettingsCoverageRunner把两条缝接入同一KernelRunDriver，并保存traversal-execution/traversal-recovery事实。
+
+## WORLD-UNCERTAINTY-001 实现
+
+- `PageSemanticReadSupply`：Host读取World已确认当前语义，否则调用实际语义供应方。

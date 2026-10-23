@@ -240,7 +240,7 @@ public sealed class FreshnessEnforcementTests
     // ---- N7：检查集 = CBA-005 九检查零改动 + 恰新增一条 --------------------
 
     [Fact]
-    public void N7_CheckSetIsCba005NinePlusExactlyOneFreshnessCheck()
+    public void N7_CheckSetPreservesFreshnessAndAddsCorrectedEffectContextBarrier()
     {
         var (kernel, _, _, _, _, _, _) = NewKernel();
         kernel.AdmitContract(Contract());
@@ -250,12 +250,13 @@ public sealed class FreshnessEnforcementTests
         var act = kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
 
         // 顺序锁定 RejectionReason（首个失败项）的确定性；CBA-005 D3 检查
-        // 集零改动 + 恰新增 freshness-sufficiency（insufficient/unknown 的
-        // 区分在 FreshnessJudgment 自身，不搞动态 check 名）
+        // 集延续；WORLD-UNCERTAINTY-001 加入独立的纠错效果上下文屏障。
+        // insufficient/unknown 的区分仍在 FreshnessJudgment 自身。
         Assert.Equal(new[]
         {
             "intent-is-act", "effect-class-allowed", "effect-class-not-forbidden",
-            "target-declared", "binding-intent-correlation", "binding-revision-currentness",
+            "target-declared", "no-unresolved-corrected-effect-on-context",
+            "binding-intent-correlation", "binding-revision-currentness",
             "no-unresolved-conflict", "intent-basis-currentness",
             "freshness-sufficiency", "no-blind-retry",
         }, act.Judgment!.Checks.Select(c => c.Name).ToArray());

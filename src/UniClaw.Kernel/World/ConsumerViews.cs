@@ -38,7 +38,10 @@ public sealed record ActionAssuranceView(
     string RevisionId,
     int RevisionNumber,
     FreshnessBasis FreshnessBasis,
-    bool HasConflictOnTarget);
+    bool HasConflictOnTarget)
+{
+    public string? ContainerId { get; init; }
+}
 
 /// <summary>
 /// entity-scoped obligation 的 owner-derived fulfillment fact（ESO-002 D1/D5）：

@@ -14,6 +14,7 @@ using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 using UniClaw.Kernel.World.UiRealization;
+using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Host.Capability;
 using UniClaw.Host.Runtime;
 
@@ -69,7 +70,8 @@ public sealed class SettingsCoverageRunner
         Func<RunDriverInput.Cancel?>? PollCancellation = null,
         UniClaw.Kernel.Capability.UniPerceptionCapability? Perception = null,
         IReadOnlyList<UniClaw.Kernel.Capability.SemanticPageCandidate>? SemanticPages = null,
-        UniClaw.Kernel.Capability.CapabilityRegistry? ProductCapabilities = null);
+        UniClaw.Kernel.Capability.CapabilityRegistry? ProductCapabilities = null,
+        NativeContextSignatureProfile? NativeContextProfile = null);
 
     public sealed record StepArtifact(
         int Index,
@@ -151,6 +153,9 @@ public sealed class SettingsCoverageRunner
             "ui.node.*",
             PageObservationCodec.CaptureSubject,
             PageObservationCodec.IdentitySubject,
+            PageInterpretationCodec.Subject,
+            ContainerContextCodec.Subject,
+            SemanticVerificationCodec.Subject,
             "ui.semantic.page",
         };
         var ledger = new SettingsCoverageLedger();
@@ -167,7 +172,8 @@ public sealed class SettingsCoverageRunner
                 clock, options.Live, evidenceDir,
                 evidenceSettings.PersistScreenshots, evidenceSettings.PersistHierarchies,
                 coverageConfig: config, uniPerceptionFetch: options.SlowConsult,
-                semanticPerception: semanticPerception, semanticPages: options.SemanticPages)
+                semanticPerception: semanticPerception, semanticPages: options.SemanticPages,
+                nativeContextProfile: options.NativeContextProfile)
             : null;
         liveFeed?.SetCancellationToken(cancellationToken);
         acquisitionPreflight.Stop();
@@ -202,7 +208,9 @@ public sealed class SettingsCoverageRunner
             var world = new WorldModel(
                 scope,
                 new ProductAssociationStrategy(),
-                new UiHierarchyOccurrenceStrategy());
+                new UiHierarchyOccurrenceStrategy(),
+                nativeContextProfiles: options.NativeContextProfile is { } nativeProfile
+                    ? [nativeProfile] : null);
             var assurance = new RuntimeAssurance(
                 new ProductFreshnessEvaluator(() => clock.Now, TimeSpan.FromMinutes(5)));
             IEffectDriver delivery = options.EffectDriver ?? new AdbLiveEffectDriver(

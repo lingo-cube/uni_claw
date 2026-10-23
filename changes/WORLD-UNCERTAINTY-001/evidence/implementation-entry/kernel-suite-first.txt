@@ -1,0 +1,69 @@
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj : warning NU1900: 获取包漏洞数据时出错: Access to the path '/Users/fran/.local/share/NuGet/http-cache/670c1461c29885f9aa22c281d8b7da90845b38e4$ps:_api.nuget.org_v3_index.json/vuln_index.dat-new' is denied.
+  UniClaw.Core -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Core/bin/Debug/net10.0/UniClaw.Core.dll
+  UniClaw.Kernel -> /Users/fran/Documents/Code/spacex/uni_claw/src/UniClaw.Kernel/bin/Debug/net10.0/UniClaw.Kernel.dll
+  UniClaw.Kernel.Tests -> /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll
+/Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/bin/Debug/net10.0/UniClaw.Kernel.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.36]     UniClaw.Kernel.Tests.FreshnessEnforcementTests.N7_CheckSetIsCba005NinePlusExactlyOneFreshnessCheck [FAIL]
+[xUnit.net 00:00:00.36]     UniClaw.Kernel.Tests.DocsMetadataTests.Architecture_DeclaresFrozenAuthority [FAIL]
+  失败 UniClaw.Kernel.Tests.FreshnessEnforcementTests.N7_CheckSetIsCba005NinePlusExactlyOneFreshnessCheck [3 ms]
+  错误消息:
+   Assert.Equal() Failure: Collections differ
+                                                                 ↓ (pos 4)
+Expected: [···, "effect-class-not-forbidden", "target-declared", "binding-intent-correlation", "binding-revision-currentness", "no-unresolved-conflict", ···]
+Actual:   [···, "effect-class-not-forbidden", "target-declared", "no-unresolved-corrected-effect-on-context", "binding-intent-correlation", "binding-revision-currentness", ···]
+                                                                 ↑ (pos 4)
+  堆栈跟踪:
+     at UniClaw.Kernel.Tests.FreshnessEnforcementTests.N7_CheckSetIsCba005NinePlusExactlyOneFreshnessCheck() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/FreshnessEnforcementTests.cs:line 255
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失败 UniClaw.Kernel.Tests.DocsMetadataTests.Architecture_DeclaresFrozenAuthority [4 ms]
+  错误消息:
+   docs/architecture/world-uncertainty-read-views.md: 无 FROZEN/CLOSED/COMPONENT-BASELINE 声明
+  堆栈跟踪:
+     at UniClaw.Kernel.Tests.DocsMetadataTests.Architecture_DeclaresFrozenAuthority() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/DocsMetadataTests.cs:line 74
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.39]     UniClaw.Kernel.Tests.RuntimeViewExposureTests.N1_ViewPublicShapesMatchAllowlistExactly [FAIL]
+  失败 UniClaw.Kernel.Tests.RuntimeViewExposureTests.N1_ViewPublicShapesMatchAllowlistExactly [10 ms]
+  错误消息:
+   Assert.Equal() Failure: Collections differ
+           ↓ (pos 0)
+Expected: [Tuple ("FreshnessBasis", typeof(UniClaw.Kernel.World.FreshnessBasis)), Tuple ("HasConflictOnTarget", typeof(bool)), Tuple ("RevisionId", typeof(string)), Tuple ("RevisionNumber", typeof(int))]
+Actual:   [Tuple ("ContainerId", typeof(string)), Tuple ("FreshnessBasis", typeof(UniClaw.Kernel.World.FreshnessBasis)), Tuple ("HasConflictOnTarget", typeof(bool)), Tuple ("RevisionId", typeof(string)), Tuple ("RevisionNumber", typeof(int))]
+           ↑ (pos 0)
+  堆栈跟踪:
+     at UniClaw.Kernel.Tests.RuntimeViewExposureTests.AssertShape(Type type, ValueTuple`2[] expected) in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/RuntimeViewExposureTests.cs:line 124
+   at UniClaw.Kernel.Tests.RuntimeViewExposureTests.N1_ViewPublicShapesMatchAllowlistExactly() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/RuntimeViewExposureTests.cs:line 95
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.40]     UniClaw.Kernel.Tests.SourceReadmeOwnershipTests.SourceFiles_AreRegistered_InDimensionReadme [FAIL]
+  失败 UniClaw.Kernel.Tests.SourceReadmeOwnershipTests.SourceFiles_AreRegistered_InDimensionReadme [16 ms]
+  错误消息:
+   维度 README 登记违规（223 个源文件受检，ARCH-DOC-022 执法）：
+src/UniClaw.Host/PageSemanticReadSupply.cs: 未在归属 README src/UniClaw.Host/README.md 中点名
+src/UniClaw.Kernel/UniKernel.WorldConsumption.cs: 未在归属 README src/UniClaw.Kernel/README.md 中点名
+src/UniClaw.Kernel/Assurance/RuntimeAssurance.WorldImpact.cs: 未在归属 README src/UniClaw.Kernel/Assurance/README.md 中点名
+src/UniClaw.Kernel/World/WorldConsumptionBasis.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/WorldPageView.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/SliceContentPresentation.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/WorldAccumulatedContent.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/WorldModel.Corrections.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/WorldModel.Knowledge.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/WorldModel.History.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/SemanticVerificationObservation.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/WorldModel.Content.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/WorldModel.Context.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/WorldModel.SemanticKnowledge.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/PageInterpretationCorrection.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/WorldKnowledgeView.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/World/ContainerContextObservation.cs: 未在归属 README src/UniClaw.Kernel/World/README.md 中点名
+src/UniClaw.Kernel/Control/ControlLoop.WorldConsumption.cs: 未在归属 README src/UniClaw.Kernel/Control/README.md 中点名
+src/UniClaw.Kernel/Control/WorldRecoveryControl.cs: 未在归属 README src/UniClaw.Kernel/Control/README.md 中点名
+src/UniClaw.Kernel/Perception/UiHierarchy/NativeContextObservationProjector.cs: 未在归属 README src/UniClaw.Kernel/Perception/README.md 中点名
+  堆栈跟踪:
+     at UniClaw.Kernel.Tests.SourceReadmeOwnershipTests.SourceFiles_AreRegistered_InDimensionReadme() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Kernel.Tests/SourceReadmeOwnershipTests.cs:line 96
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失败!  - 失败:     4，通过:  1095，已跳过:     0，总计:  1099，持续时间: 2 s - UniClaw.Kernel.Tests.dll (net10.0)

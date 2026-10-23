@@ -621,6 +621,7 @@ function consultationPrompt(request, artifact, promptArtifact, skillArtifact, pr
     `This is the CURRENT consultation turn. The current Product DecisionId is ${request.context.decisionId}.`,
     'Ignore decisionIds from all previous turns in this task session; they are historical and must not be reused.',
     allowedEffectsInstruction,
+    ...(request.context?.worldKnowledge ? ['本轮worldKnowledge来自当前World修订。gaps表示具体缺失依据，缺记录不等于零次尝试或问题已解决；semanticReferences仅供历史参考，只有currentSemantics明确沿用的稳定页面含义可用于当前认识，状态、位置和操作条件仍需当前证据。Corrections及未决影响须先复核；这些摘要不授予动作或完成权限。'] : []),
     ...(reviewInstruction === null ? [] : [reviewInstruction]),
     ...(request.context?.planExecution?.status === 'Paused'
       ? ['原Plan已在安全边界暂停。若沿用，提交kind=continuePlan并逐字复制context.planExecution.position全部字段；获授资源本身不选择继续。若修改内容，提交同PlanId更高version的新Plan接替未执行部分。NoAction终局评估并废弃原Plan，Act单独执行而不暗中拼接旧Plan。'] : []),

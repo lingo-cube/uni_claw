@@ -1,0 +1,36 @@
+{
+  "entryHead": "f541a8971a8880e5c70a0841a03c45c6eeb1b06a",
+  "foreignTrackedProtection": [
+    {
+      "path": "changes/AGT-019/state.md",
+      "entryDiffUnchanged": true,
+      "sha256": "fbdbb9ed957bb1d2dee3b55ea8da03eaeaf1d10b27a657e0e54d7b838252517e"
+    },
+    {
+      "path": "changes/INDEX.md",
+      "entryDiffUnchanged": true,
+      "sha256": "d9551a45750e30074fe8ea55056c047d506cba428fe4796dbd803e6325eab006"
+    },
+    {
+      "path": "changes/RUNTIME-PLAN-002/execution-contract.md",
+      "entryDiffUnchanged": true,
+      "sha256": "85ea0b8a74fa1ccf2a457773dd061c78eafeb957ad6e691e572d50c3b4fc74a3"
+    },
+    {
+      "path": "changes/SETTINGS-COVERAGE-003/state.md",
+      "entryDiffUnchanged": true,
+      "sha256": "1e4e4000755564d6f830edc4e9cf1cefe33c1d2f78218efbbf9f0431a9f64df8"
+    },
+    {
+      "path": "changes/SETTINGS-COVERAGE-005/state.md",
+      "entryDiffUnchanged": true,
+      "sha256": "fc08e4530a17187be4f940d817b3dfabe05b511cb1e8150bb72f1971a35ca817"
+    },
+    {
+      "path": "changes/TRAJECTORY-001/state.md",
+      "entryDiffUnchanged": true,
+      "sha256": "8ca9b0f6cfaa3302ea30821c9acc242a78b51564c8352fcf08db1093d84879fe"
+    }
+  ],
+  "initialIndexEmpty": true
+}

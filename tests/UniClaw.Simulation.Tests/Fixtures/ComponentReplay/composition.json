@@ -1,7 +1,12 @@
 {
   "schemaVersion": "component-replay-composition.v1",
-  "causalChange": "SIM-014",
+  "causalChange": "WORLD-UNCERTAINTY-001",
   "pins": [
+    {
+      "kind": "oracle",
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/oracle.json",
+      "sha256": "1b0c862d1e7e7ba69b5957fa97fb280e1e34385dd7e5e1afc88925762674641a"
+    },
     {
       "kind": "product-contract",
       "path": "src/UniClaw.Kernel/Capability/CapabilityHub.cs",
@@ -60,12 +65,12 @@
     {
       "kind": "product-contract",
       "path": "src/UniClaw.Kernel/World/PageObservation.cs",
-      "sha256": "c859255b7a7ffcce03aaa0f63749a355a550c832007bd99c842b9ec136ce52ec"
+      "sha256": "1812647e450c8f3d32ac8790d8b30ea4a5517971284877297867d2b2fe9ffd45"
     },
     {
       "kind": "product-contract",
       "path": "src/UniClaw.Kernel/World/WorldBeliefRevision.cs",
-      "sha256": "aa6946094c85a9b30ea54136f913c28c9c17ad5e8827ad3faefe07c4fed0df30"
+      "sha256": "879ff1369b188bcf08d3a804db5ec40dedb4e21b8ff345dd315f882de31e57d7"
     },
     {
       "kind": "product-implementation",
@@ -89,18 +94,33 @@
     },
     {
       "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/NativeContextObservationProjector.cs",
+      "sha256": "853b5fb031c320e7c085f34373330abc78e2c5647fcd7871e1e79ba2cc01ef54"
+    },
+    {
+      "kind": "product-implementation",
       "path": "src/UniClaw.Kernel/World/ConflictResolver.cs",
       "sha256": "8210f3a275966619fc543b79f947f12c368d70037d73f8edd2e42fe21fc4b479"
     },
     {
       "kind": "product-implementation",
       "path": "src/UniClaw.Kernel/World/ConsumerViews.cs",
-      "sha256": "9a55c1ba5484d5cf3c4544c60d0b95b75ebe30f11906ca47e5107f53755dbba8"
+      "sha256": "a3c5f6a59cb0b15c4fc15531728d568e755cfa60c84033fb31bb55bc0b0cbee4"
+    },
+    {
+      "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/ContainerContextObservation.cs",
+      "sha256": "43e283574594d1397abeeddf61372f1a73965bd50523fdc8d9c97f29c1dd412d"
     },
     {
       "kind": "product-implementation",
       "path": "src/UniClaw.Kernel/World/NativeLocator.cs",
       "sha256": "8a825da4f58d2d858b11e48450e4461170598abbe32671d253182e28237bc92a"
+    },
+    {
+      "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/PageInterpretationCorrection.cs",
+      "sha256": "7c6550acc51564a1db77b6fe2fb5bf3a804184f901bd670637b8bb6404acf714"
     },
     {
       "kind": "product-implementation",
@@ -124,8 +144,18 @@
     },
     {
       "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/SemanticVerificationObservation.cs",
+      "sha256": "052cc20991a9b6bc1e5bf4e49441ae44176d8a787e41b69e09410b8d7c4058e2"
+    },
+    {
+      "kind": "product-implementation",
       "path": "src/UniClaw.Kernel/World/Slice.cs",
-      "sha256": "9938141f4ec515a2b9298d00cad713a3ba4734e8eca5a78a90e4a37463e9c151"
+      "sha256": "eee49a1ecc634dd5d5ef8a3c2db247667c82de4c32557eb81e31ab933d1ec06a"
+    },
+    {
+      "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/SliceContentPresentation.cs",
+      "sha256": "564bc01951aac2c3ac2e3679ac69622f0fb0ba19b3099b92937767781c6d2b9f"
     },
     {
       "kind": "product-implementation",
@@ -160,7 +190,7 @@
     {
       "kind": "product-implementation",
       "path": "src/UniClaw.Kernel/World/UiRealization/ProductAssociationStrategy.cs",
-      "sha256": "54ad74cef0bd6a232fb3b18d64089db240fe0a8e83feb82c35a2c0478e9797f5"
+      "sha256": "d9014b7a8ca380aca64e73932b7ec9775cf5114ab893173cbd42189e8d94386b"
     },
     {
       "kind": "product-implementation",
@@ -174,8 +204,53 @@
     },
     {
       "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/WorldAccumulatedContent.cs",
+      "sha256": "1c67de10e27ff8bae21529245ce41dd3fcee9610f92c53ec1d71491337e756a2"
+    },
+    {
+      "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/WorldConsumptionBasis.cs",
+      "sha256": "87f1c3823474965069ed5624451daf0316093f12abe370470ce40331c4999bbb"
+    },
+    {
+      "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/WorldKnowledgeView.cs",
+      "sha256": "2341503fda7704c6e3d345eafe5b8d8b49c277ddd458c349738e865fba39d133"
+    },
+    {
+      "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/WorldModel.Content.cs",
+      "sha256": "10e8ff6aad3cc6e11415188ca97e64e88dec2fd78ac7a3785f700848eeb7859a"
+    },
+    {
+      "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/WorldModel.Context.cs",
+      "sha256": "283c2b9b860e186bcb1b4e0b3f2ab6abeb055f662ab0f417200aba50b3a9a694"
+    },
+    {
+      "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/WorldModel.Corrections.cs",
+      "sha256": "fced9b676c132eb609c9e60297982aa70669093e9c1eaed098ce77c76f2bcc2c"
+    },
+    {
+      "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/WorldModel.History.cs",
+      "sha256": "2d78e5b503d0cc607260100fb655c5505731fc290d5e3952752ddd3da7006de7"
+    },
+    {
+      "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/WorldModel.Knowledge.cs",
+      "sha256": "7b1985922027af8918ad3f12134cc3b1c4bab5108d9d4d62187776971c2f2f8c"
+    },
+    {
+      "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/WorldModel.SemanticKnowledge.cs",
+      "sha256": "7fa4ffff865eefab1677e454dbd10b30a0821afdebc6cb76408e9e6075106803"
+    },
+    {
+      "kind": "product-implementation",
       "path": "src/UniClaw.Kernel/World/WorldModel.Semantics.cs",
-      "sha256": "16a046850c50bde97f8a6ed0134fe0773d6e65f1eda9490d8f957e86c619c5bd"
+      "sha256": "67afd6ce66bb952f4d21408febb0fc53bd8b529e21cfa2729b6d4f063787916b"
     },
     {
       "kind": "product-implementation",
@@ -185,52 +260,17 @@
     {
       "kind": "product-implementation",
       "path": "src/UniClaw.Kernel/World/WorldModel.cs",
-      "sha256": "6db64bb4ee40b07b17516c2cb3a51d6290fa801397a48e04fac3572316e858f6"
+      "sha256": "b41d84f83dfb7704118462747192fc24ea68f4a226d10d767dc1db46a115935f"
+    },
+    {
+      "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/WorldPageView.cs",
+      "sha256": "51edbbbe128ebb60a0efafc17fde7a34000325e43561909bf97e44b4d83e87d3"
     },
     {
       "kind": "product-implementation",
       "path": "src/UniClaw.Kernel/World/WorldRevisionIndex.cs",
       "sha256": "bc5f3441fb8c812f88d39f50d36fc5cf387cfcc8aba00026944a1afd8a21fd50"
-    },
-    {
-      "kind": "simulation-adapter",
-      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/CaptureMismatchFault.cs",
-      "sha256": "d335836ff3559a27ecf228e21f23a39367b262b56f9e0716fe4be7b6f9651d87"
-    },
-    {
-      "kind": "simulation-adapter",
-      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ComponentReplayCases.cs",
-      "sha256": "11f20a1c1c2da624ac70d8f8d82e497245cb2126e46610792a796199d54e31db"
-    },
-    {
-      "kind": "simulation-adapter",
-      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ComponentScenarioScope.cs",
-      "sha256": "c4e77aa2ec6e82b263d92196fc3fb7901c25509bd9fcf706e250097a8ae460f0"
-    },
-    {
-      "kind": "simulation-adapter",
-      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/RecordedComponentInputs.cs",
-      "sha256": "6253b03e6115dcff987e18745d6984a4c4a4d798750c53a704b3b700cccb65ac"
-    },
-    {
-      "kind": "simulation-adapter",
-      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs",
-      "sha256": "7484b6b65767ad7d631444a767e0a6afb88cfa822a03795085532169f4e1ceba"
-    },
-    {
-      "kind": "simulation-adapter",
-      "path": "tests/UniClaw.Simulation.Tests/ComponentReplayGovernanceTests.cs",
-      "sha256": "a30290179fca1a518069a5cae05b8789d9c9ee243981b1900ea055baff9c697f"
-    },
-    {
-      "kind": "simulation-adapter",
-      "path": "tests/UniClaw.Simulation.Tests/ComponentSemanticReplayTests.cs",
-      "sha256": "c1260a57645989eca303450e965711b69ddec2a4bb3cf46a332a39ed7b5fda39"
-    },
-    {
-      "kind": "simulation-adapter",
-      "path": "tests/UniClaw.Simulation.Tests/ComponentWorldReplayTests.cs",
-      "sha256": "74ebe14a70d793de9804271ed82e8b634688553a08e43891cd67ada7992077a9"
     },
     {
       "kind": "replay-input",
@@ -348,9 +388,44 @@
       "sha256": "6dbac2bebc83484183f828c9a3b3e0592ec040f50a3d5d9538e49685a0e5d26e"
     },
     {
-      "kind": "oracle",
-      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/oracle.json",
-      "sha256": "1b0c862d1e7e7ba69b5957fa97fb280e1e34385dd7e5e1afc88925762674641a"
+      "kind": "simulation-adapter",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/CaptureMismatchFault.cs",
+      "sha256": "d335836ff3559a27ecf228e21f23a39367b262b56f9e0716fe4be7b6f9651d87"
+    },
+    {
+      "kind": "simulation-adapter",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ComponentReplayCases.cs",
+      "sha256": "11f20a1c1c2da624ac70d8f8d82e497245cb2126e46610792a796199d54e31db"
+    },
+    {
+      "kind": "simulation-adapter",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ComponentScenarioScope.cs",
+      "sha256": "c4e77aa2ec6e82b263d92196fc3fb7901c25509bd9fcf706e250097a8ae460f0"
+    },
+    {
+      "kind": "simulation-adapter",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/RecordedComponentInputs.cs",
+      "sha256": "6253b03e6115dcff987e18745d6984a4c4a4d798750c53a704b3b700cccb65ac"
+    },
+    {
+      "kind": "simulation-adapter",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs",
+      "sha256": "7484b6b65767ad7d631444a767e0a6afb88cfa822a03795085532169f4e1ceba"
+    },
+    {
+      "kind": "simulation-adapter",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplayGovernanceTests.cs",
+      "sha256": "a30290179fca1a518069a5cae05b8789d9c9ee243981b1900ea055baff9c697f"
+    },
+    {
+      "kind": "simulation-adapter",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentSemanticReplayTests.cs",
+      "sha256": "42f2df3a9a1bdb3860854a9d8eee27b82b384f3ce6f97f7cf60c6d4ddd61f5a5"
+    },
+    {
+      "kind": "simulation-adapter",
+      "path": "tests/UniClaw.Simulation.Tests/ComponentWorldReplayTests.cs",
+      "sha256": "74ebe14a70d793de9804271ed82e8b634688553a08e43891cd67ada7992077a9"
     }
   ]
 }

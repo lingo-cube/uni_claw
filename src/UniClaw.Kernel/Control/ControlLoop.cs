@@ -12,8 +12,17 @@ namespace UniClaw.Kernel.Control;
 /// binding 或 external effect delivery。Recovery 必须重新进入正常闭环
 /// （不变量 30/31，D10）。
 /// </summary>
-public sealed class ControlLoop
+public sealed partial class ControlLoop
 {
+    private readonly WorldRecoveryControl _worldRecovery = new();
+    internal int RelevantWorldExecutionRecords => _worldRecovery.RelevantExecutionRecords;
+    internal bool HasWorldReview => _worldRecovery.HasPriorReview;
+    internal bool RecordWorldSupplementation(SupplementationExecution execution, WorldKnowledgeView knowledge) =>
+        _worldRecovery.Record(execution, knowledge);
+    internal bool RequestWorldReview(WorldKnowledgeView knowledge, string reason) =>
+        _worldRecovery.RequestReview(knowledge, reason);
+    internal WorldRecoveryView ProjectWorldRecovery(WorldKnowledgeView knowledge) => _worldRecovery.Project(knowledge);
+    internal void MarkWorldReviewRead() => _worldRecovery.Reviewed();
     private readonly IControlPolicy _policy;
     private readonly List<ControlIntent> _intents = new();
     private readonly List<TacticalHypothesis> _hypotheses = new();

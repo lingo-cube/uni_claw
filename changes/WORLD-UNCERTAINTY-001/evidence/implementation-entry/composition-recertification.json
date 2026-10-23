@@ -1,0 +1,32 @@
+[
+  {
+    "manifest": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+    "beforeSha256": "f43e11e85aaafd1cc4c9a8785395bfa81a8e1bc3edd7a12353b8c48a5d0c87c4",
+    "afterSha256": "c1b2e00cbcaed3e6b93e6fb6a75ce0f15e7b353d5bfa516fa1fc05c007873a1a",
+    "changedPins": [
+      {
+        "kind": "simulation-adapter",
+        "path": "tests/UniClaw.Simulation.Tests/ComponentSemanticReplayTests.cs",
+        "sha256": "4c578475d814104794753a487877a9389b04eb53a32ff99978682f0171585432",
+        "newSha256": "42f2df3a9a1bdb3860854a9d8eee27b82b384f3ce6f97f7cf60c6d4ddd61f5a5"
+      }
+    ],
+    "addedImplementationPins": [],
+    "oracleAndReplayInputUnchanged": true
+  },
+  {
+    "manifest": "tests/UniClaw.Host.Tests/Fixtures/PopupReplay/composition.json",
+    "beforeSha256": "7b298aafc452560b73ac1a63df6e802642f8e93ef202b791ddafcb4b8ed5ce07",
+    "afterSha256": "ea3a451f9358e210be164c3313c274510592e85ea3ed8634ca7b43caa7ad79e9",
+    "changedPins": [
+      {
+        "kind": "simulation-adapter",
+        "path": "tests/UniClaw.Simulation.Tests/ComponentSemanticReplayTests.cs",
+        "sha256": "4c578475d814104794753a487877a9389b04eb53a32ff99978682f0171585432",
+        "newSha256": "42f2df3a9a1bdb3860854a9d8eee27b82b384f3ce6f97f7cf60c6d4ddd61f5a5"
+      }
+    ],
+    "addedImplementationPins": [],
+    "oracleAndReplayInputUnchanged": true
+  }
+]

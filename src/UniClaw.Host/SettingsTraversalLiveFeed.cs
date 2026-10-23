@@ -12,6 +12,7 @@ using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.Perception.UiHierarchy;
 using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.World.UiRealization;
+using UniClaw.Kernel.Perception.UiHierarchy;
 
 namespace UniClaw.Host;
 
@@ -81,6 +82,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
     private int _cycle;
     private readonly ISemanticPerception? _semanticPerception;
     private readonly IReadOnlyList<SemanticPageCandidate> _semanticPages;
+    private readonly NativeContextSignatureProfile? _nativeContextProfile;
     private PageCaptureObservation? _identityCapture;
     private byte[]? _identityPixels;
     private string? _identityFastTitle;
@@ -112,12 +114,14 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         SettingsCoverageConfig? coverageConfig = null,
         UniPerceptionPipeline.Fetch? uniPerceptionFetch = null,
         ISemanticPerception? semanticPerception = null,
-        IReadOnlyList<SemanticPageCandidate>? semanticPages = null)
+        IReadOnlyList<SemanticPageCandidate>? semanticPages = null,
+        NativeContextSignatureProfile? nativeContextProfile = null)
     {
         _clock = clock;
         _assets = assets;
         _semanticPerception = semanticPerception;
         _semanticPages = semanticPages ?? [];
+        _nativeContextProfile = nativeContextProfile;
         _acquisition = new AdbScreenshotAcquisition(assets.DeviceId, "adb", () => clock.Now);
         _vision = new VisionServiceSession(assets.ProviderRoot, assets.PythonExecutable, assets.CacheRoot);
         _evidenceDir = evidenceDir;
@@ -228,7 +232,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         var proposals = new List<ObservationProposal>();
         var session = KernelProvider?.Invoke()?.RunId ?? $"settings:{_assets.DeviceId}";
         _identityCapture = PageIdentityRecovery.Capture(captureId, observationCycleId, session,
-            _clock.Now, capture.Width, capture.Height, xmlResult.Xml, fastBasis);
+            _clock.Now, capture.Width, capture.Height, xmlResult.Xml, fastBasis) with { DeviceId = _assets.DeviceId };
         _identityPixels = SHA256.HashData(capture.Artifact.Payload);
         _identityFastTitle = routeKey.StartsWith("android.settings|rk1:", StringComparison.Ordinal)
             ? routeKey["android.settings|rk1:".Length..].Split("|src=", StringSplitOptions.None)[0] : null;
@@ -321,9 +325,10 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
                         ObservationCycleId: observationCycleId,
                         Capabilities: WifiToggleCapabilities,
                         ExactProof: WifiToggleExactProof,
-                        Space: CoordinateSpace.DeviceViewport(capture.Width, capture.Height)));
+                        Space: _identityCapture.Space));
                 if (typed.Observation is { } observation)
-                    proposals.AddRange(TypedHierarchyProposalProjector.Project(observation, directive.Context));
+                    proposals.AddRange(NativeContextObservationProjector.Project(
+                        observation, _nativeContextProfile, directive.Context));
             }
         }
 
@@ -362,14 +367,16 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         var identity = PageIdentityRecovery.Identity(source, _identityFastTitle,
             _identityFastSignature, directive.Context);
         IReadOnlyList<ObservationProposal> meaning = [];
+        UniClaw.Kernel.Control.SupplementationExecution? execution = null;
         if (identity is null)
         {
             if (_coverageConfig?.SlowSettings.Enabled == false
                 || _slowRequests >= (_coverageConfig?.SlowSettings.MaxRequestsPerRun ?? 4)) return null;
             _slowRequests++;
             var recognized = PageIdentityRecovery.RecognizeAsync(_semanticPerception, _semanticPages,
-                need, budget, directive.Context, _cancellationToken).GetAwaiter().GetResult();
+                need, budget, directive.Context, _cancellationToken, KernelProvider?.Invoke()).GetAwaiter().GetResult();
             meaning = recognized.Meaning;
+            execution = recognized.Execution;
             var observedRoute = recognized.Title is null ? "android.settings"
                 : "observed-page:v1:title=" + recognized.Title;
             var signature = SettingsPageIdentity.Derive(_identityPriorSignature, _identityPriorRoute,
@@ -380,7 +387,7 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         }
         if (_cancellationToken.IsCancellationRequested)
             return new RunDriverInput.Cancel("host-cancelled", _clock.Now);
-        if (identity is null) return null;
+        if (identity is null) return execution is null ? null : new RunDriverInput.Observation([], execution);
         // Same-capture evidence can be reused only while the observed scene is
         // unchanged. A fresh scene enters P2 as a new capture, with the original
         // Control deadline and receipt still in force.
@@ -388,10 +395,14 @@ public sealed class SettingsTraversalLiveFeed : IDisposable
         if (_identityPixels is null || !SHA256.HashData(currentPixels.Artifact.Payload).SequenceEqual(_identityPixels))
         {
             _reobservingIdentity = true;
-            try { return Next(directive with { Need = null, Depth = ObservationDepth.Normal, RemainingBudget = null }); }
+            try
+            {
+                var refreshed = Next(directive with { Need = null, Depth = ObservationDepth.Normal, RemainingBudget = null });
+                return refreshed is RunDriverInput.Observation batch ? batch with { Execution = execution } : refreshed;
+            }
             finally { _reobservingIdentity = false; }
         }
-        return new RunDriverInput.Observation(new[] { identity }.Concat(meaning).ToArray());
+        return new RunDriverInput.Observation(new[] { identity }.Concat(meaning).ToArray(), execution);
     }
 
     /// <summary>

@@ -12,7 +12,8 @@ namespace UniClaw.Kernel.Runtime;
 public abstract record RunDriverInput
 {
     /// <summary>一轮外部观察（initial=External / post-action=PostActionEffectFlow）。</summary>
-    public sealed record Observation(IReadOnlyList<ObservationProposal> Proposals) : RunDriverInput;
+    public sealed record Observation(IReadOnlyList<ObservationProposal> Proposals,
+        UniClaw.Kernel.Control.SupplementationExecution? Execution = null) : RunDriverInput;
 
     /// <summary>宿主/用户 cancel（有界 lifecycle 输入；正式协议仍 Deferred ⑯）。</summary>
     public sealed record Cancel(string Reason, DateTimeOffset VirtualTime) : RunDriverInput;
@@ -98,6 +99,10 @@ public sealed class RunDriverInputs
     /// boundaries; cannot dequeue or synthesize an observation or authorize effects.</summary>
     public Func<RunDriverInput.Cancel?>? PollCancellation { get; init; }
 
+    /// <summary>Completed external supplementation executions, polled at the
+    /// existing safe boundaries. This never starts work or replenishes quotas.</summary>
+    public Func<IReadOnlyList<UniClaw.Kernel.Control.SupplementationExecution>>? PollSupplementationExecutions { get; init; }
+
     /// <summary>P25 UniAgent consultation seam（唯一调用方 = internal driver）。</summary>
     public required Func<AgentDecisionContext, AgentDecision?> ConsultAgent { get; init; }
 
@@ -109,6 +114,10 @@ public sealed class RunDriverInputs
 
     /// <summary>Owner-produced read-only progress facts for the shared execution overview.</summary>
     public Func<ExecutionOverviewProjection?>? ProjectExecutionOverview { get; init; }
+
+    /// <summary>Consumer's current context request, not a claim that a relation
+    /// exists. Only an already known canonical parent may be requested.</summary>
+    public Func<string?>? RequiredWorldParentContext { get; init; }
 
     /// <summary>Optional task-evidence barrier. A non-null reason withholds
     /// completion proof; it can never grant completion or authorize effects.</summary>

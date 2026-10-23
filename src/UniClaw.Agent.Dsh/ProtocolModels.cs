@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using UniClaw.Agent.Profile;
 using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Runtime;
+using UniClaw.Kernel.World;
 
 namespace UniClaw.Agent.Dsh;
 
@@ -208,6 +209,7 @@ public static class ProductProtocolJson
         options.Converters.Add(new JsonStringEnumConverter<PlanExecutionStatus>(allowIntegerValues: false));
         options.Converters.Add(new JsonStringEnumConverter<PlanAttemptStatus>(allowIntegerValues: false));
         options.Converters.Add(new JsonStringEnumConverter<AgentDecisionPhase>(allowIntegerValues: false));
+        options.Converters.Add(new JsonStringEnumConverter<WorldKnowledgeGapKind>(allowIntegerValues: false));
         options.Converters.Add(new JsonStringEnumConverter<TraversalOperationKind>(allowIntegerValues: false));
         options.Converters.Add(new JsonStringEnumConverter<PlanHandlerCallStatus>(allowIntegerValues: false));
         options.Converters.Add(new JsonStringEnumConverter<FindingDisposition>(allowIntegerValues: false));
