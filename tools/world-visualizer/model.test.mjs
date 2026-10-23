@@ -1,7 +1,31 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
-import { validateDataset, changesBetween, changesBetweenFrames, normalize } from './model.mjs';
+import { validateDataset, changesBetween, changesBetweenFrames, normalize, pageGeometry } from './model.mjs';
+
+test('page display preserves device pixel proportions for portrait, landscape and square captures', () => {
+  const elements=[{locator:{x1:0,y1:0,x2:1,y2:1}}];
+  for(const [pixelWidth,pixelHeight] of [[1080,2400],[2400,1080],[1000,1000]]) {
+    const g=pageGeometry(elements,{pixelWidth,pixelHeight});
+    assert.equal(g.aspectKnown,true);
+    assert.ok(Math.abs(g.scaleY/g.scaleX-pixelHeight/pixelWidth)<1e-10,`${pixelWidth}×${pixelHeight}`);
+    assert.ok(Math.abs((g.width-20)/(g.height-20)-pixelWidth/pixelHeight)<1e-10);
+  }
+});
+
+test('accumulated bounds keep negative and offscreen coordinates without changing pixel proportions', () => {
+  const g=pageGeometry([{locator:{x1:-.2,y1:-.5,x2:1.2,y2:2}}],{pixelWidth:1080,pixelHeight:2400});
+  assert.equal(g.minX,-.2);assert.equal(g.minY,-.5);
+  assert.ok(Math.abs(g.scaleY/g.scaleX-2400/1080)<1e-10);
+  assert.ok(Math.abs(g.height-(2.5*g.scaleY+20))<1e-10);
+});
+
+test('missing or invalid device dimensions remain explicitly unknown', () => {
+  for(const space of [undefined,{}, {pixelWidth:0,pixelHeight:2400},{pixelWidth:1080,pixelHeight:NaN}]) {
+    const g=pageGeometry([{locator:{x1:0,y1:0,x2:1,y2:1}}],space);
+    assert.equal(g.aspectKnown,false);assert.equal(g.scaleX,g.scaleY);
+  }
+});
 
 test('actual Owner exports keep frame/page/slice provenance aligned', async () => {
   for (const name of (await readdir(new URL('./examples/', import.meta.url))).filter(n => n.endsWith('.json') && n !== 'index.json')) {

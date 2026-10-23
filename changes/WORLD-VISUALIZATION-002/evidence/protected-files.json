@@ -1,0 +1,12 @@
+{
+  "originalFilesUnchanged": {
+    "changes/AGT-019/state.md": true,
+    "changes/INDEX.md": true,
+    "changes/RUNTIME-PLAN-002/execution-contract.md": true,
+    "changes/SETTINGS-COVERAGE-003/state.md": true,
+    "changes/SETTINGS-COVERAGE-005/state.md": true,
+    "changes/TRAJECTORY-001/state.md": true
+  },
+  "sourceProductDiff": "No src/ files changed",
+  "remoteBase": "5a4f485e6e5533ab880985daf10a737818af89ff"
+}

@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: page display preserves device pixel proportions for portrait, landscape and square captures
+ok 1 - page display preserves device pixel proportions for portrait, landscape and square captures
+  ---
+  duration_ms: 0.542167
+  type: 'test'
+  ...
+# Subtest: accumulated bounds keep negative and offscreen coordinates without changing pixel proportions
+ok 2 - accumulated bounds keep negative and offscreen coordinates without changing pixel proportions
+  ---
+  duration_ms: 0.092792
+  type: 'test'
+  ...
+# Subtest: missing or invalid device dimensions remain explicitly unknown
+ok 3 - missing or invalid device dimensions remain explicitly unknown
+  ---
+  duration_ms: 0.05625
+  type: 'test'
+  ...
+# Subtest: actual Owner exports keep frame/page/slice provenance aligned
+ok 4 - actual Owner exports keep frame/page/slice provenance aligned
+  ---
+  duration_ms: 14.736042
+  type: 'test'
+  ...
+# Subtest: frame comparison includes actual scope, page, knowledge and result updates at the same W
+ok 5 - frame comparison includes actual scope, page, knowledge and result updates at the same W
+  ---
+  duration_ms: 1.113
+  type: 'test'
+  ...
+# Subtest: reject cross-W page and current slice instead of silently repairing provenance
+ok 6 - reject cross-W page and current slice instead of silently repairing provenance
+  ---
+  duration_ms: 0.263
+  type: 'test'
+  ...
+# Subtest: dictionary subject keys are not camel-cased; disappearance is not physical deletion
+ok 7 - dictionary subject keys are not camel-cased; disappearance is not physical deletion
+  ---
+  duration_ms: 0.068333
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 78.191291

@@ -268,9 +268,20 @@ public sealed class WorldKnowledgeChannelTests
         var containerId = world.Current!.CurrentPageObservation!.ContainerId!;
         var page = kernel.ProjectWorldPage(containerId);
         var slice = kernel.DeriveSlice(containerId);
-        var frameId = capture.Space.CoordinateSpaceId;
+        var locatedSliceOccurrences = slice.Occurrences
+            .Where(o => o.Locator is not null)
+            .ToArray();
+        Assert.Equal(15, locatedSliceOccurrences.Length);
+        var frameId = Assert.Single(locatedSliceOccurrences
+            .Select(o => o.Locator!.SpatialFrameId)
+            .Distinct(StringComparer.Ordinal));
         var presentation = SliceContentPresentation.Project(slice, frameId,
             new SpatialLocator(0, 0, 1, 1, frameId));
+        Assert.Equal(locatedSliceOccurrences.Select(o => o.OccurrenceId).Order(StringComparer.Ordinal),
+            presentation.Elements.Select(e => e.OccurrenceId).Order(StringComparer.Ordinal));
+        var sliceLocators = locatedSliceOccurrences.ToDictionary(o => o.OccurrenceId, o => o.Locator);
+        Assert.All(presentation.Elements, element =>
+            Assert.Equal(sliceLocators[element.OccurrenceId], element.Locator));
         var outputPath = Environment.GetEnvironmentVariable("UNICLAW_WORLD_EXAMPLE_EXPORT");
         if (!string.IsNullOrWhiteSpace(outputPath))
         {

@@ -38,6 +38,14 @@ export function validateDataset(raw) {
   return data;
 }
 export const array = value => Array.isArray(value) ? value : [];
+// Read-only conversion of normalized bounds to display coordinates.
+export function pageGeometry(elements, space) {
+  const minX=Math.min(0,...elements.map(v=>v.locator.x1)), minY=Math.min(0,...elements.map(v=>v.locator.y1));
+  const maxX=Math.max(1,...elements.map(v=>v.locator.x2)), maxY=Math.max(1,...elements.map(v=>v.locator.y2));
+  const aspectKnown=Number.isFinite(space?.pixelWidth) && space.pixelWidth>0 && Number.isFinite(space?.pixelHeight) && space.pixelHeight>0;
+  const scaleX=280/(maxX-minX), scaleY=scaleX*(aspectKnown?space.pixelHeight/space.pixelWidth:1);
+  return {minX,minY,scaleX,scaleY,width:300,height:(maxY-minY)*scaleY+20,aspectKnown};
+}
 export const short = value => value == null ? '未采集' : String(value).length > 25 ? String(value).slice(0,17) + '…' + String(value).slice(-5) : String(value);
 export const gapNames = ['身份未知','归属未知','关系依据未知','观察覆盖不完整'];
 export function containerName(frame, id) {

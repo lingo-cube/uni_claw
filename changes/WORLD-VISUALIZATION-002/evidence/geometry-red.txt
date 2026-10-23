@@ -1,0 +1,86 @@
+TAP version 13
+# Subtest: page display preserves device pixel proportions for portrait, landscape and square captures
+not ok 1 - page display preserves device pixel proportions for portrait, landscape and square captures
+  ---
+  duration_ms: 0.771125
+  type: 'test'
+  location: '/Users/fran/Documents/Code/spacex/uni_claw/tools/world-visualizer/model.test.mjs:6:1'
+  failureType: 'testCodeFailure'
+  error: '1080×2400'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/fran/Documents/Code/spacex/uni_claw/tools/world-visualizer/model.test.mjs:11:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: accumulated bounds keep negative and offscreen coordinates without changing pixel proportions
+not ok 2 - accumulated bounds keep negative and offscreen coordinates without changing pixel proportions
+  ---
+  duration_ms: 5.236584
+  type: 'test'
+  location: '/Users/fran/Documents/Code/spacex/uni_claw/tools/world-visualizer/model.test.mjs:16:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+
+      assert.ok(Math.abs(g.scaleY/g.scaleX-2400/1080)<1e-10)
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/fran/Documents/Code/spacex/uni_claw/tools/world-visualizer/model.test.mjs:19:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: missing or invalid device dimensions remain explicitly unknown
+ok 3 - missing or invalid device dimensions remain explicitly unknown
+  ---
+  duration_ms: 0.086541
+  type: 'test'
+  ...
+# Subtest: actual Owner exports keep frame/page/slice provenance aligned
+ok 4 - actual Owner exports keep frame/page/slice provenance aligned
+  ---
+  duration_ms: 15.474667
+  type: 'test'
+  ...
+# Subtest: frame comparison includes actual scope, page, knowledge and result updates at the same W
+ok 5 - frame comparison includes actual scope, page, knowledge and result updates at the same W
+  ---
+  duration_ms: 0.895209
+  type: 'test'
+  ...
+# Subtest: reject cross-W page and current slice instead of silently repairing provenance
+ok 6 - reject cross-W page and current slice instead of silently repairing provenance
+  ---
+  duration_ms: 0.253167
+  type: 'test'
+  ...
+# Subtest: dictionary subject keys are not camel-cased; disappearance is not physical deletion
+ok 7 - dictionary subject keys are not camel-cased; disappearance is not physical deletion
+  ---
+  duration_ms: 0.066
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 5
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 82.584166

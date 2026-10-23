@@ -1868,7 +1868,248 @@
             "sourceRevisionId": "rev-2",
             "rootContainerId": "ctr-81086c8ab0af",
             "isAuthoritative": false,
-            "elements": []
+            "elements": [
+              {
+                "occurrenceId": "occ-81086c8ab0af-0",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Settings",
+                "state": null,
+                "locator": {
+                  "x1": 0.058333333333333334,
+                  "y1": 0.17041666666666666,
+                  "x2": 0.37777777777777777,
+                  "y2": 0.22333333333333333,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.21805555555555556,
+                  "centerY": 0.196875
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-1",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Search settings",
+                "state": null,
+                "locator": {
+                  "x1": 0.18518518518518517,
+                  "y1": 0.2633333333333333,
+                  "x2": 0.5120370370370371,
+                  "y2": 0.29291666666666666,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3486111111111111,
+                  "centerY": 0.27812499999999996
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-2",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Network & internet",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.3466666666666667,
+                  "x2": 0.5787037037037037,
+                  "y2": 0.37625,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3768518518518519,
+                  "centerY": 0.3614583333333333
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-3",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Mobile, Wi‑Fi, hotspot",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.37625,
+                  "x2": 0.5,
+                  "y2": 0.3975,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3375,
+                  "centerY": 0.38687499999999997
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-4",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Connected devices",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.4429166666666667,
+                  "x2": 0.5888888888888889,
+                  "y2": 0.4725,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3819444444444444,
+                  "centerY": 0.45770833333333333
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-5",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Bluetooth, pairing",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.4725,
+                  "x2": 0.44074074074074077,
+                  "y2": 0.49375,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.30787037037037035,
+                  "centerY": 0.483125
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-6",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Apps",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.5391666666666667,
+                  "x2": 0.287962962962963,
+                  "y2": 0.56875,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.23148148148148148,
+                  "centerY": 0.5539583333333333
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-7",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Recent apps, default apps",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.56875,
+                  "x2": 0.5685185185185185,
+                  "y2": 0.59,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.37175925925925923,
+                  "centerY": 0.579375
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-8",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Notifications",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.6354166666666666,
+                  "x2": 0.4527777777777778,
+                  "y2": 0.665,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3138888888888889,
+                  "centerY": 0.6502083333333333
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-9",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Notification history, conversations",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.665,
+                  "x2": 0.6898148148148148,
+                  "y2": 0.68625,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.43240740740740735,
+                  "centerY": 0.675625
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-10",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Battery",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.7316666666666667,
+                  "x2": 0.33055555555555555,
+                  "y2": 0.76125,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.25277777777777777,
+                  "centerY": 0.7464583333333333
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-11",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "100%",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.76125,
+                  "x2": 0.25833333333333336,
+                  "y2": 0.7825,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.21666666666666667,
+                  "centerY": 0.771875
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-12",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Storage",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.8279166666666666,
+                  "x2": 0.3435185185185185,
+                  "y2": 0.8575,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.25925925925925924,
+                  "centerY": 0.8427083333333334
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-13",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "38% used - 9.96 GB free",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.8575,
+                  "x2": 0.5370370370370371,
+                  "y2": 0.87875,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3560185185185185,
+                  "centerY": 0.868125
+                }
+              },
+              {
+                "occurrenceId": "occ-81086c8ab0af-14",
+                "owningContainerId": "ctr-81086c8ab0af",
+                "role": "text",
+                "semanticDescriptor": "Sound & vibration",
+                "state": null,
+                "locator": {
+                  "x1": 0.175,
+                  "y1": 0.9241666666666667,
+                  "x2": 0.5564814814814815,
+                  "y2": 0.9475,
+                  "spatialFrameId": "device-viewport",
+                  "centerX": 0.3657407407407407,
+                  "centerY": 0.9358333333333333
+                }
+              }
+            ]
           }
         }
       ],

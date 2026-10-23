@@ -1,0 +1,15 @@
+{
+  "owner": {
+    "world": "World rev-2父版本 rev-1观察 recorded-settings-c1观察时间 2026-10-23T00:00:00+00:00会话 controlled-recording-session",
+    "note": "rev-2 · Owner 页面视图 · Slice 未选择",
+    "height": 642.2222222222223,
+    "count": 15
+  },
+  "slice": {
+    "world": "World rev-2父版本 rev-1观察 recorded-settings-c1观察时间 2026-10-23T00:00:00+00:00会话 controlled-recording-session",
+    "note": "rev-2 · 实际 Slice slice:v2:8a35c808…3e2ca · device-viewport",
+    "height": 642.2222222222223,
+    "count": 15
+  },
+  "selection": "Network & internet mouse selection and rev-2 source verified before resize"
+}

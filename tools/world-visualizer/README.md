@@ -12,7 +12,7 @@
 
 `index.html/style.css` 是中文工作台；`app.mjs` 管交互与 DOM；`model.mjs` 做字段归一、来源校验与快照差分；`serve.py` 提供静态本地入口；`package_examples.py` 包装正式输出并生成核心与边界示例的摘要索引。`examples/` 来自已发布核心 `56a75fd7` 的实际 Owner 输出，数据细节见各自 provenance。产品源码不依赖此工具或测试程序集。
 
-页面/Slice 布局复用 `SliceContentPresentation.Project` 的只读产品输出；滚动配准、身份、Contains、Navigation、知识沿用、纠正与效果判断均取自原 Owner。JS 不再实现一套 World。旧 Replay 的受控 Driver 场景用于采集导航、回执、验证及滚动来源，原测试 Oracle 不进入应用。
+页面/Slice 布局复用 `SliceContentPresentation.Project` 的只读产品输出，按对应观察的设备宽高比绘制；未导出设备尺寸时明确标记为归一化坐标示意。滚动配准、身份、Contains、Navigation、知识沿用、纠正与效果判断均取自原 Owner。JS 不再实现一套 World。旧 Replay 的受控 Driver 场景用于采集导航、回执、验证及滚动来源，原测试 Oracle 不进入应用。
 
 ## 复现导出
 

@@ -1,4 +1,4 @@
-import {validateDataset, array, short, containerName, changesBetweenFrames, gapNames} from './model.mjs';
+import {validateDataset, array, short, containerName, changesBetweenFrames, gapNames, pageGeometry} from './model.mjs';
 
 const $ = id => document.getElementById(id);
 document.querySelectorAll('button,select,input[type=range],input[type=checkbox],#search').forEach(el=>el.disabled=true);
@@ -124,7 +124,7 @@ function renderGraph() {
 function transformGraph() { const g=$('graph-transform');if(g)g.setAttribute('transform',`translate(${offset.x} ${offset.y}) scale(${zoom})`);$('zoom-level').value=Math.round(zoom*100)+'%'; }
 function renderPage() {
   const f=frame(), latest=data.frames.at(-1), w=current().revisionId;
-  let p=f.pages.find(x=>x.containerId===containerId), shown=f, elements=[], source='Owner 页面视图';
+  let p=f.pages.find(x=>x.containerId===containerId), shown=f, elements=[], space=null, source='Owner 页面视图';
   const sw=f.slices[scopeIndex];
   if(mode==='latest') {
     shown=latest;
@@ -135,19 +135,27 @@ function renderPage() {
     if(p) {
       const o=p.observations.find(o=>o.captureEvidenceId===oldEvidence);
       elements=array(o.occurrences);source=`更正后解释 ${latest.revision.revisionId} / 原观察 ${oldCapture}`;
+      space=o.capture?.space;
     }
   } else if(mode==='content') {
     elements=array(p?.accumulatedContent?.items).map(v=>({...v,occurrenceId:v.observationOccurrenceRefs?.[0] || v.presentationRef,locator:v.bounds,state:v.currentState}));
+    space=array(p?.observations).find(o=>o.captureEvidenceId===p?.accumulatedContent?.currentCaptureEvidenceId)?.capture?.space;
     source='Owner 累计内容投影 / 坐标不可用于执行 · '+array(p?.accumulatedContent?.registrationSourceRefs).length+' 项已采信配准 · '+elements.filter(x=>x.currentPresence!=='observed-current').length+' 项仅历史可见';
   } else if(sw) {
     const presentations=Array.isArray(sw.presentation)?sw.presentation:[sw.presentation].filter(Boolean);
     // Spatial frames are never overlaid. Select one explicit coordinate frame.
     const pf=presentations[Number($('spatial-frame')?.value)||0];
     elements=array(pf?.elements);source=`实际 Slice ${short(sw.sliceId)} · ${pf?.spatialFrameId || elements[0]?.locator?.spatialFrameId || '无坐标'}`;
+    space=sw.slice.region?.space || array(p?.observations).find(o=>o.isCurrentCapture)?.capture?.space;
+    if(!space && current().currentPageObservation?.containerId===sw.slice.rootContainerId) space=current().currentPageObservation.capture.space;
   } else {
     const observations=array(p?.observations).filter(o=>o.isCurrentCapture);
     elements=observations.flatMap(o=>array(o.occurrences));
-    if(!p) elements=array(current().occurrences).filter(o=>o.owningContainerId===containerId);
+    space=observations[0]?.capture?.space;
+    if(!p) {
+      elements=array(current().occurrences).filter(o=>o.owningContainerId===containerId);
+      if(current().currentPageObservation?.containerId===containerId) space=current().currentPageObservation.capture.space;
+    }
   }
   $('page-title').textContent=containerId?containerName(f,containerId):'尚未确认页面';
   $('view-note').className='view-note'+(mode==='latest'?' history':'');
@@ -160,11 +168,10 @@ function renderPage() {
   }
   if(!located.length) $('page-stage').innerHTML=`<div class="empty">${mode==='latest'?'没有已导出的对应历史解释。':'当前范围没有可绘制的 Owner 布局。'}<br>没有资料不表示页面为空；可在对象与来源中查看现有记录。</div>`;
   else {
-    const minX=Math.min(0,...located.map(v=>v.locator.x1)), minY=Math.min(0,...located.map(v=>v.locator.y1));
-    const maxX=Math.max(1,...located.map(v=>v.locator.x2)),maxY=Math.max(1,...located.map(v=>v.locator.y2));
-    const scale=280/(maxX-minX), h=Math.max(240,(maxY-minY)*scale+24);
-    $('page-stage').innerHTML=`<svg class="page-svg" width="300" height="${h}" viewBox="-10 -10 300 ${h}" role="img" aria-label="页面布局，${e(source)}">${located.map((v,i)=>{
-      const b=v.locator,x=(b.x1-minX)*scale,y=(b.y1-minY)*scale,bw=(b.x2-b.x1)*scale,bh=(b.y2-b.y1)*scale,historical=v.currentPresence && v.currentPresence!=='observed-current';
+    const {minX,minY,scaleX,scaleY,width,height,aspectKnown}=pageGeometry(located,space);
+    if(!aspectKnown) $('view-note').textContent+=' · 归一化坐标示意，屏幕宽高比未采集';
+    $('page-stage').innerHTML=`<svg class="page-svg" width="${width}" height="${height}" viewBox="-10 -10 ${width} ${height}" role="img" aria-label="页面布局，${e(source)}">${located.map((v,i)=>{
+      const b=v.locator,x=(b.x1-minX)*scaleX,y=(b.y1-minY)*scaleY,bw=(b.x2-b.x1)*scaleX,bh=(b.y2-b.y1)*scaleY,historical=v.currentPresence && v.currentPresence!=='observed-current';
       return `<g data-element="${i}" tabindex="0" role="button" aria-label="${e(v.semanticDescriptor||v.role)}" class="${nodeId(selected)===nodeId(v)?'active':''}"><rect x="${x}" y="${y}" width="${Math.max(bw,1)}" height="${Math.max(bh,1)}" rx="3" fill="${historical?'#fff9e9':'#eff5ed'}" stroke="${historical?'#c4a365':'#b6ccb5'}" ${historical?'stroke-dasharray="4 3"':''}/><clipPath id="clip${i}"><rect x="${x+3}" y="${y}" width="${Math.max(bw-6,1)}" height="${Math.max(bh,1)}"/></clipPath><text x="${x+6}" y="${v.role==='scrollable'?y+bh-8:y+Math.min(bh/2+4,20)}" font-size="${bh<16?8:11}" fill="#315b42" clip-path="url(#clip${i})">${e(v.semanticDescriptor || v.role)}${v.state?' · '+e(v.state):''}${historical?' · 历史':''}</text></g>`;
     }).join('')}</svg>`;
     $('page-stage').querySelectorAll('[data-element]').forEach(el=>{const action=()=>{const value=located[Number(el.dataset.element)];const observation=array(p?.observations).find(o=>array(o.occurrences).some(v=>v.occurrenceId===value.occurrenceId));select(observation?{...value,captureEvidenceId:observation.captureEvidenceId,identityEvidenceId:observation.identityEvidenceId}:value,shown.revision.revisionId);};el.onclick=action;el.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();action();}};});

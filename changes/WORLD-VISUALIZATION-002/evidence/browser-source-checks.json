@@ -1,0 +1,45 @@
+{
+  "old": {
+    "world": "World rev-6父版本 rev-5观察 c1观察时间 2026-10-23T00:00:01+00:00会话 fixture-session",
+    "note": "rev-6 · Owner 页面视图 · Slice 未选择",
+    "height": 642.2222222222223,
+    "count": 2
+  },
+  "historical": {
+    "world": "World rev-6父版本 rev-5观察 c1观察时间 2026-10-23T00:00:01+00:00会话 fixture-session",
+    "note": "历史图仍为 rev-6；这里单独显示最新 rev-10 对原观察的解释。",
+    "height": 642.2222222222223,
+    "count": 2
+  },
+  "landscape": {
+    "world": "World rev-10父版本 rev-9观察 c2观察时间 2026-10-23T00:00:02+00:00会话 fixture-session",
+    "note": "rev-10 · Owner 页面视图 · Slice 未选择",
+    "height": 146,
+    "count": 2
+  },
+  "accumulated": {
+    "world": "World rev-10父版本 rev-9观察 c2观察时间 2026-10-23T00:00:02+00:00会话 fixture-session",
+    "note": "rev-10 · Owner 累计内容投影 / 坐标不可用于执行 · 0 项已采信配准 · 0 项仅历史可见",
+    "height": 146,
+    "count": 2
+  },
+  "unknown": {
+    "world": "World rev-2父版本 rev-1观察 recorded-settings-c1观察时间 2026-10-23T00:00:00+00:00会话 controlled-recording-session",
+    "note": "rev-2 · 实际 Slice slice:v2:8a35c808…3e2ca · device-viewport · 归一化坐标示意，屏幕宽高比未采集",
+    "height": 300,
+    "count": 15
+  },
+  "square": {
+    "world": "World rev-6父版本 rev-5观察 c1观察时间 2026-10-23T00:00:01+00:00会话 fixture-session",
+    "note": "rev-6 · Owner 页面视图 · Slice 未选择",
+    "height": 300,
+    "count": 2
+  },
+  "scroll": {
+    "world": "World rev-99父版本 rev-98观察 capture-2观察时间 2026-10-20T00:00:20+00:00会话 replay-session",
+    "note": "rev-99 · Owner 累计内容投影 / 坐标不可用于执行 · 1 项已采信配准 · 0 项仅历史可见",
+    "height": 300,
+    "count": 5
+  },
+  "fixtureBoundary": "dimension-fixture and missing-dimensions only test frontend geometry; no new World or live-device claims"
+}

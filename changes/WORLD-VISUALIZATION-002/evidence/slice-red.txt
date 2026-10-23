@@ -1,0 +1,30 @@
+# Test failure excerpt; preceding restore/compiler warnings omitted. Full original retained at /tmp/uniclaw-world-display-fix-20261023/slice-red.txt
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Agent.Dsh.Tests
+[xUnit.net 00:00:00.05]   Discovered:  UniClaw.Agent.Dsh.Tests
+[xUnit.net 00:00:00.06]   Starting:    UniClaw.Agent.Dsh.Tests
+[xUnit.net 00:00:00.24]     UniClaw.Agent.Dsh.Tests.WorldKnowledgeChannelTests.RecordedSettingsLayout_FlowsThroughWorldDriverAndDshConsults_AndExportsFormalViewsWhenRequested [FAIL]
+[xUnit.net 00:00:00.24]       Assert.Equal() Failure: Collections differ
+[xUnit.net 00:00:00.24]                  ↓ (pos 0)
+[xUnit.net 00:00:00.24]       Expected: ["occ-81086c8ab0af-0", "occ-81086c8ab0af-1", "occ-81086c8ab0af-10", "occ-81086c8ab0af-11", "occ-81086c8ab0af-12", ···]
+[xUnit.net 00:00:00.24]       Actual:   []
+[xUnit.net 00:00:00.24]       Stack Trace:
+[xUnit.net 00:00:00.24]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Dsh.Tests/WorldKnowledgeChannelTests.cs(278,0): at UniClaw.Agent.Dsh.Tests.WorldKnowledgeChannelTests.RecordedSettingsLayout_FlowsThroughWorldDriverAndDshConsults_AndExportsFormalViewsWhenRequested()
+[xUnit.net 00:00:00.24]         /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Dsh.Tests/WorldKnowledgeChannelTests.cs(353,0): at UniClaw.Agent.Dsh.Tests.WorldKnowledgeChannelTests.RecordedSettingsLayout_FlowsThroughWorldDriverAndDshConsults_AndExportsFormalViewsWhenRequested()
+[xUnit.net 00:00:00.24]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.24]   Finished:    UniClaw.Agent.Dsh.Tests
+  失败 UniClaw.Agent.Dsh.Tests.WorldKnowledgeChannelTests.RecordedSettingsLayout_FlowsThroughWorldDriverAndDshConsults_AndExportsFormalViewsWhenRequested [161 ms]
+  错误消息:
+   Assert.Equal() Failure: Collections differ
+           ↓ (pos 0)
+Expected: ["occ-81086c8ab0af-0", "occ-81086c8ab0af-1", "occ-81086c8ab0af-10", "occ-81086c8ab0af-11", "occ-81086c8ab0af-12", ···]
+Actual:   []
+  堆栈跟踪:
+     at UniClaw.Agent.Dsh.Tests.WorldKnowledgeChannelTests.RecordedSettingsLayout_FlowsThroughWorldDriverAndDshConsults_AndExportsFormalViewsWhenRequested() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Dsh.Tests/WorldKnowledgeChannelTests.cs:line 278
+   at UniClaw.Agent.Dsh.Tests.WorldKnowledgeChannelTests.RecordedSettingsLayout_FlowsThroughWorldDriverAndDshConsults_AndExportsFormalViewsWhenRequested() in /Users/fran/Documents/Code/spacex/uni_claw/tests/UniClaw.Agent.Dsh.Tests/WorldKnowledgeChannelTests.cs:line 353
+--- End of stack trace from previous location ---
+
+测试运行失败。
+测试总数: 1
+     失败数: 1
+总时间: 0.7626 秒
