@@ -69,7 +69,9 @@ public sealed class HostRunner
         LanguageInspectionSelection? LanguageInspectionSelection = null,
         Func<LanguageInspectionSelection?>? LanguageInspectionSelectionProvider = null,
         UniClaw.Kernel.Capability.CapabilityRegistry? RuntimeIntegrationCapabilities = null,
-        NativeContextSignatureProfile? NativeContextProfile = null);
+        NativeContextSignatureProfile? NativeContextProfile = null,
+        AuxiliaryArtifactLimits? AuxiliaryArtifactLimits = null,
+        DiagnosticObservationOptions? DiagnosticObservationOptions = null);
 
     public sealed record HostRunResult(
         string RunDir,
@@ -85,9 +87,13 @@ public sealed class HostRunner
         string? LaunchId = null,
         string? IdempotencyKey = null,
         string? CorrelationId = null,
-        string? ActionPolicyDigest = null);
+        string? ActionPolicyDigest = null,
+        [property: System.Text.Json.Serialization.JsonIgnore] RunResourceBinding? ResourceBinding = null);
 
-    public static HostRunResult RunOnce(string runRoot, HostOptions? options = null)
+    public static HostRunResult RunOnce(string runRoot, HostOptions? options = null) => RunOnceAsync(runRoot, options).GetAwaiter().GetResult();
+
+    /// <summary>Native async storage confirmation, initialization, handler waits and ordinary artifact output.</summary>
+    public static async Task<HostRunResult> RunOnceAsync(string runRoot, HostOptions? options = null)
     {
         options ??= new HostOptions();
         ArgumentNullException.ThrowIfNull(runRoot);
@@ -114,9 +120,10 @@ public sealed class HostRunner
         var runDir = Path.Combine(runRoot, $"run-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}");
         Directory.CreateDirectory(runDir);
         var journalPath = Path.Combine(runDir, "exec.journal");
-            using var consultationJournal = options.Launch?.AcceptedContractViewRef is { Length: > 0 }
-                ? new FileConsultationJournal(Path.Combine(runDir, "p25-consultation.journal.ndjson"))
-                : null;
+        var consultationPath = Path.Combine(runDir, "p25-consultation.journal.ndjson");
+        await using var consultationJournal = new FileConsultationJournal(consultationPath);
+        await using var resourceJournal = new FileRunResourceJournal(Path.Combine(runDir, "resource.journal.jsonl"),
+            consultationPath: consultationPath, executionPath: journalPath);
 
         // ---- 组合根：全部经抽象缝（利用抽象能力构建完整流程）----------
         var clock = new HostUtilities.VirtualClock();
@@ -135,40 +142,47 @@ public sealed class HostRunner
         Func<ObservationDirective, RunDriverInput?> nextInput;
         IUiObservationStrategy observationStrategy;
         UniKernel? kernel = null;
-        if (options.SettingsTraversal)
-        {
-            // AGT-011 §4：SettingsTraversal 模式证据持久化（AGT-008 缺省全开）。
-            settingsFeed = new SettingsTraversalLiveFeed(
-                clock, options.Live, Path.Combine(runDir, "evidence"),
-                uniPerceptionFetch: options.UniPerceptionFetch,
-                nativeContextProfile: options.NativeContextProfile);
-            // Environment preparation is completed before the formal driver
-            // loop starts. Keep a small durable marker so a failed warmup is
-            // visible without reading the later Agent/Kernel artifacts.
-            WriteText(runDir, "environment-preflight.json", TryJson(new
-            {
-                schemaVersion = "uniclaw.environment-preflight.v1",
-                visionServiceWarmup = settingsFeed.EnvironmentPreflight,
-                formalFlowStartedAfterPreflight = true,
-            }));
-            nextInput = settingsFeed.Next;
-            observationStrategy = new UiHierarchyOccurrenceStrategy();
-        }
-        else
-        {
-            liveFeed = new LivePerception.LiveFrameFeed(
-                clock, options.Live, () => LivePerception.LiveFrameFeed.ReadWifiState(options.Live.DeviceId));
-            nextInput = liveFeed.Next;
-            observationStrategy = new ScreenFrameOccurrenceStrategy();
-        }
         try
         {
-            var world = new WorldModel(
+            if (options.SettingsTraversal)
+            {
+                // AGT-011 §4：SettingsTraversal 模式证据持久化（AGT-008 缺省全开）。
+                settingsFeed = new SettingsTraversalLiveFeed(
+                    clock, options.Live, Path.Combine(runDir, "evidence"),
+                    uniPerceptionFetch: options.UniPerceptionFetch,
+                    nativeContextProfile: options.NativeContextProfile);
+                // Environment preparation is completed before the formal driver
+                // loop starts. Keep a small durable marker so a failed warmup is
+                // visible without reading the later Agent/Kernel artifacts.
+                await WriteTextAsync(runDir, "environment-preflight.json", TryJson(new
+                {
+                    schemaVersion = "uniclaw.environment-preflight.v1",
+                    visionServiceWarmup = settingsFeed.EnvironmentPreflight,
+                    formalFlowStartedAfterPreflight = true,
+                })).ConfigureAwait(false);
+                nextInput = settingsFeed.Next;
+                observationStrategy = new UiHierarchyOccurrenceStrategy();
+            }
+            else
+            {
+                liveFeed = new LivePerception.LiveFrameFeed(
+                    clock, options.Live, () => LivePerception.LiveFrameFeed.ReadWifiState(options.Live.DeviceId));
+                nextInput = liveFeed.Next;
+                observationStrategy = new ScreenFrameOccurrenceStrategy();
+            }
+            await using var evidenceJournal = await FileEvidenceJournal.CreateAsync(Path.Combine(runDir, "evidence.journal.jsonl")).ConfigureAwait(false);
+            var ledger = new EvidenceLedger(evidenceJournal);
+            await using var runStateJournal = new FileRunStateJournal(Path.Combine(runDir, "run-state.journal.jsonl"));
+            await using var controlJournal = new FileControlTraversalJournal(Path.Combine(runDir, "control-traversal.journal.jsonl"));
+            await using var planJournal = new FileRuntimePlanJournal(Path.Combine(runDir, "runtime-plan.journal.jsonl"));
+            await using var worldJournal = await FileWorldJournal.CreateAsync(Path.Combine(runDir, "world.journal.jsonl")).ConfigureAwait(false);
+            var world = await WorldModel.CreateAsync(
                 scope,
                 new ProductAssociationStrategy(),
                 observationStrategy,
                 nativeContextProfiles: options.NativeContextProfile is { } nativeProfile
-                    ? [nativeProfile] : null);
+                    ? [nativeProfile] : null,
+                history: new(worldJournal, runStateJournal.RecordingId, evidenceJournal.RecordingId)).ConfigureAwait(false);
             var assurance = new RuntimeAssurance(
                 new ProductFreshnessEvaluator(() => clock.Now, TimeSpan.FromMinutes(5)));
             // journal 必注入（D3）：产品路径不存在「未注入执行源」的默认
@@ -180,16 +194,18 @@ public sealed class HostRunner
                 options.ViewportHeight,
                 adbExecutable: "adb",
                 clock: () => clock.Now);
-            var effectBoundary = new EffectBoundary(delivery, new FileExecutionJournal(journalPath));
+            await using var executionJournal = new FileExecutionJournal(journalPath);
+            var effectBoundary = new EffectBoundary(delivery, executionJournal);
             var metrics = new RuntimeStageMetrics();
             var planPolicy = new AgentPlanPolicy();
             var traceScope = RunTraceFactory.BeginRun(new RunCorrelation(options.Launch?.RunId ?? "host:v0-flip-switch"));
-            var ledger = new EvidenceLedger();
             var policyGuardResults = new List<SettingsActionGuardResult>();
-            var consultations = new List<object>();
+            var auxiliary = new AuxiliaryArtifacts(runDir, options.AuxiliaryArtifactLimits);
+            var consultationLog = new ConsultationArtifactLog(runDir, auxiliary,
+                (options.DiagnosticObservationOptions ?? new()).Capacity);
             kernel = new UniKernel(
                 ledger, world, traceScope.Trace,
-                new RunModel(), new ControlLoop(planPolicy), assurance, effectBoundary, metrics);
+                new RunModel(runStateJournal), new ControlLoop(planPolicy, controlJournal), assurance, effectBoundary, metrics);
             // PER-019：traversal 模式补齐 KernelProvider 注入（coverage 模式已有）——
             // UniPerception 晚到投影需要 kernel；闭包捕获后赋值，首周期前生效。
             if (settingsFeed is not null)
@@ -239,15 +255,20 @@ public sealed class HostRunner
                 return input;
             }
 
-            var driver = new KernelRunDriver(
+            await using var driver = new KernelRunDriver(
                 kernel, planPolicy,
                 new RunDriverInputs
                 {
                     NextInput = NextInputAfterCommit,
                     ConsultationJournal = consultationJournal,
+                    ResourceJournal = resourceJournal,
+                    RuntimePlanJournal = planJournal,
+                    RecoveryArchive = new FileRunRecoveryArchive(runDir, "p25-consultation.journal.ndjson"),
                     GuardStep = (step, context) => options.SettingsActionPolicy is { } currentPolicy
                         ? SettingsActionGuard.EvaluateCurrentStep(step, context, currentPolicy)
                         : new PlanStepGuardResult(PlanStepGuardVerdict.Allow, "no additional Settings policy configured"),
+                    DiagnosticObservationOptions = options.DiagnosticObservationOptions ?? new(),
+                    ObserveConsultationAsync = (_, _, token) => consultationLog.DrainAsync(token),
                     ConsultAgent = context =>
                     {
                         var policy = options.SettingsActionPolicy;
@@ -280,7 +301,7 @@ public sealed class HostRunner
                             : SettingsActionGuard.GuardDecision(decision, projected, policy, out guardResult, currentStepGuardInstalled: true);
                         if (guardResult is not null)
                             policyGuardResults.Add(guardResult);
-                        consultations.Add(new
+                        consultationLog.TryRecord(new
                         {
                             context = projected,
                             decision = DecisionArtifact(decision),
@@ -290,7 +311,6 @@ public sealed class HostRunner
                         });
                         // Preserve each completed consultation before later dispatch/verification
                         // can fail; no DSH-private session journal is needed for localization.
-                        WriteText(runDir, "consultations.json", TryJson(consultations));
                         return guarded;
                     },
                 });
@@ -298,7 +318,7 @@ public sealed class HostRunner
             // ---- 单次 run ---------------------------------------------------
             // RUNTIME-IDENTITY-001：身份三件套从 LaunchContext 沿载入契约
             //（上游 RuntimeHttpServer 经 Store 铸造；不传 = 上游未接线，留空）。
-            var admission = kernel.AdmitContract(new ExecutionContract(
+            var admission = await kernel.AdmitContractAsync(new ExecutionContract(
                 Version: "v0",
                 Objective: options.SettingsTraversal
                     ? $"Confirm the {options.TargetSemanticDescriptor} switch state in Android Settings and leave it {options.TargetState}. Choose every next control only from the current semantic hierarchy; navigate as needed to reach the {options.TargetSemanticDescriptor} control, and never toggle it when the observed state is already {options.TargetState}."
@@ -322,7 +342,7 @@ public sealed class HostRunner
                 ProductSessionId: options.Launch?.ProductSessionId,
                 ContractRef: options.Launch?.ContractRef,
                 AcceptedContractViewRef: options.Launch?.AcceptedContractViewRef,
-                ContractGeneration: options.Launch?.ContractGeneration), options.Launch?.RunId);
+                ContractGeneration: options.Launch?.ContractGeneration), options.Launch?.RunId).ConfigureAwait(false);
             if (!admission.Accepted)
                 throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");
             if (options.Launch is { } supplied && !string.Equals(kernel.RunId, supplied.RunId, StringComparison.Ordinal))
@@ -337,12 +357,14 @@ public sealed class HostRunner
             RunDriveResult drive = default!;
             for (var i = 0; i < 16; i++)
             {
-                drive = driver.Drive();
+                drive = await driver.DriveAsync().ConfigureAwait(false);
                 if (drive.Status is not RunDriveStatus.WaitingForInput)
                     break;
             }
 
-            WriteText(runDir, "plan-execution.json", TryJson(driver.PlanExecution));
+            var observationStatus = await driver.CompleteDiagnosticObservationsAsync().ConfigureAwait(false);
+            await consultationLog.CompleteAsync().ConfigureAwait(false);
+            await auxiliary.WriteAsync("plan-execution.json", () => driver.PlanExecution).ConfigureAwait(false);
             TryBindLanguageInspection();
             if (options.LanguageInspection is { Required: true } && languageInspection is null)
                 throw new InvalidOperationException("language-inspection-required-capability-not-bound");
@@ -355,10 +377,9 @@ public sealed class HostRunner
             }
 
             // ---- 产物落盘 ---------------------------------------------------
-            var artifact = traceScope.FinalizeArtifact();
-            WriteText(runDir, "trace.json", TryJson(artifact));
+            await auxiliary.WriteAsync("trace.json", () => traceScope.FinalizeArtifact()).ConfigureAwait(false);
             if (settingsFeed is not null)
-                WriteText(runDir, "settings-trace.json", TryJson(settingsFeed.Trace));
+                await auxiliary.WriteAsync("settings-trace.json", () => settingsFeed.Trace).ConfigureAwait(false);
 
             var receipts = kernel.EffectReceipts
                 .Select(r => r.Outcome.ToString())
@@ -378,10 +399,13 @@ public sealed class HostRunner
                 journalBytes = new FileInfo(journalPath).Length,
                 diagnostics = new
                 {
-                    nextFiles = new[] { "facts.json", "environment-preflight.json", "consultations.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
+                    observations = observationStatus,
+                    exports = auxiliary.Status,
+                    consultationLog = consultationLog.Status,
+                    nextFiles = new[] { "facts.json", "environment-preflight.json", ConsultationArtifactLog.FileName, "consultations.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
                     guidance = drive.Status == RunDriveStatus.Completed
                         ? "运行完成；如需核对动作，先看 facts.completedSteps，再用 DecisionId 对照 trace.json。"
-                        : "先看 facts.reason 和 policyGuard，再用 consultations.json 的 DecisionId 对照 trace.json 与 exec.journal。"
+                        : "先看 facts.reason 和 policyGuard，再用咨询增量日志的 DecisionId 对照 trace.json 与 exec.journal。"
                 },
                 completionAnchors = driver.PendingCompletionDossier?.Results
                     .Select(r => new { anchor = r.Anchor, verified = r.Verified })
@@ -403,7 +427,7 @@ public sealed class HostRunner
                 },
             };
             var factsJson = JsonSerializer.Serialize(facts, JsonOptions);
-            WriteText(runDir, "facts.json", factsJson);
+            await WriteTextAsync(runDir, "facts.json", factsJson).ConfigureAwait(false);
             var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
                 $"{facts.status}|{facts.outcome}|{facts.delivered}|{string.Join(",", receipts)}|{facts.journalBytes}")));
 
@@ -415,7 +439,7 @@ public sealed class HostRunner
                 options.Launch?.LaunchId,
                 options.Launch?.IdempotencyKey,
                 options.Launch?.CorrelationId,
-                options.SettingsActionPolicy?.Digest);
+                options.SettingsActionPolicy?.Digest, driver.ResourceBinding);
         }
         catch (Exception error)
         {
@@ -424,7 +448,7 @@ public sealed class HostRunner
             // the exception, while this file preserves the local run context.
             try
             {
-                WriteText(runDir, "failure.json", JsonSerializer.Serialize(new
+                await WriteTextAsync(runDir, "failure.json", JsonSerializer.Serialize(new
                 {
                     schemaVersion = "uniclaw.host-failure.v1",
                     runDir,
@@ -433,7 +457,7 @@ public sealed class HostRunner
                     errorType = error.GetType().FullName,
                     message = error.Message,
                     guidance = "先看 message；再检查 environment-preflight.json、exec.journal、trace.json（若存在）和 settings-trace.json（若存在）。"
-                }, JsonOptions));
+                }, JsonOptions)).ConfigureAwait(false);
             }
             catch
             {
@@ -483,6 +507,6 @@ public sealed class HostRunner
         catch (Exception) { return value?.ToString() ?? "<null>"; }
     }
 
-    private static void WriteText(string dir, string name, string content) =>
-        File.WriteAllText(Path.Combine(dir, name), content);
+    private static Task WriteTextAsync(string dir, string name, string content) =>
+        File.WriteAllTextAsync(Path.Combine(dir, name), content);
 }

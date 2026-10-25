@@ -1,0 +1,350 @@
+{
+  "schemaVersion": "development-asset-slice-finalization.v1",
+  "changeId": "TEST-ASSET-AUTOMATION-001",
+  "slice": "3",
+  "kept": [
+    {
+      "path": "README.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 5435,
+      "sha256": "b2eccbb05f811f5652c30e9fc2a0158264b9229bf0908a1d381a355345b15f16",
+      "retention": "task"
+    },
+    {
+      "path": "api-red.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 820,
+      "sha256": "106146710572bbef3c15237e2168a5f1778dc6c60499e86632002abfead4bf5e",
+      "retention": "task"
+    },
+    {
+      "path": "archive-and-operations-v3.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 751,
+      "sha256": "91084c1093dc2100ba0ede8f79fd617faf8d84ee43af245768def02810bd0b6a",
+      "retention": "task"
+    },
+    {
+      "path": "archive-contracts-v1.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 328,
+      "sha256": "7661c508477ce548ccb0f8ffaa0359eb7525115f5fd935c23bfdeda40cfba798",
+      "retention": "task"
+    },
+    {
+      "path": "archive-contracts-v2.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 330,
+      "sha256": "f73bd2578196d419600c661002b0e6679359bfc144d9874556e03c6507a03b92",
+      "retention": "task"
+    },
+    {
+      "path": "archive-contracts-v4.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 330,
+      "sha256": "4f829e2a663059be0729daef2cf3a39a189bf82fbfd8fd4cd29bbfe5ef0168cb",
+      "retention": "task"
+    },
+    {
+      "path": "archive-contracts-v5.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 330,
+      "sha256": "eb060f01df5d76bd4cb85f0a4f3add11b96b2573bd72476a0e6dee47cc4e5f9b",
+      "retention": "task"
+    },
+    {
+      "path": "archive-final-v2.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 332,
+      "sha256": "631549a63477fe094c187a014067aba88b3be36c0228844fb0a3925255a88d4e",
+      "retention": "task"
+    },
+    {
+      "path": "archive-first.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 11728,
+      "sha256": "15f174f396ca92f65f41e519c7ba134eed02af5c941e3db2e06e46c3776e4c89",
+      "retention": "task"
+    },
+    {
+      "path": "archive-mtime-green.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 331,
+      "sha256": "302e562f6dc8bdda5c25df11aa812b2f82de6fddac5bb43ab1f920d7eac8a9a4",
+      "retention": "task"
+    },
+    {
+      "path": "archive-second.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 31880,
+      "sha256": "a9df7f8ea1f8e61860ec8c28077f6b75e41703cd46916d0d07e38ca710f452ff",
+      "retention": "task"
+    },
+    {
+      "path": "archive-third.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 326,
+      "sha256": "56e995440a63e44b89751c6a0dcf0fc7c5b46fcbae7586b20a7707560761bb3f",
+      "retention": "task"
+    },
+    {
+      "path": "before/docs/agents/test-asset-retention.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 12127,
+      "sha256": "5d0a0234cc791d1299e3872750f51a6c12b49a69b469a8ec688a411c0a521573",
+      "retention": "task"
+    },
+    {
+      "path": "before/tools/README.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 6147,
+      "sha256": "154b06612e52574902a67449d8e2f85107872b5c2959df140ecb00b1d2079be0",
+      "retention": "task"
+    },
+    {
+      "path": "before/tools/test-assets",
+      "logicalRoot": "change-evidence",
+      "bytes": 1974,
+      "sha256": "34fe7b17771a86f77441c8b02e348bd8fd52132f3854eb8cf6cb4cec21ea2043",
+      "retention": "task"
+    },
+    {
+      "path": "before/tools/test_assets.py",
+      "logicalRoot": "change-evidence",
+      "bytes": 17199,
+      "sha256": "3a30e9bcab12617739afaa9835791a4783ddf404ea0d8474a137165c278e5147",
+      "retention": "task"
+    },
+    {
+      "path": "candidate.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 1327,
+      "sha256": "b2b8936cdd16cde9081f3a4c971cb9153e7935f6f9b56f614472116fdef9c3d4",
+      "retention": "task"
+    },
+    {
+      "path": "candidate.patch",
+      "logicalRoot": "change-evidence",
+      "bytes": 50828,
+      "sha256": "d09a9b517edb5e968b7fb332b4f0453f1915f56c484787bda7b44db5e3d7e2f5",
+      "retention": "task"
+    },
+    {
+      "path": "collision-red.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 1395,
+      "sha256": "50e80d2738298f9d99be0573194b8dd0692d501bda0246cd8e31f09607532f94",
+      "retention": "task"
+    },
+    {
+      "path": "contracts-final-v2.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 753,
+      "sha256": "40c1050e003d3faafe939ecb694ceb218b86141b4cbb37b5db70b84ed02c5a8e",
+      "retention": "task"
+    },
+    {
+      "path": "contracts-final-v3.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 753,
+      "sha256": "865ce91409f78d905856b46e0afe33b48c56b7e1b2816355244e130394c70596",
+      "retention": "task"
+    },
+    {
+      "path": "contracts-final.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 751,
+      "sha256": "9688fe2ce9bca075adde311aded4b36bb15fbc17a7fc03cf22436d607260f12a",
+      "retention": "task"
+    },
+    {
+      "path": "controlled-source-removal-plan.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 1812,
+      "sha256": "c0f301c499b90926240331f323700dfad695d9ea0157b6bf460af3c6bf2c0dce",
+      "retention": "task"
+    },
+    {
+      "path": "controlled-source-removal-receipt.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 3192,
+      "sha256": "b5152f1796332969ef7ff39670e275c1ec7f510e4e077a0f6db35189a617f3cc",
+      "retention": "task"
+    },
+    {
+      "path": "entry.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 736,
+      "sha256": "379d766e2e175d2685c9342aca73aee71fc10cb41ab056f620ae710dd04c356e",
+      "retention": "task"
+    },
+    {
+      "path": "mtime-red.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 702,
+      "sha256": "3944b4d809790a914d217d1e085a6e3f469457e7452c6b039ab2f68151d4ecfc",
+      "retention": "task"
+    },
+    {
+      "path": "mtime-removal-plan.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 1816,
+      "sha256": "97149b2382d4fcfe6b8f2207ba821bdcfede38242399ff9eff61ffb813746ab6",
+      "retention": "task"
+    },
+    {
+      "path": "mtime-removal-receipt.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 3566,
+      "sha256": "c091726958665c6a2ac6d443e5108a6139703b01324e2c3dcf286aa4cc2a8872",
+      "retention": "task"
+    },
+    {
+      "path": "mtime-restore-proof.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 604,
+      "sha256": "a869c1758e641856ca65060c08991fc3f1c448d4d705ac288d199a1cd2c2e6d2",
+      "retention": "task"
+    },
+    {
+      "path": "mtime-restore-proof.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 605,
+      "sha256": "7b88c0cbaebc87f78d052ff9f033afc7fb4879c2250ae1c1e89a9f86f12c4cf5",
+      "retention": "task"
+    },
+    {
+      "path": "prove_mtime_restore.py",
+      "logicalRoot": "change-evidence",
+      "bytes": 4614,
+      "sha256": "35ec44518c1f0ebd2489bdbaaf357fdbc528cf60fb3f8326a9c22626d5f54d89",
+      "retention": "task"
+    },
+    {
+      "path": "prove_restore.py",
+      "logicalRoot": "change-evidence",
+      "bytes": 7318,
+      "sha256": "4c096844a0a9472f1ee0fee7db2d59d3e8ba64bedd7e9874c9a4c98ea21ba82f",
+      "retention": "task"
+    },
+    {
+      "path": "real-existing-run-archive.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 977,
+      "sha256": "33c650bbc66b1e1a2c3c0abc40f5b6e72b7b05b5ac94af1c1dd531a2935dfbee",
+      "retention": "task"
+    },
+    {
+      "path": "real-restore-proof.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 618,
+      "sha256": "f9f720878d88137bc69171025daabdf8402238c52f12e75781f3d07830d80259",
+      "retention": "task"
+    },
+    {
+      "path": "real-restore-proof.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 619,
+      "sha256": "f11d0612b5e64b7471d0e6543ccf49831f8376c757f2cc2748cfc990031c87cc",
+      "retention": "task"
+    },
+    {
+      "path": "review-spec-v1.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 2148,
+      "sha256": "b404645c8e110cdcb2809e6564ddf9d7afc23785c73c46d2f9d7fda3be928c12",
+      "retention": "task"
+    },
+    {
+      "path": "review-spec-v2.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 1752,
+      "sha256": "8234838be3a4afb1329f5e24b80426c6188511bbdcd20d279b0d1aefd8657f69",
+      "retention": "task"
+    },
+    {
+      "path": "review-spec-v3.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 1655,
+      "sha256": "ee559d4987b2584eeaee47cf4e176c130b003ad2dd212b0ea4165cdbca6e5d49",
+      "retention": "task"
+    },
+    {
+      "path": "review-standards-v1.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 1643,
+      "sha256": "31d0596c05ab16df0aa3d1fd0913e6d2b78c3343d3ff472b59d8b4db53dbb81f",
+      "retention": "task"
+    },
+    {
+      "path": "review-standards-v2.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 1585,
+      "sha256": "6bc6d1d5dff7e923f0bbf6e7788238576cfbdf890bcf694eeabc69b9a19e1a9d",
+      "retention": "task"
+    },
+    {
+      "path": "review-standards-v3.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 1469,
+      "sha256": "ae195690322cf5c70fb453d5dbb0b956ed9e80be69ea70492fa9619a62508df9",
+      "retention": "task"
+    },
+    {
+      "path": "verification.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 2067,
+      "sha256": "3c61d47da856f9c704f696c81a427b1e3b03240e4ee2efe7e988ca41f6ed913d",
+      "retention": "task"
+    },
+    {
+      "path": "verify-entry-final-v2.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 114,
+      "sha256": "306cd2953f3c1c3e9b1ee0666442863e7be3b64339a70cffcb075e7bde096f43",
+      "retention": "task"
+    },
+    {
+      "path": "verify-entry-final-v3.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 114,
+      "sha256": "aa0ee8ffc4e2974a762bb85d91816ace10f924105459ddfc7730c54f068a86c6",
+      "retention": "task"
+    },
+    {
+      "path": "verify-entry-final.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 114,
+      "sha256": "617aa0d0d9c5a9eb38ebbbc9aa55c27712b833b6c3dfcdfaf64478791f3b32d4",
+      "retention": "task"
+    },
+    {
+      "path": "verify.py",
+      "logicalRoot": "change-evidence",
+      "bytes": 3165,
+      "sha256": "5f847aa36e4844525821841550db6235ef3fa3436888e653c9273ea8323be4e1",
+      "retention": "task"
+    }
+  ],
+  "historicalRunFilesKept": 94,
+  "probeRunFilesRestored": 6,
+  "archivesKept": 3,
+  "sourceDeletionAPIEnabled": false,
+  "historicalSourcesDeleted": false,
+  "netSourceBytesRemoved": 0,
+  "actualControlledRemovalReceipts": [
+    "controlled-source-removal-receipt.json",
+    "mtime-removal-receipt.json"
+  ],
+  "temporaryExtraction": "context-managed unique directories removed after every check",
+  "pending": [
+    {
+      "area": "task-source-retirement-and-GC",
+      "reason": "not enabled; ownership, active references and consumers remain prerequisites"
+    },
+    {
+      "area": "legacy-temporary-fixtures",
+      "reason": "prior ownership-inventory gap retained; no directory-prefix cleanup"
+    }
+  ]
+}

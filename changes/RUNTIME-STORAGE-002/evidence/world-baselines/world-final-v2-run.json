@@ -1,0 +1,10 @@
+{
+  "changeId": "RUNTIME-STORAGE-002",
+  "runId": "run-20261025T163509-25a9308efa3b44f697f12cc3447e01cd",
+  "root": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T163509-25a9308efa3b44f697f12cc3447e01cd",
+  "raw": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T163509-25a9308efa3b44f697f12cc3447e01cd/raw",
+  "logs": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T163509-25a9308efa3b44f697f12cc3447e01cd/logs",
+  "results": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T163509-25a9308efa3b44f697f12cc3447e01cd/results",
+  "scratch": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T163509-25a9308efa3b44f697f12cc3447e01cd/scratch",
+  "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615"
+}

@@ -1,0 +1,20 @@
+{
+  "runId": "run-20261025T184058-09b9f136f9414c51aad2483382feb3af",
+  "runRoot": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T184058-09b9f136f9414c51aad2483382feb3af",
+  "command": [
+    "dotnet",
+    "build",
+    "tools/WorldStorageProbe/WorldStorageProbe.csproj",
+    "-p:NuGetAudit=false",
+    "-m:1",
+    "-nr:false"
+  ],
+  "exitCode": 0,
+  "counts": {
+    "built": true
+  },
+  "sourceFilesUnchanged": true,
+  "consumersCompleted": true,
+  "scope": "build-world",
+  "publicationTree": "d6f25b0224601b11103d3498434907abd91ddf6f"
+}

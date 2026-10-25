@@ -1,0 +1,27 @@
+{
+  "files": [
+    "CONTEXT.md",
+    "docs/adr/0023-reliable-execution-source-is-effect-boundary-owned-with-append-only-file-journal.md",
+    "docs/adr/0055-async-batch-storage-requires-confirmed-commit.md",
+    "src/UniClaw.Kernel/Evidence/EvidenceLedger.cs",
+    "src/UniClaw.Kernel/Evidence/EvidenceLedger.History.cs",
+    "src/UniClaw.Kernel/Evidence/EvidenceLedger.Batch.cs",
+    "src/UniClaw.Kernel/UniKernel.cs",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+    "src/UniClaw.Host/Runtime/FileEvidenceJournal.cs",
+    "src/UniClaw.Host/HostRunner.cs",
+    "src/UniClaw.Host/Program.cs",
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs",
+    "src/UniClaw.Host.Dsh/Program.cs",
+    "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs",
+    "tests/UniClaw.Kernel.Tests/Evidence/EvidenceBatchAdmissionTests.cs",
+    "tests/UniClaw.Host.Tests/EvidenceBatchStorageTests.cs",
+    "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs",
+    "src/UniClaw.Kernel/Evidence/README.md",
+    "src/UniClaw.Kernel/Runtime/README.md",
+    "src/UniClaw.Host/README.md",
+    "tools/RunRecoveryProbe/Program.cs",
+    "tools/RunRecoveryProbe/EvidenceBatchProbe.cs"
+  ],
+  "phase": "IMPLEMENT evidence observation slice; remaining storage domains still pending"
+}

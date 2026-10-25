@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "test-asset-finalization.v1",
+  "operation": "World standalone probe cache finalization",
+  "completed": true,
+  "kept": [
+    {
+      "reason": "all product source, raw World/Evidence originals, TRX, receipts and old sealed inputs retained"
+    }
+  ],
+  "archived": [],
+  "deleted": [
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/UniClaw.Core.dll",
+      "bytes": 31232,
+      "sha256": "f01b8f0eea171f1e02bdd441662582713e147705ef599e1125f64524879e160e"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/UniClaw.Core.pdb",
+      "bytes": 15628,
+      "sha256": "92dee3bf0aa30e6fde48993a78e3b40660e3404961a898fb531e11044f79ca5f"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/UniClaw.Host",
+      "bytes": 124712,
+      "sha256": "a65fc02bd889e75ed280e1420dc1d8bb9cec856ad9644030c3b746578dbfb848"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/UniClaw.Host.deps.json",
+      "bytes": 1179,
+      "sha256": "20992bc4dfdd637571d077a9615e9dcf30ee6e27da87fd0b01c62e9a851cc1fb"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/UniClaw.Host.dll",
+      "bytes": 1060864,
+      "sha256": "af09a0a1b210b196577e53aeee549808e809c58f0df0cfa8344b06fa67a44a73"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/UniClaw.Host.pdb",
+      "bytes": 224468,
+      "sha256": "b4d74a330590118108bd46ce6f605a9bcdde7c71b7f0930fe0329b28debf19df"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/UniClaw.Host.runtimeconfig.json",
+      "bytes": 259,
+      "sha256": "f9bc8e9f0c46247078ed47309f19a7576b4b94e4300e9de0003917d6bd2d667a"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/UniClaw.Kernel.dll",
+      "bytes": 2059776,
+      "sha256": "842433320e8307fd8828312c5bafde0b11f990df2f9893a28e61bd9d51a52d71"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/UniClaw.Kernel.pdb",
+      "bytes": 403656,
+      "sha256": "5be9091ca5713bde060cb698fbfa2826c0b2358a2215d019d5214adf817b31ee"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/UniClaw.Kernel.xml",
+      "bytes": 624770,
+      "sha256": "3325507a9bb96afeb87e2a54d5398ac27d1ed2b781fd75ce68aba87d0dd4ffbd"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/WorldStorageProbe",
+      "bytes": 124712,
+      "sha256": "043198b7ed3b1ac3ea90a34da5eab383d63d6b2a375b3d726fc2c6b924804f9c"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/WorldStorageProbe.deps.json",
+      "bytes": 1565,
+      "sha256": "0b3ee8fa50cbeae1acf510843679a23e695bf9b85f8acb6a4bff3c198701b6d8"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/WorldStorageProbe.dll",
+      "bytes": 87552,
+      "sha256": "1b73ea70de2552b51ed5b30bc9ac88c3c6fc6e842c27fced7ca5f4d7e72a76c3"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/WorldStorageProbe.pdb",
+      "bytes": 22140,
+      "sha256": "c3406010a79be7fb49b415a4df74df32e4f5530485468326e330cc887e7a52c2"
+    },
+    {
+      "path": "tools/WorldStorageProbe/bin/Debug/net10.0/WorldStorageProbe.runtimeconfig.json",
+      "bytes": 259,
+      "sha256": "f9bc8e9f0c46247078ed47309f19a7576b4b94e4300e9de0003917d6bd2d667a"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/.NETCoreApp,Version=v10.0.AssemblyAttributes.cs",
+      "bytes": 196,
+      "sha256": "f79c1ad9a9fc76110b3655f5bfb5ff4e3168e9addceff05b937c0796f0ec34eb"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldSto.74AF4825.Up2Date",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldStorageProbe.AssemblyInfo.cs",
+      "bytes": 1003,
+      "sha256": "9261cffb55866b2117c2cc5f078a730d6ce41f9655a6b8753938ec20330b23af"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldStorageProbe.AssemblyInfoInputs.cache",
+      "bytes": 65,
+      "sha256": "7f9a7c3b1275b4b6fba6545e3941eaac8cc11fd11592deab2d3598bb811eff77"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldStorageProbe.GeneratedMSBuildEditorConfig.editorconfig",
+      "bytes": 840,
+      "sha256": "23705d705caa84e664189428b4c7b860efd77c749731213f3f2379b012aef70e"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldStorageProbe.GlobalUsings.g.cs",
+      "bytes": 231,
+      "sha256": "8f86a2cbf00ff3eee0bda2bc0eb5e1fc19c8544d5dc650c53d0132325956b592"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldStorageProbe.assets.cache",
+      "bytes": 361,
+      "sha256": "b174f27fb60bdd4867e25b1a4401d6eef93d1b127ca3d121cb4446c0c6774fe1"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldStorageProbe.csproj.AssemblyReference.cache",
+      "bytes": 4568,
+      "sha256": "dd42505b5e0a55b9b5339d99977a3d9e5c8dce287a5f9a299cd35731c2c36ae9"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldStorageProbe.csproj.CoreCompileInputs.cache",
+      "bytes": 65,
+      "sha256": "c45daea0cf6162263e6a207a944e86d39979803d4016f6a28ff8231b4ee378f3"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldStorageProbe.csproj.FileListAbsolute.txt",
+      "bytes": 3050,
+      "sha256": "96ae8cad556d3b178bb42d5d4e74055dade1831cf6d76a196f102f813137099e"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldStorageProbe.dll",
+      "bytes": 87552,
+      "sha256": "1b73ea70de2552b51ed5b30bc9ac88c3c6fc6e842c27fced7ca5f4d7e72a76c3"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldStorageProbe.genruntimeconfig.cache",
+      "bytes": 65,
+      "sha256": "fd998e86e91d4ea52d8b92c3a45f76ae4cdf6871b35b3c32f408e793fe6229c6"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldStorageProbe.pdb",
+      "bytes": 22140,
+      "sha256": "c3406010a79be7fb49b415a4df74df32e4f5530485468326e330cc887e7a52c2"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/WorldStorageProbe.sourcelink.json",
+      "bytes": 161,
+      "sha256": "fc8cd478eb5c3bde4d91e91952ef60578262488da426ff986950c3e774cda532"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/apphost",
+      "bytes": 124712,
+      "sha256": "043198b7ed3b1ac3ea90a34da5eab383d63d6b2a375b3d726fc2c6b924804f9c"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/ref/WorldStorageProbe.dll",
+      "bytes": 12800,
+      "sha256": "0eb35d6fa51a73b5df0f38d4663c37224d31757137de59d206d1976f3ccbe571"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/Debug/net10.0/refint/WorldStorageProbe.dll",
+      "bytes": 12800,
+      "sha256": "0eb35d6fa51a73b5df0f38d4663c37224d31757137de59d206d1976f3ccbe571"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/WorldStorageProbe.csproj.nuget.dgspec.json",
+      "bytes": 84961,
+      "sha256": "9bc4a4c3b10a48dc9a63c14832bd21684f0dc8ffa941b77165b1379954556113"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/WorldStorageProbe.csproj.nuget.g.props",
+      "bytes": 1112,
+      "sha256": "8ef97ab7a95b293d098b472c85ec2bf802aaa74199225d9b54fc2c5bbf0231b3"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/WorldStorageProbe.csproj.nuget.g.targets",
+      "bytes": 149,
+      "sha256": "b14461e0cb1be3f77fcf9fe2fdd62889325ca92523d0f606980ed59eb5c4aa1c"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/project.assets.json",
+      "bytes": 22346,
+      "sha256": "3b1de420b9104f39fdba7f85eb8a739057de747c3cb5b484249ac44fded3930c"
+    },
+    {
+      "path": "tools/WorldStorageProbe/obj/project.nuget.cache",
+      "bytes": 229,
+      "sha256": "52eaeebae201d89d9c974834dd2ec82e4d20d6935489e692353dae8b27b50822"
+    }
+  ],
+  "pending": [],
+  "deletedBytes": 5162178,
+  "physicalSpaceMeasured": false
+}

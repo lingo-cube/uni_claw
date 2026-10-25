@@ -1,0 +1,48 @@
+{
+  "passed": true,
+  "candidateFiles": 23,
+  "unchangedProtectedBuildInputs": 644,
+  "separatelyObservedUnownedInputs": 3,
+  "effectiveBuildInputs": 667,
+  "priorSealsVerified": {
+    "changes/RUNTIME-STORAGE-001/evidence/slice1/final-artifacts.json": {
+      "sha256": "7688586f162f306e673d9f1f0b0eb6c5e8140774e62c73b154e7f1e3d3ae0816",
+      "artifacts": 210
+    },
+    "changes/RUNTIME-STORAGE-001/evidence/slice2/final-artifacts.json": {
+      "sha256": "0fae4431eefeb033ee213f5065187f5b39272104013de2b9b47e22a1323b2555",
+      "artifacts": 120
+    },
+    "changes/RUNTIME-STORAGE-001/evidence/slice3/final-artifacts.json": {
+      "sha256": "e7b5bc9b640bc61f9bb5d744d382ea39265aafebfe6092826de18c143e4af575",
+      "artifacts": 122
+    },
+    "changes/RUNTIME-STORAGE-001/evidence/slice4/final-artifacts.json": {
+      "sha256": "56ef9f97b681b72505993140cc099a6c749fa0919918935de3274321f2858a7d",
+      "artifacts": 342
+    },
+    "changes/RUNTIME-STORAGE-001/evidence/slice5/final-artifacts.json": {
+      "sha256": "a7226e26cb733dfee38d35b5ec6c475fffb77969600c01d2d425270854b22fc4",
+      "artifacts": 280
+    },
+    "changes/WORLD-HISTORY-002/evidence/final-artifacts.json": {
+      "sha256": "f28a810541afe9a58cfdef7f38df686c73df713288ef37f06458a3ed9427885e",
+      "artifacts": 382
+    }
+  },
+  "uniquePriorArtifactsVerified": 1456,
+  "newKernelCases": 13,
+  "newHostCases": 8,
+  "kernelPassed": 1297,
+  "kernelExistingFailures": 3,
+  "hostPassed": 356,
+  "hostExistingFailures": 1,
+  "dshPassed": 24,
+  "nativeProductionStoragePaths": 9,
+  "archiveActualKill": 1,
+  "archiveFreshReaders": 2,
+  "allStorageDomainsAsync": true,
+  "parentAcceptanceComplete": true,
+  "reviewsComplete": true,
+  "continuationSupported": false
+}

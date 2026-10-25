@@ -1,0 +1,265 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "uniclaw.diagnosis.packet.v0",
+  "title": "Non-authoritative diagnosis packet v0",
+  "type": "object",
+  "required": [
+    "schema",
+    "authority",
+    "meta",
+    "subject",
+    "evidenceLevel",
+    "evidenceSummary",
+    "failureClass",
+    "lifecycleStage",
+    "lastCorrectState",
+    "firstDivergence",
+    "owner",
+    "rootCauseSupport",
+    "remainingUncertainty",
+    "escalation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "uniclaw.diagnosis.packet.v0"
+    },
+    "authority": {
+      "const": "non-authoritative"
+    },
+    "meta": {
+      "type": "object",
+      "required": [
+        "diagnosedAt",
+        "producer"
+      ],
+      "properties": {
+        "diagnosedAt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "producer": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "agent-skill",
+                "model-procedure"
+              ]
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "model-procedure"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "model"
+            ]
+          }
+        },
+        "changeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runCorrelation": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "required": [
+        "inputs"
+      ],
+      "properties": {
+        "runDir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "sha256",
+              "role"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "reproduce": {
+          "type": "object",
+          "required": [
+            "command"
+          ],
+          "properties": {
+            "command": {
+              "type": "string",
+              "minLength": 1
+            },
+            "trx": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "evidenceLevel": {
+      "enum": [
+        "E0",
+        "E1",
+        "E2",
+        "E3",
+        "E4"
+      ]
+    },
+    "evidenceSummary": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "failureClass": {
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F"
+      ]
+    },
+    "lifecycleStage": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lastCorrectState": {
+      "type": "string",
+      "minLength": 1
+    },
+    "firstDivergence": {
+      "type": "object",
+      "required": [
+        "where",
+        "expected",
+        "observed",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "where": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observed": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "owner": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rootCauseSupport": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "remainingUncertainty": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "escalation": {
+      "type": "object",
+      "required": [
+        "required",
+        "decisionRequest"
+      ],
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decisionRequest": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "required": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "decisionRequest": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

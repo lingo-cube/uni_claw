@@ -1,0 +1,18 @@
+{
+  "runId": "run-20261025T133429-434aea97e6054130af1c45d374135e48",
+  "runRoot": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T133429-434aea97e6054130af1c45d374135e48",
+  "label": "report-red",
+  "mode": "python",
+  "selection": "test_run_report_consultation_log.py",
+  "exitCode": 1,
+  "counts": {
+    "total": 1,
+    "passed": false
+  },
+  "sourceDigest": "072640bfc5b6829e82572f56f4d058f2f6ac583fb4860947aab8cad493e0d9d5",
+  "inputDigest": "27e753bf145f30f5e11c96496bfe93a3edad7f93216824c0166c7ffb676ee37a",
+  "sourceUnchangedDuringRun": false,
+  "inputsUnchangedDuringRun": true,
+  "consumersCompleted": true,
+  "scope": "shared working sources; selected checks only"
+}

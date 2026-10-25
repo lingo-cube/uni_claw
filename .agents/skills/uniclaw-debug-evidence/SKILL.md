@@ -114,6 +114,13 @@ evolution case / 触发器）时，必须按
 只在对话里回文本、不留 packet 文件 = 下游无法消费，视为未完成诊断输出。
 本 skill 依然只产证据：packet 不立案、不修复、不宣布任何完成状态。
 
+**返回前收尾**：按
+[开发测试资产收尾规范](../../../docs/agents/test-asset-retention.md)
+处置本次诊断产生的资产。先保全packet、等级所需证据、最小复现及全部
+仍被下游消费的引用，再清理无继续用途的探针/构建副本、过量日志和重复
+导出，记录实际处置。诊断结束不等于bug已修；不得删除下一步所需输入，
+也不因此取得Change完成或产品运行数据回收权。
+
 典型案例见 [references/canonical-cases.md](./references/canonical-cases.md)。
 
 ## 6. World Model consistency route（WMP-002 / DBG-001）

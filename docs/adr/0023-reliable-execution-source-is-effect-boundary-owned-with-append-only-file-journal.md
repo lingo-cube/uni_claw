@@ -1,5 +1,7 @@
 # ADR-0023：可靠执行源由 Effect Boundary 经注入拥有，落文件 append-only journal
 
+> 2026-10-25 narrow amendment：第3条对异步/批量缓冲的实现禁令由[ADR-0055](0055-async-batch-storage-requires-confirmed-commit.md)替代；发送前真实提交成功、Owner与三值失败语义保持。现有v1同步实现的故障范围与证据不自动升级。
+
 ## Context
 
 CORE-009 契约要求 Effect 的执行尝试具备可恢复的可靠记录：发送前可靠

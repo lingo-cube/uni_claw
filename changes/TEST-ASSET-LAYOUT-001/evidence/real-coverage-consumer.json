@@ -1,0 +1,10 @@
+{
+  "exitCode": 1,
+  "inputAssetRun": "run-20261025T124731-5f80c994053341b9bb93548f8f2569e2",
+  "inputs": [
+    "results/trx/ARCHITECTURE_HOST/ARCHITECTURE_HOST.trx",
+    "results/trx/SIMULATION/sim006-quick-ec377da0ad2149fdbd894ee206c48774.trx"
+  ],
+  "expectation": "real coverage reader accepts external TRX; quick partial results cannot establish library-wide coverage",
+  "fullCoverageClaim": false
+}

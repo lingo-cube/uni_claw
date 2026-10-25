@@ -1,0 +1,90 @@
+{
+  "candidate": "changes/RUNTIME-STORAGE-002/evidence/coverage-delivery/candidate.json",
+  "candidateSha256": "d3a6ea9fc9e48ee6f28c38145a6ffd8bb67937a79c29bd6d01ca1fa5ce0d14fa",
+  "files": [
+    {
+      "path": "src/UniClaw.Host/Runtime/RequiredReportDelivery.cs",
+      "sha256": "033bec350903bdcc28cc1744501451e05a9e00133b5905eca746b729f7fcb91d"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/RequiredReportDelivery.Paths.cs",
+      "sha256": "d3787917a9bd56898d57ca6d15c8ef901e14ae070173851928b973d334472322"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/RequiredReportDeliveryProcess.cs",
+      "sha256": "6581e2dbe730d9ada415f96ad022bf2fab595e9eff327ebfe6b48ef33f8d4260"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/CoverageReportDelivery.cs",
+      "sha256": "9f2ea855ce68306e38731b4eddd38b653335b3e5f9d516029b07cb861df5479b"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/CoverageReportDelivery.Sources.cs",
+      "sha256": "f81df250c54c0914ac20393a3588d2dc8b2c030ec8ddb1967fea357b3cfacc0d"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/CoverageReportDelivery.Generator.cs",
+      "sha256": "c0a8e3afad722eea2d60a25b7b2bdabae83c1f3e31d7122e6e9bb443b0f605dd"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs",
+      "sha256": "1203d62f8ba5d86159fb67a9cff33871146d1dbd4e08654e596a4f91ec0fec12"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.Reports.cs",
+      "sha256": "6ddc365bc555f0b8f39c0871ada8672b53a107f090247e8b11baad73cb640bcb"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.cs",
+      "sha256": "4dcd77ef5990cc315280abad568d0955d0c53e1bef65ca8866c2e7e282abc93a"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.Reports.cs",
+      "sha256": "273d3387b5de70a799c66fb6bb91ca7c3723ab02542052179e3357f201ba5ed1"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/ReportDeliveryEndpoints.cs",
+      "sha256": "e8477d3c28e8c3d49556c5543050e2c59cbab5abaf99f353e143a684791a1b86"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RequiredReportSourceProtectionTests.cs",
+      "sha256": "c470f0d8c5d798c29946c61e3a1c59119d8b825ac83863210eea768c1bbf41e3"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RequiredReportCoverageTests.cs",
+      "sha256": "13c787e18dc7ea42437c26895f760aea7fc0b540607a1e6e9092ee289ed07c35"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageReportDeliveryTests.cs",
+      "sha256": "1b99643e848b993d4f25fb94c2233688d2bbd2a0711e8eaf3dbebd13bec86825"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageReportCrashTests.cs",
+      "sha256": "6e9f8d3ddad094bac91da5f8b7b1d379c0c9955af1c1c64619100105bd60b997"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/CoverageReportToolTests.cs",
+      "sha256": "6620018376d7d4400791af4893685e8c2b1036a8c3ede357716969e5bbd31108"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/CoverageReportEndpointTests.cs",
+      "sha256": "d4d14fae2907426f11e7e016281aaaed84ee1fa578954405dd473c036a750e84"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/Program.cs",
+      "sha256": "a0a3cf948c656cea0fdd8b4f7b67cedfd160b7d4c97fd94f6c6e09f58a8a6ace"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/CoverageReportProbe.cs",
+      "sha256": "0339fa4fdb338f52855e2b03ed328f3a407bf2fa6b477d7c7fb9f4b5cd0d736e"
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/coverage-delivery-contract.md",
+      "sha256": "68d4e9a7150fa1d2a55e73f736e8fcd220c6939eb8c85fd246e936a2b0e3e37b"
+    }
+  ],
+  "selectedRunnerSha256": "8dbcb8d2a5fb36235799298f84976f11f5c3bcd0bbc70a237e1619dc0c5b44f8",
+  "scope": "Coverage source-bound candidate; native closed SIM-019 input base retained; later Act authored ExpectedEffect and separate configurable observation recovery remain excluded",
+  "status": "owner review in progress; no commit yet",
+  "workingFilesChanged": false
+}

@@ -1,0 +1,21 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": [
+    {
+      "path": "src/UniClaw.Host/HostRunner.cs",
+      "sha256": "6c8ac8c3abf2862b7b0b0a048403e71974625d5f1dbceed7eff952f5a7f78b53"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/AuxiliaryArtifacts.cs",
+      "sha256": "dd45d4aa73f16d4e674f44b7ccd80a2249ca5ebb47441c9c5ae0ab059c83fd1b"
+    },
+    {
+      "path": "tools/gen-run-report.py",
+      "sha256": "afffb584524284910819f2efacedbbac261123616a80b9c817c089dbdb2c97be"
+    },
+    {
+      "path": "tools/tests/test_run_report_input_contract.py",
+      "sha256": "f20ce6d918f3008e4e6f1b1a93a7e3cfb80944c9f17702ed6f2e2d32e4d4b841"
+    }
+  ]
+}

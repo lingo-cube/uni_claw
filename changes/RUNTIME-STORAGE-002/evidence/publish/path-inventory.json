@@ -1,0 +1,2071 @@
+{
+  "branch": "uni-harness",
+  "upstream": "origin/uni-harness",
+  "candidate_sources": [
+    "RUNTIME-STORAGE-001/002 candidate and entry manifests",
+    "TEST-ASSET-AUTOMATION-001 candidate manifests",
+    "TEST-ASSET-LAYOUT-001 and AUTOMATION ownership/state"
+  ],
+  "paths": [
+    {
+      "path": "changes/RUNTIME-STORAGE-002/report-delivery-contract.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 4503,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/resource-version-contract.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 1851,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "docs/adr/0023-reliable-execution-source-is-effect-boundary-owned-with-append-only-file-journal.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 4998,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "docs/adr/0055-async-batch-storage-requires-confirmed-commit.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 2051,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "docs/agents/test-asset-retention.md",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 16969,
+      "review_note": null
+    },
+    {
+      "path": "schemas/workspace/task-launch-request.schema.json",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 3114,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/Program.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 21697,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/README.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 3423,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/REPORT-DELIVERY-ENDPOINTS.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 4089,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/ReportDeliveryEndpoints.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 11555,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeBackgroundWork.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 1935,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 43112,
+      "review_note": "shared-file hunk review required",
+      "provenance": [
+        "explicit_final_candidate",
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.DevelopmentAssets.cs",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 6293,
+      "review_note": null
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.Reports.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 15606,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 20596,
+      "review_note": "shared-file hunk review required",
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/HostRunner.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice5/entry.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 28477,
+      "review_note": "shared-file hunk review required",
+      "provenance": [
+        "explicit_final_candidate",
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Program.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 4909,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/README.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 27991,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate",
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/AuxiliaryArtifacts.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice5/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 9232,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileCommittedHistory.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice4/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 10527,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileConsultationJournal.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 17405,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileControlTraversalJournal.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 4972,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileEvidenceJournal.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 11027,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRunRecoveryArchive.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 8151,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRunResourceJournal.Versioned.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 18495,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRunResourceJournal.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice4/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 15806,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate",
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRunStateJournal.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice4/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 9282,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRuntimePlanJournal.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 4887,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileWorldJournal.Versions.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 702,
+      "review_note": null
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileWorldJournal.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 13637,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/RequiredReportDelivery.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 31934,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/ResourceSnapshotDelta.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 1533,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/RuntimeRunStore.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 16285,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/WorldHistoryVersionOptions.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 250,
+      "review_note": null
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/WorldHistoryVersionReader.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 4487,
+      "review_note": null
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/WorldRevisionDeltaCodec.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 11443,
+      "review_note": null
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 70775,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate",
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/ControlLoop.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 6541,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/ControlTraversalHistory.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 5845,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/README.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 4807,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/TraversalControl.History.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 20192,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/EffectBoundary.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 19361,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/ExecutionSource/FileExecutionJournal.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 17491,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/ExecutionSource/ReliableExecutionSource.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 7138,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/README.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 2356,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Evidence/EvidenceLedger.Batch.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 2951,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Evidence/EvidenceLedger.History.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 8832,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Evidence/EvidenceLedger.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 12604,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Evidence/README.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 5044,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/README.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 5519,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/RunModel.History.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 10579,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/RunModel.Identity.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 7111,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/RunModel.TraversalHistory.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 9174,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/RunModel.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 18501,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/ConsultationJournal.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 5524,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/DiagnosticObservations.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 6833,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.PlanHistory.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 4924,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.Resources.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 8427,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 239693,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate",
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/README.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 18275,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate",
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunDriverInputs.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 10431,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate",
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunResourceAccounting.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 13759,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunResourceRecovery.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 3592,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RuntimePlanHistory.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 6882,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/UniKernel.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 55453,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/README.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 8449,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldHistory.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 17544,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.Async.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 2468,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.HistoryRecording.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 11286,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/ReportDeliveryEndpointTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 10045,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/ReportGeneratorOrphanTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 7457,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/ReportWorkShutdownTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 14160,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RequiredReportToolTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 11803,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureAssetTests.cs",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 12109,
+      "review_note": null
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureTests.cs",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 14376,
+      "review_note": null
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 1133,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/AuxiliaryArtifactIsolationTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 5361,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/ControlPlanAsyncStorageTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 17201,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/EvidenceBatchStorageTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 10511,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/LegacyResourceFixture.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 2835,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/ReportArtifactProjectionTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 4111,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RequiredReportCrashTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 16416,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RequiredReportDeliveryTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 40404,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunAsyncStorageTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 8938,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunEvidenceRecoveryConsistencyTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 24654,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunRecoveryConsistencyTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 19758,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceCrashProcessTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 6283,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceJournalTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 26352,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceVersionIntegrityTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 21356,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceVersionTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 17124,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/StorageBarrierFileTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice4/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 14036,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/StorageClosureFileTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 13768,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldAsyncStorageTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 9009,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldHistoryBaselineTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 15838,
+      "review_note": null
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldHistoryDeltaTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 15500,
+      "review_note": null
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldHistoryRecoveryTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 52644,
+      "review_note": null
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldOperationReplayTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 24572,
+      "review_note": null
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Evidence/EvidenceBatchAdmissionTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 9836,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Run/RunAsyncStorageTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 18185,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/AuxiliaryObservationIsolationTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 12691,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 37920,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate",
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/PageObservationExecutionTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 11305,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/StorageBarrierAsyncTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 20310,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/StorageClosureAsyncTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 14824,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate",
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/StorageGroupAsyncTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 18654,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldAsyncStorageTests.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 12931,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tools/README.md",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/entry.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 7373,
+      "review_note": "shared-file hunk review required",
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tools/ResourceStorageProbe/Program.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 6918,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tools/ResourceStorageProbe/ResourceStorageProbe.csproj",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 345,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tools/RunRecoveryProbe/ControlPlanAsyncProbe.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 11492,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tools/RunRecoveryProbe/EvidenceBatchProbe.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 5599,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tools/RunRecoveryProbe/Program.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 17637,
+      "review_note": "shared-file hunk review required",
+      "provenance": [
+        "explicit_final_candidate",
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tools/RunRecoveryProbe/ReportDeliveryProbe.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 8432,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tools/RunRecoveryProbe/ReportToolProbe.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 785,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tools/RunRecoveryProbe/RunAsyncProbe.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 8387,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tools/RunRecoveryProbe/RunRecoveryProbe.csproj",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 489,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tools/RunRecoveryProbe/StorageBarrierAsyncProbe.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 13062,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tools/RunRecoveryProbe/StorageClosureAsyncProbe.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 10432,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tools/RunRecoveryProbe/WorldAsyncProbe.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 5516,
+      "review_note": null,
+      "provenance": [
+        "explicit_slice_candidate_path_list"
+      ]
+    },
+    {
+      "path": "tools/WorldStorageProbe/Program.cs",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 22975,
+      "review_note": "shared-file hunk review required"
+    },
+    {
+      "path": "tools/WorldStorageProbe/WorldStorageProbe.csproj",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 643,
+      "review_note": null
+    },
+    {
+      "path": "tools/evolution-case.py",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 13903,
+      "review_note": null
+    },
+    {
+      "path": "tools/gen-run-report.py",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice5/entry.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 50256,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tools/test-assets",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 3465,
+      "review_note": null
+    },
+    {
+      "path": "tools/test_asset_archives.py",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 17515,
+      "review_note": null
+    },
+    {
+      "path": "tools/test_asset_cleanup.py",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 13970,
+      "review_note": null
+    },
+    {
+      "path": "tools/test_asset_operations.py",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 18859,
+      "review_note": null
+    },
+    {
+      "path": "tools/test_assets.py",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 19075,
+      "review_note": "shared-file hunk review required"
+    },
+    {
+      "path": "tools/tests/test_asset_archives.py",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 16367,
+      "review_note": null
+    },
+    {
+      "path": "tools/tests/test_asset_operations.py",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 15339,
+      "review_note": null
+    },
+    {
+      "path": "tools/tests/test_run_report_input_contract.py",
+      "manifest_sources": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice5/entry.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 3465,
+      "review_note": null,
+      "provenance": [
+        "explicit_final_candidate"
+      ]
+    },
+    {
+      "path": "tools/tests/test_test_asset_cleanup.py",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 11775,
+      "review_note": null
+    },
+    {
+      "path": "tools/tests/test_test_assets.py",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 9271,
+      "review_note": null
+    },
+    {
+      "path": "tools/tests/test_verify_assets.py",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json"
+      ],
+      "tracked_at_HEAD": false,
+      "exists": true,
+      "bytes": 8709,
+      "review_note": null
+    },
+    {
+      "path": "tools/tests/test_verify_entry.py",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/entry.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 9597,
+      "review_note": null
+    },
+    {
+      "path": "tools/verify-change",
+      "manifest_sources": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/entry.json"
+      ],
+      "tracked_at_HEAD": true,
+      "exists": true,
+      "bytes": 36846,
+      "review_note": "shared-file hunk review required"
+    }
+  ],
+  "large_evidence_files_over_1MB": [
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice3/cost/legacy-256/resource.journal.jsonl",
+      "bytes": 40323675
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice1/pure-build-inputs.tar.gz",
+      "bytes": 11494823
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice6/host-final/world-size/full-v1",
+      "bytes": 7951934
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice6/host-final-v2/world-size/full-v1",
+      "bytes": 7951934
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice6/host-final-v3/world-size/full-v1",
+      "bytes": 7951934
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice2/host-final/size/full-v1",
+      "bytes": 7951934
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice5/host-final/world-size/full-v1",
+      "bytes": 7951934
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice4/host-final/size/full-v1",
+      "bytes": 7951934
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice4/host-final-v2/size/full-v1",
+      "bytes": 7951934
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice3/host-final/size/full-v1",
+      "bytes": 7951934
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice6/baseline-entry-source.tar.gz",
+      "bytes": 4260380
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice5/baseline-entry-source.tar.gz",
+      "bytes": 4248348
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice2/baseline-entry-source.tar.gz",
+      "bytes": 4211942
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice4/baseline-entry-source.tar.gz",
+      "bytes": 4188509
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice3/baseline-entry-source.tar.gz",
+      "bytes": 4181637
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice3/cost/versioned-256/resource.journal.jsonl",
+      "bytes": 2742646
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice3/cost/final-v3/versioned-256/resource.journal.jsonl",
+      "bytes": 2742646
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice3/cost/final-v4/versioned-256/resource.journal.jsonl",
+      "bytes": 2742646
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice3/cost/legacy-64/resource.journal.jsonl",
+      "bytes": 2650601
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice1/verification/kernel-regression-v1.trx",
+      "bytes": 1930040
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice6/kernel-final.trx",
+      "bytes": 1925526
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice6/kernel-final-v2.trx",
+      "bytes": 1925522
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice5/kernel-final.trx",
+      "bytes": 1906079
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice4/kernel-final-v2.trx",
+      "bytes": 1852295
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice4/v1-kernel-final.trx",
+      "bytes": 1846248
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice4/kernel-final.trx",
+      "bytes": 1846248
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice1/baseline-entry-source.tar.gz",
+      "bytes": 1843441
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice3/kernel-final.trx",
+      "bytes": 1812658
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice2/kernel-final.trx",
+      "bytes": 1786658
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice1/kernel-final.trx",
+      "bytes": 1772276
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice1/kernel-all.trx",
+      "bytes": 1771606
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice1/kernel-all-v2.trx",
+      "bytes": 1770816
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice2/host-full-v1.trx",
+      "bytes": 1457510
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice1/verification/host-regression-v1.trx",
+      "bytes": 1389715
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice6/host-final/world-size/native",
+      "bytes": 1107547
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice6/host-final-v2/world-size/native",
+      "bytes": 1107547
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice6/host-final-v3/world-size/native",
+      "bytes": 1107547
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice2/host-final/size/native",
+      "bytes": 1107547
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice5/host-final/world-size/native",
+      "bytes": 1107547
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice4/host-final/size/native",
+      "bytes": 1107547
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice4/host-final-v2/size/native",
+      "bytes": 1107547
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-001/evidence/slice3/host-final/size/native",
+      "bytes": 1107547
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice2/reproduction-smoke-results-v2/build-0.log",
+      "bytes": 1005762
+    }
+  ],
+  "git_state": {
+    "staged_paths": [],
+    "unmerged_paths": [],
+    "status_entries": 1898
+  },
+  "candidate_source_note": "RUNTIME-STORAGE-001 candidate-inputs selections are explicit candidate path/hash lists (latest per slice chosen), not broad sourceHash ownership snapshots. RUNTIME-STORAGE-002 uses final candidate-v6 / slice2 candidate-v2 manifest / slice3 candidate-v4 manifest and later slice entry manifests.",
+  "static_dependency_findings": [
+    {
+      "path": "src/UniClaw.Kernel/Runtime/DiagnosticObservations.cs",
+      "dependency": "KernelRunDriver.cs/RunDriverInputs.cs; diagnostics projection shared with page observation execution",
+      "evidence": "RUNTIME-STORAGE-002 slice1 candidate-v6 explicit list; code references found by rg",
+      "risk": "bring the paired storage candidate files; do not infer separate ownership from one file"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.Reports.cs",
+      "dependency": "RuntimeToolHost.cs, ReportDeliveryEndpoints.cs, RuntimeBackgroundWork.cs, RequiredReportDelivery.cs, RuntimeRunStore.cs, report generator and RunRecoveryProbe report probes",
+      "evidence": "slice2 candidate-v2 manifest plus declaration/partial references",
+      "risk": "partial class and endpoint wiring require full dependency closure; adjacent DSH features may be mixed"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRunResourceJournal.Versioned.cs",
+      "dependency": "FileRunResourceJournal.cs, ResourceSnapshotDelta.cs, ReversibleJsonDelta.cs, version codec/options and existing recovery readers/tests",
+      "evidence": "slice3 candidate-v4 manifest and rg declarations; candidate references plus RUNTIME-RECOVERY dependencies",
+      "risk": "RUNTIME-RECOVERY-* sources are preexisting concurrent scope; inspect exact interfaces before isolated build"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileWorldJournal.Versions.cs",
+      "dependency": "FileWorldJournal.cs, WorldRevisionDeltaCodec.cs, WorldHistoryVersionOptions.cs, WorldHistoryVersionReader.cs, baseline/history reader and World-HISTORY fixtures/tests",
+      "evidence": "world-baselines candidate entry; partial declaration and codec references",
+      "risk": "RUNTIME-WORLD-HISTORY-001/002 and STORAGE-002 world-baselines are related prerequisites; avoid sweeping full unrelated feature"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.PlanHistory.cs",
+      "dependency": "KernelRunDriver.cs, RuntimePlanHistory.cs, FileRuntimePlanJournal.cs, ControlTraversalHistory.cs and plan-history recovery contract",
+      "evidence": "STORAGE-001 slice4 candidate inputs and current partial declarations",
+      "risk": "RUNTIME-PLAN-003/004 code may be required for complete checkout/build; separate unrelated plan-generation behavior by hunk"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/StorageClosureAsyncProbe.cs",
+      "dependency": "RunRecoveryProbe.csproj, Program.cs and storage/recovery probe modules",
+      "evidence": "explicit STORAGE-001 slice6 candidate inputs; rg shows internal probe class",
+      "risk": "probe project may include neighboring recovery/report modules"
+    }
+  ]
+}

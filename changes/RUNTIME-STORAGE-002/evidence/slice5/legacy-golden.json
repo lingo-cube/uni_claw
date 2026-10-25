@@ -1,0 +1,19 @@
+{
+  "runId": "run-20261025T134911-49106f4d8b6c40a89dc821e3f18562a6",
+  "runRoot": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T134911-49106f4d8b6c40a89dc821e3f18562a6",
+  "label": "legacy-golden",
+  "mode": "golden",
+  "selection": "evidence/pnl003-real-task-android-settings-20261003/run-20261003-075727-844",
+  "exitCode": 0,
+  "counts": {
+    "passed": true
+  },
+  "sourceDigest": "46a1cfbe69bf72cee506d9e4f922073f6e760be70f447b75b4436f33ff754f98",
+  "inputDigest": "12aac8e34c4c54f9e1f8beae9ab5409adeb64f735e8db8cd1db3b6d51b3c918f",
+  "sourceUnchangedDuringRun": true,
+  "inputsUnchangedDuringRun": true,
+  "changedSourcePathsDuringRun": [],
+  "ownedSourcesUnchangedDuringRun": true,
+  "consumersCompleted": true,
+  "scope": "shared working sources; selected checks only"
+}

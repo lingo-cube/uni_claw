@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "test-asset-finalization.v1",
+  "changeId": "TEST-ASSET-AUTOMATION-001",
+  "runId": "run-20261025T145030-4cce9d3e231045d386bb8cab2da40190",
+  "operation": "controlled-mtime-recovery-proof",
+  "completed": true,
+  "deletedDuringProof": [
+    {
+      "path": "layout.json",
+      "kind": "results",
+      "bytes": 280,
+      "sha256": "e739bdd7079dfa9225396cde6529db3f7903e33b9e3ef9a4ed7f8bb58cc2050c",
+      "retention": "task",
+      "mtimeNs": 1792939831211563417
+    },
+    {
+      "path": "raw/consumer-input.trx",
+      "kind": "raw",
+      "bytes": 4444,
+      "sha256": "4580d1925ac14740304ce216cb712e2e2e854a0f3f38dbbf54ad73e7745f49dd",
+      "retention": "task",
+      "mtimeNs": 1792935797107994489
+    },
+    {
+      "path": "raw/provenance.json",
+      "kind": "raw",
+      "bytes": 2971,
+      "sha256": "5ff88ee8829f7ef9a03e94c7424fcbefcd0c5da0d5cebe077c50f433f9f16325",
+      "retention": "task",
+      "mtimeNs": 1792939831212844931
+    },
+    {
+      "path": "results/evolution/signals/e81f1350026e42ac8b9d5ba1aba3c5cf.json",
+      "kind": "results",
+      "bytes": 1300,
+      "sha256": "a18879baa6b517f05d90b1c81d2bbb08eff5395b01946c7c89c4aef9fcb4a3ec",
+      "retention": "task",
+      "mtimeNs": 1792939831213618856
+    },
+    {
+      "path": "results/summary.json",
+      "kind": "results",
+      "bytes": 310,
+      "sha256": "2d2c03fb23f5eb14097138d09443f0158df2e93ebfe80d6e91b4cc4f18a0dc3b",
+      "retention": "task",
+      "mtimeNs": 1792939831214245655
+    },
+    {
+      "path": "results/finalization.json",
+      "kind": "results",
+      "bytes": 1433,
+      "sha256": "2bf23dd1db2f458826a1ccceac245bd313f2168901f72d38179a7f5fc051283d",
+      "retention": "task",
+      "mtimeNs": 1792939831214865037
+    }
+  ],
+  "deletedBytesDuringProof": 10738,
+  "restored": [
+    {
+      "path": "layout.json",
+      "kind": "results",
+      "bytes": 280,
+      "sha256": "e739bdd7079dfa9225396cde6529db3f7903e33b9e3ef9a4ed7f8bb58cc2050c",
+      "retention": "task",
+      "mtimeNs": 1792939831211563417
+    },
+    {
+      "path": "raw/consumer-input.trx",
+      "kind": "raw",
+      "bytes": 4444,
+      "sha256": "4580d1925ac14740304ce216cb712e2e2e854a0f3f38dbbf54ad73e7745f49dd",
+      "retention": "task",
+      "mtimeNs": 1792935797107994489
+    },
+    {
+      "path": "raw/provenance.json",
+      "kind": "raw",
+      "bytes": 2971,
+      "sha256": "5ff88ee8829f7ef9a03e94c7424fcbefcd0c5da0d5cebe077c50f433f9f16325",
+      "retention": "task",
+      "mtimeNs": 1792939831212844931
+    },
+    {
+      "path": "results/evolution/signals/e81f1350026e42ac8b9d5ba1aba3c5cf.json",
+      "kind": "results",
+      "bytes": 1300,
+      "sha256": "a18879baa6b517f05d90b1c81d2bbb08eff5395b01946c7c89c4aef9fcb4a3ec",
+      "retention": "task",
+      "mtimeNs": 1792939831213618856
+    },
+    {
+      "path": "results/summary.json",
+      "kind": "results",
+      "bytes": 310,
+      "sha256": "2d2c03fb23f5eb14097138d09443f0158df2e93ebfe80d6e91b4cc4f18a0dc3b",
+      "retention": "task",
+      "mtimeNs": 1792939831214245655
+    },
+    {
+      "path": "results/finalization.json",
+      "kind": "results",
+      "bytes": 1433,
+      "sha256": "2bf23dd1db2f458826a1ccceac245bd313f2168901f72d38179a7f5fc051283d",
+      "retention": "task",
+      "mtimeNs": 1792939831214865037
+    }
+  ],
+  "netSourceBytesRemoved": 0,
+  "historicalSourcesDeleted": false,
+  "archiveId": "archive-9735c36ce1af42f0b46c6c6b336ef464",
+  "evidence": "mtime-restore-proof.json; prove_mtime_restore.py completed with root removal then verified full restore"
+}

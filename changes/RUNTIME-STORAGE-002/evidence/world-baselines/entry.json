@@ -1,0 +1,34 @@
+{
+  "files": [
+    {
+      "path": "src/UniClaw.Host/Runtime/FileWorldJournal.cs",
+      "sha256": "988029773f222b350c2e710cc8927843c217541b9105f96bd9142159af3e55fb"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/WorldRevisionDeltaCodec.cs",
+      "sha256": "ce7c923bd138377d4f958927e40baa5dc456998f8d1f0c9a098a76e3c05f6f6a"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldHistoryDeltaTests.cs",
+      "sha256": "e79a462b16c5b82f1b26a7fd42300c35e744a72654c0e1d7778908ba257b18ce"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldHistoryRecoveryTests.cs",
+      "sha256": "04056ad483877ddaeaef181f27bef53b79440fdba674c2b4864259fd8ed468f2"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldOperationReplayTests.cs",
+      "sha256": "4c858825b4253baf53ebb2227ec30bd4998f1633f0ea4ea5fbdd4fc45285cc77"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/Program.cs",
+      "sha256": "34f7795f4bbf2194973db6b7903cefc195ae1320549a6a1e0804383eb5f9a196"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldAsyncStorageTests.cs",
+      "sha256": "aa149a60a088a6f84f7d6661f0f84b77a0733499fc768179f3d59466fd18917b",
+      "authority": "user explicitly authorized one schema expectation v2→v3 update"
+    }
+  ],
+  "scope": "World baselines and bounded data-revision reconstruction; original complete recovery and ownership preserved"
+}

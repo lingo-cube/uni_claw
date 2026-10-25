@@ -1,0 +1,61 @@
+{
+  "schema": "uniclaw.diagnosis.packet.v0",
+  "authority": "non-authoritative",
+  "meta": {
+    "diagnosedAt": "2026-10-25T16:07:00.427927+00:00",
+    "producer": {
+      "kind": "agent-skill"
+    },
+    "changeId": "RUNTIME-STORAGE-002",
+    "runCorrelation": "run-20261025T160459-cd4b348e46d24bd79ff1415d75a4e919"
+  },
+  "subject": {
+    "reproduce": {
+      "command": "python3 changes/RUNTIME-STORAGE-002/evidence/host-identity/run-check.py unique-red-label host 'FullyQualifiedName~RuntimeIdentityCommitTests'",
+      "trx": "test-assets:RUNTIME-STORAGE-002/run-20261025T160459-cd4b348e46d24bd79ff1415d75a4e919/results/tests.trx"
+    },
+    "inputs": [
+      {
+        "path": "src/UniClaw.Host/Runtime/TaskInstanceStore.cs",
+        "sha256": "25cdc3b343219165b45a55938574249f05043a2e8f2d3ed2914cf3bca8f90e14",
+        "role": "source"
+      },
+      {
+        "path": "src/UniClaw.Host/Runtime/ProductSessionStore.cs",
+        "sha256": "451eff7829d0db56e403cd4fcb87a8aae2ea942e8b0a9db6e5aa10d1e2a981d1",
+        "role": "source"
+      }
+    ]
+  },
+  "evidenceLevel": "E2",
+  "evidenceSummary": [
+    "changes/RUNTIME-STORAGE-002/evidence/host-identity/identity-red-observed.json",
+    "changes/RUNTIME-STORAGE-002/evidence/host-identity/red-observations.json"
+  ],
+  "failureClass": "D",
+  "lifecycleStage": "Host identity Create/Bind after close",
+  "lastCorrectState": "Original identity/binding had been flushed; Dispose completed before the next mutation.",
+  "firstDivergence": {
+    "where": "TaskInstanceStore.Create/BindSession and ProductSessionStore.Create/BindRun -> Append",
+    "expected": "storage-contract.md requires identity/binding to be persisted before success is published; a closed store cannot acknowledge a new record.",
+    "observed": "Four public cases returned a new identity or binding visible in Get while reopening the unchanged file had no matching identity/binding; no exception.",
+    "evidenceRefs": [
+      "changes/RUNTIME-STORAGE-002/evidence/host-identity/identity-red-observed.json",
+      "changes/RUNTIME-STORAGE-002/evidence/host-identity/red-observations.json"
+    ]
+  },
+  "owner": "Host TaskInstanceStore and ProductSessionStore append/publication lifecycle",
+  "rootCauseSupport": [
+    "Dispose sets _writer=null; Append uses _writer?.WriteLine and therefore silently skips persistence.",
+    "Create/Bind update both indexes before invoking Append, exposing a value even if persistence is skipped or throws.",
+    "Four minimal public cases agree; caller mapping and serialization are not needed to trigger the discrepancy."
+  ],
+  "remainingUncertainty": [
+    "Disk-full/OS-crash/multiprocess and legacy malformed-file handling are not exercised by this diagnosis."
+  ],
+  "escalation": {
+    "required": false,
+    "reason": "Existing parent scope explicitly includes core Host identities and acknowledgement; no Owner or architecture change.",
+    "decisionRequest": []
+  }
+}

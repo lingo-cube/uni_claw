@@ -1,0 +1,8 @@
+{
+  "production_and_tests_match_candidate": true,
+  "parallel_document_drift": {
+    "tools/README.md": "4cdfaa92f1b9a75da70bb62333a4166d17860b1b05ae07071bf02f5410cfa2dd"
+  },
+  "head": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "preserved": "Shared dirty worktree changes are not attributed or reverted"
+}

@@ -1,0 +1,927 @@
+{
+  "status": "draft; exact hunks and prerequisites not yet accepted",
+  "files": {
+    "changes/RUNTIME-STORAGE-002/report-delivery-contract.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "changes/RUNTIME-STORAGE-002/resource-version-contract.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ]
+    },
+    "docs/adr/0023-reliable-execution-source-is-effect-boundary-owned-with-append-only-file-journal.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ]
+    },
+    "docs/adr/0055-async-batch-storage-requires-confirmed-commit.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ]
+    },
+    "docs/agents/test-asset-retention.md": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/entry.json"
+      ]
+    },
+    "schemas/workspace/task-launch-request.schema.json": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "src/UniClaw.Host.Dsh/Program.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ]
+    },
+    "src/UniClaw.Host.Dsh/README.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "src/UniClaw.Host.Dsh/REPORT-DELIVERY-ENDPOINTS.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "src/UniClaw.Host.Dsh/ReportDeliveryEndpoints.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "src/UniClaw.Host.Dsh/RuntimeBackgroundWork.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json"
+      ]
+    },
+    "src/UniClaw.Host.Dsh/RuntimeToolHost.DevelopmentAssets.cs": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host.Dsh/RuntimeToolHost.Reports.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "src/UniClaw.Host.Dsh/RuntimeToolHost.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json"
+      ]
+    },
+    "src/UniClaw.Host/HostRunner.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice5/entry.json"
+      ]
+    },
+    "src/UniClaw.Host/Program.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ]
+    },
+    "src/UniClaw.Host/README.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/AuxiliaryArtifacts.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice5/entry.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/FileCommittedHistory.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice4/entry.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/FileConsultationJournal.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/FileControlTraversalJournal.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/FileEvidenceJournal.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/FileRunRecoveryArchive.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/FileRunResourceJournal.Versioned.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/FileRunResourceJournal.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice4/entry.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/FileRunStateJournal.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice4/entry.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/FileRuntimePlanJournal.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/FileWorldJournal.Versions.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/FileWorldJournal.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/RequiredReportDelivery.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/ResourceSnapshotDelta.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/RuntimeRunStore.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/WorldHistoryVersionOptions.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/WorldHistoryVersionReader.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/WorldRevisionDeltaCodec.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ]
+    },
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Control/ControlLoop.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Control/ControlTraversalHistory.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Control/README.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Control/TraversalControl.History.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Effects/EffectBoundary.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Effects/ExecutionSource/FileExecutionJournal.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Effects/ExecutionSource/ReliableExecutionSource.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Effects/README.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Evidence/EvidenceLedger.Batch.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Evidence/EvidenceLedger.History.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Evidence/EvidenceLedger.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Evidence/README.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Run/README.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Run/RunModel.History.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Run/RunModel.Identity.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Run/RunModel.TraversalHistory.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Run/RunModel.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Runtime/ConsultationJournal.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Runtime/DiagnosticObservations.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.PlanHistory.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.Resources.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Runtime/README.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Runtime/RunDriverInputs.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Runtime/RunResourceAccounting.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Runtime/RunResourceRecovery.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ]
+    },
+    "src/UniClaw.Kernel/Runtime/RuntimePlanHistory.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ]
+    },
+    "src/UniClaw.Kernel/UniKernel.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/World/README.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ]
+    },
+    "src/UniClaw.Kernel/World/WorldHistory.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ]
+    },
+    "src/UniClaw.Kernel/World/WorldModel.Async.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json"
+      ]
+    },
+    "src/UniClaw.Kernel/World/WorldModel.HistoryRecording.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ]
+    },
+    "tests/UniClaw.Host.Dsh.Tests/ReportDeliveryEndpointTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Dsh.Tests/ReportGeneratorOrphanTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Dsh.Tests/ReportWorkShutdownTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Dsh.Tests/RequiredReportToolTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureAssetTests.cs": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json"
+      ]
+    },
+    "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureTests.cs": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json"
+      ]
+    },
+    "tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/AuxiliaryArtifactIsolationTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/ControlPlanAsyncStorageTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/EvidenceBatchStorageTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/LegacyResourceFixture.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/ReportArtifactProjectionTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RequiredReportCrashTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RequiredReportDeliveryTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RunAsyncStorageTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RunEvidenceRecoveryConsistencyTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RunRecoveryConsistencyTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RunResourceCrashProcessTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RunResourceJournalTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RunResourceVersionIntegrityTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RunResourceVersionTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/StorageBarrierFileTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice4/entry.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/StorageClosureFileTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/WorldAsyncStorageTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/WorldHistoryBaselineTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/WorldHistoryDeltaTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/WorldHistoryRecoveryTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/WorldOperationReplayTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ]
+    },
+    "tests/UniClaw.Kernel.Tests/Evidence/EvidenceBatchAdmissionTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ]
+    },
+    "tests/UniClaw.Kernel.Tests/Run/RunAsyncStorageTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ]
+    },
+    "tests/UniClaw.Kernel.Tests/Runtime/AuxiliaryObservationIsolationTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ]
+    },
+    "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ]
+    },
+    "tests/UniClaw.Kernel.Tests/Runtime/PageObservationExecutionTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ]
+    },
+    "tests/UniClaw.Kernel.Tests/Runtime/StorageBarrierAsyncTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ]
+    },
+    "tests/UniClaw.Kernel.Tests/Runtime/StorageClosureAsyncTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice1/candidate-v6.json"
+      ]
+    },
+    "tests/UniClaw.Kernel.Tests/Runtime/StorageGroupAsyncTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ]
+    },
+    "tests/UniClaw.Kernel.Tests/World/WorldAsyncStorageTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json"
+      ]
+    },
+    "tools/README.md": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/entry.json"
+      ]
+    },
+    "tools/ResourceStorageProbe/Program.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ]
+    },
+    "tools/ResourceStorageProbe/ResourceStorageProbe.csproj": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice3/candidate-v4/manifest.json"
+      ]
+    },
+    "tools/RunRecoveryProbe/ControlPlanAsyncProbe.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json"
+      ]
+    },
+    "tools/RunRecoveryProbe/EvidenceBatchProbe.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json"
+      ]
+    },
+    "tools/RunRecoveryProbe/Program.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice4/candidate-inputs-v2.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json",
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json",
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/entry.json"
+      ]
+    },
+    "tools/RunRecoveryProbe/ReportDeliveryProbe.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "tools/RunRecoveryProbe/ReportToolProbe.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "tools/RunRecoveryProbe/RunAsyncProbe.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice3/candidate-inputs-v1.json"
+      ]
+    },
+    "tools/RunRecoveryProbe/RunRecoveryProbe.csproj": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json"
+      ]
+    },
+    "tools/RunRecoveryProbe/StorageBarrierAsyncProbe.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice5/candidate-inputs-v1.json"
+      ]
+    },
+    "tools/RunRecoveryProbe/StorageClosureAsyncProbe.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice6/candidate-inputs-v3.json"
+      ]
+    },
+    "tools/RunRecoveryProbe/WorldAsyncProbe.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-001/evidence/slice2/candidate-inputs-v1.json"
+      ]
+    },
+    "tools/WorldStorageProbe/Program.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json"
+      ]
+    },
+    "tools/WorldStorageProbe/WorldStorageProbe.csproj": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/world-baselines/candidate.json"
+      ]
+    },
+    "tools/evolution-case.py": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json"
+      ]
+    },
+    "tools/gen-run-report.py": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice5/entry.json"
+      ]
+    },
+    "tools/test-assets": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/entry.json"
+      ]
+    },
+    "tools/test_asset_archives.py": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/entry.json"
+      ]
+    },
+    "tools/test_asset_cleanup.py": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    "tools/test_asset_operations.py": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/entry.json"
+      ]
+    },
+    "tools/test_assets.py": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/entry.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/entry.json"
+      ]
+    },
+    "tools/tests/test_asset_archives.py": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json"
+      ]
+    },
+    "tools/tests/test_asset_operations.py": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate.json"
+      ]
+    },
+    "tools/tests/test_run_report_input_contract.py": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/slice2/candidate-v2/manifest.json",
+        "changes/RUNTIME-STORAGE-002/evidence/slice5/entry.json"
+      ]
+    },
+    "tools/tests/test_test_asset_cleanup.py": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    "tools/tests/test_test_assets.py": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json"
+      ]
+    },
+    "tools/tests/test_verify_assets.py": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json"
+      ]
+    },
+    "tools/tests/test_verify_entry.py": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/entry.json"
+      ]
+    },
+    "tools/verify-change": {
+      "origins": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/entry.json"
+      ]
+    },
+    "tools/RunRecoveryProbe/ControlPlanGrowthProbe.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/ControlTraversalHistoryFileTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RuntimePlanHistoryFileTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/CoreHistoryWriterMemoryTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/HistoryVersions.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/HistoryVersionStorage.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/HistoryVersionStorage.Read.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/ReversibleJsonDelta.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/CoreHistoryLegacyFixture.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/CoreHistoryVersionTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/CoreHistoryStorageCostTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/core-versions/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/TaskInstanceStore.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/host-identity/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/ProductSessionStore.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/host-identity/candidate.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RuntimeIdentityStoreTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/host-identity/candidate.json"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RuntimeIdentityCommitTests.cs": {
+      "origins": [
+        "changes/RUNTIME-STORAGE-002/evidence/host-identity/candidate.json"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/RuntimeRunStore.History.cs": {
+      "origins": [
+        "Host projection/activation accepted parent scope"
+      ]
+    },
+    "src/UniClaw.Host/Runtime/ActivationRecordStore.cs": {
+      "origins": [
+        "Host projection/activation accepted parent scope"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/RuntimeRunProjectionVersionTests.cs": {
+      "origins": [
+        "Host projection/activation accepted parent scope"
+      ]
+    },
+    "tests/UniClaw.Host.Tests/ActivationCommitTests.cs": {
+      "origins": [
+        "Host projection/activation accepted parent scope"
+      ]
+    }
+  }
+}

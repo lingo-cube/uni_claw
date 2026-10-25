@@ -1,0 +1,76 @@
+{
+  "owner": "RUNTIME-STORAGE-002",
+  "runId": "run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304",
+  "completed": true,
+  "deleted": [
+    {
+      "path": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/scratch",
+      "files": 4072,
+      "logicalBytes": 326983905,
+      "actualAbsent": true,
+      "reason": "owned duplicate source/index/build workspace; all accepted source bytes are staged and bound"
+    }
+  ],
+  "kept": [
+    "accepted source map and verification",
+    "exploratory build/restore logs",
+    "all independent regression AssetRuns and their TRX/results",
+    "original sealed sources, journals and raw inputs in original locations"
+  ],
+  "unrelatedWorkingFilesTouched": false,
+  "sealedInputsDeletedOrRewritten": false,
+  "sourceBindingsVerifiedInRealIndex": 778,
+  "assetFinalization": {
+    "changeId": "RUNTIME-STORAGE-002",
+    "runId": "run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304",
+    "completed": true,
+    "finalization": "results/finalization.json"
+  },
+  "temporarySupportCopiesRemoved": [
+    {
+      "path": "/tmp/uniclaw-storage-publish-build-v9.log",
+      "bytes": 1251340,
+      "keptCopy": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/logs/uniclaw-storage-publish-build-v9.log"
+    },
+    {
+      "path": "/tmp/uniclaw-storage-publish-build-v8.log",
+      "bytes": 29418,
+      "keptCopy": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/logs/uniclaw-storage-publish-build-v8.log"
+    },
+    {
+      "path": "/tmp/uniclaw-storage-publish-build-v5.log",
+      "bytes": 1221844,
+      "keptCopy": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/logs/uniclaw-storage-publish-build-v5.log"
+    },
+    {
+      "path": "/tmp/uniclaw-storage-publish-build-v4.log",
+      "bytes": 1201303,
+      "keptCopy": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/logs/uniclaw-storage-publish-build-v4.log"
+    },
+    {
+      "path": "/tmp/uniclaw-storage-publish-build-v6.log",
+      "bytes": 12391,
+      "keptCopy": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/logs/uniclaw-storage-publish-build-v6.log"
+    },
+    {
+      "path": "/tmp/uniclaw-storage-publish-build-v7.log",
+      "bytes": 16202,
+      "keptCopy": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/logs/uniclaw-storage-publish-build-v7.log"
+    },
+    {
+      "path": "/tmp/uniclaw-publish-kernel-restore.log",
+      "bytes": 330,
+      "keptCopy": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/logs/uniclaw-publish-kernel-restore.log"
+    },
+    {
+      "path": "/tmp/uniclaw-publish-dsh-restore.log",
+      "bytes": 581,
+      "keptCopy": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/logs/uniclaw-publish-dsh-restore.log"
+    },
+    {
+      "path": "/tmp/uniclaw-finalize-publication.py",
+      "bytes": 6511,
+      "reason": "completed one-off publication finalizer"
+    }
+  ]
+}

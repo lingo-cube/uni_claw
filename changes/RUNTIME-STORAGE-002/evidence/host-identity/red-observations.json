@@ -1,0 +1,22 @@
+[
+  {
+    "testName": "UniClaw.Host.Tests.RuntimeIdentityCommitTests.ProductSession_CreateAfterDispose_DoesNotPublishIdentity",
+    "outcome": "Failed",
+    "observation": "Create returned ID=ps-66d92ee83d694b3e97e2f36ca4f2fead; in-memory=ProductSessionRecord { ProductSessionId = ps-66d92ee83d694b3e97e2f36ca4f2fead, TaskInstanceId = ti-after-close, CreatedAt = 2026/10/25 16:05:02 +00:00, RunId =  }; reopened="
+  },
+  {
+    "testName": "UniClaw.Host.Tests.RuntimeIdentityCommitTests.TaskInstance_BindAfterDispose_DoesNotPublishBinding",
+    "outcome": "Failed",
+    "observation": "Bind returned session=ps-after-close; in-memory=TaskInstanceRecord { TaskInstanceId = ti-7155dcc9069640eab880b29f4903645e, TaskRef = settings-coverage, IdempotencyKey = closed-bind, CreatedAt = 2026/10/25 16:05:02 +00:00, ProductSessionId = ps-after-close }; reopened=TaskInstanceRecord { TaskInstanceId = ti-7155dcc9069640eab880b29f4903645e, TaskRef = settings-coverage, IdempotencyKey = closed-bind, CreatedAt = 2026/10/25 16:05:02 +00:00, ProductSessionId =  }"
+  },
+  {
+    "testName": "UniClaw.Host.Tests.RuntimeIdentityCommitTests.ProductSession_BindAfterDispose_DoesNotPublishBinding",
+    "outcome": "Failed",
+    "observation": "Bind returned run=run-after-close; in-memory=ProductSessionRecord { ProductSessionId = ps-41f9c97932cd42a1a4e7b07740366bba, TaskInstanceId = ti-before-close, CreatedAt = 2026/10/25 16:05:02 +00:00, RunId = run-after-close }; reopened=ProductSessionRecord { ProductSessionId = ps-41f9c97932cd42a1a4e7b07740366bba, TaskInstanceId = ti-before-close, CreatedAt = 2026/10/25 16:05:02 +00:00, RunId =  }"
+  },
+  {
+    "testName": "UniClaw.Host.Tests.RuntimeIdentityCommitTests.TaskInstance_CreateAfterDispose_DoesNotPublishIdentity",
+    "outcome": "Failed",
+    "observation": "Create returned ID=ti-743925ec597f45289dbac87cb6ee49a3; in-memory=TaskInstanceRecord { TaskInstanceId = ti-743925ec597f45289dbac87cb6ee49a3, TaskRef = settings-coverage, IdempotencyKey = closed-create, CreatedAt = 2026/10/25 16:05:02 +00:00, ProductSessionId =  }; reopened="
+  }
+]

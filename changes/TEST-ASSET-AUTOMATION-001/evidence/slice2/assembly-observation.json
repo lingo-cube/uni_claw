@@ -1,0 +1,13 @@
+{
+  "kind": "point-in-time shared output observation; another owner may rebuild later",
+  "files": [
+    {
+      "path": "src/UniClaw.Host.Dsh/bin/Debug/net10.0/UniClaw.Host.Dsh.dll",
+      "sha256": "915ff7f82da254cdd390ca4026ab045d6a720beadc23939ef02aa008a713b460"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll",
+      "sha256": "409fbe3c3dfdac7f1a5c2472091c8a605a5e1ca34dc49cb7da90cc244172b72d"
+    }
+  ]
+}

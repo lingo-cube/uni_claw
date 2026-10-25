@@ -1,0 +1,22 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": [
+    {
+      "path": "tools/verify-change",
+      "sha256": "e6fa961335c7a0ff3a77e9bb9d34d4b4cd13b215d08f42fe614123a921ff1fd1"
+    },
+    {
+      "path": "tools/tests/test_verify_entry.py",
+      "sha256": "1a4e98da6a3b4be787edb01e1412ed3781d25d5aa98c3ec4ef4ba310d48b4cb5"
+    },
+    {
+      "path": "tools/README.md",
+      "sha256": "4cdfaa92f1b9a75da70bb62333a4166d17860b1b05ae07071bf02f5410cfa2dd"
+    },
+    {
+      "path": "docs/agents/test-asset-retention.md",
+      "sha256": "be897a7ce2e92336658f2936f867cd43ddfd869a34f484fa5b0b39810368a1b9"
+    }
+  ],
+  "sharedDirtyPreserved": true
+}

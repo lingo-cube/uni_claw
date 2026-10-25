@@ -20,7 +20,7 @@ namespace UniClaw.Host.Tests;
 /// 内完成；每步有 DecisionId/回执/路由前后/验证 checks 的完整 trace；
 /// 偏离模型经有界纠正恢复；持续偏离 fail closed。
 /// </summary>
-public sealed class SettingsCoverageScenarioTests
+public sealed partial class SettingsCoverageScenarioTests
 {
     private const int Width = 1080;
     private const int Height = 1920;

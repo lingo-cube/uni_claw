@@ -1,0 +1,38 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": [
+    {
+      "path": "tools/test_assets.py",
+      "sha256": "2ee85a150448dbcc48c30fd617c2d9782d47515c323df2565a1d2208f673ee90"
+    },
+    {
+      "path": "tools/test-assets",
+      "sha256": "7344c87b451785eac4c49fe71505cff6e13ca83fb3b2cd1e71ef75381018249a"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.cs",
+      "sha256": "b059399e02bcabdfa8b7a4239f5d1275dff28941a5cdf3cd9b127151d7980020"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs",
+      "sha256": "7c82215538c6be9e197989934f31e9023d7adc2d95d110486886604f0a3e2763"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureTests.cs",
+      "sha256": "1239b8e5919c752468205dcc7f65faa044652cc90b7ad42fd5ad36c2bfcd3c0f"
+    },
+    {
+      "path": "tools/README.md",
+      "sha256": "a79a9511db5a94aeaead4a8c925d28302f798487457f4ad49de60e9b3abd9361"
+    },
+    {
+      "path": "docs/agents/test-asset-retention.md",
+      "sha256": "0ace6c3f3481e73988a2ea8757f82bb7be64ae59fd1f00412ab0e5c47fafe0dd"
+    }
+  ],
+  "sealedReplayScript": {
+    "path": "tools/evolution-case.py",
+    "sha256": "a0545b83ab6c6699ff2ba0595daf9f1a3b1ec9668e4ce9090e1386a59cc4f180"
+  },
+  "sharedDirtyPreserved": true
+}

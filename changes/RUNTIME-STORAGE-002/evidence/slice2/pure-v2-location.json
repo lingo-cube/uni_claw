@@ -1,0 +1,14 @@
+{
+  "path": "/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-storage002-s2-v2-nhayu06_",
+  "base_source_archive": "../slice1/pure-build-inputs.tar.gz",
+  "base_source_archive_sha256": "efa73ecf3c9c915f4527ece9be2c37a6527d0763eb0bfb27686c72cd6821f1b0",
+  "slice1_overlay": [
+    "tests/UniClaw.Kernel.Tests/Runtime/AuxiliaryObservationIsolationTests.cs"
+  ],
+  "candidate": "candidate-v2/manifest.json",
+  "scope": "Isolated slice1 pure v6 + frozen slice2 owned overlay; no unrelated shared worktree mutation copied",
+  "preparation_notes": [
+    "First attempt failed before extraction because Python lacks tarfile filter argument.",
+    "Second attempt safe path assertion failed before extraction because /var is a symlink; final attempt resolves clone root and validates all regular archive members."
+  ]
+}

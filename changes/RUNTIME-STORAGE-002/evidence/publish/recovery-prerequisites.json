@@ -1,0 +1,66 @@
+{
+  "workItem": "WI-STORAGE002-PUBLISH-DEPS",
+  "scope": "Host recovery-read compile prerequisites after the private Kernel view passed",
+  "observedHostErrors": {
+    "file": "src/UniClaw.Host/Runtime/FileRunRecoveryArchive.cs",
+    "lines": [91, 95, 97, 99, 105],
+    "missing": ["RunRecoveryRead", "RunEvidenceRecoveryRead", "RunWorldRecoveryRead", "RunRecoveryReader", "IRunRecoverySources"]
+  },
+  "directAtomicPaths": [
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunRecoveryRead.cs",
+      "provides": ["RunRecoveryRead", "RunRecoveryPoint"],
+      "owner": "RUNTIME-RECOVERY-005",
+      "closed": true
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunEvidenceRecoveryRead.cs",
+      "provides": ["RunEvidenceRecoveryRead", "RunEvidenceRecoveryPoint"],
+      "owner": "RUNTIME-RECOVERY-007",
+      "closed": true
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunWorldRecoveryRead.cs",
+      "provides": ["RunWorldRecoveryRead", "RunWorldRecoveryPoint"],
+      "owner": "RUNTIME-RECOVERY-010",
+      "requiresHistoricalWorld": "RUNTIME-RECOVERY-009 / WorldHistory.cs",
+      "closed": true
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunRecoveryReader.cs",
+      "provides": ["RunRecoveryReader", "IRunRecoverySources"],
+      "owner": "RUNTIME-RECOVERY-015",
+      "extension": "RUNTIME-RECOVERY-016 adds optional RuntimePlan source/read",
+      "closed": true
+    }
+  ],
+  "requiredAlreadyPresentOrAddByClosedContract": [
+    {
+      "paths": ["src/UniClaw.Kernel/Runtime/RunResourceAccounting.cs", "src/UniClaw.Kernel/Runtime/RunResourceRecovery.cs", "src/UniClaw.Kernel/Run/RunModel.History.cs"],
+      "owners": ["RUNTIME-RECOVERY-005"],
+      "purpose": "exact original Run/Resource endpoint and trusted archive binding"
+    },
+    {
+      "paths": ["src/UniClaw.Kernel/Runtime/RunResourceAccounting.cs", "src/UniClaw.Kernel/Evidence/EvidenceLedger.History.cs"],
+      "owners": ["RUNTIME-RECOVERY-007", "ORIGIN-CORRELATION-001"],
+      "purpose": "exact Evidence history position and versioned Origin identity"
+    },
+    {
+      "paths": ["src/UniClaw.Kernel/Runtime/RunResourceAccounting.cs", "src/UniClaw.Kernel/Runtime/RunResourceRecovery.cs", "src/UniClaw.Kernel/World/WorldHistory.cs"],
+      "owners": ["RUNTIME-RECOVERY-009", "RUNTIME-RECOVERY-010"],
+      "purpose": "original World read and four-owner exact-point comparison"
+    },
+    {
+      "paths": ["src/UniClaw.Kernel/Control/TraversalControl.History.cs", "src/UniClaw.Kernel/Runtime/RuntimePlanHistory.cs"],
+      "owners": ["RUNTIME-RECOVERY-013", "RUNTIME-RECOVERY-016"],
+      "purpose": "caller-owned Control and optional Plan source members of IRunRecoverySources"
+    }
+  ],
+  "hostAdapterBoundary": {
+    "path": "src/UniClaw.Host/Runtime/FileRunRecoveryArchive.cs",
+    "keepTogether": ["public Inspect*/Restore* forwarding methods", "WithReader", "nested FileSources"],
+    "reason": "Host selects/disposes file sources; Kernel performs identity and historical consistency interpretation."
+  },
+  "forbiddenExpansion": ["WorldModel.Current restoration", "activation or Drive", "handler/task/timer continuation", "complete Control/Plan cursor recovery", "rewriting Host recovery semantics"],
+  "notClaimed": ["Host private view builds", "complete resume support", "current shared worktree status"]
+}

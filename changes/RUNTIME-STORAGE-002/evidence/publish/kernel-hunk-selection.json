@@ -1,0 +1,14 @@
+{
+  "tree": "c56a1e9e5218675bd0ee8d34892e91db8ee6113f",
+  "closedPrerequisites": [
+    "src/UniClaw.Kernel/Effects/EffectDispatch.cs",
+    "src/UniClaw.Kernel/World/WorldModel.cs",
+    "src/UniClaw.Kernel/Runtime/RuntimePlanGraph.cs"
+  ],
+  "selectedFiles": {
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs": "68ff40325c1a133e2588b9d29e5c9a807294c46ea34198e646c07464161e6f5b",
+    "src/UniClaw.Kernel/UniKernel.cs": "e702542d275172ae9ba52925885f6424ab3e5d22532394fbef7b5b84e2e8db8c"
+  },
+  "workingFilesUnchanged": true,
+  "authority": "private submission view; excludes explicitly parallel Act/Overlay/ExpectedEffect business hunks"
+}

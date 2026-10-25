@@ -1,0 +1,27 @@
+{
+  "runId": "run-20261025T154427-b492396e8ad0491f87b80dd8eeea64f7",
+  "runRoot": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T154427-b492396e8ad0491f87b80dd8eeea64f7",
+  "exitCode": 0,
+  "passed": true,
+  "counts": {
+    "records": 513,
+    "inputRecordSha256": "0A1C9A6342C4EC5B384EBA9961FA881D3F2EAADF1B00C1A191BC5FC434C2EEAD",
+    "Sequence": 513,
+    "ReadCost": {
+      "FramesRead": 54,
+      "SnapshotReads": 1,
+      "BytesRead": 757083
+    },
+    "bidirectionalMatch": true
+  },
+  "sealedSourceUnchanged": true,
+  "inputRecordSha256Expected": "0A1C9A6342C4EC5B384EBA9961FA881D3F2EAADF1B00C1A191BC5FC434C2EEAD",
+  "compiledAssemblySha256": {
+    "UniClaw.Host": "3d9917948f3e667aab9f5df7e528a6d4054246b50e715be413ceaf44f31ccfa1",
+    "UniClaw.Kernel": "842433320e8307fd8828312c5bafde0b11f990df2f9893a28e61bd9d51a52d71",
+    "UniClaw.Core": "f01b8f0eea171f1e02bdd441662582713e147705ef599e1125f64524879e160e"
+  },
+  "consumersCompleted": true,
+  "temporaryBuildRemoved": true,
+  "temporaryBuildBytesRemoved": 4762078
+}

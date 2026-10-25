@@ -6,7 +6,6 @@ namespace UniClaw.Kernel.World;
 
 public sealed partial class WorldModel
 {
-    private readonly List<ContainerContextDecision> _contextDecisions = [];
     public IReadOnlyList<ContainerContextDecision> ContextDecisionLog => _contextDecisions.AsReadOnly();
 
     private WorldBeliefRevision ReconcileContainerContext(EvidenceRecord record, WorldBeliefRevision? parent)

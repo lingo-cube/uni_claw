@@ -1,0 +1,32 @@
+{
+  "archiveId": "archive-0f4c9b465c5440349a71db074a087b93",
+  "runId": "run-20261025T134315-a40c7d35e775419a913816a298a8f4c7",
+  "logicalRoot": "archive",
+  "path": "archive-0f4c9b465c5440349a71db074a087b93.zip",
+  "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615",
+  "manifestBytes": 6537,
+  "manifestSha256": "3c488d7409a8d64ebf0567780d7dcb33385fcd08826138b5a379a2d231a44111",
+  "bytes": 10838,
+  "sha256": "443ab19efdbc79d3250be452c0a7fe05193ae5ebb0506cccdc56bfbbbd827ca8",
+  "verified": true,
+  "consumerChecks": [
+    {
+      "path": "raw/replay/case.trx",
+      "reader": "scenario-coverage.parse_trx",
+      "outcomes": {
+        "Failed": 1
+      }
+    },
+    {
+      "path": "raw/replay/case.trx",
+      "reader": "evolution-signal.scan_dev",
+      "signals": 1
+    },
+    {
+      "path": "raw/replay/replay.json",
+      "reader": "replay-json+trx-reference",
+      "status": "mismatch"
+    }
+  ],
+  "sourceDeletedByArchive": false
+}

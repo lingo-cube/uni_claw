@@ -8,6 +8,12 @@ public sealed partial class WorldModel
 {
     internal bool RecordObservedViewportTransition(ObservedViewportTransition observation)
     {
+        if (_history is null) return RecordObservedViewportTransitionCore(observation);
+        return RecordOperation("viewport", observation, () => RecordObservedViewportTransitionCore(observation));
+    }
+
+    private bool RecordObservedViewportTransitionCore(ObservedViewportTransition observation)
+    {
         ArgumentNullException.ThrowIfNull(observation);
         var current = Current;
         if (current is null || string.IsNullOrWhiteSpace(observation.OperationReceiptId)

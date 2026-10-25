@@ -1,0 +1,7 @@
+{
+  "scope": "pre-Coverage private source view",
+  "succeeded": true,
+  "reportedErrors": 0,
+  "reportedWarnings": 1210,
+  "note": "Earlier exploratory text parser assumed English Build succeeded; actual log is Chinese. Final accepted test runs use process exitCode and TRX."
+}

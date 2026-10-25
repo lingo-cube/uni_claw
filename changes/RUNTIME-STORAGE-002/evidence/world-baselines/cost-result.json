@@ -1,0 +1,44 @@
+{
+  "operation": "verification",
+  "scope": "World same-source cost probe",
+  "status": "PASS",
+  "cliExitCode": 0,
+  "consumersCompleted": true,
+  "deterministicProductScenario": true,
+  "liveDeviceOrModel": false,
+  "logical": {
+    "operations": 257,
+    "revisions": 128,
+    "sourceWorldRecordingId": "4057a5f262fe4ab797f700cf986e503e",
+    "sourceEvidenceRecordingId": "fd077ca2fd9c41a59fb81f1746ea656d",
+    "runRecordingId": "2ecf212720a84fa2b4358f1d3b789e90",
+    "rawJsonEqual": true
+  },
+  "sameRawJsonAndQueryHashesVerified": true,
+  "nativeWriter": {
+    "frameWrites": 258,
+    "frameFlushes": 258,
+    "headWrites": 258,
+    "headFlushes": 258,
+    "frameBytesSubmitted": 1236533,
+    "committedBatches": 257,
+    "peakBatchRecords": 1,
+    "peakBatchBytes": 94033
+  },
+  "v3Bytes": 1236533,
+  "v2Bytes": 1059133,
+  "v1Bytes": 8184254,
+  "decodeCounts": {
+    "v3Latest": 32,
+    "v2Latest": 128
+  },
+  "physicalIoOrPeakMemoryMeasured": false,
+  "runId": "run-20261025T162409-aaf8a643db454c2f95d7cd1c98755fd0",
+  "finalization": {
+    "changeId": "RUNTIME-STORAGE-002",
+    "runId": "run-20261025T162409-aaf8a643db454c2f95d7cd1c98755fd0",
+    "completed": true,
+    "finalization": "results/finalization.json"
+  },
+  "reportRef": "test-assets:RUNTIME-STORAGE-002/run-20261025T162409-aaf8a643db454c2f95d7cd1c98755fd0/raw/world-cost/world-storage-cost.json"
+}

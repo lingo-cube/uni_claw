@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "checks": {
+    "source:tools/test_assets.py": true,
+    "source:tools/test-assets": true,
+    "source:tools/verify-change": true,
+    "source:tools/tests/test_test_assets.py": true,
+    "source:tools/tests/test_verify_assets.py": true,
+    "source:tools/tests/test_verify_entry.py": true,
+    "source:tools/README.md": true,
+    "source:docs/agents/test-asset-retention.md": true,
+    "layout-contracts-green-final.txt": true,
+    "entry-contracts-green-final.txt": true,
+    "self-test": true,
+    "TEST-ASSET-LAYOUT-001:run-present": true,
+    "TEST-ASSET-LAYOUT-001:run-20261025T130123-3aa56049cf984806857bdb7d2071ec1b": true,
+    "TEST-ASSET-AUTOMATION-001:run-present": true,
+    "TEST-ASSET-AUTOMATION-001:run-20261025T124731-5f80c994053341b9bb93548f8f2569e2": true,
+    "support-finalized": true,
+    "reviews": true
+  },
+  "scope": "LAYOUT + AUTOMATION verify-change slice1 only; no parent automation/product acceptance or live evidence"
+}

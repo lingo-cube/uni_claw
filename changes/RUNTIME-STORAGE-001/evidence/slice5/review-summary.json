@@ -1,0 +1,17 @@
+{
+  "candidate": "candidate-inputs-v1.json",
+  "standards": {
+    "report": "review-standards-v1.md",
+    "hardViolations": 0,
+    "heuristicSmells": 0,
+    "remaining": 0
+  },
+  "spec": {
+    "report": "review-spec-v1.md",
+    "missingOrPartial": 0,
+    "scopeCreep": 0,
+    "wrong": 0,
+    "remaining": 0
+  },
+  "parentChangeComplete": false
+}

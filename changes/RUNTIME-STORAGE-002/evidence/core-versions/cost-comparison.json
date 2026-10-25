@@ -1,0 +1,191 @@
+{
+  "control": {
+    "runId": "run-20261025T154215-398e56194bed463cb8f98a0faabddfb7",
+    "EquivalentLegacy": {
+      "Control": {
+        "LegacySourceAndHeadBytes": 10392573,
+        "CurrentSourceHeadAndBaselinesBytes": 7919706
+      },
+      "Plan": {
+        "LegacySourceAndHeadBytes": 3444,
+        "CurrentSourceHeadAndBaselinesBytes": 4450
+      },
+      "IdenticalOriginalRowsAndRecordingIds": true,
+      "LegacyReaderRecordsMatch": true,
+      "TemporaryComparisonSourcesRemovedOnReturn": true
+    },
+    "VersionQueries": {
+      "Control": {
+        "ComparedSequences": 3,
+        "LatestReadCost": {
+          "FramesRead": 4,
+          "SnapshotReads": 1,
+          "BytesRead": 113384
+        },
+        "LatestAllocatedBytes": 1597136,
+        "LatestMilliseconds": 3.7331,
+        "RecordsMatch": true,
+        "AllocationAndTimeIncludeReaderConstruction": true,
+        "ReadCostIsQueryOnly": true
+      },
+      "Plan": {
+        "ComparedSequences": 2,
+        "LatestReadCost": {
+          "FramesRead": 3,
+          "SnapshotReads": 1,
+          "BytesRead": 6071
+        },
+        "LatestAllocatedBytes": 115864,
+        "LatestMilliseconds": 1.0816,
+        "RecordsMatch": true,
+        "AllocationAndTimeIncludeReaderConstruction": true,
+        "ReadCostIsQueryOnly": true
+      }
+    },
+    "SnapshotWriteCounts": {
+      "Control": {
+        "BaselineWrites": 45,
+        "BaselineFlushes": 45,
+        "BaselineBytes": 1426660
+      },
+      "Plan": {
+        "BaselineWrites": 1,
+        "BaselineFlushes": 1,
+        "BaselineBytes": 1127
+      }
+    },
+    "CompositionAndDrive": {
+      "DurationMilliseconds": 804.3409,
+      "ManagedAllocatedBytes": 274197752,
+      "ProcessId": 24059,
+      "Status": "TerminalNotProven",
+      "Reason": "agent-blocked:growth-complete"
+    }
+  },
+  "plan-distinct": {
+    "runId": "run-20261025T154217-7094ca5f280a4d39a09d2ef55bee8b40",
+    "EquivalentLegacy": {
+      "Control": {
+        "LegacySourceAndHeadBytes": 2252,
+        "CurrentSourceHeadAndBaselinesBytes": 3396
+      },
+      "Plan": {
+        "LegacySourceAndHeadBytes": 824511,
+        "CurrentSourceHeadAndBaselinesBytes": 370407
+      },
+      "IdenticalOriginalRowsAndRecordingIds": true,
+      "LegacyReaderRecordsMatch": true,
+      "TemporaryComparisonSourcesRemovedOnReturn": true
+    },
+    "VersionQueries": {
+      "Control": {
+        "ComparedSequences": 1,
+        "LatestReadCost": {
+          "FramesRead": 2,
+          "SnapshotReads": 1,
+          "BytesRead": 4921
+        },
+        "LatestAllocatedBytes": 95032,
+        "LatestMilliseconds": 1.9769,
+        "RecordsMatch": true,
+        "AllocationAndTimeIncludeReaderConstruction": true,
+        "ReadCostIsQueryOnly": true
+      },
+      "Plan": {
+        "ComparedSequences": 3,
+        "LatestReadCost": {
+          "FramesRead": 15,
+          "SnapshotReads": 1,
+          "BytesRead": 27649
+        },
+        "LatestAllocatedBytes": 2778768,
+        "LatestMilliseconds": 4.651,
+        "RecordsMatch": true,
+        "AllocationAndTimeIncludeReaderConstruction": true,
+        "ReadCostIsQueryOnly": true
+      }
+    },
+    "SnapshotWriteCounts": {
+      "Control": {
+        "BaselineWrites": 1,
+        "BaselineFlushes": 1,
+        "BaselineBytes": 1408
+      },
+      "Plan": {
+        "BaselineWrites": 6,
+        "BaselineFlushes": 6,
+        "BaselineBytes": 18794
+      }
+    },
+    "CompositionAndDrive": {
+      "DurationMilliseconds": 476.5592,
+      "ManagedAllocatedBytes": 60043744,
+      "ProcessId": 24075,
+      "Status": "TerminalNotProven",
+      "Reason": "agent-blocked:growth-complete"
+    }
+  },
+  "plan-versioned": {
+    "runId": "run-20261025T154218-738a8357fb1344a48055cf43df690e07",
+    "EquivalentLegacy": {
+      "Control": {
+        "LegacySourceAndHeadBytes": 2252,
+        "CurrentSourceHeadAndBaselinesBytes": 3396
+      },
+      "Plan": {
+        "LegacySourceAndHeadBytes": 312354,
+        "CurrentSourceHeadAndBaselinesBytes": 363188
+      },
+      "IdenticalOriginalRowsAndRecordingIds": true,
+      "LegacyReaderRecordsMatch": true,
+      "TemporaryComparisonSourcesRemovedOnReturn": true
+    },
+    "VersionQueries": {
+      "Control": {
+        "ComparedSequences": 1,
+        "LatestReadCost": {
+          "FramesRead": 2,
+          "SnapshotReads": 1,
+          "BytesRead": 4921
+        },
+        "LatestAllocatedBytes": 95032,
+        "LatestMilliseconds": 1.9221,
+        "RecordsMatch": true,
+        "AllocationAndTimeIncludeReaderConstruction": true,
+        "ReadCostIsQueryOnly": true
+      },
+      "Plan": {
+        "ComparedSequences": 3,
+        "LatestReadCost": {
+          "FramesRead": 18,
+          "SnapshotReads": 1,
+          "BytesRead": 27664
+        },
+        "LatestAllocatedBytes": 480080,
+        "LatestMilliseconds": 1.5241,
+        "RecordsMatch": true,
+        "AllocationAndTimeIncludeReaderConstruction": true,
+        "ReadCostIsQueryOnly": true
+      }
+    },
+    "SnapshotWriteCounts": {
+      "Control": {
+        "BaselineWrites": 1,
+        "BaselineFlushes": 1,
+        "BaselineBytes": 1408
+      },
+      "Plan": {
+        "BaselineWrites": 6,
+        "BaselineFlushes": 6,
+        "BaselineBytes": 5189
+      }
+    },
+    "CompositionAndDrive": {
+      "DurationMilliseconds": 499.1053,
+      "ManagedAllocatedBytes": 34513344,
+      "ProcessId": 24076,
+      "Status": "TerminalNotProven",
+      "Reason": "agent-blocked:growth-complete"
+    }
+  }
+}

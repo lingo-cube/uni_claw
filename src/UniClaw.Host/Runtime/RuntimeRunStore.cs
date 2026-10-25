@@ -10,7 +10,7 @@ namespace UniClaw.Host.Runtime;
 /// The file adapter is deliberately an implementation detail: callers use the
 /// projection and event contracts, never the physical directory layout.
 /// </summary>
-public sealed class RuntimeRunStore
+public sealed partial class RuntimeRunStore
 {
     private const string ProjectionSchema = "uniclaw.workspace.runtime-run-projection.v1";
     private const string EventSchema = "uniclaw.workspace.runtime-run-event.v1";
@@ -19,12 +19,21 @@ public sealed class RuntimeRunStore
     private readonly object _gate = new();
     private readonly JsonSerializerOptions _json = CreateJsonOptions(writeIndented: true);
     private readonly JsonSerializerOptions _lineJson = CreateJsonOptions(writeIndented: false);
+    private readonly int _maxRecordBytes;
+    private bool _faulted;
 
-    public RuntimeRunStore(string root)
+    public RuntimeRunStore(string root) : this(root, 16 * 1024 * 1024)
+    {
+    }
+
+    public RuntimeRunStore(string root, int maxRecordBytes)
     {
         if (string.IsNullOrWhiteSpace(root))
             throw new ArgumentException("RunStore root is required", nameof(root));
         _root = Path.GetFullPath(root);
+        if (maxRecordBytes <= 0)
+            throw new ArgumentOutOfRangeException(nameof(maxRecordBytes));
+        _maxRecordBytes = maxRecordBytes;
         Directory.CreateDirectory(_root);
     }
 
@@ -34,6 +43,7 @@ public sealed class RuntimeRunStore
         var now = observedAt ?? DateTimeOffset.UtcNow;
         lock (_gate)
         {
+            ThrowIfFaultedUnsafe();
             var existing = FindByIdempotencyKeyUnsafe(request.IdempotencyKey)
                 ?? FindByLaunchIdUnsafe(request.LaunchId);
             if (existing is not null)
@@ -67,7 +77,7 @@ public sealed class RuntimeRunStore
                 IdempotencyKey: request.IdempotencyKey,
                 AcceptedContractViewRef: request.AcceptedContractViewRef,
                 ContractGeneration: request.ContractGeneration);
-            WriteEventUnsafe(new RuntimeRunEvent(
+            var @event = new RuntimeRunEvent(
                 EventSchema,
                 ContractVersion,
                 "event-" + Guid.NewGuid().ToString("N"),
@@ -80,8 +90,8 @@ public sealed class RuntimeRunStore
                 1,
                 "Runtime run accepted",
                 "runs/" + runId + "/events/1",
-                PayloadAvailable: false));
-            WriteProjectionUnsafe(projection);
+                PayloadAvailable: false);
+            CommitProjectionUnsafe(null, projection, @event);
             return projection;
         }
     }
@@ -138,6 +148,7 @@ public sealed class RuntimeRunStore
     {
         lock (_gate)
         {
+            ThrowIfFaultedUnsafe();
             var current = ReadProjectionUnsafe(runId)
                 ?? throw new KeyNotFoundException($"Runtime run '{runId}' was not found");
             if (IsTerminal(current.Status))
@@ -148,14 +159,14 @@ public sealed class RuntimeRunStore
             {
                 Status = status,
                 Phase = phase,
-                Revision = current.Revision + 1,
+                Revision = checked(current.Revision + 1),
                 ObservedAt = now,
-                LastEventSequence = current.LastEventSequence + 1,
+                LastEventSequence = checked(current.LastEventSequence + 1),
                 EndedAt = IsTerminal(status) ? mutated.EndedAt ?? now : mutated.EndedAt,
                 Outcome = IsTerminal(status) ? mutated.Outcome ?? OutcomeFor(status) : mutated.Outcome,
                 Consistency = "current"
             };
-            WriteEventUnsafe(new RuntimeRunEvent(
+            var @event = new RuntimeRunEvent(
                 EventSchema,
                 ContractVersion,
                 "event-" + Guid.NewGuid().ToString("N"),
@@ -168,8 +179,47 @@ public sealed class RuntimeRunStore
                 next.LastEventSequence,
                 summary,
                 "runs/" + runId + "/events/" + next.LastEventSequence,
-                PayloadAvailable: false));
-            WriteProjectionUnsafe(next);
+                PayloadAvailable: false);
+            CommitProjectionUnsafe(current, next, @event);
+            return next;
+        }
+    }
+
+    public RuntimeRunProjection UpdateArtifacts(
+        string runId,
+        IReadOnlyList<RuntimeArtifactRef> artifacts,
+        DateTimeOffset? observedAt = null)
+    {
+        ArgumentNullException.ThrowIfNull(artifacts);
+        lock (_gate)
+        {
+            ThrowIfFaultedUnsafe();
+            var current = ReadProjectionUnsafe(runId)
+                ?? throw new KeyNotFoundException($"Runtime run '{runId}' was not found");
+            var now = observedAt ?? DateTimeOffset.UtcNow;
+            var next = current with
+            {
+                Artifacts = artifacts.ToArray(),
+                Revision = checked(current.Revision + 1),
+                ObservedAt = now,
+                LastEventSequence = checked(current.LastEventSequence + 1),
+                Consistency = "current"
+            };
+            var @event = new RuntimeRunEvent(
+                EventSchema,
+                ContractVersion,
+                "event-" + Guid.NewGuid().ToString("N"),
+                runId,
+                "run.artifacts-updated",
+                "runtime",
+                "uniclaw-runtime",
+                now,
+                now,
+                next.LastEventSequence,
+                "Runtime run artifacts updated",
+                "runs/" + runId + "/events/" + next.LastEventSequence,
+                PayloadAvailable: false);
+            CommitProjectionUnsafe(current, next, @event);
             return next;
         }
     }
@@ -178,14 +228,11 @@ public sealed class RuntimeRunStore
     {
         lock (_gate)
         {
-            if (ReadProjectionUnsafe(runId) is null)
+            var state = ReadProjectionStateUnsafe(runId);
+            if (state is null)
                 throw new KeyNotFoundException($"Runtime run '{runId}' was not found");
             var after = DecodeCursor(cursor);
-            var eventsPath = EventsPath(runId);
-            if (!File.Exists(eventsPath)) return new EventPage(Array.Empty<RuntimeRunEvent>(), null);
-            var events = File.ReadLines(eventsPath)
-                .Where(line => !string.IsNullOrWhiteSpace(line))
-                .Select(line => JsonSerializer.Deserialize<RuntimeRunEvent>(line, _json)!)
+            var events = ReadEventsUnsafe(runId, state)
                 .Where(item => item is not null && item.Sequence > after)
                 .Where(item => string.IsNullOrWhiteSpace(source) || string.Equals(item.Source, source, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(item => item.Sequence)
@@ -207,35 +254,23 @@ public sealed class RuntimeRunStore
 
     private IEnumerable<RuntimeRunProjection> FindAllUnsafe()
     {
+        foreach (var revisions in Directory.EnumerateDirectories(_root, "*.revisions"))
+        {
+            var name = Path.GetFileName(revisions);
+            var runId = name[..^".revisions".Length];
+            if (!IsSafeId(runId) || !File.Exists(ProjectionPath(runId)))
+                throw new InvalidDataException("runtime-run-orphan-revisions");
+        }
         foreach (var path in Directory.EnumerateFiles(_root, "*.snapshot.json"))
         {
-            RuntimeRunProjection? projection;
-            try { projection = JsonSerializer.Deserialize<RuntimeRunProjection>(File.ReadAllText(path), _json); }
-            catch (JsonException) { continue; }
-            if (projection is not null) yield return projection;
+            yield return ReadProjectionFromPathUnsafe(path);
         }
     }
 
     private RuntimeRunProjection? ReadProjectionUnsafe(string runId)
     {
         if (!IsSafeId(runId)) return null;
-        var path = ProjectionPath(runId);
-        if (!File.Exists(path)) return null;
-        try { return JsonSerializer.Deserialize<RuntimeRunProjection>(File.ReadAllText(path), _json); }
-        catch (JsonException) { return null; }
-    }
-
-    private void WriteProjectionUnsafe(RuntimeRunProjection projection)
-    {
-        var path = ProjectionPath(projection.RunId);
-        var temp = path + ".tmp";
-        File.WriteAllText(temp, JsonSerializer.Serialize(projection, _json), Encoding.UTF8);
-        File.Move(temp, path, overwrite: true);
-    }
-
-    private void WriteEventUnsafe(RuntimeRunEvent @event)
-    {
-        File.AppendAllText(EventsPath(@event.RunId), JsonSerializer.Serialize(@event, _lineJson) + Environment.NewLine, Encoding.UTF8);
+        return ReadProjectionStateUnsafe(runId)?.Projection;
     }
 
     private string ProjectionPath(string runId) => Path.Combine(_root, runId + ".snapshot.json");

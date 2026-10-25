@@ -33,6 +33,7 @@ public sealed class ActivationRecordStore : IDisposable
     private readonly Dictionary<string, ActivationRecord> _byIdempotency = new(StringComparer.Ordinal);
     private readonly object _sync = new();
     private StreamWriter? _writer;
+    private bool _faulted;
 
     public ActivationRecordStore(string filePath)
     {
@@ -69,17 +70,18 @@ public sealed class ActivationRecordStore : IDisposable
         string correlationId,
         DateTimeOffset? now = null)
     {
-        ArgumentNullException.ThrowIfNull(key);
-        var activationKey = CanonicalKey(key);
-        if (string.IsNullOrWhiteSpace(taskInstanceId)
-            || string.IsNullOrWhiteSpace(productSessionId)
-            || string.IsNullOrWhiteSpace(launchId)
-            || string.IsNullOrWhiteSpace(idempotencyKey)
-            || string.IsNullOrWhiteSpace(correlationId))
-            throw new ArgumentException("Activation binding fields are required");
-
         lock (_sync)
         {
+            EnsureWritable();
+            ArgumentNullException.ThrowIfNull(key);
+            var activationKey = CanonicalKey(key);
+            if (string.IsNullOrWhiteSpace(taskInstanceId)
+                || string.IsNullOrWhiteSpace(productSessionId)
+                || string.IsNullOrWhiteSpace(launchId)
+                || string.IsNullOrWhiteSpace(idempotencyKey)
+                || string.IsNullOrWhiteSpace(correlationId))
+                throw new ArgumentException("Activation binding fields are required");
+
             if (_byKey.TryGetValue(activationKey, out var existing))
                 return new Reservation(existing, Conflict: false, Created: false);
 
@@ -113,9 +115,10 @@ public sealed class ActivationRecordStore : IDisposable
 
     public ActivationRecord Finalize(ActivationKey key, string runId, DateTimeOffset? now = null)
     {
-        if (string.IsNullOrWhiteSpace(runId)) throw new ArgumentException("RunId is required", nameof(runId));
         lock (_sync)
         {
+            EnsureWritable();
+            if (string.IsNullOrWhiteSpace(runId)) throw new ArgumentException("RunId is required", nameof(runId));
             var current = Require(key);
             if (current.Status == "finalized" && string.Equals(current.RunId, runId, StringComparison.Ordinal))
                 return current;
@@ -133,10 +136,11 @@ public sealed class ActivationRecordStore : IDisposable
 
     public ActivationRecord Fail(ActivationKey key, string status, string reason, DateTimeOffset? now = null)
     {
-        if (status is not ("failed" or "blocked"))
-            throw new ArgumentException("Activation failure status must be failed or blocked", nameof(status));
         lock (_sync)
         {
+            EnsureWritable();
+            if (status is not ("failed" or "blocked"))
+                throw new ArgumentException("Activation failure status must be failed or blocked", nameof(status));
             var current = Require(key);
             if (current.Status == status && string.Equals(current.Reason, reason, StringComparison.Ordinal))
                 return current;
@@ -164,10 +168,22 @@ public sealed class ActivationRecordStore : IDisposable
 
     private void Store(ActivationRecord record)
     {
+        Append(record);
         _byKey[record.ActivationKey] = record;
         _byLaunch[record.LaunchId] = record;
         _byIdempotency[record.IdempotencyKey] = record;
-        _writer?.WriteLine(JsonSerializer.Serialize(record));
+    }
+
+    private void Append(ActivationRecord record)
+    {
+        try { _writer!.WriteLine(JsonSerializer.Serialize(record)); }
+        catch { _faulted = true; throw; }
+    }
+
+    private void EnsureWritable()
+    {
+        ObjectDisposedException.ThrowIf(_writer is null, this);
+        if (_faulted) throw new IOException("activation-record-store-faulted-reopen-required");
     }
 
     private void Load()
@@ -193,8 +209,12 @@ public sealed class ActivationRecordStore : IDisposable
 
     public void Dispose()
     {
-        _writer?.Dispose();
-        _writer = null;
+        lock (_sync)
+        {
+            var writer = _writer;
+            _writer = null;
+            writer?.Dispose();
+        }
     }
 
     public sealed record Reservation(ActivationRecord Record, bool Conflict, bool Created);

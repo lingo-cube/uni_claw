@@ -1,0 +1,20 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "comparison": "captured entry bytes, not dirty HEAD",
+  "files": {
+    "src/UniClaw.Host/Runtime/FileControlTraversalJournal.cs": "5677e6af52e6fc502347ff9f3f13e6562ec09de15cd1536c4cff0a7fed3479d5",
+    "src/UniClaw.Host/Runtime/FileRuntimePlanJournal.cs": "4ea436ff72c0fc1e9e1ef0fb09e51d80c8d18f8c253295aea5e15eac3ff042df",
+    "src/UniClaw.Host/Runtime/ResourceSnapshotDelta.cs": "af3e44954888147eadaaacd5333d75d2e20d6ffac908330fd384d2d2e66c7c2a",
+    "tools/RunRecoveryProbe/ControlPlanGrowthProbe.cs": "2e98bda956a7af0a5c9c1c66d9c83199992256b106270dd79db1b81548df9122",
+    "tests/UniClaw.Host.Tests/ControlTraversalHistoryFileTests.cs": "7d773ebb5844f64be7bc509e3905c53c6df6067d63141cb61a5ea6867acceeed",
+    "tests/UniClaw.Host.Tests/RuntimePlanHistoryFileTests.cs": "55c2824bfe0f20f6c201a3381272840e03163c086fbc2cbc8a484c33bf10797b",
+    "tests/UniClaw.Host.Tests/CoreHistoryWriterMemoryTests.cs": "2c224110ececdf54874f6d66c715bc5a928c6131e1efa5083745f5ac23a573a1",
+    "src/UniClaw.Host/Runtime/HistoryVersions.cs": "973fd1b57cedaa5eb8ebd4e444e59dd484b434fb26bd75fa10d0bf6b55729c8d",
+    "src/UniClaw.Host/Runtime/HistoryVersionStorage.cs": "107627c0f2a1cb4aaffa3bfb370f965bc0c34b5296dee338468af98e620b14a4",
+    "src/UniClaw.Host/Runtime/HistoryVersionStorage.Read.cs": "78e590cabf69bfe4fccc23bd86973c2d2bcad83e16e256dd2d3b983f5e7a4d44",
+    "src/UniClaw.Host/Runtime/ReversibleJsonDelta.cs": "f3cbdff6d58c8a3d3f12bc645be879a475540d1fdd300b5fa9b7d04ab409e871",
+    "tests/UniClaw.Host.Tests/CoreHistoryLegacyFixture.cs": "d54a63df633db16be76fc7742701bee5a1bf6f181f740729caae0a06b65ac9ed",
+    "tests/UniClaw.Host.Tests/CoreHistoryVersionTests.cs": "dfcbafefa0fd83cf64e0c4ef0c16de05dd491b56703a54bc2a2a3421d0fac1aa",
+    "tests/UniClaw.Host.Tests/CoreHistoryStorageCostTests.cs": "1c66c02b0ee148fe864ac74f06c2f2a3dd24e8057d2d217b173c83d7cc2cccde"
+  }
+}

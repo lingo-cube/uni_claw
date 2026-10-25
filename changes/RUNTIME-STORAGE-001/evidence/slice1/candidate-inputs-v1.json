@@ -1,0 +1,28 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "fixedPoint": "dirty entry snapshots; no new commits",
+  "files": {
+    "CONTEXT.md": "688461ab23d5db4ef359fe55b16f5d74d8dce0b063c20982fe58c358aac98f08",
+    "docs/adr/0023-reliable-execution-source-is-effect-boundary-owned-with-append-only-file-journal.md": "32a7d4845d29c823e7bc61c57446e2a21158ccda7c43a4ca4b307597ff6bde33",
+    "docs/adr/0055-async-batch-storage-requires-confirmed-commit.md": "2e568a5d64fb1bbd807c7c360bed5b645fc62bb72c9ef5d3a99850420893e605",
+    "src/UniClaw.Kernel/Evidence/EvidenceLedger.cs": "b7ebfd2357922047c9f0e299024a0c52c376aa9e36d861405d4e472ffaec101c",
+    "src/UniClaw.Kernel/Evidence/EvidenceLedger.History.cs": "97f7dc8ca17c8f987015b9311e1717dbfaff8b89e6ca65c7f9a21f19365ccc03",
+    "src/UniClaw.Kernel/Evidence/EvidenceLedger.Batch.cs": "b98211888242a454a3dbf279b71ce1bd1a49f643f16b78d5fa26925d2160710f",
+    "src/UniClaw.Kernel/UniKernel.cs": "3aeaf509180a084cff22d1c6893215be26ca3aa3c913858354d791ed365ba076",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs": "ef99de0b02d9e3a0f1e013e5ebd18a0eb0db2403f137dc96a759113bfac33886",
+    "src/UniClaw.Host/Runtime/FileEvidenceJournal.cs": "f3e8d3c8a4d6f8d50c085de175aff55eae2c778e68f8989bf23da8e95aefe95b",
+    "src/UniClaw.Host/HostRunner.cs": "5aa2abe4d3f3d366c912ecf9c6115156165f10cca41b7c0549e36b083f6463b0",
+    "src/UniClaw.Host/Program.cs": "4b9ca091dad84236f0c3642d8bb816b60f5ea256cd153dfd671c8ca5a44640ff",
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs": "a6e66c39bae2bd1da8c9325de52e716a96f0efc71975f91d1ff3515b475ce18f",
+    "src/UniClaw.Host.Dsh/Program.cs": "1502c1a0de18a82964647c702e71776729e59f76b197e18a1f4ae980517993e1",
+    "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs": "0e078e2bf5d5df7d3ab0987539fbe4a2d061586b2a21e78c0f334bc5fb7d6137",
+    "tests/UniClaw.Kernel.Tests/Evidence/EvidenceBatchAdmissionTests.cs": "a071f345a5277703a643ce504da3a99d467f9e3da4a267fcf0743629b8b1f3f1",
+    "tests/UniClaw.Host.Tests/EvidenceBatchStorageTests.cs": "db58967091e6d4400876a9c452df0262957b2c49990bdcd55946dc86cb0b3bc4",
+    "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs": "2dca93cc26db3990c906d51c2f315ef00511524bc8d13240f73a1bdd981b68de",
+    "src/UniClaw.Kernel/Evidence/README.md": "3e50dafc95f70514df6b7e6d867f3d295e23dee7fac2a7d50ce03fda362b0404",
+    "src/UniClaw.Kernel/Runtime/README.md": "8ace595352987808f93a7aab3a669cc8d76d2424f62620fcdb2c8c3d13ba3ec4",
+    "src/UniClaw.Host/README.md": "fa2e96800da0f50f2424a55c4a87447bd79c686f63d7ebeb7213e813371a5736",
+    "tools/RunRecoveryProbe/Program.cs": "1a9fa4661d623ecd6bae29a0e51eab22039048706d0db4985607f9f031651ed0",
+    "tools/RunRecoveryProbe/EvidenceBatchProbe.cs": "526f63fd41507a114d9da6b5eee73f3e8e26258f9408b58f6a26d943dd044611"
+  }
+}

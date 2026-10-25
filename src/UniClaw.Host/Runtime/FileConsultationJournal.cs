@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using UniClaw.Kernel.Runtime;
@@ -5,23 +6,31 @@ using UniClaw.Kernel.Runtime;
 namespace UniClaw.Host.Runtime;
 
 /// <summary>Durable Host adapter for the Kernel-owned P25 journal contract.</summary>
-public sealed class FileConsultationJournal : IConsultationJournal, IDisposable
+public sealed class FileConsultationJournal : IAsyncConsultationJournal, IDisposable, IAsyncDisposable
 {
+    private readonly HistoryWriteMeter _writeMeter = new();
+    public HistoryWriteCounts WriteStatistics => _writeMeter.Snapshot;
+
     private readonly string _path;
     private readonly Dictionary<ConsultationKey, ConsultationJournalEntry> _entries = new();
     private readonly object _sync = new();
     private readonly JsonSerializerOptions _json = CreateJsonOptions();
-    private StreamWriter? _writer;
+    private readonly FileStream _stream;
+    private readonly SemaphoreSlim _writeGate = new(1, 1);
+    private readonly int _maxRecordBytes;
+    private bool _faulted, _disposed;
 
-    public FileConsultationJournal(string filePath)
+    public FileConsultationJournal(string filePath, int maxRecordBytes = 16 * 1024 * 1024)
     {
         if (string.IsNullOrWhiteSpace(filePath))
             throw new ArgumentException("Consultation journal path is required", nameof(filePath));
+        if (maxRecordBytes <= 0) throw new ArgumentOutOfRangeException(nameof(maxRecordBytes));
+        _maxRecordBytes = maxRecordBytes;
         _path = filePath;
         var directory = Path.GetDirectoryName(Path.GetFullPath(filePath));
         if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
         Load();
-        _writer = new StreamWriter(filePath, append: true) { AutoFlush = true };
+        _stream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.Read, 4096, FileOptions.Asynchronous);
     }
 
     private static JsonSerializerOptions CreateJsonOptions()
@@ -37,28 +46,34 @@ public sealed class FileConsultationJournal : IConsultationJournal, IDisposable
         lock (_sync) return _entries.GetValueOrDefault(key);
     }
 
-    public ConsultationJournalEntry Reserve(ConsultationKey key, string requestFingerprint)
+    public ConsultationJournalEntry Reserve(ConsultationKey key, string requestFingerprint) =>
+        ReserveAsync(key, requestFingerprint).AsTask().GetAwaiter().GetResult();
+    public async ValueTask<ConsultationJournalEntry> ReserveAsync(ConsultationKey key, string requestFingerprint,
+        CancellationToken cancellationToken = default)
     {
-        lock (_sync)
+        EnterWrite(cancellationToken);
+        try
         {
-            if (_entries.TryGetValue(key, out var existing))
+            ConsultationJournalEntry entry;
+            lock (_sync)
             {
-                EnsureFingerprint(existing, requestFingerprint);
-                return existing;
+                if (_entries.TryGetValue(key, out var existing)) { EnsureFingerprint(existing, requestFingerprint); return existing; }
+                entry = new(key, requestFingerprint, ConsultationJournalStatus.Pending, null, null,
+                    ConsumedCountCore(key.RunId, key.ContractViewRef) + 1);
             }
-            var entry = new ConsultationJournalEntry(
-                key, requestFingerprint, ConsultationJournalStatus.Pending, null, null,
-                ConsumedCountCore(key.RunId, key.ContractViewRef) + 1);
-            Store(entry);
-            return entry;
+            return await StoreAsync(entry).ConfigureAwait(false);
         }
+        finally { _writeGate.Release(); }
     }
 
     public ConsultationJournalEntry Complete(ConsultationKey key, string requestFingerprint, AgentDecision decision) =>
-        Finish(key, requestFingerprint, ConsultationJournalStatus.Completed, decision, null);
-
+        CompleteAsync(key, requestFingerprint, decision).AsTask().GetAwaiter().GetResult();
+    public ValueTask<ConsultationJournalEntry> CompleteAsync(ConsultationKey key, string requestFingerprint, AgentDecision decision,
+        CancellationToken cancellationToken = default) => FinishAsync(key, requestFingerprint, ConsultationJournalStatus.Completed, decision, null, cancellationToken);
     public ConsultationJournalEntry Reject(ConsultationKey key, string requestFingerprint, string reason) =>
-        Finish(key, requestFingerprint, ConsultationJournalStatus.Rejected, null, reason);
+        RejectAsync(key, requestFingerprint, reason).AsTask().GetAwaiter().GetResult();
+    public ValueTask<ConsultationJournalEntry> RejectAsync(ConsultationKey key, string requestFingerprint, string reason,
+        CancellationToken cancellationToken = default) => FinishAsync(key, requestFingerprint, ConsultationJournalStatus.Rejected, null, reason, cancellationToken);
 
     public int ConsumedCount(string runId, string contractViewRef)
     {
@@ -73,27 +88,50 @@ public sealed class FileConsultationJournal : IConsultationJournal, IDisposable
                 && entry.Status == ConsultationJournalStatus.Pending);
     }
 
-    private ConsultationJournalEntry Finish(
-        ConsultationKey key, string requestFingerprint, ConsultationJournalStatus status,
-        AgentDecision? decision, string? reason)
+    private async ValueTask<ConsultationJournalEntry> FinishAsync(ConsultationKey key, string requestFingerprint,
+        ConsultationJournalStatus status, AgentDecision? decision, string? reason, CancellationToken cancellationToken)
     {
-        lock (_sync)
+        EnterWrite(cancellationToken);
+        try
         {
-            if (!_entries.TryGetValue(key, out var existing))
-                throw new KeyNotFoundException($"Consultation '{key.ConsultationCorrelationId}' was not reserved");
-            EnsureFingerprint(existing, requestFingerprint);
-            if (existing.Status != ConsultationJournalStatus.Pending)
-                return existing;
-            var updated = existing with { Status = status, Decision = decision, RejectionReason = reason };
-            Store(updated);
-            return updated;
+            ConsultationJournalEntry updated;
+            lock (_sync)
+            {
+                if (!_entries.TryGetValue(key, out var existing))
+                    throw new KeyNotFoundException($"Consultation '{key.ConsultationCorrelationId}' was not reserved");
+                EnsureFingerprint(existing, requestFingerprint);
+                if (existing.Status != ConsultationJournalStatus.Pending) return existing;
+                updated = existing with { Status = status, Decision = decision, RejectionReason = reason };
+            }
+            return await StoreAsync(updated).ConfigureAwait(false);
         }
+        finally { _writeGate.Release(); }
     }
 
-    private void Store(ConsultationJournalEntry entry)
+    private void EnterWrite(CancellationToken cancellationToken)
     {
-        _entries[entry.Key] = entry;
-        _writer?.WriteLine(JsonSerializer.Serialize(entry, _json));
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!_writeGate.Wait(0)) throw new InvalidOperationException("consultation-write-in-progress");
+        if (_faulted || _disposed) { _writeGate.Release(); throw new IOException("consultation-journal-faulted"); }
+    }
+
+    private async ValueTask<ConsultationJournalEntry> StoreAsync(ConsultationJournalEntry entry)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(entry, _json);
+            var bytes = Encoding.UTF8.GetBytes(payload + "\n");
+            if (bytes.Length > _maxRecordBytes) throw new InvalidDataException("consultation-record-exceeds-byte-limit");
+            var frozen = JsonSerializer.Deserialize<ConsultationJournalEntry>(payload, _json)!;
+            _writeMeter.FrameWrite(1, bytes.Length);
+            await _stream.WriteAsync(bytes).ConfigureAwait(false);
+            _writeMeter.FrameFlush();
+            await _stream.FlushAsync().ConfigureAwait(false);
+            lock (_sync) _entries[frozen.Key] = frozen;
+            _writeMeter.Committed();
+            return frozen;
+        }
+        catch { _faulted = true; throw; }
     }
 
     private void Load()
@@ -123,13 +161,12 @@ public sealed class FileConsultationJournal : IConsultationJournal, IDisposable
                 $"consultation-payload-conflict:{existing.Key.ConsultationCorrelationId}");
     }
 
-    public void Dispose()
+    public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
+    public async ValueTask DisposeAsync()
     {
-        lock (_sync)
-        {
-            _writer?.Dispose();
-            _writer = null;
-        }
+        await _writeGate.WaitAsync().ConfigureAwait(false);
+        try { if (!_disposed) { _disposed = true; await _stream.DisposeAsync().ConfigureAwait(false); } }
+        finally { _writeGate.Release(); }
     }
 }
 

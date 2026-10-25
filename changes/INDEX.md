@@ -2,14 +2,17 @@
 
 > 派生索引：列出所有 lifecycle_state ≠ closed 的 change。
 > 再生：`python3 tools/gen-open-changes.py`（GATE-001 P-E′；一致性执法二期）。
-> 统计：235 changes · 7 open。
+> 统计：256 changes · 10 open。
 
 | change | lifecycle_state | disposition | depth | title |
 |---|---|---|---|---|
 | AGT-019 | implementing | none | decision-heavy | AGT-019 — Agent 异常升级与观察机制 |
+| DBG-003 | implemented | none | standard | DBG-003 — 诊断 packet 标准化出口（schema · 落盘 · 引用） |
+| EVO-001 | implemented | none | decision-heavy | EVO-001 — Skill 级受控演进闭环（诊断→重放→候选修复→验证→学习） |
 | REPLAY-STATE-EVIDENCE-001 | resolving | none | decision-heavy | REPLAY-STATE-EVIDENCE-001 — checked 状态补采与证明前置设计 |
 | RUN-006 | implementing | none | standard | RUN-006 — 全遍历真机轮（AGT-019 机制 live 验证） |
 | RUNTIME-PLAN-001 | RESOLVE | none | decision-heavy | RUNTIME-PLAN-001 — 可组合产品Plan与有界本地展开实施 |
 | SETTINGS-COVERAGE-003 | verified | blocked | decision-heavy | SETTINGS-COVERAGE-003 — 动态前沿驱动的 Android Settings 可达界面遍历 |
 | SETTINGS-COVERAGE-005 | implemented | none | standard | SETTINGS-COVERAGE-005 — 弹窗到达事实接入遍历待办与跳过后继续 |
+| TEST-ASSET-AUTOMATION-001 | implemented | none | standard | TEST-ASSET-AUTOMATION-001 — 开发资产登记、收尾与可验证归档 |
 | TRAJECTORY-001 | verified | blocked | decision-heavy | TRAJECTORY-001 — Event Stream / Heartbeat / 事件触发咨询（Agent 介入判断基础设施） |

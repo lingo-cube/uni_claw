@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "test-asset-finalization.v1",
+  "changeId": "TEST-ASSET-AUTOMATION-001",
+  "operation": "slice4-proof-finalization",
+  "completed": true,
+  "kept": [],
+  "archived": [
+    {
+      "archiveId": "archive-84484b997c404a10966ad7acb3916c96",
+      "bytes": 6747,
+      "reason": "all six original facts retained; package verified"
+    }
+  ],
+  "deleted": [
+    {
+      "path": "layout.json",
+      "kind": "results",
+      "bytes": 280,
+      "sha256": "e739bdd7079dfa9225396cde6529db3f7903e33b9e3ef9a4ed7f8bb58cc2050c",
+      "retention": "task",
+      "assetRef": "test-assets:TEST-ASSET-AUTOMATION-001/run-20261025T153817-4b96b3f77c174f2e96861846046a08c3/layout.json",
+      "reason": "new opt-in disposable copy absent after final release; recoverable from archive"
+    },
+    {
+      "path": "raw/consumer-input.trx",
+      "kind": "raw",
+      "bytes": 4444,
+      "sha256": "4580d1925ac14740304ce216cb712e2e2e854a0f3f38dbbf54ad73e7745f49dd",
+      "retention": "task",
+      "assetRef": "test-assets:TEST-ASSET-AUTOMATION-001/run-20261025T153817-4b96b3f77c174f2e96861846046a08c3/raw/consumer-input.trx",
+      "reason": "new opt-in disposable copy absent after final release; recoverable from archive"
+    },
+    {
+      "path": "raw/provenance.json",
+      "kind": "raw",
+      "bytes": 2888,
+      "sha256": "034c8ae4a74991b5153adfa8131129e54040724813b48610f1d1b3e517976ed4",
+      "retention": "task",
+      "assetRef": "test-assets:TEST-ASSET-AUTOMATION-001/run-20261025T153817-4b96b3f77c174f2e96861846046a08c3/raw/provenance.json",
+      "reason": "new opt-in disposable copy absent after final release; recoverable from archive"
+    },
+    {
+      "path": "results/evolution/signals/6f523762e5f540f084170c8946e06afc.json",
+      "kind": "results",
+      "bytes": 1290,
+      "sha256": "5b96226bbbffa3a4e836e521a3f8cc58e9eebac4eb0337d57d1314d2c3d8d80d",
+      "retention": "task",
+      "assetRef": "test-assets:TEST-ASSET-AUTOMATION-001/run-20261025T153817-4b96b3f77c174f2e96861846046a08c3/results/evolution/signals/6f523762e5f540f084170c8946e06afc.json",
+      "reason": "new opt-in disposable copy absent after final release; recoverable from archive"
+    },
+    {
+      "path": "results/summary.json",
+      "kind": "results",
+      "bytes": 307,
+      "sha256": "794cb62fed82c12e8de6b474950f1381cc0653471eb1044abe3d03f4c2d27658",
+      "retention": "task",
+      "assetRef": "test-assets:TEST-ASSET-AUTOMATION-001/run-20261025T153817-4b96b3f77c174f2e96861846046a08c3/results/summary.json",
+      "reason": "new opt-in disposable copy absent after final release; recoverable from archive"
+    },
+    {
+      "path": "results/finalization.json",
+      "kind": "results",
+      "bytes": 1421,
+      "sha256": "d4897a68327cd2516a8bd48a7b026284e6fcf415ad3f744496fc6a88e1f0568e",
+      "retention": "task",
+      "assetRef": "test-assets:TEST-ASSET-AUTOMATION-001/run-20261025T153817-4b96b3f77c174f2e96861846046a08c3/results/finalization.json",
+      "reason": "new opt-in disposable copy absent after final release; recoverable from archive"
+    }
+  ],
+  "pending": [
+    {
+      "reason": "task cascade deletion / temporary automatic GC / historical migration remain outside this completed slice"
+    },
+    {
+      "reason": "old unowned legacy regression fixtures still lack exact ownership; no prefix/date deletion"
+    }
+  ],
+  "deletedBytes": 10630,
+  "historicalFilesPhysicallyKept": 100,
+  "newArchiveBytes": 6747,
+  "operationReceipts": "assets.json.workReleases; two actual releases with one intervening restore, net deletion counted once",
+  "physicalSpaceMeasured": false,
+  "newProductExecution": false,
+  "reviews": [
+    "review-standards-v3.md",
+    "review-spec-v3.md"
+  ]
+}

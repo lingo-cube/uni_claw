@@ -1,0 +1,11 @@
+{
+  "paths": [
+    "src/UniClaw.Kernel/Control/TraversalControl.cs",
+    "src/UniClaw.Kernel/Evidence/AttemptObservationLink.cs",
+    "src/UniClaw.Kernel/Evidence/EvidenceRecord.cs",
+    "src/UniClaw.Kernel/Evidence/ObservationProposal.cs",
+    "src/UniClaw.Kernel/Evidence/ObservationOrigin.cs"
+  ],
+  "reason": "Traversal native history wrapper and closed ORIGIN-CORRELATION-001 evidence/link contracts required by original history records",
+  "tree": "78a0458398495ba0bf33e0ebb85eb89bbd7c6453"
+}

@@ -4,7 +4,7 @@ namespace UniClaw.Kernel.Control;
 
 /// <summary>Control-owned bounded traversal cursor. It keeps obligations and path
 /// state only; World and Run remain the owners of facts and execution records.</summary>
-internal sealed class TraversalControl
+internal sealed partial class TraversalControl
 {
     internal sealed record Work(string InvocationId, TraversalOperation Operation, TraversalCandidate? Candidate,
         string ContainerId, string RevisionId, bool Return, string? ExpectedReturnContainerId = null,
@@ -40,7 +40,7 @@ internal sealed class TraversalControl
     private string _planId = string.Empty;
     private int _version;
 
-    public void Start(string planId, int version, string root)
+    private void StartCore(string planId, int version, string root)
     {
         _path.Clear();
         _expandedNavigationDepth.Clear();
@@ -70,7 +70,7 @@ internal sealed class TraversalControl
     public int KnownPendingWork => _path.Sum(frame => frame.ObservedCandidates.Count -
         frame.ObservedCandidates.Count(frame.AssignedCandidates.Contains));
 
-    public Work? Select(TraversalObservation observation, int maxDepth)
+    private Work? SelectCore(TraversalObservation observation, int maxDepth)
     {
         if (_finished || _status == PlanExecutionStatus.Paused || _path.Count == 0) return null;
         var frame = _path.Peek();
@@ -190,7 +190,7 @@ internal sealed class TraversalControl
     private static string NavigationObligation(string source, string rule, string candidate, string operation) =>
         $"{source}|{rule}|{candidate}|{operation}";
 
-    public bool Returned(Work work, string? currentContainerId)
+    private bool ReturnedCore(Work work, string? currentContainerId)
     {
         if (currentContainerId is not null) _currentContainerId = currentContainerId;
         var expected = work.ExpectedReturnContainerId;
@@ -211,9 +211,9 @@ internal sealed class TraversalControl
     }
 
     private IReadOnlyList<TraversalRule>? _rules;
-    public void ConfigureRules(IReadOnlyList<TraversalRule> rules) => _rules = rules;
+    private void ConfigureRulesCore(IReadOnlyList<TraversalRule> rules) => _rules = rules;
 
-    public void Navigated(Work work, string targetContainerId, TraversalOperation returnOperation)
+    private void NavigatedCore(Work work, string targetContainerId, TraversalOperation returnOperation)
     {
         Completed(work.InvocationId, $"{work.ContainerId}->{targetContainerId}:{work.Operation.OperationId}");
         _currentContainerId = targetContainerId;
@@ -244,24 +244,24 @@ internal sealed class TraversalControl
         _activePath.Add(targetContainerId);
     }
 
-    public void ReadOnlyCompleted(Work work)
+    private void ReadOnlyCompletedCore(Work work)
     {
         Completed(work.InvocationId, $"{work.ContainerId}:{work.Operation.OperationId}");
     }
     private void Completed(string operationId, string work) =>
         _progressEvents.Enqueue(new TraversalProgressEvent.Completed(operationId, work));
-    public void Pause(string reason) { _status = PlanExecutionStatus.Paused; _pause = reason; }
-    public void Resume() { if (!_finished) { _status = PlanExecutionStatus.Active; _pause = null; } }
-    public void Abandon(string reason) { _status = PlanExecutionStatus.Abandoned; _finished = true; _end = reason; }
-    public void Fail(string reason) { Gap(_path.Count == 0 ? string.Empty : _path.Peek().ContainerId, null, reason, Array.Empty<string>()); Pause(reason); }
-    public void Gap(string container, string? candidate, string reason, IReadOnlyList<string> evidence)
+    private void PauseCore(string reason) { _status = PlanExecutionStatus.Paused; _pause = reason; }
+    private void ResumeCore() { if (!_finished) { _status = PlanExecutionStatus.Active; _pause = null; } }
+    private void AbandonCore(string reason) { _status = PlanExecutionStatus.Abandoned; _finished = true; _end = reason; }
+    private void FailCore(string reason) { Gap(_path.Count == 0 ? string.Empty : _path.Peek().ContainerId, null, reason, Array.Empty<string>()); Pause(reason); }
+    private void GapCore(string container, string? candidate, string reason, IReadOnlyList<string> evidence)
     {
         if (_reportedGaps.Add((container, candidate, reason)))
             _progressEvents.Enqueue(new TraversalProgressEvent.Gap(
                 new TraversalGap(container, candidate, reason, evidence.ToArray())));
     }
 
-    public IReadOnlyList<TraversalProgressEvent> DrainProgressEvents()
+    private IReadOnlyList<TraversalProgressEvent> DrainProgressEventsCore()
     {
         var events = _progressEvents.ToArray();
         _progressEvents.Clear();

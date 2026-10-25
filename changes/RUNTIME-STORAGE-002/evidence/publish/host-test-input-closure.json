@@ -1,0 +1,27 @@
+{
+  "paths": [
+    "tests/UniClaw.Host.Tests/FileWorldJournalStreamingTests.cs",
+    "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/consultations.journal.jsonl",
+    "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/run-state.journal.jsonl.head",
+    "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/evidence.journal.jsonl",
+    "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/resource.journal.jsonl",
+    "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/resource.journal.jsonl.head",
+    "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/exec.journal",
+    "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/run-state.journal.jsonl",
+    "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/evidence.journal.jsonl.head",
+    "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/run-identity.json"
+  ],
+  "inputPaths": [
+    "platforms/perception/evaluation/validation/fastscreen-v1/sequences/seq-scroll-devopts.json",
+    "platforms/perception/evaluation/validation/fastscreen-v1/uia/1e572c8f5092.xml",
+    "platforms/perception/evaluation/validation/fastscreen-v1/uia/5ef64e4a384a.xml",
+    "platforms/perception/evaluation/validation/fastscreen-v1/sequences/seq-scroll-apps.json",
+    "platforms/perception/evaluation/validation/fastscreen-v1/uia/3682353fffbf.xml",
+    "platforms/perception/evaluation/validation/fastscreen-v1/uia/9591de5f37de.xml"
+  ],
+  "projectOnlyHunks": [
+    "original crash probe ProjectReference",
+    "LegacyEvidenceV1 output copy"
+  ],
+  "reason": "original Legacy archive, real recorded scroll XML, and global-GC test collection definition; no assertion/threshold weakening"
+}

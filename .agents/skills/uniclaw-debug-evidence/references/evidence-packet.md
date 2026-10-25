@@ -20,6 +20,11 @@
 
 ## 2. Schema（uniclaw.diagnosis.packet.v0）
 
+EVO-002 的真实工具消费者引入机械校验文件
+`schemas/diagnosis-packet.schema.json`；字段含义仍由本文件与 Skill §5 定义。
+model-procedure 仅输出诊断字段；Host 补全实际 producer、时间和已读报告哈希，
+只写 repo evidence 区并返回 path+sha256。模型自报来源不进入最终包。
+
 ```json
 {
   "schema": "uniclaw.diagnosis.packet.v0",
@@ -69,16 +74,26 @@
 
 1. `firstDivergence.expected` 不得来自 actual / 待测输出 / 模型自证。
 2. `firstDivergence.evidenceRefs` 不得为空 —— FDP 必须落在具体证据上。
-3. `producer` 必须如实标注；model-procedure 必填 model。
+3. `producer` 是描述性来源，不是身份认证或已验证执行证明；model-procedure
+   必填实际 transport 选择的 model，由工具适配填写，不能采信模型自报。
+   agent-skill 的来源仍需原始执行资料核对，不能仅凭字段存在判定 PASS。
 4. `authority` 恒为 `"non-authoritative"`，任何消费方不得改写。
 5. packet 的存在不构成事实：立案走 Uniflow，修复走 IMPLEMENT，均另行裁决。
+
+## 3.1 返回后的资产寿命
+
+遵循[开发测试资产收尾规范](../../../../docs/agents/test-asset-retention.md)。
+packet交还前先完成本次诊断收尾；被packet或下游实际消费的原始材料不是
+多余资产。归档须验证原内容摘要及消费者读取/定位可用，不能只留一个包
+路径便删除仍需的文件。不改v0字段或引用hash以掩盖缺失；任务删除或显式
+退役时先处理有效依赖并记录去向。本规范不要求永久复制全部诊断过程输出。
 
 ## 4. 下游引用方式
 
 | 消费方 | 引用形态 |
 |---|---|
-| EVO case manifest（`uniclaw-evolution-loop`） | `"diagnosis": { "path": "…", "sha256": "…" }`（LOCK 后补充） |
-| Uniflow bug 类 Change | `state.md` 增 `diagnosis: <path>` 行（EVO-002 接线，本版先定义） |
+| EVO case / result packet（`uniclaw-evolution-loop`） | `"diagnosis": { "path": "…", "sha256": "…" }`；LOCK前可进case，LOCK后仅进结果packet，禁止改锁定manifest |
+| Uniflow bug 类 Change | `state.md` 增 `diagnosis: {path: <path>, sha256: <hex>}` 行（EVO-002 接线，本版先定义） |
 | 触发器 / 工单（未来） | 只消费 `meta` + `failureClass` + `subject.runDir`，不复制正文 |
 
 ## 5. 示例（真实数据：EVO-001 cycle-01）
@@ -114,9 +129,9 @@
   "lastCorrectState": "进入 Default apps 页前的上一帧分类正确（同包 absent）",
   "firstDivergence": {
     "where": "src/UniClaw.Host/SettingsPopupClassifier.cs:18（base 版）",
-    "expected": "跨包正常内容页不得判 present（SIM-017 正反例表第一行：跨包只支持 package 不同，覆盖关系 unknown）",
-    "observed": "windowPackage != hostPackage 直接返回 'present'，先于任何结构证据检查",
-    "evidenceRefs": ["changes/EVO-001/evidence/cycle-01/red.trx", "changes/SIM-017/design.md §当前链路与真实缺口"]
+    "expected": "跨包本身不足以确认覆盖窗，覆盖关系 unknown，不得把分类器 present 升格为已确认窗口事实（SIM-017 正反例第一行；现分类保持不变）",
+    "observed": "分类器因包名不同返回 present；归档红例针对候选正常页预期失败，不等同当前分类契约违规或 absent 已获窗口证据",
+    "evidenceRefs": ["changes/EVO-001/evidence/cycle-01/red.trx", "changes/SIM-017/design.md §正反例与后续验收；原分类保持不变"]
   },
   "owner": "UniClaw.Host — SettingsPopupClassifier",
   "rootCauseSupport": [

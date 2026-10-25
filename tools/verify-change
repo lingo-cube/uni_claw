@@ -16,17 +16,18 @@ SIM-006 rework (A4-A8):
   ids and scope/parameter conflicts are rejected fail-closed (A5).
 - Each run emits a redacted resolved-config snapshot (inputs actually
   consumed: scenario digests, testset manifest hash, runtime source hash,
-  TRX hash, git state) under evidence/sim-006/runs/ (A4; gitignored).
+  TRX hash, git state) under the configured independent asset Run.
 """
 from __future__ import annotations
-import argparse, datetime, hashlib, json, os, re, subprocess, sys
+import argparse, datetime, hashlib, json, os, re, signal, subprocess, sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from test_assets import AssetRun, load_layout, digest, file_digest, atomic_json, fingerprints
 import xml.etree.ElementTree as ET
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SIM_PROJECT = "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj"
-SIM_TRX_DIR = os.path.join(ROOT, "tests", "UniClaw.Simulation.Tests", "TestResults")
-HOST_TRX_DIR = os.path.join(ROOT, "tests", "UniClaw.Host.Tests", "TestResults")
 # FULL_TEST_PROJECTS covers every solution test project (aggregated); the
 # simulation project is
 # executed once by the SIMULATION group and reused (A6: no duplicate runs).
@@ -41,14 +42,36 @@ OTHER_TEST_PROJECTS = (
 )
 TESTSET_MANIFEST = os.path.join(ROOT, "testsets", "simulation-baseline", "manifest.json")
 SCENARIO_ID_RE = re.compile(r"^SCN-[A-Z0-9][A-Z0-9-]*$")
-RUNS_DIR = os.path.join(ROOT, "evidence", "sim-006", "runs")
 
 
 def run(label, args):
+    if args[:2] == ["dotnet", "test"]:
+        args = [*args, "-m:1", "-nr:false"]
     print(f"[{label}] {' '.join(args)}")
-    p = subprocess.run(args, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    print(p.stdout, end="")
-    return p.returncode, p.stdout
+    import tempfile
+    # A file preserves already-written output if a signal interrupts a read;
+    # text PIPE.read() can otherwise lose its in-flight buffer on cancellation.
+    with tempfile.TemporaryFile(mode='w+t', encoding='utf-8') as log:
+        p = subprocess.Popen(args, cwd=ROOT, text=True, stdout=log,
+                             stderr=subprocess.STDOUT, start_new_session=True)
+        try:
+            p.wait()
+        except BaseException as error:
+            try: os.killpg(p.pid, signal.SIGTERM)
+            except ProcessLookupError: pass
+            try: p.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                try: os.killpg(p.pid, signal.SIGKILL)
+                except ProcessLookupError: pass
+                p.wait()
+            log.seek(0)
+            error.output = log.read()
+            print(error.output, end='')
+            raise
+        log.seek(0)
+        output = log.read()
+    print(output, end='')
+    return p.returncode, output
 
 
 def classify(sim_rc, sim_out, cert_rc, cert_out, live_out=""):
@@ -276,9 +299,7 @@ def write_resolved_config(ns, scenario_ids, selection_source, results, skipped, 
             "declaredStatus": data.get("status"),
         }
     head, branch, dirty = git_facts()
-    stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    outdir = os.path.join(RUNS_DIR, f"{ns.change}-{ns.scope}-{stamp}")
-    os.makedirs(outdir, exist_ok=True)
+    outdir = ns.asset_run.directory("results")
     cfg = {
         "schemaVersion": "sim006-resolved-config.v1",
         "change": ns.change,
@@ -297,7 +318,7 @@ def write_resolved_config(ns, scenario_ids, selection_source, results, skipped, 
         "execution": {
             "groups": [{"name": n, "rc": rc, "status": "executed"} for n, rc, _ in results],
             "skipped": [{"name": n, "reason": r} for n, r in skipped],
-            "simTrx": ({"path": os.path.relpath(sim_trx, ROOT), "sha256": sha256_file(sim_trx)}
+            "simTrx": ({"path": Path(sim_trx).relative_to(ns.asset_run.root).as_posix(), "logicalRoot": "run", "sha256": sha256_file(sim_trx)}
                        if sim_trx and os.path.isfile(sim_trx) else None),
             "scenarioCaveats": caveats,
             "classification": classes,
@@ -311,7 +332,7 @@ def write_resolved_config(ns, scenario_ids, selection_source, results, skipped, 
     with open(target, "w", encoding="utf-8") as fh:
         json.dump(cfg, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
-    print(f"RESOLVED_CONFIG={os.path.relpath(target, ROOT)}")
+    print(f"RESOLVED_CONFIG={target}")
     return target
 
 
@@ -390,6 +411,45 @@ def self_test(change):
     return 0 if all(results.values()) else 1
 
 
+def emit_evolution_signals(results, trx_paths, change, scope, intent, outdir):
+    """Exit adapter only: preserve verification verdict, never open a Change."""
+    import runpy
+    from pathlib import Path
+    repo_root = Path(ROOT).resolve()
+    adapter = runpy.run_path(os.path.join(ROOT, "tools", "evolution-signal.py"))
+    context = {**adapter["git_context"](repo_root), "change": change, "scope": scope}
+    fresh = [path for path in trx_paths if os.path.isfile(path)]
+    signals = adapter["scan_dev"](fresh, repo_root, intent, context)
+    manifests = sorted(repo_root.glob("tests/*/Fixtures/*/composition.json"))
+    signals += adapter["scan_compositions"](manifests, repo_root, intent, context)
+    if not signals:
+        # A failed build/tool can produce no TRX. Never consume an older file.
+        signals = [adapter["signal"]("dev-verify", {"kind": "verification-exit"},
+            "unknown", [name, rc], {**context, "intent": intent},
+            uncertainty=["no failed test or drift evidence; inspect owning group"],
+            group=name) for name, rc, _ in results if rc]
+    paths = adapter["persist"](signals, outdir, repo_root)
+    print("EVOLUTION_SIGNALS=" + json.dumps(paths))
+
+
+def trx_summaries(paths, root):
+    summaries = []
+    for name in paths:
+        path = Path(name)
+        item = {'path': path.relative_to(root).as_posix(), 'present': path.is_file()}
+        if path.is_file():
+            try:
+                counts = {}
+                for el in ET.parse(path).getroot().iter():
+                    if el.tag.split('}')[-1] == 'UnitTestResult':
+                        outcome = el.get('outcome', 'Unknown')
+                        counts[outcome] = counts.get(outcome, 0) + 1
+                item['outcomes'] = counts
+            except ET.ParseError as error: item['parseError'] = str(error)
+        summaries.append(item)
+    return summaries
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("change")
@@ -401,10 +461,27 @@ def main():
                     help="comma-separated scenario ids; quick scope only — overrides the testset manifest selection")
     ap.add_argument("--no-snapshot", action="store_true",
                     help="skip the resolved-config evidence snapshot")
+    ap.add_argument("--intent", choices=["verify", "expected-red"], default="verify",
+                    help="expected-red records the signal without creating an intake candidate")
+    ap.add_argument("--asset-config", help="complete local JSON layout profile (then env, then local profile)")
+    ap.add_argument("--print-asset-config", action="store_true", help="query resolved layout without running tests")
+    ap.add_argument("--retry-of", help="previous asset Run in the same verification batch")
+    ap.add_argument("--signal-dir", default="evolution", help="relative subdirectory within this Run results (default evolution)")
     ns = ap.parse_args()
     print(f"CHANGE={ns.change}")
     if ns.self_test:
         return self_test(ns.change)
+
+    try:
+        layout = load_layout(ROOT, ns.asset_config)
+        if ns.print_asset_config:
+            print(json.dumps(layout.resolved(), ensure_ascii=False, indent=2))
+            return 0
+        from test_assets import relative
+        relative(ns.signal_dir)
+    except ValueError as error:
+        print(f"ASSET_CONFIG_ERROR={error}")
+        return 2
 
     # A5: validate the requested configuration BEFORE any execution (fail closed).
     # The manifest first batch is always the boundary: an explicit --scenarios
@@ -440,23 +517,108 @@ def main():
     if caveats:
         print(f"SCENARIO_CAVEATS_SUMMARY={len(caveats)}/{len(scenario_ids)} selected scenario(s) with descriptive-only local carriers; baseline claims are partial for them")
 
+    try:
+        source, inputs, provenance = fingerprints(Path(ROOT), scenario_ids, ns.scope, ns.intent, ns.live)
+        baseline_refs = [{'logicalRoot': 'repository', **item} for item in provenance['inputFiles']
+                         if item['path'] == 'testsets/simulation-baseline/manifest.json' or item['path'].endswith('/composition.json')]
+        asset = AssetRun(ROOT, layout, ns.change, f"verify-change:{ns.scope}:{ns.intent}:live={ns.live}",
+                         source, inputs, ns.retry_of, baseline_refs=baseline_refs)
+    except (OSError, ValueError) as error:
+        print(f"ASSET_START_ERROR={error}")
+        return 2
+    ns.asset_run = asset
+    ns.signal_dir = str(asset.path('results', ns.signal_dir + '/.directory').parent)
+    summary = {'status': 'INTERRUPTED', 'scope': ns.scope, 'groups': [],
+               'skipped': [{'name': n, 'reason': r} for n, r in scope_skips(ns.scope)],
+               'consumersCompleted': False}
+    previous_handler = signal.getsignal(signal.SIGTERM)
+    def cancel(_signum, _frame): raise KeyboardInterrupt()
+    signal.signal(signal.SIGTERM, cancel)
+    try:
+        atomic_json(asset.path('results', 'provenance.json'), provenance)
+        return execute_verification(ns, scenario_ids, selection_source, caveats, summary)
+    except KeyboardInterrupt:
+        summary['status'] = 'CANCELLED'
+        print('FINAL_STATUS=CANCELLED')
+        return 130
+    except (OSError, ValueError, ET.ParseError) as error:
+        summary.update(status='ERROR', error=str(error))
+        print(f'VERIFICATION_ERROR={error}')
+        return 2
+    finally:
+        signal.signal(signal.SIGTERM, previous_handler)
+        try:
+            summary["trx"] = trx_summaries(getattr(ns, "trx_paths", []), asset.root)
+            end_source, end_inputs, _ = fingerprints(Path(ROOT), scenario_ids, ns.scope, ns.intent, ns.live)
+            summary["sourceStable"] = end_source == source and end_inputs == inputs
+            if not summary["sourceStable"]:
+                summary["sourceDrift"] = {"sourceDigestAtEnd": end_source, "inputDigestAtEnd": end_inputs,
+                                           "reason": "live repository changed during verification; do not claim a fixed-source acceptance"}
+            asset.finish(summary)
+            print(f'ASSET_RUN={asset.run_id} ASSET_ROOT={asset.root}')
+            print(f'ASSET_INDEX=changes/{ns.change}/assets.json')
+        except (OSError, ValueError) as error:
+            # The registration stays visible; failure never changes test verdict.
+            print(f'ASSET_FINALIZATION_PENDING={error}')
+            try:
+                from test_assets import update_index
+                def pending(index):
+                    for record in index['runs']:
+                        if record['runId'] == asset.run_id:
+                            record.update(summary=summary, finalizationPending=str(error))
+                update_index(ROOT, ns.change, pending)
+            except (OSError, ValueError) as pending_error:
+                print(f'ASSET_INDEX_PENDING={pending_error}')
+
+
+def execute_verification(ns, scenario_ids, selection_source, caveats, summary):
+    asset = ns.asset_run
+    trx_paths = []
+    ns.trx_paths = trx_paths
+    def trx_for(label, name):
+        safe_label = re.sub(r'[^A-Za-z0-9_.-]', '_', label)
+        return asset.path('results', 'trx/' + safe_label + '/' + name)
+
+    def execute(label, args):
+        if args[:2] == ['dotnet', 'test']:
+            safe_label = re.sub(r'[^A-Za-z0-9_.-]', '_', label)
+            directory = asset.path('results', 'trx/' + safe_label + '/.directory').parent
+            args = [*args, '--results-directory', str(directory)]
+            logger = next((x.split('=', 1)[1] for x in args if x.startswith('trx;LogFileName=')), None)
+            if logger is None:
+                logger = safe_label + '.trx'
+                args.extend(['--logger', 'trx;LogFileName=' + logger])
+            target = str(directory / logger)
+            if target not in trx_paths: trx_paths.append(target)
+        try:
+            rc, out = run(label, args)
+        except BaseException as error:
+            asset.path('logs', re.sub(r'[^A-Za-z0-9_.-]', '_', label) + '.txt').write_text(getattr(error, 'output', '') or '', encoding='utf-8')
+            summary['groups'].append({'name': label, 'rc': None, 'interrupted': True})
+            raise
+        asset.path('logs', re.sub(r'[^A-Za-z0-9_.-]', '_', label) + '.txt').write_text(out, encoding='utf-8')
+        summary['groups'].append({'name': label, 'rc': rc})
+        return rc, out
+
     results = []
     skipped = scope_skips(ns.scope)
     print(f"SCOPE={ns.scope}")
     print("FOCUSED=SKIPPED (change-specific tests remain change-owned)")
-    rc, out = run("DIFF_CHECK", ["git", "diff", "--check"]); results.append(("DIFF_CHECK", rc, out))
-    rc, out = run("ARCHITECTURE", ["dotnet", "test", "tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj", "--no-restore", "--filter", "FullyQualifiedName~LegacyStateSurfaceFreezeTests|FullyQualifiedName~Per014CutoverTests|FullyQualifiedName~ConflictResolverTests|FullyQualifiedName~Per009RemediationTests|FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~SemanticCheckedResolverTests", "--logger", "console;verbosity=minimal"]); results.append(("ARCHITECTURE", rc, out))
-    rc, out = run("ARCHITECTURE_HOST", ["dotnet", "test", "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj", "--no-restore", "--filter", "FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~LiveDeviceSelectorTests|FullyQualifiedName~LegacySurfaceRemovalTripwireTests", "--logger", "console;verbosity=minimal"]); results.append(("ARCHITECTURE_HOST", rc, out))
+    rc, out = execute("DIFF_CHECK", ["git", "diff", "--check"]); results.append(("DIFF_CHECK", rc, out))
+    rc, out = execute("ARCHITECTURE", ["dotnet", "test", "tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj", "--no-restore", "--filter", "FullyQualifiedName~LegacyStateSurfaceFreezeTests|FullyQualifiedName~Per014CutoverTests|FullyQualifiedName~ConflictResolverTests|FullyQualifiedName~Per009RemediationTests|FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~SemanticCheckedResolverTests", "--logger", "console;verbosity=minimal"]); results.append(("ARCHITECTURE", rc, out))
+    rc, out = execute("ARCHITECTURE_HOST", ["dotnet", "test", "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj", "--no-restore", "--filter", "FullyQualifiedName~UiHierarchyTypedParseTests|FullyQualifiedName~LiveDeviceSelectorTests|FullyQualifiedName~LegacySurfaceRemovalTripwireTests", "--logger", "console;verbosity=minimal"]); results.append(("ARCHITECTURE_HOST", rc, out))
 
-    trx_name = f"sim006-{'quick' if ns.scope == 'quick' else 'full'}.trx"
-    sim_trx = os.path.join(SIM_TRX_DIR, trx_name)
+    import uuid
+    run_stamp = uuid.uuid4().hex
+    trx_name = f"sim006-{ns.scope}-{run_stamp}.trx"
+    sim_trx = str(trx_for("SIMULATION", trx_name))
     if ns.scope == "quick":
         scenario_filter = "|".join(f"Scenario={sid}" for sid in scenario_ids)
-        rc, out = run("SIMULATION", ["dotnet", "test", SIM_PROJECT, "--no-restore", "--filter", scenario_filter, "--logger", "console;verbosity=minimal", "--logger", f"trx;LogFileName={trx_name}"])
+        rc, out = execute("SIMULATION", ["dotnet", "test", SIM_PROJECT, "--no-restore", "--filter", scenario_filter, "--logger", "console;verbosity=minimal", "--logger", f"trx;LogFileName={trx_name}"])
         results.append(("SIMULATION", rc, out))
         print(f"SIMULATION_NOTE=quick subset (trait-filtered: {scenario_filter}); not library-wide coverage")
     else:
-        rc, out = run("SIMULATION", ["dotnet", "test", SIM_PROJECT, "--no-restore", "--logger", "console;verbosity=minimal", "--logger", f"trx;LogFileName={trx_name}"])
+        rc, out = execute("SIMULATION", ["dotnet", "test", SIM_PROJECT, "--no-restore", "--logger", "console;verbosity=minimal", "--logger", f"trx;LogFileName={trx_name}"])
         results.append(("SIMULATION", rc, out))
         # A6 dedup: every remaining solution project once; the simulation
         # portion of FULL_TEST_PROJECTS is the SIMULATION execution above (same
@@ -465,20 +627,21 @@ def main():
         for project in OTHER_TEST_PROJECTS:
             label = f"FULL_TEST_PROJECTS[{os.path.basename(os.path.dirname(project))}]"
             command = ["dotnet", "test", project, "--no-restore", "--logger", "console;verbosity=minimal"]
-            if project == "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj":
-                command.extend(["--logger", "trx;LogFileName=sim006-full-host.trx"])
-            prc, pout = run(label, command)
+            project_name = os.path.basename(os.path.dirname(project))
+            project_trx = f"sim006-{run_stamp}.trx"
+            command.extend(["--logger", f"trx;LogFileName={project_trx}"])
+            prc, pout = execute(label, command)
             fs_rc = max(fs_rc, prc)
             fs_out.append(pout)
         results.append(("FULL_TEST_PROJECTS", fs_rc, "\n".join(fs_out)))
         print("FULL_TEST_PROJECTS_NOTE=all solution test projects, aggregated; simulation portion reused from SIMULATION (single execution; TRX shared with COVERAGE)")
 
-    rc, out = run("CERTIFICATION", ["python3", "tools/scenario_certify.py", "--check"]); results.append(("CERTIFICATION", rc, out))
+    rc, out = execute("CERTIFICATION", ["python3", "tools/scenario_certify.py", "--check"]); results.append(("CERTIFICATION", rc, out))
     if ns.scope == "full":
-        host_trx = os.path.join(HOST_TRX_DIR, "sim006-full-host.trx")
-        rc, out = run("COVERAGE", ["python3", "tools/scenario-coverage.py", "--trx", os.path.relpath(sim_trx, ROOT), "--trx", os.path.relpath(host_trx, ROOT)]); results.append(("COVERAGE", rc, out))
+        host_trx = str(trx_for("FULL_TEST_PROJECTS[UniClaw.Host.Tests]", f"sim006-{run_stamp}.trx"))
+        rc, out = execute("COVERAGE", ["python3", "tools/scenario-coverage.py", "--trx", sim_trx, "--trx", host_trx]); results.append(("COVERAGE", rc, out))
     if ns.live:
-        rc, out = run("LIVE", ["tools/verify-live"]); results.append(("LIVE", rc, out))
+        rc, out = execute("LIVE", ["tools/verify-live"]); results.append(("LIVE", rc, out))
         live_state = "executed"
     else:
         print("LIVE=SKIPPED (use --live to run environment gate)")
@@ -510,9 +673,23 @@ def main():
     if failed or classes:
         emit_failure_details(results, sim_trx)
 
+    summary['status'] = final
+    consumer_errors = []
     if not ns.no_snapshot:
-        write_resolved_config(ns, scenario_ids, selection_source, results, skipped, classes,
-                              sim_trx, live_state, caveats)
+        try:
+            write_resolved_config(ns, scenario_ids, selection_source, results, skipped, classes,
+                                  sim_trx, live_state, caveats)
+        except (OSError, ValueError, KeyError) as error:
+            consumer_errors.append({'consumer': 'resolved-config', 'error': str(error)})
+            print(f'RESOLVED_CONFIG_ERROR={error}')
+    try:
+        emit_evolution_signals(results, trx_paths, ns.change, ns.scope, ns.intent, ns.signal_dir)
+    except (OSError, ValueError, KeyError, TypeError, ET.ParseError) as error:
+        consumer_errors.append({'consumer': 'evolution-signals', 'error': str(error)})
+        print(f'EVOLUTION_SIGNAL_ERROR={error}')
+    summary['consumersCompleted'] = not consumer_errors
+    if consumer_errors: summary['consumerErrors'] = consumer_errors
+    summary["trx"] = trx_summaries(trx_paths, asset.root)
     return 1 if (failed or classes) else 0
 
 

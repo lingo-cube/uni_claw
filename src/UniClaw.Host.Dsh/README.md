@@ -14,6 +14,10 @@ binding 注入。语义权威在 Kernel/Agent，本目录只做宿主映射—�
 | `FileDecisionConsult.cs` | 测试专用 Leader-file 决策桥；不取得 Kernel authority |
 | `InitializationEnvelope.cs` | 会话首个 run 的初始化审计 envelope（装配五要素可重建；PRF-005/Q13） |
 | `RuntimeToolHost.cs` | Harness 工具暴露清单在 Runtime 的宿主落点（PNL-008 / ADR-0039） |
+| `RuntimeToolHost.Reports.cs` | 必交付报告的输入清单发现、固定脚本调用、跨重启查询及报告级重试；旧报告目录仅为兼容投影 |
+| `ReportDeliveryEndpoints.cs` | 必交付报告的查询、重试与核验产物读取端点；不持有执行任务接口 |
+| `RuntimeBackgroundWork.cs` | 追踪原Runtime后台任务，正常关闭有界等待，明确未完成或失败的Run引用；报告状态仍由独立存储负责 |
+| `RuntimeDiagnosisPacket.cs` | EVO-002诊断包的宿主来源填写、校验与受限落盘；仅非权威证据 |
 | `RuntimeToolConfig.cs` | Runtime Host 工具执行的本地配置/产出路径（PNL-010） |
 
 `evidence/`、`runs/` 为运行产物目录，非源码。[runs-d9](runs-d9/README.md)保留历史证据原路径，本轮没有搬迁。新运行显式使用`--runs`指定源码目录之外的绝对输出根；需保留的验证输出按[证据目录规则](../../evidence/README.md)进入对应Change目录。CLI默认相对`runs`仍取决于启动位置，调用方应显式给出输出根。

@@ -23,6 +23,7 @@ public sealed class ProductSessionStore : IDisposable
     private readonly Dictionary<string, ProductSessionRecord> _byTask = new();
     private readonly object _sync = new();
     private StreamWriter? _writer;
+    private bool _faulted;
 
     public ProductSessionStore(string filePath)
     {
@@ -38,14 +39,15 @@ public sealed class ProductSessionStore : IDisposable
     {
         lock (_sync)
         {
+            EnsureWritable();
             if (_byTask.TryGetValue(taskInstanceId, out var existing))
                 return existing;
             var record = new ProductSessionRecord(
                 $"ps-{Guid.NewGuid():N}",
                 taskInstanceId, DateTimeOffset.UtcNow);
+            Append(record);
             _byId[record.ProductSessionId] = record;
             _byTask[taskInstanceId] = record;
-            Append(record);
             return record;
         }
     }
@@ -60,6 +62,7 @@ public sealed class ProductSessionStore : IDisposable
     {
         lock (_sync)
         {
+            EnsureWritable();
             var record = _byId[productSessionId]
                 ?? throw new KeyNotFoundException($"ProductSession {productSessionId} not found");
             if (record.RunId == runId) return record;
@@ -67,16 +70,23 @@ public sealed class ProductSessionStore : IDisposable
                 throw new InvalidOperationException(
                     $"ProductSession {productSessionId} already bound to run {record.RunId}");
             var updated = record with { RunId = runId };
+            Append(updated);
             _byId[productSessionId] = updated;
             _byTask[updated.TaskInstanceId] = updated;
-            Append(updated);
             return updated;
         }
     }
 
     private void Append(ProductSessionRecord record)
     {
-        _writer?.WriteLine(JsonSerializer.Serialize(record));
+        try { _writer!.WriteLine(JsonSerializer.Serialize(record)); }
+        catch { _faulted = true; throw; }
+    }
+
+    private void EnsureWritable()
+    {
+        ObjectDisposedException.ThrowIf(_writer is null, this);
+        if (_faulted) throw new IOException("product-session-store-faulted-reopen-required");
     }
 
     private void Load()
@@ -98,7 +108,11 @@ public sealed class ProductSessionStore : IDisposable
 
     public void Dispose()
     {
-        _writer?.Dispose();
-        _writer = null;
+        lock (_sync)
+        {
+            var writer = _writer;
+            _writer = null;
+            writer?.Dispose();
+        }
     }
 }

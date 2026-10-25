@@ -1,0 +1,319 @@
+{
+  "src/UniClaw.Host/Runtime/FileConsultationJournal.cs": {
+    "sha256": "1d7aa9385d5f6a2e2c005397c6724a9f1cfa15dff0a98c29d475aaa166d2eb0f",
+    "anchors": [
+      {
+        "line": 93,
+        "text": "private void Store(ConsultationJournalEntry entry)"
+      },
+      {
+        "line": 96,
+        "text": "_writer?.WriteLine(JsonSerializer.Serialize(entry, _json));"
+      }
+    ]
+  },
+  "src/UniClaw.Host/Runtime/FileControlTraversalJournal.cs": {
+    "sha256": "a51921d960e5551b24cdf1f9a2da9c0ee76702f9ed628694cc3bed76c55118af",
+    "anchors": [
+      {
+        "line": 72,
+        "text": "public void Append(ControlTraversalHistoryRecord record)"
+      },
+      {
+        "line": 79,
+        "text": "try { _stream.Write(data); _stream.Flush(flushToDisk: true); CommitHead(record.Sequence, hash); }"
+      },
+      {
+        "line": 93,
+        "text": "stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize("
+      },
+      {
+        "line": 95,
+        "text": "stream.Flush(flushToDisk: true);"
+      }
+    ]
+  },
+  "src/UniClaw.Host/Runtime/FileEvidenceJournal.cs": {
+    "sha256": "69388123410fe8f1329b3413ed257650c09b487038e859ed778d0ba55da323c0",
+    "anchors": [
+      {
+        "line": 69,
+        "text": "public void Append(EvidenceHistoryRecord record)"
+      },
+      {
+        "line": 81,
+        "text": "_stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new Frame(Schema, RecordingId, sequence, _hash, payload, hash), Json) + \"\\n\"));"
+      },
+      {
+        "line": 82,
+        "text": "_stream.Flush();"
+      },
+      {
+        "line": 88,
+        "text": "stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize("
+      },
+      {
+        "line": 90,
+        "text": "stream.Flush();"
+      }
+    ]
+  },
+  "src/UniClaw.Host/Runtime/FileRunRecoveryArchive.cs": {
+    "sha256": "a81e5a9ee20a428183fb80b5c79e4c96ebe7744fb303aad486f035a5403cc435",
+    "anchors": [
+      {
+        "line": 34,
+        "text": "stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(frame, Json) + \"\\n\"));"
+      },
+      {
+        "line": 35,
+        "text": "stream.Flush();"
+      }
+    ]
+  },
+  "src/UniClaw.Host/Runtime/FileRunResourceJournal.cs": {
+    "sha256": "5a1429d697675d46b87ea225a48dbe0add77f501ab3d2e475231669540939559",
+    "anchors": [
+      {
+        "line": 52,
+        "text": "public void Append(RunResourceRecord record)"
+      },
+      {
+        "line": 64,
+        "text": "try { _stream.Write(bytes); _stream.Flush(); CommitHead(record.Sequence, hash); }"
+      },
+      {
+        "line": 118,
+        "text": "stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize("
+      },
+      {
+        "line": 120,
+        "text": "stream.Flush();"
+      }
+    ]
+  },
+  "src/UniClaw.Host/Runtime/FileRunStateJournal.cs": {
+    "sha256": "5d13f77b84847b1a2a274dbf4d1cc8fd7a25f8589688dfafabe14837f381cd82",
+    "anchors": [
+      {
+        "line": 77,
+        "text": "public void Append(RunHistoryRecord record)"
+      },
+      {
+        "line": 84,
+        "text": "try { _stream.Write(data); _stream.Flush(flushToDisk: true); CommitHead(record.Sequence, hash); }"
+      },
+      {
+        "line": 98,
+        "text": "stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize("
+      },
+      {
+        "line": 100,
+        "text": "stream.Flush(flushToDisk: true);"
+      }
+    ]
+  },
+  "src/UniClaw.Host/Runtime/FileRuntimePlanJournal.cs": {
+    "sha256": "7568b2371237fa6ee9864c3dada763fc22583be67a8c1e0815d4b48c8ca97530",
+    "anchors": [
+      {
+        "line": 72,
+        "text": "public void Append(RuntimePlanHistoryRecord record)"
+      },
+      {
+        "line": 79,
+        "text": "try { _stream.Write(data); _stream.Flush(flushToDisk: true); CommitHead(record.Sequence, hash); }"
+      },
+      {
+        "line": 93,
+        "text": "stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize("
+      },
+      {
+        "line": 95,
+        "text": "stream.Flush(flushToDisk: true);"
+      }
+    ]
+  },
+  "src/UniClaw.Host/Runtime/FileWorldJournal.cs": {
+    "sha256": "d823eb439c802fd9e09d05ad0d87d1ed7ea7a58ef5d744370d7d3a883cfd6283",
+    "anchors": [
+      {
+        "line": 75,
+        "text": "public void Append(WorldHistoryRecord record)"
+      },
+      {
+        "line": 87,
+        "text": "_stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new Frame(Schema, RecordingId, sequence, _hash, payload, hash), Json) + \"\\n\"));"
+      },
+      {
+        "line": 88,
+        "text": "_stream.Flush();"
+      },
+      {
+        "line": 94,
+        "text": "stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize("
+      },
+      {
+        "line": 96,
+        "text": "stream.Flush();"
+      }
+    ]
+  },
+  "src/UniClaw.Kernel/Control/TraversalControl.History.cs": {
+    "sha256": "850fc2301b1cb56b241ddeee19990b668fd595be75b534e6fed538776665eb69",
+    "anchors": [
+      {
+        "line": 94,
+        "text": "private void Append(ControlTraversalHistoryRecord row)"
+      },
+      {
+        "line": 96,
+        "text": "try { _journal!.Append(row); }"
+      }
+    ]
+  },
+  "src/UniClaw.Kernel/Effects/ExecutionSource/FileExecutionJournal.cs": {
+    "sha256": "a323680190a37a4b3497edf486d71659cf2a5dfb06ca1a4832ab70ed9bbc24ea",
+    "anchors": [
+      {
+        "line": 237,
+        "text": "_stream.Write(header, 0, 4);"
+      },
+      {
+        "line": 238,
+        "text": "_stream.Write(payload, 0, payload.Length);"
+      },
+      {
+        "line": 239,
+        "text": "_stream.Flush();"
+      }
+    ]
+  },
+  "src/UniClaw.Kernel/Evidence/EvidenceLedger.History.cs": {
+    "sha256": "605c717de0291547b62eee35022d12a483798cbfeb4917d649ce81edbe334cf8",
+    "anchors": [
+      {
+        "line": 12,
+        "text": "void Append(EvidenceHistoryRecord record);"
+      },
+      {
+        "line": 53,
+        "text": "try { journal.Append(new(_admissionLog.Count + 1, Freeze(admission), record is null ? null : Capture(record), AdmissionVersion: 2)); }"
+      }
+    ]
+  },
+  "src/UniClaw.Kernel/Run/RunModel.History.cs": {
+    "sha256": "5dd3642f5d01bcec604857676539b7156585c57aa466ee9731c8236e30c40e0c",
+    "anchors": [
+      {
+        "line": 12,
+        "text": "void Append(RunHistoryRecord record);"
+      },
+      {
+        "line": 73,
+        "text": "journal.Append(record);"
+      }
+    ]
+  },
+  "src/UniClaw.Kernel/Runtime/ConsultationJournal.cs": {
+    "sha256": "3f046be5045825e6ebb37dd1d570f005db043a593b37f4ef166b34fd719bcb46",
+    "anchors": []
+  },
+  "src/UniClaw.Kernel/Runtime/KernelRunDriver.PlanHistory.cs": {
+    "sha256": "1a698c79f7f14ed0fe7ecc1f81969803438a63cff80656185f648c4f22546ef2",
+    "anchors": [
+      {
+        "line": 62,
+        "text": "_inputs.RuntimePlanJournal!.Append(JsonSerializer.Deserialize<RuntimePlanHistoryRecord>(payload, RuntimePlanGraph.Json)!);"
+      }
+    ]
+  },
+  "src/UniClaw.Kernel/Runtime/KernelRunDriver.Resources.cs": {
+    "sha256": "d10596f7129ded61ce9cd42d58a688536a9a4880f7a1699b6554c7f8050a803e",
+    "anchors": [
+      {
+        "line": 44,
+        "text": "journal.Append(new(1, RunResourcePhase.Initialize, \"initialize\", identity, CaptureResourceFacts(), RunHistoryPosition: position,"
+      },
+      {
+        "line": 85,
+        "text": "journal.Append(row);"
+      },
+      {
+        "line": 106,
+        "text": "journal.Append(row);"
+      }
+    ]
+  },
+  "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs": {
+    "sha256": "7716390d8c0b451f57215d9414d19506dd5d0043cb1e7b3c34d9372972731e77",
+    "anchors": [
+      {
+        "line": 404,
+        "text": "finally { Volatile.Write(ref _driveInProgress, 0); }"
+      },
+      {
+        "line": 1031,
+        "text": "_executionWorldDecisionRefs = _executionWorldDecisionRefs.Append(resume.DecisionId).Distinct(StringComparer.Ordinal).ToArray();"
+      },
+      {
+        "line": 1916,
+        "text": "public async Task<RunDriveResult> DriveAsync(CancellationToken cancellationToken = default)"
+      },
+      {
+        "line": 1921,
+        "text": "finally { Volatile.Write(ref _driveInProgress, 0); }"
+      },
+      {
+        "line": 1941,
+        "text": "var result = DriveCore();"
+      },
+      {
+        "line": 2216,
+        "text": "foreach (var operation in item.Rules.Select(rule => rule.Operation).Append("
+      },
+      {
+        "line": 2237,
+        "text": "var operations = item.Rules.Select(rule => rule.Operation).Append(new TraversalOperation("
+      },
+      {
+        "line": 3768,
+        "text": ".Append(traversal.ReturnStep)"
+      }
+    ]
+  },
+  "src/UniClaw.Kernel/Trace/AsyncFileTraceWriter.cs": {
+    "sha256": "8aa137f93c92f0aa238ca5b6a9704dcc5f481e101f757fa94d785bd0206ec554",
+    "anchors": [
+      {
+        "line": 323,
+        "text": "stream.WriteLine(RenderLine(record));"
+      },
+      {
+        "line": 326,
+        "text": "stream.Flush();"
+      },
+      {
+        "line": 436,
+        "text": ".Append(new TraceDiagnostic($\"seal-persist-failed:{e.GetType().Name}\"))"
+      },
+      {
+        "line": 557,
+        "text": ".Append(new TraceDiagnostic("
+      }
+    ]
+  },
+  "src/UniClaw.Kernel/World/WorldModel.HistoryRecording.cs": {
+    "sha256": "b2bb4c0dad27ce353309fa6528a9900ee74f5dee91b49c8f4d4bd923befdf13e",
+    "anchors": [
+      {
+        "line": 37,
+        "text": "history.Journal.Append(new(1, \"initialize\", JsonSerializer.SerializeToElement(new"
+      },
+      {
+        "line": 91,
+        "text": "try { _history!.Journal.Append(new(_historySequence + 1, operation, data)); }"
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "phase": "PLAN",
+  "passed": true,
+  "unchangedBuildInputs": 643,
+  "priorRecovery016SealedArtifactsVerified": 239,
+  "sourceSnapshots": 18,
+  "domainJournalPaths": 8,
+  "identityArchiveIncluded": true,
+  "adr0023ImplementationBanExplicitlyAmended": true,
+  "ownerAndRealCommitBoundaryPreserved": true,
+  "asyncBatchProductImplementation": false,
+  "performanceEvidenceAvailable": false
+}

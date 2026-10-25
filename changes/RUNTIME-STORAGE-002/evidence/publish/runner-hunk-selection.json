@@ -1,0 +1,7 @@
+{
+  "status": "pre-Coverage draft; reapply after owner freeze",
+  "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs",
+  "sha256": "3801bdee0fb877c98e41b59c0ae5622a4800c671c8908c85a76e1c6fbfcc1974",
+  "workingFileUnchanged": true,
+  "provider": "src/UniClaw.Host/Runtime/ConsultationArtifactLog.cs"
+}

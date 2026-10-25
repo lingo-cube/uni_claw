@@ -1,0 +1,11 @@
+{
+  "exitCode": 1,
+  "tree": "b0cb04a59674eadf557a52e940c0403df707aabb",
+  "log": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/logs/build-closure-v3.log",
+  "errors": [
+    "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/scratch/view/src/UniClaw.Kernel/World/WorldModel.cs(447,37): error CS0103: \u5f53\u524d\u4e0a\u4e0b\u6587\u4e2d\u4e0d\u5b58\u5728\u540d\u79f0\u201cOverlayObservationCodec\u201d [/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/scratch/view/src/UniClaw.Kernel/UniClaw.Kernel.csproj]",
+    "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/scratch/view/src/UniClaw.Kernel/World/WorldModel.cs(448,20): error CS0103: \u5f53\u524d\u4e0a\u4e0b\u6587\u4e2d\u4e0d\u5b58\u5728\u540d\u79f0\u201cReconcileOverlay\u201d [/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/scratch/view/src/UniClaw.Kernel/UniClaw.Kernel.csproj]",
+    "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/scratch/view/src/UniClaw.Kernel/World/WorldModel.cs(756,20): error CS0103: \u5f53\u524d\u4e0a\u4e0b\u6587\u4e2d\u4e0d\u5b58\u5728\u540d\u79f0\u201cRequireCurrentOverlay\u201d [/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/scratch/view/src/UniClaw.Kernel/UniClaw.Kernel.csproj]",
+    "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/scratch/view/src/UniClaw.Kernel/World/WorldModel.cs(1402,49): error CS0103: \u5f53\u524d\u4e0a\u4e0b\u6587\u4e2d\u4e0d\u5b58\u5728\u540d\u79f0\u201cOverlayObservationCodec\u201d [/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/scratch/view/src/UniClaw.Kernel/UniClaw.Kernel.csproj]"
+  ]
+}

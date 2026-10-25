@@ -106,9 +106,12 @@ public sealed partial class UniKernel
         _control = control;
         _assurance = assurance;
         _effects = effects;
+        if (effects is not null) _ledger.AttachAttemptIssuer(effects.AttemptIssuer);
         _metrics = metrics;
         _world.AttachPerformanceMetrics(metrics);
     }
+
+    internal AttemptObservationLink BeginAttemptObservation(string receiptId) => Effects.BeginObservation(receiptId);
 
     /// <summary>Current WorldBelief 透传（Kernel 不持有平行 belief）。</summary>
     public WorldBeliefRevision? CurrentBelief => _world.Current;
@@ -149,7 +152,10 @@ public sealed partial class UniKernel
     /// 唯一 occurrence、typed claim 或时序证据时保持 fail-closed，不回读
     /// presentation/egress claim。返回销案数。internal。
     /// </summary>
-    internal int ResolveAuthorityConflicts(TimeSpan freshnessWindow)
+    internal int ResolveAuthorityConflicts(TimeSpan freshnessWindow) =>
+        ResolveAuthorityConflictsAsync(freshnessWindow).AsTask().GetAwaiter().GetResult();
+
+    internal async ValueTask<int> ResolveAuthorityConflictsAsync(TimeSpan freshnessWindow)
     {
         var view = _world.DeriveControlBeliefViewOrNull();
         if (view is null || view.ConflictedSubjects.Count == 0)
@@ -207,10 +213,10 @@ public sealed partial class UniKernel
             if (disposition.Tier == World.ConflictResolver.Tier.CategoryAuthority
                 && disposition.ResolvedValue is { } value)
             {
-                _world.ResolveConflict(
+                await _world.ResolveConflictAsync(
                     subject, value, "category-authority",
                     disposition.OverruledProducer, disposition.Basis,
-                    DateTimeOffset.UtcNow);
+                    DateTimeOffset.UtcNow).ConfigureAwait(false);
                 resolved++;
             }
         }
@@ -247,7 +253,7 @@ public sealed partial class UniKernel
         ArgumentNullException.ThrowIfNull(driverIdentity);
         lock (_activationSync)
         {
-            if (RunView is null)
+            if (RunView is null || RunExecutionBlockReason is not null)
                 return (false, false);
             if (_activationOwner is not null)
                 return (true, true);
@@ -274,12 +280,29 @@ public sealed partial class UniKernel
     /// <summary>RunId（admission 铸造后非空；否则空串）。</summary>
     public string RunId => _run?.RunId ?? string.Empty;
 
+    internal RunIdentityRecord CaptureRunIdentity() => Run.CaptureIdentity();
+    internal string? RunStateRecordingId => Run.StateRecordingId;
+    internal RunHistoryPosition? RunHistoryPosition => Run.HistoryPosition;
+    internal string? EvidenceRecordingId => _ledger.RecordingId;
+    internal EvidenceHistoryPosition? EvidenceHistoryPosition => _ledger.HistoryPosition;
+    internal WorldHistoryPosition? WorldHistoryPosition => _world.HistoryPosition;
+    internal string? RunExecutionBlockReason => Run.IsReadOnly ? "restored-run-is-read-only"
+        : Run.IsStateOperationActive ? "run-operation-in-progress" : Run.IsStatePersistenceFaulted ? "run-state-persistence-failed" : _control?.TraversalExecutionBlockReason
+            ?? _ledger.ExecutionBlockReason ?? _world.HistoryExecutionBlockReason;
+    internal void EnsureRunStateWritable() { Run.EnsureStateWritable(); _control?.EnsureTraversalWritable(); _ledger.EnsureWritable(); _world.EnsureHistoryExecutionAvailable(); }
+    internal ControlTraversalHistoryPosition? ControlTraversalHistoryPosition => _control?.TraversalHistoryPosition;
+
     public UniClaw.Kernel.Runtime.TraversalExecutionView? TraversalExecution => _run?.TraversalExecution;
     internal void RecordTraversal(UniClaw.Kernel.Runtime.TraversalExecutionView view) => Run.RecordTraversal(view);
+    internal ValueTask RecordTraversalAsync(UniClaw.Kernel.Runtime.TraversalExecutionView view) => Run.RecordTraversalAsync(view);
     internal void BeginTraversalRecords() => Run.BeginTraversalRecords();
+    internal ValueTask BeginTraversalRecordsAsync() => Run.BeginTraversalRecordsAsync();
     internal void RecordTraversalHandler(UniClaw.Kernel.Runtime.PlanHandlerRecord record) => Run.RecordTraversalHandler(record);
+    internal ValueTask RecordTraversalHandlerAsync(UniClaw.Kernel.Runtime.PlanHandlerRecord record) => Run.RecordTraversalHandlerAsync(record);
     internal void RecordTraversalOperation(UniClaw.Kernel.Runtime.TraversalOperationRecord record) => Run.RecordTraversalOperation(record);
+    internal ValueTask RecordTraversalOperationAsync(UniClaw.Kernel.Runtime.TraversalOperationRecord record) => Run.RecordTraversalOperationAsync(record);
     internal void RecordTraversalProgress(UniClaw.Kernel.Runtime.TraversalProgressEvent progress) => Run.RecordTraversalProgress(progress);
+    internal ValueTask RecordTraversalProgressAsync(UniClaw.Kernel.Runtime.TraversalProgressEvent progress) => Run.RecordTraversalProgressAsync(progress);
     internal UniClaw.Kernel.Control.TraversalControl TraversalControl => Control.Traversal;
     internal void RecordTraversalRecovery(UniClaw.Kernel.Runtime.TraversalRecoveryFacts facts) => Control.AcceptTraversalRecovery(facts);
 
@@ -309,8 +332,24 @@ public sealed partial class UniKernel
     /// terminal 后仍可 admission / reconciliation（historical evidence 可追加），
     /// 但不得恢复 terminal Run（任务 九.H，E2B 路径不变）。
     /// </summary>
+    private int _observationProcessing;
+    private void EnterObservationProcessing()
+    {
+        _run?.EnsureStateWritable();
+        if (Interlocked.CompareExchange(ref _observationProcessing, 1, 0) != 0)
+            throw new InvalidOperationException("observation-processing-in-progress");
+    }
+
     public KernelResult Process(ObservationProposal observation, TransitionContext? transitionContext = null)
     {
+        EnterObservationProcessing();
+        try { return ProcessSingle(observation, transitionContext); }
+        finally { Volatile.Write(ref _observationProcessing, 0); }
+    }
+
+    private KernelResult ProcessSingle(ObservationProposal observation, TransitionContext? transitionContext)
+    {
+        _world.EnsureHistoryExecutionAvailable();
         var runRefs = RunRefs();
 
         // evidence.admit（TRC-001 binding；trace 故障全吸收，不改变行为）
@@ -332,6 +371,50 @@ public sealed partial class UniKernel
             inputSize: 1, outputSize: record is null ? 0 : 1);
         _metrics?.CountAdmission(admission.Decision == AdmissionDecision.Accepted);
 
+        return ProcessAdmittedAsync(admission, record, admitSpan, runRefs, transitionContext).AsTask().GetAwaiter().GetResult();
+    }
+
+    /// <summary>Save an observation's admissions before any World consumption. The Evidence
+    /// Owner interprets and confirms the batch; Kernel only preserves pipeline order.</summary>
+    public async ValueTask<IReadOnlyList<KernelResult>> ProcessBatchAsync(IReadOnlyList<ObservationProposal> observations,
+        TransitionContext? transitionContext = null, CancellationToken cancellationToken = default)
+    {
+        EnterObservationProcessing();
+        try { return await ProcessBatchCoreAsync(observations, transitionContext, cancellationToken).ConfigureAwait(false); }
+        finally { Volatile.Write(ref _observationProcessing, 0); }
+    }
+
+    private async ValueTask<IReadOnlyList<KernelResult>> ProcessBatchCoreAsync(IReadOnlyList<ObservationProposal> observations,
+        TransitionContext? transitionContext, CancellationToken cancellationToken)
+    {
+        _world.EnsureHistoryExecutionAvailable();
+        var runRefs = RunRefs();
+        var input = observations.ToArray();
+        var spans = input.Select(_ => StartTraced(TraceCatalog.EvidenceAdmit, parent: null, runRefs)).ToArray();
+        IReadOnlyList<(AdmissionRecord Admission, EvidenceRecord? Record)> admitted;
+        var started = Stopwatch.GetTimestamp();
+        try { admitted = await _ledger.AdmitBatchAsync(input, cancellationToken).ConfigureAwait(false); }
+        catch
+        {
+            foreach (var span in spans) TryComplete(span, StructuralOutcome.Faulted);
+            throw;
+        }
+        _metrics?.Record(RuntimeStage.EvidenceAdmission, Stopwatch.GetTimestamp() - started,
+            inputSize: input.Length, outputSize: admitted.Count(row => row.Record is not null));
+        var results = new List<KernelResult>();
+        for (var index = 0; index < admitted.Count; index++)
+        {
+            var (admission, record) = admitted[index];
+            _metrics?.CountAdmission(admission.Decision == AdmissionDecision.Accepted);
+            results.Add(await ProcessAdmittedAsync(admission, record, spans[index], runRefs, transitionContext).ConfigureAwait(false));
+        }
+        return results.AsReadOnly();
+    }
+
+    private async ValueTask<KernelResult> ProcessAdmittedAsync(AdmissionRecord admission, EvidenceRecord? record,
+        ITraceOperationScope admitSpan, IReadOnlyList<TraceReference> runRefs, TransitionContext? transitionContext)
+    {
+
         // fail-closed 短路（验收 4）：rejected 不得触达 Relevance / Reconciliation
         if (admission.Decision != AdmissionDecision.Accepted || record is null)
         {
@@ -346,7 +429,7 @@ public sealed partial class UniKernel
 
         // Belief Relevance 判定（验收 1）：与 Admission 是两个独立产出
         // （world.judge-relevance 为 provisional 词表项，本 bullet 不埋点）
-        var relevance = _world.JudgeRelevance(record);
+        var relevance = await _world.JudgeRelevanceAsync(record).ConfigureAwait(false);
 
         // irrelevant（验收 3）：canonical record 保留，不要求 revision
         if (!relevance.IsRelevant)
@@ -358,7 +441,7 @@ public sealed partial class UniKernel
         var reconcileStart = Stopwatch.GetTimestamp();
         try
         {
-            revision = _world.Reconcile(record, relevance, transitionContext);
+            revision = await _world.ReconcileAsync(record, relevance, transitionContext).ConfigureAwait(false);
         }
         catch (Exception)
         {
@@ -482,6 +565,12 @@ public sealed partial class UniKernel
         IReadOnlyList<KernelResult> processedObservations,
         DateTimeOffset? dispatchTime = null,
         WorldBeliefRevision? preActionBelief = null, string? receiptId = null)
+        => VerifyPostActionEffectAsync(target, processedObservations, dispatchTime, preActionBelief, receiptId)
+            .AsTask().GetAwaiter().GetResult();
+
+    internal async ValueTask<PostActionEffectVerification> VerifyPostActionEffectAsync(
+        TargetSpec target, IReadOnlyList<KernelResult> processedObservations, DateTimeOffset? dispatchTime = null,
+        WorldBeliefRevision? preActionBelief = null, string? receiptId = null)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(processedObservations);
@@ -569,11 +658,11 @@ public sealed partial class UniKernel
             && (target.SemanticDescriptor is null || target.SemanticDescriptor == observedScrollTarget.SemanticDescriptor)
             && CurrentInteractionContainer(scrollSource) is { } scrollContainer)
         {
-            _world.RecordObservedViewportTransition(new ObservedViewportTransition(
+            await _world.RecordObservedViewportTransitionAsync(new ObservedViewportTransition(
                 scrollSource.RevisionId, scrollTarget.RevisionId, scrollContainer,
                 scrollReceipt.ReceiptId, scrollBinding.BindingId, scrollOccurrence,
                 scrollBinding.EffectClass.ToLowerInvariant(), dispatchedAt, NavigationScope,
-                $"verification:{result.RevisionId}:{scrollReceipt.ReceiptId}"));
+                $"verification:{result.RevisionId}:{scrollReceipt.ReceiptId}")).ConfigureAwait(false);
         }
         // The independent Assurance result and accepted pre/post page observations
         // must exist before World can add a navigation relation. Delivery alone
@@ -585,10 +674,10 @@ public sealed partial class UniKernel
             && beforeBelief.WorldState.TryGetValue(WorldModel.SignatureSubjectPrefix + sourceId, out var sourceSignature)
             && afterBelief.WorldState.TryGetValue(WorldModel.SignatureSubjectPrefix + targetId, out var targetSignature))
         {
-            _world.RecordObservedNavigation(new ObservedNavigation(
+            await _world.RecordObservedNavigationAsync(new ObservedNavigation(
                 beforeBelief.RevisionId, sourceId, sourceSignature.EvidenceId,
                 afterBelief.RevisionId, targetId, targetSignature.EvidenceId,
-                NavigationScope, $"verification:{result.RevisionId}:{verifyingReceipt?.ReceiptId}"));
+                NavigationScope, $"verification:{result.RevisionId}:{verifyingReceipt?.ReceiptId}")).ConfigureAwait(false);
         }
         if (verifyingReceipt is { } verifiedReceipt) RecordEffectVerificationSources(verifiedReceipt.ReceiptId, result);
         return result;
@@ -630,22 +719,28 @@ public sealed partial class UniKernel
     /// RegisterContinuityDemand 同 DemandId 复用保证）；rejected → 零登记。
     /// Run Model 不取得对 WorldModel 的直连边（L0 边界不破）。
     /// </summary>
-    public ContractAdmission AdmitContract(ExecutionContract contract, string? runIdOverride = null)
+    public ContractAdmission AdmitContract(ExecutionContract contract, string? runIdOverride = null) =>
+        AdmitContractAsync(contract, runIdOverride).AsTask().GetAwaiter().GetResult();
+
+    public async ValueTask<ContractAdmission> AdmitContractAsync(ExecutionContract contract, string? runIdOverride = null,
+        CancellationToken cancellationToken = default)
     {
-        var admission = Run.AdmitContract(contract, runIdOverride);
+        cancellationToken.ThrowIfCancellationRequested();
+        var admission = await Run.AdmitContractAsync(contract, runIdOverride).ConfigureAwait(false);
         if (admission.Accepted)
         {
+            if (_control is not null) await _control.InitializeTraversalHistoryAsync(Run.CaptureIdentity(), Run.StateRecordingId).ConfigureAwait(false);
             foreach (var scope in Run.State!.ProofObligations.Obligations
                          .Where(o => o.EntityScope is not null)
                          .Select(o => (ObligationId: o.ObligationId, Descriptor: o.EntityScope!)))
             {
-                _world.RegisterContinuityDemand(new ContinuityDemand(
+                await _world.RegisterContinuityDemandAsync(new ContinuityDemand(
                     DemandId: $"demand-obl-{scope.ObligationId}",
                     SourceKind: ContinuityDemandSourceKind.EntityScopedObligation,
                     OwningContainerId: scope.Descriptor.OwningContainerId,
                     Role: scope.Descriptor.Role,
                     SemanticDescriptor: scope.Descriptor.SemanticDescriptor,
-                    AnchorOccurrenceId: null, AnchorRevisionId: null, LogicalItemId: null));
+                    AnchorOccurrenceId: null, AnchorRevisionId: null, LogicalItemId: null)).ConfigureAwait(false);
             }
         }
         return admission;
@@ -658,14 +753,18 @@ public sealed partial class UniKernel
     /// 重新打开 Run；§17）。EXP-008 / ADR-0011：Run State 不再进入
     /// Control 输入（P5 no-current-buyer / deferred）。
     /// </summary>
-    public ControlIntent SelectIntent(Slice slice)
+    public ControlIntent SelectIntent(Slice slice) => SelectIntentAsync(slice).AsTask().GetAwaiter().GetResult();
+
+    public async ValueTask<ControlIntent> SelectIntentAsync(Slice slice, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(slice);
+        EnsureRunStateWritable();
         if (Run.IsTerminal)
             throw new InvalidOperationException("Run 已 terminal，不可再签发 Control Intent（不得重新打开 Run）");
         var view = Run.View ?? throw new InvalidOperationException("尚无已接受的 Execution Contract");
         var intent = Control.SelectIntent(view, slice);
-        Run.RecordCycle();
+        await Run.RecordCycleAsync().ConfigureAwait(false);
         return intent;
     }
 
@@ -680,8 +779,14 @@ public sealed partial class UniKernel
     /// terminal 后 fail-closed：新 Control Intent 即使存在也不能变成
     /// effect（不变量 42，任务 八）。
     /// </summary>
-    public ActResult Act(ControlIntent intent, CandidateBinding? candidate, IReadOnlyList<string>? decisionReferences = null)
+    public ActResult Act(ControlIntent intent, CandidateBinding? candidate, IReadOnlyList<string>? decisionReferences = null) =>
+        ActAsync(intent, candidate, decisionReferences).AsTask().GetAwaiter().GetResult();
+
+    public async ValueTask<ActResult> ActAsync(ControlIntent intent, CandidateBinding? candidate,
+        IReadOnlyList<string>? decisionReferences = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureRunStateWritable();
         ArgumentNullException.ThrowIfNull(intent);
         if (Run.IsTerminal)
             throw new InvalidOperationException("Run 已 terminal，external effect 通道已关闭（不得 dispatch）");
@@ -714,7 +819,7 @@ public sealed partial class UniKernel
         // 3) Gate 执法 + Dispatch（judgment 拒绝也执法并拒绝——D6；
         //    拒绝即零 effect 副作用，decision 留痕非副作用）
         var actionBasis = _world.DeriveConsumptionBasis(targetSubject: canonical.TargetSubject, onlyTarget: true);
-        var (gate, receipt) = Effects.Dispatch(canonical, judgment, bindingView);
+        var (gate, receipt) = await Effects.DispatchAsync(canonical, judgment, bindingView, cancellationToken).ConfigureAwait(false);
 
         // 4) Receipt 已在 Owner log 留痕；回流走既有 E2B 路径（P3，验收 8）。
         //    AttemptReport reflux 不携带 TC：attempt evidence 是 kind-gated
@@ -726,11 +831,11 @@ public sealed partial class UniKernel
             Assurance.RecordEffectWorldUse(receipt, actionBasis, Control.DecisionUses(decisionReferences));
             Assurance.NoteOutcome(receipt);
             Control.NoteDispatchOutcome(receipt);
-            reflux = Process(Effects.ExportAttemptEvidence(receipt));
+            reflux = (await ProcessBatchAsync([Effects.ExportAttemptEvidence(receipt)]).ConfigureAwait(false))[0];
             // P22 producer（PER-003 / D1）：dispatch 已发生 → 导出 non-evidentiary
             // 上下文供 association prior 消费（不 establish Matched/New）
             transition = Effects.ExportTransitionContext(canonical.EffectClass, receipt);
-            Run.RecordAction();
+            await Run.RecordActionAsync().ConfigureAwait(false);
         }
 
         return new ActResult(judgment, binding, gate, receipt, reflux, transition);
@@ -746,8 +851,13 @@ public sealed partial class UniKernel
     /// （经 Act(intent, candidate) 复用）。
     /// </summary>
     public GroundedActResult ActViaCurrentGrounding(ControlIntent intent, TargetDescriptor descriptor,
-        IReadOnlyList<string>? decisionReferences = null)
+        IReadOnlyList<string>? decisionReferences = null) =>
+        ActViaCurrentGroundingAsync(intent, descriptor, decisionReferences).AsTask().GetAwaiter().GetResult();
+
+    public async ValueTask<GroundedActResult> ActViaCurrentGroundingAsync(ControlIntent intent, TargetDescriptor descriptor,
+        IReadOnlyList<string>? decisionReferences = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(descriptor);
 
@@ -781,7 +891,7 @@ public sealed partial class UniKernel
         // 收拢在工厂内（RVR-001 F3）。
         var candidate = CandidateBinding.ForUiTarget(
             new UiTargetReference(fact.OccurrenceId, view.SourceRevisionId));
-        return new GroundedActResult(view, Act(intent, candidate, decisionReferences));
+        return new GroundedActResult(view, await ActAsync(intent, candidate, decisionReferences, cancellationToken).ConfigureAwait(false));
     }
 
     /// <summary>
@@ -819,8 +929,12 @@ public sealed partial class UniKernel
     /// 但 Run 状态记录与 effect 门控仍由 Run Model / Effect Boundary 拥有。
     /// 失败时不产生新的 Runtime Outcome。
     /// </summary>
-    public TerminalEvaluation EvaluateTerminal()
+    public TerminalEvaluation EvaluateTerminal() => EvaluateTerminalAsync().AsTask().GetAwaiter().GetResult();
+
+    public async ValueTask<TerminalEvaluation> EvaluateTerminalAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureRunStateWritable();
         var state = Run.State ?? throw new InvalidOperationException("Run State 尚未建立（无已接受 contract）");
         if (Run.IsTerminal)
             return new TerminalEvaluation(null, new OutcomeTransition(false, "already-terminal", null), null);
@@ -844,7 +958,7 @@ public sealed partial class UniKernel
             return new TerminalEvaluation(null, new OutcomeTransition(false, "evidence-insufficient", null), null);
 
         // 2) Run Model 记录 terminal Outcome State（exact-prior / single-winner）
-        var transition = Run.TransitionToTerminal(proof, state);
+        var transition = await Run.TransitionToTerminalAsync(proof, state).ConfigureAwait(false);
         if (!transition.Accepted)
             return new TerminalEvaluation(proof, transition, null);
 

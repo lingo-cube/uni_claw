@@ -38,6 +38,7 @@ disposition:     none|blocked          # BLOCKED 是 disposition，不是状态
 ```markdown
 # <change-id> — <一句话>
 lifecycle_state: <…> · disposition: none · depth: standard · base: <git-rev>
+diagnosis: {path: <bug类RESOLVED前的diagnosis.packet.json>, sha256: <hex>}
 
 ## Intent（WHAT/WHY）
 ## Scope / Out of Scope
@@ -50,6 +51,7 @@ lifecycle_state: <…> · disposition: none · depth: standard · base: <git-rev
 
 DECISION-HEAVY 追加：Assumptions / Alternatives（含被拒）/
 Owner-Authority impact / ADR refs / Residual risks。
+`diagnosis` 仅用于 Bug 类 Change；路径与内容哈希必须同时提供，信号不代替诊断。
 
 ## 验证声明（STANDARD+ 必含）
 
@@ -63,6 +65,12 @@ verification:
 ```
 
 只有链接 ≠ 可复现验证；四元组缺一不可（命令型可紧凑写）。
+
+验证声明还须引用本轮资产处置结果，格式和时机见
+[开发测试资产收尾规范](../docs/agents/test-asset-retention.md)。诊断、重放、
+仿真/验证每次结束都做收尾，CLOSED前汇总核对。`assets.json`仅作归属、
+文件与引用索引，不重复存任务生命周期。任务删除时先迁移有效外部依赖，
+再级联处理其过程资产和归档；不将`closed`单独当作删除依据。
 
 ## Resume（跨会话进入）
 

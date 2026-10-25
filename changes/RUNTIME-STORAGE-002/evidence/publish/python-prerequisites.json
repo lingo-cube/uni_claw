@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "runtime-storage-002.publish-python-prerequisite.v1",
+  "passed": true,
+  "scope": "read-only private publication-view prerequisite tracing",
+  "consumer": {
+    "path": "tools/test_asset_archives.py",
+    "function": "consumer_checks",
+    "reader": "evolution-signal.scan_dev",
+    "loadMode": "runpy.run_path",
+    "sourceLines": "139-164"
+  },
+  "requiredFiles": [
+    "tools/evolution-signal.py",
+    "schemas/evolution-signal.schema.json"
+  ],
+  "contracts": {
+    "python": "scan_dev(trx_paths, root, intent=verify, context=None)",
+    "cliDev": "python3 tools/evolution-signal.py dev --trx PATH --intent verify|expected-red --out-dir OUT",
+    "cliRun": "python3 tools/evolution-signal.py run --run-dir DIR --out-dir OUT [--diagnosis PATH]",
+    "outputSchema": "uniclaw.evolution.signal.v0",
+    "authority": "non-authoritative"
+  },
+  "closedChange": {
+    "id": "EVO-002",
+    "statePath": "changes/EVO-002/state.md",
+    "lifecycle": "closed",
+    "contractPath": "changes/EVO-002/signal-contract.md"
+  },
+  "executorOnlyIssue": {
+    "path": "tools/tests/test_verify_entry.py",
+    "issue": "test_verify_entry import requires tools/tests on PYTHONPATH",
+    "classification": "executor-path-only; not product defect"
+  },
+  "verificationClaim": "prerequisite identified; 51-item acceptance not rerun or claimed",
+  "mutations": "none"
+}

@@ -58,7 +58,7 @@ public sealed class PageObservationExecutionTests
     [InlineData(false, "timeout")]
     [InlineData(false, "cancel")]
     [InlineData(false, "late-scene")]
-    public void NavigationWaitsForIdentityAndAssurance_ThenTraversalContinuesWithoutRedispatch(bool wrongFirst, string failure)
+    public async Task NavigationWaitsForIdentityAndAssurance_ThenTraversalContinuesWithoutRedispatch(bool wrongFirst, string failure)
     {
         var scope = new HashSet<string> { PageObservationCodec.CaptureSubject, PageObservationCodec.IdentitySubject,
             ProductAssociationStrategy.ScreenRouteSubject };
@@ -164,6 +164,7 @@ public sealed class PageObservationExecutionTests
             Assert.NotNull(kernel.CurrentBelief!.ObservationNeed);
             if (failure is "insufficient" or "timeout")
             {
+                await driver.CompleteDiagnosticObservationsAsync();
                 Assert.Single(recoveries);
                 Assert.False(kernel.IsRunTerminal);
             }

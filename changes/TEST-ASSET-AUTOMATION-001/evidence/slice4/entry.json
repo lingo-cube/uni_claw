@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "tools/test_assets.py",
+      "sha256": "308a550858c39a077a120877f819a0684552270631b2dca791da7224643d3f77"
+    },
+    {
+      "path": "tools/test_asset_archives.py",
+      "sha256": "a61f5b508e12217d41204ed7d3e10c500ff8208c3bcff03143c139ffc35502d4"
+    },
+    {
+      "path": "tools/test_asset_operations.py",
+      "sha256": "e3ff5c1fd2241d512f2b14c34d7bc907215c332df99a5af2311acb7a09335c74"
+    },
+    {
+      "path": "tools/test-assets",
+      "sha256": "899e9751e32b4c1d535f4b11da67b280de7fe10a94df3d1075df0016c5738608"
+    },
+    {
+      "path": "tools/README.md",
+      "sha256": "cd91bd7d19154f77f4cdaf7e5d72ca78bc3f93ba0c76f777e1ee11ae3fe40bb5"
+    },
+    {
+      "path": "docs/agents/test-asset-retention.md",
+      "sha256": "97a3d1007362230eb91309cc978ccd50a614f75dc0248bc2d06e98a60aa81894"
+    }
+  ],
+  "scope": "opt-in archived work-copy release only; original100 preserved; no task cascade or historical migration"
+}

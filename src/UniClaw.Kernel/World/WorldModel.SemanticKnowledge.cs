@@ -9,8 +9,6 @@ namespace UniClaw.Kernel.World;
 public sealed partial class WorldModel
 {
     private readonly IReadOnlyList<NativeContextSignatureProfile> _nativeSemanticProfiles;
-    private readonly List<SemanticVerificationDecision> _semanticVerifications = [];
-    private readonly HashSet<string> _revokedInterpretations = new(StringComparer.Ordinal);
     public IReadOnlyList<SemanticVerificationDecision> SemanticVerificationLog => _semanticVerifications.AsReadOnly();
 
     private WorldBeliefRevision ReconcileSemanticVerification(EvidenceRecord record, WorldBeliefRevision? parent)

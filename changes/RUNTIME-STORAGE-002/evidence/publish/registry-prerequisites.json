@@ -1,0 +1,15 @@
+{
+  "owner": "EVO-002 closed deterministic exit metadata plus asset local-write posture",
+  "paths": [
+    "tool-registry.yaml",
+    "tools/validate-tool-registry.py"
+  ],
+  "existingCarrierExports": [
+    ".agents/skills/uniclaw-debug-evidence/SKILL.md",
+    ".agents/skills/uniclaw-debug-evidence/references/canonical-cases.md",
+    ".agents/skills/uniclaw-debug-evidence/references/evidence-packet.md",
+    ".agents/skills/uniclaw-debug-evidence/references/world-model-consistency.md",
+    ".agents/skills/uniclaw-debug-evidence/scripts/world-model-consistency.sh"
+  ],
+  "reason": "RealRegistry_ProcedureCarrierExists kept original posture and actual carrier assertion"
+}

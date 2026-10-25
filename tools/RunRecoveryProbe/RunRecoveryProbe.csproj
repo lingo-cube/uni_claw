@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>UniClaw.RunRecoveryProbe</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/UniClaw.Host/UniClaw.Host.csproj" />
+    <ProjectReference Include="../../src/UniClaw.Host.Dsh/UniClaw.Host.Dsh.csproj" />
+  </ItemGroup>
+</Project>

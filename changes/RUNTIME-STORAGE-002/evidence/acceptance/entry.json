@@ -1,0 +1,7 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": {
+    "tests/UniClaw.Host.Tests/WorldHistoryDeltaTests.cs": "823f13f76dd6d7160ee56ad79edd242f89d007124c2118cd1d83e9dabe3bd107",
+    "src/UniClaw.Host/Runtime/FileWorldJournal.cs": "26c3a8fd36c7b5e4fcbd9c19da12f4914c730ace9d297d056b7b3593700d490a"
+  }
+}

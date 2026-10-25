@@ -1,0 +1,27 @@
+{
+  "owner": "SIM-019 (closed)",
+  "authority": "exact slice1 pure-build-inputs.tar.gz provider baseline, independently matched current bytes",
+  "providers": [
+    {
+      "path": "src/UniClaw.Kernel/World/OverlayObservation.cs",
+      "sha256": "a1f0ae9186eca8b2c5464f81cc301074c195150ec55010191357e0f23bcd12dd",
+      "equalCurrent": true
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/PageObservation.cs",
+      "sha256": "a5d1b6bd5fc96bc07d8bb88bf2b3bfd8c70a9a3ff1e560c65037353c55a2a032",
+      "equalCurrent": true
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.Overlay.cs",
+      "sha256": "f0483dd92d62d34d48571be700d4aec48f174d22657466dfd4526258d749434d",
+      "equalCurrent": true
+    }
+  ],
+  "pairedNativeCallers": [
+    "src/UniClaw.Kernel/World/WorldModel.cs",
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs"
+  ],
+  "supersedes": "blanket native-Overlay exclusions in initial exploratory selection; Act/authored ExpectedEffect/OverlayDismissed remain excluded",
+  "workingFilesChanged": false
+}

@@ -1,0 +1,33 @@
+{
+  "operation": "implementation-support",
+  "deleted": [
+    {
+      "path": "connect_verify_assets.py",
+      "logicalRoot": "implementation-temporary",
+      "bytes": 9114,
+      "sha256": "23859f5e47aa1fc0e20e3f782fabceb5bc9237c29c66dcb3fb48e34a9d5635fd",
+      "reason": "task-created support output consumed; candidate patch or original Run layout retains required content",
+      "absentAfter": true
+    },
+    {
+      "path": "uniclaw-asset-index.json",
+      "logicalRoot": "implementation-temporary",
+      "bytes": 13274,
+      "sha256": "4b33c2087fe1ce75a580c275bea0c408c88f1dd173b369c2e781366a7c0a684d",
+      "reason": "task-created support output consumed; candidate patch or original Run layout retains required content",
+      "absentAfter": true
+    },
+    {
+      "path": "uniclaw-layout-proof.json",
+      "logicalRoot": "implementation-temporary",
+      "bytes": 309,
+      "sha256": "2aebdee71bbda0df64b868ddbd513e0eea94e14b4a05ba775c87e19e7cba102b",
+      "reason": "task-created support output consumed; candidate patch or original Run layout retains required content",
+      "absentAfter": true
+    }
+  ],
+  "deletedBytes": 22697,
+  "pending": [],
+  "productOrBaselineFilesDeleted": false,
+  "runEvidence": "all run evidence retained by per-run receipts"
+}

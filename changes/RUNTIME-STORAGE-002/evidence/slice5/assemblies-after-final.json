@@ -1,0 +1,20 @@
+{
+  "host-final": {
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "e6210972a8dd5fec8a804711b6035bef3784d1569d0bfde9eecf6b1cdf85d829",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.dll": "53c40694475cead93669190c98c0b13466c00e794b2494ca5b9b0dcba5399e9b",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll": "c58598d777d1a3f78ce0914225622a28fbf0a7a698d7860b46cb23cf39ed0bc2",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Core.dll": "f01b8f0eea171f1e02bdd441662582713e147705ef599e1125f64524879e160e",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll": "6703d27edabd23761b64bbb83c1b4d356b30999514bc2630f60240ff6815bf6e",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Agent.dll": "6de1c368265b9b997fcf1bae720e0ffe73a1bc37a7e4edbb1d3224fbae7c6f5e"
+  },
+  "dsh-final": {
+    "tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "e6210972a8dd5fec8a804711b6035bef3784d1569d0bfde9eecf6b1cdf85d829",
+    "tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.dll": "915ff7f82da254cdd390ca4026ab045d6a720beadc23939ef02aa008a713b460",
+    "tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.dll": "53c40694475cead93669190c98c0b13466c00e794b2494ca5b9b0dcba5399e9b",
+    "tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll": "409fbe3c3dfdac7f1a5c2472091c8a605a5e1ca34dc49cb7da90cc244172b72d",
+    "tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Core.dll": "f01b8f0eea171f1e02bdd441662582713e147705ef599e1125f64524879e160e",
+    "tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll": "6703d27edabd23761b64bbb83c1b4d356b30999514bc2630f60240ff6815bf6e",
+    "tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Simulation.Tests.dll": "84f3f3eeb5a79a5ff6e439fd5bef169eb5aa356561049ad6c067b7585c2d5f6f",
+    "tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Agent.dll": "6de1c368265b9b997fcf1bae720e0ffe73a1bc37a7e4edbb1d3224fbae7c6f5e"
+  }
+}

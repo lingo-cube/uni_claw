@@ -39,7 +39,7 @@ public enum ObservationContext
 /// Evidence Record。Provenance 为 null 或字段不完整 → admission
 /// fail-closed。
 /// Origin（PROTOCOL-FIX-001 / ADR-0048）：生产者自报，**仅诊断**——canonical
-/// origin 由账本从 Context 机械推导，自报不参与判定、不进入 EvidenceId。
+/// origin 由账本核验原投递关联；自报不参与判定或 EvidenceId。
 /// </summary>
 public sealed record ObservationProposal(
     ObservationClaim Claim,
@@ -48,6 +48,9 @@ public sealed record ObservationProposal(
     Provenance? Provenance,
     ObservationOrigin Origin = ObservationOrigin.External)
 {
+    /// <summary>Explicit original acquisition link; producer self-report is never sufficient.</summary>
+    public AttemptObservationLink? AttemptCorrelation { get; init; }
+
     /// <summary>
     /// Immediate source EvidenceIds consumed by a derived proposal. Empty means
     /// this is a direct source observation. Parent references are validated by

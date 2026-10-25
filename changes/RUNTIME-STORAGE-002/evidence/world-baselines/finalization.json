@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "test-asset-finalization.v1",
+  "operation": "World baseline slice finalization",
+  "completed": true,
+  "kept": [
+    {
+      "runId": "run-20261025T160410-97459aefebca48f489b416a1b990978d",
+      "files": 9,
+      "logicalBytes": 144688,
+      "reason": "RED/intermediate/final public tests, cost sources and legacy consumer proof; original summaries unchanged"
+    },
+    {
+      "runId": "run-20261025T160624-25b9d45cdb3b4223b3e973273588804c",
+      "files": 8,
+      "logicalBytes": 139193,
+      "reason": "RED/intermediate/final public tests, cost sources and legacy consumer proof; original summaries unchanged"
+    },
+    {
+      "runId": "run-20261025T160739-e026adec589648909bf12124809b497d",
+      "files": 7,
+      "logicalBytes": 21250,
+      "reason": "RED/intermediate/final public tests, cost sources and legacy consumer proof; original summaries unchanged"
+    },
+    {
+      "runId": "run-20261025T160910-dd13e6db81364ede8cb3339e3c50404a",
+      "files": 7,
+      "logicalBytes": 10807,
+      "reason": "RED/intermediate/final public tests, cost sources and legacy consumer proof; original summaries unchanged"
+    },
+    {
+      "runId": "run-20261025T161100-a05fc4c1846c49d4be5ebe92d1b9aaf5",
+      "files": 5,
+      "logicalBytes": 14337,
+      "reason": "RED/intermediate/final public tests, cost sources and legacy consumer proof; original summaries unchanged"
+    },
+    {
+      "runId": "run-20261025T161542-6a025172dc4f4220925191574c9e0651",
+      "files": 7,
+      "logicalBytes": 22705,
+      "reason": "RED/intermediate/final public tests, cost sources and legacy consumer proof; original summaries unchanged"
+    },
+    {
+      "runId": "run-20261025T161819-65eae2a9cb994a1583449001f4967473",
+      "files": 7,
+      "logicalBytes": 155856,
+      "reason": "RED/intermediate/final public tests, cost sources and legacy consumer proof; original summaries unchanged"
+    },
+    {
+      "runId": "run-20261025T162252-a9c7c382bb1b46d6b5ba99d90e53d158",
+      "files": 7,
+      "logicalBytes": 155648,
+      "reason": "RED/intermediate/final public tests, cost sources and legacy consumer proof; original summaries unchanged"
+    },
+    {
+      "runId": "run-20261025T162409-aaf8a643db454c2f95d7cd1c98755fd0",
+      "files": 19,
+      "logicalBytes": 13923948,
+      "reason": "RED/intermediate/final public tests, cost sources and legacy consumer proof; original summaries unchanged"
+    },
+    {
+      "runId": "run-20261025T162825-64547c3f37244d1b91c791f44af5703a",
+      "files": 9,
+      "logicalBytes": 376712,
+      "reason": "RED/intermediate/final public tests, cost sources and legacy consumer proof; original summaries unchanged"
+    },
+    {
+      "runId": "run-20261025T163342-451e76c5845d4bf5b848a9312f733055",
+      "files": 9,
+      "logicalBytes": 16173,
+      "reason": "RED/intermediate/final public tests, cost sources and legacy consumer proof; original summaries unchanged"
+    },
+    {
+      "runId": "run-20261025T163509-25a9308efa3b44f697f12cc3447e01cd",
+      "files": 7,
+      "logicalBytes": 250588,
+      "reason": "RED/intermediate/final public tests, cost sources and legacy consumer proof; original summaries unchanged"
+    }
+  ],
+  "archived": [],
+  "deleted": [],
+  "pending": [
+    {
+      "reason": "Parent acceptance, Coverage delivery, historical GC and overall integration remain separate; old unowned legacy fixtures are not swept"
+    }
+  ],
+  "deletedBytes": 0,
+  "ownedCacheReceipt": "cache-cleanup-receipt.json",
+  "ownedCacheFilesRemoved": 37,
+  "ownedCacheLogicalBytesRemoved": 5162178,
+  "notes": "No source/raw journal/evidence deletion; only exact new standalone WorldStorageProbe bin/obj copies removed after consumers. Future probe run rebuilds from kept sources."
+}

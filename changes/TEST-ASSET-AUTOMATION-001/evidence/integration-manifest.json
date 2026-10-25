@@ -1,0 +1,446 @@
+{
+  "schemaVersion": "test-asset-integration-manifest.v1",
+  "scope": "accepted LIFECYCLE/LAYOUT slices plus AUTOMATION slices 1-4",
+  "status": "inventory-only",
+  "sources": [
+    {
+      "path": "tools/test_assets.py",
+      "sha256": "30a68971cbee767ae8d8d7464f7ecdb34611c47fd99c62ca970922c1f15e0be1",
+      "refs": [
+        "AUTOMATION/slice1-4 candidate.json/patch",
+        "LAYOUT assets.json"
+      ],
+      "integration": "asset core",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tools/test-assets",
+      "sha256": "dbbeb4e9770eb4f8ef430f7710102033a3fcf5901d6d9135d8fcba3dfb3526e9",
+      "refs": [
+        "AUTOMATION/slice1-4 candidate.json/patch"
+      ],
+      "integration": "asset CLI",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tools/verify-change",
+      "sha256": "c1f6ea15c7a81237c4256c394bc177bad211cd21c17c36013f15b98103d2eb92",
+      "refs": [
+        "AUTOMATION/slice1 candidate.json/patch"
+      ],
+      "integration": "asset entry wiring",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tools/tests/test_test_assets.py",
+      "sha256": "28bd03918d6ec4cea7f31ea18b8e053f105109914d7948024068bdcc9a82e287",
+      "refs": [
+        "AUTOMATION/slice1"
+      ],
+      "integration": "tests",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tools/tests/test_verify_assets.py",
+      "sha256": "e33f238ad63305eeac7144559f7d5d262a539571467189b39b6b39536fd4128b",
+      "refs": [
+        "AUTOMATION/slice1"
+      ],
+      "integration": "tests",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tools/tests/test_verify_entry.py",
+      "sha256": "df63193727d13b8597bc063ad28a46f3ecb7098d639a3d37509cd3d38711f1b2",
+      "refs": [
+        "AUTOMATION/slice1"
+      ],
+      "integration": "tests",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tools/test_asset_operations.py",
+      "sha256": "3b06b1ba1f285bbcb452bda9fbe98c8e18055695a2f48bead6bc1457ccc74711",
+      "refs": [
+        "AUTOMATION/slice2/3/4"
+      ],
+      "integration": "asset operations",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tools/tests/test_asset_operations.py",
+      "sha256": "a98b45c5d49372052bdd0dc699b54e422900ebe34782d94586ad24f7c8c86dcc",
+      "refs": [
+        "AUTOMATION/slice2"
+      ],
+      "integration": "tests",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tools/test_asset_archives.py",
+      "sha256": "15bb584dd9aabee02c221e02ee6b37458c1c45143690a6c6f1ce5b3b92060cc5",
+      "refs": [
+        "AUTOMATION/slice3/4"
+      ],
+      "integration": "archive/restore",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tools/tests/test_asset_archives.py",
+      "sha256": "d2a61f6dcdaf7a6c34d45c690102db2aabe25cd962a0a03feb4bfc911a96da81",
+      "refs": [
+        "AUTOMATION/slice3"
+      ],
+      "integration": "tests",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tools/test_asset_cleanup.py",
+      "sha256": "333bf3928c689892085215a53e0fd9c4cea64d394159c57f3163f95035b34d63",
+      "refs": [
+        "AUTOMATION/slice4"
+      ],
+      "integration": "opt-in release-work only",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tools/tests/test_test_asset_cleanup.py",
+      "sha256": "22b1d0ca191c18eaa970b1feb918d6fe1989df8d33f268435486c9efc51ab48f",
+      "refs": [
+        "AUTOMATION/slice4"
+      ],
+      "integration": "tests",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.cs",
+      "sha256": "4dcd77ef5990cc315280abad568d0955d0c53e1bef65ca8866c2e7e282abc93a",
+      "refs": [
+        "AUTOMATION/slice2 candidate.patch"
+      ],
+      "integration": "mixed shared file; integrate only development-assets hunks",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.DevelopmentAssets.cs",
+      "sha256": "4e803e9c664dc93d8c98e12976f86d6232b1cee79a0ec91567c951b2816f09bc",
+      "refs": [
+        "AUTOMATION/slice2 candidate.patch"
+      ],
+      "integration": "development-assets seam",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs",
+      "sha256": "b316c42fb76936b123a2054e852d3f56a4674ce9cbd028b4f118b482f171bdc2",
+      "refs": [
+        "AUTOMATION/slice2 candidate.patch"
+      ],
+      "integration": "mixed shared file; integrate only developmentAssets hunks",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureTests.cs",
+      "sha256": "506e6a93cba963a1f9c6bfdc7f6fc9d93e3e15eaeb96d631332be550b6d63025",
+      "refs": [
+        "AUTOMATION/slice2 candidate.patch"
+      ],
+      "integration": "mixed tests; hunk-select",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureAssetTests.cs",
+      "sha256": "238bbb16b38c7d4fcc838e9194b75ec966b29a5883f515ccec429e00fba6b293",
+      "refs": [
+        "AUTOMATION/slice2 candidate.patch"
+      ],
+      "integration": "development-assets tests",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "docs/agents/test-asset-retention.md",
+      "sha256": "f1c4b16e983acba4116c127760a80abaf916daa07249e11a5bc37968b704ef84",
+      "refs": [
+        "LIFECYCLE state/evidence; LAYOUT state; AUTOMATION slice1-4"
+      ],
+      "integration": "canonical spec",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "tools/README.md",
+      "sha256": "3c58a822388b4eee411ef5a1a4dbe5ab1adb8bea8423688dfd2158f063d845d5",
+      "refs": [
+        "AUTOMATION slice1-4 candidate.patch"
+      ],
+      "integration": "mixed navigation; hunk-select",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": ".agents/skills/uniflow/SKILL.md",
+      "sha256": "9644aad7613729fe3031eacbd4d198127102c02e0b2f9620a97c524204399837",
+      "refs": [
+        "LIFECYCLE state acceptance/status"
+      ],
+      "integration": "LOCAL_UNIFLOW hunk-select",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md"
+      ]
+    },
+    {
+      "path": ".agents/skills/diagnosing-bugs/SKILL.md",
+      "sha256": "77f3cf31bc99b2f49af943222526531fcc9fc41d047626d3640e875e85af3e84",
+      "refs": [
+        "LIFECYCLE state A1/A4"
+      ],
+      "integration": "unchanged third-party dependency; do not stage as asset edit",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md"
+      ]
+    },
+    {
+      "path": ".agents/skills/uniclaw-debug-evidence/SKILL.md",
+      "sha256": "9f6350cf1d850e75671864dcd8f82707bf5b63610bdd24446fbb231fc1a45980",
+      "refs": [
+        "LIFECYCLE state A1/A4"
+      ],
+      "integration": "LOCAL extension",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md"
+      ]
+    },
+    {
+      "path": ".agents/skills/uniclaw-evolution-loop/SKILL.md",
+      "sha256": "9bc0fb732e551a76ecf04a37692b144c9fa848f1a86fc840dd976d763293c25e",
+      "refs": [
+        "LIFECYCLE state A1/A4"
+      ],
+      "integration": "LOCAL extension",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md"
+      ]
+    },
+    {
+      "path": "schemas/diagnosis-packet.schema.json",
+      "sha256": "7c96254a6543cc08b442200f127c163017f4a0d5f6200a6ebfd043b87cfa403a",
+      "refs": [
+        "LIFECYCLE state packet/case navigation"
+      ],
+      "integration": "existing required schema dependency for actual packet archive consumer; not an asset schema semantic change",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": "schemas/README.md",
+      "sha256": "52d5ff891b7907a0496dddf6d51d9ca52f741b391b9262040d0cfe29c3fedf3d",
+      "refs": [
+        "LIFECYCLE state schema navigation"
+      ],
+      "integration": "navigation; hunk-select",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice1/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/candidate-v2.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice3/candidate.json",
+        "changes/TEST-ASSET-AUTOMATION-001/evidence/slice4/candidate.json"
+      ]
+    },
+    {
+      "path": ".agents/skills/uniclaw-debug-evidence/references/evidence-packet.md",
+      "refs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md",
+        "changes/TEST-ASSET-LIFECYCLE-001/verification.json"
+      ],
+      "integration": "shared navigation/local extension; only asset-retention hunks",
+      "sha256": "cb144e87f1589ef94b401d5f66c617983a3dce469a1b3ec179f9bfc17f40c530",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md"
+      ]
+    },
+    {
+      "path": ".agents/skills/uniclaw-evolution-loop/references/case-and-packet.md",
+      "refs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md",
+        "changes/TEST-ASSET-LIFECYCLE-001/verification.json"
+      ],
+      "integration": "shared navigation/local extension; only asset-retention hunks",
+      "sha256": "ceb06fe38ebb93dc935ad736352c178a7b1d1f893c118b090e3fd4422da2855f",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md"
+      ]
+    },
+    {
+      "path": "docs/agents/engineering-verification.md",
+      "refs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md",
+        "changes/TEST-ASSET-LIFECYCLE-001/verification.json"
+      ],
+      "integration": "shared navigation/local extension; only asset-retention hunks",
+      "sha256": "e6fb7668e090d9948a4786eb46b42681354ae021f56a7cd54764ce725c59d9eb",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md"
+      ]
+    },
+    {
+      "path": "tests/README.md",
+      "refs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md",
+        "changes/TEST-ASSET-LIFECYCLE-001/verification.json"
+      ],
+      "integration": "shared navigation/local extension; only asset-retention hunks",
+      "sha256": "4dbd3cc8b321f5122b1b76f89c23e45cda790695d96081433ec88c7ab9aef948",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md"
+      ]
+    },
+    {
+      "path": "evidence/README.md",
+      "refs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md",
+        "changes/TEST-ASSET-LIFECYCLE-001/verification.json"
+      ],
+      "integration": "shared navigation/local extension; only asset-retention hunks",
+      "sha256": "08ad5e09360eb15b865dbb55ba93197ef39853502915ddebc71a0b79a2466498",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md"
+      ]
+    },
+    {
+      "path": "changes/README.md",
+      "refs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md",
+        "changes/TEST-ASSET-LIFECYCLE-001/verification.json"
+      ],
+      "integration": "shared navigation/local extension; only asset-retention hunks",
+      "sha256": "b52a0d8e014309e985a0c33822bffefe93205abfc9263aa590ffd093fce15faa",
+      "evidenceRefs": [
+        "changes/TEST-ASSET-LIFECYCLE-001/state.md"
+      ]
+    }
+  ],
+  "deferred": [
+    "task cascade deletion",
+    "automatic temporary GC",
+    "inventory migration",
+    "product storage recovery"
+  ],
+  "local_bindings": [
+    "~/.config JSON (or XDG_CONFIG_HOME)",
+    "external rawRun roots",
+    "bin/",
+    "obj/"
+  ],
+  "local_binding_policy": "required for execution but not Git release files; retain separately.",
+  "boundary": "No source/old evidence change, staging, commit, push, or claim that shared dirty files belong to this inventory.",
+  "evidenceAndStateRoots": [
+    "changes/TEST-ASSET-LIFECYCLE-001",
+    "changes/TEST-ASSET-LAYOUT-001",
+    "changes/TEST-ASSET-AUTOMATION-001"
+  ],
+  "harnessSourceSidecars": ".agents/skills/uniflow plus two LOCAL extensions and references; third-party diagnosing-bugs unchanged",
+  "excludePatterns": [
+    "**/assets.lock",
+    "**/assets.*.lock",
+    "**/__pycache__/**",
+    "**/bin/**",
+    "**/obj/**"
+  ],
+  "sharedChangeIndex": "changes/INDEX.md existing three task entries only, never replace whole shared index"
+}

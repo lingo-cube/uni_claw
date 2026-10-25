@@ -1,0 +1,113 @@
+[
+  {
+    "mode": "control",
+    "baseline": {
+      "AllocatedBytes": 228119584,
+      "LogicalJsonBytes": {
+        "ControlRecords": 6797102,
+        "ControlStateCumulative": 2762840,
+        "ControlStateLatest": 11178,
+        "PlanRecords": 1757,
+        "PlanGraphs": 572,
+        "PlanVersionsCumulative": 22,
+        "PlanVersionsLatest": 20
+      },
+      "Replacements": 0,
+      "JournalBytes": {
+        "control-traversal.journal.jsonl": 10392380,
+        "runtime-plan.journal.jsonl": 3258
+      }
+    },
+    "after": {
+      "AllocatedBytes": 227111672,
+      "LogicalJsonBytes": {
+        "ControlRecords": 6797102,
+        "ControlStateCumulative": 2762840,
+        "ControlStateLatest": 11178,
+        "PlanRecords": 1757,
+        "PlanGraphs": 572,
+        "PlanVersionsCumulative": 22,
+        "PlanVersionsLatest": 20
+      },
+      "Replacements": 0,
+      "JournalBytes": {
+        "control-traversal.journal.jsonl": 10392380,
+        "runtime-plan.journal.jsonl": 3258
+      }
+    }
+  },
+  {
+    "mode": "plan-distinct",
+    "baseline": {
+      "AllocatedBytes": 464622240,
+      "LogicalJsonBytes": {
+        "ControlRecords": 1213,
+        "ControlStateCumulative": 351,
+        "ControlStateLatest": 351,
+        "PlanRecords": 502230,
+        "PlanGraphs": 81386,
+        "PlanVersionsCumulative": 359323,
+        "PlanVersionsLatest": 2837
+      },
+      "Replacements": 127,
+      "JournalBytes": {
+        "control-traversal.journal.jsonl": 2061,
+        "runtime-plan.journal.jsonl": 824323
+      }
+    },
+    "after": {
+      "AllocatedBytes": 40393360,
+      "LogicalJsonBytes": {
+        "ControlRecords": 1213,
+        "ControlStateCumulative": 351,
+        "ControlStateLatest": 351,
+        "PlanRecords": 502230,
+        "PlanGraphs": 81386,
+        "PlanVersionsCumulative": 359323,
+        "PlanVersionsLatest": 2837
+      },
+      "Replacements": 127,
+      "JournalBytes": {
+        "control-traversal.journal.jsonl": 2061,
+        "runtime-plan.journal.jsonl": 824323
+      }
+    }
+  },
+  {
+    "mode": "plan-versioned",
+    "baseline": {
+      "AllocatedBytes": 231079936,
+      "LogicalJsonBytes": {
+        "ControlRecords": 1213,
+        "ControlStateCumulative": 351,
+        "ControlStateLatest": 351,
+        "PlanRecords": 151363,
+        "PlanGraphs": 82661,
+        "PlanVersionsCumulative": 7181,
+        "PlanVersionsLatest": 29
+      },
+      "Replacements": 127,
+      "JournalBytes": {
+        "control-traversal.journal.jsonl": 2061,
+        "runtime-plan.journal.jsonl": 312166
+      }
+    },
+    "after": {
+      "AllocatedBytes": 31015040,
+      "LogicalJsonBytes": {
+        "ControlRecords": 1213,
+        "ControlStateCumulative": 351,
+        "ControlStateLatest": 351,
+        "PlanRecords": 151363,
+        "PlanGraphs": 82661,
+        "PlanVersionsCumulative": 7181,
+        "PlanVersionsLatest": 29
+      },
+      "Replacements": 127,
+      "JournalBytes": {
+        "control-traversal.journal.jsonl": 2061,
+        "runtime-plan.journal.jsonl": 312166
+      }
+    }
+  }
+]

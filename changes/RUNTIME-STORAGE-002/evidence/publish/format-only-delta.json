@@ -1,0 +1,8 @@
+{
+  "path": "src/UniClaw.Host/Runtime/HistoryVersions.cs",
+  "beforeSha256": "973fd1b57cedaa5eb8ebd4e444e59dd484b434fb26bd75fa10d0bf6b55729c8d",
+  "afterSha256": "b55f8525155e35924d072184fd0074c192a8cc2cdd426083a8fa5433d97c7415",
+  "exactChange": "remove exactly one extra trailing newline rejected by git diff --check",
+  "semanticBytesUnchanged": true,
+  "historicalCandidateNotRewritten": true
+}

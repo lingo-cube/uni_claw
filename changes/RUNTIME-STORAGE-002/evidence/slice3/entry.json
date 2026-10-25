@@ -1,0 +1,18 @@
+{
+  "head": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "scope": "Resource latest state + versioned reversible deltas; preserve commit/recovery/old readers",
+  "files": {
+    "src/UniClaw.Kernel/Runtime/RunResourceAccounting.cs": "c891a046694c6de12ab23a67007153a1f33d33e0d1aca8afa17f75b7210838d5",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.Resources.cs": "fb0ca5bcf535318362464c6b0c3ca881143b70f960441494358b7a7c50308ba2",
+    "src/UniClaw.Host/Runtime/FileRunResourceJournal.cs": "6ff8526c9edf4394c2f3199445fb794ee5d36dcb4ecf8cf9b592a793f6787743",
+    "src/UniClaw.Kernel/Runtime/README.md": "0b440f61e8e35276543cc3c417a299693799b32f08b1923c2d8845e2f3df699a",
+    "src/UniClaw.Host/README.md": "6e0e0d0b2d737c52da18b096c3ede12bf5c09fb67787f3e8363e1b541665e95e",
+    "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs": "64e757eef4a7370f6e46ef5a1684ab738700aaf77e093ac7fec6f7cfab893e25",
+    "tools/RunRecoveryProbe/Program.cs": "e487ed8813ef14f2eeea67ff5fd8fea1ba49073351746f8bea2fba5fa889b56c",
+    "tests/UniClaw.Host.Tests/RunRecoveryConsistencyTests.cs": "45ff3420b0b75ce4daffa0ffb3e379ec9b328a64bad322c5dda6fe1ed5b7ef3e",
+    "tests/UniClaw.Host.Tests/RunEvidenceRecoveryConsistencyTests.cs": "e3ab02d9ec32ad1774cab40db08f7c6c80bdc1ca65a76ba3ea5889d839aee203",
+    "tests/UniClaw.Host.Tests/RunResourceJournalTests.cs": "9ffd7572eb52745cfa09e3c4a080fb62b15d61716deae616efec6af3859d189e",
+    "tools/README.md": "ed954739b812d60584a1625d4789f01f4f33746b0d5e43f7dd679522623a6e76",
+    "tests/UniClaw.Host.Tests/RunResourceCrashProcessTests.cs": "a6b0081fa6666237dcdc3a7a270e9a2ce1f82d085ae42375a9b6fdbcf9747927"
+  }
+}

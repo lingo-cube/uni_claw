@@ -1,0 +1,82 @@
+{
+  "workItem": "WI-STORAGE002-PUBLISH-DEPS",
+  "basis": "Production Host and Host.Dsh were already built in the private view; this is a read-only Host.Tests closure analysis.",
+  "overlayPrerequisiteDecision": {
+    "owner": "SIM-019",
+    "ownerStatus": "closed",
+    "ownerEvidence": ["changes/SIM-019/state.md", "changes/SIM-019/evidence/review-input.json", "changes/SIM-019/evidence/verified-live/review-source-verified.json"],
+    "minimumProtocolPaths": [
+      "src/UniClaw.Kernel/World/OverlayObservation.cs",
+      "src/UniClaw.Kernel/World/PageObservation.cs",
+      "src/UniClaw.Kernel/World/WorldModel.Overlay.cs",
+      "src/UniClaw.Kernel/World/WorldModel.cs (Overlay reconcile and grounding routing)"
+    ],
+    "indexDecision": "Do not reintroduce these from the current dirty tree merely because recovery tests reference them. They are already closed predecessor material and the production Kernel private view passed.",
+    "approvedStorageBaseline": {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice1/pure-build-inputs.tar.gz",
+      "sha256": "efa73ecf3c9c915f4527ece9be2c37a6527d0763eb0bfb27686c72cd6821f1b0",
+      "contains": [
+        "src/UniClaw.Kernel/World/OverlayObservation.cs",
+        "src/UniClaw.Kernel/World/PageObservation.cs",
+        "src/UniClaw.Kernel/World/WorldModel.Overlay.cs",
+        "tests/UniClaw.Host.Tests/RunResourceAccountingTests.cs",
+        "tests/UniClaw.Host.Tests/RunResourceRecoveryTests.cs",
+        "tests/UniClaw.Host.Tests/WorldHistoryRecoveryTests.cs"
+      ]
+    },
+    "fallback": "If the private index cannot prove equivalence to the pure baseline, do not delete assertions or pull current dirty Overlay; exclude these Overlay-bearing recovery tests from this test subset and reconstruct from the archived pure baseline."
+  },
+  "testPrerequisites": [
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceRecoveryTests.cs",
+      "selection": "whole file",
+      "owner": "RUNTIME-RECOVERY-003",
+      "closed": true,
+      "comparison": "identical to RUNTIME-RECOVERY-003 evidence/final-source copy",
+      "why": "Shared SettingsCoverage Runner fixture used by 17 current recovery/history test call sites."
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceAccountingTests.cs",
+      "selection": "RUNTIME-RECOVERY-002 accepted base plus four current completion-seam substitutions",
+      "owner": ["RUNTIME-RECOVERY-002", "RUNTIME-RECOVERY-003 fixture consumer"],
+      "closed": true,
+      "retainCurrentHunks": [
+        {"approximateLine": 120, "change": "new RunDriverInput.Observation -> directive.CompleteObservation"},
+        {"approximateLine": 132, "change": "new RunDriverInput.Observation -> directive.CompleteObservation"},
+        {"approximateLine": 144, "change": "new RunDriverInput.Observation -> directive.CompleteObservation"},
+        {"approximateLine": 164, "change": "new RunDriverInput.Observation -> directive.CompleteObservation"}
+      ],
+      "closedBaselineNotToStrip": [
+        {"approximateLine": 131, "content": "RequiresOverlayEvidence = true"},
+        {"approximateLine": 134, "content": "OverlayObservationCodec.Subject"}
+      ],
+      "reason": "The two Overlay inputs pre-exist in the accepted RECOVERY-002 fixture; removing them would alter fixture behavior rather than exclude a parallel hunk."
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldHistoryRecoveryTests.cs",
+      "selection": "RUNTIME-RECOVERY-009 accepted candidate-v3 base plus three storage-version groups",
+      "owner": ["RUNTIME-RECOVERY-009", "RUNTIME-STORAGE-002"],
+      "closed": true,
+      "retainCurrentHunks": [
+        {"approximateLine": 245, "change": "unknown-version fault token v1 -> v3"},
+        {"approximateLine": 451, "change": "WorldHistoryVersionReader.ReadLatest immutable revision comparison"},
+        {"approximateLines": [764, 773], "change": "read-world-version process/read-only version result assertions"}
+      ],
+      "closedBaselineNotToStrip": [
+        {"approximateLines": [507, 508], "content": "OverlayObservationCodec.Subject in auxiliary subject set"}
+      ],
+      "reason": "The Overlay subject already exists in the RECOVERY-009 accepted base; the three current deltas test versioned storage/history reading only."
+    }
+  ],
+  "productionCodecPrerequisite": {
+    "path": "src/UniClaw.Host.Dsh/RuntimeDiagnosisPacket.cs",
+    "selection": "whole file",
+    "owner": "EVO-002",
+    "closed": true,
+    "consumers": ["src/UniClaw.Host.Dsh/RuntimeToolHost.cs:246 Encode", "src/UniClaw.Host.Dsh/RuntimeToolHost.cs:277 Hash", "src/UniClaw.Host.Dsh/RuntimeToolHost.DevelopmentAssets.cs:53 source declaration"],
+    "role": "Required RuntimeToolHost diagnosis codec; validates and serializes non-authoritative evidence packets.",
+    "not": ["RUNTIME-STORAGE-002 implementation", "test-only helper", "runtime or continuation authority"]
+  },
+  "doNotDo": ["delete closed baseline assertions", "remove Overlay baseline fixture inputs", "select new Overlay/ExpectedEffect/Act-scope test work", "widen to complete resume tests"],
+  "notClaimed": ["Host.Tests private view builds", "all test dependencies are now present"]
+}

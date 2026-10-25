@@ -1,0 +1,5 @@
+{
+  "path": "/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-storage002-s2-v2-nhayu06_/changes/RUNTIME-STORAGE-002/evidence/slice2/real-generator-sample",
+  "input": "synthetic facts fixture, no task/model/device execution",
+  "scope": "Measure added required-report storage bytes with the actual pinned report generator; no comparative speed or flush claim"
+}

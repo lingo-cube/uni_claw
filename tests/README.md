@@ -21,6 +21,11 @@ Workspace JavaScript 测试位于 canonical 源目录 [`web/uniclaw-workspace/te
 - [`scenarios/`](../scenarios/README.md)：可回放场景输入；场景期望经认证工具检查。
 - [`evidence/`](../evidence/README.md)：已发生的验证输出、评审记录、诊断和裁决；每条证据应带命令/路径/摘要，历史证据不因新运行而被覆盖。
 
+诊断、重放、仿真及验证每次完成都须按[开发测试资产收尾规范](../docs/agents/test-asset-retention.md)
+整理最小必要结果并实际清理多余资产，失败/取消也适用。不同真实执行使用
+独立Run ID；先消费TRX/coverage/失败信号，再清理输出。有效基线、封存输入
+及下游引用继续保护，不能清空共享TestResults或只留下最后一次通过。
+
 ## 相关入口
 
 - [源码入口](../src/README.md)

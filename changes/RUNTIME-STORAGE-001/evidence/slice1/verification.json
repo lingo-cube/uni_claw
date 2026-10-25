@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "slice": "observation Evidence async batch only",
+  "candidateFiles": 22,
+  "unchangedUnownedBuildInputs": 631,
+  "priorSealedArtifacts": 239,
+  "newLedgerDriverCases": 9,
+  "newFileCases": 6,
+  "kernelPassed": 1195,
+  "kernelExistingFailuresReproducedOnEntry": 3,
+  "hostPassed": 288,
+  "dshPassed": 24,
+  "actualNonterminalBatchKills": 1,
+  "freshReaders": 2,
+  "managedFrameWriteCalls": {
+    "single": 64,
+    "batch": 1
+  },
+  "headWrites": {
+    "single": 64,
+    "batch": 1
+  },
+  "physicalDiskSyscallsMeasured": false,
+  "allStorageDomainsMigrated": false,
+  "parentChangeComplete": false,
+  "continuationSupported": false,
+  "reviewsComplete": true
+}

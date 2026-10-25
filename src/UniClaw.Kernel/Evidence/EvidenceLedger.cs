@@ -11,18 +11,33 @@ namespace UniClaw.Kernel.Evidence;
 /// capture time / declared scope / transformation lineage / canonicalization。
 /// 不判断 truth、belief relevance、reconciliation weight、proof sufficiency（不变量 10）。
 /// </summary>
-public sealed class EvidenceLedger
+public sealed partial class EvidenceLedger
 {
+    private object? _attemptIssuer;
+    internal void AttachAttemptIssuer(object issuer)
+    {
+        if (_attemptIssuer is not null && !ReferenceEquals(_attemptIssuer, issuer))
+            throw new InvalidOperationException("evidence-attempt-issuer-already-bound");
+        _attemptIssuer = issuer;
+    }
+    private bool ValidLink(ObservationProposal p) => p.AttemptCorrelation is not { } link
+        || ReferenceEquals(link.Issuer, _attemptIssuer) && link.IsOpen && link.Kind == p.Kind && link.Attempt.IsValid;
+
     private readonly List<AdmissionRecord> _admissionLog = new();
     private readonly Dictionary<string, EvidenceRecord> _canonicalRecords = new();
     private readonly ReadOnlyCollection<AdmissionRecord> _admissionLogView;
     private readonly ReadOnlyDictionary<string, EvidenceRecord> _canonicalRecordsView;
 
     /// <summary>构造 ledger；对外视图只读封装。</summary>
-    public EvidenceLedger()
+    public EvidenceLedger() : this(null) { }
+
+    public EvidenceLedger(IEvidenceJournal? journal)
     {
         _admissionLogView = _admissionLog.AsReadOnly();
         _canonicalRecordsView = new ReadOnlyDictionary<string, EvidenceRecord>(_canonicalRecords);
+        if (journal is not null && (!journal.CanInitialize || journal.ReadRecords().Count != 0))
+            throw new InvalidOperationException("evidence-history-recovery-read-only");
+        _journal = journal;
     }
 
     /// <summary>每次 admission 尝试的留痕（append-oriented，不删改）。</summary>
@@ -36,6 +51,19 @@ public sealed class EvidenceLedger
     /// rejected 时不创建 canonical record、不影响既有内容。
     /// </summary>
     public (AdmissionRecord Admission, EvidenceRecord? Record) Admit(ObservationProposal observation)
+    {
+        EnterAdmission();
+        try
+        {
+            var result = PrepareAdmission(observation, _canonicalRecords);
+            CommitAdmission(result.Admission, result.Record);
+            return result;
+        }
+        finally { Volatile.Write(ref _admissionBusy, 0); }
+    }
+
+    private (AdmissionRecord Admission, EvidenceRecord? Record) PrepareAdmission(ObservationProposal observation,
+        IReadOnlyDictionary<string, EvidenceRecord> records)
     {
         ArgumentNullException.ThrowIfNull(observation);
 
@@ -62,47 +90,43 @@ public sealed class EvidenceLedger
             new("canonicalization", integrityPassed && provenance is not null),
         };
 
-        var lineage = ValidateLineage(observation);
+        var origin = observation.AttemptCorrelation is null ? ObservationOrigin.External : ObservationOrigin.PostActionSelf;
+        var id = checks.All(c => c.Passed)
+            ? ComputeEvidenceIdV2(observation, origin, observation.AttemptCorrelation?.Attempt) : null;
+        var lineage = ValidateLineage(observation, id, records);
         checks.Add(new("lineage-valid", lineage.Valid));
+        checks.Add(new("attempt-correlation-valid", ValidLink(observation)));
 
         AdmissionRecord admission;
         if (checks.All(c => c.Passed))
         {
-            var id = ComputeEvidenceId(observation);
-            if (!_canonicalRecords.TryGetValue(id, out var record))
+            if (!TryFindRecord(records, id!, out var record))
             {
-                // PROTOCOL-FIX-001 / ADR-0048：canonical origin 由 Context 机械
-                // 推导（判定权单一收口于 admission）；producer 自报
-                // （observation.Origin）仅诊断，被有意忽略。推导不出按保守方向
-                // 归 External；禁止时间邻近推导（通则 8）。
-                var derivedOrigin = observation.Context == ObservationContext.PostActionEffectFlow
-                    ? ObservationOrigin.PostActionSelf
-                    : ObservationOrigin.External;
+                // ADR-0048: a flow label and producer self-report do not establish an actual attempt.
+                var derivedOrigin = origin;
                 record = new EvidenceRecord(
-                    id, observation.Claim!, observation.Kind, observation.Context,
+                    id!, observation.Claim!, observation.Kind, observation.Context,
                     observation.Provenance! with
                     {
                         TransformationLineage = Array.AsReadOnly(provenance!.TransformationLineage.ToArray()),
                     }, derivedOrigin)
                 {
+                    IdentityVersion = 2, AttemptCorrelation = observation.AttemptCorrelation?.Attempt,
                     DerivedFromEvidenceIds = Array.AsReadOnly(observation.DerivedFromEvidenceIds.ToArray()),
                     TransitiveEvidenceBasis = observation.TransitiveEvidenceBasis.ToFrozenSet(StringComparer.Ordinal),
                     FusionRule = observation.FusionRule,
                     FusionVersion = observation.FusionVersion,
                 };
-                _canonicalRecords[id] = record;
             }
-            admission = new AdmissionRecord(AdmissionDecision.Accepted, checks, id, RejectionReason: null);
-            _admissionLog.Add(admission);
+            admission = new AdmissionRecord(AdmissionDecision.Accepted, checks.AsReadOnly(), id, RejectionReason: null);
             return (admission, record);
         }
 
         admission = new AdmissionRecord(
-            AdmissionDecision.Rejected, checks, EvidenceId: null,
+            AdmissionDecision.Rejected, checks.AsReadOnly(), EvidenceId: null,
             RejectionReason: !lineage.Valid
                 ? "MalformedLineage"
                 : checks.First(c => !c.Passed).Name);
-        _admissionLog.Add(admission);
         return (admission, Record: null);
     }
 
@@ -112,7 +136,7 @@ public sealed class EvidenceLedger
     /// 附加其 canonical render（metadata 参与 id；legacy path 恒 null、
     /// 不追加任何内容 → 既有 EvidenceId 字节不变）。
     /// </summary>
-    internal static string ComputeEvidenceId(ObservationProposal observation)
+    internal static string ComputeLegacyEvidenceId(ObservationProposal observation)
     {
         var claim = observation.Claim!;
         var provenance = observation.Provenance!;
@@ -144,15 +168,33 @@ public sealed class EvidenceLedger
         return "ev-" + Convert.ToHexString(hash).ToLowerInvariant();
     }
 
+    // Current identity prediction for internal producers/tests; historical replay explicitly selects v1.
+    internal static string ComputeEvidenceId(ObservationProposal proposal) => ComputeEvidenceIdV2(proposal,
+        proposal.AttemptCorrelation is null ? ObservationOrigin.External : ObservationOrigin.PostActionSelf,
+        proposal.AttemptCorrelation?.Attempt);
+
+    internal static string ComputeEvidenceIdV2(ObservationProposal proposal, ObservationOrigin origin, AttemptReference? attempt)
+    {
+        // Structured tuple avoids delimiter collisions in untrusted reference strings.
+        var canonical = System.Text.Json.JsonSerializer.Serialize(new object?[]
+            { "uniclaw.evidence.identity.v2", ComputeLegacyEvidenceId(proposal), origin, attempt });
+        return "ev-" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical))).ToLowerInvariant();
+    }
+
     private sealed record LineageValidation(bool Valid);
+
+    private bool TryFindRecord(IReadOnlyDictionary<string, EvidenceRecord> overlay, string id, out EvidenceRecord? record) =>
+        overlay.TryGetValue(id, out record) || !ReferenceEquals(overlay, _canonicalRecords) && _canonicalRecords.TryGetValue(id, out record);
 
     /// <summary>
     /// Validates typed derived lineage before a proposal can become canonical.
     /// Parent ids are resolved only against already-admitted records; lineage
     /// strings are deliberately not interpreted as graph edges.
     /// </summary>
-    private LineageValidation ValidateLineage(ObservationProposal observation)
+    private LineageValidation ValidateLineage(ObservationProposal observation, string? originalId = null,
+        IReadOnlyDictionary<string, EvidenceRecord>? records = null)
     {
+        records ??= _canonicalRecords;
         var parents = observation.DerivedFromEvidenceIds ?? Array.Empty<string>();
         var declaredBasis = observation.TransitiveEvidenceBasis
             ?? new HashSet<string>(StringComparer.Ordinal);
@@ -175,7 +217,7 @@ public sealed class EvidenceLedger
             || string.IsNullOrWhiteSpace(observation.FusionVersion))
             return new(false);
 
-        var candidateId = ComputeEvidenceId(observation);
+        var candidateId = originalId ?? ComputeEvidenceId(observation);
         if (parents.Contains(candidateId, StringComparer.Ordinal)
             || declaredBasis.Contains(candidateId, StringComparer.Ordinal))
             return new(false);
@@ -185,7 +227,7 @@ public sealed class EvidenceLedger
 
         bool Visit(string id)
         {
-            if (!_canonicalRecords.TryGetValue(id, out var parent))
+            if (!TryFindRecord(records, id, out var parent) || parent is null)
                 return false; // missing parent
             if (!visiting.Add(id))
                 return false; // ancestry cycle

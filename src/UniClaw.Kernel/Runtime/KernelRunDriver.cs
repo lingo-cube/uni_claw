@@ -1,4 +1,5 @@
 using UniClaw.Kernel.Control;
+using UniClaw.Kernel.Assurance;
 using UniClaw.Kernel.Capability;
 using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
@@ -104,7 +105,7 @@ public sealed record RunDriveResult(
 /// 本类型不是公共 Interface 冻结：字段/方法形状随 Phase 5/6 tracer 证据
 /// 演进（D23）。
 /// </summary>
-public sealed class KernelRunDriver
+public sealed partial class KernelRunDriver : IAsyncDisposable
 {
     private const int MaxProposalSteps = 16;
     /// <summary>可恢复 Drive phase 状态机（RFS-001 D21/D22）。</summary>
@@ -350,6 +351,7 @@ public sealed class KernelRunDriver
 
     private readonly RunDriverInputs _inputs;
     private readonly IConsultationJournal _consultationJournal;
+    private readonly DiagnosticObservationQueue _diagnosticObservations;
     private readonly object _driverIdentity = new();
     private DrivePhase _phase = DrivePhase.NeedInitialObservation;
     private AgentDecision? _adoptedDecision;
@@ -365,7 +367,16 @@ public sealed class KernelRunDriver
         _plan = plan ?? throw new ArgumentNullException(nameof(plan));
         _inputs = inputs ?? throw new ArgumentNullException(nameof(inputs));
         _consultationJournal = inputs.ConsultationJournal ?? new InMemoryConsultationJournal();
+        _diagnosticObservations = new(inputs.DiagnosticObservationOptions);
     }
+
+    /// <summary>Optional observation health only; never an execution/commit input.</summary>
+    public DiagnosticObservationStatus DiagnosticObservations => _diagnosticObservations.Status;
+
+    /// <summary>Caller-owned, bounded flush. Unsettled callbacks are explicitly reported.</summary>
+    public ValueTask<DiagnosticObservationStatus> CompleteDiagnosticObservationsAsync() => _diagnosticObservations.CompleteAsync();
+
+    public async ValueTask DisposeAsync() { await CompleteDiagnosticObservationsAsync().ConfigureAwait(false); }
 
     /// <summary>Current read-only Plan execution and attempt evidence.</summary>
     public PlanExecutionView? PlanExecution => CurrentPlanExecutionView();
@@ -385,7 +396,7 @@ public sealed class KernelRunDriver
         var (accepted, alreadyActivated) = _kernel.ActivateGate(_driverIdentity);
         return accepted
             ? new ActivationResult(true, _kernel.RunId, alreadyActivated, Reason: null)
-            : new ActivationResult(false, RunId: null, AlreadyActivated: false, Reason: "no-accepted-contract");
+            : new ActivationResult(false, RunId: null, AlreadyActivated: false, Reason: _kernel.RunExecutionBlockReason ?? "no-accepted-contract");
     }
 
     /// <summary>
@@ -398,11 +409,48 @@ public sealed class KernelRunDriver
     {
         if (Interlocked.CompareExchange(ref _driveInProgress, 1, 0) != 0)
             return DriveInProgressResult();
-        try { return DriveCore(); }
+        try { return DriveCore().AsTask().GetAwaiter().GetResult(); }
         finally { Volatile.Write(ref _driveInProgress, 0); }
     }
 
-    private RunDriveResult DriveCore()
+    private async ValueTask<RunDriveResult> DriveCore(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (_kernel.RunExecutionBlockReason is { } blocked)
+                return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, blocked, null, _kernel.EffectReceipts.Count);
+            if (_kernel.IsActivated && _kernel.IsActivationOwner(_driverIdentity) && _kernel.RunView is not null)
+            {
+                await EnsureRuntimePlanHistoryAsync().ConfigureAwait(false);
+                await EnsureResourceRecordingAsync().ConfigureAwait(false);
+            }
+            var result = await DriveCoreUnaccounted(cancellationToken).ConfigureAwait(false);
+            _kernel.EnsureRunStateWritable();
+            await CompleteResourceOperationAsync().ConfigureAwait(false);
+            await CheckpointOwnerHistoriesAsync().ConfigureAwait(false);
+            return result;
+        }
+        catch (IOException exception) when (exception is RunStatePersistenceException or EvidencePersistenceException or WorldPersistenceException or ControlTraversalPersistenceException or RuntimePlanPersistenceException or ConsultationRecordingException)
+        {
+            _resourceFailure ??= exception.Message;
+            return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, exception.Message, null, _kernel.EffectReceipts.Count);
+        }
+        catch (ResourceRecordingException)
+        {
+            return new RunDriveResult(RunDriveStatus.AgentDecisionFailed,
+                _resourceFailure, null, _kernel.EffectReceipts.Count);
+        }
+        catch (Exception exception) when (_resourceOperation is not null)
+        {
+            // An owner operation was interrupted before its normal safe
+            // boundary. Keep the original exception and durable Begin; a
+            // subsequent Drive must not silently finish or reissue it.
+            _resourceFailure ??= "resource-operation-interrupted:" + exception.GetType().Name;
+            throw;
+        }
+    }
+
+    private async ValueTask<RunDriveResult> DriveCoreUnaccounted(CancellationToken cancellationToken)
     {
         if (!_kernel.IsActivated)
             return new RunDriveResult(RunDriveStatus.NotActivated, "drive-before-activation", null, 0);
@@ -435,9 +483,19 @@ public sealed class KernelRunDriver
 
         while (true)
         {
+            _kernel.EnsureRunStateWritable();
+            await CompleteResourceOperationAsync().ConfigureAwait(false);
+            // Accepted storage must settle first. Observe cancellation before any next
+            // consultation/effect, while preserving an outstanding verification barrier.
+            if (cancellationToken.IsCancellationRequested && _phase != DrivePhase.StepVerify)
+            {
+                await CancelPendingPlanLanguageCallAsync().ConfigureAwait(false);
+                _traversalCancelDisposition = await CancelPathAsync(new("drive-cancelled", DateTimeOffset.UtcNow)).ConfigureAwait(false);
+                return _traversalCancelDisposition;
+            }
             if (_pendingPlanLanguageCall is not null)
             {
-                if (TryFinishPendingPlanLanguageCall()) continue;
+                if (await TryFinishPendingPlanLanguageCallAsync().ConfigureAwait(false)) continue;
                 return new RunDriveResult(RunDriveStatus.WaitingForHandler,
                     "traversal:waiting-for-handler", null, _kernel.EffectReceipts.Count);
             }
@@ -462,7 +520,7 @@ public sealed class KernelRunDriver
                 }
 
                 if (cancel is not null)
-                    return CancelPath(cancel);
+                    return await CancelPathAsync(cancel).ConfigureAwait(false);
             }
 
             if (_phase != DrivePhase.StepVerify && _inputs.PollSupplementationExecutions is { } pollExecutions)
@@ -479,7 +537,7 @@ public sealed class KernelRunDriver
                     && _kernel.RequestWorldReview(knowledge, "new-supplementation-result"))
                 {
                     VoidActivePolicyForStepFailure(AgentDecisionPhase.PolicyInvalidated, "new-supplementation-result");
-                    if (_planItems is not null) PausePlan("new-supplementation-result");
+                    if (_planItems is not null) await PausePlanAsync("new-supplementation-result").ConfigureAwait(false);
                     _pendingInterruption = new(_kernel.ProjectWorldRecovery(knowledge).ReviewKey!, "world-knowledge-review",
                         _kernel.CurrentBelief?.RevisionNumber ?? 0, Reason: "new-supplementation-result");
                     _adoptedDecision = null;
@@ -492,7 +550,7 @@ public sealed class KernelRunDriver
             {
                 const string reason = "world-interpretation-corrected;planning-basis-retracted";
                 VoidActivePolicyForStepFailure(AgentDecisionPhase.PolicyInvalidated, reason);
-                VoidActivePlanForStepFailure();
+                await VoidActivePlanForStepFailureAsync().ConfigureAwait(false);
                 _pendingFailureReason = reason;
                 _pendingFailurePhase = AgentDecisionPhase.PolicyInvalidated;
                 _adoptedDecision = null;
@@ -504,7 +562,7 @@ public sealed class KernelRunDriver
                 case DrivePhase.NeedInitialObservation:
                 {
                     // P2/P3 真实路径；WaitingForInput / cancel / 纪律拒绝原样上抛
-                    var initial = PullObservations(ObservationContext.External, "initial-observation");
+                    var initial = await PullObservations(ObservationContext.External, "initial-observation").ConfigureAwait(false);
                     if (initial.Stop is not null)
                         return initial.Stop;
                     if (initial.RequiresDecision) continue;
@@ -521,7 +579,7 @@ public sealed class KernelRunDriver
                         var budget = CurrentBudget(view);
                         if (budget.RoundsRemaining <= 0)
                         {
-                            AbandonActiveTraversal("traversal:consult-budget-exhausted");
+                            await AbandonActiveTraversalAsync("traversal:consult-budget-exhausted").ConfigureAwait(false);
                             return new RunDriveResult(
                                 RunDriveStatus.AgentDecisionFailed,
                                 "consult-budget-exhausted", null, _kernel.EffectReceipts.Count);
@@ -549,9 +607,10 @@ public sealed class KernelRunDriver
                                             ? _lastGrantedProgressFactKeys : _segmentStartProjection.ProgressFactKeys,
                                         _consultationProjectionSnapshot?.ProgressFactKeys));
                             if (_planStatus == PlanExecutionStatus.Active && _planItems is not null)
-                                PausePlan("budget-review");
+                                await PausePlanAsync("budget-review").ConfigureAwait(false);
                         }
-                        var consulted = ConsultAgentV2(view);
+                        var consulted = await ConsultAgentV2Async(view, cancellationToken).ConfigureAwait(false);
+                        if (cancellationToken.IsCancellationRequested) return await CancelPathAsync(new("drive-cancelled", DateTimeOffset.UtcNow)).ConfigureAwait(false);
                         _adoptedDecision = consulted.Value;
                         _consultRejection = consulted.Rejection;
                         if (_activeBudgetReviewId is not null && _consultRejection == "no-response")
@@ -760,7 +819,7 @@ public sealed class KernelRunDriver
 
                             // 采纳：当前回答成为下一轮对照；Defer 链终结
                             _lastAnswer = _adoptedDecision;
-                            AbandonPausedPlan("plan:replaced-by-no-action");
+                            await AbandonPausedPlanAsync("plan:replaced-by-no-action").ConfigureAwait(false);
                             _deferRoundsUsed = 0;
                             _deferExhaustedPending = false;
 
@@ -771,7 +830,7 @@ public sealed class KernelRunDriver
                                 if (anchorResults.All(r => r.Verified))
                                 {
                                     // 层2 全锚住：completion claim 入证 → TerminalEvaluation
-                                    DischargeCompletion(evidence, "kernel.completion-verifier");
+                                    await DischargeCompletionAsync(evidence, "kernel.completion-verifier").ConfigureAwait(false);
                                     _phase = DrivePhase.TerminalEvaluation;
                                     _adoptedDecision = null; // 允许终局后再入（不复用旧回答）
                                     continue;
@@ -794,7 +853,7 @@ public sealed class KernelRunDriver
                             // 的确定性终局（defer-exhausted 同族；合法回答，
                             // 非 AgentDecisionFailed）。原因随 reason 留痕。
                             _lastAnswer = _adoptedDecision;
-                            AbandonPausedPlan("plan:replaced-by-blocked");
+                            await AbandonPausedPlanAsync("plan:replaced-by-blocked").ConfigureAwait(false);
                             _deferRoundsUsed = 0;
                             _deferExhaustedPending = false;
                             _adoptedDecision = null;
@@ -826,7 +885,7 @@ public sealed class KernelRunDriver
                                     _kernel.EffectReceipts.Count);
                             }
                             _lastAnswer = _adoptedDecision;
-                            AbandonPausedPlan("plan:replaced-by-skip");
+                            await AbandonPausedPlanAsync("plan:replaced-by-skip").ConfigureAwait(false);
                             _deferRoundsUsed = 0;
                             _deferExhaustedPending = false;
                             _adoptedDecision = null;
@@ -856,8 +915,8 @@ public sealed class KernelRunDriver
                                     _deferRoundsUsed = 0;
                                     _lastAnswer = _adoptedDecision;
                                     _adoptedDecision = null;
-                                    var granted = PullObservations(
-                                        ObservationContext.External, "defer-observation");
+                                    var granted = await PullObservations(
+                                        ObservationContext.External, "defer-observation").ConfigureAwait(false);
                                     if (granted.Stop is not null)
                                         return granted.Stop;
                                     if (granted.RequiresDecision) continue;
@@ -886,7 +945,7 @@ public sealed class KernelRunDriver
                             _deferRoundsUsed++;
                             _lastAnswer = _adoptedDecision;
                             _adoptedDecision = null; // 清空以触发再咨询
-                            var observed = PullObservations(ObservationContext.External, "defer-observation");
+                            var observed = await PullObservations(ObservationContext.External, "defer-observation").ConfigureAwait(false);
                             if (observed.Stop is not null)
                                 return observed.Stop;
                             if (observed.RequiresDecision) continue;
@@ -901,7 +960,7 @@ public sealed class KernelRunDriver
                             if (!_plan.GoalDirectedContinuationEnabled) ProcessRenewal(act.Proposal.Renewal);
                             _lastAnswer = _adoptedDecision;
                             _executionWorldDecisionRefs = new[] { act.Proposal.DecisionId };
-                            AbandonPausedPlan("plan:replaced-by-act");
+                            await AbandonPausedPlanAsync("plan:replaced-by-act").ConfigureAwait(false);
                             _deferRoundsUsed = 0;
                             _deferExhaustedPending = false;
                             _stepIndex = 0;
@@ -930,7 +989,7 @@ public sealed class KernelRunDriver
                                 ApplicationsUsed: 0,
                                 LastTerminationStatus: null);
                             _executionWorldDecisionRefs = new[] { policy.DecisionId };
-                            AbandonPausedPlan("plan:replaced-by-policy");
+                            await AbandonPausedPlanAsync("plan:replaced-by-policy").ConfigureAwait(false);
                             _guardCursors = new PolicyGuardCursor?[
                                 policy.Proposal.Guards?.Count ?? 0];
                             _adoptedPolicyIds[policy.Proposal.PolicyId] = _consultCounter;
@@ -942,16 +1001,22 @@ public sealed class KernelRunDriver
                         }
                         case AgentDecision.Plan plan:
                         {
+                            try { plan = plan with { Proposal = RuntimePlanGraph.Freeze(plan.Proposal) }; }
+                            catch (PlanGraphFormatException error)
+                            { return new(RunDriveStatus.AgentDecisionFailed, error.Message, null, _kernel.EffectReceipts.Count); }
                             // AGT-009：V7 机械校验（fail closed，零新 Effect，
                             // 映射回既有 AgentDecisionFailed 语义）。
-                            var rejection = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
+                            var rejection = ValidateDecision(plan, view, CurrentBudget(view), _lastAnswer);
                             if (rejection is not null)
                                 return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, rejection, null, 0);
 
-                            // 采纳（V7 通过即采纳，原子）：计划项进入 ephemeral
-                            // 游标；PlanExpand 逐项物化——每次最多一个 Act。
+                            // V7 通过后先确认原采纳记录，再发布冻结图给执行器。
+                            // 旧 Control 的弃置单独留接替边界，不宣称跨 Owner 原子性。
+                            await BeginRuntimePlanReplacementAsync(plan).ConfigureAwait(false);
+                            await AbandonPausedPlanAsync("plan:replaced-by-new-version").ConfigureAwait(false);
+                            await CommitRuntimePlanAdoptionAsync(plan).ConfigureAwait(false);
                             _executionWorldDecisionRefs = new[] { plan.DecisionId };
-                            AbandonPausedPlan("plan:replaced-by-new-version");
+                            _adoptedDecision = plan;
                             _planBlocks.Clear();
                             _inheritedPlanCandidate = null;
                             _planItems = plan.Proposal.Items;
@@ -987,7 +1052,7 @@ public sealed class KernelRunDriver
                                 return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, rejection, null, 0);
                             if (CurrentBudget(view).StepsRemaining <= 0)
                             {
-                                AbandonPausedPlan("plan:resume-without-step-budget");
+                                await AbandonPausedPlanAsync("plan:resume-without-step-budget").ConfigureAwait(false);
                                 _adoptedDecision = null;
                                 return new RunDriveResult(RunDriveStatus.AgentDecisionFailed,
                                     "plan:resume-without-step-budget", null, _kernel.EffectReceipts.Count);
@@ -996,8 +1061,8 @@ public sealed class KernelRunDriver
                             _planPaused = false;
                             _planStatus = PlanExecutionStatus.Active;
                             _planInterruptionReason = null;
-                            _traversal.Resume();
-                            RecordTraversalState();
+                            await _traversal.ResumeAsync().ConfigureAwait(false);
+                            await RecordTraversalStateAsync().ConfigureAwait(false);
                             _adoptedDecision = null;
                             _phase = DrivePhase.PlanExpand;
                             continue;
@@ -1041,12 +1106,12 @@ public sealed class KernelRunDriver
                             {
                                 RecordPlanAttempt(step, PlanAttemptStatus.AlreadySatisfied, null,
                                     guard.EvidenceRefs ?? Array.Empty<string>(), guard.Reason);
-                                _traversal.Gap(_traversalWork.ContainerId,
+                                await _traversal.GapAsync(_traversalWork.ContainerId,
                                     _traversalWork.Candidate?.Target.Key,
                                     "navigation-already-satisfied-without-page-transition",
-                                    guard.EvidenceRefs ?? Array.Empty<string>());
+                                    guard.EvidenceRefs ?? Array.Empty<string>()).ConfigureAwait(false);
                                 _planStep = null;
-                                PausePlan("traversal:navigation-already-satisfied-requires-revision");
+                                await PausePlanAsync("traversal:navigation-already-satisfied-requires-revision").ConfigureAwait(false);
                                 continue;
                             }
                             if (_planItems is not null)
@@ -1075,7 +1140,7 @@ public sealed class KernelRunDriver
                                     null, guard.EvidenceRefs ?? Array.Empty<string>(), guard.Reason);
                             }
                             VoidActivePolicyForStepFailure(AgentDecisionPhase.StepRejected, guard.Reason);
-                            VoidActivePlanForStepFailure();
+                            await VoidActivePlanForStepFailureAsync().ConfigureAwait(false);
                             _pendingFailureReason = guard.Reason;
                             _pendingFailurePhase = AgentDecisionPhase.StepRejected;
                             _pendingFailedStepIndex = _planItemIndex;
@@ -1104,7 +1169,7 @@ public sealed class KernelRunDriver
                         UpdateActivePlanAttempt(PlanAttemptStatus.Rejected, null,
                             Array.Empty<string>(), "no-single-root-container");
                         VoidActivePolicyForStepFailure(AgentDecisionPhase.StepRejected, "no-single-root-container");
-                        VoidActivePlanForStepFailure();
+                        await VoidActivePlanForStepFailureAsync().ConfigureAwait(false);
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = "no-single-root-container";
@@ -1121,14 +1186,17 @@ public sealed class KernelRunDriver
                     // ConflictResolver 销案（D13：confidence 盲、不升档、留档
                     // 不删）；余案才交 Control 聚焦（mechanism ④→⑤）。
                     // 销案 revision 携带原 occurrences，Act 可直接继续。
-                    _ = _kernel.ResolveAuthorityConflicts(ConflictFreshnessWindow);
+                    _ = await _kernel.ResolveAuthorityConflictsAsync(ConflictFreshnessWindow).ConfigureAwait(false);
+
+                    if (cancellationToken.IsCancellationRequested) continue;
 
                     // PER-009 S6b：组合接线——每轮 act 决策前把 world 悬案推给
                     // policy（Kernel 内完成 ⇒ 双 Host 生而同构，§24.8）
                     _plan.ConflictedSubjects = _kernel.CurrentConflictedSubjects;
 
                     var slice = _kernel.DeriveSlice(root);
-                    var intent = _kernel.SelectIntent(slice);
+                    var intent = await _kernel.SelectIntentAsync(slice).ConfigureAwait(false);
+                    if (cancellationToken.IsCancellationRequested) continue;
                     if (intent.Kind != ControlIntentKind.Act)
                     {
                         // E4（RUN-004）：plain Observe（无 subject、无冲突）=
@@ -1169,10 +1237,10 @@ public sealed class KernelRunDriver
                                 if (_activeTraversal is not null && _traversalWork is { Return: false } work
                                     && work.Operation.Kind == TraversalOperationKind.Navigate)
                                 {
-                                    _traversal.Gap(work.ContainerId, work.Candidate?.Target.Key,
+                                    await _traversal.GapAsync(work.ContainerId, work.Candidate?.Target.Key,
                                         "navigation-already-satisfied-without-page-transition",
-                                        _activeGuardEvidenceRefs);
-                                    PausePlan("traversal:navigation-already-satisfied-requires-revision");
+                                        _activeGuardEvidenceRefs).ConfigureAwait(false);
+                                    await PausePlanAsync("traversal:navigation-already-satisfied-requires-revision").ConfigureAwait(false);
                                     continue;
                                 }
                                 AdvancePlanItem();
@@ -1182,7 +1250,7 @@ public sealed class KernelRunDriver
                                     && CurrentBudget(view).RoundsRemaining >= 2
                                     && IsRenewalWindowOpen(CurrentBudget(view)))
                                 {
-                                    PausePlan("plan:budget-checkpoint");
+                                    await PausePlanAsync("plan:budget-checkpoint").ConfigureAwait(false);
                                     continue;
                                 }
                                 continue;
@@ -1197,10 +1265,10 @@ public sealed class KernelRunDriver
                             && _focusRetries < FocusRetryCap)
                         {
                             _focusRetries++;
-                            var focused = PullObservations(
+                            var focused = await PullObservations(
                                 ObservationContext.External, "focused-reobservation",
                                 ObservationDepth.Focused,
-                                new[] { intent.TargetSubject });
+                                new[] { intent.TargetSubject }).ConfigureAwait(false);
                             if (focused.Stop is not null)
                                 return focused.Stop;
                             if (focused.RequiresDecision) continue;
@@ -1218,14 +1286,16 @@ public sealed class KernelRunDriver
                     }
 
                     _preDispatchBelief = _kernel.CurrentBelief;
-                    var grounded = _kernel.ActViaCurrentGrounding(
-                        intent, new TargetDescriptor(step.TargetRole, step.TargetDescriptor), _executionWorldDecisionRefs);
+                    await BeginResourceOperationAsync("dispatch", intentId: intent.IntentId).ConfigureAwait(false);
+                    if (cancellationToken.IsCancellationRequested) continue;
+                    var grounded = await _kernel.ActViaCurrentGroundingAsync(
+                        intent, new TargetDescriptor(step.TargetRole, step.TargetDescriptor), _executionWorldDecisionRefs, cancellationToken).ConfigureAwait(false);
                     if (grounded.Act is null)
                     {
                         var reason = $"grounding:{grounded.View.Result}";
                         UpdateActivePlanAttempt(PlanAttemptStatus.Rejected, null, Array.Empty<string>(), reason);
                         VoidActivePolicyForStepFailure(AgentDecisionPhase.StepRejected, reason);
-                        VoidActivePlanForStepFailure();
+                        await VoidActivePlanForStepFailureAsync().ConfigureAwait(false);
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = reason;
@@ -1243,7 +1313,7 @@ public sealed class KernelRunDriver
                             ?? grounded.Act.Gate?.Reason ?? "gate-rejected";
                         UpdateActivePlanAttempt(PlanAttemptStatus.Rejected, null, Array.Empty<string>(), reason);
                         VoidActivePolicyForStepFailure(AgentDecisionPhase.StepRejected, reason);
-                        VoidActivePlanForStepFailure();
+                        await VoidActivePlanForStepFailureAsync().ConfigureAwait(false);
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = reason;
@@ -1276,11 +1346,12 @@ public sealed class KernelRunDriver
 
                 case DrivePhase.StepVerify:
                 {
+                    await BeginResourceOperationAsync("verify", receiptId: _inFlightReceiptId).ConfigureAwait(false);
                     // 串行验证屏障（不变量 43）：本 ordering 就是屏障本体——
                     // 下一次 dispatch（StepAct）只能在上一步 effect 的
                     // post-action 证据被消费并 reconcile 之后发生；屏障可经
                     // 多步场景证伪（StepVerify 未通过前绝不回到 StepAct）。
-                    var post = PullObservations(ObservationContext.PostActionEffectFlow, "post-action-evidence");
+                    var post = await PullObservations(ObservationContext.PostActionEffectFlow, "post-action-evidence").ConfigureAwait(false);
                     if (post.Stop is not null)
                     {
                         // Preserve every available verification fact first. If
@@ -1298,7 +1369,7 @@ public sealed class KernelRunDriver
                                     $"cancellation-poll-failed:{exception.GetType().Name}", null,
                                     _kernel.EffectReceipts.Count);
                             }
-                            if (cancel is not null) return CancelPath(cancel);
+                            if (cancel is not null) return await CancelPathAsync(cancel).ConfigureAwait(false);
                         }
                         return post.Stop;
                     }
@@ -1307,8 +1378,9 @@ public sealed class KernelRunDriver
                     var target = new TargetSpec(
                         step.TargetRole, step.TargetDescriptor, step.EffectClass,
                         CheckedSemantics.FromPresentation(step.DesiredState));
-                    var verification = _kernel.VerifyPostActionEffect(
-                        target, post.ProcessedObservations, _lastDispatchAt, _preDispatchBelief, _inFlightReceiptId);
+                    var verification = await _kernel.VerifyPostActionEffectAsync(
+                        target, post.ProcessedObservations, _lastDispatchAt, _preDispatchBelief, _inFlightReceiptId).ConfigureAwait(false);
+                    _resourceVerificationSettled = true;
                     if (!verification.IsVerified)
                     {
                         var reason = verification.RejectionReason ?? "verification-failed";
@@ -1317,7 +1389,7 @@ public sealed class KernelRunDriver
                             post.ProcessedObservations.Select(o => o.Admission.EvidenceId)
                                 .Where(id => id is not null).Cast<string>().ToArray(), reason);
                         VoidActivePolicyForStepFailure(AgentDecisionPhase.VerificationFailed, reason);
-                        VoidActivePlanForStepFailure();
+                        await VoidActivePlanForStepFailureAsync().ConfigureAwait(false);
                         if (CurrentBudget(view).RoundsRemaining > 0)
                         {
                             _pendingFailureReason = reason;
@@ -1374,7 +1446,7 @@ public sealed class KernelRunDriver
                             && CurrentBudget(view).RoundsRemaining >= 2
                             && IsRenewalWindowOpen(CurrentBudget(view)))
                         {
-                            PausePlan("plan:budget-checkpoint");
+                            await PausePlanAsync("plan:budget-checkpoint").ConfigureAwait(false);
                             continue;
                         }
                     }
@@ -1394,7 +1466,7 @@ public sealed class KernelRunDriver
 
                     // 1. fresh observation（External）→ reconcile → fresh belief
                     //（WaitingForInput 可恢复：phase 保持，续跑重入本步）
-                    var observed = PullObservations(ObservationContext.External, "policy-observation");
+                    var observed = await PullObservations(ObservationContext.External, "policy-observation").ConfigureAwait(false);
                     if (observed.Stop is not null)
                         return observed.Stop;
                     if (observed.RequiresDecision) continue;
@@ -1502,11 +1574,11 @@ public sealed class KernelRunDriver
 
                     if (_planItemIndex >= items.Count)
                     {
-                        if (CompletePlanBlock()) continue;
+                        if (await CompletePlanBlockAsync().ConfigureAwait(false)) continue;
                         // 计划耗尽 → 决策边界。注意：耗尽不构成 completion
                         // proof——ObserveItem 与耗尽都不能单独宣告任务完成，
                         // 终局仍由 NoAction+Completion / TerminalEvaluation 判定。
-                        ExitPlan(AgentDecisionPhase.StepVerified, "plan-exhausted");
+                        await ExitPlanAsync(AgentDecisionPhase.StepVerified, "plan-exhausted").ConfigureAwait(false);
                         continue;
                     }
 
@@ -1518,18 +1590,17 @@ public sealed class KernelRunDriver
                                 var root = CurrentInteractionContainerId(_kernel.CurrentBelief);
                                 if (root is null)
                                 {
-                                    ExitPlan(AgentDecisionPhase.StepRejected, "traversal:no-current-container");
+                                    await ExitPlanAsync(AgentDecisionPhase.StepRejected, "traversal:no-current-container").ConfigureAwait(false);
                                     continue;
                                 }
                                 _activeTraversal = traverse;
                                 _traversalVerifiedContainerId = null;
-                                _kernel.BeginTraversalRecords();
+                                await _kernel.BeginTraversalRecordsAsync().ConfigureAwait(false);
                                 _traversalRoot = root;
-                                _traversal.ConfigureRules(traverse.Rules);
-                                _traversal.Start(_activePlanProposal!.PlanId, _activePlanProposal.Version, root);
-                RecordTraversalState();
+                                await _traversal.ConfigureAndStartAsync(traverse.Rules, _activePlanProposal!.PlanId, _activePlanProposal.Version, root).ConfigureAwait(false);
+                await RecordTraversalStateAsync().ConfigureAwait(false);
                             }
-                            if (AdvanceTraversal(view)) continue;
+                            if (await AdvanceTraversalAsync(view, cancellationToken).ConfigureAwait(false)) continue;
                             continue;
                         case PlanItem.ActItem act:
                         {
@@ -1537,7 +1608,7 @@ public sealed class KernelRunDriver
                             {
                                 if (CurrentPlanCandidate is not { } bound)
                                 {
-                                    ExitPlan(AgentDecisionPhase.StepRejected, "plan:unbound-candidate");
+                                    await ExitPlanAsync(AgentDecisionPhase.StepRejected, "plan:unbound-candidate").ConfigureAwait(false);
                                     continue;
                                 }
                                 act = act with
@@ -1556,18 +1627,18 @@ public sealed class KernelRunDriver
                             // 补证/转移路径。
                             if (PlanTargetConflicted(_kernel.CurrentConflictedSubjects, act))
                             {
-                                ExitPlan(AgentDecisionPhase.StepRejected, "plan:world-conflict");
+                                await ExitPlanAsync(AgentDecisionPhase.StepRejected, "plan:world-conflict").ConfigureAwait(false);
                                 continue;
                             }
                             // 步预算逐项复检（V3 同律；采纳时已总检）
                             if (CurrentBudget(view).StepsRemaining <= 0)
                             {
-                                PausePlan("plan:steps-exhausted");
+                                await PausePlanAsync("plan:steps-exhausted").ConfigureAwait(false);
                                 continue;
                             }
                             if (_activePlanProposal is not null && _planWorkUsed >= _activePlanProposal.MaxLocalOperations)
                             {
-                                PausePlan("plan:local-work-exhausted");
+                                await PausePlanAsync("plan:local-work-exhausted").ConfigureAwait(false);
                                 continue;
                             }
                             _planWorkUsed++;
@@ -1581,12 +1652,12 @@ public sealed class KernelRunDriver
                         }
                         case PlanItem.IfItem branch:
                         {
-                            if (!SpendPlanControlWork()) continue;
+                            if (!await SpendPlanControlWorkAsync().ConfigureAwait(false)) continue;
                             PlanConditionResult? result;
                             try { result = _inputs.EvaluatePlanCondition?.Invoke(branch.Condition, CurrentPlanCandidate); }
                             catch (Exception ex)
                             {
-                                ExitPlan(AgentDecisionPhase.StepRejected, $"plan:condition-failed:{ex.GetType().Name}");
+                                await ExitPlanAsync(AgentDecisionPhase.StepRejected, $"plan:condition-failed:{ex.GetType().Name}").ConfigureAwait(false);
                                 continue;
                             }
                             if (result is null || string.IsNullOrWhiteSpace(result.ScopeKey)
@@ -1594,7 +1665,7 @@ public sealed class KernelRunDriver
                                 || result.Truth is not (PolicyTruth.Satisfied or PolicyTruth.Violated or PolicyTruth.Unknown)
                                 || (result.Truth != PolicyTruth.Unknown && result.EvidenceRefs.Count == 0))
                             {
-                                ExitPlan(AgentDecisionPhase.StepRejected, "plan:condition-unavailable");
+                                await ExitPlanAsync(AgentDecisionPhase.StepRejected, "plan:condition-unavailable").ConfigureAwait(false);
                                 continue;
                             }
                             _planConditionEvaluations.Add(new PlanConditionEvaluation(
@@ -1602,7 +1673,7 @@ public sealed class KernelRunDriver
                                 branch.Condition, result, CurrentPlanPosition()));
                             if (result.Truth == PolicyTruth.Unknown)
                             {
-                                ExitPlan(AgentDecisionPhase.StepRejected, $"plan:condition-unknown:{branch.Condition}:{result.Reason}");
+                                await ExitPlanAsync(AgentDecisionPhase.StepRejected, $"plan:condition-unknown:{branch.Condition}:{result.Reason}").ConfigureAwait(false);
                                 continue;
                             }
                             var selected = result.Truth == PolicyTruth.Satisfied ? branch.Then : branch.Else;
@@ -1611,7 +1682,7 @@ public sealed class KernelRunDriver
                             continue;
                         }
                         case PlanItem.RepeatItem repeat:
-                            if (!SpendPlanControlWork()) continue;
+                            if (!await SpendPlanControlWorkAsync().ConfigureAwait(false)) continue;
                             EnterPlanBlock(repeat.Body, "repeat", repeat.MaxIterations);
                             continue;
                         case PlanItem.ForEachItem loop:
@@ -1619,7 +1690,7 @@ public sealed class KernelRunDriver
                             _activeForEach ??= loop;
                             if (!ReferenceEquals(_activeForEach, loop) && _activeForEach != loop)
                             {
-                                ExitPlan(AgentDecisionPhase.StepRejected, "plan:foreach-state-mismatch");
+                                await ExitPlanAsync(AgentDecisionPhase.StepRejected, "plan:foreach-state-mismatch").ConfigureAwait(false);
                                 continue;
                             }
                             if (_forEachIteration >= loop.MaxIterations)
@@ -1633,7 +1704,7 @@ public sealed class KernelRunDriver
                                 if (_activePlanProposal is not null
                                     && _planWorkUsed >= _activePlanProposal.MaxLocalOperations)
                                 {
-                                    PausePlan("plan:local-work-exhausted");
+                                    await PausePlanAsync("plan:local-work-exhausted").ConfigureAwait(false);
                                     continue;
                                 }
                                 _planWorkUsed++;
@@ -1641,19 +1712,19 @@ public sealed class KernelRunDriver
                                 try { set = _inputs.ProjectPlanCandidates?.Invoke(loop.Source); }
                                 catch (Exception ex)
                                 {
-                                    ExitPlan(AgentDecisionPhase.StepRejected, $"plan:source-failed:{ex.GetType().Name}");
+                                    await ExitPlanAsync(AgentDecisionPhase.StepRejected, $"plan:source-failed:{ex.GetType().Name}").ConfigureAwait(false);
                                     continue;
                                 }
                                 if (set is null || string.IsNullOrWhiteSpace(set.ScopeKey)
                                     || string.IsNullOrWhiteSpace(set.Revision) || set.Candidates is null)
                                 {
-                                    ExitPlan(AgentDecisionPhase.StepRejected, "plan:source-unavailable");
+                                    await ExitPlanAsync(AgentDecisionPhase.StepRejected, "plan:source-unavailable").ConfigureAwait(false);
                                     continue;
                                 }
                                 if (_forEachScopeKey is null) _forEachScopeKey = set.ScopeKey;
                                 else if (!string.Equals(_forEachScopeKey, set.ScopeKey, StringComparison.Ordinal))
                                 {
-                                    ExitPlan(AgentDecisionPhase.StepRejected, "plan:source-scope-changed");
+                                    await ExitPlanAsync(AgentDecisionPhase.StepRejected, "plan:source-scope-changed").ConfigureAwait(false);
                                     continue;
                                 }
                                 if (set.Candidates.Any(c => c is null || string.IsNullOrWhiteSpace(c.Key)
@@ -1661,7 +1732,7 @@ public sealed class KernelRunDriver
                                     || c.EvidenceRefs is null || c.EvidenceRefs.Count == 0)
                                     || set.Candidates.Select(c => c.Key).Distinct(StringComparer.Ordinal).Count() != set.Candidates.Count)
                                 {
-                                    ExitPlan(AgentDecisionPhase.StepRejected, "plan:invalid-candidate-set");
+                                    await ExitPlanAsync(AgentDecisionPhase.StepRejected, "plan:invalid-candidate-set").ConfigureAwait(false);
                                     continue;
                                 }
                                 var candidate = set.Candidates.FirstOrDefault(c => !_seenCandidateKeys.Contains(c.Key));
@@ -1674,7 +1745,7 @@ public sealed class KernelRunDriver
                                 if (candidate.Disposition == PlanCandidateDisposition.Unknown)
                                 {
                                     _planInterruptionReason = $"plan:candidate-unknown:{candidate.Key}";
-                                    ExitPlan(AgentDecisionPhase.StepRejected, _planInterruptionReason);
+                                    await ExitPlanAsync(AgentDecisionPhase.StepRejected, _planInterruptionReason).ConfigureAwait(false);
                                     continue;
                                 }
                                 if (candidate.Disposition == PlanCandidateDisposition.Blocked)
@@ -1683,7 +1754,7 @@ public sealed class KernelRunDriver
                                         || candidate.EvidenceRefs.Count == 0)
                                     {
                                         _planInterruptionReason = $"plan:candidate-blocked:{candidate.Key}";
-                                        ExitPlan(AgentDecisionPhase.StepRejected, _planInterruptionReason);
+                                        await ExitPlanAsync(AgentDecisionPhase.StepRejected, _planInterruptionReason).ConfigureAwait(false);
                                         continue;
                                     }
                                     _blockedCandidates.Add(new PlanBlockedEvidence(
@@ -1700,7 +1771,7 @@ public sealed class KernelRunDriver
                                 }
                                 if (candidate.Disposition != PlanCandidateDisposition.Ready)
                                 {
-                                    ExitPlan(AgentDecisionPhase.StepRejected, "plan:unknown-candidate-disposition");
+                                    await ExitPlanAsync(AgentDecisionPhase.StepRejected, "plan:unknown-candidate-disposition").ConfigureAwait(false);
                                     continue;
                                 }
                                 _activeCandidate = candidate;
@@ -1723,17 +1794,17 @@ public sealed class KernelRunDriver
                                     var expanded = bodyAct with { TargetRole = role, TargetDescriptor = descriptor };
                                     if (PlanTargetConflicted(_kernel.CurrentConflictedSubjects, expanded))
                                     {
-                                        ExitPlan(AgentDecisionPhase.StepRejected, "plan:world-conflict");
+                                        await ExitPlanAsync(AgentDecisionPhase.StepRejected, "plan:world-conflict").ConfigureAwait(false);
                                         continue;
                                     }
                                     if (CurrentBudget(view).StepsRemaining <= 0)
                                     {
-                                        PausePlan("plan:steps-exhausted");
+                                        await PausePlanAsync("plan:steps-exhausted").ConfigureAwait(false);
                                         continue;
                                     }
                                     if (_activePlanProposal is not null && _planWorkUsed >= _activePlanProposal.MaxLocalOperations)
                                     {
-                                        PausePlan("plan:local-work-exhausted");
+                                        await PausePlanAsync("plan:local-work-exhausted").ConfigureAwait(false);
                                         continue;
                                     }
                                     _planWorkUsed++;
@@ -1746,11 +1817,11 @@ public sealed class KernelRunDriver
                                 {
                                     if (_activePlanProposal is not null && _planWorkUsed >= _activePlanProposal.MaxLocalOperations)
                                     {
-                                        PausePlan("plan:local-work-exhausted");
+                                        await PausePlanAsync("plan:local-work-exhausted").ConfigureAwait(false);
                                         continue;
                                     }
-                                    var observed = PullObservations(ObservationContext.External, "plan-observe",
-                                        subjects: observe.Subject is null ? null : new[] { observe.Subject });
+                                    var observed = await PullObservations(ObservationContext.External, "plan-observe",
+                                        subjects: observe.Subject is null ? null : new[] { observe.Subject }).ConfigureAwait(false);
                                     if (observed.Stop is not null) return observed.Stop;
                                     if (observed.RequiresDecision) continue;
                                     _planWorkUsed++;
@@ -1758,7 +1829,7 @@ public sealed class KernelRunDriver
                                     continue;
                                 }
                                 default:
-                                    if (!SpendPlanControlWork()) continue;
+                                    if (!await SpendPlanControlWorkAsync().ConfigureAwait(false)) continue;
                                     EnterPlanBlock(new[] { loop.Body[_forEachBodyIndex] }, "candidate-body");
                                     continue;
                             }
@@ -1768,12 +1839,12 @@ public sealed class KernelRunDriver
                             if (_activePlanProposal is not null
                                 && _planWorkUsed >= _activePlanProposal.MaxLocalOperations)
                             {
-                                PausePlan("plan:local-work-exhausted");
+                                await PausePlanAsync("plan:local-work-exhausted").ConfigureAwait(false);
                                 continue;
                             }
                             _planWorkUsed++;
                             AdvancePlanItem();
-                            PausePlan(checkpoint.Reason ?? "plan:checkpoint");
+                            await PausePlanAsync(checkpoint.Reason ?? "plan:checkpoint").ConfigureAwait(false);
                             continue;
                         }
                         case PlanItem.ObserveItem observe:
@@ -1782,12 +1853,12 @@ public sealed class KernelRunDriver
                             //（WaitingForInput 可恢复：phase 与游标保持，续跑重拉）
                             if (_activePlanProposal is not null && _planWorkUsed >= _activePlanProposal.MaxLocalOperations)
                             {
-                                PausePlan("plan:local-work-exhausted");
+                                await PausePlanAsync("plan:local-work-exhausted").ConfigureAwait(false);
                                 continue;
                             }
-                            var observed = PullObservations(
+                            var observed = await PullObservations(
                                 ObservationContext.External, "plan-observe",
-                                subjects: observe.Subject is null ? null : new[] { observe.Subject });
+                                subjects: observe.Subject is null ? null : new[] { observe.Subject }).ConfigureAwait(false);
                             if (observed.Stop is not null)
                                 return observed.Stop;
                             if (observed.RequiresDecision) continue;
@@ -1800,7 +1871,7 @@ public sealed class KernelRunDriver
                             if (_activePlanProposal is not null
                                 && _planWorkUsed >= _activePlanProposal.MaxLocalOperations)
                             {
-                                PausePlan("plan:local-work-exhausted");
+                                await PausePlanAsync("plan:local-work-exhausted").ConfigureAwait(false);
                                 continue;
                             }
                             _planWorkUsed++;
@@ -1810,9 +1881,9 @@ public sealed class KernelRunDriver
                                     // 有界重观察：废弃剩余计划 + 拉取一轮外部
                                     // 观察，回决策边界（下次咨询消耗全局预算；
                                     // Defer 同构——WaitingForInput 后续跑咨询）
-                                    ExitPlan(AgentDecisionPhase.StepVerified, "plan:reobserve");
-                                    var reobserved = PullObservations(
-                                        ObservationContext.External, "plan-reobserve");
+                                    await ExitPlanAsync(AgentDecisionPhase.StepVerified, "plan:reobserve").ConfigureAwait(false);
+                                    var reobserved = await PullObservations(
+                                        ObservationContext.External, "plan-reobserve").ConfigureAwait(false);
                                     if (reobserved.Stop is not null)
                                         return reobserved.Stop;
                                     if (reobserved.RequiresDecision) continue;
@@ -1820,11 +1891,11 @@ public sealed class KernelRunDriver
                                 case PlanControlKind.Replan:
                                     // 重新规划：废弃剩余计划，回决策边界（全局
                                     // 咨询预算共享、不重置——NeedDecision 既有执法）
-                                    ExitPlan(AgentDecisionPhase.StepVerified, "plan:replan");
+                                    await ExitPlanAsync(AgentDecisionPhase.StepVerified, "plan:replan").ConfigureAwait(false);
                                     continue;
                                 case PlanControlKind.Stop:
                                     // 安全终止：废弃剩余计划，零新 Effect 进终局评估
-                                    AbandonActiveTraversal("plan:stopped");
+                                    await AbandonActiveTraversalAsync("plan:stopped").ConfigureAwait(false);
                                     _planItems = null;
                                     _planItemIndex = 0;
                                     _planStep = null;
@@ -1833,13 +1904,13 @@ public sealed class KernelRunDriver
                                     continue;
                                 default:
                                     // 枚举闭合之外的 Kind（防御面）→ fail closed
-                                    ExitPlan(AgentDecisionPhase.StepRejected, "plan:unknown-control");
+                                    await ExitPlanAsync(AgentDecisionPhase.StepRejected, "plan:unknown-control").ConfigureAwait(false);
                                     continue;
                             }
                         }
                         default:
                             // closed union 之外的派生 PlanItem → fail closed（零 Effect）
-                            ExitPlan(AgentDecisionPhase.StepRejected, "plan:unknown-item");
+                            await ExitPlanAsync(AgentDecisionPhase.StepRejected, "plan:unknown-item").ConfigureAwait(false);
                             continue;
                     }
                 }
@@ -1851,8 +1922,9 @@ public sealed class KernelRunDriver
                     // PER-009 C-1 补全：终局证明前同样先裁决——post 相双源分歧
                     // （如 host 观察态 vs XML 定案态）销案后 obligation 才可能满足；
                     // 权威域外的悬案保持冲突 → 终局如实未证（诚实失败）。
-                    _ = _kernel.ResolveAuthorityConflicts(ConflictFreshnessWindow);
-                    return EvaluateTerminalOnce();
+                    _ = await _kernel.ResolveAuthorityConflictsAsync(ConflictFreshnessWindow).ConfigureAwait(false);
+                    if (cancellationToken.IsCancellationRequested) continue;
+                    return await EvaluateTerminalOnceAsync().ConfigureAwait(false);
                 default:
                     return new RunDriveResult(RunDriveStatus.UnexpectedInput, "unknown-phase", null, 0);
             }
@@ -1876,21 +1948,17 @@ public sealed class KernelRunDriver
             if (cancellationToken.IsCancellationRequested && _kernel.IsActivated
                 && _kernel.IsActivationOwner(_driverIdentity) && !_kernel.IsRunTerminal)
             {
-                if (_pendingPlanLanguage is { } active && _pendingPlanLanguageCall is { } activeCall)
-                {
-                    activeCall.Cancel();
-                    FinishPlanLanguageCall(active, PlanHandlerCallStatus.Cancelled, null, "handler-cancelled");
-                }
-                _traversalCancelDisposition = CancelPath(new RunDriverInput.Cancel(
-                    "drive-cancelled", DateTimeOffset.UtcNow));
+                await CancelPendingPlanLanguageCallAsync().ConfigureAwait(false);
+                _traversalCancelDisposition = await CancelPathAsync(new RunDriverInput.Cancel(
+                    "drive-cancelled", DateTimeOffset.UtcNow)).ConfigureAwait(false);
                 return _traversalCancelDisposition;
             }
 
-            var result = DriveCore();
+            var result = await DriveCore(cancellationToken).ConfigureAwait(false);
             if (result.Status != RunDriveStatus.WaitingForHandler) return result;
             var call = _pendingPlanLanguageCall;
             var pending = _pendingPlanLanguage;
-            if (call is null || pending is null) return DriveCore();
+            if (call is null || pending is null) return await DriveCore(cancellationToken).ConfigureAwait(false);
 
             if (cancellationToken.IsCancellationRequested) continue;
             RunDriverInput.Cancel? runCancel = null;
@@ -1898,16 +1966,16 @@ public sealed class KernelRunDriver
             catch (Exception ex)
             {
                 call.Cancel();
-                FinishPlanLanguageCall(pending, PlanHandlerCallStatus.Cancelled, null,
-                    $"cancellation-poll-failed:{ex.GetType().Name}");
+                await FinishPlanLanguageCallAsync(pending, PlanHandlerCallStatus.Cancelled, null,
+                    $"cancellation-poll-failed:{ex.GetType().Name}").ConfigureAwait(false);
                 return new RunDriveResult(RunDriveStatus.UnexpectedInput,
                     $"cancellation-poll-failed:{ex.GetType().Name}", null, _kernel.EffectReceipts.Count);
             }
             if (runCancel is not null)
             {
                 call.Cancel();
-                FinishPlanLanguageCall(pending, PlanHandlerCallStatus.Cancelled, null, $"run-cancelled:{runCancel.Reason}");
-                _traversalCancelDisposition = CancelPath(runCancel);
+                await FinishPlanLanguageCallAsync(pending, PlanHandlerCallStatus.Cancelled, null, $"run-cancelled:{runCancel.Reason}").ConfigureAwait(false);
+                _traversalCancelDisposition = await CancelPathAsync(runCancel).ConfigureAwait(false);
                 return _traversalCancelDisposition;
             }
 
@@ -1921,6 +1989,13 @@ public sealed class KernelRunDriver
 
     private RunDriveResult DriveInProgressResult() => new(
         RunDriveStatus.UnexpectedInput, "drive-in-progress", null, _kernel.EffectReceipts.Count);
+
+    private async ValueTask CancelPendingPlanLanguageCallAsync()
+    {
+        if (_pendingPlanLanguage is not { } active || _pendingPlanLanguageCall is not { } call) return;
+        call.Cancel();
+        await FinishPlanLanguageCallAsync(active, PlanHandlerCallStatus.Cancelled, null, "handler-cancelled").ConfigureAwait(false);
+    }
 
     /// <summary>P25 consultation 结果：Rejection 非 null = fail closed 原因。</summary>
     private readonly record struct ConsultOutcome(AgentDecision? Value, string? Rejection);
@@ -2203,12 +2278,13 @@ public sealed class KernelRunDriver
         return null;
     }
 
-    private bool AdvanceTraversal(ExecutionContractView view)
+    private async ValueTask<bool> AdvanceTraversalAsync(ExecutionContractView view, CancellationToken cancellationToken)
     {
+        if (cancellationToken.IsCancellationRequested) return true;
         var item = _activeTraversal!;
         if (_traversal.Paused)
         {
-            PausePlan(_traversal.View().PauseReason ?? "traversal:paused");
+            await PausePlanAsync(_traversal.View().PauseReason ?? "traversal:paused").ConfigureAwait(false);
             return true;
         }
         if (_traversalWork is { } expectedWork)
@@ -2223,18 +2299,18 @@ public sealed class KernelRunDriver
                 var reason = _traversalHandlerPhase == "after"
                     ? "traversal:after-container-changed"
                     : "traversal:work-container-not-current";
-                _traversal.Gap(expectedWork.ContainerId, expectedWork.Candidate?.Target.Key,
-                    reason, expectedWork.Candidate?.Target.EvidenceRefs ?? Array.Empty<string>());
-                PausePlan(reason);
+                await _traversal.GapAsync(expectedWork.ContainerId, expectedWork.Candidate?.Target.Key,
+                    reason, expectedWork.Candidate?.Target.EvidenceRefs ?? Array.Empty<string>()).ConfigureAwait(false);
+                await PausePlanAsync(reason).ConfigureAwait(false);
                 return true;
             }
         }
         if (_traversalWork is not null && _traversalHandlerPhase == "after")
         {
-            if (!RunTraversalHandlers(_traversalWork.Operation.AfterVerified, "AfterVerified", _traversalWork))
+            if (!await RunTraversalHandlersAsync(_traversalWork.Operation.AfterVerified, "AfterVerified", _traversalWork, cancellationToken).ConfigureAwait(false))
             {
                 if (_pendingPlanLanguageCall is not null) return true;
-                PausePlan(_traversal.View().PauseReason ?? "traversal:handler-paused");
+                await PausePlanAsync(_traversal.View().PauseReason ?? "traversal:handler-paused").ConfigureAwait(false);
                 return true;
             }
             if (_traversalWork.Return)
@@ -2242,9 +2318,9 @@ public sealed class KernelRunDriver
                 var current = _kernel.CurrentBelief;
                 var currentId = current?.WorldState.TryGetValue(WorldModel.CurrentContainerSubject, out var claim) == true
                     ? claim.Value : null;
-                if (!_traversal.Returned(_traversalWork, currentId))
+                if (!await _traversal.ReturnedAsync(_traversalWork, currentId).ConfigureAwait(false))
                 {
-                    PausePlan(_traversal.View().PauseReason ?? "traversal:return-failed");
+                    await PausePlanAsync(_traversal.View().PauseReason ?? "traversal:return-failed").ConfigureAwait(false);
                     return true;
                 }
                 _traversalWork = null;
@@ -2253,7 +2329,7 @@ public sealed class KernelRunDriver
             }
             else if (_traversalWork.Operation.Kind == TraversalOperationKind.ReadOnly)
             {
-                _traversal.ReadOnlyCompleted(_traversalWork);
+                await _traversal.ReadOnlyCompletedAsync(_traversalWork).ConfigureAwait(false);
                 _traversalWork = null;
                 _traversalHandlerPhase = null;
                 _traversalVerifiedContainerId = null;
@@ -2264,15 +2340,15 @@ public sealed class KernelRunDriver
                 if (current?.WorldState.TryGetValue(WorldModel.CurrentContainerSubject, out var claim) != true
                     || CurrentInteractionContainerId(current) != claim.Value)
                 {
-                    _traversal.Gap(_traversalWork.ContainerId, _traversalWork.Candidate?.Target.Key,
-                        "navigation-target-page-unknown", Array.Empty<string>());
-                    _traversal.Pause("traversal:navigation-target-page-unknown");
-                    PausePlan("traversal:navigation-target-page-unknown");
+                    await _traversal.GapAsync(_traversalWork.ContainerId, _traversalWork.Candidate?.Target.Key,
+                        "navigation-target-page-unknown", Array.Empty<string>()).ConfigureAwait(false);
+                    await _traversal.PauseAsync("traversal:navigation-target-page-unknown").ConfigureAwait(false);
+                    await PausePlanAsync("traversal:navigation-target-page-unknown").ConfigureAwait(false);
                     return true;
                 }
-                _traversal.Navigated(_traversalWork, claim.Value,
+                await _traversal.NavigatedAsync(_traversalWork, claim.Value,
                     new TraversalOperation("$return", TraversalOperationKind.Navigate, item.ReturnStep,
-                        Array.Empty<PlanLanguageHandler>(), Array.Empty<PlanLanguageHandler>()));
+                        Array.Empty<PlanLanguageHandler>(), Array.Empty<PlanLanguageHandler>())).ConfigureAwait(false);
                 _traversalWork = null;
                 _traversalHandlerPhase = null;
                 _traversalVerifiedContainerId = null;
@@ -2282,59 +2358,60 @@ public sealed class KernelRunDriver
         {
             if (_activePlanProposal is not null && _planWorkUsed >= _activePlanProposal.MaxLocalOperations)
             {
-                _traversal.Pause("traversal:local-work-exhausted");
-                PausePlan("traversal:local-work-exhausted");
+                await _traversal.PauseAsync("traversal:local-work-exhausted").ConfigureAwait(false);
+                await PausePlanAsync("traversal:local-work-exhausted").ConfigureAwait(false);
                 return true;
             }
             var current = _kernel.CurrentBelief;
             var currentId = CurrentInteractionContainerId(current);
             if (current is null || currentId is null)
             {
-                _traversal.Fail("traversal:current-container-unknown");
-                PausePlan("traversal:current-container-unknown");
+                await _traversal.FailAsync("traversal:current-container-unknown").ConfigureAwait(false);
+                await PausePlanAsync("traversal:current-container-unknown").ConfigureAwait(false);
                 return true;
             }
             TraversalObservation? observation;
             try { observation = _inputs.ProjectTraversal?.Invoke(item.Source); }
             catch (Exception ex)
             {
-                _traversal.Fail($"traversal:projection-failed:{ex.GetType().Name}");
-                PausePlan(_traversal.View().PauseReason!);
+                await _traversal.FailAsync($"traversal:projection-failed:{ex.GetType().Name}").ConfigureAwait(false);
+                await PausePlanAsync(_traversal.View().PauseReason!).ConfigureAwait(false);
                 return true;
             }
             if (observation is null || !TraversalObservationIsCurrent(
                     observation, current, currentId, _kernel.NavigationScope))
             {
-                _traversal.Fail("traversal:stale-or-unassociated-projection");
-                PausePlan("traversal:stale-or-unassociated-projection");
+                await _traversal.FailAsync("traversal:stale-or-unassociated-projection").ConfigureAwait(false);
+                await PausePlanAsync("traversal:stale-or-unassociated-projection").ConfigureAwait(false);
                 return true;
             }
             _planWorkUsed++;
-            var work = _traversal.Select(observation, item.MaxDepth);
+            var work = await _traversal.SelectAsync(observation, item.MaxDepth).ConfigureAwait(false);
+            if (cancellationToken.IsCancellationRequested) return true;
             if (work is null)
             {
                 if (_traversal.Finished)
                 {
-                    RecordTraversalState();
+                    await RecordTraversalStateAsync().ConfigureAwait(false);
                     _planItemIndex++;
                     _activeTraversal = null;
                     _traversalWork = null;
                 }
-                else if (_traversal.Paused) PausePlan(_traversal.View().PauseReason ?? "traversal:paused");
-                RecordTraversalState();
+                else if (_traversal.Paused) await PausePlanAsync(_traversal.View().PauseReason ?? "traversal:paused").ConfigureAwait(false);
+                await RecordTraversalStateAsync().ConfigureAwait(false);
                 return true;
             }
             _traversalWork = work;
-            RecordTraversalOperation(work, current);
+            await RecordTraversalOperationAsync(work, current).ConfigureAwait(false);
             _traversalHandlerPhase = "before";
             _traversalHandlerIndex = 0;
         }
         var selected = _traversalWork!;
         var before = selected.Operation.Before;
-        if (!RunTraversalHandlers(before, "Before", selected))
+        if (!await RunTraversalHandlersAsync(before, "Before", selected, cancellationToken).ConfigureAwait(false))
         {
             if (_pendingPlanLanguageCall is not null) return true;
-            PausePlan(_traversal.View().PauseReason ?? "traversal:handler-paused");
+            await PausePlanAsync(_traversal.View().PauseReason ?? "traversal:handler-paused").ConfigureAwait(false);
             return true;
         }
         if (selected.Operation.Kind == TraversalOperationKind.ReadOnly)
@@ -2355,25 +2432,26 @@ public sealed class KernelRunDriver
         _planStep = step;
         _stepIndex = 0;
         _phase = DrivePhase.StepAct;
-        RecordTraversalState();
+        await RecordTraversalStateAsync().ConfigureAwait(false);
         return true;
     }
 
-    private bool RunTraversalHandlers(IReadOnlyList<PlanLanguageHandler> handlers, string phase, TraversalControl.Work work)
+    private async ValueTask<bool> RunTraversalHandlersAsync(IReadOnlyList<PlanLanguageHandler> handlers, string phase, TraversalControl.Work work, CancellationToken cancellationToken)
     {
         while (_traversalHandlerIndex < handlers.Count)
         {
+            if (cancellationToken.IsCancellationRequested) return false;
             var binding = handlers[_traversalHandlerIndex];
             if (binding.Required && (_kernel.TraversalExecution?.Handlers ?? Array.Empty<PlanHandlerRecord>()).Any(record =>
                     record.OperationId == work.InvocationId && record.HandlerId == binding.HandlerId
                     && record.Phase == phase && record.Status is PlanHandlerCallStatus.TimedOut or PlanHandlerCallStatus.Cancelled))
             {
-                _traversal.Pause("traversal:handler-timedout-requires-revision");
+                await _traversal.PauseAsync("traversal:handler-timedout-requires-revision").ConfigureAwait(false);
                 return false;
             }
             if (_activePlanProposal is not null && _planWorkUsed >= _activePlanProposal.MaxLocalOperations)
             {
-                _traversal.Pause("traversal:local-work-exhausted");
+                await _traversal.PauseAsync("traversal:local-work-exhausted").ConfigureAwait(false);
                 return false;
             }
             _planWorkUsed++;
@@ -2390,22 +2468,22 @@ public sealed class KernelRunDriver
             try { canBind = _inputs.CanBindPlanLanguage?.Invoke(binding) == true; }
             catch (Exception ex)
             {
-                RecordHandlerFailure(work, binding, phase, revision, PlanHandlerCallStatus.Failed,
-                    $"binding-check-failed:{ex.GetType().Name}");
+                await RecordHandlerFailureAsync(work, binding, phase, revision, PlanHandlerCallStatus.Failed,
+                    $"binding-check-failed:{ex.GetType().Name}").ConfigureAwait(false);
                 if (binding.Required || binding.RequirePass) return false;
                 _traversalHandlerIndex++;
                 continue;
             }
             if (!canBind)
             {
-                RecordHandlerFailure(work, binding, phase, revision, PlanHandlerCallStatus.Unavailable, "binding-unavailable");
+                await RecordHandlerFailureAsync(work, binding, phase, revision, PlanHandlerCallStatus.Unavailable, "binding-unavailable").ConfigureAwait(false);
                 if (binding.Required || binding.RequirePass) return false;
                 _traversalHandlerIndex++;
                 continue;
             }
             if (_inputs.InspectPlanLanguageAsync is null && _inputs.InspectPlanLanguage is null)
             {
-                RecordHandlerFailure(work, binding, phase, revision, PlanHandlerCallStatus.Unavailable, "handler-adapter-unavailable");
+                await RecordHandlerFailureAsync(work, binding, phase, revision, PlanHandlerCallStatus.Unavailable, "handler-adapter-unavailable").ConfigureAwait(false);
                 if (binding.Required || binding.RequirePass) return false;
                 _traversalHandlerIndex++;
                 continue;
@@ -2419,9 +2497,10 @@ public sealed class KernelRunDriver
                 callId, timeout, Stopwatch.StartNew(), Stopwatch.GetTimestamp());
             _pendingPlanLanguageCall = call;
             _pendingPlanLanguage = pending;
-            _kernel.RecordTraversalHandler(new PlanHandlerRecord(work.InvocationId, binding.HandlerId,
-                phase, revision, PlanHandlerCallStatus.Running, null, null, callId));
-            RecordTraversalState();
+            await _kernel.RecordTraversalHandlerAsync(new PlanHandlerRecord(work.InvocationId, binding.HandlerId,
+                phase, revision, PlanHandlerCallStatus.Running, null, null, callId)).ConfigureAwait(false);
+            await RecordTraversalStateAsync().ConfigureAwait(false);
+            if (cancellationToken.IsCancellationRequested) return false;
             try
             {
                 Task<Finding?> completion;
@@ -2464,7 +2543,7 @@ public sealed class KernelRunDriver
                 : PlanHandlerCallStatus.Failed, $"finding-status:{finding.Status}");
     }
 
-    private bool TryFinishPendingPlanLanguageCall()
+    private async ValueTask<bool> TryFinishPendingPlanLanguageCallAsync()
     {
         var call = _pendingPlanLanguageCall;
         var pending = _pendingPlanLanguage;
@@ -2475,31 +2554,31 @@ public sealed class KernelRunDriver
         if (!completedBeforeDeadline && pending.Timer.Elapsed >= pending.Timeout)
         {
             call.Cancel();
-            FinishPlanLanguageCall(pending, PlanHandlerCallStatus.TimedOut, null, "handler-timeout");
+            await FinishPlanLanguageCallAsync(pending, PlanHandlerCallStatus.TimedOut, null, "handler-timeout").ConfigureAwait(false);
             return true;
         }
         if (!call.Completion.IsCompleted) return false;
         if (call.Failure is { } failure)
         {
-            FinishPlanLanguageCall(pending, PlanHandlerCallStatus.Failed, null, failure.GetType().Name);
+            await FinishPlanLanguageCallAsync(pending, PlanHandlerCallStatus.Failed, null, failure.GetType().Name).ConfigureAwait(false);
         }
         else
         {
+            Finding? finding = null;
+            PlanHandlerCallStatus status;
+            string? reason;
             try
             {
-                var finding = call.Completion.GetAwaiter().GetResult();
-                var (status, reason) = ClassifyPlanLanguageFinding(pending, finding);
-                FinishPlanLanguageCall(pending, status, finding, reason);
+                finding = call.Completion.GetAwaiter().GetResult();
+                (status, reason) = ClassifyPlanLanguageFinding(pending, finding);
             }
-            catch (Exception ex)
-            {
-                FinishPlanLanguageCall(pending, PlanHandlerCallStatus.Failed, null, ex.GetType().Name);
-            }
+            catch (Exception ex) { status = PlanHandlerCallStatus.Failed; reason = ex.GetType().Name; }
+            await FinishPlanLanguageCallAsync(pending, status, finding, reason).ConfigureAwait(false);
         }
         return true;
     }
 
-    private void FinishPlanLanguageCall(PendingPlanLanguageCall pending, PlanHandlerCallStatus status,
+    private async ValueTask FinishPlanLanguageCallAsync(PendingPlanLanguageCall pending, PlanHandlerCallStatus status,
         Finding? finding, string? reason)
     {
         var call = _pendingPlanLanguageCall;
@@ -2508,37 +2587,37 @@ public sealed class KernelRunDriver
             reason = string.IsNullOrEmpty(reason) ? $"handler-cancel-request-failed:{cancelFailure}"
                 : $"{reason};handler-cancel-request-failed:{cancelFailure}";
         call.Close();
-        _kernel.RecordTraversalHandler(new PlanHandlerRecord(pending.Work.InvocationId, pending.Binding.HandlerId,
-            pending.Phase, pending.Revision, status, finding, reason, pending.CallId));
+        await _kernel.RecordTraversalHandlerAsync(new PlanHandlerRecord(pending.Work.InvocationId, pending.Binding.HandlerId,
+            pending.Phase, pending.Revision, status, finding, reason, pending.CallId)).ConfigureAwait(false);
         _pendingPlanLanguageCall = null;
         _pendingPlanLanguage = null;
         call.Dispose();
         if (status != PlanHandlerCallStatus.Completed && pending.Binding.Required)
-            _traversal.Pause($"traversal:handler-{status.ToString().ToLowerInvariant()}");
+            await _traversal.PauseAsync($"traversal:handler-{status.ToString().ToLowerInvariant()}").ConfigureAwait(false);
         else if (pending.Binding.RequirePass && (finding is null || finding.Disposition != FindingDisposition.Pass
             || finding.Status != CapabilityStatus.Completed))
-            _traversal.Pause("traversal:handler-require-pass");
+            await _traversal.PauseAsync("traversal:handler-require-pass").ConfigureAwait(false);
         else
             _traversalHandlerIndex++;
-        RecordTraversalState();
+        await RecordTraversalStateAsync().ConfigureAwait(false);
     }
 
-    private void RecordHandlerFailure(TraversalControl.Work work, PlanLanguageHandler binding, string phase,
+    private async ValueTask RecordHandlerFailureAsync(TraversalControl.Work work, PlanLanguageHandler binding, string phase,
         string revision, PlanHandlerCallStatus status, string reason)
     {
-        _kernel.RecordTraversalHandler(new PlanHandlerRecord(work.InvocationId, binding.HandlerId,
-            phase, revision, status, null, reason));
-        RecordTraversalState();
-        if (binding.Required) _traversal.Pause($"traversal:handler-{status.ToString().ToLowerInvariant()}");
-        else if (binding.RequirePass) _traversal.Pause("traversal:handler-require-pass");
+        await _kernel.RecordTraversalHandlerAsync(new PlanHandlerRecord(work.InvocationId, binding.HandlerId,
+            phase, revision, status, null, reason)).ConfigureAwait(false);
+        await RecordTraversalStateAsync().ConfigureAwait(false);
+        if (binding.Required) await _traversal.PauseAsync($"traversal:handler-{status.ToString().ToLowerInvariant()}").ConfigureAwait(false);
+        else if (binding.RequirePass) await _traversal.PauseAsync("traversal:handler-require-pass").ConfigureAwait(false);
     }
 
-    private void RecordTraversalState()
+    private async ValueTask RecordTraversalStateAsync()
     {
-        foreach (var progress in _traversal.DrainProgressEvents())
-            _kernel.RecordTraversalProgress(progress);
+        foreach (var progress in await _traversal.DrainProgressEventsAsync().ConfigureAwait(false))
+            await _kernel.RecordTraversalProgressAsync(progress).ConfigureAwait(false);
         var view = _traversal.View();
-        _kernel.RecordTraversal(view with
+        await _kernel.RecordTraversalAsync(view with
         {
             WorkUsed = _planWorkUsed,
             KnownRemainingWork = view.Status == PlanExecutionStatus.Completed
@@ -2546,10 +2625,10 @@ public sealed class KernelRunDriver
                 : !_traversal.HasObservedCurrentFrontier
                     ? null
                     : _traversal.KnownPendingWork + (_traversalWork is null ? 0 : 1),
-        });
+        }).ConfigureAwait(false);
     }
 
-    private void RecordTraversalOperation(TraversalControl.Work work, WorldBeliefRevision current)
+    private async ValueTask RecordTraversalOperationAsync(TraversalControl.Work work, WorldBeliefRevision current)
     {
         var target = work.Candidate?.Target;
         var occurrence = target is null ? null : current.Occurrences?.SingleOrDefault(item =>
@@ -2559,10 +2638,10 @@ public sealed class KernelRunDriver
         var evidence = target?.EvidenceRefs ?? current.Containers?
             .SingleOrDefault(container => container.Identity.ContainerId == work.ContainerId)?.EvidenceBasis
             ?? Array.Empty<string>();
-        _kernel.RecordTraversalOperation(new TraversalOperationRecord(
+        await _kernel.RecordTraversalOperationAsync(new TraversalOperationRecord(
             work.InvocationId, work.Operation.OperationId, work.ContainerId, target?.Key,
-            occurrence?.State, current.RevisionId, evidence.ToArray(), Completed: false));
-        RecordTraversalState();
+            occurrence?.State, current.RevisionId, evidence.ToArray(), Completed: false)).ConfigureAwait(false);
+        await RecordTraversalStateAsync().ConfigureAwait(false);
     }
 
     private static bool TraversalObservationIsCurrent(TraversalObservation observation, WorldBeliefRevision current,
@@ -2702,11 +2781,11 @@ public sealed class KernelRunDriver
         IReadOnlyList<string> existing,
         IReadOnlyList<string> added) => existing.Concat(added).Distinct(StringComparer.Ordinal).ToArray();
 
-    private bool SpendPlanControlWork()
+    private async ValueTask<bool> SpendPlanControlWorkAsync()
     {
         if (_activePlanProposal is not null && _planWorkUsed >= _activePlanProposal.MaxLocalOperations)
         {
-            PausePlan("plan:local-work-exhausted");
+            await PausePlanAsync("plan:local-work-exhausted").ConfigureAwait(false);
             return false;
         }
         _planWorkUsed++;
@@ -2726,13 +2805,13 @@ public sealed class KernelRunDriver
         _inheritedPlanCandidate = binding;
     }
 
-    private bool CompletePlanBlock()
+    private async ValueTask<bool> CompletePlanBlockAsync()
     {
         if (_planBlocks.Count == 0) return false;
         var frame = _planBlocks.Peek();
         if (frame.BlockIteration + 1 < frame.Repetitions)
         {
-            if (!SpendPlanControlWork()) return true;
+            if (!await SpendPlanControlWorkAsync().ConfigureAwait(false)) return true;
             frame.BlockIteration++;
             _planItemIndex = 0;
             ResetForEach();
@@ -2794,29 +2873,38 @@ public sealed class KernelRunDriver
         _seenCandidateKeys.Clear();
     }
 
-    private void PausePlan(string reason)
+    private ValueTask ObserveTraversalRecoveryAsync(TraversalRecoveryFacts facts)
+    {
+        if (_inputs.ObserveTraversalRecoveryAsync is { } observer)
+            _diagnosticObservations.TryObserve(token => observer(facts, token));
+        else if (_inputs.ObserveTraversalRecovery is { } legacy)
+            _diagnosticObservations.TryObserve(_ => { legacy(facts); return ValueTask.CompletedTask; });
+        return ValueTask.CompletedTask;
+    }
+
+    private async ValueTask PausePlanAsync(string reason)
     {
         _planPaused = true;
         _planStatus = PlanExecutionStatus.Paused;
         _planInterruptionReason = reason;
         if (_activeTraversal is not null)
         {
-            _traversal.Pause(reason);
-            RecordTraversalState();
+            await _traversal.PauseAsync(reason).ConfigureAwait(false);
+            await RecordTraversalStateAsync().ConfigureAwait(false);
             var facts = new TraversalRecoveryFacts(CurrentPlanPosition(),
                 _kernel.TraversalExecution ?? _traversal.View() with { WorkUsed = _planWorkUsed },
                 _planAttempts.ToArray(), _stepsDispatched, _consultCounter);
             _kernel.RecordTraversalRecovery(facts);
-            _inputs.ObserveTraversalRecovery?.Invoke(facts);
+            await ObserveTraversalRecoveryAsync(facts).ConfigureAwait(false);
         }
         _adoptedDecision = null;
         _phase = DrivePhase.NeedDecision;
     }
 
-    private void AbandonPausedPlan(string reason)
+    private async ValueTask AbandonPausedPlanAsync(string reason)
     {
         if (!_planPaused && _activeTraversal is null) return;
-        AbandonActiveTraversal(reason);
+        await AbandonActiveTraversalAsync(reason).ConfigureAwait(false);
         _planPaused = false;
         _planStatus = PlanExecutionStatus.Abandoned;
         _planInterruptionReason = reason;
@@ -2827,13 +2915,13 @@ public sealed class KernelRunDriver
         ResetForEach();
     }
 
-    private void AbandonActiveTraversal(string reason)
+    private async ValueTask AbandonActiveTraversalAsync(string reason)
     {
         if (_activeTraversal is null) return;
         if (!_traversal.Finished)
         {
-            _traversal.Abandon(reason);
-            RecordTraversalState();
+            await _traversal.AbandonAsync(reason).ConfigureAwait(false);
+            await RecordTraversalStateAsync().ConfigureAwait(false);
         }
         _activeTraversal = null;
         _traversalWork = null;
@@ -2945,7 +3033,7 @@ public sealed class KernelRunDriver
     }
 
     /// <summary>多轮咨询（V2）：构建 v2 上下文 + 递增 DecisionId + 锚点核验。</summary>
-    private ConsultOutcome ConsultAgentV2(ExecutionContractView view)
+    private async ValueTask<ConsultOutcome> ConsultAgentV2Async(ExecutionContractView view, CancellationToken cancellationToken)
     {
         var viewRef = view.AcceptedContractViewRef ?? view.ContractRef ?? view.Version;
         var boundarySignature = string.Join("|", PhaseForCurrent(), _stepsDispatched,
@@ -3033,15 +3121,18 @@ public sealed class KernelRunDriver
 
         var key = new ConsultationKey(_kernel.RunId, viewRef, boundaryId, decisionId);
         var fingerprint = ConsultationFingerprint(context);
+        await BeginResourceOperationAsync("consult", key, fingerprint).ConfigureAwait(false);
+        if (cancellationToken.IsCancellationRequested) return new ConsultOutcome(null, "drive-cancelled");
         ConsultationJournalEntry reserved;
         try
         {
-            reserved = _consultationJournal.Reserve(key, fingerprint);
+            reserved = await WriteConsultationAsync(native => native.ReserveAsync(key, fingerprint), () => _consultationJournal.Reserve(key, fingerprint)).ConfigureAwait(false);
         }
         catch (ConsultationJournalConflictException)
         {
             return new ConsultOutcome(null, "consultation-payload-conflict");
         }
+        if (cancellationToken.IsCancellationRequested) return new ConsultOutcome(null, "drive-cancelled");
         if (reserved.Status == ConsultationJournalStatus.Completed)
             return new ConsultOutcome(reserved.Decision, null);
         if (reserved.Status == ConsultationJournalStatus.Rejected)
@@ -3057,12 +3148,14 @@ public sealed class KernelRunDriver
         }
         catch (Exception ex)
         {
-            _consultationJournal.Reject(key, fingerprint, "consultation-exception:" + ex.GetType().Name);
+            await WriteConsultationAsync(native => native.RejectAsync(key, fingerprint, "consultation-exception:" + ex.GetType().Name), () => _consultationJournal.Reject(key, fingerprint, "consultation-exception:" + ex.GetType().Name)).ConfigureAwait(false);
             return new ConsultOutcome(null, "consultation-exception");
         }
+        if (_inputs.ObserveConsultationAsync is { } observer)
+            _diagnosticObservations.TryObserve(token => observer(context, decision, token));
         if (decision is null)
         {
-            _consultationJournal.Reject(key, fingerprint, "no-response");
+            await WriteConsultationAsync(native => native.RejectAsync(key, fingerprint, "no-response"), () => _consultationJournal.Reject(key, fingerprint, "no-response")).ConfigureAwait(false);
             return new ConsultOutcome(null, "no-response");
         }
 
@@ -3085,18 +3178,18 @@ public sealed class KernelRunDriver
             case AgentDecision.Blocked blocked: answeredId = blocked.DecisionId; break;
             case AgentDecision.Skip skip: answeredId = skip.DecisionId; break;
             default:
-                _consultationJournal.Reject(key, fingerprint, "unknown-decision-kind");
+                await WriteConsultationAsync(native => native.RejectAsync(key, fingerprint, "unknown-decision-kind"), () => _consultationJournal.Reject(key, fingerprint, "unknown-decision-kind")).ConfigureAwait(false);
                 return new ConsultOutcome(null, "unknown-decision-kind");
         }
         if (answeredId != decisionId)
         {
-            _consultationJournal.Reject(key, fingerprint, "correlation-mismatch");
+            await WriteConsultationAsync(native => native.RejectAsync(key, fingerprint, "correlation-mismatch"), () => _consultationJournal.Reject(key, fingerprint, "correlation-mismatch")).ConfigureAwait(false);
             return new ConsultOutcome(null, "correlation-mismatch");
         }
 
         try
         {
-            _consultationJournal.Complete(key, fingerprint, decision);
+            await WriteConsultationAsync(native => native.CompleteAsync(key, fingerprint, decision), () => _consultationJournal.Complete(key, fingerprint, decision)).ConfigureAwait(false);
         }
         catch (ConsultationJournalConflictException)
         {
@@ -3112,6 +3205,20 @@ public sealed class KernelRunDriver
         _pendingInterruption = null;
         _kernel.MarkWorldReviewRead();
         return new ConsultOutcome(decision, null);
+    }
+
+    private sealed class ConsultationRecordingException(string message, Exception inner) : IOException(message, inner);
+    private async ValueTask<ConsultationJournalEntry> WriteConsultationAsync(
+        Func<IAsyncConsultationJournal, ValueTask<ConsultationJournalEntry>> native,
+        Func<ConsultationJournalEntry> compatibility)
+    {
+        if (_consultationJournal is not IAsyncConsultationJournal source) return compatibility();
+        try { return await native(source).ConfigureAwait(false); }
+        catch (Exception ex) when (ex is IOException or ObjectDisposedException or JsonException or InvalidDataException)
+        {
+            _consultRejection ??= "consultation-persistence-failed:" + ex.GetType().Name;
+            throw new ConsultationRecordingException(_consultRejection, ex);
+        }
     }
 
     private static string ConsultationFingerprint(AgentDecisionContext context)
@@ -3410,8 +3517,9 @@ public sealed class KernelRunDriver
     /// 未世界满足义务之 Subject——已满足的不重复入证，判定同源见
     /// UniKernel.UnsatisfiedMandatoryObligations）。
     /// </summary>
-    private void DischargeCompletion(CompletionEvidence evidence, string producer)
+    private async ValueTask DischargeCompletionAsync(CompletionEvidence evidence, string producer)
     {
+        var proposals = new List<ObservationProposal>();
         foreach (var obligation in _kernel.UnsatisfiedMandatoryObligations())
         {
             // 入证 context = PostActionEffectFlow：折抵断言的是「已经发生的
@@ -3420,7 +3528,7 @@ public sealed class KernelRunDriver
             // 该 context——义务是否满足仍由层1 JudgeOutcome 按证据类判定，
             // anchor 只是把断言送进裁决的门槛（收口裁决⑥：不把「有真实
             // anchor」误写成「义务已满足」）。
-            _kernel.Process(new Evidence.ObservationProposal(
+            proposals.Add(new Evidence.ObservationProposal(
                 new Evidence.ObservationClaim(obligation.Subject, obligation.RequiredValue),
                 Evidence.IngressKind.Observation,
                 Evidence.ObservationContext.PostActionEffectFlow,
@@ -3429,6 +3537,7 @@ public sealed class KernelRunDriver
                     new[] { "completion-evidence", evidence.Basis }),
                 Origin: Evidence.ObservationOrigin.PostActionSelf)); // 诊断自报（ADR-0048）
         }
+        await _kernel.ProcessBatchAsync(proposals).ConfigureAwait(false);
     }
 
     /// <summary>层3：docket 呈递面（公开只读，零新类型——元组）。</summary>
@@ -3443,29 +3552,38 @@ public sealed class KernelRunDriver
         _completedSteps.ToArray();
 
     /// <summary>层3：人工终裁恢复（rejected = 持久 settlement，防环）。</summary>
-    public RunDriveResult ResumeWithAdjudication(bool approved, string? note)
+    public RunDriveResult ResumeWithAdjudication(bool approved, string? note) =>
+        ResumeWithAdjudicationAsync(approved, note).GetAwaiter().GetResult();
+
+    public async Task<RunDriveResult> ResumeWithAdjudicationAsync(bool approved, string? note, CancellationToken cancellationToken = default)
     {
-        if (!_awaitingRuling)
-            throw new InvalidOperationException("不在裁决等待态");
-        _awaitingRuling = false;
-        if (approved && _lastCompletionEvidence is { } evidence)
+        cancellationToken.ThrowIfCancellationRequested();
+        if (Interlocked.CompareExchange(ref _driveInProgress, 1, 0) != 0) return DriveInProgressResult();
+        try
         {
-            DischargeCompletion(evidence, "kernel.completion-adjudicator");
-            _phase = DrivePhase.TerminalEvaluation;
-            _adoptedDecision = null;
+            if (!_awaitingRuling)
+                throw new InvalidOperationException("不在裁决等待态");
+            _awaitingRuling = false;
+            if (approved && _lastCompletionEvidence is { } evidence)
+            {
+                await DischargeCompletionAsync(evidence, "kernel.completion-adjudicator").ConfigureAwait(false);
+                _phase = DrivePhase.TerminalEvaluation;
+                _adoptedDecision = null;
+            }
+            else
+            {
+                // 持久 settlement：显式状态机语义（非清字段的偶然效果）——
+                // 后续 Drive() 幂等重报 completion-rejected，不重入裁决。
+                _completionAdjudicationRejected = true;
+                _adoptedDecision = null;
+                return new RunDriveResult(
+                    RunDriveStatus.TerminalNotProven,
+                    $"completion-rejected{(note is null ? "" : $":{note}")}",
+                    null, _kernel.EffectReceipts.Count);
+            }
+            return await DriveAsyncCore(cancellationToken).ConfigureAwait(false); // 原裁决终局，共用Drive门
         }
-        else
-        {
-            // 持久 settlement：显式状态机语义（非清字段的偶然效果）——
-            // 后续 Drive() 幂等重报 completion-rejected，不重入裁决。
-            _completionAdjudicationRejected = true;
-            _adoptedDecision = null;
-            return new RunDriveResult(
-                RunDriveStatus.TerminalNotProven,
-                $"completion-rejected{(note is null ? "" : $":{note}")}",
-                null, _kernel.EffectReceipts.Count);
-        }
-        return Drive(); // 按裁决终局
+        finally { Volatile.Write(ref _driveInProgress, 0); }
     }
 
     // ---- RUN-005 Slice B：Policy 展开运行时 helpers（§5/§7/§8）-----------------
@@ -3587,13 +3705,13 @@ public sealed class KernelRunDriver
     /// StepRejected/VerificationFailed 转移与 pendingFailure 捕获不变。
     /// 无活跃 plan 时零副作用。
     /// </summary>
-    private void VoidActivePlanForStepFailure()
+    private async ValueTask VoidActivePlanForStepFailureAsync()
     {
         if (_activeTraversal is not null && _traversalWork is { } work)
-            _traversal.Gap(work.ContainerId, work.Candidate?.Target.Key,
+            await _traversal.GapAsync(work.ContainerId, work.Candidate?.Target.Key,
                 work.Return ? "return-step-failed" : "navigation-step-failed",
-                _kernel.CurrentBelief?.EvidenceBasis.ToArray() ?? Array.Empty<string>());
-        AbandonActiveTraversal("traversal:step-chain-failed");
+                _kernel.CurrentBelief?.EvidenceBasis.ToArray() ?? Array.Empty<string>()).ConfigureAwait(false);
+        await AbandonActiveTraversalAsync("traversal:step-chain-failed").ConfigureAwait(false);
         _planItems = null;
         _planStep = null;
         _planPaused = false;
@@ -3608,9 +3726,9 @@ public sealed class KernelRunDriver
     /// RoundsRemaining ≤ 0 → 由 NeedDecision 既有 consult-budget-exhausted
     /// 检查如实终局（同语义零重复执法）。
     /// </summary>
-    private void ExitPlan(AgentDecisionPhase phase, string reason)
+    private async ValueTask ExitPlanAsync(AgentDecisionPhase phase, string reason)
     {
-        if (reason != "plan-exhausted") AbandonActiveTraversal($"traversal:{reason}");
+        if (reason != "plan-exhausted") await AbandonActiveTraversalAsync($"traversal:{reason}").ConfigureAwait(false);
         if (phase == AgentDecisionPhase.StepRejected)
         {
             _pendingFailureReason = reason;
@@ -3751,7 +3869,7 @@ public sealed class KernelRunDriver
     /// Cancel 在任意 observation pull 均可到达（既有 CancelPath；cancel claim
     /// Process 可能产生 belief revision，cancel 后照常进入 terminal 评估）。
     /// </summary>
-    private ObservationPull PullObservations(
+    private async ValueTask<ObservationPull> PullObservations(
         ObservationContext expected, string phaseLabel,
         ObservationDepth depth = ObservationDepth.Normal,
         IReadOnlyList<string>? subjects = null)
@@ -3767,9 +3885,10 @@ public sealed class KernelRunDriver
             _observationRecoveryEvidence.Clear();
         }
         var processed = _observationRecoveryEvidence;
+        const string recoverySubject = "page-identity";
         if (_observationRecovery.IsExpired(slot))
-            return RecordObservationRecoveryFailure(slot,
-                "page-identity-observation-expired", expected, processed);
+            return await RecordObservationRecoveryFailureAsync(slot,
+                $"{recoverySubject}-observation-expired", expected, processed).ConfigureAwait(false);
         while (true)
         {
         var need = _kernel.CurrentBelief?.ObservationNeed;
@@ -3777,19 +3896,23 @@ public sealed class KernelRunDriver
         if (need is not null)
         {
             if (_inputs.PollCancellation?.Invoke() is { } cancelled)
-                return new ObservationPull(CancelPath(cancelled), processed.ToArray());
+                return new ObservationPull(await CancelPathAsync(cancelled).ConfigureAwait(false), processed.ToArray());
             if (!_observationRecovery.TrySchedule(slot, out var available))
-                return RecordObservationRecoveryFailure(slot,
-                    "page-identity-observation-exhausted", expected, processed);
+                return await RecordObservationRecoveryFailureAsync(slot,
+                    $"{recoverySubject}-observation-exhausted", expected, processed).ConfigureAwait(false);
             remaining = available;
         }
         var knowledgeBeforeInput = _kernel.ProjectWorldKnowledge(_inputs.RequiredWorldParentContext?.Invoke());
+        var link = expected == ObservationContext.PostActionEffectFlow && _inFlightReceiptId is { } receiptId
+            ? _kernel.BeginAttemptObservation(receiptId) : null;
+        try
+        {
         var input = _inputs.NextInput(new ObservationDirective(expected,
             need is null ? depth : ObservationDepth.Slow,
-            need is null ? subjects : new[] { WorldModel.CurrentContainerSubject }, need, remaining));
+            need is null ? subjects : new[] { WorldModel.CurrentContainerSubject }, need, remaining) { AttemptCorrelation = link });
         if (need is not null && input is RunDriverInput.Observation && !_observationRecovery.CanAccept(slot))
-            return RecordObservationRecoveryFailure(slot,
-                "page-identity-observation-timeout", expected, processed);
+            return await RecordObservationRecoveryFailureAsync(slot,
+                $"{recoverySubject}-observation-timeout", expected, processed).ConfigureAwait(false);
         switch (input)
         {
             case null:
@@ -3799,7 +3922,7 @@ public sealed class KernelRunDriver
                     Array.Empty<KernelResult>());
 
             case RunDriverInput.Cancel cancel:
-                return new ObservationPull(CancelPath(cancel), Array.Empty<KernelResult>());
+                return new ObservationPull(await CancelPathAsync(cancel).ConfigureAwait(false), Array.Empty<KernelResult>());
 
             case RunDriverInput.Unexpected unexpected:
                 return new ObservationPull(
@@ -3828,6 +3951,11 @@ public sealed class KernelRunDriver
                 return new ObservationPull(null, Array.Empty<KernelResult>());
 
             case RunDriverInput.Observation observation:
+                if (observation.AttemptCorrelation is { } returned && !ReferenceEquals(returned, link)
+                    || observation.Proposals.Any(p => p.AttemptCorrelation is { } provided
+                        && !ReferenceEquals(provided, observation.AttemptCorrelation)))
+                    return new(new(RunDriveStatus.UnexpectedInput, "attempt-correlation-mismatch", null,
+                        _kernel.EffectReceipts.Count), Array.Empty<KernelResult>());
                 if (observation.Proposals.Count == 0 && observation.Execution is null
                     || observation.Proposals.Any(p => p.Context != expected)
                     || observation.Execution is { } execution && !_kernel.RecordWorldSupplementation(execution, knowledgeBeforeInput))
@@ -3836,8 +3964,8 @@ public sealed class KernelRunDriver
                             RunDriveStatus.UnexpectedInput, $"{phaseLabel}:context-mismatch", null,
                             _kernel.EffectReceipts.Count),
                         Array.Empty<KernelResult>());
-                foreach (var proposal in observation.Proposals)
-                    processed.Add(_kernel.Process(proposal));
+                processed.AddRange(await _kernel.ProcessBatchAsync(observation.Proposals
+                    .Select(proposal => proposal with { AttemptCorrelation = observation.AttemptCorrelation }).ToArray()).ConfigureAwait(false));
                 if (_kernel.CurrentBelief?.ObservationNeed is not null) continue;
                 _observationRecovery.Complete(slot);
                 var completed = processed.ToArray();
@@ -3852,9 +3980,11 @@ public sealed class KernelRunDriver
                     Array.Empty<KernelResult>());
         }
         }
+        finally { link?.Close(); }
+        }
     }
 
-    private ObservationPull RecordObservationRecoveryFailure(string slot, string reason,
+    private async ValueTask<ObservationPull> RecordObservationRecoveryFailureAsync(string slot, string reason,
         ObservationContext context, IReadOnlyList<KernelResult> observations)
     {
         if (_observationRecoveryFailures.Add(slot) && context == ObservationContext.PostActionEffectFlow)
@@ -3864,13 +3994,13 @@ public sealed class KernelRunDriver
                 _kernel.EffectReceipts.LastOrDefault()?.ReceiptId, evidence, reason);
             if (_activeTraversal is not null && _traversalWork is { } work)
             {
-                _traversal.Gap(work.ContainerId, work.Candidate?.Target.Key, reason, evidence);
-                _traversal.Pause(reason);
-                RecordTraversalState();
+                await _traversal.GapAsync(work.ContainerId, work.Candidate?.Target.Key, reason, evidence).ConfigureAwait(false);
+                await _traversal.PauseAsync(reason).ConfigureAwait(false);
+                await RecordTraversalStateAsync().ConfigureAwait(false);
                 var facts = new TraversalRecoveryFacts(CurrentPlanPosition(), _kernel.TraversalExecution!,
                     _planAttempts.ToArray(), _stepsDispatched, _consultCounter);
                 _kernel.RecordTraversalRecovery(facts);
-                _inputs.ObserveTraversalRecovery?.Invoke(facts);
+                await ObserveTraversalRecoveryAsync(facts).ConfigureAwait(false);
             }
         }
         if (context != ObservationContext.PostActionEffectFlow)
@@ -3879,7 +4009,7 @@ public sealed class KernelRunDriver
             if (_kernel.RequestWorldReview(knowledge, reason))
             {
                 VoidActivePolicyForStepFailure(AgentDecisionPhase.PolicyInvalidated, reason);
-                if (_planItems is not null) PausePlan(reason);
+                if (_planItems is not null) await PausePlanAsync(reason).ConfigureAwait(false);
                 _pendingFailureReason = reason;
                 _pendingInterruption = new(_kernel.ProjectWorldRecovery(knowledge).ReviewKey!, "world-knowledge-review",
                     _kernel.CurrentBelief?.RevisionNumber ?? 0, Reason: reason);
@@ -3901,15 +4031,15 @@ public sealed class KernelRunDriver
     /// 四分类形成 evidence-backed SafeStop proof。未声明该 obligation → fail
     /// closed（非终态）。正式 lifecycle command protocol 仍 Deferred ⑯。
     /// </summary>
-    private RunDriveResult CancelPath(RunDriverInput.Cancel cancel)
+    private async ValueTask<RunDriveResult> CancelPathAsync(RunDriverInput.Cancel cancel)
     {
         var traversalWasActive = _activeTraversal is not null;
         if (traversalWasActive)
         {
             if (_phase == DrivePhase.StepVerify && _traversalWork is { } inFlight)
-                _traversal.Gap(inFlight.ContainerId, inFlight.Candidate?.Target.Key,
-                    "verification-interrupted-by-cancel", _activeGuardEvidenceRefs);
-            AbandonPausedPlan($"traversal:cancelled:{cancel.Reason}");
+                await _traversal.GapAsync(inFlight.ContainerId, inFlight.Candidate?.Target.Key,
+                    "verification-interrupted-by-cancel", _activeGuardEvidenceRefs).ConfigureAwait(false);
+            await AbandonPausedPlanAsync($"traversal:cancelled:{cancel.Reason}").ConfigureAwait(false);
         }
 
         var safeStop = _kernel.RunState?.ProofObligations.Obligations
@@ -3923,9 +4053,9 @@ public sealed class KernelRunDriver
         }
 
         if (!traversalWasActive)
-            AbandonPausedPlan($"traversal:cancelled:{cancel.Reason}");
+            await AbandonPausedPlanAsync($"traversal:cancelled:{cancel.Reason}").ConfigureAwait(false);
 
-        _kernel.Process(new ObservationProposal(
+        await _kernel.ProcessBatchAsync([new ObservationProposal(
             new ObservationClaim(safeStop.Subject, safeStop.RequiredValue),
             IngressKind.Observation,
             ObservationContext.External,
@@ -3933,17 +4063,17 @@ public sealed class KernelRunDriver
                 Producer: "kernel.lifecycle",
                 CaptureTime: cancel.VirtualTime,
                 Scope: "scope:lifecycle.cancel",
-                TransformationLineage: new[] { $"cancel:{cancel.Reason}" })));
-        var result = EvaluateTerminalOnce();
+                TransformationLineage: new[] { $"cancel:{cancel.Reason}" }))]).ConfigureAwait(false);
+        var result = await EvaluateTerminalOnceAsync().ConfigureAwait(false);
         if (traversalWasActive && result.Status != RunDriveStatus.Completed)
             _traversalCancelDisposition = result;
         return result;
     }
 
     /// <summary>Terminal 编排（P16→P17→P18，全部经 UniKernel.EvaluateTerminal）。</summary>
-    private RunDriveResult EvaluateTerminalOnce()
+    private async ValueTask<RunDriveResult> EvaluateTerminalOnceAsync()
     {
-        var evaluation = _kernel.EvaluateTerminal();
+        var evaluation = await _kernel.EvaluateTerminalAsync().ConfigureAwait(false);
         if (evaluation.Outcome is not null)
             return new RunDriveResult(
                 RunDriveStatus.Completed, "terminal-emitted", evaluation.Outcome, _kernel.EffectReceipts.Count);

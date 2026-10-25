@@ -1,0 +1,17 @@
+[
+  [
+    "kernel",
+    "tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj",
+    null
+  ],
+  [
+    "host",
+    "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj",
+    "FullyQualifiedName~WorldHistory|FullyQualifiedName~WorldAsyncStorageTests|FullyQualifiedName~WorldOperationReplayTests|FullyQualifiedName~RunWorldRecoveryConsistencyTests|FullyQualifiedName~RunRecoveryStorageAbstractionTests|FullyQualifiedName~EvidenceBatch|FullyQualifiedName~RunResourceRecoveryTests|FullyQualifiedName~RuntimePlanHistoryRecoveryTests|FullyQualifiedName~RunAsyncStorageTests|FullyQualifiedName~RunStateRecoveryTests|FullyQualifiedName~RunStateCrashProcessTests|FullyQualifiedName~TraversalHistoryFileTests|FullyQualifiedName~ControlPlanAsyncStorageTests|FullyQualifiedName~RuntimePlanHistoryFileTests|FullyQualifiedName~RunRecoveryConsistencyTests|FullyQualifiedName~RunEvidenceRecoveryConsistencyTests|FullyQualifiedName~TraversalOwnerBindingTests|FullyQualifiedName~RunResource|FullyQualifiedName~FileConsultationJournalTests|FullyQualifiedName~StorageBarrierFileTests|FullyQualifiedName~StorageClosureFileTests|FullyQualifiedName~HostFailClosedTests|FullyQualifiedName~HostClosureTests"
+  ],
+  [
+    "dsh",
+    "tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj",
+    "FullyQualifiedName~SettingsCoverageEventSimulationTests|FullyQualifiedName~RuntimeToolHostProcedureTests"
+  ]
+]

@@ -1,0 +1,25 @@
+{
+  "fixed_point": "slice1 entry-source at a05176f3 dirty-worktree entry, not entire HEAD diff",
+  "files_sha256": {
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs": "0a92079f8e4639bbb5d1bb151b09cca7a41c5d91c9a37424615f810dd2900862",
+    "src/UniClaw.Kernel/Runtime/RunDriverInputs.cs": "2943010ea55b120a0bfce5f25da71ec66e692edaccb04366e7044ac3249c566e",
+    "src/UniClaw.Host/HostRunner.cs": "c17a32ffee32775f7da6f13ed7f83681593fb49b294e609d10a9f161c3d705a9",
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs": "68d9c164eed04e0db877e9f6118a8658f73c07dc283a33d60ac3c66a99d27969",
+    "src/UniClaw.Kernel/Runtime/README.md": "de0751bf94e73f9514f0b2e7b167ad5d39039f7b28742ac811230f0f987922e6",
+    "src/UniClaw.Host/README.md": "e3010dcf8efb0280ccb879b90d5859aa319751f61e3165b83b6cc2bf14c0a4ad",
+    "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs": "64e757eef4a7370f6e46ef5a1684ab738700aaf77e093ac7fec6f7cfab893e25",
+    "tests/UniClaw.Kernel.Tests/Runtime/StorageClosureAsyncTests.cs": "8ac78f5bb4c82bf7bf2396aa58951517c3be891e16401bac1301f45d014bfa05",
+    "tests/UniClaw.Kernel.Tests/Runtime/PageObservationExecutionTests.cs": "dcc6535f000f1e029a1cd9904c0184c4c534076a4b8f4e7b430a398ecc6491c9",
+    "src/UniClaw.Kernel/Runtime/DiagnosticObservations.cs": "a5c1233dadc4efc89a77e31aae521ad11ee48f36dc1370801ce9609d19e0ab53",
+    "src/UniClaw.Host/Runtime/AuxiliaryArtifacts.cs": "e06286079c9a87f1d3fd1841029c17a92a1f9f0d3477f99112880c60994b81da",
+    "tests/UniClaw.Kernel.Tests/Runtime/AuxiliaryObservationIsolationTests.cs": "6f1fcd4415f680394932da726d29eae6f48f5f1ec7416164606f4547f504755a",
+    "tests/UniClaw.Host.Tests/AuxiliaryArtifactIsolationTests.cs": "8f798b7996534536936f88fa1d7f6c04eda7065f48ca2047e5a611183a4e1f67"
+  },
+  "spec_sha256": {
+    "state.md": "c3e6254d7e44325a5545f27ce0cff934cd31bb336ebdc9dc11e7046a0fd4614a",
+    "storage-contract.md": "d7dfdc59c57feffb5bfdf68838d3542713fa435fc0a93eaced39331df3e5b005"
+  },
+  "scope": "slice1 exception/wait isolation and formal Host close; parent A1-A10 not yet complete",
+  "version": 2,
+  "change_from_v1": "Both observation callbacks now use the same per-run AuxiliaryArtifacts byte/wait quota; synchronized status and single active write, async cancellation propagated."
+}

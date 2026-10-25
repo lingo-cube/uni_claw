@@ -1,0 +1,5 @@
+{
+  "path": "tests/UniClaw.Host.Tests/SettingsCoverageScenarioTests.cs",
+  "selection": "HEAD plus partial keyword only; no fixture or existing assertion edits",
+  "sha256": "64adf21a00f0397166a8712f210e13943349772c0aa5d6291074155aea4304d0"
+}

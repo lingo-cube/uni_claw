@@ -1,0 +1,13 @@
+# 第五片：普通Host咨询诊断的有界增量
+
+实际写入路径是HostRunner.ConsultAgent捕获原上下文、原decision、guardedDecision和guard，再由Driver可选observer写consultations.json。当前每次序列化/覆写完整ConcurrentQueue，且队列从不释放。真实读取方是gen-run-report.py及其必交付输入固定流程，旧consultations.json必须继续可读。
+
+本片按已有公开Host文件adapter/报告CLI测试缝实施：新增专用ConsultationArtifactLog文件adapter，把待写记录限制在DiagnosticObservationOptions.Capacity内，由现有Driver诊断消费者DrainAsync逐条追加consultations.ndjson；没有第二后台worker或每条Task.Run。满队列/序列化或I/O失败/配额/关闭未决只改变诊断状态，不改P25或业务结果。咨询原材料仅保存诊断数据，不成为正式结算或执行许可。
+
+沿AuxiliaryArtifacts同一MaxArtifactBytes/MaxTotalBytes/WriteTimeout额度，每条JSON加换行前受限序列化，成功不重写既有字节；部分写/超时后该log停止继续追加，不把后缀接到可能撕裂的行上。生产编号用于发现缺口，facts记录produced/written/dropped/buffered，原Driver关闭状态保持。未交付报告固定的材料仍由RequiredReportDelivery保护，不进入开发资产清理。
+
+结束时通过同一额度流式尝试生成一次旧consultations.json兼容数组，不在内存累计全历史、不每条生成镜像。超额度可缺兼容镜像，新报告直接读取增量。新报告优先consultations.ndjson，缺失时读旧JSON；增量存在但损坏时不回退旧镜像掩盖缺口，保留已完成前缀并标partial/异常。计数/序号缺口同样明确partial。旧输入的report JSON/Markdown保持字节兼容，输入目录catalog新增可选增量来源，保持原v1输出/协议版本；脚本SHA区分具体实现，现有交付固定脚本/输入语义保持。
+
+验收：先CLI真实RED（已有完整JSONL被忽略）→GREEN；公开adapter追加字节前缀不改、队列有界、限额/坏目录不污染调用、顺序/兼容数组、完整/撕裂日志报告与catalog固定来源验证；原Host辅助隔离、必交付/旧golden回归。成本只比较同一批逻辑记录旧每步全量累计字节与新增量+一次镜像，不声称所有指标更快。父A5/A10及整体A1–A10仍需汇总，不以此关闭。
+
+Leader拥有HostRunner.cs、Runtime/AuxiliaryArtifacts.cs、新ConsultationArtifactLog.cs、tools/gen-run-report.py及产品文档；Luna仅拥有指定专属报告/adapter测试，不改资产工具。共享脏树和slice1–4原证据保持。旧历史不迁移、不删除，不调用真实模型/设备。

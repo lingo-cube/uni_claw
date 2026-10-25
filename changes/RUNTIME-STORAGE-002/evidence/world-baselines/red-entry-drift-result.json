@@ -1,0 +1,15 @@
+{
+  "runId": "run-20261025T160410-97459aefebca48f489b416a1b990978d",
+  "counts": {
+    "Failed": 1
+  },
+  "exitCode": 1,
+  "finalization": {
+    "changeId": "RUNTIME-STORAGE-002",
+    "runId": "run-20261025T160410-97459aefebca48f489b416a1b990978d",
+    "completed": true,
+    "finalization": "results/finalization.json"
+  },
+  "logRef": "test-assets:RUNTIME-STORAGE-002/run-20261025T160410-97459aefebca48f489b416a1b990978d/logs/red.txt",
+  "note": "Entry source was edited before carrier start to make ObservationProposal explicit; sourceStable=false retained. Official stable RED is red-result.json."
+}

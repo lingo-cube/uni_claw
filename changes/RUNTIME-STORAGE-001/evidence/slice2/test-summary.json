@@ -1,0 +1,44 @@
+{
+  "kernel-final": {
+    "total": 1208,
+    "passed": 1205,
+    "failed": [
+      "UniClaw.Kernel.Tests.ClaimEvolutionTests.A6_ReplayDeterministic_LogCarriesFullEvolutionChain",
+      "UniClaw.Kernel.Tests.RunTraceBulletTests.Artifact_EmissionAnchoredDeterministic_WithRealRunId",
+      "UniClaw.Kernel.Tests.SourceReadmeOwnershipTests.SourceFiles_AreRegistered_InDimensionReadme"
+    ],
+    "otherOutcomes": []
+  },
+  "host-final": {
+    "total": 148,
+    "passed": 147,
+    "failed": [
+      "UniClaw.Host.Tests.WorldOperationReplayTests.RuntimeReplay_UsesActualNavigationEdgesReceiptsAndScrollTransforms"
+    ],
+    "otherOutcomes": []
+  },
+  "dsh-final": {
+    "total": 24,
+    "passed": 24,
+    "failed": [],
+    "otherOutcomes": []
+  },
+  "baseline-kernel-three": {
+    "total": 3,
+    "passed": 0,
+    "failed": [
+      "UniClaw.Kernel.Tests.ClaimEvolutionTests.A6_ReplayDeterministic_LogCarriesFullEvolutionChain",
+      "UniClaw.Kernel.Tests.RunTraceBulletTests.Artifact_EmissionAnchoredDeterministic_WithRealRunId",
+      "UniClaw.Kernel.Tests.SourceReadmeOwnershipTests.SourceFiles_AreRegistered_InDimensionReadme"
+    ],
+    "otherOutcomes": []
+  },
+  "baseline-ownerid": {
+    "total": 1,
+    "passed": 0,
+    "failed": [
+      "UniClaw.Host.Tests.WorldOperationReplayTests.RuntimeReplay_UsesActualNavigationEdgesReceiptsAndScrollTransforms"
+    ],
+    "otherOutcomes": []
+  }
+}

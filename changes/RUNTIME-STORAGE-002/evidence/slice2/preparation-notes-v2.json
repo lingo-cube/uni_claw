@@ -1,0 +1,15 @@
+{
+  "orphan_probe_setup": {
+    "not_acceptance_evidence": true,
+    "observed_setup_errors": [
+      "Missing probe routing before Leader added it",
+      "Wrong run directory and using __file__ after pinning for external sentinel root",
+      "Blocking ReadToEnd evaluation in a successful Assert message"
+    ],
+    "missing_evidence": "Earlier worker-reported preparation log was absent when checked; it is not cited or counted as a behavioral RED.",
+    "actual_red": "orphan-tests/orphan-red-v1.trx and matching observed.json: two concurrent generator bodies while old child alive, incorrect successful retry",
+    "actual_green": "orphan-tests/orphan-green-v1.trx and pure-runtime-evidence-v2/orphan-tests: one body while busy, successful retry after exit"
+  },
+  "source_preparation": "See pure-v2-location.json; Python filter and symlink-path assertions failed before source extraction.",
+  "pure_test_preparation": "See readonly-inputs-v2c/manifest.json; missing registry/exit-script inputs were added without changing product or test assertions."
+}

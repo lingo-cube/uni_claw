@@ -1,0 +1,21 @@
+{
+  "paths": [
+    "tests/UniClaw.Host.Tests/RunResourceAccountingTests.cs",
+    "tools/RunRecoveryProbe/StorageBarrierAsyncProbe.cs",
+    "tools/RunRecoveryProbe/RunAsyncProbe.cs",
+    "tools/RunRecoveryProbe/StorageClosureAsyncProbe.cs",
+    "tools/RunRecoveryProbe/RuntimePlanProbe.cs",
+    "tools/RunRecoveryProbe/ControlTraversalProbe.cs",
+    "tools/RunRecoveryProbe/ControlPlanAsyncProbe.cs",
+    "tools/RunRecoveryProbe/WorldAsyncProbe.cs",
+    "tools/RunRecoveryProbe/ReportToolProbe.cs",
+    "tools/RunRecoveryProbe/EvidenceBatchProbe.cs",
+    "tools/RunRecoveryProbe/ControlPlanGrowthProbe.cs",
+    "tools/RunRecoveryProbe/ReportDeliveryProbe.cs",
+    "tools/RunRecoveryProbe/TraversalHistoryProbe.cs",
+    "tools/RunRecoveryProbe/Program.cs"
+  ],
+  "partialProject": "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj",
+  "projectHunk": "only existing crash probe ProjectReference; exclude unrelated agent/trajectory additions",
+  "reason": "closed original crash and async/report tests use these executable probe modes"
+}

@@ -1,0 +1,12 @@
+{
+  "ledger-red.log": "expected missing IAsyncEvidenceJournal contract compile RED",
+  "file-red.log": "expected missing async file surface/counters compile RED",
+  "kernel-all.trx": "1194 passed; exact3 failures reproduce on entry code",
+  "baseline-three.log": "carrier build failed due omitted embedded producer-trust.json; retained, no product failure conclusion",
+  "baseline-three-retry.trx": "same3 failures after runtime/test resources supplied",
+  "readme-current.trx": "new/touched Evidence file registrations fixed;10 older foreign/unmodified registrations remain",
+  "host-regression.trx": "288 passed, includes6 current batch cases",
+  "dsh-regression.trx": "24 passed",
+  "performance": "counts managed FileStream write/flush calls64to1; no physical disk or latency speedup claim",
+  "scope": "observation Evidence slice complete only after review/verify; whole all-storage change stays open"
+}

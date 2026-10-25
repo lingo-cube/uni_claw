@@ -34,6 +34,7 @@ public sealed class RuntimeHttpServer
     private readonly TaskInstanceStore _taskStore;
     private readonly ProductSessionStore _sessionStore;
     private readonly ActivationRecordStore _activationStore;
+    private readonly RuntimeBackgroundWork _backgroundWork = new();
 
     private RuntimeHttpServer(WebApplication app, string runsRoot, string device,
         UniClaw.Agent.Profile.UniAgentProfile agentProfile, UniagentDshBindings bindings)
@@ -82,6 +83,7 @@ public sealed class RuntimeHttpServer
         // PNL-008 / ADR-0039：Harness 工具暴露面（只读投影 + adapter 执行）。
         app.MapGet("/api/uniclaw-runtime/tools", server.GetToolsAsync);
         app.MapPost("/api/uniclaw-runtime/tools/{name}/invoke", server.InvokeToolAsync);
+        ReportDeliveryEndpoints.Map(app, server.ToolHost(), server._runsRoot);
         return server;
     }
 
@@ -94,7 +96,21 @@ public sealed class RuntimeHttpServer
     private async Task RunCoreAsync(CancellationToken cancellationToken)
     {
         await _app.StartAsync(cancellationToken);
-        await _app.WaitForShutdownAsync(cancellationToken);
+        try { await _app.WaitForShutdownAsync(cancellationToken); }
+        finally
+        {
+            var drain = await _backgroundWork.DrainAsync(TimeSpan.FromSeconds(10));
+            foreach (var runId in drain.PendingRunIds)
+                Console.Error.WriteLine($"runtime-work-unconfirmed: run={runId}; required reports remain queryable by runtime-run:{runId}");
+            foreach (var runId in drain.FailedRunIds)
+                Console.Error.WriteLine($"runtime-background-work-failed: run={runId}; inspect durable run/report state");
+            if (_toolHost is not null)
+            {
+                var reports = await _toolHost.CloseReportProcessesAsync(TimeSpan.FromSeconds(5));
+                foreach (var operation in reports.UnconfirmedOperations)
+                    Console.Error.WriteLine($"report-work-unconfirmed: {operation}; inspect durable delivery state");
+            }
+        }
     }
 
     /// <summary>
@@ -191,6 +207,10 @@ public sealed class RuntimeHttpServer
         if (activation.Status == "finalized" && activation.RunId is not null)
         {
             var replay = _store.Get(activation.RunId);
+            if (request.RequireReport && !(await ToolHost().ListRequiredReportsAsync(_runsRoot,
+                    "runtime-run:" + activation.RunId, cancellationToken)).Any(x => x.Record.Request.RequestId == "primary"))
+                return Error(StatusCodes.Status409Conflict, "report-requirement-not-accepted",
+                    "this activation did not accept a required report; request a report explicitly", retryable: false);
             return replay is null
                 ? Error(StatusCodes.Status409Conflict, "activation-record-incomplete",
                     "activation is finalized but its Run projection is unavailable", retryable: true)
@@ -209,14 +229,20 @@ public sealed class RuntimeHttpServer
             request.EnvironmentIntent,
             acceptedContractViewRef,
             request.ContractGeneration));
+        string? reportDeliveryId = null;
         try
         {
+            if (request.RequireReport)
+                reportDeliveryId = (await ToolHost().RequireReportAsync(_runsRoot, "runtime-run:" + run.RunId,
+                    cancellationToken: cancellationToken)).DeliveryId;
             _sessionStore.BindRun(productSessionId, run.RunId);
             _activationStore.Finalize(activationKey, run.RunId);
         }
         catch (Exception ex)
         {
             _activationStore.Fail(activationKey, "blocked", $"activation-finalize-failed:{ex.Message}");
+            _store.Transition(run.RunId, "failed", "admission", "run.failed", "runtime", "uniclaw-runtime",
+                "Runtime activation could not be accepted", p => p with { Outcome = "failure", Reason = ex.Message });
             return Error(StatusCodes.Status409Conflict, "activation-finalize-failed", ex.Message, retryable: true);
         }
 
@@ -277,7 +303,8 @@ public sealed class RuntimeHttpServer
         var title = JsonLabel(request.TaskRef, "title") ?? requirement;
         var taskSet = JsonLabel(request.TestSetRef, "label", "id");
         var modelRef = $"{model.Provider}/{model.Name}";
-        _ = Task.Run(() => RunBackground(running.RunId, device, launch, agent, channel, peer, requirement, title, taskSet, modelRef), CancellationToken.None);
+        _backgroundWork.Track(running.RunId, Task.Run(() => RunBackground(running.RunId, device, launch, agent, channel, peer,
+            requirement, title, taskSet, modelRef, reportDeliveryId), CancellationToken.None));
         return Results.Accepted($"/api/uniclaw-runtime/runs/{running.RunId}", Response(running));
     }
 
@@ -343,7 +370,7 @@ public sealed class RuntimeHttpServer
         }
     }
 
-    private async Task RunBackground(string runId, string device, HostRunner.LaunchContext launch, DshAgentAdapter agent, DshOpenedDecisionChannel channel, DshOpenedHttpPeer peer, string? requirement, string? title, string? taskSet, string model)
+    private async Task RunBackground(string runId, string device, HostRunner.LaunchContext launch, DshAgentAdapter agent, DshOpenedDecisionChannel channel, DshOpenedHttpPeer peer, string? requirement, string? title, string? taskSet, string model, string? reportDeliveryId)
     {
         try
         {
@@ -366,7 +393,7 @@ public sealed class RuntimeHttpServer
             var settingsPolicyConfig = SettingsCoverageConfig.LoadDefault();
             var runtimeIntegrationRegistry = RuntimeIntegrationCapabilityComposition
                 .RegisterLanguageInspector();
-            var result = HostRunner.RunOnce(_runsRoot, new HostRunner.HostOptions
+            var result = await HostRunner.RunOnceAsync(_runsRoot, new HostRunner.HostOptions
             {
                 DeviceId = device,
                 ConsultAgent = ConsultWithCapabilitySelection,
@@ -390,35 +417,38 @@ public sealed class RuntimeHttpServer
                     : "failed";
             var outcome = status == "completed" ? "completion" : status == "interrupted" ? "unknown" : "failure";
 
-            // PNL-011：finalize 附带产物（metadata 投影 / runtime 事件导出 / 全链路
-            // 报告）。失败不改变 run 终态，只落 report-generation.log 到 run 目录。
+            // Execution is terminal before report work begins. Report retry has no execution authority.
             var dirName = Path.GetFileName(result.RunDir);
             var artifacts = BuildArtifacts(runId);
-            var note = "Runtime execution finished";
+            if (reportDeliveryId is not null)
+                artifacts = [.. artifacts, new("report", "report", "partial", "report-deliveries/" + reportDeliveryId)];
+            _store.Transition(runId, status, "finalize", "run." + status, "runtime", "uniclaw-runtime",
+                "Runtime execution finished", p => p with { Outcome = outcome, Reason = result.Reason, Artifacts = artifacts });
             try
-            {
-                WriteRunMetadata(result.RunDir, runId, launch, device, model, requirement, title, taskSet, status, outcome, result);
-                ExportRuntimeEvents(result.RunDir, runId);
-                var report = await ToolHost().InvokeAsync("run-report", _runsRoot, dirName).ConfigureAwait(false);
-                artifacts = BuildArtifacts(runId, dirName, report.ReportMd is not null, report.ReportJson is not null);
-                note = $"Runtime execution finished; report exit={report.ExitCode}";
-            }
-            catch (Exception reportError)
             {
                 try
                 {
-                    File.AppendAllText(Path.Combine(result.RunDir, "report-generation.log"),
-                        $"{DateTimeOffset.UtcNow:O} finalize-artifact-failed: {reportError.Message}\n");
+                    WriteRunMetadata(result.RunDir, runId, launch, device, model, requirement, title, taskSet, status, outcome, result);
+                    ExportRuntimeEvents(result.RunDir, runId);
                 }
-                catch { }
+                catch (Exception metadataError) { LogReportError(result.RunDir, metadataError); }
+                if (reportDeliveryId is not null)
+                {
+                    var delivered = await ToolHost().RetryRequiredReportAsync(_runsRoot, reportDeliveryId, dirName);
+                    artifacts = [.. BuildArtifacts(runId), new("report", "report", delivered.Ok ? "present" : "partial",
+                        "report-deliveries/" + reportDeliveryId)];
+                }
+                else
+                {
+                    var report = await ToolHost().InvokeAsync("run-report", _runsRoot, dirName).ConfigureAwait(false);
+                    artifacts = BuildArtifacts(runId, dirName, report.ReportMd is not null, report.ReportJson is not null);
+                }
+                _store.UpdateArtifacts(runId, artifacts);
             }
-
-            _store.Transition(runId, status, "finalize", "run." + status, "runtime", "uniclaw-runtime", note, p => p with
+            catch (Exception reportError)
             {
-                Outcome = outcome,
-                Reason = result.Reason,
-                Artifacts = artifacts
-            });
+                LogReportError(result.RunDir, reportError);
+            }
         }
         catch (OperationCanceledException ex)
         {
@@ -435,6 +465,13 @@ public sealed class RuntimeHttpServer
             await channel.DisposeAsync();
             await peer.DisposeAsync();
         }
+    }
+
+    private static void LogReportError(string runDir, Exception error)
+    {
+        try { File.AppendAllText(Path.Combine(runDir, "report-generation.log"),
+            $"{DateTimeOffset.UtcNow:O} report-delivery-failed: {error.Message}\n"); }
+        catch (Exception) { }
     }
 
     private Task<IResult> RecoverAsync(RecoverRequest? request, CancellationToken cancellationToken)
@@ -489,7 +526,7 @@ public sealed class RuntimeHttpServer
         }
     }
 
-    private async Task<IResult> InvokeToolAsync(string name, ToolInvokeRequest? request)
+    private async Task<IResult> InvokeToolAsync(string name, ToolInvokeRequest? request, CancellationToken cancellationToken = default)
     {
         if (request is null || string.IsNullOrWhiteSpace(request.RunDir))
             return Error(StatusCodes.Status400BadRequest, "invalid-request", "body with runDir is required", retryable: false);
@@ -497,16 +534,21 @@ public sealed class RuntimeHttpServer
         // PNL-012：model-procedure 与 deterministic-script 响应形状不同
         //（model/text/reportRef vs exitCode/stdout…）；错误 envelope 保持统一。
         if (host.Find(name) is { Invocation: "model-procedure" })
-            return await InvokeProcedureToolAsync(host, name, request.RunDir.Trim());
+            return await InvokeProcedureToolAsync(host, name, request.RunDir.Trim(), request.DevelopmentAssets, cancellationToken);
+        if (request.DevelopmentAssets is not null)
+            return Error(StatusCodes.Status400BadRequest, "invalid-request", "developmentAssets applies to model-procedure tools", retryable: false);
         try
         {
-            var result = await host.InvokeAsync(name, _runsRoot, request.RunDir.Trim());
+            var delivery = name == "run-report" ? await host.InvokeRequiredReportAsync(_runsRoot, request.RunDir.Trim(),
+                request.ReportRequestId ?? "primary", request.StrictReport) : null;
+            var result = delivery?.Result ?? await host.InvokeAsync(name, _runsRoot, request.RunDir.Trim());
             return Results.Ok(new
             {
                 schemaVersion = "uniclaw.workspace.runtime-tool-invoke-response.v1",
                 contractVersion = ContractVersion,
                 ok = result.Ok,
                 tool = name,
+                deliveryId = delivery?.Delivery.Record.DeliveryId,
                 result = new
                 {
                     exitCode = result.ExitCode,
@@ -528,7 +570,8 @@ public sealed class RuntimeHttpServer
         }
     }
 
-    public sealed record ToolInvokeRequest(string? RunDir = null);
+    public sealed record ToolInvokeRequest(string? RunDir = null, string? ReportRequestId = null, bool StrictReport = false,
+        RuntimeToolHost.DevelopmentAssetRequest? DevelopmentAssets = null);
 
     /// <summary>
     /// PNL-012：model-procedure 工具执行（run-diagnosis）。模型经产品缝解析
@@ -537,7 +580,8 @@ public sealed class RuntimeHttpServer
     /// 传输缝复用 DshOpenedHttpPeer 的 slow 端点；诊断 prompt 大，有界等待
     /// 放宽到 120s（state.md 记录）。诊断文本只返回，不写任何 store。
     /// </summary>
-    private async Task<IResult> InvokeProcedureToolAsync(RuntimeToolHost host, string name, string runDir)
+    private async Task<IResult> InvokeProcedureToolAsync(RuntimeToolHost host, string name, string runDir,
+        RuntimeToolHost.DevelopmentAssetRequest? developmentAssets, CancellationToken cancellationToken)
     {
         ModelConfiguration model;
         try
@@ -554,10 +598,11 @@ public sealed class RuntimeHttpServer
         }
         try
         {
-            var result = await host.InvokeProcedureAsync(
-                name, _runsRoot, runDir,
-                (requestId, prompt, model, cancellationToken) => TransportAsync(requestId, prompt, model, cancellationToken),
-                model).ConfigureAwait(false);
+            RuntimeToolHost.DiagnosisTransport transport = (requestId, prompt, choice, token) => TransportAsync(requestId, prompt, choice, token);
+            var result = developmentAssets is null
+                ? await host.InvokeProcedureAsync(name, _runsRoot, runDir, transport, model).ConfigureAwait(false)
+                : await host.InvokeProcedureWithAssetsAsync(name, _runsRoot, runDir, transport, model,
+                    developmentAssets, cancellationToken: cancellationToken).ConfigureAwait(false);
             return Results.Ok(new
             {
                 schemaVersion = "uniclaw.workspace.runtime-tool-invoke-response.v1",
@@ -569,6 +614,12 @@ public sealed class RuntimeHttpServer
                     model = result.Model,
                     text = result.Text,
                     reportRef = result.ReportRef,
+                    packetRef = result.PacketRef,
+                    packetSha256 = result.PacketSha256,
+                    signalRefs = result.SignalRefs,
+                    assetChangeId = result.AssetChangeId,
+                    assetRunId = result.AssetRunId,
+                    assetFinalizationError = result.AssetFinalizationError,
                 },
             });
         }
@@ -581,11 +632,20 @@ public sealed class RuntimeHttpServer
                 "tool-not-found" => StatusCodes.Status404NotFound,
                 "diagnosis-timeout" => StatusCodes.Status504GatewayTimeout,
                 "diagnosis-transport-failed" => StatusCodes.Status503ServiceUnavailable,
+                "development-assets-unavailable" => StatusCodes.Status503ServiceUnavailable,
                 _ => StatusCodes.Status400BadRequest,
             };
-            return Error(status, code, message, retryable: status != StatusCodes.Status400BadRequest);
+            return Error(status, code, message, retryable: status != StatusCodes.Status400BadRequest, details: AssetErrorDetails(ex));
+        }
+        catch (OperationCanceledException ex)
+        {
+            return Error(499, "diagnosis-cancelled", "diagnosis cancelled; assets retained", retryable: false, details: AssetErrorDetails(ex));
         }
     }
+
+    private static object? AssetErrorDetails(Exception error) => error.Data.Contains("assetRunId")
+        ? new { assetChangeId = error.Data["assetChangeId"], assetRunId = error.Data["assetRunId"],
+            assetFinalizationError = error.Data["assetFinalizationError"] } : null;
 
     /// <summary>生产传输：slow 端点只取 assistant 文本；端点错误诚实上抛。</summary>
     private async Task<string> TransportAsync(string requestId, string prompt, ModelConfiguration model, CancellationToken cancellationToken)
@@ -712,7 +772,7 @@ public sealed class RuntimeHttpServer
     }
 
     private static string RepoRoot() => Directory.GetParent(AppContext.BaseDirectory)?.Parent?.Parent?.Parent?.Parent?.FullName ?? Environment.CurrentDirectory;
-    public sealed record LaunchRequest(string? RunId, string? ProductSessionId, string? LaunchId, string? IdempotencyKey, string? CorrelationId, JsonElement? ProjectRef = null, JsonElement? TestSetRef = null, JsonElement? TaskRef = null, JsonElement? EnvironmentIntent = null, string? TaskInstanceId = null, string? AcceptedContractViewRef = null, int? ContractGeneration = null, bool Resume = false);
+    public sealed record LaunchRequest(string? RunId, string? ProductSessionId, string? LaunchId, string? IdempotencyKey, string? CorrelationId, JsonElement? ProjectRef = null, JsonElement? TestSetRef = null, JsonElement? TaskRef = null, JsonElement? EnvironmentIntent = null, string? TaskInstanceId = null, string? AcceptedContractViewRef = null, int? ContractGeneration = null, bool Resume = false, bool RequireReport = false);
     public sealed record RecoverRequest(string? LaunchId = null, string? IdempotencyKey = null);
 
     private static void RunAdb(string device, params string[] arguments)

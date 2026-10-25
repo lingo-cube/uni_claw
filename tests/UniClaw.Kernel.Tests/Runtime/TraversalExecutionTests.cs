@@ -12,7 +12,7 @@ using Xunit;
 
 namespace UniClaw.Kernel.Tests.Runtime;
 
-public sealed class TraversalExecutionTests
+public sealed partial class TraversalExecutionTests
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 19, 1, 0, 0, TimeSpan.Zero);
     private sealed class Fresh : IFreshnessEvaluator
@@ -55,17 +55,22 @@ public sealed class TraversalExecutionTests
         Func<PlanLanguageHandler, PlanHandlerInput, CancellationToken, ValueTask<Finding?>>? inspectAsync = null,
         TimeSpan? handlerTimeout = null,
         Func<RunDriverInput.Cancel?>? pollCancellation = null,
-        Func<AgentActionStep, AgentDecisionContext, PlanStepGuardResult>? guard = null)
+        Func<AgentActionStep, AgentDecisionContext, PlanStepGuardResult>? guard = null,
+        RunModel? run = null,
+        ControlLoop? control = null,
+        AgentPlanPolicy? policy = null,
+        IRuntimePlanJournal? planJournal = null)
     {
         var cid = ProbeContainerId();
-        var plan = new AgentPlanPolicy();
+        var plan = policy ?? new AgentPlanPolicy();
         var kernel = new UniKernel(new EvidenceLedger(),
             new WorldModel(new HashSet<string>(Contract().Scope), new SeedContainerAssociationStrategy(),
                 new Strategy(cid), new RoleContinuityStrategy()),
-            DisabledRunTrace.Instance, new RunModel(), new ControlLoop(plan),
+            DisabledRunTrace.Instance, run ?? new RunModel(), control ?? new ControlLoop(plan),
             new RuntimeAssurance(new Fresh()), new EffectBoundary(delivered is null ? new Driver() : new TestDriver(delivered)));
         var inputs = new RunDriverInputs
         {
+            RuntimePlanJournal = planJournal,
             NextInput = directive => directive.Context == ObservationContext.External
                 ? new RunDriverInput.Observation(new[] { UIWorldDoubles.Observation("switch:entry@ready", Now) })
                 : null,

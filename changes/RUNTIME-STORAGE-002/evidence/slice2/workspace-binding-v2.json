@@ -1,0 +1,8 @@
+{
+  "owned_production_and_tests_match": true,
+  "parallel_document_drift": {
+    "src/UniClaw.Host/README.md": "6e0e0d0b2d737c52da18b096c3ede12bf5c09fb67787f3e8363e1b541665e95e"
+  },
+  "parallel_patch": "parallel-readme-v2.patch",
+  "explanation": "Concurrent SettingsPageScene README registration preserved in shared workspace; excluded from this slice candidate. No source code/test drift in owned slice files."
+}

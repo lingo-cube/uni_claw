@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "checks": {
+    "candidate": true,
+    "entry": true,
+    "archive": true,
+    "inputs1015": true,
+    "pure-host-v4.trx": true,
+    "pure-dsh-v4.trx": true,
+    "pure-kill-v4.trx": true,
+    "feature_red": true,
+    "source_red": true,
+    "endpoint_red": true,
+    "malformed_red": true,
+    "kill-settled": true,
+    "kill-pending": true,
+    "same_input_cost": true,
+    "reviews": true,
+    "slice1_preserved": true,
+    "slice2_preserved": true
+  },
+  "level": "DETERMINISTIC+SCENARIO",
+  "candidate": "candidate-v4/manifest.json",
+  "inputs": 1015,
+  "assemblies": 48,
+  "scope": "Resource first family only; no full-suite/live/model/device/parent-complete claim"
+}

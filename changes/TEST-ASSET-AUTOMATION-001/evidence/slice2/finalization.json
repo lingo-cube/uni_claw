@@ -1,0 +1,404 @@
+{
+  "schemaVersion": "development-asset-slice-finalization.v1",
+  "changeId": "TEST-ASSET-AUTOMATION-001",
+  "slice": "2",
+  "kept": [
+    {
+      "path": "README.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 5846,
+      "sha256": "11ad50f1ea19e8b82b404ea03d2d3b4d3e25ec14c451b91c638bdaea094ac842",
+      "retention": "task"
+    },
+    {
+      "path": "assembly-observation.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 466,
+      "sha256": "a57b788f76cbc241140040c39d77ead3f241641db684c00ae0d0ebd34cec132c",
+      "retention": "task"
+    },
+    {
+      "path": "before/docs/agents/test-asset-retention.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 10574,
+      "sha256": "0ace6c3f3481e73988a2ea8757f82bb7be64ae59fd1f00412ab0e5c47fafe0dd",
+      "retention": "task"
+    },
+    {
+      "path": "before/src/UniClaw.Host.Dsh/RuntimeHttpServer.cs",
+      "logicalRoot": "change-evidence",
+      "bytes": 41588,
+      "sha256": "7c82215538c6be9e197989934f31e9023d7adc2d95d110486886604f0a3e2763",
+      "retention": "task"
+    },
+    {
+      "path": "before/src/UniClaw.Host.Dsh/RuntimeToolHost.cs",
+      "logicalRoot": "change-evidence",
+      "bytes": 19159,
+      "sha256": "b059399e02bcabdfa8b7a4239f5d1275dff28941a5cdf3cd9b127151d7980020",
+      "retention": "task"
+    },
+    {
+      "path": "before/tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureTests.cs",
+      "logicalRoot": "change-evidence",
+      "bytes": 14368,
+      "sha256": "1239b8e5919c752468205dcc7f65faa044652cc90b7ad42fd5ad36c2bfcd3c0f",
+      "retention": "task"
+    },
+    {
+      "path": "before/tools/README.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 5600,
+      "sha256": "a79a9511db5a94aeaead4a8c925d28302f798487457f4ad49de60e9b3abd9361",
+      "retention": "task"
+    },
+    {
+      "path": "before/tools/test-assets",
+      "logicalRoot": "change-evidence",
+      "bytes": 1633,
+      "sha256": "7344c87b451785eac4c49fe71505cff6e13ca83fb3b2cd1e71ef75381018249a",
+      "retention": "task"
+    },
+    {
+      "path": "before/tools/test_assets.py",
+      "logicalRoot": "change-evidence",
+      "bytes": 17173,
+      "sha256": "2ee85a150448dbcc48c30fd617c2d9782d47515c323df2565a1d2208f673ee90",
+      "retention": "task"
+    },
+    {
+      "path": "build-coordination.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 315,
+      "sha256": "8f3bc78449e3c20969be6bc745352e5ae48bf16d7366916d3ffc801b7adfff0b",
+      "retention": "task"
+    },
+    {
+      "path": "candidate-v2.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 2309,
+      "sha256": "983d87e23c1581fc3f82d6c669bba966879dbc549772b419907013fb740ef3cb",
+      "retention": "task"
+    },
+    {
+      "path": "candidate-v2.patch",
+      "logicalRoot": "change-evidence",
+      "bytes": 74298,
+      "sha256": "1d64254dfc38edcfa74c42fdfcf32617da8f23f2cdfa4ccf7e9482a0a91bd417",
+      "retention": "task"
+    },
+    {
+      "path": "candidate.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 2268,
+      "sha256": "9073d705f5ca949a99c6cdb0d9e320ff0c04d892b89f05a4db690fd2f3c35eb9",
+      "retention": "task"
+    },
+    {
+      "path": "candidate.patch",
+      "logicalRoot": "change-evidence",
+      "bytes": 69921,
+      "sha256": "d7743319c4e445420b4d2ce35118bb674b820632d70831f139c1b3fc3e2964a1",
+      "retention": "task"
+    },
+    {
+      "path": "case-input/case.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 4648,
+      "sha256": "1f124e9b47ad75a637e57204c3245420fe732ac16122a595aecf08cfe2746865",
+      "retention": "task"
+    },
+    {
+      "path": "case-input/case.sha256",
+      "logicalRoot": "change-evidence",
+      "bytes": 65,
+      "sha256": "900b8124ddd8aad3d3f49d9dbd3b151809c92e4221dc4b620245b7be0a53d2bc",
+      "retention": "task"
+    },
+    {
+      "path": "case-input/inputs/capture-xml.xml",
+      "logicalRoot": "change-evidence",
+      "bytes": 16911,
+      "sha256": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599",
+      "retention": "task"
+    },
+    {
+      "path": "case-input/inputs/facts.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 4771,
+      "sha256": "1e523d966310731a144d7888937e10ef7ff73ddc48574371551116c82940d522",
+      "retention": "task"
+    },
+    {
+      "path": "case-input/inputs/observation-trace.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 2647,
+      "sha256": "a31441cff21f16d95679458ebf8d766fdd39275a83c2e18c1b0bd86bb8998c15",
+      "retention": "task"
+    },
+    {
+      "path": "case-input/inputs/oracle.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 1013,
+      "sha256": "58cf3ab037fabb0989ee9a2dd7417f89ba01f007ceb93ebd82ca7c9b5c96c140",
+      "retention": "task"
+    },
+    {
+      "path": "case-input/inputs/previous-xml.xml",
+      "logicalRoot": "change-evidence",
+      "bytes": 10957,
+      "sha256": "98412fd753f3b38c7902e2cefddeae190ef63b40a123994eeadc7b135a8baa52",
+      "retention": "task"
+    },
+    {
+      "path": "case-input/inputs/steps.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 2603,
+      "sha256": "9fd77ca4d9ab531aecabb553f12b30691b38f70925fb1834a821100b65e12adb",
+      "retention": "task"
+    },
+    {
+      "path": "cleanup-precheck.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 759,
+      "sha256": "80d92e09bb2fa844fe5baa45b77ccd44b558d66d1aeaefaa10de1280e8ecaf21",
+      "retention": "task"
+    },
+    {
+      "path": "current-case-export.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 239,
+      "sha256": "92594c9ab9a6d7c2cecf05aa116e21947e396b50c970827ad58f8e3724048fee",
+      "retention": "task"
+    },
+    {
+      "path": "diagnosis-api-red.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 1314,
+      "sha256": "34581777e2b7d5263e8557501eb0fca6106ec5d4ae3b19b52b261cebe9578c01",
+      "retention": "task"
+    },
+    {
+      "path": "diagnosis-integration-first.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 9248,
+      "sha256": "01c3b45fbfd9ec2f4c03a9c71cc2d65e2d477c0e98a6d786668f84770e96971d",
+      "retention": "task"
+    },
+    {
+      "path": "diagnosis-integration-v2.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 1851,
+      "sha256": "395f6a5beb448e4940a41b7a7f0bcf4388da2cb4d44f6ed94da69c42d04ede55",
+      "retention": "task"
+    },
+    {
+      "path": "diagnosis-managed-final.trx",
+      "logicalRoot": "change-evidence",
+      "bytes": 13253,
+      "sha256": "80093b52fab67ba4aef62e4799e1829fc65970ffa8eadecec71e7dddf3c02c24",
+      "retention": "task"
+    },
+    {
+      "path": "diagnosis-managed-final.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 485,
+      "sha256": "7c658fa020b7b3eb82ad52265f46f557a891c1b3856c29d6994eb78acbcdab5b",
+      "retention": "task"
+    },
+    {
+      "path": "diagnosis-managed.trx",
+      "logicalRoot": "change-evidence",
+      "bytes": 10290,
+      "sha256": "aed3ddb9d8529d3ade03ae2a18a7a8c060f98eaaa8224a55fb521679342fb055",
+      "retention": "task"
+    },
+    {
+      "path": "diagnosis-regression-v3.trx",
+      "logicalRoot": "change-evidence",
+      "bytes": 56909,
+      "sha256": "4e3ce6dac4cdf358a0f6173df35c1593fd996082e5ab222864b812980ac4fed6",
+      "retention": "task"
+    },
+    {
+      "path": "diagnosis-regression-v3.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 3987,
+      "sha256": "a95ba129ac787655b99309c43e229a930a38da890e02c8aefcd0cfb2de9f75ae",
+      "retention": "task"
+    },
+    {
+      "path": "entry.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 1283,
+      "sha256": "44de99f4b3fe2cf53c5a5a74205ae0a0c2cde0a75698fd380d7abe3a77a9d8b9",
+      "retention": "task"
+    },
+    {
+      "path": "existing-case-precheck.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 114,
+      "sha256": "09245016d55ed89601050fb43515435f05571460fbaae09fcebb295b412abfa9",
+      "retention": "task"
+    },
+    {
+      "path": "handler-finalizer-red.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 843,
+      "sha256": "538c5028d2af606b009b8a80691b11ed58e3c8097f35c205ed0bba84470ed3f6",
+      "retention": "task"
+    },
+    {
+      "path": "python-final-v2.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 2869,
+      "sha256": "ee2d67a42835b0adc77cb25f4d5b124b815315b7eead1fc0749f00b10aed279c",
+      "retention": "task"
+    },
+    {
+      "path": "python-final-v3.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 3083,
+      "sha256": "9f5d68c0f3a5be7306a4704dd0856baf9bc783e9397e088ae0ee9b50e292bd01",
+      "retention": "task"
+    },
+    {
+      "path": "python-legacy-invalid-config.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 129,
+      "sha256": "02483890257bcb9127db48bfa9a089aec19836789754db50a5038cab2d6c12d4",
+      "retention": "task"
+    },
+    {
+      "path": "python-operations-final.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 2742,
+      "sha256": "a4251c45f1883f1fab7df87e69f50be0bd6b24ecbae3ee9b07380abad40eaef0",
+      "retention": "task"
+    },
+    {
+      "path": "python-operations-green.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 2742,
+      "sha256": "d27ca640d3c8573ed142b84f8f9a94ab2e369baf2cc63fb6265a3168a99ab0ea",
+      "retention": "task"
+    },
+    {
+      "path": "python-operations-red.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 357,
+      "sha256": "97674a53ed92d413a92d79732434131f823c65b64a7055b97c940c1874da3785",
+      "retention": "task"
+    },
+    {
+      "path": "python-source-summary.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 1095,
+      "sha256": "ab12f095502a513b451871cc22b50e0b4ad167f7f3a705792a052bf4397ddab5",
+      "retention": "task"
+    },
+    {
+      "path": "python-verify-assets.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 755,
+      "sha256": "435b98d394ae1bcdf49e2faf90e038e6e5a78b26154aff86c04cd87477cfbeae",
+      "retention": "task"
+    },
+    {
+      "path": "real-replay-final.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 601,
+      "sha256": "98a221fb567310c9193d6067a4ee12d5403e924aa39369fad3452a98d89eda49",
+      "retention": "task"
+    },
+    {
+      "path": "real-replay.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 357,
+      "sha256": "04d11f288141e0573bbc876c3ac3e5494c860ca08c501e881f1421dcef500863",
+      "retention": "task"
+    },
+    {
+      "path": "review-spec-v1.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 2515,
+      "sha256": "8c0f7181a6c06ca25046467c95169dcbc73c5e8f98bcfb327df7f6399a9b57c0",
+      "retention": "task"
+    },
+    {
+      "path": "review-spec-v2.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 2362,
+      "sha256": "0737961c31cc533d6aa28d24dec8bc6a332cb0e82ca7c3b430e102f30df0db8f",
+      "retention": "task"
+    },
+    {
+      "path": "review-standards-v1.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 1485,
+      "sha256": "5f36a3fbb76aa7515b75144ac9f403434c8130e701a95721eb450db7d3cac1fc",
+      "retention": "task"
+    },
+    {
+      "path": "review-standards-v2.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 1649,
+      "sha256": "76ef5e3a288c3705c6452096a816749cdc0ba19574efb2f1e7d8527614f89718",
+      "retention": "task"
+    },
+    {
+      "path": "review-standards-v3.md",
+      "logicalRoot": "change-evidence",
+      "bytes": 1108,
+      "sha256": "2c7bccba72637a161a7ef08850f6ac17ed90a7feb3bab35a6ae99852878c51e3",
+      "retention": "task"
+    },
+    {
+      "path": "source-reference-role-correction.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 2828,
+      "sha256": "879d4f3c300e4da25a9441318e840035c7b6b7d4f12557793a1767e4330134bd",
+      "retention": "task"
+    },
+    {
+      "path": "verification.json",
+      "logicalRoot": "change-evidence",
+      "bytes": 1963,
+      "sha256": "aca5653f41b126ff2d3558823580a1c60b58bd84e0179e51f4c9c054726821b5",
+      "retention": "task"
+    },
+    {
+      "path": "verify-entry-final.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 114,
+      "sha256": "46d5cd4db5baf03ee641f323ff949a001f436c04cfd159c2b15ac0ad7c49c2ba",
+      "retention": "task"
+    },
+    {
+      "path": "verify-entry-regression.txt",
+      "logicalRoot": "change-evidence",
+      "bytes": 114,
+      "sha256": "5191206a2d1d2178bc1978897ca2b77599a3b270180b6ae7194e07f445340a9a",
+      "retention": "task"
+    },
+    {
+      "path": "verify.py",
+      "logicalRoot": "change-evidence",
+      "bytes": 3726,
+      "sha256": "02c2eff71e39f1c92a06dec1b1d614671fef29e3a9906c4c0d5cbdfc5df277e2",
+      "retention": "task"
+    }
+  ],
+  "retainedRunFiles": 94,
+  "deleted": [],
+  "archived": [],
+  "deletedBytes": 0,
+  "pending": [
+    {
+      "area": "legacy-regression-temporary-fixtures",
+      "reason": "legacy procedure fixtures do not publish a per-execution ownership inventory; no prefix/date-based cleanup attempted; new ManagedFixture disposes only its own unique paths"
+    }
+  ],
+  "sourceOrBaselineDeleted": false,
+  "priorCleanupReperformed": false
+}

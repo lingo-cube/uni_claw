@@ -1,0 +1,7 @@
+# Host身份存储确认顺序修正
+
+TaskInstance/ProductSession是Runtime铸造及绑定的核心身份。公开Create/Bind只能在原append成功后更新两个内存索引并返回；关闭后拒绝任何写入，即使是幂等重入。原Get可继续查询最后确认的内存值。Dispose与写入共用原_sync，使关闭等待已接受同步写入结算；写入或编码异常后锁死后续写入，要求调用方重新打开并检查原来源，不能从已失败的内存索引确认成功。
+
+本片保留原构造/方法签名、append-only JSON行、幂等键、1:1绑定、同值重入和重启恢复，不新增格式/快照/异步桥/自动重试或跨Store事务。Create及一次绑定本身是独立事实，不为其制造可逆大对象补丁。旧Load容错、跨进程、OS崩溃/掉电及RuntimeRunStore投影历史未由本片验证，不冒认父范围全部完成。
+
+测试沿父已接受公开Host/文件adapter缝：两个Store各有关闭后Create/Bind四例RED→GREEN（内存/原文件/新reader对照），复用原RuntimeIdentityStoreTests八例正常行为。原测试仅补独占目录收尾，全部断言保持。独立Spec/Standards针对入口两生产文件和两个测试文件差异审查；运行依旧使用外置AssetRun配置和分类，不改资产工具。身份源路径继续由产品构造参数注入，不读Harness资产配置。

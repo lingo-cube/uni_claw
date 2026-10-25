@@ -1,0 +1,8 @@
+{
+  "scope": "private-index exploratory build, not final acceptance",
+  "succeeded": false,
+  "errors": [
+    "src/UniClaw.Host.Dsh/RuntimeToolHost.cs(237,22): error CS0103: 当前上下文中不存在名称“RuntimeDiagnosisPacket” [/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/scratch/view/src/UniClaw.Host.Dsh/UniClaw.Host.Dsh.csproj]",
+    "src/UniClaw.Host.Dsh/RuntimeToolHost.cs(268,79): error CS0103: 当前上下文中不存在名称“RuntimeDiagnosisPacket” [/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T171251-8a036280b1ba418ba8ca4f3b027af304/scratch/view/src/UniClaw.Host.Dsh/UniClaw.Host.Dsh.csproj]"
+  ]
+}

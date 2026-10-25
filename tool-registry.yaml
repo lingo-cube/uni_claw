@@ -10,6 +10,8 @@
 # - skill = procedure 载体：model-procedure 类工具的说明书，不是 Tool
 #   的同义词。skill 单源双路径：研发态经 skill catalog 直载；产品态经本清单
 #   的 skillRef 由 adapter 解析注入。产品代码不得直接引用 harness skill 路径。
+# - model-procedure 可选entry为显式声明的确定性退出适配：接收已保存诊断包引用，
+#   不代替skillRef的模型过程，不拥有运行状态或修复权威（EVO-002真实buyer）。
 #
 # 管理层级：本清单是 Development Harness 信任域的注册面（ADR-0035 预留的
 # 各域独立注册），与 Product Runtime 的 CapabilityHub 不共享可变状态；
@@ -45,8 +47,10 @@ tools:
     backing: harness-native
     invocation: model-procedure
     skillRef: .agents/skills/uniclaw-debug-evidence
+    entry: tools/evolution-signal.py  # deterministic exit adapter; model procedure stays skillRef
     consumes: [run-report]
+    outputSchema: schemas/diagnosis-packet.schema.json
     requiredCapability: semantic_analysis
-    posture: read-only
+    posture: local-write             # only repo evidence/diagnosis; run inputs and Runtime state stay read-only
     surfaces: [coder, workbench]
     status: implemented               # PNL-012：model-procedure 执行执法 + workbench 诊断入口落地

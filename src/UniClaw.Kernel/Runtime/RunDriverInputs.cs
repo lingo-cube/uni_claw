@@ -13,7 +13,10 @@ public abstract record RunDriverInput
 {
     /// <summary>一轮外部观察（initial=External / post-action=PostActionEffectFlow）。</summary>
     public sealed record Observation(IReadOnlyList<ObservationProposal> Proposals,
-        UniClaw.Kernel.Control.SupplementationExecution? Execution = null) : RunDriverInput;
+        UniClaw.Kernel.Control.SupplementationExecution? Execution = null) : RunDriverInput
+    {
+        public AttemptObservationLink? AttemptCorrelation { get; init; }
+    }
 
     /// <summary>宿主/用户 cancel（有界 lifecycle 输入；正式协议仍 Deferred ⑯）。</summary>
     public sealed record Cancel(string Reason, DateTimeOffset VirtualTime) : RunDriverInput;
@@ -78,7 +81,14 @@ public sealed record ObservationDirective(
     ObservationDepth Depth = ObservationDepth.Normal,
     IReadOnlyList<string>? Subjects = null,
     ObservationNeed? Need = null,
-    TimeSpan? RemainingBudget = null);
+    TimeSpan? RemainingBudget = null)
+{
+    public AttemptObservationLink? AttemptCorrelation { get; init; }
+    /// <summary>Echo only after this synchronous request produced the returned proposals.</summary>
+    public RunDriverInput.Observation CompleteObservation(IReadOnlyList<ObservationProposal> proposals,
+        UniClaw.Kernel.Control.SupplementationExecution? execution = null) =>
+        new(proposals, execution) { AttemptCorrelation = AttemptCorrelation };
+}
 
 /// <summary>
 /// internal run driver 的最小 concrete 外部 seam（delegate 形态；非冻结公共
@@ -106,11 +116,27 @@ public sealed class RunDriverInputs
     /// <summary>P25 UniAgent consultation seam（唯一调用方 = internal driver）。</summary>
     public required Func<AgentDecisionContext, AgentDecision?> ConsultAgent { get; init; }
 
+    /// <summary>Optional diagnostic observer; queued independently of formal P25 settlement.
+    /// The caller closes the Driver's observations; failure never rejects the original answer.</summary>
+    public Func<AgentDecisionContext, AgentDecision?, CancellationToken, ValueTask>? ObserveConsultationAsync { get; init; }
+
+    public DiagnosticObservationOptions DiagnosticObservationOptions { get; init; } = new();
+
     /// <summary>Optional Owner callback for AgentDecision.Skip.</summary>
     public Action<TargetCoverageMarkRequest>? MarkTargetCoverage { get; set; }
 
     /// <summary>P25 durable seam; null uses an in-process journal for legacy/test composition.</summary>
     public IConsultationJournal? ConsultationJournal { get; init; }
+
+    /// <summary>Production resource recording. Existing history is read-only;
+    /// injecting this source never enables execution-state recovery.</summary>
+    public IRunResourceJournal? ResourceJournal { get; init; }
+
+    /// <summary>Original Owner identity persistence; failure blocks external operations.</summary>
+    public IRunRecoveryArchive? RecoveryArchive { get; init; }
+
+    /// <summary>Original Plan adoption commits. Optional source absence never means recovered empty state.</summary>
+    public IRuntimePlanJournal? RuntimePlanJournal { get; init; }
 
     /// <summary>Owner-produced read-only progress facts for the shared execution overview.</summary>
     public Func<ExecutionOverviewProjection?>? ProjectExecutionOverview { get; init; }
@@ -157,7 +183,12 @@ public sealed class RunDriverInputs
 
     /// <summary>Control Loop Recovery receives execution facts; strategy remains there.</summary>
     public Action<TraversalRecoveryFacts>? ObserveTraversalRecovery { get; init; }
+    public Func<TraversalRecoveryFacts, CancellationToken, ValueTask>? ObserveTraversalRecoveryAsync { get; init; }
 
     /// <summary>Per-step current-fact guard. This constrains execution and grants no Effect authority.</summary>
     public Func<AgentActionStep, AgentDecisionContext, PlanStepGuardResult>? GuardStep { get; init; }
+
+    /// <summary>Production task authoring projection, captured before dispatch.
+    /// Declares the expected observable effect; grants no execution/verification authority.</summary>
+    public Func<AgentActionStep, AgentDecisionContext, UniClaw.Kernel.Assurance.ExpectedEffect?>? ProjectExpectedEffect { get; init; }
 }

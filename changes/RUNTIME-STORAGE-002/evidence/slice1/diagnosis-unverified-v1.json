@@ -1,0 +1,64 @@
+{
+  "schema": "uniclaw.diagnosis.packet.v0",
+  "authority": "non-authoritative",
+  "meta": {
+    "diagnosedAt": "2026-10-25",
+    "producer": {
+      "kind": "agent-skill"
+    },
+    "changeId": "RUNTIME-STORAGE-002"
+  },
+  "subject": {
+    "reproduce": {
+      "command": "dotnet test tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj --no-restore --filter FullyQualifiedName~AuxiliaryObservationIsolationTests.ObserverFailureDoesNotChangeFormalConsultationSettlement -m:1 -nr:false",
+      "trx": "changes/RUNTIME-STORAGE-002/evidence/slice1/luna-red/observer-isolation-red.trx"
+    },
+    "inputs": [
+      {
+        "path": "tests/UniClaw.Kernel.Tests/Runtime/AuxiliaryObservationIsolationTests.cs",
+        "sha256": "aaf759d6f3da48b8e988b16dec11b79ecd8c054bf5add421d29da84066dec348",
+        "role": "regression-test"
+      },
+      {
+        "path": "changes/RUNTIME-STORAGE-002/evidence/slice1/luna-red/observer-isolation-red.trx",
+        "sha256": "4d8d18c9fbfd8ed6f70cade1a15c7661248e940e4608d0ed11745efcb079cfde",
+        "role": "trx"
+      },
+      {
+        "path": "changes/RUNTIME-STORAGE-002/evidence/slice1/entry-source/src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+        "sha256": "269b775c42467a8bc26ae0654f31a44ed7013d5204253806f87c7b209c8d7b71",
+        "role": "source-baseline"
+      }
+    ]
+  },
+  "evidenceLevel": "E3",
+  "evidenceSummary": [
+    "Same fixed contract/observation and valid NoAction returns Completed without observer, but AgentDecisionFailed with observer IOException; P25 result is contaminated by diagnostic failure.",
+    "See luna-red/observer-isolation-red.trx for the exact public Driver assertion."
+  ],
+  "failureClass": "D",
+  "lifecycleStage": "Driver P25 response observation before formal completion",
+  "lastCorrectState": "Agent returned a valid decision after reservation",
+  "firstDivergence": {
+    "where": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs:3138",
+    "expected": "Diagnostic observer failure cannot reject a valid formal consultation (state A2)",
+    "observed": "Observer is awaited in the ConsultAgent try; IOException enters Reject consultation-exception",
+    "evidenceRefs": [
+      "changes/RUNTIME-STORAGE-002/evidence/slice1/luna-red/observer-isolation-red.trx",
+      "changes/RUNTIME-STORAGE-002/evidence/slice1/entry-source/src/UniClaw.Kernel/Runtime/KernelRunDriver.cs:3138"
+    ]
+  },
+  "owner": "KernelRunDriver optional diagnostic observation orchestration; not Agent/P25 storage",
+  "rootCauseSupport": [
+    "H1: observer failure crosses the ConsultAgent catch boundary; same decision differs solely by observer callback.",
+    "H2 (disfavored): invalid Agent correlation would fail in both arms, but disabled observer completes.",
+    "H3 (disfavored): journal failure would affect the same in-memory journal in both arms; only observer throws."
+  ],
+  "remainingUncertainty": [
+    "Asynchronous stall/backpressure and Host final artifact failures require subsequent behavior cases; first RED diagnoses exception contamination only."
+  ],
+  "escalation": {
+    "required": false,
+    "reason": "Owner and commit/Effect authority remain unchanged"
+  }
+}

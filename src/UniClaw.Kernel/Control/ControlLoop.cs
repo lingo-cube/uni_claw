@@ -35,13 +35,21 @@ public sealed partial class ControlLoop
     internal void AcceptTraversalRecovery(UniClaw.Kernel.Runtime.TraversalRecoveryFacts facts) =>
         _traversalRecoveryFacts.Add(facts);
 
-    internal TraversalControl Traversal { get; } = new();
+    internal TraversalControl Traversal { get; }
+    /// <summary>Original acknowledged traversal operations only; no executable Control restoration.</summary>
+    public ControlTraversalHistoryRead? TraversalHistory => Traversal.History;
+    internal ControlTraversalHistoryPosition? TraversalHistoryPosition => Traversal.Position;
+    internal string? TraversalExecutionBlockReason => Traversal.ExecutionBlockReason;
+    internal void EnsureTraversalWritable() => Traversal.EnsureWritable();
+    internal void InitializeTraversalHistory(RunIdentityRecord run, string? recording) => Traversal.Initialize(run, recording);
+    internal ValueTask InitializeTraversalHistoryAsync(RunIdentityRecord run, string? recording) => Traversal.InitializeAsync(run, recording);
 
     private int _cycleIndex;
     private (string TargetSubject, string FailedAtRevisionId)? _pendingRecovery;
 
-    public ControlLoop(IControlPolicy policy)
+    public ControlLoop(IControlPolicy policy, IControlTraversalJournal? traversalJournal = null)
     {
+        Traversal = new(traversalJournal);
         _policy = policy ?? throw new ArgumentNullException(nameof(policy));
         _intentLogView = _intents.AsReadOnly();
         _hypothesisLogView = _hypotheses.AsReadOnly();

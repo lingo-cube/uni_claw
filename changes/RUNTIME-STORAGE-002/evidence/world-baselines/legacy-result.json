@@ -1,0 +1,29 @@
+{
+  "operation": "verification",
+  "scope": "existing sealed v1/v2 World and Evidence consumers",
+  "status": "PASS",
+  "consumersCompleted": true,
+  "sourceFilesUnchanged": true,
+  "sameLatestAsOriginalFullReader": true,
+  "counts": [
+    {
+      "schema": "uniclaw.world.history.v1",
+      "operations": 257,
+      "revisions": 128
+    },
+    {
+      "schema": "uniclaw.world.history.v2",
+      "operations": 257,
+      "revisions": 128
+    }
+  ],
+  "liveProductTaskExecuted": false,
+  "readOnlySources": true,
+  "runId": "run-20261025T163342-451e76c5845d4bf5b848a9312f733055",
+  "finalization": {
+    "changeId": "RUNTIME-STORAGE-002",
+    "runId": "run-20261025T163342-451e76c5845d4bf5b848a9312f733055",
+    "completed": true,
+    "finalization": "results/finalization.json"
+  }
+}

@@ -1,5 +1,8 @@
 # Effect Boundary 代码索引（Product T2 · 基线 §16）
 
+RUNTIME-STORAGE-001 B组（Slice 5）：`EffectBoundary.DispatchAsync`→`ExecutionSource/IAsyncReliableExecutionSource`等待prepare真实确认后才调用原delivery；`UniKernel.ActAsync`真实await。同Owner拒绝重入，等待中关闭/取消先结算prepare并停止投递；实际Receipt在Owner保留，结果保存失败不吞掉已发生的delivery，阻断进一步发送。`ExecutionSource/FileExecutionJournal.cs`保留原长度帧/故障范围和同步桥，原生WriteAsync/FlushAsync；prepare单条、同一实际结果的submission＋receipt两原帧共同确认，最多2条/默认16MiB整批、收集窗口0。反馈/重试/补偿记录同样原生async，读回不授予执行许可。
+
+
 Sole **Canonical Binding Authority 与 Effect Delivery Authority**：
 bounded target binding、Effect Gate、Dispatch、Effect Receipt、canonical
 external effect delivery boundary。不拥有 strategy、replan、recovery 或

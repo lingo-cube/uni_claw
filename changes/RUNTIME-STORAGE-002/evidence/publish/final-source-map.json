@@ -1,0 +1,3118 @@
+{
+  "algorithm": "sha256",
+  "scope": "actual selected source/input bytes, including fixed reader and original codec resources",
+  "files": [
+    {
+      "path": ".agents/skills/diagnosing-bugs/SKILL.md",
+      "sha256": "77f3cf31bc99b2f49af943222526531fcc9fc41d047626d3640e875e85af3e84"
+    },
+    {
+      "path": ".agents/skills/uniclaw-debug-evidence/SKILL.md",
+      "sha256": "9f6350cf1d850e75671864dcd8f82707bf5b63610bdd24446fbb231fc1a45980"
+    },
+    {
+      "path": ".agents/skills/uniclaw-debug-evidence/references/evidence-packet.md",
+      "sha256": "cb144e87f1589ef94b401d5f66c617983a3dce469a1b3ec179f9bfc17f40c530"
+    },
+    {
+      "path": ".agents/skills/uniclaw-evolution-loop/SKILL.md",
+      "sha256": "9bc0fb732e551a76ecf04a37692b144c9fa848f1a86fc840dd976d763293c25e"
+    },
+    {
+      "path": ".agents/skills/uniclaw-evolution-loop/references/case-and-packet.md",
+      "sha256": "ceb06fe38ebb93dc935ad736352c178a7b1d1f893c118b090e3fd4422da2855f"
+    },
+    {
+      "path": ".agents/skills/uniflow/SKILL.md",
+      "sha256": "9644aad7613729fe3031eacbd4d198127102c02e0b2f9620a97c524204399837"
+    },
+    {
+      "path": "UniClaw.Kernel.slnx",
+      "sha256": "8656fab9bdee4ee93b81e8dfc3b01d11676cb67683b29ab3f298c618da1ee0ff"
+    },
+    {
+      "path": "changes/README.md",
+      "sha256": "b52a0d8e014309e985a0c33822bffefe93205abfc9263aa590ffd093fce15faa"
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/world-baselines/before/src/UniClaw.Host/Runtime/WorldRevisionDeltaCodec.cs",
+      "sha256": "ce7c923bd138377d4f958927e40baa5dc456998f8d1f0c9a098a76e3c05f6f6a"
+    },
+    {
+      "path": "docs/agents/engineering-verification.md",
+      "sha256": "e6fb7668e090d9948a4786eb46b42681354ae021f56a7cd54764ce725c59d9eb"
+    },
+    {
+      "path": "evidence/README.md",
+      "sha256": "08ad5e09360eb15b865dbb55ba93197ef39853502915ddebc71a0b79a2466498"
+    },
+    {
+      "path": "global.json",
+      "sha256": "b48d6da8fa62c0da7cc8a2da4ea036ac55836660a448ba533135abb5b8451b73"
+    },
+    {
+      "path": "platforms/perception/evaluation/validation/fastscreen-v1/sequences/seq-scroll-apps.json",
+      "sha256": "50c80ee025ddbd4b72bcda6ae89914e821d9bf57288ae6903cd8c237c0ed6946"
+    },
+    {
+      "path": "platforms/perception/evaluation/validation/fastscreen-v1/sequences/seq-scroll-devopts.json",
+      "sha256": "9a21578d240674254210787d7486b0cd1271b957affa3b979df8929fb1bb663b"
+    },
+    {
+      "path": "platforms/perception/evaluation/validation/fastscreen-v1/uia/1e572c8f5092.xml",
+      "sha256": "eb2635e40ec39cbf2645dd8b1e08fae55a7b5f7a3c2d5b5e8a43ff4fc179827e"
+    },
+    {
+      "path": "platforms/perception/evaluation/validation/fastscreen-v1/uia/3682353fffbf.xml",
+      "sha256": "f6a0e2363e19f676ff30b30137353ef90242bc32476b1827bfcdcb9dc328ee79"
+    },
+    {
+      "path": "platforms/perception/evaluation/validation/fastscreen-v1/uia/5ef64e4a384a.xml",
+      "sha256": "e39e3bfe1ae7931771084041a39a82c909482f82fc4f0b1a8e311396fa47a513"
+    },
+    {
+      "path": "platforms/perception/evaluation/validation/fastscreen-v1/uia/9591de5f37de.xml",
+      "sha256": "6fe2a25c33574662882268d88abbfb5d088e7a50677157d98beacbd4b8889678"
+    },
+    {
+      "path": "schemas/README.md",
+      "sha256": "52d5ff891b7907a0496dddf6d51d9ca52f741b391b9262040d0cfe29c3fedf3d"
+    },
+    {
+      "path": "schemas/diagnosis-packet.schema.json",
+      "sha256": "7c96254a6543cc08b442200f127c163017f4a0d5f6200a6ebfd043b87cfa403a"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/DecisionChannel.cs",
+      "sha256": "554451a8a9646bbf0e2018fafbadccbf8f6652418d3a3afc95452faa9c66da23"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/DecisionJsonConverters.cs",
+      "sha256": "fb8a95ce9a443d5eb74b04b8c58b5312cce27e278fd668acfbd5d81ac1d533c2"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/DshAgentAdapter.cs",
+      "sha256": "c1463fa035f3e589e4f2f357145e896ff9c32bfdea4f4fc83466a5b83b02210a"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/DshModelManagement.cs",
+      "sha256": "baaf54eb7dd487a748f6dc8a1123f7e142fed96b6fb30cee45efe53b66520736"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/DshOpenedHttpPeer.cs",
+      "sha256": "3d68ae8b111caa7e2f2637cf7aa52659b4fb39a023d3f45412571f08f8d4cba0"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/DshSemanticPerception.cs",
+      "sha256": "4e52864a5dd37614e360784e8148f86fcf10cae6d024cac27d29fff2a0d58716"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/DshSlowConsult.cs",
+      "sha256": "226e01900c1ab1ddb44ce0624f433f4cbc1f8a2e35f1e36f59db8068db775d4a"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/DshWebCredential.cs",
+      "sha256": "8cd638c51c63de4462d003fa97cf9ed22d2b49b3523d7125bbc703208aad0e20"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/Handshake.cs",
+      "sha256": "63e404e31f6a8a6d7a9b2660ec63fb03b83d841a694c7c0a9b6000bb492ea2c7"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/Observer.cs",
+      "sha256": "711eb6f6f32947da48a2e7201b91a8fb474340d68575d3ae45270640abc5d2e2"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/ProtocolModels.cs",
+      "sha256": "4e7c226abf410c480f430b1586fe68405e6391e83cafbf00de5b69cc250635e1"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/ProtocolSchema.cs",
+      "sha256": "75d131dacc0a902ed8935e06b34575360b8ae1a7308acdf98139105dfe39d5b7"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/UniClaw.Agent.Dsh.csproj",
+      "sha256": "578a8428adb536a6653356d4d500cec113bbe385ebde71137f751d5267a72d0e"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/UniagentDshBindings.cs",
+      "sha256": "dd43afb1b8db33e741c1d4f30f5cf51277c64d57b53f5e90de9e0a1cbce3bedd"
+    },
+    {
+      "path": "src/UniClaw.Agent.Dsh/UniagentDshBindingsYaml.cs",
+      "sha256": "2def90d132ca667d36ddcf0ed033b8da8989ccbd3e6f258a968b6331757ef9ea"
+    },
+    {
+      "path": "src/UniClaw.Agent/Evaluation/CriterionResult.cs",
+      "sha256": "3e2afb7b02a8ea66127a3dd7dd13f074fbeb39080a364f6b87b0acd16d5560ee"
+    },
+    {
+      "path": "src/UniClaw.Agent/Evaluation/EvaluationDisposition.cs",
+      "sha256": "41b0a323c1f4e1912021420989bcd2f85ba2807759f5a4d558bf017ec9d08dcc"
+    },
+    {
+      "path": "src/UniClaw.Agent/Evaluation/GoalEvaluation.cs",
+      "sha256": "8b82f51ab62736be589e5f8cd8f7a63a991224bd9e1b03847a3722b810b9fa3b"
+    },
+    {
+      "path": "src/UniClaw.Agent/Evaluation/GoalSatisfaction.cs",
+      "sha256": "d73f681c6d21df8c3ca0d42fb4fe6e3306e87133d9e3f60822e30a370c56e9c8"
+    },
+    {
+      "path": "src/UniClaw.Agent/Goal/GoalCriterion.cs",
+      "sha256": "7662f90256a540f93bca98d474d7233409d32c9a2d5d9f2d852fc17293f5cd9b"
+    },
+    {
+      "path": "src/UniClaw.Agent/Goal/GoalEvaluationContext.cs",
+      "sha256": "8b0de0afb15493ddf048be30289ba094832543ef4223e8cd24b1bc829b67535c"
+    },
+    {
+      "path": "src/UniClaw.Agent/Goal/PrimaryGoal.cs",
+      "sha256": "8a44e007628339173be50fbaeb8f0b8ecdf82d67f669fb974ee26c48e8fb5dda"
+    },
+    {
+      "path": "src/UniClaw.Agent/Profile/CapabilityManifest.cs",
+      "sha256": "859404dbbb3f7fb82a39c56da1d9f730c2a4a00c540356ea29bdf12f2934de6e"
+    },
+    {
+      "path": "src/UniClaw.Agent/Profile/ProductCapabilities.cs",
+      "sha256": "161c4e2dc05d787f1f411e231a398cc0d8bb529af5c301cb7be0df24ea742ae0"
+    },
+    {
+      "path": "src/UniClaw.Agent/Profile/ProductProfile.cs",
+      "sha256": "2620cb0796eec8d06bc54396dfd6ac23a4c4b84541b912371322a00c784ee6af"
+    },
+    {
+      "path": "src/UniClaw.Agent/Profile/ProductProtocolVersions.cs",
+      "sha256": "5587644f9b5dd08178a321b418fb72063af7cda03a0b14a0259fef4be3c80154"
+    },
+    {
+      "path": "src/UniClaw.Agent/Profile/ProfileIdentityRenderer.cs",
+      "sha256": "991135d36e954bcbc95256b76e854bb7f7c2a969f20d8095969e92fb55734cab"
+    },
+    {
+      "path": "src/UniClaw.Agent/Profile/ProfileYamlDocument.cs",
+      "sha256": "b49c964d03814298c97de34357eac0f57de8f01fe23efad1ea66ccdbfebc6954"
+    },
+    {
+      "path": "src/UniClaw.Agent/Profile/UniAgentProfile.cs",
+      "sha256": "034b7a59eb7989d4d21c443ca468d137b5498b98451c74e07ce89262ff87b24f"
+    },
+    {
+      "path": "src/UniClaw.Agent/Profile/UniAgentProfileYaml.cs",
+      "sha256": "e75a44842dd0d87d72c1c417a5edc20d238539ac73566c97a9841cd3c08916fb"
+    },
+    {
+      "path": "src/UniClaw.Agent/Profile/UniagentProdProfile.cs",
+      "sha256": "10c4085c496b56e9d939561ce966e82c8f5757bc34fa0ccad42e140571ed68d2"
+    },
+    {
+      "path": "src/UniClaw.Agent/UniAgent.cs",
+      "sha256": "f1ef0c442df4f797094e07b5bd1b9b3892b445c9b5b686465cfcef67dc48cb2e"
+    },
+    {
+      "path": "src/UniClaw.Agent/UniClaw.Agent.csproj",
+      "sha256": "abea74658e652f637b541bfa8f38100107ff0abd815d253fcf8ad629174b2657"
+    },
+    {
+      "path": "src/UniClaw.Core/CoreRecords.cs",
+      "sha256": "aef4a88068bbbf419abe7165b34f48eb76a51c051386886ba2b609015eb4120b"
+    },
+    {
+      "path": "src/UniClaw.Core/UniClaw.Core.csproj",
+      "sha256": "b4a4350ec2f28d8ff9712e2b04d0ed6fabc47e08b88313fb0edc61a91018a01b"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/FileDecisionConsult.cs",
+      "sha256": "c5a491b0059fbcdbc90b510929791f458b84fb3492a4cd86d481cbb4d48bedd8"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/InitializationEnvelope.cs",
+      "sha256": "27c7c09d12883134cc75312c281db294dd6cc549039fc469b6fd05addae5cfe3"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/Program.cs",
+      "sha256": "1502c1a0de18a82964647c702e71776729e59f76b197e18a1f4ae980517993e1"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/ReportDeliveryEndpoints.cs",
+      "sha256": "e8477d3c28e8c3d49556c5543050e2c59cbab5abaf99f353e143a684791a1b86"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeBackgroundWork.cs",
+      "sha256": "0f244da16f7ff3971a8380918ed22b76436005eaee7a2c62c7b4b98c0729c60c"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeDiagnosisPacket.cs",
+      "sha256": "6261e1000d41168b5f2031a251f1a3e443ae966b131ccdc654a44053a037ea85"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs",
+      "sha256": "b316c42fb76936b123a2054e852d3f56a4674ce9cbd028b4f118b482f171bdc2"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolConfig.cs",
+      "sha256": "b260401e77caf254bde9ed4c2fb569bc655929199f57e0ddf94e52b0e8962d94"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.DevelopmentAssets.cs",
+      "sha256": "4e803e9c664dc93d8c98e12976f86d6232b1cee79a0ec91567c951b2816f09bc"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.Reports.cs",
+      "sha256": "273d3387b5de70a799c66fb6bb91ca7c3723ab02542052179e3357f201ba5ed1"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.cs",
+      "sha256": "4dcd77ef5990cc315280abad568d0955d0c53e1bef65ca8866c2e7e282abc93a"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/UniClaw.Host.Dsh.csproj",
+      "sha256": "a678fc2d79a155545b55e6eb725d38c77cbec132ff29759ccac01346b2fd6977"
+    },
+    {
+      "path": "src/UniClaw.Host/Capability/LanguageInspectionAllowlist.cs",
+      "sha256": "448184d6dc586b9e418075d8b626d12c0c461929b18abd2aa9843758eeac17db"
+    },
+    {
+      "path": "src/UniClaw.Host/Capability/LanguageInspectionBinding.cs",
+      "sha256": "5834fa9344d111567691a2b25385eff8ade3dc95fa7b47f3848b9f2478a09392"
+    },
+    {
+      "path": "src/UniClaw.Host/Capability/LanguageInspectionPostCommit.cs",
+      "sha256": "c2459f76ac2b2b88391798b1be255ce5ba3de764bb4091f0d1387e9e47a2732d"
+    },
+    {
+      "path": "src/UniClaw.Host/Capability/ModelManagementCapabilityComposition.cs",
+      "sha256": "5e77a4ed92167fe1d6d303f24684002e09f144211790e929347a233e0ac102c6"
+    },
+    {
+      "path": "src/UniClaw.Host/Capability/RuntimeIntegrationCapabilityComposition.cs",
+      "sha256": "b2fc1dcc3ee744af559c62206c84367af74be7d5d2ed70e8cc62e82d2905b1c7"
+    },
+    {
+      "path": "src/UniClaw.Host/Capability/TraversalLanguageInspection.cs",
+      "sha256": "f6942a51c04884735d38b2974e63241152b4286ed3188c181407a4db90010250"
+    },
+    {
+      "path": "src/UniClaw.Host/CurrentPageAnchor.cs",
+      "sha256": "d10df4f84e59a465e285d33753a94152d7101f114c4e43c2c0458f195f8163ad"
+    },
+    {
+      "path": "src/UniClaw.Host/FrameOccurrenceStrategy.cs",
+      "sha256": "84f5f20b05445c7f91dc007bc81669b914a7d314184431ccc3d37a4531a9171e"
+    },
+    {
+      "path": "src/UniClaw.Host/HostRunner.cs",
+      "sha256": "9f382043bed7c7b28679136f211cec75c3c7536bb0e38cd65f263deb641e1250"
+    },
+    {
+      "path": "src/UniClaw.Host/HostUtilities.cs",
+      "sha256": "3bfa35d26163e20e10bb008aa13353868102ccea5adfaa021fddbe5c82156172"
+    },
+    {
+      "path": "src/UniClaw.Host/LivePerception.cs",
+      "sha256": "d395443efeaea70f38c19c83cc924982766776073744c52bb43362d7ea6a62da"
+    },
+    {
+      "path": "src/UniClaw.Host/PageIdentityRecovery.cs",
+      "sha256": "1317f22a3ff4fe73cb5d540c56996b5bf80cb830e847fa08900a2371fc1c2c23"
+    },
+    {
+      "path": "src/UniClaw.Host/PageSemanticReadSupply.cs",
+      "sha256": "d53c5db232a400dde30f360b612b8043b0f1a06c2abb29e48fcd0c609ae2d9dd"
+    },
+    {
+      "path": "src/UniClaw.Host/Perception/JevSemanticPerceptionAdapter.cs",
+      "sha256": "431bc1982c5b016cf6aaf12b99815c0be10083800281f43ba6587b3cd580ecdb"
+    },
+    {
+      "path": "src/UniClaw.Host/Program.cs",
+      "sha256": "4b9ca091dad84236f0c3642d8bb816b60f5ea256cd153dfd671c8ca5a44640ff"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/ActivationRecordStore.cs",
+      "sha256": "f8f5636599cfc49df03b6b2221ad8c44079f3a9275eb369d17a8aee58f49cf1b"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/AuxiliaryArtifacts.cs",
+      "sha256": "f0b06324ab33f9f641ec6de232db839996ad6a8aefd3661ac55eb91f5b208e85"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/ConsultationArtifactLog.cs",
+      "sha256": "91ec2919417518fba7affd86a515b009fcbe7856552abbb2e79e0869096897d7"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/CoverageReportDelivery.Generator.cs",
+      "sha256": "64398c0eccb3ca7e96c1b379210c7f64d10626f0026bb896c944651b12d277a6"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/CoverageReportDelivery.Sources.cs",
+      "sha256": "fae5b677424969a608febdd8c8a322529e57558e55592a1f65fd1574f7ed7f4c"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/CoverageReportDelivery.cs",
+      "sha256": "9b5ed8321b45bffd2898975f4e598934f50e484813f64cd3b7f926d13fbb9ce4"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileCommittedHistory.cs",
+      "sha256": "fe9a4acc29de0569667d985f74f663e8309ca0a9d01f8a3da9c00556690da1d8"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileConsultationJournal.cs",
+      "sha256": "c95f7372e77027edfc362a980d786b6e4cbaa7566d74d2fcea1960f6c731a3c4"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileControlTraversalJournal.cs",
+      "sha256": "5677e6af52e6fc502347ff9f3f13e6562ec09de15cd1536c4cff0a7fed3479d5"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileEvidenceJournal.cs",
+      "sha256": "ed1f1ac46e55dbd13b14308cca7b1ddb1f5d48d6bf99fb3ff03622d3f404f080"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRunRecoveryArchive.cs",
+      "sha256": "0f28ea6c5d565fbe3bae6ecd2a0c45b6f8836db39c054e8cf1c9b3a4e6b44256"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRunResourceJournal.Versioned.cs",
+      "sha256": "b4ff18a49165b0f5c94f575a031290791c08f72cf689cbcf58e0e96eafdae68b"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRunResourceJournal.cs",
+      "sha256": "827ff9be7729b60524447a1ab1e670a8459cbe05828f2ff0a87a90b1a8a7c1a6"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRunStateJournal.cs",
+      "sha256": "c55f42fae00431efd92493ea888afc426e727a6d06d96ac64cc5f2ca6816a1ac"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRuntimePlanJournal.cs",
+      "sha256": "4ea436ff72c0fc1e9e1ef0fb09e51d80c8d18f8c253295aea5e15eac3ff042df"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileWorldJournal.Versions.cs",
+      "sha256": "e4f780ec818f1b300c0ced500577c3fabfab67be9bbd6f6a2869946b6387a51d"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileWorldJournal.cs",
+      "sha256": "d070954dcd02a92ca0988ddbce30bd86f7cddbf1cc5b9a97a8f7ae5a57ede9b6"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/HistoryVersionStorage.Read.cs",
+      "sha256": "78e590cabf69bfe4fccc23bd86973c2d2bcad83e16e256dd2d3b983f5e7a4d44"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/HistoryVersionStorage.cs",
+      "sha256": "107627c0f2a1cb4aaffa3bfb370f965bc0c34b5296dee338468af98e620b14a4"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/HistoryVersions.cs",
+      "sha256": "b55f8525155e35924d072184fd0074c192a8cc2cdd426083a8fa5433d97c7415"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/ProductSessionStore.cs",
+      "sha256": "9ef76326bdbed51251aff5ea8d4dba76e21db7d759c7ccbafd85c7f162144de1"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/RequiredReportDelivery.Paths.cs",
+      "sha256": "d3787917a9bd56898d57ca6d15c8ef901e14ae070173851928b973d334472322"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/RequiredReportDelivery.cs",
+      "sha256": "8338c795216022a837bec1e5e4eb2bbac9c12ec9e99e8936a538ca7df1833d79"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/RequiredReportDeliveryProcess.cs",
+      "sha256": "6581e2dbe730d9ada415f96ad022bf2fab595e9eff327ebfe6b48ef33f8d4260"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/ResourceSnapshotDelta.cs",
+      "sha256": "af3e44954888147eadaaacd5333d75d2e20d6ffac908330fd384d2d2e66c7c2a"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/ReversibleJsonDelta.cs",
+      "sha256": "f3cbdff6d58c8a3d3f12bc645be879a475540d1fdd300b5fa9b7d04ab409e871"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/RuntimeRunStore.History.cs",
+      "sha256": "0eca99d86a3625bde0a9025c36cc2331b70f4ebd41bd29d426193dbb75b416aa"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/RuntimeRunStore.cs",
+      "sha256": "fc50aa65ca52200a09f154f5d63a1621c40dceb8b43ad982a2452278a1a2163e"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/TaskInstanceStore.cs",
+      "sha256": "132071819d7dafc31be98b2290d0103d64db95cb428bf1faaca90e5f5407039d"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/WorldHistoryVersionOptions.cs",
+      "sha256": "dba9ea3e0ee042bd640cfdd7e5c6ad59553443a41a02f0772247dae732ee0f87"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/WorldHistoryVersionReader.cs",
+      "sha256": "335a8e268a5a85d88ede56c83a575867969e86d4c46c4a61fe030b96ae269318"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/WorldRevisionDeltaCodec.cs",
+      "sha256": "3cd892f7a8f4395ce8897b337206bee5e83b3e20713c33ffa09a0272dada339b"
+    },
+    {
+      "path": "src/UniClaw.Host/ScreenFrameOccurrenceStrategy.cs",
+      "sha256": "9d36091f4134fb238d14b112241ab125c25473e1b5437a19577723b1073f7dff"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/CoverageDirective.cs",
+      "sha256": "0ec2bdecc4d6c5d66c73463b49d31466b55a71206ce08a66c495aa5957c08e5d"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/CoverageEvent.cs",
+      "sha256": "86946d60a058ea05d72386b9b91edad32672aafdfa676e8779a31b046ec8def6"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/Geometry.cs",
+      "sha256": "d771d3a6fbca272e560492341eae77ce28ca7c02d365f86ba0d28e7d74415f67"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/PerceptionCapabilityComposition.cs",
+      "sha256": "a1a7aa4177d75f0e8f856c6ffcc334f473329e49efd944a97ceb27e7d4f54520"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs",
+      "sha256": "7f4a4da942373970dea9659ba736f3d540480f53cf852a56e806c5f312a5172c"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageConfig.cs",
+      "sha256": "d039eb91e568b693941bbe9855822b91a1e7a33f284cf1c5e8b7f96c798eb611"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageDirector.cs",
+      "sha256": "f9633222d5f8195e2784a55026a41793afeb8cb4374cc640ef3b81ed7a5f1511"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.Directives.cs",
+      "sha256": "5fb9bf3b55a9111acb108e7a293077c3a213fb4bfe3b7b5698623f05a1de635d"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageLedger.cs",
+      "sha256": "4b3e7faa3af14f813dd72afdf5986eb09e3b979d3a2ce787e624d98193d9873c"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageOverviewProjector.cs",
+      "sha256": "82566242c7b3b3f50e30f2a6a5e3e5f90d5b36d6184200d6fc3841dbf1996692"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.Reports.cs",
+      "sha256": "6ddc365bc555f0b8f39c0871ada8672b53a107f090247e8b11baad73cb640bcb"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs",
+      "sha256": "8dbcb8d2a5fb36235799298f84976f11f5c3bcd0bbc70a237e1619dc0c5b44f8"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsNavigationScope.cs",
+      "sha256": "520e8335a726ec14b9e8e33e6766f7f884c226c9dea01feb012b85c1829d1691"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsPlanFacts.cs",
+      "sha256": "4d89a1aa69686a6001351953a64e70bc63147a8b11be0bb95b91ea67f27fc44c"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsTraversalProjection.cs",
+      "sha256": "79dbbd1d1335f58484b81935ac997b2175121c3b61818b35f4417cae04661193"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsPageIdentity.cs",
+      "sha256": "903a2f121072d43809ab1dec56333d0c38172dbc16f4236c88bea43e4b6effe2"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsPopupClassifier.cs",
+      "sha256": "78619759f6bbc0421628205bfdd06f362176425def8492c51cfa3918c3d40e69"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsTraversalLiveFeed.cs",
+      "sha256": "a000a31f27196c047b71835b646612ae55a7f07b3d91d1fa687185e1d9d4fc85"
+    },
+    {
+      "path": "src/UniClaw.Host/UiAutomatorDump.cs",
+      "sha256": "a1ba1a9dc8b99a75b04a398758dec8a339ec335b651ac503eb41cb2fee5b4e34"
+    },
+    {
+      "path": "src/UniClaw.Host/UiHierarchyOccurrenceStrategy.cs",
+      "sha256": "8a46e331343a81a8cfc5b6728c7086d42d30e32f392aedba981f599e75397bff"
+    },
+    {
+      "path": "src/UniClaw.Host/UniClaw.Host.csproj",
+      "sha256": "535ce091c713ed157fc151c13f33278de25bf9718b2ab3319a7da791676dbdec"
+    },
+    {
+      "path": "src/UniClaw.Host/UniPerceptionPipeline.cs",
+      "sha256": "9d95b36317d42ae79c554e3f724fb4db750aa845613ddbcb2d4dd12a007bcec3"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Assurance/AssuranceJudgment.cs",
+      "sha256": "4dd74279a4b8ed832ae6741cf91ddfb06cde39abf72bd88d90ba5be6ec2be2ce"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Assurance/Freshness.cs",
+      "sha256": "4bc0c6693e76bbb2fc37354813c6b15f59959927298bf1a4c34c7025e77cffc0"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Assurance/OutcomeProof.cs",
+      "sha256": "c8425f88c967b87070b9a8d4afa748a5d6b90511b343c7a5890f33911b6ce3c0"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Assurance/PostActionEffectVerification.cs",
+      "sha256": "6f1aecbbdf71985284203a400e5feffe62d3d2a63ce0a0540fa284788547b1b6"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Assurance/ProductFreshnessEvaluator.cs",
+      "sha256": "aa8e531756b08d770c8b16c472be2defaac06871b9220c4dc81de74ed43461d9"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Assurance/RuntimeAssurance.PostAction.cs",
+      "sha256": "af60d8c4259d35563b47ad5e0c57bfbd1e0ceb59ef16c0fbbf367422d904b492"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Assurance/RuntimeAssurance.WorldImpact.cs",
+      "sha256": "188d617f42cd22f1d5652f9dacab5667a0b5d0689997e087abf54d9b39f987ce"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Assurance/RuntimeAssurance.cs",
+      "sha256": "622775c9eb0ee823c28cef98b1c2177b8cdb6723861bb26c3050dd6d2d34e765"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Capability/CapabilityHub.cs",
+      "sha256": "72caa9dfb3cedecbe2c745d32a0d2ffa057b0ba59d5e5311cbb4fda90e79c404"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Capability/CapabilityProfile.cs",
+      "sha256": "8e0a0b6df6c261c756df3026314af938b9d58cfee441c64524a76a967517be4f"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Capability/IntegrationContracts.cs",
+      "sha256": "a33135a3c878c352c19df6159abef8200e2335622ffa3d489acb72d0907abe74"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Capability/LanguageInspection.cs",
+      "sha256": "e69194cbef24af1dae68eab7e128caefbef279d117b6876113275ec59becaef3"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Capability/ModelManagement.cs",
+      "sha256": "e0025b6c9255e155b8f62e6ce5fa8fc9bf892bd144ae35b2be8ff1d79b1c6df6"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Capability/SemanticPerception.cs",
+      "sha256": "dad53977b76ab78659676b232b3675bb3c32859ca5138046da92e46aa297a386"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Capability/UniPerceptionCapability.Semantics.cs",
+      "sha256": "ac5416a85fe41e9452b2dd721eb9ddc0ffaf118dcfee63d1814f4dc95360d96b"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Capability/UniPerceptionCapability.cs",
+      "sha256": "fffc3bf9d3fe2406d0ca8f55c9d6517715cbdd494be63b8139b4b6a8727abdf4"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/ControlIntent.cs",
+      "sha256": "92dbba2c9b4b83ab59eb9a9bb97874afb06f7d9853cad4a209bbfe6c7d687c13"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/ControlLoop.WorldConsumption.cs",
+      "sha256": "82745b3c492b638789111992d8ef2c53a55cbe8cc04cfb1622286e60e5342a6d"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/ControlLoop.cs",
+      "sha256": "874ec979d0bea954a9a42d92f1a3cf8a79a1c677f862ea0f58629b3bf5bc92c2"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/ControlPolicy.cs",
+      "sha256": "73ce4559c25c3d53d7a3a8e0160007109ba157b167a47aa16e6408323a251316"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/ControlTraversalHistory.cs",
+      "sha256": "d7aac498f10251376ea2f8640ac5d5afe84ef0d8440bc6d9d48d09b1570e38ae"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/DescriptorTargetPolicy.cs",
+      "sha256": "cab8fce2e18af3fe74918f438c14618d3b6830032d7cf28795fa84f96cfbc24a"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/ObservationRecoveryControl.cs",
+      "sha256": "126aa634efc0c63fb8963f38bf23af0b4e247f74373212445474327043a20bd4"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/TacticalHypothesis.cs",
+      "sha256": "cae0b4c83d08bec51e8326e6d4df06c0cda2a300a452dbe7e1ff93a4f56c343e"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/TraversalControl.History.cs",
+      "sha256": "0e1c8defb064980c3a3de6eb7e4b4daa4fd571e8c63137f653474f1f030b731c"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/TraversalControl.cs",
+      "sha256": "48f35e888ab45ab6d186e2e7250006e97001d7ad5e158c47a19089434e3582eb"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Control/WorldRecoveryControl.cs",
+      "sha256": "9d4c21eff2170e60a86ba8cb4b55e964c8453d523fe16d85a14e1120c375320b"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Core/CoreSemanticProjection.cs",
+      "sha256": "bd1c1487fd1916d2601650e91a06ef7b8f21cec679e5e7d69c2f45ec2755f699"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Diagnostics/RuntimeStageMetrics.cs",
+      "sha256": "97a96591aca37222df41d33b8bae6281176193e2f65ee63fd3bcbbf0dc8cccdc"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/AdbEffectDriver.cs",
+      "sha256": "8dc0524cfa0ba09daa767723b8eaeb91f49d8e62419229a2eec17962bfa3afc8"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/AdbLiveEffectDriver.cs",
+      "sha256": "400e7a9c0fa667c9167e15155c8bb395c876f1f86b1693e341a17abe4877def0"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/AdbProcess.cs",
+      "sha256": "2bda88abad8be20edf9197376ebed3c28efe3106748242375fa73b7cf678d360"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/DeviceViewportResolver.cs",
+      "sha256": "af5a268e53136ea7e8472a28b89fb84065c64f77718fd3fea52b39c589b042c0"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/EffectBoundary.cs",
+      "sha256": "dc1bd33f400aef9425ed68b5e72885f2db3431f24f22f79ec78f2df384dc6718"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/EffectDispatch.cs",
+      "sha256": "c0f4cca83cf4050afe1f81b3ae67edc1561c46f162c03cb635cc1902dc37209b"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/EgoBrowserEffectDriver.cs",
+      "sha256": "68c5632521395aca317f497d0aaf63e7ae155d8851662c5bbc8553b5f30a7b7c"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/ExecutionSource/FileExecutionJournal.cs",
+      "sha256": "aa720a962affb42cd297baae3773ab8f31319fde3dddef2a9c44ce52bad75198"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/ExecutionSource/ReliableExecutionSource.cs",
+      "sha256": "fd609aae6b5848c48208ad8dc243b09d7dd5e0843a1033b7b56ed8b2a11a5d1a"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Effects/TargetBinding.cs",
+      "sha256": "af0d394fa63a6b7231bf0fe9502c222dda8e300f333d6714294263580382b600"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Outcome/RuntimeOutcome.cs",
+      "sha256": "f8a85dbd84f1c179918c2aa7747e63c14d1fd075ba17a549445b726b69632ba9"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/AdbScreenshotAcquisition.cs",
+      "sha256": "32c63617165efcee129956f0a2acce4e64cbe616c38413ee3e3ac6cc887d2582"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/CoordinateSpace.cs",
+      "sha256": "c3776f9c0b2e9c3a86c551d0ccba8991bb26a81db635cebfb2081ac3acde8b4f"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/FastPerception.cs",
+      "sha256": "c89c0f21b8ff34a890541e6e049c2d4b5383fcde2098d973c4598de84fd1b834"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/Fusion/BoundedEscalationPolicy.cs",
+      "sha256": "ea53191a07c069c143b1fa2d6399432b94488c4e4d4f20c1817a41cfdd80eb94"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/Fusion/FusionContracts.cs",
+      "sha256": "30925832896ed2d0a6c81453193cd95246b174753725317139270a2ee45160a0"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/Fusion/FusionEngine.cs",
+      "sha256": "9a7bdc894d4fcdb140dc6e81882cd2171c3909fd1529f14b6870288e82ff7640"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/Fusion/LineageValidator.cs",
+      "sha256": "c97afdf48d5d2a9c60a40f29ba6c49a3399afbd0fa960193935a62932799ce89"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/Fusion/OccurrenceAssociator.cs",
+      "sha256": "4206fff35901221ee1a59e82fbb6270d6e301104f5ead1cc8a5b96ec92e4d5fb"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/LiveVisionStrategy.cs",
+      "sha256": "2473566a1c037d7f741768cce1ddbaaef431f3b35ec79a97a96badd4e2865f30"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/OpenCodeSlowRealization.cs",
+      "sha256": "72952a417e4bfeaff999ceb35148c3987f7cf24e220ccd023e35c5f2a94611c7"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/PngImage.cs",
+      "sha256": "078dadb8ed356c606006d06e0085db552c2b8c6957c7735eb621f7c8d8cf01e1"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/SemanticObservationProjector.cs",
+      "sha256": "4e0a59ab38ab304811f91882ce80df113c4d269b6a39394f0100d60d963681b5"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/SlowConsultation.cs",
+      "sha256": "c51afb69cb592d1ffd96938555a43d039a73b09b8cfdbe896b1f0170462a02bb"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/SlowContracts.cs",
+      "sha256": "89910dd7d490013e9958b1d22508ca55351d6438cc874298d854b2ce934efa32"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/SlowEscalationRoute.cs",
+      "sha256": "613edb4d3a95b97aa99ed593615fd8276f4058a332fb50393e452f16f2987d60"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/SlowOrchestration.cs",
+      "sha256": "21b9f57f0fddbe87515fd0387800e6f1d6537836522ef329e4a279734a38f9e4"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/SlowReplayRealization.cs",
+      "sha256": "3815988a001529adaf87a9cb119c3dcbc2a6040732ec06d58a2be47e56d65dc5"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/StrategyObservationCache.cs",
+      "sha256": "6615ee99039b1267bbb9990307b6893731e28f9941c235531e0be440d8fb714a"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/TextFastBasis.cs",
+      "sha256": "43610ce298cf56cba18de7ff7444acf0e9cfab734a1ae9eaef6c30b5742b8944"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/CaptureMetadata.cs",
+      "sha256": "43b646cad295d534deaff52d733bb3e3d8d6e203c5acccb0eb2ba900d60e58d7"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/CheckedSemantics.cs",
+      "sha256": "333bdeb20c31c109e66ad31bdd049f78284a8c7d2732cbb86b4d30c66c309d78"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/HierarchyCapabilities.cs",
+      "sha256": "e9f6eb27a1ce407e3767a318ee4d5bbdfadd9d2724b10ab6132ea9b67baf5bc6"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/HierarchyCaptureDescriptor.cs",
+      "sha256": "221e75ba65c105adda14f2e381108a5bd7dafd395c6fc38f23f516e44b273c38"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/HierarchyCoverage.cs",
+      "sha256": "dc6c35d3f639cfd3b3382281fd1171bb0ab2e68ad38530dc343a3102e2ba2e18"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/NativeContextObservationProjector.cs",
+      "sha256": "853b5fb031c320e7c085f34373330abc78e2c5647fcd7871e1e79ba2cc01ef54"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/ObservedValue.cs",
+      "sha256": "28426b3be75557667deb4c724de7953e5e43a0dd28cb29d1934ea2f3de983bf3"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/SemanticCheckedResolver.cs",
+      "sha256": "9c519d633d4ec36980540607d64acc1d6b54aeda2ceb5e77b6df04ba0ea4840a"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/TypedHierarchyProposalProjector.cs",
+      "sha256": "f052af652868033c296912b28ff43ecd33079264b0b4b80db90cf74e87570c22"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/UiHierarchyCapture.cs",
+      "sha256": "1010fc319d53e60f089ae9d580f22aa895de8c0c785d4350aa94fe1b1611c052"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/UiHierarchy/UiHierarchyObservation.cs",
+      "sha256": "895bca57604c95ba5474170713864c84a24fc3caa91c39f15b84521722f0e705"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/VisionServiceClient.cs",
+      "sha256": "9f5503dccc0b9330b689b5adfd6fa44070eca3ec8785e97fb375174cbf3d0e04"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/VisionServiceHost.cs",
+      "sha256": "c2e81c167e5f0292a12a36672cfc0d9a702f09de51bd1fa3eeaf90ce1e75047a"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Perception/VisionServiceTransport.cs",
+      "sha256": "55101945e84dad26ced7ce02333aec001b2ceb577b767520d741c944b2b074a6"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/ExecutionContract.cs",
+      "sha256": "550eb06ee3d0bf534daf97a496e89d650aedbc81b5d7743ef35c066452988a87"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/ExecutionContractView.cs",
+      "sha256": "8c09c11d54560cbc70d4f79212a112ef92da505563bade7ae7e09478b966203f"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/OutcomeState.cs",
+      "sha256": "13ce895a6a5f7c32533e6f19451c2c95628aa7afd512e55577dffa379009646f"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/RunModel.History.cs",
+      "sha256": "fdccca315983586512bd03ec1c065a62305736413b2a5028cacad477ee51b597"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/RunModel.Identity.cs",
+      "sha256": "eb049aabd984204e4e5627d0b027b67790ab915e6e0301008a11c883bc6c24f3"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/RunModel.TraversalHistory.cs",
+      "sha256": "d9b83aeadc7936b3c6e28457c4c34bcb62d7b0d04e898363f7db01a24f9e61e5"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/RunModel.cs",
+      "sha256": "b5da42b9a29c873d88d50acf8e3cdf565f4b9b270c2a0807bdcc2883e7d62023"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/RunObligation.cs",
+      "sha256": "421c4ce43ded4f015e0648766a91ffdd85f91707c62f1be416b850899e9517b6"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Run/RunState.cs",
+      "sha256": "3f7d88fb2868cec14d890bbc969107ac7d1ba23e0774b94f69ceb684fb1c69a3"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/AgentDecision.cs",
+      "sha256": "78d0759d70fcb779cba0f800ff0e1a01ad486df24d5ddc1ad665612d504e98d3"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/AgentPlanPolicy.cs",
+      "sha256": "74e85230d3b0be3c97ac9a0f501020e49920643529de5ca4561f866311f9d5ad"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/ConsultationJournal.cs",
+      "sha256": "debbc776442dffaecb4866f1e422bd84b1f0b8344241302ebca535748ea5d45e"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/ConsultationTypes.cs",
+      "sha256": "564b0d8828dc27a8fed27600fb388f69eefd8c212ac5c2d193438d5a6faf11e0"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/DiagnosticObservations.cs",
+      "sha256": "a5c1233dadc4efc89a77e31aae521ad11ee48f36dc1370801ce9609d19e0ab53"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.PlanHistory.cs",
+      "sha256": "40d598641b8836acb5ee9a4364326971cd11242bebef33f4230e4c2b9a9aaf15"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.Resources.cs",
+      "sha256": "fb0ca5bcf535318362464c6b0c3ca881143b70f960441494358b7a7c50308ba2"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+      "sha256": "68ff40325c1a133e2588b9d29e5c9a807294c46ea34198e646c07464161e6f5b"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/PlanExecution.cs",
+      "sha256": "008a1062a8c589232bc053f643d25c3c4a7c07f3d9cfe2a0921fafb9734c0284"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/PlanLanguageHandlerCall.cs",
+      "sha256": "4a673547c04c3b9e3a9db91d4255fd5ef813c59050291f4cbfc039345cb5e72b"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/PolicyProtocol.cs",
+      "sha256": "7b00e99862972debd0bc3c65676b19a15321704439336559c9f27564b5f266d1"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/PolicyRuntime.cs",
+      "sha256": "6936eeba8e792ff88ec3b83a5a87eb80185eaf6ede69ce085aac98368abb6d98"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunDriverInputs.cs",
+      "sha256": "2943010ea55b120a0bfce5f25da71ec66e692edaccb04366e7044ac3249c566e"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunEvidenceRecoveryRead.cs",
+      "sha256": "368d6a200e17421e9db05921af85e6570bb57370c99158751d88e8459b832f05"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunRecoveryRead.cs",
+      "sha256": "8ee79990e5d005f1588e67f870ec033657c715cdfc8354ce620605325517a7aa"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunRecoveryReader.cs",
+      "sha256": "ca00dac41f00c9637e593172b8f3c58d51b9159b69b3775038678f3334626404"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunResourceAccounting.cs",
+      "sha256": "c891a046694c6de12ab23a67007153a1f33d33e0d1aca8afa17f75b7210838d5"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunResourceRecovery.cs",
+      "sha256": "faeed739ee59f9709bc02460ca894833e980eea9695c81233eba029b6b0c11e0"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RunWorldRecoveryRead.cs",
+      "sha256": "e7ad70552211eba888a2a71f37daba23edb5c0588c6b9f4aab2eb1b1ae5f375d"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RuntimePlanGraph.cs",
+      "sha256": "7266ff9a32f228293df9c29a2f70e6c7ed835511f3186ca043320d381f901df1"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/RuntimePlanHistory.cs",
+      "sha256": "d67ea6a35057ec110c34fd7e9f6a911ffb9dade37111928ff8c2bb4571fd11e2"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Runtime/TraversalExecution.cs",
+      "sha256": "7036e1d3c23ea8c6fdb0d7ae25f369a4fa991a4f9491ffc9d8952abd9f635db9"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Trace/AsyncFileTraceWriter.cs",
+      "sha256": "8aa137f93c92f0aa238ca5b6a9704dcc5f481e101f757fa94d785bd0206ec554"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Trace/DisabledRunTrace.cs",
+      "sha256": "947c419c3b3d0b1804562af6b980f3297267fce56e4962200b9fd0839c7cbe90"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Trace/IRunTrace.cs",
+      "sha256": "f6c3aba4e0e3fbc35d497279a4571e889658d05927ed0c28a029faff4b50e365"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Trace/InMemoryRunTrace.cs",
+      "sha256": "75b3ee09dd37fafbd55395398353578ca5e8dbeb1c92f5e981f29b5bd3791499"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Trace/RunTraceScope.cs",
+      "sha256": "247fc8ecc34d4e2a0d84c0435b4c64a052f6d9183b48749df17def6aea623979"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Trace/SealedTraceStore.cs",
+      "sha256": "dc4b5d610a9589933044570d115c84c2c52af297610dbf525ee623014d9f6322"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Trace/SpanDefinition.cs",
+      "sha256": "eaf92deae74bb3219cd85301f144ea17570f680a2ceea140b00b03eac9928716"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Trace/StructuralOutcome.cs",
+      "sha256": "37875a9b098ede178da572b484493ea14d40a532c04c6af9c6703bbf4f72f4b1"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Trace/TraceModel.cs",
+      "sha256": "af9519e0d8f373d5dab0c78cf178f6379aa40a69f78d929ae292d82db6cfb883"
+    },
+    {
+      "path": "src/UniClaw.Kernel/Trace/TraceReference.cs",
+      "sha256": "a2e698b9194668b18f91b1531573f0029a4b87c93f2ede424cc14ed238d249e5"
+    },
+    {
+      "path": "src/UniClaw.Kernel/UniClaw.Kernel.csproj",
+      "sha256": "b4f5d389bdcd0ff4a7e53c841540238e70485eed38ed6e4e9a1d25865015ae3c"
+    },
+    {
+      "path": "src/UniClaw.Kernel/UniKernel.WorldConsumption.cs",
+      "sha256": "1bdbaaa1a248cf00d8a13f95f4d2462b97d63e9947faaf933582f9cf138075c0"
+    },
+    {
+      "path": "src/UniClaw.Kernel/UniKernel.cs",
+      "sha256": "e702542d275172ae9ba52925885f6424ab3e5d22532394fbef7b5b84e2e8db8c"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/ConflictResolver.cs",
+      "sha256": "8210f3a275966619fc543b79f947f12c368d70037d73f8edd2e42fe21fc4b479"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/ConsumerViews.cs",
+      "sha256": "a3c5f6a59cb0b15c4fc15531728d568e755cfa60c84033fb31bb55bc0b0cbee4"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/ContainerContextObservation.cs",
+      "sha256": "43e283574594d1397abeeddf61372f1a73965bd50523fdc8d9c97f29c1dd412d"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/NativeLocator.cs",
+      "sha256": "8a825da4f58d2d858b11e48450e4461170598abbe32671d253182e28237bc92a"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/OverlayObservation.cs",
+      "sha256": "a1f0ae9186eca8b2c5464f81cc301074c195150ec55010191357e0f23bcd12dd"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/PageInterpretationCorrection.cs",
+      "sha256": "7c6550acc51564a1db77b6fe2fb5bf3a804184f901bd670637b8bb6404acf714"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/PageObservation.cs",
+      "sha256": "a5d1b6bd5fc96bc07d8bb88bf2b3bfd8c70a9a3ff1e560c65037353c55a2a032"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/PersistentRevisionCollections.cs",
+      "sha256": "480c3324bf887fd475660c1a1b98e324d53536f4c0bd10d8bb24f1d665326c05"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/PostActionXmlRouter.cs",
+      "sha256": "49a04d51eff2f46fd7dbe744e990e4749cde4979413066d0cab03a9b5d4b8cbc"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/ProducerTrust.cs",
+      "sha256": "eab255859b8f31914d895a89892dce9cec714b201269b82ceef7ec65d3d02755"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/RelevanceJudgment.cs",
+      "sha256": "74fb1d315498d7ed69cb40e5386469ca71dfc1dabe25171b3e0efd2cbd94613e"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/SemanticVerificationObservation.cs",
+      "sha256": "052cc20991a9b6bc1e5bf4e49441ae44176d8a787e41b69e09410b8d7c4058e2"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/Slice.cs",
+      "sha256": "eee49a1ecc634dd5d5ef8a3c2db247667c82de4c32557eb81e31ab933d1ec06a"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/SliceContentPresentation.cs",
+      "sha256": "564bc01951aac2c3ac2e3679ac69622f0fb0ba19b3099b92937767781c6d2b9f"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/SpatialLocator.cs",
+      "sha256": "e19f88c17b1fe84b0e2ee328416daecb3dd9c1db01d5d10005ac42c53cc80115"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/TransitionContext.cs",
+      "sha256": "7a7fdb9760d10c482d75c6faf826f11916b8fa34d5b59d99c6ce68d056c96f3b"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/UiRealization/ContainerAssociation.cs",
+      "sha256": "e2ac95f7a2eea8ae0a262d33861dc96e43ba4b6fa8abda5991877126977a4d82"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/UiRealization/Continuity.cs",
+      "sha256": "4196461dda364510481f8d799daea4d642b66ea4627807e118678e3ded1d101b"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/UiRealization/GroundingSeam.cs",
+      "sha256": "f7d9ecd46945d3b1038d6d2322eb17d7143abe7f554a0913d1e20cd69bb5be4f"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/UiRealization/OccurrenceDescriptorMatcher.cs",
+      "sha256": "b7161ccc63a7cb49242d9792168966ea2f36a8b032a17e26fd46931190545004"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/UiRealization/ProductAssociationStrategy.cs",
+      "sha256": "d9014b7a8ca380aca64e73932b7ec9775cf5114ab893173cbd42189e8d94386b"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/UiRealization/UiEntityModel.cs",
+      "sha256": "c869fa35591e85d48d4391730c3e5abba519fed6e56a8fd7f1250bccacac5d4f"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/ViewportTransition.cs",
+      "sha256": "c6337e7b6c97728b570023e732f895c7a98b16b5916a44aa01f5e854791ad315"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldAccumulatedContent.cs",
+      "sha256": "1c67de10e27ff8bae21529245ce41dd3fcee9610f92c53ec1d71491337e756a2"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldBeliefRevision.cs",
+      "sha256": "879ff1369b188bcf08d3a804db5ec40dedb4e21b8ff345dd315f882de31e57d7"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldConsumptionBasis.cs",
+      "sha256": "87f1c3823474965069ed5624451daf0316093f12abe370470ce40331c4999bbb"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldHistory.cs",
+      "sha256": "e58c7a720f3f6b633f6223ccc5225dc030418b03d93d8bbd7f4ccd4a968c20d2"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldKnowledgeView.cs",
+      "sha256": "2341503fda7704c6e3d345eafe5b8d8b49c277ddd458c349738e865fba39d133"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.Async.cs",
+      "sha256": "c133ec5ae6666aec9e465627c059deb563a6d56abbb5dab6661dc3f5085ec612"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.Content.cs",
+      "sha256": "10e8ff6aad3cc6e11415188ca97e64e88dec2fd78ac7a3785f700848eeb7859a"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.Context.cs",
+      "sha256": "bc95c13170cbb9edaab98fef315a334ea625e458016a8bb27cfcc89f79277aba"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.Corrections.cs",
+      "sha256": "74142f6eba8d375c033c57021511443f0f39be67d716f0fc1e68de8434bbfe9a"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.History.cs",
+      "sha256": "2d78e5b503d0cc607260100fb655c5505731fc290d5e3952752ddd3da7006de7"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.HistoryRecording.cs",
+      "sha256": "d88eb4c70a176fc8dbcb16b65aade6ea0ca704b7395d39ebd94a1b092e817d06"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.Knowledge.cs",
+      "sha256": "7b1985922027af8918ad3f12134cc3b1c4bab5108d9d4d62187776971c2f2f8c"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.Overlay.cs",
+      "sha256": "f0483dd92d62d34d48571be700d4aec48f174d22657466dfd4526258d749434d"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.SemanticKnowledge.cs",
+      "sha256": "913b3893c32b5cc5521a953e92c3604365fcf1a0eda6e1593ba5dc9e21aa6431"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.Semantics.cs",
+      "sha256": "263c3b2191cdff73388ad059f570b6e27fbf591aa9cf2b37547d430eec68a3f0"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.Viewports.cs",
+      "sha256": "f5a51f21315901b4e3fe3089e6b80a87eb065d336d2f8a2c0da6d91af595fdce"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldModel.cs",
+      "sha256": "2b519e769187c5d30a46ad9caec3ceb921bfb8b890cfbd5005b49cea6ef1ab08"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldPageView.cs",
+      "sha256": "51edbbbe128ebb60a0efafc17fde7a34000325e43561909bf97e44b4d83e87d3"
+    },
+    {
+      "path": "src/UniClaw.Kernel/World/WorldRevisionIndex.cs",
+      "sha256": "bc5f3441fb8c812f88d39f50d36fc5cf387cfcc8aba00026944a1afd8a21fd50"
+    },
+    {
+      "path": "tests/README.md",
+      "sha256": "4dbd3cc8b321f5122b1b76f89c23e45cda790695d96081433ec88c7ab9aef948"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/AdapterLifecycleTests.cs",
+      "sha256": "867e0b982cb883f20c2b8f12aa009bb2b485ac22041fd13979e04aa30cbae88d"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/ArtifactBindingTests.cs",
+      "sha256": "763bbd16b56a48965c3e29297b57f651d0a90d09af5a5f0b748e7fb375ed515b"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/Base64UrlVectorTests.cs",
+      "sha256": "f06b96b96df618891d77e0c898012bee654c7a67ccb10d26a018cc2e625b96c7"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/ComposablePlanProtocolTests.cs",
+      "sha256": "9dbf847fa2e45d8e247945096955d119a4654d1a34818c63f8fb2a04c326b95e"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/DecisionChannelClosureTests.cs",
+      "sha256": "00a3ed745cff83f6df98174459e714f0f3634976f9281da24865904a9d325287"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/DecisionChannelConformanceTests.cs",
+      "sha256": "3a2061de75ccef215ee16e00666e263c3dcb1671d1dda0c7cd910575d7dca482"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/DshModelManagementTests.cs",
+      "sha256": "d86dbf17a0de79a98923a7d3599e34c9acdf1f4ff23caf3f6ebe8359fb35521a"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerE2eTests.cs",
+      "sha256": "e37df10d7efba4363842552d7ad4c4bee892b5e7109241b77c3866a20467dc32"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/DshOpenedHttpPeerTests.cs",
+      "sha256": "bd583a03737ee18fb2e338c1b7a0a19dbb9532e8429e081f9c9b7446642f112c"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/DshSemanticPerceptionTests.cs",
+      "sha256": "9f99a842c7f4a02d0406017710be32d284b4c348ca3d01afe7ea38fc21fda3b5"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/DshSlowConsultTests.cs",
+      "sha256": "5f236a164460c78287bbff15a6841a49ac874f676be28dec6ea19f212fc4955c"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/DshWebCredentialTests.cs",
+      "sha256": "23bf0318ce688b1e70e5e72f7b84d699ff861862b28b6d2d22370d0125383e23"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/Fixtures/DecisionChannelFixtures.cs",
+      "sha256": "9cb1295c02b44882287afcf3257da7e6d4427655d16b5437664b19722f5085d3"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/Fixtures/StdioJsonRpcPeer.cs",
+      "sha256": "b6e2d6178bc42eb91d1f31af832f42fd343a8d677225591f003864bb2cbba272"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/Fixtures/product-sidecar.mjs",
+      "sha256": "fa2b693dca1c7289cd2b11c24f3ea42735981eedf8ea751ce4a4fd1b46649dd1"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/ObserverProjectionTests.cs",
+      "sha256": "6f31d4da06fe595afae3dc1dd2c5f1cde6115d806d03dec4f4b7eba4bd8dfc1d"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/PluginSchemaArtifactTests.cs",
+      "sha256": "e9f03e54b6fad5aa586fef1fbfd0a32256d7a99465c7c631f15ea0fded0bb063"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/PromptProbeE2eTests.cs",
+      "sha256": "98a5bd201990f7f8150f04aa3319f07b744f56c38842628e47224a09ef78dee9"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/ProtocolFoundationTests.cs",
+      "sha256": "d5f42a30c93593ca4a8e0077c8d5a7ac212bc39b4e339caa9a609d4b4d9022ef"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/SessionReuseTests.cs",
+      "sha256": "efc70195f2a5c19a1f6da20dc5e1c0e6758aa5084e2d52e76335797e8bf24c65"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/StdioSidecarTests.cs",
+      "sha256": "d3f64f732c5df4a2aa3151be84e3a74f18c2d5055b0f93a8cff4e03dbb88117f"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/TraversalProtocolTests.cs",
+      "sha256": "dae9e22f1ac1cb5888ad8df56dbb7c54070f1f9c7f60a77c688a01dceee8d348"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/UniClaw.Agent.Dsh.Tests.csproj",
+      "sha256": "c63e2689e9bbfa52569e4513051a82dea820c5dcd7e32463a95733e4e3340712"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/Usings.cs",
+      "sha256": "50436eb3a60162e0cfad749eddfb06f8908f821a90ca44532df946a53e071359"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Dsh.Tests/WorldKnowledgeChannelTests.cs",
+      "sha256": "e245258a171f8e9f30f65620fc73dca0fec3423f9e4b2849e125be496a27df73"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Tests/GoalEvaluationTests.cs",
+      "sha256": "9a58ae0a5984dd1aa3967a90f55a14848c952451a4c3d42d58d345a7391c71d2"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Tests/UniAgentProfileYamlTests.cs",
+      "sha256": "a2b1486cf0853facd71e4f833211623cdd10fbd12f57e75662231b5cfe89c293"
+    },
+    {
+      "path": "tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj",
+      "sha256": "812ae0e3eb55115b858908557a9bef4c0e2ecba9d6ff1f8053b942457ced8e53"
+    },
+    {
+      "path": "tests/UniClaw.Core.Tests/CoreObjectRelationTests.cs",
+      "sha256": "455c331f958fc3e390059b7cb581387bf75b65d8d974d185fcd7140ebc7da310"
+    },
+    {
+      "path": "tests/UniClaw.Core.Tests/PhoneScrollTracerTests.cs",
+      "sha256": "26957aad0f9092b542995956abeaff656b94095a493f4bf91cc4f3afa7970ab4"
+    },
+    {
+      "path": "tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj",
+      "sha256": "0640ecf703542a0e7069de6f98bd4910f0a74bbad8f603be984cedc7822b43ba"
+    },
+    {
+      "path": "tests/UniClaw.FileSystemRealization.Tests/FileSystemCoreProjection.cs",
+      "sha256": "2e59eeb38a951d30f82c4adf8ebf8bdf23c803787be234162223fffe2ecf69cd"
+    },
+    {
+      "path": "tests/UniClaw.FileSystemRealization.Tests/FileSystemRealizationTests.cs",
+      "sha256": "6cc25196bfbb19eb775ffff643afc36675affdb53cf4f2201cceceb0f62f2e04"
+    },
+    {
+      "path": "tests/UniClaw.FileSystemRealization.Tests/FileSystemWorld.cs",
+      "sha256": "cfd0c4768477a646eba4895139c08c8637cce6fb83d72d31ba8b47d03c75ba48"
+    },
+    {
+      "path": "tests/UniClaw.FileSystemRealization.Tests/UniClaw.FileSystemRealization.Tests.csproj",
+      "sha256": "429ee3db628c932100302360c6010976dca813030207ee4db87fd35e89f189c9"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/CoverageReportEndpointTests.cs",
+      "sha256": "d4d14fae2907426f11e7e016281aaaed84ee1fa578954405dd473c036a750e84"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/CoverageReportToolTests.cs",
+      "sha256": "6620018376d7d4400791af4893685e8c2b1036a8c3ede357716969e5bbd31108"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/InitializationEnvelopeTests.cs",
+      "sha256": "1c9d84dae30da1eca2733001d5efb704d233420b9a17961baf556da3a895d1b2"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/PlanGenerationKernelConsumerTests.cs",
+      "sha256": "aa091739bbeb3ecac47c0f016849f1975ac1febc5260b4b39b9bd7d512b7c598"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/PlanGenerationLiveEvaluationTests.cs",
+      "sha256": "69fe2dfed529d4586b2b979ed59e5eeeb8b46ed250b137562fe75c1154624057"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/PlanGenerationSemanticAssertions.cs",
+      "sha256": "4badd42a33d36ec3983fe38e536f264812198ac453baca819158e8e8c8a96ed1"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/PlanGenerationSemanticAssertionsTests.cs",
+      "sha256": "31fe1cbba8afe19c0ba016a8320c2fc96473a3d6d08f40f18b746fc6b1fa45b5"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/PlanGenerationTrajectory.cs",
+      "sha256": "1f0fcfb50492ebee86be98aa435fdb83d5001907f17176b6872f0bded936ae4e"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/PlanGenerationTrajectoryTests.cs",
+      "sha256": "28f6786d183575d003ad3425d32f41ceb8310e53a6f793069ac317f66187dc27"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/ReportDeliveryEndpointTests.cs",
+      "sha256": "cfcb08e7b6d27d7d51de85f23a01e41944624d782dc01cd063f43301283dfa23"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/ReportGeneratorOrphanTests.cs",
+      "sha256": "2e4c577409422edd0bab0408861af6d3e691f55c5ba17eaf5a3d0bb6c7c34740"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/ReportWorkShutdownTests.cs",
+      "sha256": "732663323736f9c79eec3031db1ac117885928a9795d8628457898709c0cbd87"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RequiredReportToolTests.cs",
+      "sha256": "cf51c3f336849c49cee48997dd998bf2476618880e9f82a9b366a1d5f7bbbdcd"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RuntimePlanComparisonLiveTests.cs",
+      "sha256": "e5551e1b05a010d08675129809dc287d787fcfcfe4bbce15529393eadedaa531"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureAssetTests.cs",
+      "sha256": "238bbb16b38c7d4fcc838e9194b75ec966b29a5883f515ccec429e00fba6b293"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureTests.cs",
+      "sha256": "506e6a93cba963a1f9c6bfdc7f6fc9d93e3e15eaeb96d631332be550b6d63025"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostTests.cs",
+      "sha256": "d43f898b7ebc3aee0afdeb95cf74e88b28d1db6815ea8aea1bfd9c3e4163cdf8"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/SettingsDepthTraversalLiveTests.cs",
+      "sha256": "5eb21770881b421cdeaa745362a735afbe132c77fd4892d855218ee134002c9e"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/SettingsTraversalPlanLiveTests.cs",
+      "sha256": "3ea3492e15879c6c1fae7769df18a40b23a0afb1e920436ea2c4447069a35547"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj",
+      "sha256": "c2ca07ca93376bbaf9fba190e75e69635ef1672f3c2a679d1c05cae6c830ebd1"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/Usings.cs",
+      "sha256": "50436eb3a60162e0cfad749eddfb06f8908f821a90ca44532df946a53e071359"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/ActivationCommitTests.cs",
+      "sha256": "a8f167dd6dec2927a439d784effb9c94cbf98a041d4f664aaf5a607f643e4aa6"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/ActivationRecordStoreTests.cs",
+      "sha256": "813c0cef841e7bf2ccd526210e7f4a95b1cea69de6b7c93bce83300da4966a6a"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/AuxiliaryArtifactIsolationTests.cs",
+      "sha256": "8f798b7996534536936f88fa1d7f6c04eda7065f48ca2047e5a611183a4e1f67"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/ControlPlanAsyncStorageTests.cs",
+      "sha256": "3a4688a7ef85a0ac90c765afce9fea66a57a2f38fe391dd9d186819bf2c41862"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/ControlTraversalHistoryFileTests.cs",
+      "sha256": "7d773ebb5844f64be7bc509e3905c53c6df6067d63141cb61a5ea6867acceeed"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/CoreHistoryLegacyFixture.cs",
+      "sha256": "d54a63df633db16be76fc7742701bee5a1bf6f181f740729caae0a06b65ac9ed"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/CoreHistoryStorageCostTests.cs",
+      "sha256": "1c66c02b0ee148fe864ac74f06c2f2a3dd24e8057d2d217b173c83d7cc2cccde"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/CoreHistoryVersionTests.cs",
+      "sha256": "dfcbafefa0fd83cf64e0c4ef0c16de05dd491b56703a54bc2a2a3421d0fac1aa"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/CoreHistoryWriterMemoryTests.cs",
+      "sha256": "2c224110ececdf54874f6d66c715bc5a928c6131e1efa5083745f5ac23a573a1"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/CoverageProgressTests.cs",
+      "sha256": "6eb73a47f3c7be53387b93c3a4acc45e9deda81fe721bf765b41e9677f4fae6b"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/EvidenceBatchStorageTests.cs",
+      "sha256": "db58967091e6d4400876a9c452df0262957b2c49990bdcd55946dc86cb0b3bc4"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/FileConsultationJournalTests.cs",
+      "sha256": "1198f2d73c9c721e7e1976f3d9e0c9702221f146014ef19b74f3a1a283baa535"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/FileWorldJournalStreamingTests.cs",
+      "sha256": "79929fe8fa63c2e42ef0393cb124bdf4e234d8da8f6b3dc82814ea5332b802cc"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/consultations.journal.jsonl",
+      "sha256": "36df4433561ca20d07577b469aa9a2c7060e8d549704ee22662e8d1a9da5a09d"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/evidence.journal.jsonl",
+      "sha256": "2d4bfed46fbaeb96ff2046c4613aa7f781fd206acd13f97ec09999a9db86c208"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/evidence.journal.jsonl.head",
+      "sha256": "282fe08cd0a0912ff19242d3cc3a3c94e2c4d39b83a74ad0af2643af0f456392"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/exec.journal",
+      "sha256": "9035f878af88d5c50f6f13d555d23c8f30c1bf3711affa57cf6b350e4b58a961"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/resource.journal.jsonl",
+      "sha256": "254d4154660cc64a8fc6cb1fe2a4e8b3e7a76caac766c78430a428fa42a473e5"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/resource.journal.jsonl.head",
+      "sha256": "fc91e82c0fe4fdcb404fdcfc9f910eba71cc22279c3495263a14896b85946b0f"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/run-identity.json",
+      "sha256": "de05b06137f96353d80fbbbce4b4ea7c1ba778528024a9a51d94fa9d765eddd6"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/run-state.journal.jsonl",
+      "sha256": "013973490d51f8b3bd491d93e8181e9dfe6b6dd3d9c42ddc26e3cdd9af71c49f"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/Fixtures/LegacyEvidenceV1/run-state.journal.jsonl.head",
+      "sha256": "9b3d725728409f3474e999a4356e63fa945fe95b2b06fb4a8e7e4328be8055f9"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/Fixtures/PopupReplay/composition.json",
+      "sha256": "ea3a451f9358e210be164c3313c274510592e85ea3ed8634ca7b43caa7ad79e9"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/Fixtures/PopupReplay/oracle.json",
+      "sha256": "58cf3ab037fabb0989ee9a2dd7417f89ba01f007ceb93ebd82ca7c9b5c96c140"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/Fixtures/PopupReplay/sources.json",
+      "sha256": "847ce4439154f46e52c612a16173da9045369bd1657e62f719b0d88b162f390d"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/GeometryTests.cs",
+      "sha256": "b702ce006357971a3aa3f4b7fb899dc3c9b258117ecc7f2c7ef7d635290a8283"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/HostLiveFullTests.cs",
+      "sha256": "82e364f113fdc956335cfb7a6af61504c1986edaa9c5d55e99518d0b4da10dca"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/HostTests.cs",
+      "sha256": "0cbc268f3480dfc4c5dbf9c140108078ec2a9edbaf7ade60d931c76e56471384"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/JevSemanticPerceptionTests.cs",
+      "sha256": "8f81b58b169220217443d5be9102222d3d2c65e9eea5304fc6040218eacc701e"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/LanguageInspectionBindingTests.cs",
+      "sha256": "55a994a91fca754469a9b6e54e87f4dddd63e452174f219999425fc0eadfbf5d"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/LanguageInspectionPostCommitTests.cs",
+      "sha256": "75f3398f2b6751b3194f3259d28c22f9a9ea20986e11c840f579debb0553b0c0"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/LegacyResourceFixture.cs",
+      "sha256": "e20da4648173b8928324219cd3651bce4b566249d8b39e1f2e4b8cd8a5f38726"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/LegacySurfaceRemovalTripwireTests.cs",
+      "sha256": "8e8aeb1ad65ff88eb994e1032dbff5c8e7db1e848efa9067df58ba9ebcb7af07"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/LiveCoordinateGateTests.cs",
+      "sha256": "59062f07a0313ecdb25b01fe8ec6ecaf95673058b8bba9eb75b9248eb5e84eb0"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/LiveDeviceCollection.cs",
+      "sha256": "54214a240169b08dfdba1ab61c0d1407f8b84ba1d2f09067eae7712a20d24afc"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/LiveDeviceSelector.cs",
+      "sha256": "e8deb2139f031dd1eda664a0fb40855190d066e9cd17b4ebc8f757f4ef1da2f6"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/LiveDeviceSelectorTests.cs",
+      "sha256": "a81bbf08a3a12059da40176f4012da7c2070180d409fa2b30b554b04889a55dd"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/ModelManagementCapabilityCompositionTests.cs",
+      "sha256": "8e9410c4c18a51a30b4ca9ab25b3fa68ed73ae520c08f41201919b3c271fb80d"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/PageIdentityRecoveryTests.cs",
+      "sha256": "be631eb12673cda9687f8824d6756376776eadaf137a9de122e751b51200db2d"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/PageSemanticReadSupplyTests.cs",
+      "sha256": "4ee380dd593c9addb3a0ebe3998d82aa8e79d5fc57e1ad1ef082c2112b137b1d"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/PerceptionCapabilityCompositionTests.cs",
+      "sha256": "024da672518909d9fa2b2e755e36c940e4b59d6a71ec0261cb61076b5a65c35e"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/PopupReplay/RecordedPopupEpisodes.cs",
+      "sha256": "fcfc60e731bc4afdfa88cd014057a2317999f6b9d00cdb1c9237463a1d12adf6"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RecentRecordingImportTests.cs",
+      "sha256": "a95f4fd966ad33dde49e09eaecadce82c96921ea232d49e63cce18d2c799783c"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RecordedHierarchyImportTests.cs",
+      "sha256": "21c3c04d0e8f0a67a60fc3dd3f12fe2d485dc9a9e4041324816fd328e34311a7"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RecordedPopupClassificationTests.cs",
+      "sha256": "afd858beeac6e60fe212e46053293f3ffa9faaf6ac84c25b958b4470f7004322"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RecordedPopupReplayTests.cs",
+      "sha256": "33ff6e3af6ccb5033b5cb4e8778d4d60eaeb2ab803b67abc3fce4c5b772bd289"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs",
+      "sha256": "c0a52adf496253c37746a3d875021eb76b248310797cead886cb1364414d3ee5"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/ReportArtifactProjectionTests.cs",
+      "sha256": "b37e183a027cc13222888a34b612e8a0f18114c13a519ad71fe34f567af09390"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RequiredReportCoverageIdentityTests.cs",
+      "sha256": "219f59215f296ef905faa9c6351527860f94e39c747187eaa5af002cc33dc274"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RequiredReportCoverageReviewTests.cs",
+      "sha256": "cea8e61a00af6317ee07b8ae8106c25bca123ad6a2090f85f06964878ee48aa8"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RequiredReportCoverageTests.cs",
+      "sha256": "13c787e18dc7ea42437c26895f760aea7fc0b540607a1e6e9092ee289ed07c35"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RequiredReportCrashTests.cs",
+      "sha256": "ae8fdb5fafb21ac7a77ffd984c78eb658d483fad8b3546aa7e48d3c5afe248de"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RequiredReportDeliveryTests.cs",
+      "sha256": "62d1640a78834dc03d9082310eb7522980c3906c183a448b291083abf03fd782"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RequiredReportSourceProtectionTests.cs",
+      "sha256": "c470f0d8c5d798c29946c61e3a1c59119d8b825ac83863210eea768c1bbf41e3"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunAsyncStorageTests.cs",
+      "sha256": "d7b391b9c9342d8df9a5ca2f6ada546eb920e9aafa71be4f6dcc5b4c3575caaa"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunEvidenceRecoveryConsistencyTests.cs",
+      "sha256": "f5ae197652dc1d4e6333ccc63880189ecf85db1bd642a15545e7063eb8b14f84"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunRecoveryConsistencyTests.cs",
+      "sha256": "f1e33de537ca9a8bdefbf5ad0688e9922b6b1c542bdf984990d43bfb39be6418"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceAccountingTests.cs",
+      "sha256": "564e399a0e66b69be56386d524e20111eeb0b375c551ad75f3961ef15b8db2be"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceCrashProcessTests.cs",
+      "sha256": "e61e494e6c155cb06674e2053c8bb84acb6993fe60b265901cb5f027e4045226"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceJournalTests.cs",
+      "sha256": "d6e0b62789ec2aedba95795b301f428c568f1265ebb7dc342596d59ad5e0f582"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceRecoveryTests.cs",
+      "sha256": "25b0b4a3f584dea5d8d0d1413107697c6ba79ad9f6da06607c46c4a3d1e9fc50"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceVersionIntegrityTests.cs",
+      "sha256": "6de567dffbec8f0d8d542353dba193c97855516e779ee202a8f78c4906ddd18a"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceVersionTests.cs",
+      "sha256": "cd8bfcada290fe6fbec0ca092ab25131726f6783c05cd61c7e6ecf9f3e579e09"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RuntimeIdentityCommitTests.cs",
+      "sha256": "508d10e2385af0695fb158a49d2ba90c53f7a5535f45575a78530256be1fd002"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RuntimeIdentityStoreTests.cs",
+      "sha256": "50756230c75dfbedbd73053a23a1a9698bce6bb9e09c15a812732e62fb13f52f"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RuntimeIntegrationCapabilityCompositionTests.cs",
+      "sha256": "aa278e0e10c0dea742bfe47de4a28237f79ee1727de1aaadd32d9c41996fb970"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RuntimeOverviewLiveTests.cs",
+      "sha256": "4205cef41f8139f16e036ca0855ba9df5bfe1c70fe2deff89b0738969e8d77f0"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RuntimePlanHistoryFileTests.cs",
+      "sha256": "55c2824bfe0f20f6c201a3381272840e03163c086fbc2cbc8a484c33bf10797b"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RuntimeRunProjectionVersionTests.cs",
+      "sha256": "92103aa4648193f848a38d03a5b293a31a8d3e338acd454751bf3e66d3197551"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RuntimeRunStoreTests.cs",
+      "sha256": "8ec7d2ab7aa38fb57a0eb2745f9da702f5b1095843d962bf2938ae4ebbc071de"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/ScreenFrameSpaceTests.cs",
+      "sha256": "c2bb65d22fd5d0dc0be5c250fa72489c399a7c323efaec7e503c61f4c7e15058"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/ScrollableOccurrenceTests.cs",
+      "sha256": "0ea22b5b27ab4ad6580af1edfd0b9cd515eef5e20917761bd816c3c426aae773"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsActionPolicyTests.cs",
+      "sha256": "ea6f93b3e9e970c6cad503894ca17966952ddfa99f326cb31b71b2fea999f388"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverage/CoverageDirectiveSemanticsTests.cs",
+      "sha256": "55446df70deb6a154dfb6d76966bb213eb66929014078d75cc414afe08fbecd1"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageArrivalTests.cs",
+      "sha256": "9f1183f87cee32a80cbae7ac2a18f6e4e888de8a798b8e4216e13aa05367d3b2"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageConfigCollection.cs",
+      "sha256": "b6cca2dcc75da842103f197228d99df14ed490e0941ab06fb0fb869b277a64d3"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageConfigTests.cs",
+      "sha256": "f0e100e7bcaf7f548cf9c794d30d4fd9c632befd0afef852e093ad373ead3de3"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageDirectorPlanTests.cs",
+      "sha256": "08835e348b0d29fd1b244a27faaad6c2297213b67a4f22ec69a14e5adba20881"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageLedgerTests.cs",
+      "sha256": "236900ba649616fe025508ddb16fdc6addb115a73ecaf451ced4763a19d0a06e"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageLiveTests.cs",
+      "sha256": "859c7d9e5fc35719b8c4e27486bf6dcf97e92211d65db62f63c9da653aa9b0c5"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageOverviewProjectorTests.cs",
+      "sha256": "093afee2b990ee8f087681caf6c05eb9cbfd48e4e01bc8beaec94b642d85949a"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageReportCrashTests.cs",
+      "sha256": "6e9f8d3ddad094bac91da5f8b7b1d379c0c9955af1c1c64619100105bd60b997"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageReportDeliveryTests.cs",
+      "sha256": "1b99643e848b993d4f25fb94c2233688d2bbd2a0711e8eaf3dbebd13bec86825"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageScenarioTests.cs",
+      "sha256": "64adf21a00f0397166a8712f210e13943349772c0aa5d6291074155aea4304d0"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsCoverageStagnationTests.cs",
+      "sha256": "7c61f6972f658ee641d37cacb386cd9a93e220d228db8489cbf4eba16379ac44"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsNavigationScopeTests.cs",
+      "sha256": "20bef1507d9c6955d2be8a02dd59860d5b1769fdcd4318502a9eeb7efd11d7dc"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsPageIdentityTests.cs",
+      "sha256": "280890683ebccc301993da6e94d8d3a547ee35882452289c27f11d23fb0aa61b"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsPlanFactsTests.cs",
+      "sha256": "559eec9ad92f0939c42e68d34594769b29aa3e9f8355dd9d1d20743f6269e979"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsPopupClassifierTests.cs",
+      "sha256": "0333ab5c1848b6a10dab0b212230ff0fd2ea3a5f9f91867f5dc524179b3f579a"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsRouteKeyTests.cs",
+      "sha256": "cafea181a3b45d0f3c6b0918b8bd3cf4bbb1795cdb727d03a0720d852dac5e8f"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsTraversalEvidenceLiveTests.cs",
+      "sha256": "b9d3f2ce8f5c636cb1720471618a494254522c4396f68424e7dcaae6c01d9eda"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/SettingsTraversalOutcomeTests.cs",
+      "sha256": "218030dd6db982f01bbc2317a46416b61d875f6651cc90a23007b0f473c8ade6"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/StorageBarrierFileTests.cs",
+      "sha256": "6fd8f357cd86fb7a6a865a753cab18b88dcbb2fdb39b98637007d9d1d237d7f0"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/StorageClosureFileTests.cs",
+      "sha256": "9e5138045efd75f7085fab4c2514ccec8ff4ac2d5debdc136da85814d6b94f8d"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/TraversalOwnerBindingTests.cs",
+      "sha256": "b5e6573a6ca9b7348f89e9f7e0bc0afc86217efc585e2e507f7527d23ba5e5d2"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/TypedLiveChainTests.cs",
+      "sha256": "727924020ffb1ee4f4a534a67f5a86f3e724cbeb2f9ecfc8fa08b54f2ecbb473"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/UiAutomatorDumpTests.cs",
+      "sha256": "e28513d58d87ff4b61dd62a958beaf3f70c2a658943c486acbe9d865e84af356"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/UiHierarchyOccurrenceStateTests.cs",
+      "sha256": "e759013db87431309afbf773b85573bb6684be64f44f70c066c2fc8885d63702"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/UiHierarchyTypedParseTests.cs",
+      "sha256": "06bbe34ed3edfe5ba4c7f8673140604b9a40ccc303eca1e434d2f61fcf05bd0a"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj",
+      "sha256": "480a6349fa0d3e72ad658a2147ac2896dd89d870b8a46ab4d35c95bee609f56d"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/UniPerceptionPipelineTests.cs",
+      "sha256": "6eaf57a309b60152b54f037a1d91d489ebda141985a280fa53c8b7ebd5a65510"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldAsyncStorageTests.cs",
+      "sha256": "58ccdf1d1ce9e82c3b5682e5747db1f2204c3a08b7868d3c7db6b29ff94e767f"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldCaptureIsolationTests.cs",
+      "sha256": "d84d7425716fb617ec14d25a9cacd7a3b6265b457700f49af691ba499a4beb22"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldCorrectionConsumptionTests.cs",
+      "sha256": "b6ddeb84d95a8f842fcc345645f5f9f5be755e136001508aa9d8eaa726caa100"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldHistoryBaselineTests.cs",
+      "sha256": "a2f148484a228c570d2eb9232ad5789d5c6bc6e58c9a17400c68e466540931e5"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldHistoryDeltaTests.cs",
+      "sha256": "0af20ea91b0dc8e3ba9e2735076b8c2b1efdfccf5775192d03fb91c57267480a"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldHistoryRecoveryTests.cs",
+      "sha256": "87a61e9c827cb185b09c049fdc85fe25ccd291c8e514ee2f797ecc23165a8d6e"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldOperationReplayReport.cs",
+      "sha256": "6fe0299f0f4f858b12bd91cccce94d529e1099ba772003b331e645147f1f053d"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldOperationReplayTests.cs",
+      "sha256": "4c858825b4253baf53ebb2227ec30bd4998f1633f0ea4ea5fbdd4fc45285cc77"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldReplayDiagnostics.cs",
+      "sha256": "e7200033f2815d6c97647d54e5748b15bb1eb92fe19f3bde9c17c2577b44d374"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldReplayGallery.cs",
+      "sha256": "4f05d368af817b138a0f8e9032e4d660d581475cd89aa39962791d8e4f8f4507"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldReplayReconstructionTests.cs",
+      "sha256": "b4acb0f4e7a14b296c72908030e2a4e42625e37add326e44f10dad7159769250"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldSemanticHostCompositionTests.cs",
+      "sha256": "aefaf05a02cbbd3cb6d2cf8742e86a8c9904ef93313a69bd97ff3a999ec95607"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/XmlProbeStateMachineTests.cs",
+      "sha256": "8627d8b5d534956dfa6ecbe90687481bac333b66f606140909356da4782d008d"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/AdbEnvironmentTests.cs",
+      "sha256": "b1934bfe10526fa382efd5ef56a9355134909010b98f952542ccc05b9694c0a8"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/AdbLiveDriverTests.cs",
+      "sha256": "70665b33094dea513cf9038d0d742239f82a816c80929ac3d9cfbb136360f36c"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Assurance/ExpectedEffectTests.cs",
+      "sha256": "dcc9dcc7fa1c970ac11126c140a24c83312557a0140559e647e5b24ac7b40c2f"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Assurance/ScrollVerificationTests.cs",
+      "sha256": "b4177afa07c3aa266a0b4d501ce4e79ae8a942167efe6c440a02ec3e2d5fb26d"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/CanonicalBindingLocatorNarrowingTests.cs",
+      "sha256": "9f3f067e63d17755c451197fa4d23b3dc4e65c95c6a6e24a7b138a8dfa17530b"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/CapabilityHubTests.cs",
+      "sha256": "290b92c5f7d70767675e87e3c542025e0c54899071be270a639244653935cb4e"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/ExternalArtifactMeasurementContractTests.cs",
+      "sha256": "dc5065f6f78b9df744b89a726b8c1175e1b636db0b77a1808dccaea6c091f492"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/IntegrationContractsTests.cs",
+      "sha256": "45923711a07d357c3e8faa9d867edce42284c027e8919a71f9d06f978a0523f5"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/LanguageFormatInspectorTests.cs",
+      "sha256": "450c8faa2f3d9be3223040d24201d04d7daed93d73153ac35b6741829f78324e"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/LanguageInspectorContractTests.cs",
+      "sha256": "fa04ba5a1811e2c7b30e3287ed1f3023b57d648d3a1bd206a4fcb6246a3dce18"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/ModelManagementTests.cs",
+      "sha256": "ccbe4a344e7c1ed6166ce3cd15cb2d0e2b58647432e0c91ca53c3784a8ea3965"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/ModelRoutingReplaceabilityTests.cs",
+      "sha256": "1bdec13f928c88349cc67c9ee022533fe3902772083d2aeae3cc0f2e234cd719"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/OperationMeasurementContractTests.cs",
+      "sha256": "ea901d05fce57d787a82e8ced8f2c7587379ff56512e7949f2a32db1192756f1"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/PerceptionCapabilityRegistryTests.cs",
+      "sha256": "96ab3807510acfe4e41541272bf3d8351e154e96587761cadc1c4e5f00479405"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/PerceptionProtocolReplaceabilityTests.cs",
+      "sha256": "f5287e15af2b86fbe3410e3e3ff8295ab002c0d0df7062fcbaa05d1bb0f43aad"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/SemanticPerceptionCapabilityTests.cs",
+      "sha256": "26b8db8bc461e13470b376c4ef5b459c7d398edf3d64b756e1801c9c9d0d5460"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Capability/UniPerceptionCapabilityTests.cs",
+      "sha256": "61b8209a495e74063856c7e5a7d410e049a5504e07a6f177e011baad344f46dc"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/CheckedGuardFixture.cs",
+      "sha256": "44067baeb54bbd64c5d1d7cb8b8c64d0b6cc58dd1f590228d4a66bf9b6c6086d"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/ClaimEvolutionTests.cs",
+      "sha256": "ba31db4f99dd2adeeb2091679f0c5e5cde40c047e5127a1ac1a73ddf27fe3ba8"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Compatibility/LegacyStateProjectionTests.cs",
+      "sha256": "b246663343d8ca15d4cff0fc6986661b5f0a8a5e04b5e3df51f01b4fd63eb29c"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/ConflictResolverTests.cs",
+      "sha256": "cfad2d6bbc5c432aa6853d6b52953da95c1f290d10015388a8431e68bde36e6e"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/ControlReferencePolicyTests.cs",
+      "sha256": "b8831f0905f29f4fd185c8c94c347644d943c22799c7f93c8b4bf89503bfd824"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/ControlToEffectTests.cs",
+      "sha256": "fbed2f577310801213bf346936c3dbc8870a5fcd9533244ba318b52f3a2877fd"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/CoreProjectionSeamTests.cs",
+      "sha256": "aab3e30fff1d322b68435f7fc656ac3f1dc7ef4ac0e0b75f807d5555c2bf4caf"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/DeliveryTargetAdbTests.cs",
+      "sha256": "2da4905ad45dd8718f01b636f549522dee283e8c4cd1385912f44d8979977bec"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/DescriptorMatcherDriftTests.cs",
+      "sha256": "416f3fab2f8291c3303aeb2ce1997c98d510c96b2554fbbf67e6264667f1ba6a"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/DesiredStateSatisfactionTests.cs",
+      "sha256": "44b622ae5d8708ccfcfca1892a013ac877a37c63d248f187f82473839c3869ef"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/DispatchSeamSpecificationTests.cs",
+      "sha256": "f0420fb598feffdfb2f859df6bf4d768878466f72378fc52a650313f32c9786d"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/DocsMetadataTests.cs",
+      "sha256": "a52a4c753acca1093bd13e59694ef00205ec63dded76f26920983b07c1a52bcc"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/EffectBoundaryExecutionSourceTests.cs",
+      "sha256": "eb203bbf419bf229a522d1115b50794830a7546fcabdc4cdb00de9c9c6797cee"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Effects/AdbSwipeEffectTests.cs",
+      "sha256": "46ce6f927976e4540a68fe30b1b8ba186e7f9770124cbce134ff7f4d0cee639c"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Effects/AdbViewportResolutionTests.cs",
+      "sha256": "224fd85b6076de5107356fa52b8536873ea66ff92553f1e7fc75c4301303c9d6"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Effects/DeviceViewportResolverTests.cs",
+      "sha256": "a6061a3294e60bbee3913eb95f25a4ec3577136f3de58e8688c5f87a6fdad29c"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Effects/EffectDriverReplaceabilityTests.cs",
+      "sha256": "bd7a37d5140c58f2dfbedf58c19851b309c77e02f977136151dd3a90ead0ffe5"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Effects/EffectGateMatrixTests.cs",
+      "sha256": "96311a2e4ece276458cabebf5621ea989ce306e73aec7f672d9b06784ce1bbd1"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Effects/GroundingSpaceBindingTests.cs",
+      "sha256": "3772e6a304db640bc8c58b846facb4eabcd5e3688450218fb66b6d5eb119a40b"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/EgoBrowserDeliveryTests.cs",
+      "sha256": "f3a7867250221ae68400c1028f7d5b22fa94dd6513868a3ab658436cd3f802fa"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/EntityObligationFulfillmentTests.cs",
+      "sha256": "45c0ad5b07c9f250159102c675823a226af3d7862c3f837fb78ff112d994e8cd"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/EntityScopedObligationTests.cs",
+      "sha256": "422d16ce8c74827682ba5f3a0de685ebb04cb04726dbcf11c5545e2fa841f208"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/EvidenceToBeliefTests.cs",
+      "sha256": "402cc53ff7b29cfd7a872a39fda09907af3f88daa0730727aa997345650acc02"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Fixtures/LegacyStateProjectionFixture.cs",
+      "sha256": "1e3e4882c601d8864367913b7cd3a10bf58276225846b8a6f4d65c72bbbef241"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Freshness/ProductFreshnessEvaluatorTests.cs",
+      "sha256": "e20d4573c8201af3485727cda850f043d065ccbc20347dd7c81bfa70cb9b0edd"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/FreshnessDoubles.cs",
+      "sha256": "3be4c80b1098423f23b23cfa58f66c7efce98e42e08f2658f4c24c8069dd5cd2"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/FreshnessEnforcementTests.cs",
+      "sha256": "87a832e4cece3f397bcb3f982c4d4d17267644afcade60795ea9a5780267150d"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/LatencyBaselineTests.cs",
+      "sha256": "fe16e4c56ebceab608b7244b8110bfa6f49060d3e5d2cfdacdfebb0475b7bf5a"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/LegacyStateSurfaceFreezeTests.cs",
+      "sha256": "3f0364dec70540def39fbf424ebb8525d0bae5fc1e4bcd0ff7c847aef6c12224"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/ObservationIngressTests.cs",
+      "sha256": "c2fa338dba40ba0cedf2e97591c94b752fcecefea4ac81f0bd9c14befd1740b4"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/CoordinateSpaceTests.cs",
+      "sha256": "ef4806be69c49a3f8d122f03648e2cf43d4b25b9aa16ad45e3142fdf74f34961"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/FastPerceptionSliceTests.cs",
+      "sha256": "870eb0ebb0efce5e69dbeed7b4f7323259cd53623d1832a83702a85c239d1c04"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/FastScreenArmContractTests.cs",
+      "sha256": "e919ceb5b4df2ec00c60996e141e78e29a29a7eb2e835d628bd227b48b594166"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/FrameComputationReuseTests.cs",
+      "sha256": "c97629df7ffb218efeb070b3f846418f06142cbb9d00d0c6d77a6f3c5d52cd53"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/Fusion/FusionEngineTests.cs",
+      "sha256": "6509c8671b9a3a9cb0b67de2246791bb0318369ea19b70efd57f16bc3c85d258"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/Fusion/FusionP2IntegrationTests.cs",
+      "sha256": "c4e6dd646851b0f88d63ba16738b08ea87147adbf1c0b3661a5e31ee321ceec3"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/LegacyImportAdapterTests.cs",
+      "sha256": "405bda9edaeab54915b81c9c255b8e4f4b3ce5b49fa958dc32f0e71988ace34c"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/LiveClosedLoopBulletTests.cs",
+      "sha256": "0c3d82324f287e46e9642c355246a1596754b3f9ebf710f59a33a870eb01ec30"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/LiveVisionStrategyParityTests.cs",
+      "sha256": "de41c5562367086b1cc4a34a8cdd0c65919bfd20ff52e549c349463e45528408"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/LoopTwinTests.cs",
+      "sha256": "bc1203f8820fabe635a5b6ad136678f19a5cfb81ebadfc038ee5344b895ec7a3"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/OpenCodeSlowRealizationTests.cs",
+      "sha256": "700314d932d8b455abd3828dfe60706967825821b0e683b8f1c85a31e25b6078"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/PerceptionDoubles.cs",
+      "sha256": "f61337c1ad74104814abaa1cad57f9995275830bc948ba2603e852def8c8fc73"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/PerceptionLiveEnvironmentTests.cs",
+      "sha256": "d473daff004a372f89bc368d8dae1207ab74f956f21d43f6a4cf6be25098a8b3"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/PngDecodeAndAcquisitionTests.cs",
+      "sha256": "4050d193b5516e2490833c1a17f228377cc6673936cae8a7ea2c8dce08b79853"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/RealAssetEntityModelTests.cs",
+      "sha256": "eaee03355fefe3a932d3788d0db589c3b2fbaa105933fbc1541937aebacfa232"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/SlowConsultationTests.cs",
+      "sha256": "0cb6f61d968d25a5877a3afca13678509f9fd895a7230de06e4595be9ea57db1"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/SlowContractsTests.cs",
+      "sha256": "c0cb1f38c8f5e2d42d770c48e46d469ed6aedb90025f50afda2cbbca05bfc11d"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/SlowReplayRealizationTests.cs",
+      "sha256": "a094adb022e27b3d7b3a28805a0f2d12562539a21ec2778ce7309e66e5cb412f"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/TextFastBasisTests.cs",
+      "sha256": "64625ec4af7553344149b757b631bcfa5a0b6089e04ffbab1ba4139511621ab4"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedGuardPublicTests.cs",
+      "sha256": "cb232115542d9f27e4d935b3eb563a1aa555c177974bf6ff72083ad08d91e689"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/CheckedSemanticsTests.cs",
+      "sha256": "7bf9ff0f72535a1eb50eaab5c2364de401148c5e1ed76a00e5a6f05de09950f8"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/Per014CutoverTests.cs",
+      "sha256": "51c514c3a440abf8a8d5d5e036b66b3532b8dab1a13612bd3daa5043c4ba8fd8"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/SemanticCheckedResolverTests.cs",
+      "sha256": "4fe792080875f3691cce1efdb57664bc1006d3bc05b33403963c5ce8e6da587f"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/TypedHierarchyProjectorTests.cs",
+      "sha256": "8ea0a7bc541ca4a1f63b2242691fcc0e27332aa2f31a3de1861380458a4dcb7b"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/UiHierarchy/UiHierarchyTypedModelTests.cs",
+      "sha256": "3bb747e9aeddae03b2a849ca981effaf6497585d4dfdd5e8c843af498f99184a"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/VisionServiceClientTests.cs",
+      "sha256": "d79c2021d5b34d80d14eb67574ed1d826d8c4efa37019c088e2eff2792f55035"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Perception/VisionServiceHostTests.cs",
+      "sha256": "e2eb99aac791cc380dafde08f85c688dc0bac323da82729d5e16cf680b9b388f"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/PostActionXmlRouterTests.cs",
+      "sha256": "6da673aac52b049e314c26ad68a2a62301c3f62152768ad7bc06633f247ffb14"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/ProducerTrustTests.cs",
+      "sha256": "1b51bbfe0b7656918a09584b4bb0a93aece13ce071f27a0e12bc89254ea760a9"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/ProductHostClosureTests.cs",
+      "sha256": "e214ff688a578a70deb01a3cd52f15d0c0e16f907d9058b6358e5b536677fc4c"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Protocol/ProtocolMachineTests.cs",
+      "sha256": "867a247f4b4d8324bc34993c80aea4400f603a178b317bad9a0e74e8469af15e"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/ReliableExecutionJournalTests.cs",
+      "sha256": "0077d1a9ed922db8a6fe4809b39ae170cc438da233b2b97b42af37e7fb8f228c"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Run/ContractOwnershipTests.cs",
+      "sha256": "93acd538e3009aac3c3011bebdae6d4ea3eaa4d706bd7596ced5f60433997686"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Run/RunAsyncStorageTests.cs",
+      "sha256": "1e1ab0d69b81f737609716f1bb3f3657f8c1b499f3f4f7d2ea7e66681b47c3f2"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/RunIdentityTests.cs",
+      "sha256": "af942f027d982006329410a1942fdd508a8f2e2b062dc756a2a065f24131b918"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/RunTraceBulletTests.cs",
+      "sha256": "1b27901b41b6f9fd638dc6e76b63bf982169ecf109129c32ede24584c0dffbd0"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/AgentPlanPolicyConflictTests.cs",
+      "sha256": "192599dd6760c8997b2a1180dce7c95383200c456e373d763a4b65506f4ef2ff"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/AuxiliaryObservationIsolationTests.cs",
+      "sha256": "da7074e471852c968ebfb899158f0de10e0fd34fcb3afb83adaa58f6f6e50909"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/ConsultationCheckedStateTests.cs",
+      "sha256": "bb9a19dee7faf29b3d4cedd943bceb9b1eed851312503c3263699b297e8f6582"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/ConsultationJournalTests.cs",
+      "sha256": "efbdc20b1e2b30eef71b1b0ec06288cd387ae989056330caf4fc4d6126e1d96b"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverAcceptanceV03RedTests.cs",
+      "sha256": "644d17972467bd3c4d1bcaae345b98b67dba1764dda6878ec0a49279917bee66"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverBudgetRenewalTests.cs",
+      "sha256": "22fca47668f9f7219041e8a21a408d9e841cbab67e32dc45eee1e582bbc811ca"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverFinalizationTests.cs",
+      "sha256": "ad8b234dbef8d527ecf0ae680a3d08c5c91c011a3502fdcab006674c58399056"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverNavigationGraphTests.cs",
+      "sha256": "85f747c8e5671943d93f38ad83e6f70c58884a42319ad85cd2dc8a16c4fe5328"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPlanTests.cs",
+      "sha256": "26a9b11b953b378c2f857da8682b44c99ecebcdbe2570e061a30239607478d89"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyExpandTests.cs",
+      "sha256": "7e05b8f37a6230c2b618391ef94c4ed4f5980a56c61e2d6da2110043ef62ebc8"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverPolicyValidationTests.cs",
+      "sha256": "90c7687f83b78e90f1c849a8531686048b24ba6537fa61f82d161b96693e06cf"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/KernelRunDriverTests.cs",
+      "sha256": "cdc8175352ab32e7560e8d44bbc39ef462219820cf82374a87d6e68cd8704dce"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs",
+      "sha256": "64e757eef4a7370f6e46ef5a1684ab738700aaf77e093ac7fec6f7cfab893e25"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/ObservationRecoveryControlTests.cs",
+      "sha256": "60e8f87848ba17133e35548e80992ea0342454fc8bfd688e6ffb6191a9358865"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/PageObservationExecutionTests.cs",
+      "sha256": "dcc6535f000f1e029a1cd9904c0184c4c534076a4b8f4e7b430a398ecc6491c9"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/PolicyProtocolTests.cs",
+      "sha256": "3f21a789aeb25284a7028c15d3ae92a4494522a1b0967a8ff185b7da4c865bb5"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/StorageBarrierAsyncTests.cs",
+      "sha256": "33a77eecc4ac05ff7949037a85c11858d350ba0670f102d3b1e72faa025d7b88"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/StorageClosureAsyncTests.cs",
+      "sha256": "8ac78f5bb4c82bf7bf2396aa58951517c3be891e16401bac1301f45d014bfa05"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/StorageGroupAsyncTests.cs",
+      "sha256": "ee54a8e0e31f0bab2905dfc5e4e77a6b25ed13fbc530e22f0138d3878ed80d5c"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/TraversalExecutionTests.cs",
+      "sha256": "fc5ba7855937bd23e498183772cef76ed57b5556d6db2cd3b9f06d3e03208415"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/TraversalHistoryTests.cs",
+      "sha256": "9308db228127acb4efb07e202e931908cb9aaa0e020d37912824d23f54d58a4a"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/WorldCorrectionImpactTests.cs",
+      "sha256": "896c7bb070f870daddf825b501afe1020126ac1e479bf2b059888984e4d6d665"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/WorldKnowledgeConsultationTests.cs",
+      "sha256": "60cc22c2fcaf9509ad99ce096f2268f89259dd8a29fab2440bbd81353d664757"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/Runtime/WorldRecoveryReviewTests.cs",
+      "sha256": "0f52d048a38a61ba9405af76edb1148ca46fe6ac854c8724ebb23745c037f63b"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/RuntimeViewExposureTests.cs",
+      "sha256": "7feffbfedd9c38fc61b6e2c2da62daa6b815b02a3792c3543f2105492c991c1f"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/SourceReadmeOwnershipTests.cs",
+      "sha256": "310f1f2ee3aa07c1bcfd4ab1ef553d3ab0b44ea3aad31357fe2b21d03fb66f1a"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/TerminalOutcomeTests.cs",
+      "sha256": "0cf54ec8dbaffb7c03aa41d8a996ab8c26e70b72113404f5ee7feb1d94ad34fc"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/UIWorldAssociationTests.cs",
+      "sha256": "9f8916627e2b636aee045bfbb81e6bb59c984af57803b2ad42c5d2e7af839de0"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/UIWorldContinuityDoubles.cs",
+      "sha256": "d399783e4a2a434e8d556718cc9d2dbf66fbdaac266c6ef3a6b56250b3816de9"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/UIWorldContinuityTests.cs",
+      "sha256": "c352ccabdf7f951d7565da7b58c1a92e84ac5254e6958442a87398dda55c37a6"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/UIWorldDoubles.cs",
+      "sha256": "8beb1dfb1d75a94966acbd87e254060912540a2a99e8b703b9a915b432e55b09"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/UIWorldGroundingSeamTests.cs",
+      "sha256": "5a782987956323dff0182bd8760724c32ec2d4482508e2cfc806e0c6bb21b6e7"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/UIWorldReplayabilityTests.cs",
+      "sha256": "aabd20f29809b153534d287a9187638d5af641db6021eeb98fd57018c4d33339"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/UiRealizationBoundaryTests.cs",
+      "sha256": "5c274f4db1f6521814f6cb465de491fc41868063d7fcba5ef3352436a1909607"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj",
+      "sha256": "58f44bbdbd7780b936abde47194b892188acedeabab80137f0127fedd572e803"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/NativeContextObservationProjectorTests.cs",
+      "sha256": "53f5d51400c2e8e255a3702b198101142f697ce15401589c6c36c3fb07f5da50"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/PageObservationRecoveryTests.cs",
+      "sha256": "d4a86c72c006169d23fdcc96f69e7f500e7c8f586ed5fb68a1e4ca1dd10c123e"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/Per009RemediationTests.cs",
+      "sha256": "4d1c5a2008138e871601ff43742c7cb355def979e3c5646bd3b23198f3a976e9"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/ProductAssociationStrategyTests.cs",
+      "sha256": "684f6fd118ea6d232de238134c2b07eef5ba259a999e0757018687016f3411be"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/SemanticCapabilityWorldIntegrationTests.cs",
+      "sha256": "468778bbcb1b62eebf587d738708eb0a471ec5fc10dd6a26a5a43d8383c04b4b"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldAccumulatedContentTests.cs",
+      "sha256": "aee78723f7f9ab53fc95e24f29e8fc00f52115168cd362239772ae6fcf9dc08e"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldAsyncStorageTests.cs",
+      "sha256": "9262c9b94601971b0a30e5ea8f5b13d7ba7c07a93fa26e5439e012dd21073065"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldIdentityReconciliationTests.cs",
+      "sha256": "5e791d1ad372ba66d14d52f0e73f5d1536c0b3ed8564e4ff832724c732164d20"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldKnowledgeGapTests.cs",
+      "sha256": "ff7d7b9f2495587c84b571a08c810155a5bdf039db30a0870d61d51dde9d970c"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldObservedNavigationTests.cs",
+      "sha256": "50e4c4f61b140b99faa449b1d1361da93c2188df383227d6281f0e8693501d05"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldPageCorrectionTests.cs",
+      "sha256": "a518d7583cbb9f6764b86e97a498cd47ae5f08d4715570645be8a506be9bf503"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldPageHistoryTests.cs",
+      "sha256": "5e4d1824e1c5aaa53b34f3399b7236a8cbd80bbc9afe3ad93d3ca14286f48bf7"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldReadViewOwnershipTests.cs",
+      "sha256": "e7c3fbc68aa38782ab00b55326cb6fc704991b40ae8770e9df2e3d6347afab85"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldSemanticEvidenceTests.cs",
+      "sha256": "5a05755767f41a8de942f228f15203c806bf4b84376f8628061fa4031b6fdf34"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldSemanticReuseTests.cs",
+      "sha256": "bc3addbb10f560bb97fbebaa9fee0af422b105d39337b3ae9744a9117dc1b036"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldSliceScopeTests.cs",
+      "sha256": "a6adfec96053cd4ed39160c0cb1c8e7bc87809dc1338e998f1940b8d4afd06c4"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldViewportTransitionTests.cs",
+      "sha256": "c379bc3f778864919bbbfb8724c0327d2c32c71b47183853ddc4b2d68851ca12"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/World/WorldVisualizationExport.cs",
+      "sha256": "aba2f17c05e664c2fa0932e505ddcad66e1302239ee3719b38b2f640e3390940"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/WorldModelBenchmarkProbeTests.cs",
+      "sha256": "47c1b06098b63a2461f3c2c46aeb2918d558d710d68cfe1db7b1ec569a04ce60"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/WorldModelCanonicalOracle.cs",
+      "sha256": "81a689142744c270123a6d7c7c137acfdcfcd663e74c3e774bd84592724b4400"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/WorldModelCanonicalOracleTests.cs",
+      "sha256": "45dcb45129802634181dca3f3158c4470f855bec25dc57a5627c2087a946c128"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/WorldModelIndexInvariantTests.cs",
+      "sha256": "4b5aca8083b5f086fda3558b1e2d0135d28469e042a54fc20d38e07a4f0946a0"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/WorldModelMaterializationProbeTests.cs",
+      "sha256": "712f65eb00818fcab1a2d320bead5d724f759a5d69f8a62fb355af7ca722f0ad"
+    },
+    {
+      "path": "tests/UniClaw.Kernel.Tests/WorldModelPerformanceTests.cs",
+      "sha256": "2cc36f02eb86d717370cfaa95c57a297ab798b7438e072016cb856fe2df45498"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/AgentScriptTaxonomyTripwireTests.cs",
+      "sha256": "9fc0faeac058229499dc9c07a42ad1e3c610e327d8e57f13825f3662ea2b06a9"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/AssetGovernance.cs",
+      "sha256": "56e389573972358233957d70dfd9254e1ee34076f881218182b886fc94684613"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/AssetGovernanceTests.cs",
+      "sha256": "6915d5785631139e9a473887dff50c0e848dca0b2c491a0b2ab7d39fd58d022c"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/AsyncHandlerTraversalScenarioTests.cs",
+      "sha256": "b6d84301eed4a0b49ae2a0906812ce85c60d725176e4b01f34ce8a19fc8f5a3f"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/AsyncImportRedriveTests.cs",
+      "sha256": "3aac72141472a40934f37f0668442ed05d04096a4c77238f93cc5eebef545851"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/AsyncPerceptionFixtures.cs",
+      "sha256": "c24a86f7885476a512d3d29f84b7588f13ee2bf0b90b682611731c263a9f1454"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/AsyncPerceptionRealizationTests.cs",
+      "sha256": "bc692b36aab7e0ed413be0d4671a4a528d5c128e754d09a427eeced94b9e0c06"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/AsyncPerceptionScenarioTests.cs",
+      "sha256": "7bb7a73e9a15efa35684df826052f9e61abbcddc52e8a1f7e585b94899686038"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/AsyncPerceptionTracer.cs",
+      "sha256": "f764932626a31c5c295e16fb69cc2289ba095a6f05dbf9391e5992d4e5e40389"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/AsyncTraceWriterTests.cs",
+      "sha256": "935f01b8d33f75d9a87f17bfee9359c6b7bcfc981c9f2a72ee4d69fd9373f1c7"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/BundleIntegrityTests.cs",
+      "sha256": "b8cd7f3a0672dc84a9990356d4fc7657d03f677bb9655c97093efaa5c5f1e814"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/CanonicalEnumerationRegressionTests.cs",
+      "sha256": "d0a62ca2a50c81f9412a03607510a7ba75a66481e7b7d1472f747d76057cd44b"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/CaptureMismatchFault.cs",
+      "sha256": "d335836ff3559a27ecf228e21f23a39367b262b56f9e0716fe4be7b6f9651d87"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ComponentReplayCases.cs",
+      "sha256": "11f20a1c1c2da624ac70d8f8d82e497245cb2126e46610792a796199d54e31db"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ComponentScenarioScope.cs",
+      "sha256": "c4e77aa2ec6e82b263d92196fc3fb7901c25509bd9fcf706e250097a8ae460f0"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/RecordedComponentInputs.cs",
+      "sha256": "6253b03e6115dcff987e18745d6984a4c4a4d798750c53a704b3b700cccb65ac"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs",
+      "sha256": "7484b6b65767ad7d631444a767e0a6afb88cfa822a03795085532169f4e1ceba"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentReplayGovernanceTests.cs",
+      "sha256": "a30290179fca1a518069a5cae05b8789d9c9ee243981b1900ea055baff9c697f"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentScenarioScopeTests.cs",
+      "sha256": "b0b9b6740e1e07742f6b652d1578d1af2906e2a2c497a9f9b164074ff80889a7"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentSemanticReplayTests.cs",
+      "sha256": "42f2df3a9a1bdb3860854a9d8eee27b82b384f3ce6f97f7cf60c6d4ddd61f5a5"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ComponentWorldReplayTests.cs",
+      "sha256": "74ebe14a70d793de9804271ed82e8b634688553a08e43891cd67ada7992077a9"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ConsultationJournal.cs",
+      "sha256": "eb82ecbcf8ec29be6c962a6a1697e9e8b9d416a953e2c2609970f970d64c110a"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ControlledCheckedReplayTests.cs",
+      "sha256": "2c3d18297d4b1c633c01b3602f8d3980994842c517669eb6b33efd6eb12215d5"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/DeterministicEffectDriver.cs",
+      "sha256": "0e499544feb8377884c666256d2e3f05ae3320f96cbda66d20ac819c1e3bad27"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/DeterministicScenarioTests.cs",
+      "sha256": "bee271619731324c71040bc52be0ff7ccfb218c01981b40a76c4261a2084b2b3"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/DevLoopRunner.cs",
+      "sha256": "feab0b5faa87a8bc1b4ba88f09b626a6376714528364ec5e1f2319dacc1cc57b"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/DevLoopTests.cs",
+      "sha256": "dd0e6e05770e1a4a200ecfd2a5ad2e940f9ecd4da9cb774c16a833a46893c192"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/DevReplayPerception.cs",
+      "sha256": "c90de16b8e3191d1c4feceb908bf6a834a8d87417b96e525a7a7092d50d5e8c8"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/DevServicePerception.cs",
+      "sha256": "8408fc16a1ed940147147bb75445260ff930667626f4fa377de8d1eec141b1f4"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/DevServiceReplayTests.cs",
+      "sha256": "aa24b082aadff32eaf9f5d1e6c095ceba99608ddd69dec7f5f441b4c9d99cb25"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/DevV0Runtime.cs",
+      "sha256": "9dce30b0230b8babed009a8bc99a6c4cec2da980bc827d038d1c8fc8ed4a0156"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ExecutableExpectationBindingTests.cs",
+      "sha256": "e5153a7ef703a0fd5564e77959370d3bee03b94a51a1a3bcaac4092d4ef88934"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/FailClosedScenarioTests.cs",
+      "sha256": "b105b3e82ce421227954b73cac76abde43f79603be68a5b2f581aac759bb6bad"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/annotation-cases.json",
+      "sha256": "2786c9974659108ec3eb7e0cb8ee92e49b84b9bb30e0b09d0b57e6f5bc81a593"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/all-apps-after.json",
+      "sha256": "0a309b9a3b5c27832330038e54ec2893d640fc6282c9cc446ea184599beac5fa"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/all-apps-before.json",
+      "sha256": "a940a13b849946740bc7107bab2c0bd5ea4cb46382341a1ce5bb1a7a54c1582a"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/default-apps-after.json",
+      "sha256": "12420c2225b5d2359a894b02e6429b58d1f6c82e554ddcddf9f33004ddaba837"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/default-apps-before.json",
+      "sha256": "5ff2934dff356b51dc0118bf2761e38f7462ceff5805aea56432bdd845bf7922"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/sims-after.json",
+      "sha256": "9fbf7204eac4259d419fa4934dccca76a13fb1511c38eef494eae9536d4447c2"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/captures/sims-before.json",
+      "sha256": "36a8c2f3a3445d8b4cfeabfb957ff78cea3993a8559d55847c30117eee376ed6"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/composition.json",
+      "sha256": "c1b2e00cbcaed3e6b93e6fb6a75ce0f15e7b353d5bfa516fa1fc05c007873a1a"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/oracle.json",
+      "sha256": "1b0c862d1e7e7ba69b5957fa97fb280e1e34385dd7e5e1afc88925762674641a"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/responses/all-apps.json",
+      "sha256": "8e3a9bd9ec27219f46719bda8b1d3f20c17c1d6ee013d0cbfc5169d1197abf74"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/responses/default-apps.json",
+      "sha256": "1597fb6e62c0c8c046f255652fcc2206f91ee9408b35364207be1e0a00456c54"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/responses/sims.json",
+      "sha256": "6b02e3ca5cff8153c3b7f7c664e2ee48fe79140da470f858b0a528fb38c5dd9d"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/ComponentReplay/suite.json",
+      "sha256": "3a4edde0219c126af6f393265a994faf7ce43800865603297ad921006a6bebb1"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Imported/network-initial.json",
+      "sha256": "c56b91a5b1bb67a26c14d8f569c8906640cb2dfbae9815eae635213d65eb7ecd"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Imported/network-post.json",
+      "sha256": "8851538a3327ebbfd47d08b8a77fc2b432b03bfe044f0cdcad1c0031d68b7f8c"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Imported/network-unchanged.json",
+      "sha256": "9ad0ed8e0ce40fbff74f4f786a04fd3bee1aa8d1c227c7af3200826e483d243e"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Imported/stay-awake-initial.json",
+      "sha256": "f3c6d81eae91a5870ee801b8bf19c8726ca06f567b2102ec30d22776606ae521"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Imported/stay-awake-post.json",
+      "sha256": "de2b7a93b42b09df994a0e9e57efbdc2d3534469d35d80277f63bada10c4b9d4"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Imported/stay-awake-unchanged.json",
+      "sha256": "1081796061617c2f2f169910e5ff3bad4f87a9032b44849d89cd53b1f1d942ac"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/all-apps-after.json",
+      "sha256": "615c357fa473c17ea02153d7a0b40b2912ccc33d293d31e4556ada6b207adb79"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/all-apps-before.json",
+      "sha256": "5a3ceb92c081ee614b311040b4188504ed0e6ad651f0f066a8e54004ff96d263"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-after.json",
+      "sha256": "712f4be002fbc8ec137ed07b623ee959f3ac95949afa67216d0e7ec559980821"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/default-apps-before.json",
+      "sha256": "04d23fb8be071146fa61138a037852e2c79f4eae1e1764047c431a92e5bcfcf2"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/sims-after.json",
+      "sha256": "f3c48004127986726788ab7b895138d7bb7895d9abc7dc67a61952f241849678"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/Recent/sims-before.json",
+      "sha256": "a279ca1866d7be8773c0fb0ee61ab0e1d86f345759ec9cb1a8d5e0542fa9a3f7"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/controlled-checked.json",
+      "sha256": "0cd94bc203e307a88dcdcae8629e0ab5bbd7405e490b529cdec024c7c25bf5fd"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/operations.json",
+      "sha256": "36e0d4afb9ef5f987fb4898b9c8a89c1eaec1489e717fb5d4c098da9178951b1"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/page-identity.json",
+      "sha256": "2038f6d1b58cdf027b88e7d55983246247a74ce7d30e42a97ae4236c659d404e"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recent-recordings.json",
+      "sha256": "6dbac2bebc83484183f828c9a3b3e0592ec040f50a3d5d9538e49685a0e5d26e"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/Fixtures/Replay/recorded-operations.json",
+      "sha256": "4157da03c90258f9874c3fd39d7af2e4f1abdac3cce39dfd9d9a8ecc219e8260"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/GeneratedScenarioTests.cs",
+      "sha256": "ddf3a11928c8c839673e1d2b4feabf22f5c47d4af99595329c789ec92358e6ed"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/GoldenScenarioBundles.cs",
+      "sha256": "8832da47467d0c3adfbdd9ca895024394e00b4673c1b59fc670f4980df744b15"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/HandlerTraversalScenarioTests.cs",
+      "sha256": "f3c1abe91382f8fbc223bf7fc907dcecee2b60e1769d52236d8e6d575f5dd623"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ImportReDriveTests.cs",
+      "sha256": "c7f68ef4d60e1c60662e855e93d073d1ff57ae50412cf4f5b8edc81711b706e9"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/OperationReplayRegressionTests.cs",
+      "sha256": "03e91039a096b950fc74ee594cde8d3ef5769697cc22f5b58cdcb3a4c2578354"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/PageIdentityReplayTests.cs",
+      "sha256": "fb8bdc6df7ca05c2fc2eb9d3d2459411f14e0b11635e4a4a0d9842fd982d3dd7"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/PerCycleZeroDisciplineTests.cs",
+      "sha256": "3df84180b2d78dc1377d4b0e9839c204f95dd910a9dae6aaab2d707586ee90e6"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/PolicyScenarioTests.cs",
+      "sha256": "249c0074441f0c6047ce7099a481eb9b7e13817a477a244ea3415dc1254442ff"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ProtocolAlignmentTests.cs",
+      "sha256": "8fb38237d0befe6ce9993bc5025715ad814eba1e7293c66bbab4d1020cf76462"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/RecentRecordingReplayTests.cs",
+      "sha256": "2e68f695961cae94d598441a0ced3952bac35ffe8f4fb7afe7f1a29e57ae058e"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/RecordedOperationReplayTests.cs",
+      "sha256": "eade944ed50bfcc3506fcdf7e1136a2481e997fa170cb2eb21c0f006e0218f33"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ReliableExecutionJournalRestartTests.cs",
+      "sha256": "e1535225b9338cfa7c793904e8fcf8fff6e38b5bfbaba906db9ffff14996513b"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ReliableExecutionRecordTests.cs",
+      "sha256": "a5696e66aaa7e34fd68f9ad6435e1d771c5e5ada98e8aad10a5f7472156c2248"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ReliableExecutionSourceFixture.cs",
+      "sha256": "a9bdb2c768b638f5ab165671e77da5bc34acb7fd77d00154e772cfdc6078f39d"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioBuilder.cs",
+      "sha256": "036795442c9d2843c9b0d81dac82d5d0f8121f7844bb13ab3c93ca7d83e29d44"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioCertification.cs",
+      "sha256": "fe63d42a2aece521e3f499439fd98717b4d0328198c48f838abd867c15cb1582"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioCertificationTests.cs",
+      "sha256": "64b544784a1300f3bb59a2953e1e4f1f5db10dfff9457b85af6fe6ed596ab76a"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioExpectations.cs",
+      "sha256": "1efeaa2f1b1809e9c6e04b42379d6873c7f5b7f626dedf735c64541d1728d32c"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioImporter.cs",
+      "sha256": "f0347dda0856b0f625f1b47b07d592f029a869c928e3cf8ca459397698aaecb7"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioImporterTests.cs",
+      "sha256": "fd5b5062ae3a75f1ee8667cbe15889490cb65b66b59e474ed1cc41a2f395ec0a"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioLibrary.cs",
+      "sha256": "7b0e0f53445c8785ca9c389e44ffa52baafe8b7dbdd252671757185a645be01b"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioRealizationAnnotationTests.cs",
+      "sha256": "55b7e9b05414762a18b33c3d7b0fb2335e530be540d55cf560c83757ea919bb9"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioRunner.cs",
+      "sha256": "561c6936cf53774c7e907f1a6834cae14f7c388a7ad5a50a00920da8e28c2f6c"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScenarioStimulus.cs",
+      "sha256": "b4d1a2622f9b0f90eb54e8d21b75148ee791cb35d82c96e6aafeaf33c7be88c6"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScriptedUniAgent.cs",
+      "sha256": "77d9057daa750dcfaa1c2b4f4cd317a992b3855387a6da3ff803cb24dc3646b5"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/ScriptedUniAgentTests.cs",
+      "sha256": "5b8cd86e39fb5340b1b8ad1d8660bdea7d3656053de809a335489d820fc151ab"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/SeamDefaultCompositionTests.cs",
+      "sha256": "8f0533e9b07c4129c40da424afbeef943114c836f120ae9a171ebb1861ecb5be"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/SeamOverrideTests.cs",
+      "sha256": "dc54b387ce57e8dee3d0b90673a60795a1245081518a294b0e749120ff3e49c8"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/SemanticDigest.cs",
+      "sha256": "0e14cf01ffa6ca0c47d647f17afcb70b9aae0d7f4ff699be0779d35094751a52"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/SemanticDigestTests.cs",
+      "sha256": "7ba23ccabdc28a0c4b4030d3d0827efe92bceef240bad2052ad55b61d88da337"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/SimContract.cs",
+      "sha256": "3ef7c9af442b1ab9d42f2ea3a658235e065415ce6e1e8b914309177511da3764"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/SimulatedCapabilityIntegrationTests.cs",
+      "sha256": "22553b8e18218d4c4b4daee1232749be72c69bd051716b6c0793bd3de491721e"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/SimulationHost.cs",
+      "sha256": "be6ae701ed06816271f710b563ee0ee765f28a72fa5512aae2854d797cc25247"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/TraceArmsAndDigestTests.cs",
+      "sha256": "922dfed32f00605d78ff8dbb45549ef5febc89359edb87d0dab14e12474900a0"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/TraversalScenarioFixture.cs",
+      "sha256": "b9e696e96259b571e7bd798a617c33dba39cdcaf45e70da8ff54f88603b4cb1c"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/TraversalScenarioTests.cs",
+      "sha256": "16614d3586fe795ac5682d4fc644e96d44a9b563f4cfeeebb3236d2e51738f84"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/TwoStepBarrierTests.cs",
+      "sha256": "3ddfeeaba17eedf04bd07d7813c492f0c4cd73b6b508b15117144b17a4c10597"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj",
+      "sha256": "dcfb6ac939402094ff5e555d72a9755a7dbccafedd38dcecdfa78d2f17c2f663"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/WorldReconstruction.cs",
+      "sha256": "d4d707dc7220a6123353371ebd36f12c3d887e03270a9cec0a8aeddab217da5f"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/WorldReconstructionFixture.cs",
+      "sha256": "38a3d880438d40615f11b9476ba7cf6d45d1c72cb29ecc5c4b249000d04bfcda"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/WorldReconstructionTests.cs",
+      "sha256": "bd80d53a605e765a725b0df496cb274b2cda6082d6b5a5d22895a9590af5f4da"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/WorldScenarioReplayTests.cs",
+      "sha256": "cb21bba346f4e8b07ca9845ace4a20c7705d657b74f5c2008848b908fa0e8851"
+    },
+    {
+      "path": "tests/UniClaw.Simulation.Tests/WorldStrategies.cs",
+      "sha256": "68c325654e878f21e1c6dccc0016bd19189f54b4409e3ce3ec66ee0b73769eeb"
+    },
+    {
+      "path": "testsets/simulation-baseline/manifest.json",
+      "sha256": "5e7deef71da224349fdb5ae8eac2900fbcaa97974f8189ff96a11d3b00db7bd6"
+    },
+    {
+      "path": "tool-registry.yaml",
+      "sha256": "1839e634b949da37f7ed3e0021a886fac1d57261dbb5f733f54131b17e575a4b"
+    },
+    {
+      "path": "tools/EvolutionReplay/ExportedCaseTests.cs",
+      "sha256": "cf16bece3a3b0f8885f295e7d756b130bb95680b147e98dcd859780909f4487a"
+    },
+    {
+      "path": "tools/EvolutionReplay/UniClaw.EvolutionReplay.Tests.csproj",
+      "sha256": "7aa0927bc2bf3a7c1ad4020c63e357af1f86e4c5885c82ceefd5a9570565e7f1"
+    },
+    {
+      "path": "tools/README.md",
+      "sha256": "3c58a822388b4eee411ef5a1a4dbe5ab1adb8bea8423688dfd2158f063d845d5"
+    },
+    {
+      "path": "tools/ResourceStorageProbe/Program.cs",
+      "sha256": "0d501e3d87577470e6a3ab7d1fb495610c0a9756ce80971494b6500c002f9b0e"
+    },
+    {
+      "path": "tools/ResourceStorageProbe/ResourceStorageProbe.csproj",
+      "sha256": "70fd12bcbb22fa5cd3fdf33b8f9d304cd2b62f23bc42067b8ff7e06ebf1a4c5f"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/ControlPlanAsyncProbe.cs",
+      "sha256": "e7e0e197400040ba8ae0d7e221661621d33c4db97686164ddb563341eb1d546f"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/ControlPlanGrowthProbe.cs",
+      "sha256": "2e98bda956a7af0a5c9c1c66d9c83199992256b106270dd79db1b81548df9122"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/ControlTraversalProbe.cs",
+      "sha256": "f847496b9cb80378f717278d7954397f3dbeadf60aaaa4755009156bdf7c7e35"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/CoverageReportProbe.cs",
+      "sha256": "3a861eb8b822d28d3e90e4e3187f035e3ac4caa6dc146852d4e1cf11bebf9d36"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/EvidenceBatchProbe.cs",
+      "sha256": "526f63fd41507a114d9da6b5eee73f3e8e26258f9408b58f6a26d943dd044611"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/Program.cs",
+      "sha256": "a0a3cf948c656cea0fdd8b4f7b67cedfd160b7d4c97fd94f6c6e09f58a8a6ace"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/ReportDeliveryProbe.cs",
+      "sha256": "cc50615860a338590ee55a2a16a8d679d46a4bf0ea197ec95b588422141bd830"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/ReportToolProbe.cs",
+      "sha256": "2bc18169c2ca03a10001d6af20f92710e223c0e1d28d6c2af4283717c1ec9aa5"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/RunAsyncProbe.cs",
+      "sha256": "63a81336859de97b885ca6ac5e3bf44e7acc4cb8531acfa91ee1e28a5a0c78c7"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/RunRecoveryProbe.csproj",
+      "sha256": "5c5504e5950730a22534935e272549ca8819bb3170b5a09a267efab93d4cab46"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/RuntimePlanProbe.cs",
+      "sha256": "a553942a58c7bf54f86b71b624a010cdee319ac9125798a39e7691fc3e50f00f"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/StorageBarrierAsyncProbe.cs",
+      "sha256": "8ff682b954414675985cc4250f238d508d512671c6fed8cadba27952139080bf"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/StorageClosureAsyncProbe.cs",
+      "sha256": "de5150ec68b3a07baf13c86f814d0905a168899b3f6114215ba09a10d8ec1800"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/TraversalHistoryProbe.cs",
+      "sha256": "669447d73b3128e2d707dfe3db1d1cf07990596664843b9e13deb1339daa4c0d"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/WorldAsyncProbe.cs",
+      "sha256": "737df086fb76eccc945d1b8bda0d973c27555bf62e2e6b62bb172652a22e3894"
+    },
+    {
+      "path": "tools/WorldStorageProbe/Program.cs",
+      "sha256": "a7b9bd876c25caff79ac7b3cde87cb9f044711649112e538675df9d191583b46"
+    },
+    {
+      "path": "tools/WorldStorageProbe/WorldStorageProbe.csproj",
+      "sha256": "d48931757262aeb63f52448ca9a944331b2d20083349c77a75f1ea6f351e1fc3"
+    },
+    {
+      "path": "tools/android/emulator-supervisor.py",
+      "sha256": "928c493df4b2869fa1bca845ab3935f7752115437d50739207bdd16d82ed8e22"
+    },
+    {
+      "path": "tools/audit-decision-input.py",
+      "sha256": "17d6943235dcbbd05e0bab2487a767e88a406e41def911a4690fd0bd3f26779c"
+    },
+    {
+      "path": "tools/check-invariant-matrix.py",
+      "sha256": "50e357583199bc9b445c7a49479ccf0a914d01e66daac9566e2cd4ebbcf05800"
+    },
+    {
+      "path": "tools/check-scenario-reasoning.py",
+      "sha256": "b9949ff93a7a9ec197ab36a5e246b9c380f583020e7b324cc29585324e24570e"
+    },
+    {
+      "path": "tools/evolution-case.py",
+      "sha256": "a0545b83ab6c6699ff2ba0595daf9f1a3b1ec9668e4ce9090e1386a59cc4f180"
+    },
+    {
+      "path": "tools/evolution-signal.py",
+      "sha256": "3ef7f0dbfc74aa626eb317b6324f2d457fa3936f20b0ad06570d14bfbb1b0d1b"
+    },
+    {
+      "path": "tools/gen-open-changes.py",
+      "sha256": "623dbe2cf688af7c16282961a71e55633ca7ef397d8653bf62edd8929d0a5fbb"
+    },
+    {
+      "path": "tools/gen-protocol-machine.py",
+      "sha256": "5b1372f88713a76315bb0aa6ab9df240d606c351bb528b2da2bcf30d862e1d6c"
+    },
+    {
+      "path": "tools/gen-run-report.py",
+      "sha256": "4decc47634e74eec210e1fb435be8d3b1796feb6adad4fd27f35aa10f2cacdc6"
+    },
+    {
+      "path": "tools/gen-state-machine-viz.py",
+      "sha256": "94511a9da105b213e80ca2c278dab0058d2b9529d16d4f358b3c12c80ca02a32"
+    },
+    {
+      "path": "tools/legacy-perception-import/import.cs",
+      "sha256": "6aaf8e44698c991a7e10788174120af9872537500942bec21c549e2004ae221c"
+    },
+    {
+      "path": "tools/prompt-manifest-hash.py",
+      "sha256": "8b3836b3cc753c86f4e6125d0b98a168afc09527bfef7a389beb813a9dd5717c"
+    },
+    {
+      "path": "tools/render-profile-identity.py",
+      "sha256": "a3761bddd91cebf94678e3bdec3a29cf0c2a9057a7d134e6daa1f3619be755dc"
+    },
+    {
+      "path": "tools/scenario-coverage.py",
+      "sha256": "20bea35e055cbdacb8fc348969d155f6a7a9469eb07f71efd3173a3acb06e8a7"
+    },
+    {
+      "path": "tools/scenario_certify.py",
+      "sha256": "0a9cc0b6241619293452c636d3d36346e05a76b76b2c837c32c783dac5fbee54"
+    },
+    {
+      "path": "tools/test-assets",
+      "sha256": "dbbeb4e9770eb4f8ef430f7710102033a3fcf5901d6d9135d8fcba3dfb3526e9"
+    },
+    {
+      "path": "tools/test_asset_archives.py",
+      "sha256": "15bb584dd9aabee02c221e02ee6b37458c1c45143690a6c6f1ce5b3b92060cc5"
+    },
+    {
+      "path": "tools/test_asset_cleanup.py",
+      "sha256": "333bf3928c689892085215a53e0fd9c4cea64d394159c57f3163f95035b34d63"
+    },
+    {
+      "path": "tools/test_asset_operations.py",
+      "sha256": "3b06b1ba1f285bbcb452bda9fbe98c8e18055695a2f48bead6bc1457ccc74711"
+    },
+    {
+      "path": "tools/test_assets.py",
+      "sha256": "30a68971cbee767ae8d8d7464f7ecdb34611c47fd99c62ca970922c1f15e0be1"
+    },
+    {
+      "path": "tools/tests/test_asset_archives.py",
+      "sha256": "d2a61f6dcdaf7a6c34d45c690102db2aabe25cd962a0a03feb4bfc911a96da81"
+    },
+    {
+      "path": "tools/tests/test_asset_operations.py",
+      "sha256": "a98b45c5d49372052bdd0dc699b54e422900ebe34782d94586ad24f7c8c86dcc"
+    },
+    {
+      "path": "tools/tests/test_audit_decision_input.py",
+      "sha256": "88b4e932b4f1f482164a913f845497b31b837158bfd81a33ae871fc08349e003"
+    },
+    {
+      "path": "tools/tests/test_component_scenario_scope.py",
+      "sha256": "b6a3c4b36ed48d144c2b631c99b4d5c8d992d60870c459592fcdb2c88fbed9b7"
+    },
+    {
+      "path": "tools/tests/test_host_scenario_coverage.py",
+      "sha256": "4f93bc23d208abd4b439e6fbf524e30fc419ce9a15bfebbbe9bd1f038ebe2df0"
+    },
+    {
+      "path": "tools/tests/test_run_report_input_contract.py",
+      "sha256": "9ed90c6911d9864badc3031b1e64412f3df5054287f42a8960d87819f96dc301"
+    },
+    {
+      "path": "tools/tests/test_test_asset_cleanup.py",
+      "sha256": "22b1d0ca191c18eaa970b1feb918d6fe1989df8d33f268435486c9efc51ab48f"
+    },
+    {
+      "path": "tools/tests/test_test_assets.py",
+      "sha256": "28bd03918d6ec4cea7f31ea18b8e053f105109914d7948024068bdcc9a82e287"
+    },
+    {
+      "path": "tools/tests/test_verify_assets.py",
+      "sha256": "e33f238ad63305eeac7144559f7d5d262a539571467189b39b6b39536fd4128b"
+    },
+    {
+      "path": "tools/tests/test_verify_entry.py",
+      "sha256": "df63193727d13b8597bc063ad28a46f3ecb7098d639a3d37509cd3d38711f1b2"
+    },
+    {
+      "path": "tools/tests/verify_entry_theory_integration.py",
+      "sha256": "a424f18fe71efbab5c69db9512e1e3afa949b16b0942cb1bdd19c5e1b4016508"
+    },
+    {
+      "path": "tools/validate-model-bindings.py",
+      "sha256": "4806f69356a1e606918300fcb41506810174f87980f92ab993c3517846528621"
+    },
+    {
+      "path": "tools/validate-testset-manifests.py",
+      "sha256": "00964f87ec40d1cb1f3f579d6c19bb03e67f5e72426c42d8312f46d851e19249"
+    },
+    {
+      "path": "tools/validate-tool-registry.py",
+      "sha256": "e35b9cddb45419ace38bbcdc4352a0a8db005e907b804cfa36c7239e09cf2cef"
+    },
+    {
+      "path": "tools/validate-workspace-schemas.py",
+      "sha256": "9eb18d2527219242ae05e9e148791a2825e90d1da29a27cc5117405fdee2c10e"
+    },
+    {
+      "path": "tools/verify-change",
+      "sha256": "c1f6ea15c7a81237c4256c394bc177bad211cd21c17c36013f15b98103d2eb92"
+    },
+    {
+      "path": "tools/verify-live",
+      "sha256": "f1b89c173e88ce46b806967da43ba5dfdbf6f78b3494997088e046e7047ba55d"
+    },
+    {
+      "path": "tools/world-visualizer/package_examples.py",
+      "sha256": "ce5b53112660ad851f87a89df8da626294ef49475e8db01423be8c61e765a4e3"
+    },
+    {
+      "path": "tools/world-visualizer/serve.py",
+      "sha256": "81fe10fd8b0f0e5e11532bbdf2a52567d08d78c7ed1849ac9daae7053cae387d"
+    }
+  ]
+}

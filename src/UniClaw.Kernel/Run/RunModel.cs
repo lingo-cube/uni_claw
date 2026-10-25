@@ -13,12 +13,20 @@ namespace UniClaw.Kernel.Run;
 /// Effect / Outcome Proof（只记录 Assurance 的 proof 快照）、不保存
 /// action-local assurance state。
 /// </summary>
-public sealed class RunModel
+public sealed partial class RunModel
 {
     private readonly List<RunState> _history = new();
     private readonly ReadOnlyCollection<RunState> _historyView;
 
-    public RunModel() => _historyView = _history.AsReadOnly();
+    public RunModel() : this(null) { }
+
+    public RunModel(IRunStateJournal? journal)
+    {
+        if (journal is not null && (!journal.CanInitialize || journal.ReadRecords().Count != 0))
+            throw new InvalidOperationException("existing-run-history-requires-read-only-restore");
+        _stateJournal = journal;
+        _historyView = _history.AsReadOnly();
+    }
 
     /// <summary>
     /// Primary Run identity（本片单 Run cardinality）。RUN-001：由
@@ -42,81 +50,34 @@ public sealed class RunModel
     private readonly List<string> _traversalCompletedWork = new();
     public IReadOnlyList<UniClaw.Kernel.Runtime.TraversalExecutionView> TraversalHistory => _traversalHistory.AsReadOnly();
 
-    internal void BeginTraversalRecords()
-    {
-        if (IsTerminal) return;
-        _traversalHandlers.Clear();
-        _traversalGaps.Clear();
-        _traversalOperations.Clear();
-        _traversalCompletedWork.Clear();
-    }
+    internal void BeginTraversalRecords() => BeginTraversalRecordsAsync().AsTask().GetAwaiter().GetResult();
 
-    internal void RecordTraversalHandler(UniClaw.Kernel.Runtime.PlanHandlerRecord record)
-    {
-        if (IsTerminal) return;
-        if (record.CallId is { } callId)
-        {
-            var index = _traversalHandlers.FindIndex(existing => existing.CallId == callId);
-            if (index >= 0)
-            {
-                var prior = _traversalHandlers[index];
-                if (prior.Status != UniClaw.Kernel.Runtime.PlanHandlerCallStatus.Running
-                    || record.Status == UniClaw.Kernel.Runtime.PlanHandlerCallStatus.Running)
-                    return;
-                _traversalHandlers[index] = record;
-                return;
-            }
-        }
-        _traversalHandlers.Add(record);
-    }
+    internal void RecordTraversalHandler(UniClaw.Kernel.Runtime.PlanHandlerRecord record) =>
+        RecordTraversalHandlerAsync(record).AsTask().GetAwaiter().GetResult();
 
-    internal void RecordTraversalOperation(UniClaw.Kernel.Runtime.TraversalOperationRecord record)
-    {
-        if (IsTerminal) return;
-        if (_traversalOperations.Any(operation => operation.OperationId == record.OperationId))
-            throw new InvalidOperationException("duplicate-traversal-operation");
-        _traversalOperations.Add(record with { EvidenceRefs = Array.AsReadOnly(record.EvidenceRefs.ToArray()) });
-    }
+    internal void RecordTraversalOperation(UniClaw.Kernel.Runtime.TraversalOperationRecord record) =>
+        RecordTraversalOperationAsync(record).AsTask().GetAwaiter().GetResult();
 
-    internal void RecordTraversalProgress(UniClaw.Kernel.Runtime.TraversalProgressEvent progress)
-    {
-        if (IsTerminal) return;
-        switch (progress)
-        {
-            case UniClaw.Kernel.Runtime.TraversalProgressEvent.Gap gap:
-                _traversalGaps.Add(gap.Value with { EvidenceRefs = Array.AsReadOnly(gap.Value.EvidenceRefs.ToArray()) });
-                break;
-            case UniClaw.Kernel.Runtime.TraversalProgressEvent.Completed completed:
-                var index = _traversalOperations.FindIndex(operation => operation.OperationId == completed.OperationId);
-                if (index < 0) throw new InvalidOperationException("unknown-traversal-operation");
-                if (!_traversalOperations[index].Completed)
-                {
-                    _traversalOperations[index] = _traversalOperations[index] with { Completed = true };
-                    _traversalCompletedWork.Add(completed.Work);
-                }
-                break;
-        }
-    }
+    internal void RecordTraversalProgress(UniClaw.Kernel.Runtime.TraversalProgressEvent progress) =>
+        RecordTraversalProgressAsync(progress).AsTask().GetAwaiter().GetResult();
 
-    internal void RecordTraversal(UniClaw.Kernel.Runtime.TraversalExecutionView controlState)
+    internal void RecordTraversal(UniClaw.Kernel.Runtime.TraversalExecutionView controlState) =>
+        RecordTraversalAsync(controlState).AsTask().GetAwaiter().GetResult();
+
+    internal ValueTask BeginTraversalRecordsAsync() => RecordTraversalEventAsync(new(TraversalSchema, RunTraversalTransition.Reset));
+    internal ValueTask RecordTraversalHandlerAsync(UniClaw.Kernel.Runtime.PlanHandlerRecord record) =>
+        RecordTraversalEventAsync(new(TraversalSchema, RunTraversalTransition.Handler, Handler: record));
+    internal ValueTask RecordTraversalOperationAsync(UniClaw.Kernel.Runtime.TraversalOperationRecord record) =>
+        RecordTraversalEventAsync(new(TraversalSchema, RunTraversalTransition.Operation, Operation: record));
+    internal ValueTask RecordTraversalProgressAsync(UniClaw.Kernel.Runtime.TraversalProgressEvent progress) => progress switch
     {
-        if (IsTerminal) return;
-        // The incoming value contributes only Control state. All execution
-        // records, counts and report aggregation are owned and built here.
-        TraversalExecution = controlState with
-        {
-            OperationsCompleted = _traversalOperations.Count(operation => operation.Completed),
-            Handlers = Array.AsReadOnly(_traversalHandlers.ToArray()),
-            Gaps = Array.AsReadOnly(_traversalGaps.ToArray()),
-            CompletedWork = Array.AsReadOnly(_traversalCompletedWork.ToArray()),
-            Operations = Array.AsReadOnly(_traversalOperations.ToArray()),
-            DiscoveryComplete = controlState.DiscoveryComplete
-                && !_traversalGaps.Any(gap => gap.Reason == "discovery-incomplete"),
-            EndReason = controlState.Status == UniClaw.Kernel.Runtime.PlanExecutionStatus.Completed
-                && _traversalGaps.Count > 0 ? "partial" : controlState.EndReason,
-        };
-        _traversalHistory.Add(TraversalExecution);
-    }
+        UniClaw.Kernel.Runtime.TraversalProgressEvent.Gap gap => RecordTraversalEventAsync(new(TraversalSchema, RunTraversalTransition.Gap, Gap: gap.Value)),
+        UniClaw.Kernel.Runtime.TraversalProgressEvent.Completed completed => RecordTraversalEventAsync(new(TraversalSchema, RunTraversalTransition.Completed,
+            OperationId: completed.OperationId, Work: completed.Work)),
+        _ => ValueTask.CompletedTask,
+    };
+    internal ValueTask RecordTraversalAsync(UniClaw.Kernel.Runtime.TraversalExecutionView controlState) =>
+        RecordTraversalEventAsync(new(TraversalSchema, RunTraversalTransition.View, Control: controlState));
 
     /// <summary>Current canonical Run State（typed transitions 的最新结果）。</summary>
     public RunState? State => _history.Count == 0 ? null : _history[^1];
@@ -143,31 +104,19 @@ public sealed class RunModel
     /// <param name="runIdOverride">Optional identity supplied by the Runtime
     /// authority at a Host launch boundary. When absent, the Kernel retains its
     /// content-derived RUN-001 identity.</param>
-    public ContractAdmission AdmitContract(ExecutionContract contract, string? runIdOverride = null)
+    public ContractAdmission AdmitContract(ExecutionContract contract, string? runIdOverride = null) =>
+        AdmitContractAsync(contract, runIdOverride).AsTask().GetAwaiter().GetResult();
+
+    public ValueTask<ContractAdmission> AdmitContractAsync(ExecutionContract contract, string? runIdOverride = null,
+        CancellationToken cancellationToken = default) =>
+        RecordOperationAsync(() => AdmitContractCoreAsync(contract, runIdOverride), cancellationToken);
+
+    private async ValueTask<ContractAdmission> AdmitContractCoreAsync(ExecutionContract contract, string? runIdOverride)
     {
         ArgumentNullException.ThrowIfNull(contract);
+        EnsureStateAvailable();
 
-        var checks = new List<ContractCheck>
-        {
-            new("version-present", !string.IsNullOrWhiteSpace(contract.Version)),
-            new("objective-present", !string.IsNullOrWhiteSpace(contract.Objective)),
-            new("scope-nonempty", contract.Scope is { Count: > 0 }),
-            new("allowed-effects-nonempty", contract.AllowedEffects is { Count: > 0 }),
-            new("forbidden-effects-declared", contract.ForbiddenEffects is not null),
-            new("proof-criteria-declared", contract.ProofCriteria is { Count: > 0 }),
-            new("obligations-wellformed", contract.Obligations is null
-                || (contract.Obligations.Count > 0
-                    && contract.Obligations.All(o => !string.IsNullOrWhiteSpace(o.ObligationId)
-                        && !string.IsNullOrWhiteSpace(o.Subject)
-                        && !string.IsNullOrWhiteSpace(o.RequiredValue)))),
-            // RUNTIME-IDENTITY-001（ADR-0046）：身份三件套必填——
-            // Runtime Store 已接线、RuntimeHttpServer 已铸造、HostRunner
-            /// 已沿载入契约；从留痕收紧为拒收（fail-closed）。
-            new("identity-required",
-                !string.IsNullOrWhiteSpace(contract.TaskInstanceId)
-                && !string.IsNullOrWhiteSpace(contract.ProductSessionId)
-                && !string.IsNullOrWhiteSpace(contract.ContractRef)),
-        };
+        var checks = CheckContract(contract);
 
         if (!checks.All(c => c.Passed))
             return new ContractAdmission(false, checks, checks.First(c => !c.Passed).Name);
@@ -191,7 +140,7 @@ public sealed class RunModel
             var valueOrigin = consultationsOrigin == totalStepsOrigin
                 ? consultationsOrigin
                 : BudgetValueOrigin.Mixed;
-            View = new ExecutionContractView(
+            var view = new ExecutionContractView(
                 contract.Version, contract.Objective,
                 SnapshotSet(contract.Scope!), SnapshotSet(contract.AllowedEffects!), SnapshotSet(contract.ForbiddenEffects!),
                 Array.AsReadOnly(contract.ProofCriteria!.ToArray()), consultations, totalSteps, valueOrigin,
@@ -201,14 +150,18 @@ public sealed class RunModel
                 MaxConsultationsOrigin = consultationsOrigin,
                 MaxTotalStepsOrigin = totalStepsOrigin,
             };
-            RunId = string.IsNullOrWhiteSpace(runIdOverride)
+            var runtimeAssigned = !string.IsNullOrWhiteSpace(runIdOverride);
+            var runId = string.IsNullOrWhiteSpace(runIdOverride)
                 ? MintRunId(contract, consultations, totalSteps)
                 : runIdOverride.Trim();
-            _history.Add(new RunState(
-                View,
+            await CommitStateAsync(new RunState(
+                view,
                 new ObjectiveState(contract.Objective, "pursuing"),
-                new ProofObligationState(ResolveObligations(contract)),
-                new ProgressState(0, 0)));
+                new ProofObligationState(Array.AsReadOnly(ResolveObligations(contract).ToArray())),
+                new ProgressState(0, 0)), RunHistoryTransition.Admitted, CaptureIdentity(view, runId, runtimeAssigned)).ConfigureAwait(false);
+            View = view;
+            RunId = runId;
+            _identityRuntimeAssigned = runtimeAssigned;
             return new ContractAdmission(true, checks, RejectionReason: null);
         }
 
@@ -296,18 +249,16 @@ public sealed class RunModel
                 .ToList();
 
     /// <summary>Typed transition：一个 control cycle 完成（验收 6）。terminal 后禁止（§17）。</summary>
-    public RunState RecordCycle()
-    {
-        EnsureActive();
-        return Transition(p => p with { Cycles = p.Cycles + 1 });
-    }
+    public RunState RecordCycle() => RecordCycleAsync().AsTask().GetAwaiter().GetResult();
+
+    public ValueTask<RunState> RecordCycleAsync(CancellationToken cancellationToken = default) =>
+        RecordOperationAsync(() => TransitionAsync(p => p with { Cycles = p.Cycles + 1 }), cancellationToken);
 
     /// <summary>Typed transition：一次 dispatched act 完成（成功或失败）。terminal 后禁止。</summary>
-    public RunState RecordAction()
-    {
-        EnsureActive();
-        return Transition(p => p with { Acts = p.Acts + 1 });
-    }
+    public RunState RecordAction() => RecordActionAsync().AsTask().GetAwaiter().GetResult();
+
+    public ValueTask<RunState> RecordActionAsync(CancellationToken cancellationToken = default) =>
+        RecordOperationAsync(() => TransitionAsync(p => p with { Acts = p.Acts + 1 }), cancellationToken);
 
     /// <summary>
     /// Typed terminal transition：基于 Outcome Proof result 进入 Terminal
@@ -315,11 +266,19 @@ public sealed class RunModel
     /// expectedPrior 仍是 current 且尚未 terminal 时成功——一个 Primary Run
     /// 至多成功进入一次 terminal（任务 六.4）。记录 judgment 快照，不重判。
     /// </summary>
-    public OutcomeTransition TransitionToTerminal(Assurance.OutcomeProof proof, RunState expectedPrior)
+    public OutcomeTransition TransitionToTerminal(Assurance.OutcomeProof proof, RunState expectedPrior) =>
+        TransitionToTerminalAsync(proof, expectedPrior).AsTask().GetAwaiter().GetResult();
+
+    public ValueTask<OutcomeTransition> TransitionToTerminalAsync(Assurance.OutcomeProof proof, RunState expectedPrior,
+        CancellationToken cancellationToken = default) =>
+        RecordOperationAsync(() => TransitionToTerminalCoreAsync(proof, expectedPrior), cancellationToken);
+
+    private async ValueTask<OutcomeTransition> TransitionToTerminalCoreAsync(Assurance.OutcomeProof proof, RunState expectedPrior)
     {
         ArgumentNullException.ThrowIfNull(proof);
         ArgumentNullException.ThrowIfNull(expectedPrior);
 
+        EnsureStateAvailable();
         var current = State ?? throw new InvalidOperationException("Run State 尚未建立（无已接受 contract）");
         // exact-prior guard 优先：任一 proposal 必须基于当前 canonical state
         // （引用等同 CAS；single-winner，任务 六.4）
@@ -333,28 +292,30 @@ public sealed class RunModel
             Outcome = new OutcomeState(
                 proof.ProofId,
                 proof.Classification,
-                proof.Obligations,
-                proof.BasisEvidenceIds,
-                proof.EffectEvidenceIds,
-                proof.SituationEvidenceIds,
+                Array.AsReadOnly(proof.Obligations.ToArray()),
+                SnapshotSet(proof.BasisEvidenceIds),
+                SnapshotSet(proof.EffectEvidenceIds),
+                SnapshotSet(proof.SituationEvidenceIds),
                 proof.UnresolvedUncertainty,
                 proof.Reason),
         };
-        _history.Add(terminal);
+        await CommitStateAsync(terminal, RunHistoryTransition.Terminal).ConfigureAwait(false);
         return new OutcomeTransition(true, null, terminal);
     }
 
     private void EnsureActive()
     {
+        EnsureStateAvailable();
         if (IsTerminal)
             throw new InvalidOperationException("Run 已 terminal，不得恢复 active（§17）");
     }
 
-    private RunState Transition(Func<ProgressState, ProgressState> progress)
+    private async ValueTask<RunState> TransitionAsync(Func<ProgressState, ProgressState> progress)
     {
+        EnsureActive();
         var current = State ?? throw new InvalidOperationException("Run State 尚未建立（无已接受 contract）");
         var next = current with { Progress = progress(current.Progress) };
-        _history.Add(next);
+        await CommitStateAsync(next, next.Progress.Cycles != current.Progress.Cycles ? RunHistoryTransition.Cycle : RunHistoryTransition.Action).ConfigureAwait(false);
         return next;
     }
 }

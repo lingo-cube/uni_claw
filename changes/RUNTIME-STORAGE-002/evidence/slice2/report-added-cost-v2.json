@@ -1,0 +1,30 @@
+{
+  "scenario": "synthetic 80-byte completed facts fixture through actual gen-run-report.py and public tool probe; no task execution",
+  "input_bytes": 84,
+  "pinned_source_bytes": 84,
+  "pinned_generator_bytes": 46586,
+  "published_output_bytes": 7661,
+  "state_versions_head_manifests_receipt_bytes": 27483,
+  "compatibility_mirror_bytes": 7661,
+  "required_store_bytes": 81814,
+  "all_additional_bytes_including_mirror": 89475,
+  "immutable_metadata_version_count": 6,
+  "files_bytes": {
+    "head.json": 211,
+    ".generator.lock": 0,
+    ".writer.lock": 0,
+    "generator.py": 46586,
+    "versions/4-6885a4132bb5064f003e23a624d1dcf759d2b76d27b11b092b37a4d2ac58f36f.json": 4743,
+    "versions/6-0d541d64d4c5eee0a8119de235f17907e53cbf565117eb70cca15d70185cbacb.json": 5069,
+    "versions/3-27c33a342dccb1337c262d277cd808bd64dc51c218b2ec2048454cf40f60ce16.json": 4738,
+    "versions/5-8aa37a4dd21a32803dde4b5add6e2977dbbd387f76ff0807ba80a9aad5f1dd98.json": 5069,
+    "versions/1-a806dd0b5497ed25e82d056a6d54e698048e82a4c1f05496a4971480d370ba7e.json": 2824,
+    "versions/2-5e444b72e58ecbe964fd5666760755e2782ae88d90c3e6d7dcd9c35664bd6160.json": 3145,
+    "published/report.json": 4564,
+    "published/report.md": 3097,
+    "published/.delivery-publication.json": 502,
+    "inputs/.delivery-inputs.json": 1182,
+    "inputs/facts.json": 84
+  },
+  "interpretation": "Added storage cost only. No comparative speed, flush, peak-memory, or general core compression claim."
+}

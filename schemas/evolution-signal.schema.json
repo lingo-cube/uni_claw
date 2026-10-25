@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "uniclaw.evolution.signal.v0",
+  "type": "object",
+  "required": [
+    "schema",
+    "authority",
+    "lane",
+    "source",
+    "verdict",
+    "preliminaryClass",
+    "failureKey",
+    "context",
+    "ts",
+    "triage"
+  ],
+  "properties": {
+    "schema": {
+      "const": "uniclaw.evolution.signal.v0"
+    },
+    "authority": {
+      "const": "non-authoritative"
+    },
+    "lane": {
+      "enum": [
+        "dev-verify",
+        "live-run"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "trx",
+            "runDir",
+            "composition",
+            "verification-exit"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "verdict": {
+      "enum": [
+        "failed",
+        "hash-mismatch",
+        "unknown"
+      ]
+    },
+    "preliminaryClass": {
+      "enum": [
+        null,
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F"
+      ]
+    },
+    "failureKey": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "context": {
+      "type": "object"
+    },
+    "ts": {
+      "type": "string",
+      "minLength": 1
+    },
+    "triage": {
+      "type": "object",
+      "required": [
+        "disposition",
+        "changeCreated"
+      ],
+      "properties": {
+        "disposition": {
+          "enum": [
+            "candidate",
+            "duplicate",
+            "expected-red",
+            "known-issue"
+          ]
+        },
+        "changeCreated": {
+          "const": false
+        }
+      }
+    },
+    "diagnosis": {
+      "type": "object",
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

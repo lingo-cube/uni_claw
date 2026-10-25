@@ -1,0 +1,7 @@
+{
+  "head": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": {
+    "src/UniClaw.Host/Runtime/RuntimeRunStore.cs": "5bc61d63d55f4617f80b3be9e0e5d6a06c854cc65b396a66b3b3e390ad93cd08",
+    "src/UniClaw.Host/Runtime/ActivationRecordStore.cs": "21a17fc3e7946c42995198e02c976760f7c268dae2b898a70635e4e9adf36085"
+  }
+}

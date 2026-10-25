@@ -1,0 +1,26 @@
+{
+  "head": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "branch": "uni-harness",
+  "scope": "Required deterministic report delivery, source snapshot, restart query and report-only retry",
+  "source_sha256": {
+    "src/UniClaw.Host.Dsh/RuntimeToolHost.cs": "eaf53f9cbbd0d979a09bf267e2b5e0ff99cf28cc065c8716e697042fa5edb7fe",
+    "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs": "0e078e2bf5d5df7d3ab0987539fbe4a2d061586b2a21e78c0f334bc5fb7d6137",
+    "src/UniClaw.Host.Dsh/README.md": "1ce3ac4a3a8b103bbd8e8697da2138893b8582fc4a0be57857a0351f75318f56",
+    "src/UniClaw.Host/README.md": "a267ed13c9682de365a7cb03bfddcbbdedbd24eb08fc439cd1243037560048ab",
+    "tools/gen-run-report.py": "81e1a169def73430477cd0006465381f9c52ce2e0662828ff63f2c7a8c49ed54",
+    "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostTests.cs": "d43f898b7ebc3aee0afdeb95cf74e88b28d1db6815ea8aea1bfd9c3e4163cdf8",
+    "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureTests.cs": "1239b8e5919c752468205dcc7f65faa044652cc90b7ad42fd5ad36c2bfcd3c0f",
+    "src/UniClaw.Host/Runtime/RuntimeRunStore.cs": "b0f35440a9cab9bcc03773db37000cdef88a447a822d0d497a3437d25237562d",
+    "tools/RunRecoveryProbe/Program.cs": "3919083202b1e24ff6eaedb5855a671258214dc03f897881f1df094e43fbf93d",
+    "tools/README.md": "a5d5c935d92ec3485da05d567f3415b02d968bbd906c59802864e3bbb991105d",
+    "tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj": "95e06d0d1d120a8fc6de88de2898c75286b58d5e41b58e2f0c293cc495ee1e72",
+    "schemas/workspace/task-launch-request.schema.json": "72f82cffd6398c33d385380eb914a0562bf3e235817a48917ead2e1cab22f2ec",
+    "tools/RunRecoveryProbe/RunRecoveryProbe.csproj": "a04deb274f55e1c5a7bbfaad94057ecb4aa29ab4a9b369f7a9e866405abc4c28"
+  },
+  "constraints": [
+    "preserve shared dirty worktree",
+    "no device/product-model calls",
+    "no automatic execution resume",
+    "do not modify sealed slice1 evidence"
+  ]
+}

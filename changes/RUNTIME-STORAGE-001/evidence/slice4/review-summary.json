@@ -1,0 +1,18 @@
+{
+  "candidate": "candidate-inputs-v2.json",
+  "standards": {
+    "report": "review-standards-v2.md",
+    "hardViolations": 0,
+    "heuristicSmells": 0,
+    "remaining": 0,
+    "v1Finding": "M1 retained in review-standards-v1.md; closed by actual configure/start native batch and managed I/O comparison."
+  },
+  "spec": {
+    "report": "review-spec-v2.md",
+    "missingOrPartial": 0,
+    "scopeCreep": 0,
+    "wrong": 0,
+    "remaining": 0
+  },
+  "parentChangeComplete": false
+}

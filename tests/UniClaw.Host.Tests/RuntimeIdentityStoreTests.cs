@@ -7,10 +7,11 @@ namespace UniClaw.Host.Tests;
 /// RUNTIME-IDENTITY-001 — TaskInstanceStore / ProductSessionStore 锚定测试。
 /// A1 Create 幂等 · A2 重启恢复 · A3 1:1 强制 · A4 BindRun 幂等。
 /// </summary>
-public sealed class RuntimeIdentityStoreTests
+public sealed class RuntimeIdentityStoreTests : IDisposable
 {
-    private static string TempFile(string name) =>
-        Path.Combine(Path.GetTempPath(), $"rid-{Guid.NewGuid():N}", name);
+    private readonly string _root = Directory.CreateTempSubdirectory("runtime-identity-").FullName;
+    private string TempFile(string name) => Path.Combine(_root, name);
+    public void Dispose() => Directory.Delete(_root, true);
 
     [Fact]
     public void A1_TaskInstance_CreateIdempotent()

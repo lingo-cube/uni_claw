@@ -1,0 +1,5 @@
+{
+  "path": "cost-probe-source.cs",
+  "sha256": "80e461077619f0bb9ea75acc7bf50cdc3c1b3d118d74a111241ef19deb0746c3",
+  "role": "exact cost execution source before read-only existing-source verification mode was added; matched original Run provenance SHA256"
+}

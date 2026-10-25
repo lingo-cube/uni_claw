@@ -5,6 +5,8 @@
 ## 入口
 
 - [`work-item.schema.json`](work-item.schema.json)：Leader 派发给 Worker 的 WorkItem 载荷契约。
+- [`diagnosis-packet.schema.json`](diagnosis-packet.schema.json)与[`evolution-signal.schema.json`](evolution-signal.schema.json)：Harness诊断包及双域失败信号；只描述非权威证据，不赋予产品执行或修复权力。
+- [`evolution-exported-case.schema.json`](evolution-exported-case.schema.json)：从已落盘Settings资料导出的case.v0子集；锁定组件输入、独立Oracle和载体，不升级为完整Run或窗口事实证明。
 - [`agt-002/`](agt-002/)：Product 决策协议 JSON Schema 与 TypeScript 类型声明。
 - [`workspace/`](workspace/README.md)：Workspace query、launch、run/event、record 与错误等契约及示例；该目录有独立 README。
 - [`protocol/state-machine.yaml`](protocol/state-machine.yaml)：状态机声明；生成的测试投影位于 `tests/UniClaw.Kernel.Tests/Protocol/protocol-machine.generated.json`，生成入口可从 [`tools/gen-protocol-machine.py`](../tools/gen-protocol-machine.py) 查看。

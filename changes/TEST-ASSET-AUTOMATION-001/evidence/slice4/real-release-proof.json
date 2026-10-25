@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "assetRef": "test-assets:TEST-ASSET-AUTOMATION-001/run-20261025T153817-4b96b3f77c174f2e96861846046a08c3/results/evolution/signals/6f523762e5f540f084170c8946e06afc.json",
+  "archiveId": "archive-84484b997c404a10966ad7acb3916c96",
+  "historicalFilesKept": 100,
+  "probeFiles": 6,
+  "workFilesAbsent": true,
+  "netWorkLogicalBytesRemoved": 10630,
+  "archiveBytesAdded": 6747,
+  "releaseAttempts": [
+    "release-d7f0e36ada0b4d6e801035b01e79a3af",
+    "release-9f0f0f4878d44858a6f328ed624e0b53"
+  ],
+  "validateDidNotRestore": true,
+  "sameBoundRoot": true,
+  "sameFailureKey": true,
+  "sameSourceSha256": true,
+  "allMtimesPreserved": true,
+  "originalRunRecordUnchanged": true,
+  "newProductExecution": false,
+  "note": "Two releases with one recovery; net bytes count the final absent work copy once, not physical disk space."
+}

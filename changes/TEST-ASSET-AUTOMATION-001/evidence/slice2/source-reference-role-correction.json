@@ -1,0 +1,73 @@
+{
+  "runId": "run-20261025T133028-3003f56620d045859589e28f2802b010",
+  "beforeIndexSha256": "865a6b5666ac35c3c7477ad976483c8631a8776a96181ff9874a0a5ada3974ae",
+  "reason": "initial operation registration incorrectly labelled general sources as formal baselines; preserve all references as original-source without promoting baseline authority",
+  "referencesUnchanged": [
+    {
+      "logicalRoot": "repository",
+      "path": "changes/TEST-ASSET-AUTOMATION-001/evidence/slice2/case-input/case.json",
+      "sha256": "1f124e9b47ad75a637e57204c3245420fe732ac16122a595aecf08cfe2746865"
+    },
+    {
+      "logicalRoot": "repository",
+      "path": "tools/evolution-case.py",
+      "sha256": "a0545b83ab6c6699ff2ba0595daf9f1a3b1ec9668e4ce9090e1386a59cc4f180"
+    },
+    {
+      "logicalRoot": "repository",
+      "path": "tools/EvolutionReplay/UniClaw.EvolutionReplay.Tests.csproj",
+      "sha256": "7aa0927bc2bf3a7c1ad4020c63e357af1f86e4c5885c82ceefd5a9570565e7f1"
+    },
+    {
+      "logicalRoot": "repository",
+      "path": "tools/EvolutionReplay/ExportedCaseTests.cs",
+      "sha256": "cf16bece3a3b0f8885f295e7d756b130bb95680b147e98dcd859780909f4487a"
+    },
+    {
+      "logicalRoot": "repository",
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageConfig.cs",
+      "sha256": "79720b8c4c04a1995bdc59bdf8b28e1d2b71837c65c5162ed48945e7f70719f4"
+    },
+    {
+      "logicalRoot": "repository",
+      "path": "schemas/evolution-exported-case.schema.json",
+      "sha256": "b4978b65fbaef30851658ef2c6aa6ddfabab69cba2683014180cbe4f445ace9a"
+    },
+    {
+      "logicalRoot": "repository",
+      "path": "src/UniClaw.Host/SettingsPopupClassifier.cs",
+      "sha256": "b5faa30a286474f5e84d32ae28ffd8548e86f22f1ce2406f68559c22b99f3eb0"
+    },
+    {
+      "logicalRoot": "sealed-case",
+      "path": "inputs/facts.json",
+      "sha256": "1e523d966310731a144d7888937e10ef7ff73ddc48574371551116c82940d522"
+    },
+    {
+      "logicalRoot": "sealed-case",
+      "path": "inputs/observation-trace.json",
+      "sha256": "a31441cff21f16d95679458ebf8d766fdd39275a83c2e18c1b0bd86bb8998c15"
+    },
+    {
+      "logicalRoot": "sealed-case",
+      "path": "inputs/steps.json",
+      "sha256": "9fd77ca4d9ab531aecabb553f12b30691b38f70925fb1834a821100b65e12adb"
+    },
+    {
+      "logicalRoot": "sealed-case",
+      "path": "inputs/oracle.json",
+      "sha256": "58cf3ab037fabb0989ee9a2dd7417f89ba01f007ceb93ebd82ca7c9b5c96c140"
+    },
+    {
+      "logicalRoot": "sealed-case",
+      "path": "inputs/previous-xml.xml",
+      "sha256": "98412fd753f3b38c7902e2cefddeae190ef63b40a123994eeadc7b135a8baa52"
+    },
+    {
+      "logicalRoot": "sealed-case",
+      "path": "inputs/capture-xml.xml",
+      "sha256": "322c8b47b2b6d6ba0453ca6dcff483edf169c71e4669197af4587edaff228599"
+    }
+  ],
+  "fileDigestsAndRunSummaryUnchanged": true
+}

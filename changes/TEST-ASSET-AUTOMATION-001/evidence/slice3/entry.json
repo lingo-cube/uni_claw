@@ -1,0 +1,22 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": [
+    {
+      "path": "tools/test_assets.py",
+      "sha256": "3a30e9bcab12617739afaa9835791a4783ddf404ea0d8474a137165c278e5147"
+    },
+    {
+      "path": "tools/test-assets",
+      "sha256": "34fe7b17771a86f77441c8b02e348bd8fd52132f3854eb8cf6cb4cec21ea2043"
+    },
+    {
+      "path": "tools/README.md",
+      "sha256": "154b06612e52574902a67449d8e2f85107872b5c2959df140ecb00b1d2079be0"
+    },
+    {
+      "path": "docs/agents/test-asset-retention.md",
+      "sha256": "5d0a0234cc791d1299e3872750f51a6c12b49a69b469a8ec688a411c0a521573"
+    }
+  ],
+  "scope": "run archive, verified restore and guarded source retirement; no existing source release or task deletion"
+}

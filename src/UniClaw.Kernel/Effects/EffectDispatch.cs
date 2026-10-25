@@ -114,4 +114,7 @@ public sealed record EffectReceipt(
     DispatchOutcome Outcome,
     string Report,
     DateTimeOffset DispatchedAt,
-    string? Reason = null);
+    string? Reason = null)
+{
+    public UniClaw.Kernel.Evidence.AttemptReference? AttemptCorrelation { get; init; }
+}

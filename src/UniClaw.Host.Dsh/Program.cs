@@ -231,7 +231,7 @@ try
             Path.Combine(RepoRoot(), "platforms", "perception"),
             Path.Combine(RepoRoot(), ".perception", "venv", "bin", "python"),
             Path.Combine(RepoRoot(), ".perception", "cache"));
-        coverageResult = SettingsCoverageRunner.Run(runsRoot, new SettingsCoverageRunner.Options(
+        coverageResult = await SettingsCoverageRunner.RunAsync(runsRoot, new SettingsCoverageRunner.Options(
             DeviceId: device,
             Live: liveAssets,
             Config: coverageConfig,
@@ -258,7 +258,7 @@ try
             Console.Error.WriteLine($"CONFIG_CONFLICT: {targetConflict}");
             return 2;
         }
-        result = HostRunner.RunOnce(runsRoot, new HostRunner.HostOptions
+        result = await HostRunner.RunOnceAsync(runsRoot, new HostRunner.HostOptions
         {
             DeviceId = device,
             ConsultAgent = Consult,

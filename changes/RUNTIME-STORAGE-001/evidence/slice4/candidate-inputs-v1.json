@@ -1,0 +1,25 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": {
+    "src/UniClaw.Kernel/Control/ControlTraversalHistory.cs": "d331630678545694925fc044e5155ff35f32a59f35499a3f59a59e36d20961b7",
+    "src/UniClaw.Kernel/Control/TraversalControl.History.cs": "9c67cf4b0cad666843a8e4669717b5248a98354aa528e99bdda5300d62550eae",
+    "src/UniClaw.Kernel/Control/ControlLoop.cs": "874ec979d0bea954a9a42d92f1a3cf8a79a1c677f862ea0f58629b3bf5bc92c2",
+    "src/UniClaw.Kernel/Control/README.md": "c2dc728cb480e5bb59835117cec5e5a6e6cc28fa8f10f4da5bcac16d9d333d0f",
+    "src/UniClaw.Kernel/Runtime/RuntimePlanHistory.cs": "d67ea6a35057ec110c34fd7e9f6a911ffb9dade37111928ff8c2bb4571fd11e2",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.PlanHistory.cs": "1374e130cf336cdd150296b5947c5a00eb98d7fd8414e4aa36fec2ed58c3b313",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs": "9a4ca060427ffffe1d8ea05e8d60854f51d598ffdfa799a6d59325f08f5c41fc",
+    "src/UniClaw.Kernel/Runtime/README.md": "704dfdac6d3cb3ded2adfcca9a5b26882357de8f9e79c59a85aaef6a629ca0b9",
+    "src/UniClaw.Kernel/UniKernel.cs": "56aa9f7c3b87fb8aa4c2b9723fa54cc8432209558c1d919e5ca442f967580884",
+    "src/UniClaw.Host/Runtime/FileControlTraversalJournal.cs": "2589666e88279bf1638ae0f6ede8936e65d63573b44bb4dd8635b76e4085b48f",
+    "src/UniClaw.Host/Runtime/FileRuntimePlanJournal.cs": "3d04a4ea4ec4efcf8f4a9dac088009029ab0e5a06f616cd0d2480e6370eba74c",
+    "src/UniClaw.Host/Runtime/FileCommittedHistory.cs": "a51b14a5e9a7049f0fd69e187c96bbbc2be7bb7cd4ef492cbd8a8dd9f6e399f9",
+    "src/UniClaw.Host/HostRunner.cs": "84da046bb3ce1d7c287b564ae088606964ddd92f79fc26056964568e65d3e8f9",
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs": "a31a9eb120e44c18e7cf2f90229ff22ffd66f308a4cf7f0d6b240471dc270552",
+    "src/UniClaw.Host/README.md": "ccb71250b13302d18323d1f941b9eca83cbcdf1cff44d84803829c04f46dec74",
+    "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs": "151ad2602ff91e0b1464d30d8232ab89506c908169cadd0d1ce4551ece42e3f5",
+    "tests/UniClaw.Kernel.Tests/Runtime/StorageGroupAsyncTests.cs": "6c54441e7a6064ccad3ee4ff843070b7d820df79aa054e1caf6dc4779abeacb1",
+    "tests/UniClaw.Host.Tests/ControlPlanAsyncStorageTests.cs": "6511db1e412f617dff2f2635ab6b9ec64b1c250e23a2f7851d9d73980b6f57b3",
+    "tools/RunRecoveryProbe/Program.cs": "1413a93b634341a0dccf895ea500faa2d16e28e3231125661d9b6d7465dd6f36",
+    "tools/RunRecoveryProbe/ControlPlanAsyncProbe.cs": "d2ab499f8b84821511469855929591981f407bc19dcf99d329471998d0be1f0b"
+  }
+}

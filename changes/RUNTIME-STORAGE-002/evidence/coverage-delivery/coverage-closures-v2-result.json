@@ -1,0 +1,14 @@
+{
+  "runId": "run-20261025T180750-65b9fd97fff044618622e80a24945bb2",
+  "counts": {
+    "Passed": 72
+  },
+  "exitCode": 0,
+  "finalization": {
+    "changeId": "RUNTIME-STORAGE-002",
+    "runId": "run-20261025T180750-65b9fd97fff044618622e80a24945bb2",
+    "completed": true,
+    "finalization": "results/finalization.json"
+  },
+  "logRef": "test-assets:RUNTIME-STORAGE-002/run-20261025T180750-65b9fd97fff044618622e80a24945bb2/logs/tests.txt"
+}

@@ -1,0 +1,99 @@
+{
+  "workItem": "WI-STORAGE002-PUBLISH-DEPS",
+  "basis": {
+    "draft": "changes/RUNTIME-STORAGE-002/evidence/publish/draft-build-closure-v1.json",
+    "meaning": "The 36 errors are from HEAD plus an allowlisted clean view, not a build of the current shared worktree.",
+    "actionsPerformed": ["read-only source and evidence inspection"],
+    "actionsNotPerformed": ["source mutation", "index mutation", "build", "test", "network", "messaging"]
+  },
+  "closedPrerequisites": [
+    {
+      "group": "origin-correlation",
+      "acceptedChange": "ORIGIN-CORRELATION-001",
+      "errors": {"count": 4, "consumer": "src/UniClaw.Kernel/Effects/EffectBoundary.cs", "missing": "EffectReceipt.AttemptCorrelation"},
+      "minimumPaths": [
+        "src/UniClaw.Kernel/Effects/EffectDispatch.cs",
+        "src/UniClaw.Kernel/Effects/EffectBoundary.cs (accepted ORIGIN hunks only)",
+        "src/UniClaw.Kernel/Evidence/AttemptObservationLink.cs",
+        "src/UniClaw.Kernel/Evidence/ObservationProposal.cs",
+        "src/UniClaw.Kernel/Evidence/EvidenceRecord.cs",
+        "src/UniClaw.Kernel/Evidence/EvidenceLedger.cs",
+        "src/UniClaw.Kernel/Evidence/EvidenceLedger.History.cs",
+        "src/UniClaw.Kernel/Evidence/ObservationOrigin.cs",
+        "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs (accepted ORIGIN hunks only)",
+        "src/UniClaw.Kernel/UniKernel.cs (accepted ORIGIN hunks only)"
+      ],
+      "whyRequired": "Evidence v2 identity/history persists actual Origin plus structured AttemptCorrelation. Removing the field would violate the closed protocol, not merely remove an optional compile dependency."
+    },
+    {
+      "group": "world-async-history",
+      "acceptedChange": "RUNTIME-STORAGE-002 World sub-slice; WORLD-HISTORY-001 is not the runtime implementation source",
+      "errors": {"count": 15, "consumers": ["src/UniClaw.Kernel/World/WorldModel.Async.cs", "src/UniClaw.Kernel/World/WorldModel.HistoryRecording.cs"], "missing": ["eight *Core methods", "_owner facade"]},
+      "minimumPaths": [
+        "src/UniClaw.Kernel/World/WorldModel.cs (OwnerState facade and *Core rename hunks)",
+        "src/UniClaw.Kernel/World/WorldModel.Async.cs",
+        "src/UniClaw.Kernel/World/WorldModel.HistoryRecording.cs",
+        "src/UniClaw.Kernel/World/WorldHistory.cs"
+      ],
+      "whyRequired": "The async/history callers and synchronous providers are one partial-class contract; either half alone cannot compile or preserve storage behavior."
+    },
+    {
+      "group": "runtime-plan-history",
+      "acceptedChange": "RUNTIME-RECOVERY-016",
+      "errors": {"count": 12, "consumers": ["src/UniClaw.Kernel/Runtime/RuntimePlanHistory.cs", "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs", "src/UniClaw.Kernel/Runtime/KernelRunDriver.PlanHistory.cs"], "missing": ["RuntimePlanGraph", "PlanGraphFormatException"]},
+      "minimumPaths": [
+        "src/UniClaw.Kernel/Runtime/RuntimePlanGraph.cs",
+        "src/UniClaw.Kernel/Runtime/RuntimePlanHistory.cs",
+        "src/UniClaw.Kernel/Runtime/KernelRunDriver.PlanHistory.cs",
+        "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs (RECOVERY-016 plan hunks only)",
+        "src/UniClaw.Kernel/Runtime/RunDriverInputs.cs",
+        "src/UniClaw.Kernel/Runtime/RunResourceRecovery.cs",
+        "src/UniClaw.Kernel/Runtime/KernelRunDriver.Resources.cs"
+      ],
+      "whyRequired": "Closed RECOVERY-016 owns the frozen original-plan graph and read surface; it expressly does not authorize full execution cursor/handoff recovery."
+    },
+    {
+      "group": "control-traversal-wrapper",
+      "acceptedChange": "RUNTIME-STORAGE-002 Control traversal history sub-slice",
+      "errors": {"count": 0, "status": "preemptive closure; candidate references the pair"},
+      "minimumPaths": [
+        "src/UniClaw.Kernel/Control/TraversalControl.cs (partial declaration and *Core rename hunks)",
+        "src/UniClaw.Kernel/Control/TraversalControl.History.cs"
+      ],
+      "whyRequired": "History wrappers call renamed core methods; including only the new partial file would create the same counterpart failure class."
+    }
+  ],
+  "excludeDirtySiblings": [
+    {
+      "group": "overlay-assurance-consumers",
+      "errors": {"count": 3, "consumer": "src/UniClaw.Kernel/UniKernel.cs:644-645", "missing": ["ChangePredicate.OverlayDismissed", "BuildOverlayDismissalEvidence", "PostActionEffectVerificationInput.Overlay"]},
+      "excludeCurrentHunks": ["UniKernel.cs HEAD-relative verification/authored ExpectedEffect hunk, current approximate lines 566-645", "untracked UniKernel.OverlayVerification.cs", "Assurance Overlay field/enum providers"],
+      "reason": "Act/Overlay/ExpectedEffect sibling, not a storage prerequisite."
+    },
+    {
+      "group": "overlay-observation-driver-consumers",
+      "errors": {"count": 2, "consumer": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs:3919,3927", "missing": "OverlayObservationCodec"},
+      "excludeCurrentHunks": ["KernelRunDriver.cs HEAD-relative PullObservations/post-action hunk, current approximate lines 3902-3958", "OverlayObservation.cs", "WorldModel.Overlay.cs and related overlay state/capture hunks"],
+      "reason": "Same Overlay sibling; do not import providers only to satisfy an accidentally indexed caller."
+    },
+    {
+      "group": "parallel-act-expected-effect",
+      "errors": {"count": 0, "status": "must remain excluded even when not yet a direct compiler error"},
+      "excludeCurrentHunks": [
+        "KernelRunDriver.cs fields: _stepExpectedEffect, _actOriginContainerId, _actOriginOverlayState (approximate current lines 180 and 361)",
+        "KernelRunDriver.cs Act origin capture (approximate current line 971)",
+        "KernelRunDriver.cs Act-tail scope guard (approximate current line 1104)",
+        "KernelRunDriver.cs ProjectExpectedEffect projection and authored verification call (approximate current lines 1317-1411)",
+        "matching UniKernel.cs authored ExpectedEffect verification hunk"
+      ],
+      "reason": "slice1 evidence explicitly recorded these as parallel Act-scope/failed-step business changes. The old patch is historical separation evidence only; current Overlay additions make inverse application unsafe."
+    }
+  ],
+  "operatorPath": [
+    "Construct a private index from accepted manifests/selected hunks, never by adding whole dirty Kernel files.",
+    "Add the four atomic prerequisite groups above; mixed source files require hunk selection.",
+    "Exclude all listed Act/ExpectedEffect/Overlay caller and provider hunks from the private index.",
+    "Regenerate the clean view and classify any remaining error as either a missing provider or an accidentally retained consumer before widening scope."
+  ],
+  "notClaimed": ["The private index builds", "All dependencies beyond these groups are complete", "Current shared worktree is buildable"]
+}

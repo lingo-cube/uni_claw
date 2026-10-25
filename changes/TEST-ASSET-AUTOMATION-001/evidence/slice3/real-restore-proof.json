@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "probeRunId": "run-20261025T145030-4cce9d3e231045d386bb8cab2da40190",
+  "sourceRunId": "run-20261025T134315-a40c7d35e775419a913816a298a8f4c7",
+  "existingArchiveId": "archive-0f4c9b465c5440349a71db074a087b93",
+  "probeArchiveId": "archive-17eb7f668ddc431fae8d8aff23b31d33",
+  "historicalFilesKept": 94,
+  "probeFiles": 6,
+  "consumer": "original evolution-signal.py dev CLI",
+  "sameFailureKey": true,
+  "sameSourceSha256": true,
+  "restoredSameBoundRoot": true,
+  "validateDidNotRestore": true,
+  "historicalSourcesDeleted": false,
+  "netSourceBytesRemoved": 0,
+  "newProductExecution": false
+}

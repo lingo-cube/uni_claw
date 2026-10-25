@@ -1,0 +1,22 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": {
+    "src/UniClaw.Kernel/Run/RunModel.cs": "b5da42b9a29c873d88d50acf8e3cdf565f4b9b270c2a0807bdcc2883e7d62023",
+    "src/UniClaw.Kernel/Run/RunModel.History.cs": "fdccca315983586512bd03ec1c065a62305736413b2a5028cacad477ee51b597",
+    "src/UniClaw.Kernel/Run/RunModel.Identity.cs": "eb049aabd984204e4e5627d0b027b67790ab915e6e0301008a11c883bc6c24f3",
+    "src/UniClaw.Kernel/Run/RunModel.TraversalHistory.cs": "d9b83aeadc7936b3c6e28457c4c34bcb62d7b0d04e898363f7db01a24f9e61e5",
+    "src/UniClaw.Kernel/Run/README.md": "031fea8bdce51c1f6ede4f93d97d87bda03f5314bdb9ae7675a57dee7ec5b2b7",
+    "src/UniClaw.Kernel/UniKernel.cs": "6585fb7ee56e06cfedc75f4a32e726978d4ba54b9ac57187bc071714f059f09e",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs": "8352a4636e756733322a2f81538e9f8cf57ba27d1d3105bde1890a08bf3f7a93",
+    "src/UniClaw.Kernel/Runtime/README.md": "a8bcf3132c5f596fdb9aa2330d0874afe2e85891fd3c674d25c9fd1ea175014f",
+    "src/UniClaw.Host/Runtime/FileRunStateJournal.cs": "e688b7009946c808865e5b4696d3100a4cc093016b4d4d6eb4c6d527d3a82144",
+    "src/UniClaw.Host/HostRunner.cs": "19e726061b240779fd70704776e5b90934d88b371e6003d796ca7936d539dde0",
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs": "4fde06bb8ee2d27399857815fce5b6f40498bf76881e5cffa38079e6d4ce9269",
+    "src/UniClaw.Host/README.md": "a0db7c9f192f68256d6cfcbdbed55068fdc37902876d654c27b630c9477bd443",
+    "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs": "e9fd7b18d8f88b908c3962d04942671fda1da2c1fe3b98a796c5f17b71f379f8",
+    "tests/UniClaw.Kernel.Tests/Run/RunAsyncStorageTests.cs": "1e1ab0d69b81f737609716f1bb3f3657f8c1b499f3f4f7d2ea7e66681b47c3f2",
+    "tests/UniClaw.Host.Tests/RunAsyncStorageTests.cs": "d7b391b9c9342d8df9a5ca2f6ada546eb920e9aafa71be4f6dcc5b4c3575caaa",
+    "tools/RunRecoveryProbe/Program.cs": "e57c95c5466fab9266063620a42750d8c46a0d220343c8f951b458bd4ec9960d",
+    "tools/RunRecoveryProbe/RunAsyncProbe.cs": "63a81336859de97b885ca6ac5e3bf44e7acc4cb8531acfa91ee1e28a5a0c78c7"
+  }
+}

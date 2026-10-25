@@ -1,0 +1,13 @@
+# Control/Plan增长与已确认latest的运行时读取
+
+实际Driver的三模式16/64/128样本均完成原Owner提交和只读恢复核验：Control单plan多候选；不同planId连续checkpoint采纳/替换；同planId递增版本checkpoint替换。只读操作零Effect/语言handler调用，明确Blocked收尾。
+
+128规模：Control391记录、文件10,392,380 bytes，State逻辑JSON累计2,762,840而末状态11,178 bytes；不同planId的Versions累计359,323而末表2,837 bytes，同planId累计7,181而末表29 bytes。逻辑字段量不是物理字节归因。原Input/Result/Graph采纳事实必须可还原，不能因为不可变就删除它们。
+
+发现实际latest buyer：KernelRunDriver.BeginRuntimePlanReplacementAsync/CommitRuntimePlanAdoptionAsync调用公开RuntimePlanHistory全量反序列化/校验，只为取最新采纳序号和pending的被接替序号。128不同planId初始化+Drive分配464,622,240 bytes。同场景先以256MiB process managed allocation预算形成真实RED，再缓存两个已确认序号，仅在原Append成功后更新；失败/丢ack不发布新值，pending中断仍阻断下一步。公开完整History读取、原不可变源、格式、Control边界和只读恢复保持。
+
+本片先完成上述真实热读取缺口，明确下一持久化范围：Control累计State（连同其原操作输入/结果的可验证关联）为首个版本增量/周期基线候选；Plan仅在不同id导致Versions表增长时有累计状态重复，Graph仍是完整采纳事实，同id版本更新不得当成同等增长。后续物理版本化须对比实际成本、保持旧格式/严格恢复/批量屏障，不由本片简单改编码或自动删除。
+
+测试沿父state已接受的公开Driver/文件adapter/原probe子进程缝。Luna拥有新growth probe，Leader拥有Program分派、预算测试及PlanHistory私有缓存。最新位置只用于原运行Owner，既不是恢复游标，也不允许续跑。父A4/A5/A6仍open，既有证据和并行修改保持。
+
+评审澄清：原探针字段Driver包含初始化/装配至Drive结束的整个计量窗口，新字段改名CompositionAndDrive，窗口/预算不变；旧样本按此含义解读。停止reader另测同步构造与ReadRecords时间/当前线程分配，不算入该窗口。

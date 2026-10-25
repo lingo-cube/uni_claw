@@ -1,0 +1,53 @@
+{
+  "changeId": "TEST-ASSET-AUTOMATION-001",
+  "runId": "run-20261025T145030-4cce9d3e231045d386bb8cab2da40190",
+  "operation": "controlled recovery test only",
+  "archiveId": "archive-17eb7f668ddc431fae8d8aff23b31d33",
+  "archiveSha256": "c1cf47114e1ca17aceb9bed6158e75fceaa677389dc22154dfc8f82a44352aaa",
+  "files": [
+    {
+      "path": "layout.json",
+      "kind": "results",
+      "bytes": 280,
+      "sha256": "e739bdd7079dfa9225396cde6529db3f7903e33b9e3ef9a4ed7f8bb58cc2050c",
+      "retention": "task"
+    },
+    {
+      "path": "raw/consumer-input.trx",
+      "kind": "raw",
+      "bytes": 4444,
+      "sha256": "4580d1925ac14740304ce216cb712e2e2e854a0f3f38dbbf54ad73e7745f49dd",
+      "retention": "task"
+    },
+    {
+      "path": "raw/provenance.json",
+      "kind": "raw",
+      "bytes": 2971,
+      "sha256": "5ff88ee8829f7ef9a03e94c7424fcbefcd0c5da0d5cebe077c50f433f9f16325",
+      "retention": "task"
+    },
+    {
+      "path": "results/evolution/signals/e81f1350026e42ac8b9d5ba1aba3c5cf.json",
+      "kind": "results",
+      "bytes": 1300,
+      "sha256": "a18879baa6b517f05d90b1c81d2bbb08eff5395b01946c7c89c4aef9fcb4a3ec",
+      "retention": "task"
+    },
+    {
+      "path": "results/summary.json",
+      "kind": "results",
+      "bytes": 310,
+      "sha256": "2d2c03fb23f5eb14097138d09443f0158df2e93ebfe80d6e91b4cc4f18a0dc3b",
+      "retention": "task"
+    },
+    {
+      "path": "results/finalization.json",
+      "kind": "results",
+      "bytes": 1433,
+      "sha256": "2bf23dd1db2f458826a1ccceac245bd313f2168901f72d38179a7f5fc051283d",
+      "retention": "task"
+    }
+  ],
+  "originalHistoricalRunUntouched": "run-20261025T134315-a40c7d35e775419a913816a298a8f4c7",
+  "reason": "fresh disposable copy created exclusively by this proof; verified package and native readers completed first"
+}

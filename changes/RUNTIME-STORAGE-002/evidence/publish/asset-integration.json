@@ -1,0 +1,53 @@
+{
+  "manifest": "changes/TEST-ASSET-AUTOMATION-001/evidence/integration-manifest.json",
+  "allManifestCurrentHashesMatched": true,
+  "addedPaths": [
+    ".agents/skills/uniflow/SKILL.md",
+    ".agents/skills/uniclaw-debug-evidence/SKILL.md",
+    ".agents/skills/uniclaw-evolution-loop/SKILL.md",
+    "schemas/README.md",
+    ".agents/skills/uniclaw-debug-evidence/references/evidence-packet.md",
+    ".agents/skills/uniclaw-evolution-loop/references/case-and-packet.md",
+    "docs/agents/engineering-verification.md",
+    "tests/README.md",
+    "evidence/README.md",
+    "changes/README.md",
+    "changes/RUNTIME-STORAGE-002/evidence/world-baselines/before/src/UniClaw.Host/Runtime/WorldRevisionDeltaCodec.cs",
+    "schemas/evolution-exported-case.schema.json",
+    "tools/EvolutionReplay/UniClaw.EvolutionReplay.Tests.csproj",
+    "tools/EvolutionReplay/ExportedCaseTests.cs"
+  ],
+  "alreadySelectedPaths": [
+    "tools/test_assets.py",
+    "tools/test-assets",
+    "tools/verify-change",
+    "tools/tests/test_test_assets.py",
+    "tools/tests/test_verify_assets.py",
+    "tools/tests/test_verify_entry.py",
+    "tools/test_asset_operations.py",
+    "tools/tests/test_asset_operations.py",
+    "tools/test_asset_archives.py",
+    "tools/tests/test_asset_archives.py",
+    "tools/test_asset_cleanup.py",
+    "tools/tests/test_test_asset_cleanup.py",
+    "src/UniClaw.Host.Dsh/RuntimeToolHost.cs",
+    "src/UniClaw.Host.Dsh/RuntimeToolHost.DevelopmentAssets.cs",
+    "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs",
+    "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureTests.cs",
+    "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureAssetTests.cs",
+    "docs/agents/test-asset-retention.md",
+    "tools/README.md",
+    "schemas/diagnosis-packet.schema.json"
+  ],
+  "sourcePrerequisites": {
+    "WorldStorageProbe": "exact frozen v2 codec explicitly referenced by project; exception to raw snapshot exclusion",
+    "EVO-003": "existing replay CLI fixed schema and public component carrier, needed for real asset archive/replay consumer"
+  },
+  "deferredScopes": [
+    "task cascade deletion",
+    "automatic temporary GC",
+    "inventory migration",
+    "product storage recovery"
+  ],
+  "realIndexUnchanged": true
+}

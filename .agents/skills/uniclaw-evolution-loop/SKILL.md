@@ -60,7 +60,21 @@ merge、scenario/baseline 晋升、完成判定。它在 Gate 处交还 Uniflow�
 
 ### 0 INTAKE
 
-接受四类信号：
+两域统一使用 `uniclaw.evolution.signal.v0`（工具入口与字段见
+`tools/evolution-signal.py --help`、`changes/EVO-002/signal-contract.md`）：
+
+- `dev-verify`：验收出口复用本次 TRX、直接核对 composition pins，并记录
+  在途变更。显式 expected-red 只留信号，不生成 intake 候选；不得把它当意外回归。
+- `live-run`：显式 run 出口检查 facts 终态，无模型；深诊断由人调用
+  run-diagnosis，诊断包以 path+sha256 引用。缺 runDir→case 导出器时标为
+  pending-reproduction，不生成虚假复现命令或进入 LOCK。EVO-003首片
+  `tools/evolution-case.py export/verify/replay`支持已落盘Settings XML弹窗分类：
+  显式独立Oracle与capture/receipt关联齐备，导出新bundle并通过封存校验后，
+  该组件case可进入LOCK。使用实际生成的重放命令/TRX；其余领域仍待复现。
+
+INTAKE 按 failureKey 对照已有候选/显式已知问题引用；重复信号保留来源，
+不重复候选。候选记录只是 evidence，不创建 Change、不授予修复或晋升权力。
+无输入或诊断不完整时回到 Uniflow 取证。已有 case 的下列四类来源仍可使用：
 
 | signal | 输入 | 最低证据 |
 |---|---|---|
@@ -80,6 +94,11 @@ merge、scenario/baseline 晋升、完成判定。它在 Gate 处交还 Uniflow�
 - 复现命令（project + filter / scenario id）；
 - owner（预期出错的组件）；
 - gate（是否需要 Owner 裁决 / 是否触及冻结语义）。
+
+导出bundle使用`inputBase=case-directory`，输入路径相对`case.json`目录；
+case.sha256封存manifest，载体/脚本/配置realization另钉hash。目标产品函数
+仅记录baseline，避免将候选实现误当不可变输入。此适配只复现该组件，
+不是整个原Run，也不赋予夹具标签窗口事实权威。
 
 同一 case 的 red 与 green 必须使用同一 manifest；任何输入变化 → 新 case，
 旧 case 只作历史。
@@ -123,13 +142,19 @@ merge、scenario/baseline 晋升、完成判定。它在 Gate 处交还 Uniflow�
 
 ### 6 PACKET
 
-`packet.json` 至少八段：`case` / `inputs+hashes` / `red` / `fdp` / `owner` /
+`packet.json` 至少八段：`case` / `inputs+hashes` / `red` / `diagnosis` /
 `candidate` / `green` / `residualRisk` / `gate`。缺一段即 RED。
+`diagnosis` 以 path+sha256 引用诊断包，由该包提供 FDP/owner；不复制正文，
+不改 LOCK 后的 case manifest。cycle-01 的历史内联格式保持原样。
 `packet.md` 是给人看的同内容摘要，不复述全部 DTO。
 
 ### 7 FEEDBACK
 
 - 把 packet 交还 Uniflow：它是 VERIFY 的证据，不是 CLOSED；
+- 返回重放/证明结果前，按[开发测试资产收尾规范](../../../docs/agents/test-asset-retention.md)
+  完成本轮处置并记录。LOCK输入、独立Oracle、规定的RED/GREEN与重复执行
+  记录、packet及有效引用继续保留；无下游用途的解包/构建缓存、中间actual
+  和重复源码副本当轮清理。失败、提前停止也要收尾，不能只留最后一次绿。
 - scenario / baseline / golden 只提候选，不写；
 - 同一摩擦 ≥2 次、或新术语定型、或决策被推翻 → 触发 Uniflow A8
   LEARNING HOOK，另开 change 改 Skill/流程；本循环内不改自己的 SKILL.md。

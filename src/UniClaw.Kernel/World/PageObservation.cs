@@ -18,6 +18,9 @@ public sealed record PageCaptureObservation(
     public HierarchyCoverage? Coverage { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? DeviceId { get; init; }
+    /// <summary>This source requires a correlated overlay observation before UI consumption.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool RequiresOverlayEvidence { get; init; }
 }
 
 public sealed record PageIdentityObservation(

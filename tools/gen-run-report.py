@@ -42,6 +42,7 @@ CONTRACT_VERSION = "uniclaw.workspace.contract.v1"
 REPORT_KIND = "full-link-single-run"
 GENERATOR_NAME = "gen-run-report"
 GENERATOR_VERSION = 1
+CONSULTATION_LOG_FILE = "consultations.ndjson"
 
 # Artifact name -> file name inside the run directory (fixed contract set).
 ARTIFACT_FILES = [
@@ -56,6 +57,8 @@ ARTIFACT_FILES = [
     ("runtimeRunEvents", "runtime-run-events.json"),
 ]
 STRICT_REQUIRED = ["metadata", "facts", "trace", "journal"]
+# A degraded report can still be delivered when the core observed facts exist.
+DELIVERY_REQUIRED = {"facts"}
 
 AV_PRESENT = "present"
 AV_PARTIAL = "partial"
@@ -84,6 +87,31 @@ def sha256_file(path: Path) -> str:
 def load_json(path: Path):
     with path.open(encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def load_consultation_log(path: Path):
+    records = []
+    expected = 1
+    problem = None
+    with path.open("rb") as handle:
+        for number, line in enumerate(handle, 1):
+            try:
+                envelope = json.loads(line)
+                if (not line.endswith(b"\n") or not isinstance(envelope, dict)
+                        or envelope.get("schemaVersion") != "uniclaw.consultation-diagnostic.v1"
+                        or not isinstance(envelope.get("record"), dict)):
+                    raise ValueError("incomplete consultation diagnostic record")
+                sequence = envelope.get("sequence")
+                if type(sequence) is not int or sequence < expected:
+                    raise ValueError("invalid consultation sequence")
+                if sequence != expected:
+                    problem = problem or f"sequence gap at line {number}"
+                expected = sequence + 1
+            except (ValueError, UnicodeError) as error:
+                problem = problem or f"invalid or torn consultation at line {number}: {type(error).__name__}"
+                break
+            records.append(envelope["record"])
+    return records, problem
 
 
 def parse_journal(path: Path):
@@ -181,7 +209,8 @@ class ReferenceIndex:
 
 # ------------------------------------------------------------------ build ----
 
-def build_report(run_dir: Path, run_dir_argument: str | None = None, requirement_text: str | None = None):
+def build_report(run_dir: Path, run_dir_argument: str | None = None, requirement_text: str | None = None,
+                source_label: str | None = None):
     anomalies: list[dict] = []
     refs = ReferenceIndex()
 
@@ -189,8 +218,14 @@ def build_report(run_dir: Path, run_dir_argument: str | None = None, requirement
     artifacts = []
     parsed: dict[str, object] = {}
     for name, filename in ARTIFACT_FILES:
+        if name == "consultations" and (run_dir / CONSULTATION_LOG_FILE).exists():
+            filename = CONSULTATION_LOG_FILE
         path = run_dir / filename
         entry = {"name": name, "availability": AV_NOT_COLLECTED}
+        if filename == CONSULTATION_LOG_FILE and path.exists() and not path.is_file():
+            entry.update({"availability": AV_PARTIAL, "file": filename, "note": "consultation log is not a regular file"})
+            anomalies.append({"code": "artifact-parse-failed", "severity": "warning",
+                              "detail": f"{filename}: not a regular file", "refs": []})
         if path.is_file():
             entry.update({
                 "availability": AV_PRESENT,
@@ -199,7 +234,12 @@ def build_report(run_dir: Path, run_dir_argument: str | None = None, requirement
                 "sha256": sha256_file(path),
             })
             try:
-                parsed[name] = parse_journal(path) if name == "journal" else load_json(path)
+                if filename == CONSULTATION_LOG_FILE:
+                    parsed[name], problem = load_consultation_log(path)
+                    if problem:
+                        raise ValueError(problem)  # Keep the valid parsed prefix, expose the gap below.
+                else:
+                    parsed[name] = parse_journal(path) if name == "journal" else load_json(path)
             except Exception as error:  # degraded mode: parse failure is an observation
                 entry["availability"] = AV_PARTIAL
                 entry["note"] = f"parse failed: {error}"
@@ -217,6 +257,24 @@ def build_report(run_dir: Path, run_dir_argument: str | None = None, requirement
     settings_trace = parsed.get("settingsTrace") if isinstance(parsed.get("settingsTrace"), list) else []
     journal = parsed.get("journal") if isinstance(parsed.get("journal"), list) else []
     consultations = parsed.get("consultations") if isinstance(parsed.get("consultations"), list) else None
+    consultation_artifact = next(a for a in artifacts if a["name"] == "consultations")
+    incremental_consultations = consultation_artifact.get("file") == CONSULTATION_LOG_FILE
+    log_status = field(field(facts, "diagnostics"), "consultationLog")
+    known_consultation_status = isinstance(log_status, dict)
+    diagnostics_incomplete = False
+    if known_consultation_status:
+        counts_valid = all(type(log_status.get(k)) is int and log_status[k] >= 0
+                           for k in ("produced", "written", "dropped", "buffered"))
+        complete = (counts_valid and log_status.get("closed") is True
+                    and log_status["produced"] == log_status["written"] == len(consultations or [])
+                    and log_status["dropped"] == log_status["buffered"] == 0)
+        if not complete:
+            diagnostics_incomplete = True
+            consultation_artifact["availability"] = AV_PARTIAL
+            consultation_artifact["note"] = "consultation diagnostics contain dropped, pending or unconfirmed records"
+            anomalies.append({"code": "consultation-log-incomplete", "severity": "warning",
+                              "detail": consultation_artifact["note"], "refs": []})
+    use_consultation_availability = incremental_consultations or diagnostics_incomplete
     preflight = parsed.get("environmentPreflight") if isinstance(parsed.get("environmentPreflight"), dict) else None
     failure = parsed.get("failure") if isinstance(parsed.get("failure"), dict) else None
     runtime_events = parsed.get("runtimeRunEvents") if isinstance(parsed.get("runtimeRunEvents"), list) else None
@@ -243,7 +301,7 @@ def build_report(run_dir: Path, run_dir_argument: str | None = None, requirement
             AV_PRESENT if field(metadata, "dshSessionId") else AV_NOT_COLLECTED,
             "observed", "metadata.json",
         ),
-        "runDir": identity(run_dir_argument or str(run_dir), AV_PRESENT, "configured"),
+        "runDir": identity(source_label or run_dir_argument or str(run_dir), AV_PRESENT, "configured"),
     }
     for key in ("runId", "traceId", "productSessionId", "dshSessionId"):
         if identities[key]["value"]:
@@ -370,8 +428,8 @@ def build_report(run_dir: Path, run_dir_argument: str | None = None, requirement
                      if host_available else "run 目录内无 metadata/facts 可用")),
          },
         {"section": "agent",
-         "availability": AV_PRESENT if consultations is not None else (AV_PARTIAL if agent_count is not None else AV_NOT_COLLECTED),
-         "reason": None if consultations is not None else ("consultations.json 缺失；仅有 metadata.consultations 计数" if agent_count is not None else "无任何 UniAgent 侧观测"),
+         "availability": consultation_artifact["availability"] if use_consultation_availability else (AV_PRESENT if consultations is not None else (AV_PARTIAL if agent_count is not None else AV_NOT_COLLECTED)),
+         "reason": consultation_artifact.get("note") if use_consultation_availability else (None if consultations is not None else ("consultations.json 缺失；仅有 metadata.consultations 计数" if agent_count is not None else "无任何 UniAgent 侧观测")),
          },
         {"section": "capability", "availability": AV_PRESENT if settings_trace else AV_PARTIAL, "reason": None if settings_trace else "settings-trace.json 缺失；capability 侧只剩 journal 中的 executor 标识"},
         {"section": "worldModel", "availability": AV_PRESENT if reconciles else AV_NOT_COLLECTED, "reason": None if reconciles else "trace.json 无 world.reconcile span"},
@@ -506,8 +564,8 @@ def build_report(run_dir: Path, run_dir_argument: str | None = None, requirement
         host_layer["preflight"] = {"availability": AV_NOT_COLLECTED}
 
     agent_layer = {
-        "availability": AV_PRESENT if consultation_records else (AV_PARTIAL if agent_count is not None else AV_NOT_COLLECTED),
-        "consultationCount": len(consultation_records) if consultation_records else agent_count,
+        "availability": consultation_artifact["availability"] if use_consultation_availability else (AV_PRESENT if consultation_records else (AV_PARTIAL if agent_count is not None else AV_NOT_COLLECTED)),
+        "consultationCount": len(consultation_records) if consultation_records or incremental_consultations or known_consultation_status else agent_count,
         "model": field(metadata, "productModel"),
         "modelSource": "metadata.json" if field(metadata, "productModel") else None,
         "consultations": consultation_records if consultation_records else None,
@@ -935,14 +993,36 @@ def serialize_json(report: dict) -> bytes:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="PNL-006 full-link single-run report generator")
-    parser.add_argument("--run-dir", required=True, type=Path, help="run artifact directory")
+    parser.add_argument("--describe-inputs", action="store_true",
+                        help="print the generator-owned input/output contract as JSON")
+    parser.add_argument("--run-dir", type=Path, help="run artifact directory")
     parser.add_argument("--out-dir", type=Path, help="output directory (default: --run-dir/report)")
     parser.add_argument("--strict", action="store_true",
                         help="exit 2 when metadata/facts/trace/journal missing or runId unresolvable")
     parser.add_argument("--check", action="store_true", help="byte-compare against expect-dir instead of writing")
     parser.add_argument("--expect-dir", type=Path, help="golden directory for --check")
     parser.add_argument("--requirement", help="task requirement text (run artifacts do not carry it yet; P2 will embed it)")
+    parser.add_argument("--source-label", help="display identity for the original source artifact set")
     args = parser.parse_args(argv)
+
+    if args.describe_inputs:
+        catalog = {
+            "schemaVersion": "uniclaw.run-report.inputs.v1",
+            "generatorName": GENERATOR_NAME,
+            "generatorVersion": GENERATOR_VERSION,
+            "files": [
+                {"name": name, "fileName": filename,
+                 "strictRequired": name in STRICT_REQUIRED,
+                 "requiredForDelivery": name in DELIVERY_REQUIRED}
+                for name, filename in [*ARTIFACT_FILES, ("consultationLog", CONSULTATION_LOG_FILE)]
+            ],
+            "outputFiles": ["report.json", "report.md"],
+        }
+        print(json.dumps(catalog, ensure_ascii=False, indent=2))
+        return 0
+
+    if args.run_dir is None:
+        parser.error("--run-dir is required unless --describe-inputs is used")
 
     run_dir = args.run_dir.resolve()
     if not run_dir.is_dir():
@@ -953,7 +1033,7 @@ def main(argv=None) -> int:
     # Byte-determinism: the report records the operator-supplied path verbatim
     # (never the resolved absolute path, which varies per checkout/machine).
     report, anomalies = build_report(run_dir, run_dir_argument=str(args.run_dir),
-                                     requirement_text=args.requirement)
+                                     requirement_text=args.requirement, source_label=args.source_label)
 
     if args.strict:
         violations = []

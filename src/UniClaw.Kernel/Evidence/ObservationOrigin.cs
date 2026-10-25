@@ -5,12 +5,8 @@ namespace UniClaw.Kernel.Evidence;
 /// post-action effect flow 的自产观察。与 ProducerIdentity（谁生产）、
 /// ObservationContext（哪个流程上下文）分开。封闭二值，扩值需协议 + 代码双改。
 ///
-/// 判定权（ADR-0048，PROTOCOL-FIX-001）：由 Evidence Ledger 在 admission 时从
-/// Context **机械推导**——Context=PostActionEffectFlow ⇒ PostActionSelf；其余 ⇒
-/// External。禁止以时间邻近推导（协议通则 8：时间相邻 ≠ 因果）；推导不出按保守
-/// 方向归 External（误归外部 = 拒绝满足 MaterialEffect，fail-closed）。
-/// ObservationProposal 上的生产者自报 Origin 仅作诊断，不参与判定、不进入
-/// EvidenceRecord 与 EvidenceId。
+/// 判定权归 Evidence Ledger：只认原 Effect Boundary 的有效、同用途关联。
+/// Context、自报、producer 名称及时间邻近均不产生关联；无关联保守 External。
 /// </summary>
 public enum ObservationOrigin
 {

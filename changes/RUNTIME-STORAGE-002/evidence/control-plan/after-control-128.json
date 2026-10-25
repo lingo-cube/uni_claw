@@ -1,0 +1,23 @@
+{
+  "runId": "run-20261025T145150-840dfddd96f7447fb5fed4dc038f1b65",
+  "runRoot": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T145150-840dfddd96f7447fb5fed4dc038f1b65",
+  "label": "after-control-128",
+  "mode": "growth",
+  "selection": "control:128",
+  "exitCode": 0,
+  "counts": {
+    "requested": 128,
+    "mode": "control",
+    "completedWork": 128,
+    "adoptions": 1,
+    "replacements": 0
+  },
+  "sourceDigest": "f894f7efb4e210753310e4656e7440ec6854a08b75bceb58902e78e4f3e9b7f5",
+  "inputDigest": "e9185e83d5a1004e7b60b3b254a5b5d5abfa4f1492ebf4a1aa9e04eba0caffb9",
+  "sourceUnchangedDuringRun": true,
+  "inputsUnchangedDuringRun": true,
+  "changedSourcePathsDuringRun": [],
+  "ownedSourcesUnchangedDuringRun": true,
+  "consumersCompleted": true,
+  "scope": "shared working sources; selected checks only"
+}

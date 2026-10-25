@@ -15,6 +15,7 @@
     "acceptedContractViewRef": {"type": "string", "minLength": 1},
     "contractGeneration": {"type": "integer", "minimum": 1},
     "resume": {"type": "boolean"},
+    "requireReport": {"type": "boolean", "default": false, "description": "Accept a durable deterministic run-report requirement before task dispatch; delivery has independent state."},
     "projectRef": {"$ref": "#/$defs/logicalRef"},
     "testSetRef": {"$ref": "#/$defs/testSetRef"},
     "taskRef": {"$ref": "#/$defs/logicalRef"},

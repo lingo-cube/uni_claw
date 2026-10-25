@@ -1,0 +1,37 @@
+{
+  "id": "WI-STORAGE001-SLICE1-SPEC",
+  "objective": "Independent SPEC review of native async observation batch slice",
+  "scope": {
+    "write": [
+      "changes/RUNTIME-STORAGE-001/evidence/slice1/review-spec-v1.md",
+      "changes/RUNTIME-STORAGE-001/evidence/slice1/review-spec-v2.md"
+    ],
+    "read_hints": [
+      "changes/RUNTIME-STORAGE-001/state.md",
+      "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-v1.patch",
+      "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v1.json",
+      "changes/RUNTIME-STORAGE-001/evidence/slice1/test-summary.json",
+      "docs/adr/0055-async-batch-storage-requires-confirmed-commit.md",
+      "AGENTS.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Only Evidence observation first slice of all-storage migration: prepare ordered admissions then await actual append batch, publish then World; async Drive/Host path, compatible v1 file bounded chunks. Whole change remains implementing; other domains/initialization/cancellation/completion reflux remain synchronous."
+  },
+  "acceptance": [
+    "Check 22 exact candidate SHA snapshots and dirty-entry delta, not git HEAD dirty tree. Review slice S1-S4 and architecture, not parent all-domain migration completion. Under 400 words Chinese, actionable file/line/spec citations or explicit 0.",
+    "Inspect evidence without reruns: Ledger/Driver8, File6, Host288, DSH24; Kernel1194 passed/3 failed, same 3 reproduced in exact entry code plus same runtime resources. New-file registration fixed; remaining foreign README issues remain known. Actual batch commit-before-ack Kill plus2 fresh readers and source SHA; calls64-to1 measured as managed FileStream calls, not disk syscalls."
+  ],
+  "forbidden": [
+    "You are not alone in the codebase. Only write assigned report; do not revert or modify others.",
+    "No build/test/live/device/commit/push or further delegation.",
+    "Do not require full other-domain migration, generic WAL/queue, DB, continuation, full cursor or path optimization for slice1; parent explicitly stays open."
+  ],
+  "status": "completed",
+  "result": {
+    "candidate": "changes/RUNTIME-STORAGE-001/evidence/slice1/candidate-inputs-v2.json",
+    "final_report": "changes/RUNTIME-STORAGE-001/evidence/slice1/review-spec-v2.md",
+    "remaining_findings": 0,
+    "scope": "Evidence observation slice S1-S4 only; parent all-storage change remains implementing."
+  }
+}

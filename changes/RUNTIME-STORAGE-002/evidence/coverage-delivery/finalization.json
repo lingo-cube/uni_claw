@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "test-asset-finalization.v1",
+  "operation": "Coverage delivery slice finalization",
+  "completed": true,
+  "kept": [
+    {
+      "runId": "run-20261025T180020-d09ff76674a64bba82870c3920ada5d7",
+      "result": "coverage-closures-v1-result.json",
+      "files": 15,
+      "logicalBytes": 672136,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    },
+    {
+      "runId": "run-20261025T180750-65b9fd97fff044618622e80a24945bb2",
+      "result": "coverage-closures-v2-result.json",
+      "files": 7,
+      "logicalBytes": 140447,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    },
+    {
+      "runId": "run-20261025T174907-65a483e36c454f449387e7049847e6c5",
+      "result": "coverage-core-v2-result.json",
+      "files": 7,
+      "logicalBytes": 44687,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    },
+    {
+      "runId": "run-20261025T183331-2a030928b55f4aa580b222487660bc57",
+      "result": "coverage-dsh-final-v1-result.json",
+      "files": 7,
+      "logicalBytes": 72540,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    },
+    {
+      "runId": "run-20261025T180936-63e974f28ddf41029662bba3413923b5",
+      "result": "coverage-dsh-v1-result.json",
+      "files": 5,
+      "logicalBytes": 25910,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    },
+    {
+      "runId": "run-20261025T181328-85c4d391a87646d1a92c63cf012f58ad",
+      "result": "coverage-dsh-v2-result.json",
+      "files": 11,
+      "logicalBytes": 330447,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    },
+    {
+      "runId": "run-20261025T181803-4066e84e64a74f759daaac91eaac8f47",
+      "result": "coverage-dsh-v3-result.json",
+      "files": 7,
+      "logicalBytes": 71636,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    },
+    {
+      "runId": "run-20261025T173745-6ac6d1ffaa4447129b53518b215baca8",
+      "result": "coverage-green-v1-result.json",
+      "files": 7,
+      "logicalBytes": 35759,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    },
+    {
+      "runId": "run-20261025T182247-2198cfd959844e99ab71982de97412c1",
+      "result": "coverage-host-final-v1-result.json",
+      "files": 7,
+      "logicalBytes": 344948,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    },
+    {
+      "runId": "run-20261025T183153-e39f7d71eebc49a28f2f4cef5d717d35",
+      "result": "coverage-host-final-v2-result.json",
+      "files": 7,
+      "logicalBytes": 370447,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    },
+    {
+      "runId": "run-20261025T171204-cf32a8d3a73545b493c3306e55ad060b",
+      "result": "coverage-red-result.json",
+      "files": 8,
+      "logicalBytes": 145898,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    },
+    {
+      "runId": "run-20261025T183042-6b1a95131b874caba4389dce94fad670",
+      "result": "coverage-review-fixture-v1-result.json",
+      "files": 9,
+      "logicalBytes": 506837,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    },
+    {
+      "runId": "run-20261025T182840-da0fb9e16afa4d7fb072a96b2cbf6da9",
+      "result": "coverage-review-red-v1-result.json",
+      "files": 9,
+      "logicalBytes": 296987,
+      "reason": "task-retained original RED/intermediate/final TRX, logs, source provenance and native consumers; no summary rewritten"
+    }
+  ],
+  "archived": [],
+  "deleted": [],
+  "deletedBytes": 0,
+  "pending": [
+    {
+      "reason": "parent total acceptance and precise joint integration remain original Leader responsibility"
+    }
+  ],
+  "notes": "All local case fixtures self-dispose; shared RunRecoveryProbe and Host/Dsh bin/obj are not owned expendable copies and remain. No source, old history, evidence or task-retained raw Run deleted."
+}

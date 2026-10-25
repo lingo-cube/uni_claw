@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "parentAccepted": false,
+  "scope": "Host projection evidence only; joint build remains a separate acceptance gate",
+  "checks": {
+    "candidate-sha:src/UniClaw.Host/Runtime/RuntimeRunStore.cs": true,
+    "candidate-sha:src/UniClaw.Host/Runtime/ActivationRecordStore.cs": true,
+    "candidate-sha:src/UniClaw.Host/Runtime/RuntimeRunStore.History.cs": true,
+    "candidate-sha:tests/UniClaw.Host.Tests/RuntimeRunProjectionVersionTests.cs": true,
+    "candidate-sha:tests/UniClaw.Host.Tests/ActivationCommitTests.cs": true,
+    "baseline-asset-valid": true,
+    "baseline-red-5-of-5": true,
+    "baseline-source-unchanged": true,
+    "final-asset-valid": true,
+    "final-32-of-32": true,
+    "final-source-files-unchanged": true,
+    "final-consumers-completed": true,
+    "review-spec-no-findings": true,
+    "review-standards-no-findings": true,
+    "shared-host-review-final-blocked-by-coverage-wip": true
+  },
+  "checkCount": 15,
+  "candidateSha256": {
+    "src/UniClaw.Host/Runtime/RuntimeRunStore.cs": "fc50aa65ca52200a09f154f5d63a1621c40dceb8b43ad982a2452278a1a2163e",
+    "src/UniClaw.Host/Runtime/ActivationRecordStore.cs": "f8f5636599cfc49df03b6b2221ad8c44079f3a9275eb369d17a8aee58f49cf1b",
+    "src/UniClaw.Host/Runtime/RuntimeRunStore.History.cs": "0eca99d86a3625bde0a9025c36cc2331b70f4ebd41bd29d426193dbb75b416aa",
+    "tests/UniClaw.Host.Tests/RuntimeRunProjectionVersionTests.cs": "92103aa4648193f848a38d03a5b293a31a8d3e338acd454751bf3e66d3197551",
+    "tests/UniClaw.Host.Tests/ActivationCommitTests.cs": "a8f167dd6dec2927a439d784effb9c94cbf98a041d4f664aaf5a607f643e4aa6"
+  },
+  "retainedBlocker": "shared host-review-final compile blocked by Coverage WIP; not Host behavior evidence"
+}

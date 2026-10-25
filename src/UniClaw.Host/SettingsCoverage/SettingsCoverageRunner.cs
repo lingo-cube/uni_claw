@@ -30,7 +30,7 @@ namespace UniClaw.Host.SettingsCoverage;
 /// 不产生 receipt，不参与账本 executed 记账），产物 coverage-steps.json +
 /// coverage-report.json + 既有 trace/facts/settings-trace。
 /// </summary>
-public sealed class SettingsCoverageRunner
+public sealed partial class SettingsCoverageRunner
 {
     /// <summary>
     /// TRAJECTORY-001 D3 裁决的停滞判定纯函数：进度指纹 (已进入/到达目标数,
@@ -71,7 +71,10 @@ public sealed class SettingsCoverageRunner
         UniClaw.Kernel.Capability.UniPerceptionCapability? Perception = null,
         IReadOnlyList<UniClaw.Kernel.Capability.SemanticPageCandidate>? SemanticPages = null,
         UniClaw.Kernel.Capability.CapabilityRegistry? ProductCapabilities = null,
-        NativeContextSignatureProfile? NativeContextProfile = null);
+        NativeContextSignatureProfile? NativeContextProfile = null,
+        AuxiliaryArtifactLimits? AuxiliaryArtifactLimits = null,
+        DiagnosticObservationOptions? DiagnosticObservationOptions = null,
+        CoverageReportDeliveryOptions? ReportDelivery = null);
 
     public sealed record StepArtifact(
         int Index,
@@ -106,7 +109,11 @@ public sealed class SettingsCoverageRunner
         IReadOnlyList<StepArtifact> Steps,
         IReadOnlyList<SettingsCoverageDirector.ConsultRecord> Consults,
         IReadOnlyList<string> DshDiagnostics,
-        string FactsDigest);
+        string FactsDigest,
+        [property: System.Text.Json.Serialization.JsonIgnore] RunResourceBinding? ResourceBinding = null)
+    {
+        public CoverageReportDeliveryResult? ReportDelivery { get; init; }
+    }
 
     private sealed record ConsultBridgeRecord(
         string Mode,
@@ -141,7 +148,17 @@ public sealed class SettingsCoverageRunner
         Directory.CreateDirectory(runRoot);
         var runDir = Path.Combine(runRoot, $"run-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}");
         Directory.CreateDirectory(runDir);
+        var reportOptions = options.ReportDelivery ?? new();
+        var captureRelative = reportOptions.RetainedCaptureDirectory ?? "evidence";
+        reportOptions = reportOptions with { RetainedCaptureDirectory = reportOptions.RetainedCaptureDirectory
+            ?? (options.FeedNext is null && (config.EvidenceSettings.PersistScreenshots || config.EvidenceSettings.PersistHierarchies) ? captureRelative : null) };
+        await using var reportDelivery = new CoverageReportDelivery(runRoot, reportOptions);
+        // Acknowledged requirement and original source binding precede any task/Agent/Effect work.
+        var reportRequirement = await reportDelivery.RequireAsync(Path.GetFileName(runDir), cancellationToken: cancellationToken).ConfigureAwait(false);
+        var reportProblems = new List<string>();
+        Task WriteProjection(string name, string content) => TryWriteReportProjectionAsync(runDir, name, content, reportProblems);
         var journalPath = Path.Combine(runDir, "exec.journal");
+        var auxiliary = new AuxiliaryArtifacts(runDir, options.AuxiliaryArtifactLimits);
 
         var clock = new HostUtilities.VirtualClock();
         var scope = new HashSet<string>
@@ -149,6 +166,7 @@ public sealed class SettingsCoverageRunner
             ProductAssociationStrategy.ScreenIdentitySubject,
             ProductAssociationStrategy.ScreenRouteSubject,
             ProductAssociationStrategy.PopupSubject, // AGT-009：弹窗 typed 声明
+            OverlayObservationCodec.Subject,
             SharedSubjects.Frame,
             "ui.node.*",
             PageObservationCodec.CaptureSubject,
@@ -161,7 +179,7 @@ public sealed class SettingsCoverageRunner
         var ledger = new SettingsCoverageLedger();
         var evidenceSettings = config.EvidenceSettings;
         var evidenceDir = options.FeedNext is null
-            ? Path.Combine(runDir, "evidence")
+            ? RequiredReportDeliveryPaths.ResolveSourcePath(runDir, captureRelative)
             : null;
         var perceptionRegistry = options.ProductCapabilities ?? PerceptionCapabilityComposition.RegisterProductPerception(
             uniPerception: options.Perception);
@@ -176,41 +194,48 @@ public sealed class SettingsCoverageRunner
                 nativeContextProfile: options.NativeContextProfile)
             : null;
         liveFeed?.SetCancellationToken(cancellationToken);
-        acquisitionPreflight.Stop();
-        if (liveFeed is not null)
-            WriteText(runDir, "environment-preflight.json", TryJson(new
-            {
-                schemaVersion = "uniclaw.environment-preflight.v1",
-                visionServiceWarmup = liveFeed.EnvironmentPreflight,
-                preflightElapsedMilliseconds = acquisitionPreflight.Elapsed.TotalMilliseconds,
-                formalFlowStartedAfterPreflight = true,
-            }));
-        var feedNext = options.FeedNext ?? liveFeed!.Next;
-        var currentCaptureId = options.CurrentCaptureId
-            ?? (liveFeed is not null ? () => liveFeed.Trace.Count > 0 ? liveFeed.Trace[^1].CaptureId : null : () => null);
         UniKernel? kernel = null;
-        var journal = new CoverageStepJournal(
-            ledger,
-            () => kernel?.PostActionVerifications
-                ?? (IReadOnlyList<PostActionEffectVerification>)Array.Empty<PostActionEffectVerification>(),
-            options.DshSessionIdAccessor);
-        var director = new SettingsCoverageDirector(
-            options.UnderlyingConsult, ledger, config, journal,
-            // AGT-019 M2-②/B3 seam：诊断/视口从感知管线最新周期流入
-            // Director 装饰层（LocalView 四族补缺闭环）。
-            localViewSources: liveFeed is null ? null : () => (liveFeed.LatestDiagnostics, liveFeed.LatestViewport),
-            // TRAJECTORY-001 D2：对话框标题从感知管线最新周期流入 Director
-            // （到达即完成判据）。
-            dialogTitleSource: liveFeed is null ? null : () => liveFeed.LatestDialogTitle);
         var consultBridge = new List<ConsultBridgeRecord>();
         try
         {
-            var world = new WorldModel(
+            acquisitionPreflight.Stop();
+            if (liveFeed is not null)
+                await WriteTextAsync(runDir, "environment-preflight.json", TryJson(new
+                {
+                    schemaVersion = "uniclaw.environment-preflight.v1",
+                    visionServiceWarmup = liveFeed.EnvironmentPreflight,
+                    preflightElapsedMilliseconds = acquisitionPreflight.Elapsed.TotalMilliseconds,
+                    formalFlowStartedAfterPreflight = true,
+                })).ConfigureAwait(false);
+            var feedNext = options.FeedNext ?? liveFeed!.Next;
+            var currentCaptureId = options.CurrentCaptureId
+                ?? (liveFeed is not null ? () => liveFeed.Trace.Count > 0 ? liveFeed.Trace[^1].CaptureId : null : () => null);
+            await using var evidenceJournal = await FileEvidenceJournal.CreateAsync(Path.Combine(runDir, "evidence.journal.jsonl"), cancellationToken: cancellationToken).ConfigureAwait(false);
+            var evidenceLedger = new EvidenceLedger(evidenceJournal);
+            var journal = new CoverageStepJournal(
+                ledger,
+                () => kernel?.PostActionVerifications
+                    ?? (IReadOnlyList<PostActionEffectVerification>)Array.Empty<PostActionEffectVerification>(),
+                options.DshSessionIdAccessor);
+            var director = new SettingsCoverageDirector(
+                options.UnderlyingConsult, ledger, config, journal,
+                // AGT-019 M2-②/B3 seam：诊断/视口从感知管线最新周期流入
+                // Director 装饰层（LocalView 四族补缺闭环）。
+                localViewSources: liveFeed is null ? null : () => (liveFeed.LatestDiagnostics, liveFeed.LatestViewport),
+                // Both acquisition paths consume the same accepted current World
+                // projection. Raw LiveFeed metadata is not a separate title authority.
+                dialogTitleSource: () => CurrentDialogTitle(kernel?.CurrentBelief, evidenceLedger, currentCaptureId()));
+            await using var runStateJournal = new FileRunStateJournal(Path.Combine(runDir, "run-state.journal.jsonl"));
+            await using var controlJournal = new FileControlTraversalJournal(Path.Combine(runDir, "control-traversal.journal.jsonl"));
+            await using var planJournal = new FileRuntimePlanJournal(Path.Combine(runDir, "runtime-plan.journal.jsonl"));
+            await using var worldJournal = await FileWorldJournal.CreateAsync(Path.Combine(runDir, "world.journal.jsonl"), cancellationToken: cancellationToken).ConfigureAwait(false);
+            var world = await WorldModel.CreateAsync(
                 scope,
                 new ProductAssociationStrategy(),
                 new UiHierarchyOccurrenceStrategy(),
                 nativeContextProfiles: options.NativeContextProfile is { } nativeProfile
-                    ? [nativeProfile] : null);
+                    ? [nativeProfile] : null,
+                history: new(worldJournal, runStateJournal.RecordingId, evidenceJournal.RecordingId)).ConfigureAwait(false);
             var assurance = new RuntimeAssurance(
                 new ProductFreshnessEvaluator(() => clock.Now, TimeSpan.FromMinutes(5)));
             IEffectDriver delivery = options.EffectDriver ?? new AdbLiveEffectDriver(
@@ -219,7 +244,8 @@ public sealed class SettingsCoverageRunner
                 options.ViewportHeight,
                 adbExecutable: "adb",
                 clock: () => clock.Now);
-            var effectBoundary = new EffectBoundary(delivery, new FileExecutionJournal(journalPath));
+            await using var executionJournal = new FileExecutionJournal(journalPath);
+            var effectBoundary = new EffectBoundary(delivery, executionJournal);
             var metrics = new RuntimeStageMetrics();
             var planPolicy = new AgentPlanPolicy
             {
@@ -234,10 +260,9 @@ public sealed class SettingsCoverageRunner
                 AuthorizedTotalConsultRounds = config.Bounds.AuthorizedTotalConsultRounds,
             };
             var traceScope = RunTraceFactory.BeginRun(new RunCorrelation("host:v0-settings-coverage"));
-            var evidenceLedger = new EvidenceLedger();
             kernel = new UniKernel(
                 evidenceLedger, world, traceScope.Trace,
-                new RunModel(), new ControlLoop(planPolicy), assurance, effectBoundary, metrics);
+                new RunModel(runStateJournal), new ControlLoop(planPolicy, controlJournal), assurance, effectBoundary, metrics);
 
             // ---- NextInput 包装缝：观察/回执交错记账 -----------------------
             LanguageInspectionPostCommit? languageInspection = null;
@@ -289,19 +314,23 @@ public sealed class SettingsCoverageRunner
             // AGT-009：feed 的有界 Slow 咨询投影目标 = 当前 run kernel。
             if (liveFeed is not null)
                 liveFeed.KernelProvider = () => kernel;
-            using var consultationJournal = new FileConsultationJournal(Path.Combine(runDir, "consultations.journal.jsonl"));
+            var consultationPath = Path.Combine(runDir, "consultations.journal.jsonl");
+            await using var consultationJournal = new FileConsultationJournal(consultationPath);
+            await using var resourceJournal = new FileRunResourceJournal(Path.Combine(runDir, "resource.journal.jsonl"),
+                consultationPath: consultationPath, executionPath: journalPath);
             var currentStepGuards = new List<object>();
             var candidateProjections = new List<object>();
             director.CurrentStepGuardInstalled = true;
-            var driver = new KernelRunDriver(
+            await using var driver = new KernelRunDriver(
                 kernel, planPolicy,
                 new RunDriverInputs
                 {
                     NextInput = interleave.WrappedNext,
                     PollCancellation = options.PollCancellation,
-                    ObservationRecoveryTimeout = TimeSpan.FromMilliseconds(Math.Min(30000, config.SlowSettings.BoundedWaitMs)),
-                    MaxObservationRecoveryRequests = Math.Min(16, config.SlowSettings.MaxRequestsPerRun),
                     ConsultationJournal = consultationJournal,
+                    ResourceJournal = resourceJournal,
+                    RuntimePlanJournal = planJournal,
+                    RecoveryArchive = new FileRunRecoveryArchive(runDir),
                     AvailablePlanSources = SettingsPlanFacts.SourceDescriptions.Concat(new[]
                     {
                         new KeyValuePair<string, string>(SettingsTraversalProjection.Source,
@@ -311,7 +340,9 @@ public sealed class SettingsCoverageRunner
                     CanBindPlanLanguage = traversalInspection.CanBind,
                     InspectPlanLanguage = traversalInspection.Inspect,
                     InspectPlanLanguageAsync = traversalInspection.InspectAsync,
-                    ObserveTraversalRecovery = facts => WriteText(runDir, "traversal-recovery.json", TryJson(facts)),
+                    DiagnosticObservationOptions = options.DiagnosticObservationOptions ?? new(),
+                    ObserveTraversalRecoveryAsync = (facts, token) => auxiliary.WriteAsync(
+                        "traversal-recovery.json", () => facts, token),
                     AvailablePlanConditions = SettingsPlanFacts.ConditionDescriptions,
                     EvaluatePlanCondition = (condition, _) =>
                     {
@@ -434,7 +465,7 @@ public sealed class SettingsCoverageRunner
                     },
                 });
 
-            var admission = kernel.AdmitContract(new ExecutionContract(
+            var admission = await kernel.AdmitContractAsync(new ExecutionContract(
                 Version: "v0",
                 Objective: "Traverse Android Settings within the current device, account, permissions and system state. "
                     + "Enter every configured first-level target: " + string.Join("; ", config.TargetPages) + ". "
@@ -468,7 +499,7 @@ public sealed class SettingsCoverageRunner
                 ProductSessionId: "session-settings-coverage",
                 ContractRef: "contract-settings-coverage",
                 AcceptedContractViewRef: "view-settings-coverage",
-                ContractGeneration: 1));
+                ContractGeneration: 1)).ConfigureAwait(false);
             if (!admission.Accepted)
                 throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");
 
@@ -490,36 +521,46 @@ public sealed class SettingsCoverageRunner
                     break;
             }
             interleave.FlushObservation();
-            WriteText(
-                runDir,
+            await WriteProjection(
                 "coverage-events.jsonl",
                 string.Join(
                     Environment.NewLine,
                     ledger.Events.Select(eventRecord => JsonSerializer.Serialize(eventRecord, JsonOptions)))
-                + Environment.NewLine);
+                + Environment.NewLine).ConfigureAwait(false);
             TryBindLanguageInspection();
             if (languageInspectionRequest is { Required: true } && languageInspection is null)
                 throw new InvalidOperationException("language-inspection-required-capability-not-bound");
             journal.DrainAttributed(materializedSteps);
 
             // ---- 产物落盘 ---------------------------------------------------
-            WriteText(runDir, "trace.json", TryJson(traceScope.FinalizeArtifact()));
+            var observationStatus = await driver.CompleteDiagnosticObservationsAsync().ConfigureAwait(false);
+            await auxiliary.WriteAsync("trace.json", () => traceScope.FinalizeArtifact()).ConfigureAwait(false);
             if (liveFeed is not null)
-                WriteText(runDir, "settings-trace.json", TryJson(liveFeed.Trace));
+                await auxiliary.WriteAsync("settings-trace.json", () => liveFeed.Trace).ConfigureAwait(false);
 
             var receipts = kernel.EffectReceipts;
             var steps = journal.Artifacts();
             var report = ledger.Report(config);
-            WriteText(runDir, "coverage-steps.json", TryJson(steps));
-            WriteText(runDir, "plan-execution.json", TryJson(driver.PlanExecution));
-            WriteText(runDir, "traversal-execution.json", TryJson(kernel.TraversalExecution));
-            WriteText(runDir, "plan-candidate-projections.json", TryJson(candidateProjections));
-            WriteText(runDir, "current-step-guards.json", TryJson(currentStepGuards));
-            WriteText(runDir, "coverage-report.json", TryJson(report));
-            WriteText(runDir, "coverage-observed-elements.json", TryJson(ledger.ObservedElements));
-            WriteText(runDir, "world-navigation.json", TryJson(
-                kernel.ProjectWorldGraph($"{kernel.RunId}:{kernel.RunView?.Version}")));
-            WriteText(runDir, "execution-overviews.json", TryJson(
+            CoverageReportDeliveryResult? deliveryResult = null;
+            try
+            {
+                deliveryResult = await reportDelivery.CaptureAndDeliverAsync(reportRequirement.DeliveryId,
+                    new(new(kernel.RunId, runStateJournal.RecordingId, evidenceJournal.RecordingId, worldJournal.RecordingId),
+                        TryJson(report), TryJson(steps)), CancellationToken.None).ConfigureAwait(false);
+                if (!deliveryResult.Delivery.IsReadable || deliveryResult.Delivery.Record.Status != ReportDeliveryStatus.Delivered)
+                    reportProblems.Add(deliveryResult.Delivery.IntegrityProblem ?? deliveryResult.Delivery.Record.Reason ?? "coverage-report-delivery-pending");
+                if (deliveryResult.ProjectionProblem is not null) reportProblems.Add(deliveryResult.ProjectionProblem);
+            }
+            catch (Exception error) when (ReportStorageError(error))
+            { reportProblems.Add("coverage-report-finalization:" + error.Message); }
+            await auxiliary.WriteAsync("plan-execution.json", () => driver.PlanExecution).ConfigureAwait(false);
+            await auxiliary.WriteAsync("traversal-execution.json", () => kernel.TraversalExecution).ConfigureAwait(false);
+            await auxiliary.WriteAsync("plan-candidate-projections.json", () => candidateProjections).ConfigureAwait(false);
+            await auxiliary.WriteAsync("current-step-guards.json", () => currentStepGuards).ConfigureAwait(false);
+            await WriteProjection("coverage-observed-elements.json", TryJson(ledger.ObservedElements)).ConfigureAwait(false);
+            await WriteProjection("world-navigation.json", TryJson(
+                kernel.ProjectWorldGraph($"{kernel.RunId}:{kernel.RunView?.Version}"))).ConfigureAwait(false);
+            await WriteProjection("execution-overviews.json", TryJson(
                 consultBridge.Select(exchange => new
                 {
                     exchange.Context.DecisionId,
@@ -527,13 +568,13 @@ public sealed class SettingsCoverageRunner
                     exchange.Context.BudgetReview,
                     exchange.Decision,
                     exchange.EffectiveDecision,
-                }).ToArray()));
-            WriteText(runDir, "consult-bridge.json", TryJson(new
+                }).ToArray())).ConfigureAwait(false);
+            await WriteProjection("consult-bridge.json", TryJson(new
             {
                 schemaVersion = "uniclaw.settings-coverage-consult-bridge.v1",
                 mode = options.UseCoverageDirector ? "coverage-director" : "advisory-direct",
                 exchanges = consultBridge,
-            }));
+            })).ConfigureAwait(false);
 
             var consultSummaries = director.ConsultLog.Select(c => new
             {
@@ -567,6 +608,10 @@ public sealed class SettingsCoverageRunner
                 terminalJustification = director.TerminalJustification,
                 diagnostics = new
                 {
+                    observations = observationStatus,
+                    exports = auxiliary.Status,
+                    reportDelivery = deliveryResult?.Delivery.Record.Status.ToString(),
+                    reportProblems,
                     firstDivergence = report.FirstDivergence,
                     terminalJustification = director.TerminalJustification,
                     nextFiles = new[] { "facts.json", "consult-bridge.json", "environment-preflight.json", "coverage-report.json", "coverage-steps.json", "trace.json", "settings-trace.json", "exec.journal", "failure.json" },
@@ -597,34 +642,34 @@ public sealed class SettingsCoverageRunner
                     .ToArray(),
             };
             var factsJson = JsonSerializer.Serialize(facts, JsonOptions);
-            WriteText(runDir, "facts.json", factsJson);
+            await WriteProjection("facts.json", factsJson).ConfigureAwait(false);
             var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
                 $"{facts.status}|{facts.coverageStatus}|{facts.delivered}|{string.Join(",", facts.receipts)}|{facts.journalBytes}")));
 
             return new RunResult(
                 runDir, drive.Status, drive.Reason, facts.outcome, report, steps,
                 director.ConsultLog,
-                Array.Empty<string>(),
-                digest);
+                reportProblems.ToArray(),
+                digest, driver.ResourceBinding) { ReportDelivery = deliveryResult };
         }
         catch (Exception error)
         {
             try
             {
-                WriteText(runDir, "consult-bridge.json", TryJson(new
+                await WriteTextAsync(runDir, "consult-bridge.json", TryJson(new
                 {
                     schemaVersion = "uniclaw.settings-coverage-consult-bridge.v1",
                     mode = options.UseCoverageDirector ? "coverage-director" : "advisory-direct",
                     exchanges = consultBridge,
-                }));
-                WriteText(runDir, "failure.json", JsonSerializer.Serialize(new
+                })).ConfigureAwait(false);
+                await WriteTextAsync(runDir, "failure.json", JsonSerializer.Serialize(new
                 {
                     schemaVersion = "uniclaw.settings-coverage-failure.v1",
                     runDir,
                     errorType = error.GetType().FullName,
                     message = error.Message,
                     guidance = "先看 message；再检查 environment-preflight.json、exec.journal、trace.json、settings-trace.json 和 coverage-report.json（若存在）。"
-                }, JsonOptions));
+                }, JsonOptions)).ConfigureAwait(false);
             }
             catch
             {
@@ -644,6 +689,34 @@ public sealed class SettingsCoverageRunner
     /// 配对后经 CoverageStepJournal 等待 Drain（咨询开始时携带 verification
     /// 与 DecisionId/Directive 归属写入账本）。
     /// </summary>
+    private static string? CurrentDialogTitle(WorldBeliefRevision? current, EvidenceLedger evidence, string? captureId)
+    {
+        if (current is null || current.ObservationNeed is not null
+            || current.WorldState.GetValueOrDefault(ProductAssociationStrategy.PopupSubject)?.Value != "present"
+            || current.Conflicts.Any(conflict => conflict.Subject == ProductAssociationStrategy.PopupSubject))
+            return null;
+        captureId = current.CurrentPageObservation?.Capture.CaptureId ?? captureId;
+        if (captureId is null) return null;
+        var titles = new List<string>();
+        foreach (var item in current.WorldState)
+        {
+            if (!item.Key.EndsWith(".resource_id", StringComparison.Ordinal)
+                || !item.Value.Value.EndsWith("alertTitle", StringComparison.Ordinal)
+                || !evidence.CanonicalRecords.TryGetValue(item.Value.EvidenceId, out var resource)
+                || resource.Provenance.Hierarchy is not { Field: "resource_id" } h
+                || h.CaptureId != captureId
+                || item.Key != $"ui.node.{h.CaptureId}#{h.NodeLocalIndex}.resource_id") continue;
+            var textSubject = $"ui.node.{h.CaptureId}#{h.NodeLocalIndex}.text";
+            if (current.Conflicts.Any(conflict => conflict.Subject == item.Key || conflict.Subject == textSubject)
+                || !current.WorldState.TryGetValue(textSubject, out var text)
+                || !evidence.CanonicalRecords.TryGetValue(text.EvidenceId, out var record)
+                || record.Provenance.Hierarchy != h with { Field = "text" }
+                || string.IsNullOrWhiteSpace(text.Value)) continue;
+            titles.Add(text.Value);
+        }
+        return titles.Count == 1 ? titles[0] : null;
+    }
+
     private sealed class InterleaveBookkeeper
     {
         private readonly UniKernel _kernel;
@@ -665,6 +738,8 @@ public sealed class SettingsCoverageRunner
         private int _stagnantCycles;
         private bool _interruptionIssued;
         private int _lastInterruptionStagnant;
+        private long _lastInterruptionObservationSeq;
+        private string? _lastInterruptionEvidence;
 
         public InterleaveBookkeeper(
             UniKernel kernel,
@@ -700,7 +775,9 @@ public sealed class SettingsCoverageRunner
             // 入账本（occurrences 为该屏 grounded 景观）。
             RecordPendingObservation();
 
-            if (TryBuildInterruption() is { } interruption)
+            // Supplementation pulls belong to Runtime's current recovery slot.
+            // They are not completed coverage cycles and must reach the source.
+            if (directive.Need is null && TryBuildInterruption() is { } interruption)
                 return interruption;
 
             var input = _feedNext(directive);
@@ -722,7 +799,8 @@ public sealed class SettingsCoverageRunner
             }
             // AGT-009：本周期弹窗声明入账本（director 快照分支依据）。
             var popupNow = PopupStateOf(input);
-            if (popupNow is not null)
+            if (popupNow is not null && input is RunDriverInput.Observation legacy
+                && !legacy.Proposals.Any(p => p.Claim.Subject == OverlayObservationCodec.Subject))
                 _ledger.RecordPopupState(popupNow);
             var receipts = _kernel.EffectReceipts;
             for (var i = _syncedReceipts; i < receipts.Count; i++)
@@ -772,17 +850,38 @@ public sealed class SettingsCoverageRunner
             else
             {
                 _stagnantCycles = 0;
-                _interruptionIssued = false;
             }
             _lastProgress = progress;
 
-            // TRAJECTORY-001 冷却（真机实证修正）：Agent 答非介入选项后
-            // N 轮冷却再重问（而非永久锁存——锁存致 95% 停滞周期里 Agent
-            // 再无被问机会，循环无法打破）。冷却 = StagnationInjectConsults
-            // 同值（数据后标定）。
+            // Cooldown limits frequency; only a new accepted observation with
+            // changed task evidence can rearm (TRAJECTORY-001 A1/A2).
+            // Capture/revision/event identities and receipts are not new task information.
+            var observationSeq = _ledger.Events
+                .LastOrDefault(item => item.Type == CoverageEventType.ObservationAccepted)?.Sequence ?? 0;
+            var relevantEvidence = TryJson(new
+            {
+                snapshot.CurrentRoute,
+                snapshot.PopupState,
+                Target = snapshot.SelectedDirective?.TargetDescriptor,
+                Kind = snapshot.NextDirectiveKind,
+                Visible = (_kernel.CurrentBelief?.Occurrences ?? [])
+                    .Where(item => item.SemanticDescriptor == snapshot.SelectedDirective?.TargetDescriptor
+                        || snapshot.PopupState == "present" &&
+                            (item.Native?.Value.EndsWith("alertTitle", StringComparison.Ordinal) == true
+                                || _config.PopupSettings.Targets.Contains(item.SemanticDescriptor)))
+                    .Select(item => TryJson(new { item.Role, item.SemanticDescriptor, item.State,
+                        Native = item.Native?.Value, item.Locator }))
+                    .Order(StringComparer.Ordinal).ToArray(),
+                RootFrontier = _ledger.DynamicRootFrontier(_config).Order(StringComparer.Ordinal).ToArray(),
+                NestedFrontier = _ledger.DynamicNestedFrontier(_config).Order(StringComparer.Ordinal).ToArray(),
+                Coverage = _ledger.TargetMarks.OrderBy(item => item.Key, StringComparer.Ordinal)
+                    .Select(item => new { item.Key, item.Value.Kind }).ToArray(),
+            });
             var cooldownOver = _stagnantCycles - _lastInterruptionStagnant
                 >= _config.Bounds.StagnationInjectConsults;
-            if (_interruptionIssued && !cooldownOver)
+            if (_interruptionIssued && (!cooldownOver
+                || observationSeq <= _lastInterruptionObservationSeq
+                || string.Equals(relevantEvidence, _lastInterruptionEvidence, StringComparison.Ordinal)))
                 return null;
             if (_stagnantCycles < _config.Bounds.StagnationInjectConsults)
                 return null;
@@ -852,6 +951,8 @@ public sealed class SettingsCoverageRunner
 
             _interruptionIssued = true;
             _lastInterruptionStagnant = _stagnantCycles;
+            _lastInterruptionObservationSeq = observationSeq;
+            _lastInterruptionEvidence = relevantEvidence;
             // TRAJECTORY-001 思路引导（owner："引导 Agent 多思路，引入正确
             // 思考流程"）：Reason = 数据前置 + 推理路径 + 行为转折指令。
             var recentTargets = string.Join(", ",
@@ -872,7 +973,8 @@ public sealed class SettingsCoverageRunner
                 + $"choose skip or blocked if nothing has changed.\n"
                 + $"DO NOT propose the same action that has been failing. Change your approach.";
             return new RunDriverInput.Interruption(new InterruptionSignal(
-                SignalKey: $"coverage-stagnant:{snapshot.NextDirective ?? "unknown"}",
+                SignalKey: $"coverage-stagnant:{snapshot.SelectedDirective?.TargetDescriptor ?? "unknown"}:"
+                    + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(relevantEvidence))).ToLowerInvariant(),
                 Kind: "CoverageStagnantSignal",
                 EventSeq: cutoff,
                 Target: snapshot.NextDirective,
@@ -941,6 +1043,11 @@ public sealed class SettingsCoverageRunner
 
         private void RecordPendingObservation()
         {
+            var current = _kernel.CurrentBelief;
+            if (current?.CurrentPageObservation?.Capture.RequiresOverlayEvidence == true
+                && current.WorldState.TryGetValue(ProductAssociationStrategy.PopupSubject, out var overlay)
+                && overlay.Value != _ledger.LatestPopupState)
+                _ledger.RecordPopupState(overlay.Value); // Owner projection, never raw proposal authority
             if (!_observedOnce || _lastCycleRoute is null || _cycleRecorded)
                 return;
             var belief = _kernel.CurrentBelief;
@@ -1113,8 +1220,8 @@ public sealed class SettingsCoverageRunner
         catch (Exception) { return value?.ToString() ?? "<null>"; }
     }
 
-    private static void WriteText(string dir, string name, string content) =>
-        File.WriteAllText(Path.Combine(dir, name), content);
+    private static Task WriteTextAsync(string dir, string name, string content) =>
+        File.WriteAllTextAsync(Path.Combine(dir, name), content);
 
     private static ConsultDecisionArtifact? ToConsultArtifact(AgentDecision? decision) =>
         decision switch

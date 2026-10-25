@@ -1,0 +1,10 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": {
+    "src/UniClaw.Host/Runtime/FileCommittedHistory.cs": "fe9a4acc29de0569667d985f74f663e8309ca0a9d01f8a3da9c00556690da1d8",
+    "src/UniClaw.Host/Runtime/FileControlTraversalJournal.cs": "9e91caad13f503a84740a4766e12adce94f093f33f475ec3dfe9ae68cfc0be48",
+    "src/UniClaw.Host/Runtime/FileRuntimePlanJournal.cs": "9d09a2e77dad0cdb481b434dce96fcabe43d6ae167649882c7675323f5f89218",
+    "tools/RunRecoveryProbe/Program.cs": "e487ed8813ef14f2eeea67ff5fd8fea1ba49073351746f8bea2fba5fa889b56c",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.PlanHistory.cs": "1374e130cf336cdd150296b5947c5a00eb98d7fd8414e4aa36fec2ed58c3b313"
+  }
+}

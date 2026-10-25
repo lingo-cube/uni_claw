@@ -1,0 +1,13 @@
+{
+  "runId": "run-20261025T174920-efe88f0a27124c0285b12e97bdd0ea0f",
+  "runRoot": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T174920-efe88f0a27124c0285b12e97bdd0ea0f",
+  "exitCode": 1,
+  "counts": {
+    "total": 51,
+    "passed": false
+  },
+  "sourceFilesUnchanged": true,
+  "consumersCompleted": true,
+  "scope": "python",
+  "publicationTree": "9cd782e8e41fa2ca5de54f9db0187ca7a7c7675d"
+}

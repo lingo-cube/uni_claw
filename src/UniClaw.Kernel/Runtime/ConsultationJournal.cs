@@ -42,6 +42,14 @@ public interface IConsultationJournal
     bool HasPending(string runId, string contractViewRef);
 }
 
+/// <summary>Native storage confirmation at the existing P25 seam. Reserve and result are separate barriers.</summary>
+public interface IAsyncConsultationJournal : IConsultationJournal
+{
+    ValueTask<ConsultationJournalEntry> ReserveAsync(ConsultationKey key, string requestFingerprint, CancellationToken cancellationToken = default);
+    ValueTask<ConsultationJournalEntry> CompleteAsync(ConsultationKey key, string requestFingerprint, AgentDecision decision, CancellationToken cancellationToken = default);
+    ValueTask<ConsultationJournalEntry> RejectAsync(ConsultationKey key, string requestFingerprint, string reason, CancellationToken cancellationToken = default);
+}
+
 /// <summary>Kernel/test implementation; Host production path injects file storage.</summary>
 public sealed class InMemoryConsultationJournal : IConsultationJournal
 {

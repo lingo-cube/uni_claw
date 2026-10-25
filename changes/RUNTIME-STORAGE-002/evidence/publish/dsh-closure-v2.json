@@ -1,0 +1,27 @@
+{
+  "runId": "run-20261025T180246-bf491ae368c04b4b980ec568ccdf1114",
+  "runRoot": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T180246-bf491ae368c04b4b980ec568ccdf1114",
+  "exitCode": 0,
+  "counts": {
+    "total": "39",
+    "executed": "39",
+    "passed": "39",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "sourceFilesUnchanged": true,
+  "consumersCompleted": true,
+  "scope": "FullyQualifiedName~ReportDeliveryEndpointTests|FullyQualifiedName~ReportGeneratorOrphanTests|FullyQualifiedName~ReportWorkShutdownTests|FullyQualifiedName~RequiredReportToolTests|FullyQualifiedName~RuntimeToolHostProcedureTests",
+  "publicationTree": "4506ec2051e70ce384f65b4433e36268ffcf628e"
+}

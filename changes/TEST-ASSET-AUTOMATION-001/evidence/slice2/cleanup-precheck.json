@@ -1,0 +1,26 @@
+{
+  "repeatedCleanupNeeded": false,
+  "previous40DeletedStillAbsent": true,
+  "previous3TemporaryStillAbsent": true,
+  "fourRestoredProtectedFiles": [
+    {
+      "path": "evidence/glm-doc-index-20261022/inventory.md",
+      "shaMatches": true
+    },
+    {
+      "path": "evidence/glm-doc-index-20261022/verification.md",
+      "shaMatches": true
+    },
+    {
+      "path": "evidence/glm-runtime-http-review-20261022/acceptance-cases.md",
+      "shaMatches": true
+    },
+    {
+      "path": "evidence/glm-runtime-http-review-20261022/review.md",
+      "shaMatches": true
+    }
+  ],
+  "retainedRunFiles": 78,
+  "reason": "current acceptance and unresolved failures remain consumers; do not retire without archive/read proof",
+  "newDeletionPerformed": false
+}

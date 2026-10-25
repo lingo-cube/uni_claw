@@ -1,0 +1,15 @@
+# Coverage原报告可靠交付
+
+SettingsCoverageRunner现在在启动Task/Agent/Effect之前持久接受Coverage要求，收尾把原Ledger报告与StepArtifact JSON冻结成coverage-source.json。CoverageReportDelivery将它与按用途声明的截图/XML包固定到既有RequiredReportDelivery私有输入；发布确认后才把同字节JSON投影到旧Run路径。报告重试只调用固定生成器；不运行任务、不重新咨询、不补造领域事实。
+
+原问题是Runner直接写coverage-report.json/coverage-steps.json：写入或进程中断时没有独立可查询的必交付状态，唯一报告不能由events完整重建。新增Source/Generator部分只管理交付材料，六态状态机仍由RequiredReportDelivery持有；共享有界进程执行器承接原Dsh配额、取消、关闭与OS租约语义。Host/Dsh及HTTP查询、报告重试、受保护来源和摘要校验下载均贯通同一产品存储路径。
+
+代码入口：src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs、Runtime/CoverageReportDelivery*.cs、Runtime/RequiredReportDelivery*.cs、src/UniClaw.Host.Dsh/RuntimeToolHost.Reports.cs、ReportDeliveryEndpoints.cs。精确范围见candidate.json/patch；Runner仅本片差异另存runner-only.patch。before/entry.json固定进入本片之前的共享源，保留原World Program dispatcher与并行Overlay等上下文，后者不是本片新增依赖。
+
+证据：coverage-red-result.json是原公开行为RED；coverage-review-red-v1-result.json保留审查新增两项真实RED；其余失败中间Run未删除或改写，coverage-review-fixture-v1仅测试错误原因预期，已将case改为真实缺失RunId。最终Host与Dsh回归见coverage-host-final-v2-result.json、coverage-dsh-final-v1-result.json；旧报告脚本run-report-python.txt为9项。所有测试是本地确定性产品调用或真实子进程Kill，无live设备/模型。实际Run引用及原生TRX消费者由test-assets登记，verify.py只读检查。
+
+审查v1指出RunId缺失、附件大小写歧义及公开任意生成器override，保留candidate-v1.json/patch与原评审。修复后只允许canonical生成器；Kernel原RunId在保存、固定前重试及pinned生成三处校验，source材料不可替换；目录Owner与Kernel RunId是独立身份，不将两者错误等同；声明/发现的大小写歧义均明确失败。真实生成中Kill测试通过已有进程执行器的测试专属Python代理暂停，产品不增加生成器替换缝。
+
+原source丢失后固定私有输入可继续仅报告重试；私有输入损坏或必要附件缺失必须明确失败。canonical发布已交付但旧路径有不同内容时，保持已校验正式产物可读，单独返回ProjectionProblem，旧内容不覆盖。交付完成不自动删除附件，来源保护是用途查询与实际固定副本，不是历史GC。
+
+集成：SettingsCoverageScenarioTests.cs在HEAD需只加partial关键字以接合新增报告测试，原Leader已在私有index处理；不带入该文件其他并行断言。原Leader统一汇总父验收与精确提交，本聊天不暂存、不提交、不关闭父Change。源/证据/Run和旧失败均保留，共享bin/obj不清扫。

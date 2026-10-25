@@ -26,25 +26,24 @@ public sealed partial class WorldModel
     private readonly IAssociationStrategy? _associationStrategy;
     private readonly IUiObservationStrategy? _observationStrategy;
     private readonly IContinuityStrategy? _continuityStrategy;
-    private readonly List<RelevanceJudgment> _relevanceLog = new();
-    private readonly List<WorldBeliefRevision> _revisionHistory = new();
-    private readonly List<AssociationDecision> _associationLog = new();
-    private readonly List<ContinuityDemand> _continuityDemands = new();
-    private readonly Dictionary<string, int> _continuityDemandPositions = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, int> _activeDemandCountsByItem = new(StringComparer.Ordinal);
-    private readonly List<ContinuityDecision> _continuityLog = new();
-    private readonly List<ClaimEvolutionDecision> _claimEvolutionLog = new();
-    private readonly ReadOnlyCollection<WorldBeliefRevision> _revisionHistoryView;
-    private readonly ReadOnlyCollection<RelevanceJudgment> _relevanceLogView;
-    private readonly ReadOnlyCollection<AssociationDecision> _associationLogView;
-    private readonly ReadOnlyCollection<ContinuityDemand> _continuityDemandsView;
-    private readonly ReadOnlyCollection<ContinuityDecision> _continuityLogView;
-    private readonly ReadOnlyCollection<ClaimEvolutionDecision> _claimEvolutionLogView;
-    // Current-page eligibility is independent from aggregate freshness and from
-    // the establishing EvidenceId retained by a same-value reaffirmation.
-    private DateTimeOffset? _latestPageObservationTime;
-    private readonly Dictionary<WorldBeliefRevision, WorldRevisionIndex> _revisionIndexes =
-        new(ReferenceEqualityComparer.Instance);
+    private OwnerState _owner = new();
+    private List<RelevanceJudgment> _relevanceLog { get => _owner.RelevanceLog; }
+    private List<WorldBeliefRevision> _revisionHistory { get => _owner.Revisions; }
+    private List<AssociationDecision> _associationLog { get => _owner.AssociationLog; }
+    private List<ContinuityDemand> _continuityDemands { get => _owner.Demands; }
+    private Dictionary<string, int> _continuityDemandPositions { get => _owner.DemandPositions; }
+    private Dictionary<string, int> _activeDemandCountsByItem { get => _owner.ActiveDemandCounts; }
+    private List<ContinuityDecision> _continuityLog { get => _owner.ContinuityLog; }
+    private List<ClaimEvolutionDecision> _claimEvolutionLog { get => _owner.ClaimEvolutionLog; }
+    private DateTimeOffset? _latestPageObservationTime { get => _owner.LatestPageTime; set => _owner.LatestPageTime = value; }
+    private Dictionary<WorldBeliefRevision, WorldRevisionIndex> _revisionIndexes { get => _owner.RevisionIndexes; }
+    private List<ConflictResolution> _conflictResolutionLog { get => _owner.ConflictResolutions; }
+    private Dictionary<string, EvidenceRecord> _worldEvidence { get => _owner.WorldEvidence; }
+    private List<PageCorrectionDecision> _pageCorrections { get => _owner.PageCorrections; }
+    private List<ContainerContextDecision> _contextDecisions { get => _owner.ContextDecisions; }
+    private List<SemanticVerificationDecision> _semanticVerifications { get => _owner.SemanticVerifications; }
+    private HashSet<string> _revokedInterpretations { get => _owner.RevokedInterpretations; }
+    private Dictionary<string, EvidenceRecord> _containerObservations { get => _owner.ContainerObservations; }
     private RuntimeStageMetrics? _performanceMetrics;
 
     /// <summary>relevance scope：本 World Model 关注的 subject 集合（结构性判定，非 AI）。</summary>
@@ -64,30 +63,28 @@ public sealed partial class WorldModel
     /// </summary>
     public WorldModel(IReadOnlySet<string> relevanceScope, IAssociationStrategy? associationStrategy = null,
         IUiObservationStrategy? observationStrategy = null, IContinuityStrategy? continuityStrategy = null,
-        IReadOnlyList<UniClaw.Kernel.Perception.UiHierarchy.NativeContextSignatureProfile>? nativeContextProfiles = null)
+        IReadOnlyList<UniClaw.Kernel.Perception.UiHierarchy.NativeContextSignatureProfile>? nativeContextProfiles = null,
+        WorldHistoryRecording? history = null)
     {
         _relevanceScope = relevanceScope;
         _associationStrategy = associationStrategy;
         _observationStrategy = observationStrategy;
         _continuityStrategy = continuityStrategy;
         _nativeSemanticProfiles = (nativeContextProfiles ?? []).DistinctBy(p => p.Fingerprint).ToImmutableArray();
-        _revisionHistoryView = _revisionHistory.AsReadOnly();
-        _relevanceLogView = _relevanceLog.AsReadOnly();
-        _associationLogView = _associationLog.AsReadOnly();
-        _continuityDemandsView = _continuityDemands.AsReadOnly();
-        _continuityLogView = _continuityLog.AsReadOnly();
-        _claimEvolutionLogView = _claimEvolutionLog.AsReadOnly();
+        InitializeHistory(history);
     }
 
     /// <summary>Current WorldBelief（首次 Reconciliation 前为 null）。</summary>
-    public WorldBeliefRevision? Current =>
-        _revisionHistory.Count == 0 ? null : _revisionHistory[^1];
+    public WorldBeliefRevision? Current
+    {
+        get { EnsureHistoryAvailable(); return _revisionHistory.Count == 0 ? null : _revisionHistory[^1]; }
+    }
 
     /// <summary>revision 历史（append-only 只读依据；被取代的 revision 保留为历史）。</summary>
-    public IReadOnlyList<WorldBeliefRevision> RevisionHistory => _revisionHistoryView;
+    public IReadOnlyList<WorldBeliefRevision> RevisionHistory => _revisionHistory.AsReadOnly();
 
     /// <summary>每次 relevance 判定的留痕。</summary>
-    public IReadOnlyList<RelevanceJudgment> RelevanceLog => _relevanceLogView;
+    public IReadOnlyList<RelevanceJudgment> RelevanceLog => _relevanceLog.AsReadOnly();
 
     /// <summary>
     /// 每次 Container Association 判定的留痕（owner-internal append-only，
@@ -95,20 +92,20 @@ public sealed partial class WorldModel
     /// decision context 的可引用载体——供未来 Trace/Replay 引用，
     /// 不进 revision aggregate，不构成第二 truth）。
     /// </summary>
-    public IReadOnlyList<AssociationDecision> AssociationLog => _associationLogView;
+    public IReadOnlyList<AssociationDecision> AssociationLog => _associationLog.AsReadOnly();
 
     /// <summary>
     /// Continuity demand registry（owner-internal、非 revision 化，ADR-0014）：
     /// List + 只读视图；demand 状态变化不产生 revision（P-UW-32）。
     /// </summary>
-    public IReadOnlyList<ContinuityDemand> ContinuityDemands => _continuityDemandsView;
+    public IReadOnlyList<ContinuityDemand> ContinuityDemands => _continuityDemands.AsReadOnly();
 
     /// <summary>
     /// 每次 continuity adjudication 判定的留痕（owner-internal append-only，
     /// 同 AssociationLog 先例；含 demand correlation 与 proposed/effective
     /// outcome，不进 revision aggregate、不构成第二 truth）。
     /// </summary>
-    public IReadOnlyList<ContinuityDecision> ContinuityLog => _continuityLogView;
+    public IReadOnlyList<ContinuityDecision> ContinuityLog => _continuityLog.AsReadOnly();
 
     /// <summary>
     /// 每次 claim evolution 判定的留痕（CLE-001 / ADR-0016，owner-internal
@@ -116,7 +113,7 @@ public sealed partial class WorldModel
     /// Revise 均留痕（subject 历代 value / evidence 可溯源，D2「不静默
     /// 覆盖」三件套之一）；不进 revision aggregate、不构成第二 truth。
     /// </summary>
-    public IReadOnlyList<ClaimEvolutionDecision> ClaimEvolutionLog => _claimEvolutionLogView;
+    public IReadOnlyList<ClaimEvolutionDecision> ClaimEvolutionLog => _claimEvolutionLog.AsReadOnly();
 
     /// <summary>
     /// Append a verified navigation relation after both endpoint observations
@@ -126,6 +123,12 @@ public sealed partial class WorldModel
     /// registrations are idempotent.
     /// </summary>
     internal bool RecordObservedNavigation(ObservedNavigation navigation)
+    {
+        if (_history is null) return RecordObservedNavigationCore(navigation);
+        return RecordOperation("navigation", navigation, () => RecordObservedNavigationCore(navigation));
+    }
+
+    private bool RecordObservedNavigationCore(ObservedNavigation navigation)
     {
         ArgumentNullException.ThrowIfNull(navigation);
         var current = Current;
@@ -277,7 +280,6 @@ public sealed partial class WorldModel
         string ResolvedAtRevisionId,
         DateTimeOffset ResolvedAt);
 
-    private readonly List<ConflictResolution> _conflictResolutionLog = new();
 
     /// <summary>销案留痕（append-only，owner-internal；同 AssociationLog 先例）。</summary>
     internal IReadOnlyList<ConflictResolution> ConflictResolutionLog => _conflictResolutionLog;
@@ -289,13 +291,13 @@ public sealed partial class WorldModel
     /// EvidenceBasis 不变；occurrences/containers 等 belief 原样携带（销案后
     /// Act 可直接继续，无需观察恢复）。无该 subject 冲突 → null（幂等）。
     /// </summary>
-    internal WorldBeliefRevision? ResolveConflict(
-        string subject,
-        string resolvedValue,
-        string tier,
-        string? overruledProducer,
-        string basis,
-        DateTimeOffset resolvedAt)
+    internal WorldBeliefRevision? ResolveConflict(string subject, string resolvedValue, string tier, string? overruledProducer, string basis, DateTimeOffset resolvedAt)
+    {
+        if (_history is null) return ResolveConflictCore(subject, resolvedValue, tier, overruledProducer, basis, resolvedAt);
+        return RecordOperation("conflict-resolution", new { subject, resolvedValue, tier, overruledProducer, basis, resolvedAt }, () => ResolveConflictCore(subject, resolvedValue, tier, overruledProducer, basis, resolvedAt));
+    }
+
+    private WorldBeliefRevision? ResolveConflictCore(string subject, string resolvedValue, string tier, string? overruledProducer, string basis, DateTimeOffset resolvedAt)
     {
         var parent = Current;
         if (parent is null || parent.Conflicts.All(c => c.Subject != subject))
@@ -361,6 +363,12 @@ public sealed partial class WorldModel
     /// （kind 门压过 subject-scope 匹配，不再依赖命名空间巧合）。</summary>
     public RelevanceJudgment JudgeRelevance(EvidenceRecord record)
     {
+        if (_history is null) return JudgeRelevanceCore(record);
+        return RecordOperation("relevance", new { record.EvidenceId }, () => JudgeRelevanceCore(record));
+    }
+
+    private RelevanceJudgment JudgeRelevanceCore(EvidenceRecord record)
+    {
         ArgumentNullException.ThrowIfNull(record);
 
         string reason;
@@ -400,8 +408,13 @@ public sealed partial class WorldModel
     /// mutation 仍只由 accepted world evidence 触发（P-UW-23），Ambiguous /
     /// Insufficient 不产生 identity 变异。
     /// </summary>
-    public WorldBeliefRevision Reconcile(EvidenceRecord record, RelevanceJudgment judgment,
-        TransitionContext? transitionContext = null)
+    public WorldBeliefRevision Reconcile(EvidenceRecord record, RelevanceJudgment judgment, TransitionContext? transitionContext = null)
+    {
+        if (_history is null) return ReconcileCore(record, judgment, transitionContext);
+        return RecordOperation("reconcile", new { record.EvidenceId, judgment, transitionContext }, () => ReconcileCore(record, judgment, transitionContext));
+    }
+
+    private WorldBeliefRevision ReconcileCore(EvidenceRecord record, RelevanceJudgment judgment, TransitionContext? transitionContext = null)
     {
         ArgumentNullException.ThrowIfNull(record);
         ArgumentNullException.ThrowIfNull(judgment);
@@ -431,6 +444,8 @@ public sealed partial class WorldModel
             return ReconcileContainerContext(record, parent);
         if (record.Claim.Subject == SemanticVerificationCodec.Subject)
             return ReconcileSemanticVerification(record, parent);
+        if (record.Claim.Subject == OverlayObservationCodec.Subject)
+            return ReconcileOverlay(record, parent);
 
         // P-UW-16 owner 侧执法：裸 spatial subject（无 SpatialFrame）不得进入 belief
         ValidateSpatialSubject(record.Claim.Subject);
@@ -738,6 +753,7 @@ public sealed partial class WorldModel
             foreach (var id in revision.EvidenceBasis) normalized.Add(id);
             revision = revision with { EvidenceBasis = normalized.Build() };
         }
+        revision = RequireCurrentOverlay(revision);
         revision = RefreshSemanticKnowledge(revision);
         var parentRevision = Current;
         var index = continuityParentIndex is null
@@ -908,6 +924,12 @@ public sealed partial class WorldModel
     /// </summary>
     public DemandHandle RegisterContinuityDemand(ContinuityDemand demand)
     {
+        if (_history is null) return RegisterContinuityDemandCore(demand);
+        return RecordOperation("demand-register", demand, () => RegisterContinuityDemandCore(demand));
+    }
+
+    private DemandHandle RegisterContinuityDemandCore(ContinuityDemand demand)
+    {
         ArgumentNullException.ThrowIfNull(demand);
         var operationStart = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
         var allocationStart = _performanceMetrics is null ? 0 : GC.GetAllocatedBytesForCurrentThread();
@@ -941,6 +963,12 @@ public sealed partial class WorldModel
     /// （幂等撤销，本实现选择；Revoke 不是 identity 变异路径，无需 fail-closed）。
     /// </summary>
     public void RevokeContinuityDemand(string demandId)
+    {
+        if (_history is null) { RevokeContinuityDemandCore(demandId); return; }
+        RecordOperation("demand-revoke", new { demandId }, () => { RevokeContinuityDemandCore(demandId); return true; });
+    }
+
+    private void RevokeContinuityDemandCore(string demandId)
     {
         var operationStart = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
         var allocationStart = _performanceMetrics is null ? 0 : GC.GetAllocatedBytesForCurrentThread();
@@ -1019,6 +1047,12 @@ public sealed partial class WorldModel
     /// strategy——无合法 adjudication 输入，零 belief/lifecycle 副作用）。
     /// </summary>
     public ContinuityResolution ResolveContinuity(DemandHandle handle)
+    {
+        if (_history is null) return ResolveContinuityCore(handle);
+        return RecordOperation("continuity", handle, () => ResolveContinuityCore(handle));
+    }
+
+    private ContinuityResolution ResolveContinuityCore(DemandHandle handle)
     {
         ArgumentNullException.ThrowIfNull(handle);
         var operationStart = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
@@ -1364,7 +1398,8 @@ public sealed partial class WorldModel
                 OwningContainerId: null,
                 CurrentCandidateSetResultKind.ScopeProjectionUnavailable,
                 Array.Empty<CandidateOccurrenceFact>());
-        if (current.CurrentPageObservation is { ContainerId: null })
+        if (current.CurrentPageObservation is { ContainerId: null }
+            || current.ObservationNeed?.Kind == OverlayObservationCodec.NeedKind)
             return new CurrentGroundingView(current.RevisionId, null,
                 CurrentCandidateSetResultKind.ScopeProjectionUnavailable,
                 Array.Empty<CandidateOccurrenceFact>());

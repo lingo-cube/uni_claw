@@ -1,0 +1,17 @@
+{
+  "candidate": "candidate-inputs-v3.json",
+  "standards": {
+    "report": "review-standards-v3.md",
+    "hardViolations": 0,
+    "heuristicSmells": 0,
+    "remaining": 0
+  },
+  "spec": {
+    "report": "review-spec-v3.md",
+    "missingOrPartial": 0,
+    "scopeCreep": 0,
+    "wrong": 0,
+    "remaining": 0,
+    "v2M1": "Closed by actual public HostRunner.RunOnce paused-message-loop, confirmed initialization/failure output/close test; no device or model operations."
+  }
+}

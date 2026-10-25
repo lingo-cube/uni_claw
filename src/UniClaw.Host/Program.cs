@@ -76,7 +76,7 @@ if (string.IsNullOrWhiteSpace(device))
 HostRunner.HostRunResult result;
 try
 {
-    result = HostRunner.RunOnce(runsRoot, new HostRunner.HostOptions
+    result = await HostRunner.RunOnceAsync(runsRoot, new HostRunner.HostOptions
     {
         DeviceId = device,
         // 咨询缝 fail-closed（SIM-002 G1）：CLI 尚无可注入的真 agent 实现

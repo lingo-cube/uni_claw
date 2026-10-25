@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "probeRunId": "run-20261025T145030-4cce9d3e231045d386bb8cab2da40190",
+  "archiveId": "archive-9735c36ce1af42f0b46c6c6b336ef464",
+  "archiveFormatVersion": 2,
+  "restoredFiles": 6,
+  "allDigestsAndMtimesPreserved": true,
+  "sourceFreshnessDecisionUnchanged": true,
+  "staleBefore": true,
+  "staleAfter": true,
+  "fixtureCopyMtimeBeforeCorrectionNs": 1792939831212210132,
+  "copiedInputMtimeNs": 1792935797107994489,
+  "legacyArchiveStillReadable": true,
+  "historicalFilesKept": 94,
+  "historicalSourcesDeleted": false,
+  "netSourceBytesRemoved": 0,
+  "newProductExecution": false
+}

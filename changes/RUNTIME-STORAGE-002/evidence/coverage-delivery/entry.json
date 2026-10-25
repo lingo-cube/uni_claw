@@ -1,0 +1,33 @@
+{
+  "files": [
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs",
+      "sha256": "206e9eb474d7b4b86926490af5254f42f9d79d43b545dac5852c3192285ad995"
+    },
+    {
+      "path": "src/UniClaw.Host/SettingsCoverage/SettingsCoverageConfig.cs",
+      "sha256": "79720b8c4c04a1995bdc59bdf8b28e1d2b71837c65c5162ed48945e7f70719f4"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/RequiredReportDelivery.cs",
+      "sha256": "ce0bf3447276fbc4aad1429cbea7c7d48423eac33696f29b717eb316f46661a3"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.Reports.cs",
+      "sha256": "0ce5de29a16fd25c7fbd9003c9b94786c1d9e60f601522a86ec0eae52a8b22cd"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.cs",
+      "sha256": "912d7dfce1d4f0002cf927c403afeab19b2becd95446e260406d1188126a15c7"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/ReportDeliveryEndpoints.cs",
+      "sha256": "41fdfb0722b2add6101a466f101f4c84f4ea4b27c95882e3a98b790fc4b6fc6d"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/Program.cs",
+      "sha256": "465103e6d05f824eaa427536de47d3af731de8b103e0ae5330e834b72da05ea5"
+    }
+  ],
+  "scope": "Coverage existing output via existing required delivery; preserve Ledger/runtime outcomes and World/Core evidence"
+}

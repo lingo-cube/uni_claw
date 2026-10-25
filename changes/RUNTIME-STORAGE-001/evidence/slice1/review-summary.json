@@ -1,0 +1,28 @@
+{
+  "candidate": "candidate-inputs-v2.json",
+  "standards": {
+    "initialFindings": 1,
+    "remaining": 0,
+    "initialReport": "review-standards-v1.md",
+    "disposition": "batch-only overlay with lookup into stable acknowledged table; new public historical-parent contract",
+    "finalReport": "review-standards-v3.md",
+    "hardViolations": 0,
+    "smellJudgments": 0,
+    "intermediateEvidenceFinding": {
+      "report": "review-standards-v2.md",
+      "disposition": "Final TRX selection and source/assembly hash binding are explicit; v3 confirms correspondence."
+    }
+  },
+  "spec": {
+    "initialFindings": 1,
+    "remaining": 0,
+    "initialReport": "review-spec-v1.md",
+    "disposition": "no collection/admission queue; both windows zero, immediate native gate rejection before acceptance; accepted writes settle",
+    "finalReport": "review-spec-v2.md",
+    "missingOrPartial": 0,
+    "scopeCreep": 0,
+    "obviousErrors": 0
+  },
+  "pending": null,
+  "parentAllStorageComplete": false
+}

@@ -1,0 +1,8 @@
+{
+  "path": "changes/RUNTIME-STORAGE-001/evidence/slice3/baseline-entry-source.tar.gz",
+  "sha256": "455286af39538ddfa49215ed48c96f99d3fc13a2eb95096b9b218b7e0d294175",
+  "verifiedBuildInputs": 653,
+  "files": 884,
+  "baselineTRXFromExactSameSource": "../slice2/kernel-final.trx and ../slice2/host-final.trx",
+  "sourceMatch": "entry.json plus prior protected inputs and candidate SHA verified; no new baseline test run"
+}

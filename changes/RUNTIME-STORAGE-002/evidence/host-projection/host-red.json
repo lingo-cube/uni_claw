@@ -1,0 +1,17 @@
+{
+  "runId": "run-20261025T165000-f9353b57c2bf438eb760f6beecf1ca85",
+  "runRoot": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T165000-f9353b57c2bf438eb760f6beecf1ca85",
+  "label": "host-red",
+  "mode": "host",
+  "selection": "FullyQualifiedName~RuntimeRunProjectionVersionTests|FullyQualifiedName~ActivationCommitTests",
+  "exitCode": 1,
+  "counts": {},
+  "sourceDigest": "97705e423add97d653f97add44ff053f33df11b2df5526d9b09f734a91249c88",
+  "inputDigest": "c918feb89adcea756eadbb1f69182dc2b40b85366b756ed2326622d427d5e00f",
+  "sourceUnchangedDuringRun": true,
+  "inputsUnchangedDuringRun": true,
+  "changedSourcePathsDuringRun": [],
+  "ownedSourcesUnchangedDuringRun": true,
+  "consumersCompleted": false,
+  "scope": "shared working sources; selected checks only"
+}

@@ -1,0 +1,14 @@
+{
+  "sentAt": "2026-10-25T15:53:34.370257+00:00",
+  "targetTitle": "存储验收后的测试资产治理",
+  "targetHost": "local",
+  "targetThreadId": "01a1730a-957c-7ab2-8d46-2574de5a93e9",
+  "toolAccepted": true,
+  "order": [
+    "WI-STORAGE002-WORLD-CONTINUATION",
+    "WI-STORAGE002-COVERAGE-CONTINUATION"
+  ],
+  "prerequisite": "Control/Plan accepted; evidence/core-versions/verification.json",
+  "verificationSha256": "fa708a771f74096936cc137cc36b60d8c9c68cf35bea96a00f82e8e29d45e880",
+  "executionCompletionClaim": false
+}

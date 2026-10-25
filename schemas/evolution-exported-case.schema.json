@@ -1,0 +1,314 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "uniclaw.evolution.exported-case.v0",
+  "title": "Sealed settings popup component case (exported v0 subset; legacy cases unchanged)",
+  "type": "object",
+  "required": [
+    "schema",
+    "id",
+    "sourceChange",
+    "adapter",
+    "inputBase",
+    "source",
+    "context",
+    "inputs",
+    "expected",
+    "reproduce",
+    "realization",
+    "baseline",
+    "owner",
+    "fdpExpectation",
+    "candidateDirection",
+    "gate",
+    "residualRisks"
+  ],
+  "properties": {
+    "schema": {
+      "const": "uniclaw.evolution.case.v0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sourceChange": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9-]*$"
+    },
+    "adapter": {
+      "const": "settings-popup.v1"
+    },
+    "inputBase": {
+      "const": "case-directory"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "runDir",
+        "captureId",
+        "previousCaptureId",
+        "traceIndex",
+        "receiptId"
+      ],
+      "properties": {
+        "runDir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "captureId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "previousCaptureId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "traceIndex": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "receiptId": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "required": [
+        "hostPackage"
+      ],
+      "properties": {
+        "hostPackage": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256",
+          "role",
+          "originalPath"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "role": {
+            "enum": [
+              "facts",
+              "observation-trace",
+              "steps",
+              "previous-xml",
+              "capture-xml",
+              "oracle"
+            ]
+          },
+          "originalPath": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "required": [
+        "claim",
+        "oracle",
+        "oracleCase",
+        "popupPresent",
+        "qualification"
+      ],
+      "properties": {
+        "claim": {
+          "type": "string",
+          "minLength": 1
+        },
+        "oracle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "oracleCase": {
+          "type": "string",
+          "minLength": 1
+        },
+        "popupPresent": {
+          "type": "boolean"
+        },
+        "qualification": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "reproduce": {
+      "type": "object",
+      "required": [
+        "project",
+        "filter",
+        "command"
+      ],
+      "properties": {
+        "project": {
+          "type": "string",
+          "minLength": 1
+        },
+        "filter": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "realization": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    "baseline": {
+      "type": "object",
+      "required": [
+        "path",
+        "sha256",
+        "enforced"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "enforced": {
+          "const": false
+        }
+      }
+    },
+    "owner": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fdpExpectation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidateDirection": {
+      "type": "string",
+      "minLength": 1
+    },
+    "gate": {
+      "type": "object",
+      "required": [
+        "required",
+        "refs",
+        "decisions"
+      ],
+      "properties": {
+        "required": {
+          "const": true
+        },
+        "refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "decisions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "residualRisks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "diagnosis": {
+      "type": "object",
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "signal": {
+      "type": "object",
+      "required": [
+        "kind",
+        "ref",
+        "sha256",
+        "failureKey"
+      ],
+      "properties": {
+        "kind": {
+          "const": "run-dir"
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "failureKey": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

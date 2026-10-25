@@ -1,0 +1,21 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": [
+    {
+      "path": "src/UniClaw.Host/Runtime/FileCommittedHistory.cs",
+      "sha256": "93fb39dd971d4ef75bca0f198c543d1a3ea8e6b3ef642b209231029c0dabb96a"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRunStateJournal.cs",
+      "sha256": "ed3d8c1f6c602f56e65658eb5858ce1781479382f7915ff656fad84dfd99ab6d"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRunResourceJournal.cs",
+      "sha256": "d789f84a709042719ad4a3568b6515a4efa1d78033dafbb11efddc3426afa7f0"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/StorageBarrierFileTests.cs",
+      "sha256": "3e12f8d32515ee3edfaf12878831e90d51e0b3d7775f678edef45fe8c0f0b3a7"
+    }
+  ]
+}

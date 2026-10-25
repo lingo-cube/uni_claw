@@ -9,6 +9,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import shutil
 import unittest
 from unittest.mock import patch
 import xml.etree.ElementTree as ET
@@ -35,12 +36,39 @@ LISTING = 'Test run for Simulation.dll\nThe following Tests are available:\n' + 
 
 
 class EntryTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.fixture = Path(self.temp.name).resolve()
+        self.repo = self.fixture / 'repo'
+        (self.repo / 'tools').mkdir(parents=True)
+        shutil.copyfile(ROOT / 'tools/evolution-signal.py', self.repo / 'tools/evolution-signal.py')
+        (self.repo / 'scenarios').mkdir()
+        for sid in verify.manifest_scenario_ids():
+            shutil.copyfile(ROOT / f'scenarios/{sid}.json', self.repo / f'scenarios/{sid}.json')
+        for change in ('VERIFY-ENTRY-001', 'EVO-002'):
+            owner = self.repo / 'changes' / change
+            owner.mkdir(parents=True); (owner / 'state.md').write_text('planned')
+        self.config = self.fixture / 'layout.json'
+        self.config.write_text(json.dumps({'version': 1, 'parentRoot': str(self.fixture / 'assets'),
+            'repositoryKey': 'test-repo', 'workPath': 'work', 'archivePath': 'archives',
+            'categoryPaths': {kind: kind for kind in ('raw', 'logs', 'results', 'scratch')}}))
+        import os
+        for item in (patch.dict(os.environ, {'UNICLAW_TEST_ASSET_CONFIG': str(self.config),
+                                            'XDG_CONFIG_HOME': str(self.fixture / 'profile')}),
+                     patch.object(verify, 'ROOT', str(self.repo)),
+                     patch('test_assets.binding_home', return_value=self.fixture / 'machine-bindings')):
+            item.start(); self.addCleanup(item.stop)
+
+    def signals(self):
+        return [json.loads(p.read_text()) for p in (self.fixture / 'assets').glob('**/signals/*.json')]
+
     def calls(self, scope, fail_host_dsh=False):
         calls = []
         def run(label, args):
             calls.append((label, args))
             return (1 if fail_host_dsh and 'Host.Dsh' in label else 0), ''
-        with patch.object(sys, 'argv', ['verify-change', 'VERIFY-ENTRY-001', '--scope', scope, '--no-snapshot']), patch.object(verify, 'run', side_effect=run), contextlib.redirect_stdout(io.StringIO()):
+        with tempfile.TemporaryDirectory() as signals, patch.object(sys, 'argv', ['verify-change', 'VERIFY-ENTRY-001', '--scope', scope, '--no-snapshot']), patch.object(verify, 'run', side_effect=run), contextlib.redirect_stdout(io.StringIO()):
             rc = verify.main()
         return rc, calls
 
@@ -57,6 +85,40 @@ class EntryTests(unittest.TestCase):
 
     def test_host_dsh_failure_propagates(self):
         self.assertEqual(self.calls('full', fail_host_dsh=True)[0], 1)
+
+    def test_failed_exit_without_fresh_trx_is_unknown_and_not_misattributed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = ['verify-change', 'EVO-002', '--scope', 'full', '--no-snapshot']
+            def failed_group(label, _):
+                return (1, 'build failed') if 'Host.Dsh' in label else (0, '')
+            with patch.object(sys, 'argv', args), patch.object(verify, 'run', side_effect=failed_group), contextlib.redirect_stdout(io.StringIO()):
+                rc = verify.main()
+            self.assertEqual(rc, 1)
+            signals = self.signals()
+            self.assertTrue(signals)
+            self.assertTrue(any(s['verdict'] == 'unknown' for s in signals))
+            self.assertTrue(all(s['preliminaryClass'] is None for s in signals))
+
+    def test_green_verification_still_emits_independent_asset_drift_signal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'tools').mkdir()
+            shutil.copyfile(ROOT / 'tools/evolution-signal.py', root / 'tools/evolution-signal.py')
+            (root / 'scenarios').mkdir()
+            for sid in verify.manifest_scenario_ids():
+                shutil.copyfile(ROOT / f'scenarios/{sid}.json', root / f'scenarios/{sid}.json')
+            manifest = root / 'tests/Test/Fixtures/Replay/composition.json'
+            manifest.parent.mkdir(parents=True)
+            manifest.write_text(json.dumps({'schemaVersion': 'component-replay-composition.v1',
+                'pins': [{'path': 'changed.cs', 'sha256': '0' * 64}]}))
+            (root / 'changed.cs').write_text('new bytes')
+            (root / 'changes/EVO-002').mkdir(parents=True)
+            (root / 'changes/EVO-002/state.md').write_text('planned')
+            args = ['verify-change', 'EVO-002', '--scope', 'quick', '--no-snapshot']
+            with patch.object(sys, 'argv', args), patch.object(verify, 'ROOT', str(root)), patch.object(verify, 'run', return_value=(0, '')), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(verify.main(), 0)  # original quick-scope verdict is preserved
+            signals = self.signals()
+            self.assertTrue(any(s['verdict'] == 'hash-mismatch' for s in signals))
 
     def test_quick_stays_filtered_without_full_or_coverage(self):
         rc, calls = self.calls('quick')

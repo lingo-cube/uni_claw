@@ -1,0 +1,14 @@
+{
+  "head": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": {
+    "src/UniClaw.Host/Runtime/FileCommittedHistory.cs": "fe9a4acc29de0569667d985f74f663e8309ca0a9d01f8a3da9c00556690da1d8",
+    "src/UniClaw.Host/Runtime/FileControlTraversalJournal.cs": "9e91caad13f503a84740a4766e12adce94f093f33f475ec3dfe9ae68cfc0be48",
+    "src/UniClaw.Host/Runtime/FileRuntimePlanJournal.cs": "9d09a2e77dad0cdb481b434dce96fcabe43d6ae167649882c7675323f5f89218",
+    "src/UniClaw.Host/Runtime/ResourceSnapshotDelta.cs": "452097528b94c0bca5813cf9e6f8fd63dced65d04aee1ea44dac2e25e0c8dfb5",
+    "tools/RunRecoveryProbe/ControlPlanGrowthProbe.cs": "ee5e4eb40b06c4ad0c0cb3e24604e1c8ad109514a79ebc0b313e91ba582ea176",
+    "tests/UniClaw.Host.Tests/ControlTraversalHistoryFileTests.cs": "3b7083e61f2770cc6a03dfccc10033df526c5e25666d079e2ccef9ed922c83ed",
+    "tests/UniClaw.Host.Tests/RuntimePlanHistoryFileTests.cs": "3fc527bf19694ec173227f1e53510d7113d83818e52ddc6fada17ea4afc099ac",
+    "tests/UniClaw.Host.Tests/CoreHistoryWriterMemoryTests.cs": "d3393e9d8ea3db0d91c09b56ce25f38e4a449c1f7633411aae96806f50e292ca"
+  },
+  "reconstructedTestEntry": "Recovered by reversing only owned test hunks and verified byte-identical SHA256 against the recorded pre-change RED provenance."
+}

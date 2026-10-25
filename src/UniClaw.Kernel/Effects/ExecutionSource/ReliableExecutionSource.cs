@@ -139,3 +139,20 @@ public interface IReliableExecutionSource
     /// <summary>补偿 = 新 Effect + 新 Attempt（Compensates 关联被补偿 Effect）。</summary>
     ExecutionLink LinkCompensation(string attemptId);
 }
+
+/// <summary>Native confirmation at the original execution-source seam; never enqueue-as-success.</summary>
+public interface IAsyncReliableExecutionSource : IReliableExecutionSource
+{
+    ValueTask<ExecutionCommit> CommitPrepareAsync(ExecutionRegistration registration, CancellationToken cancellationToken = default);
+    ValueTask AppendSubmissionAsync(string attemptId, string note, CancellationToken cancellationToken = default);
+    ValueTask AppendReceiptAsync(string attemptId, EffectReceipt? receipt, CancellationToken cancellationToken = default);
+    ValueTask AppendLateFeedbackAsync(string? attemptId, ExecutionFeedback feedback, CancellationToken cancellationToken = default);
+    ValueTask<string> LinkRetryAsync(string attemptId, CancellationToken cancellationToken = default);
+    ValueTask<ExecutionLink> LinkCompensationAsync(string attemptId, CancellationToken cancellationToken = default);
+    // Same actual delivery result; default preserves old per-record adapter semantics.
+    async ValueTask AppendResultAsync(string attemptId, string submissionNote, EffectReceipt receipt, CancellationToken cancellationToken = default)
+    {
+        await AppendSubmissionAsync(attemptId, submissionNote, cancellationToken).ConfigureAwait(false);
+        await AppendReceiptAsync(attemptId, receipt).ConfigureAwait(false);
+    }
+}

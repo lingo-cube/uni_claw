@@ -116,6 +116,8 @@ def main() -> int:
                 violations.append(f"{where}: model-procedure requires 'skillRef'")
             elif not (ROOT / skill_ref / "SKILL.md").is_file():
                 violations.append(f"{where}.skillRef: SKILL.md not found under {skill_ref}")
+            if implemented and tool.get("entry") and not (ROOT / tool["entry"]).is_file():
+                violations.append(f"{where}.entry: exit adapter does not exist: {tool['entry']}")
 
         if tool.get("backing") == "capability":
             capability_ref = tool.get("capabilityRef")

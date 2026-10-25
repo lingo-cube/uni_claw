@@ -14,14 +14,14 @@ namespace UniClaw.Kernel.Effects.ExecutionSource;
 ///    断电、磁盘损坏恢复均为显式 non-goal。
 /// 3. torn 尾帧（长度头声明超出实际剩余字节）在重放时截尾忽略 = 该
 ///    提交从未成功——append-only 的正确语义，不是损坏恢复。
-/// 4. 提交路径同步写 + Flush，无异步/批量/后台缓冲。
+/// 4. ADR-0055：原生 WriteAsync/FlushAsync 确认；结果原两帧合法合批，准备独立提交。
 /// 5. 本实现只产生 Success（已 Flush）/ Failure（IO 异常）；Unknown 留给
 ///    其他传输实现（CORE-013 决策 2）。
 ///
 /// journal 身份 = 文件路径（组合作用域）；AttemptId 由本源铸造为全局
 /// 帧序号（重启续号，不冲突）。单线程 delivery 路径调用，无并发契约。
 /// </summary>
-public sealed class FileExecutionJournal : IReliableExecutionSource, IDisposable
+public sealed class FileExecutionJournal : IAsyncReliableExecutionSource, IDisposable, IAsyncDisposable
 {
     private sealed class AttemptRecord
     {
@@ -51,19 +51,31 @@ public sealed class FileExecutionJournal : IReliableExecutionSource, IDisposable
     private readonly FileStream _stream;
     private readonly Dictionary<string, AttemptRecord> _attempts = new(StringComparer.Ordinal);
     private readonly List<ExecutionFeedback> _unassociated = new();
+    private readonly SemaphoreSlim _writeGate = new(1, 1);
+    private readonly int _maxBatchBytes;
+    private bool _faulted, _disposed;
+    /// <summary>Actual managed calls, not physical disk syscalls.</summary>
+    public long ManagedWriteCalls { get; private set; }
+    public long ManagedFlushCalls { get; private set; }
+    public long FrameBytesSubmitted { get; private set; }
+    public int CommittedBatches { get; private set; }
+    public int PeakBatchRecords { get; private set; }
+    public int PeakBatchBytes { get; private set; }
     private int _seq;
     private int _retryLinks;
     private int _compensationLinks;
 
-    public FileExecutionJournal(string filePath)
+    public FileExecutionJournal(string filePath, int maxBatchBytes = 16 * 1024 * 1024)
     {
         if (string.IsNullOrWhiteSpace(filePath))
             throw new ArgumentException("journal 文件路径不能为空", nameof(filePath));
+        if (maxBatchBytes <= 0) throw new ArgumentOutOfRangeException(nameof(maxBatchBytes));
+        _maxBatchBytes = maxBatchBytes;
         var directory = Path.GetDirectoryName(Path.GetFullPath(filePath));
         if (!string.IsNullOrEmpty(directory))
             Directory.CreateDirectory(directory);
-        _stream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
-        Replay();
+        _stream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, FileOptions.Asynchronous);
+        try { Replay(); } catch { _stream.Dispose(); throw; }
     }
 
     /// <summary>当前持久 Attempt 数（「不自动新建」断言面）。</summary>
@@ -72,177 +84,123 @@ public sealed class FileExecutionJournal : IReliableExecutionSource, IDisposable
     /// <summary>关联不明确的迟到反馈（保留待关联，不猜测归属）。</summary>
     public IReadOnlyList<ExecutionFeedback> UnassociatedFeedback => _unassociated;
 
-    public ExecutionCommit CommitPrepare(ExecutionRegistration registration)
+    public ExecutionCommit CommitPrepare(ExecutionRegistration registration) => CommitPrepareAsync(registration).AsTask().GetAwaiter().GetResult();
+    public async ValueTask<ExecutionCommit> CommitPrepareAsync(ExecutionRegistration registration, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(registration);
-
-        if (registration.AttemptId is { } explicitId)
+        EnterWrite(cancellationToken);
+        try
         {
-            // 已存在且 CommitUnknown = 本地提交重试（保持原 Attempt，S9）
-            if (_attempts.TryGetValue(explicitId, out var existing))
-                return existing.Status == ExecutionAttemptStatus.CommitUnknown
-                    ? WritePrepare(registration with { }, outcomeOnFailure: ExecutionCommitOutcome.Failure)
-                    : new ExecutionCommit(ExecutionCommitOutcome.Failure, null);
-            return WritePrepare(registration with { }, outcomeOnFailure: ExecutionCommitOutcome.Failure);
+            if (_faulted || _disposed) return new(ExecutionCommitOutcome.Failure, null);
+            if (registration.AttemptId is { } existingId && _attempts.TryGetValue(existingId, out var existing)
+                && existing.Status != ExecutionAttemptStatus.CommitUnknown) return new(ExecutionCommitOutcome.Failure, null);
+            var id = registration.AttemptId ?? $"attempt-{_seq + 1}";
+            var frame = Create("prepare", _seq + 1, id, registration with { AttemptId = id });
+            return await TryWriteFramesAsync([frame]).ConfigureAwait(false)
+                ? new(ExecutionCommitOutcome.Success, id) : new(ExecutionCommitOutcome.Failure, null);
         }
-        return WritePrepare(registration, outcomeOnFailure: ExecutionCommitOutcome.Failure);
+        finally { _writeGate.Release(); }
     }
 
-    public IReadOnlyList<PendingExecution> DiscoverPending() =>
-        _attempts.Values
-            .Where(a => a.Status is ExecutionAttemptStatus.CommittedPending
-                or ExecutionAttemptStatus.CommitUnknown
-                or ExecutionAttemptStatus.Dispatched
-                or ExecutionAttemptStatus.UnknownOutcome)
-            .Select(a => new PendingExecution(
-                a.Registration.AttemptId!, a.Registration.EffectRef, a.Status))
-            .ToList();
+    public IReadOnlyList<PendingExecution> DiscoverPending() => _attempts.Values
+        .Where(a => a.Status is ExecutionAttemptStatus.CommittedPending or ExecutionAttemptStatus.CommitUnknown
+            or ExecutionAttemptStatus.Dispatched or ExecutionAttemptStatus.UnknownOutcome)
+        .Select(a => new PendingExecution(a.Registration.AttemptId!, a.Registration.EffectRef, a.Status)).ToArray();
+    public ExecutionAttemptView? GetAttempt(string attemptId) => _attempts.TryGetValue(attemptId, out var attempt)
+        ? new(attempt.Registration, attempt.Status, attempt.Entries.ToArray()) : null;
 
-    public ExecutionAttemptView? GetAttempt(string attemptId) =>
-        _attempts.TryGetValue(attemptId, out var attempt)
-            ? new ExecutionAttemptView(attempt.Registration, attempt.Status, attempt.Entries.ToList())
-            : null;
+    public void AppendSubmission(string attemptId, string note) => AppendSubmissionAsync(attemptId, note).AsTask().GetAwaiter().GetResult();
+    public ValueTask AppendSubmissionAsync(string attemptId, string note, CancellationToken cancellationToken = default) =>
+        AppendAsync(() => { Require(attemptId); return [Create("submission", _seq + 1, attemptId, note: note)]; }, cancellationToken);
+    public void AppendReceipt(string attemptId, EffectReceipt? receipt) => AppendReceiptAsync(attemptId, receipt).AsTask().GetAwaiter().GetResult();
+    public ValueTask AppendReceiptAsync(string attemptId, EffectReceipt? receipt, CancellationToken cancellationToken = default) =>
+        AppendAsync(() => { Require(attemptId); return [ReceiptFrame(_seq + 1, attemptId, receipt)]; }, cancellationToken);
+    public ValueTask AppendResultAsync(string attemptId, string submissionNote, EffectReceipt receipt, CancellationToken cancellationToken = default) =>
+        AppendAsync(() => { Require(attemptId); return [Create("submission", _seq + 1, attemptId, note: submissionNote), ReceiptFrame(_seq + 2, attemptId, receipt)]; }, cancellationToken);
+    public void AppendLateFeedback(string? attemptId, ExecutionFeedback feedback) => AppendLateFeedbackAsync(attemptId, feedback).AsTask().GetAwaiter().GetResult();
+    public ValueTask AppendLateFeedbackAsync(string? attemptId, ExecutionFeedback feedback, CancellationToken cancellationToken = default) =>
+        AppendAsync(() => { ArgumentNullException.ThrowIfNull(feedback); return [Create("feedback", _seq + 1,
+            attemptId is not null && _attempts.ContainsKey(attemptId) ? attemptId : null, note: feedback.Note, feedback: feedback.FeedbackId)]; }, cancellationToken);
 
-    public void AppendSubmission(string attemptId, string note)
+    public string LinkRetry(string attemptId) => LinkRetryAsync(attemptId).AsTask().GetAwaiter().GetResult();
+    public async ValueTask<string> LinkRetryAsync(string attemptId, CancellationToken cancellationToken = default)
     {
-        var attempt = Require(attemptId);
-        WriteFrame(new JournalFrame("submission", ++_seq, attemptId, null, null, null, null, null, null,
-            null, 0, null, null, null, null, note, null, null, null, null, null, null, null));
-        attempt.Status = ExecutionAttemptStatus.Dispatched;
-        attempt.Entries.Add(new ExecutionJournalEntry(ExecutionEntryKind.Submission, _seq, note));
-    }
-
-    public void AppendReceipt(string attemptId, EffectReceipt? receipt)
-    {
-        var attempt = Require(attemptId);
-        ExecutionReceiptView? view = receipt is null
-            ? null
-            : new ExecutionReceiptView(
-                receipt.ReceiptId, receipt.Outcome.ToString(), receipt.Report,
-                receipt.DispatchedAt.ToString("O"), receipt.Reason);
-        WriteFrame(new JournalFrame("receipt", ++_seq, attemptId, null, null, null, null, null, null,
-            null, 0, null, null, null, null,
-            view?.ReceiptId ?? "no-receipt:pending",
-            view?.ReceiptId, view?.Outcome, view?.Report, view?.CompletedAt, view?.Reason,
-            null, null));
-        attempt.Status = receipt is not null && receipt.Outcome == DispatchOutcome.DeliveryCompleted
-            ? ExecutionAttemptStatus.Completed
-            : ExecutionAttemptStatus.UnknownOutcome;
-        attempt.Entries.Add(new ExecutionJournalEntry(
-            ExecutionEntryKind.Receipt, _seq, view?.ReceiptId ?? "no-receipt:pending", view));
-    }
-
-    public void AppendLateFeedback(string? attemptId, ExecutionFeedback feedback)
-    {
-        ArgumentNullException.ThrowIfNull(feedback);
-        if (attemptId is not null && _attempts.TryGetValue(attemptId, out var attempt))
+        string id = "";
+        await AppendAsync(() =>
         {
-            WriteFrame(new JournalFrame("feedback", ++_seq, attemptId, null, null, null, null, null, null,
-                null, 0, null, null, null, null, feedback.Note, null, null, null, null, null,
-                feedback.FeedbackId, null));
-            attempt.Entries.Add(new ExecutionJournalEntry(
-                ExecutionEntryKind.LateFeedback, _seq, feedback.FeedbackId, Feedback: feedback));
-        }
-        else
+            var original = Require(attemptId); id = $"{attemptId}#r{_retryLinks + 1}";
+            return [Create("link", _seq + 1, id, original.Registration with { AttemptId = id, RetryOf = attemptId, Compensates = null }, link: "retry")];
+        }, cancellationToken).ConfigureAwait(false);
+        return id;
+    }
+    public ExecutionLink LinkCompensation(string attemptId) => LinkCompensationAsync(attemptId).AsTask().GetAwaiter().GetResult();
+    public async ValueTask<ExecutionLink> LinkCompensationAsync(string attemptId, CancellationToken cancellationToken = default)
+    {
+        string id = "", effect = "";
+        await AppendAsync(() =>
         {
-            // 关联不明确：持久保留待关联（跨重启存活）
-            WriteFrame(new JournalFrame("feedback", ++_seq, null, null, null, null, null, null, null,
-                null, 0, null, null, null, null, feedback.Note, null, null, null, null, null,
-                feedback.FeedbackId, null));
-            _unassociated.Add(feedback);
+            var original = Require(attemptId); id = $"{attemptId}#c{_compensationLinks + 1}";
+            effect = $"{original.Registration.EffectRef}::comp{_compensationLinks + 1}";
+            return [Create("link", _seq + 1, id, original.Registration with { AttemptId = id, EffectRef = effect, RetryOf = null,
+                Compensates = original.Registration.EffectRef }, link: "compensation")];
+        }, cancellationToken).ConfigureAwait(false);
+        return new(id, effect);
+    }
+
+    private static JournalFrame Create(string kind, int sequence, string? id, ExecutionRegistration? r = null,
+        string? note = null, EffectReceipt? receipt = null, string? feedback = null, string? link = null) =>
+        new(kind, sequence, id, r?.EffectRef, r?.IntentId, r?.BindingId, r?.EffectClass, r?.TargetSubject, r?.TargetValue,
+            r?.RevisionId, r?.RevisionNumber ?? 0, r?.ExecutorId, r?.AdmissionNote, r?.RetryOf, r?.Compensates,
+            note, receipt?.ReceiptId, receipt?.Outcome.ToString(), receipt?.Report, receipt?.DispatchedAt.ToString("O"), receipt?.Reason, feedback, link);
+    private static JournalFrame ReceiptFrame(int sequence, string id, EffectReceipt? receipt) =>
+        Create("receipt", sequence, id, note: receipt?.ReceiptId ?? "no-receipt:pending", receipt: receipt);
+
+    private void EnterWrite(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!_writeGate.Wait(0)) throw new InvalidOperationException("execution-write-in-progress");
+    }
+    private async ValueTask AppendAsync(Func<JournalFrame[]> prepare, CancellationToken cancellationToken)
+    {
+        EnterWrite(cancellationToken);
+        try
+        {
+            if (_faulted || _disposed) throw new IOException("execution-journal-faulted");
+            if (!await TryWriteFramesAsync(prepare()).ConfigureAwait(false)) throw new IOException("execution-journal-write-failed");
         }
+        finally { _writeGate.Release(); }
     }
-
-    public string LinkRetry(string attemptId)
-    {
-        var original = Require(attemptId);
-        var retryId = $"{attemptId}#r{++_retryLinks}";
-        WriteLink(original, retryId, original.Registration.EffectRef,
-            original.Registration with { AttemptId = retryId, RetryOf = attemptId, Compensates = null },
-            "retry");
-        return retryId;
-    }
-
-    public ExecutionLink LinkCompensation(string attemptId)
-    {
-        var original = Require(attemptId);
-        var newEffectRef = $"{original.Registration.EffectRef}::comp{++_compensationLinks}";
-        var newAttemptId = $"{attemptId}#c{_compensationLinks}";
-        WriteLink(original, newAttemptId, newEffectRef,
-            original.Registration with
-            {
-                AttemptId = newAttemptId, EffectRef = newEffectRef,
-                RetryOf = null, Compensates = original.Registration.EffectRef,
-            },
-            "compensation");
-        return new ExecutionLink(newAttemptId, newEffectRef);
-    }
-
-    public void Dispose() => _stream.Dispose();
-
-    // ---- 内部：帧写入与重放 ----
-
-    private ExecutionCommit WritePrepare(
-        ExecutionRegistration registration, ExecutionCommitOutcome outcomeOnFailure)
-    {
-        var seq = _seq + 1;
-        var attemptId = registration.AttemptId ?? $"attempt-{seq}";
-        var registration_ = registration with { AttemptId = attemptId };
-        var frame = new JournalFrame("prepare", seq, attemptId,
-            registration_.EffectRef, registration_.IntentId, registration_.BindingId,
-            registration_.EffectClass, registration_.TargetSubject, registration_.TargetValue,
-            registration_.RevisionId, registration_.RevisionNumber, registration_.ExecutorId,
-            registration_.AdmissionNote, registration_.RetryOf, registration_.Compensates,
-            null, null, null, null, null, null, null, null);
-        if (!TryWriteFrame(frame))
-            return new ExecutionCommit(outcomeOnFailure, null);
-        _seq = seq;
-        _attempts[attemptId] = new AttemptRecord(registration_, ExecutionAttemptStatus.CommittedPending);
-        return new ExecutionCommit(ExecutionCommitOutcome.Success, attemptId);
-    }
-
-    private void WriteLink(
-        AttemptRecord original, string newAttemptId, string newEffectRef,
-        ExecutionRegistration newRegistration, string linkKind)
-    {
-        var seq = _seq + 1;
-        var frame = new JournalFrame("link", seq, newAttemptId,
-            newRegistration.EffectRef, newRegistration.IntentId, newRegistration.BindingId,
-            newRegistration.EffectClass, newRegistration.TargetSubject, newRegistration.TargetValue,
-            newRegistration.RevisionId, newRegistration.RevisionNumber, newRegistration.ExecutorId,
-            newRegistration.AdmissionNote, newRegistration.RetryOf, newRegistration.Compensates,
-            null, null, null, null, null, null, null, linkKind);
-        if (!TryWriteFrame(frame))
-            throw new IOException($"journal 写入失败：link({linkKind}) {newAttemptId}");
-        _seq = seq;
-        _attempts[newAttemptId] = new AttemptRecord(newRegistration, ExecutionAttemptStatus.CommittedPending);
-    }
-
-    private void WriteFrame(JournalFrame frame)
-    {
-        if (!TryWriteFrame(frame))
-            throw new IOException($"journal 写入失败：{frame.K} {frame.AttemptId}");
-        _seq = frame.Seq;
-    }
-
-    /// <summary>同步写 + Flush（提交边界判定点）；IO 异常 → false（不更新内存态）。</summary>
-    private bool TryWriteFrame(JournalFrame frame)
+    private async ValueTask<bool> TryWriteFramesAsync(JournalFrame[] frames)
     {
         try
         {
-            var payload = JsonSerializer.SerializeToUtf8Bytes(frame, Json);
-            var header = BitConverter.GetBytes(payload.Length);
-            if (BitConverter.IsLittleEndian)
-                (header[0], header[1], header[2], header[3]) = (header[3], header[2], header[1], header[0]);
-            _stream.Write(header, 0, 4);
-            _stream.Write(payload, 0, payload.Length);
-            _stream.Flush();
-            return true;
+            if (frames.Length is < 1 or > 2) throw new InvalidDataException("execution-batch-limit");
+            using var buffer = new MemoryStream();
+            foreach (var frame in frames)
+            {
+                var payload = JsonSerializer.SerializeToUtf8Bytes(frame, Json);
+                if (payload.Length + 4L > _maxBatchBytes - buffer.Length) throw new InvalidDataException("execution-batch-exceeds-byte-limit");
+                var header = new byte[4]; System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(header, payload.Length);
+                buffer.Write(header); buffer.Write(payload);
+            }
+            var bytes = buffer.ToArray();
+            PeakBatchRecords = Math.Max(PeakBatchRecords, frames.Length); PeakBatchBytes = Math.Max(PeakBatchBytes, bytes.Length);
+            ManagedWriteCalls++; FrameBytesSubmitted += bytes.Length;
+            await _stream.WriteAsync(bytes).ConfigureAwait(false);
+            ManagedFlushCalls++; await _stream.FlushAsync().ConfigureAwait(false);
+            foreach (var frame in frames) Apply(frame);
+            CommittedBatches++; return true;
         }
-        catch (Exception ex) when (ex is IOException or ObjectDisposedException)
-        {
-            return false;
-        }
+        catch (Exception ex) when (ex is IOException or ObjectDisposedException or InvalidDataException)
+        { _faulted = true; return false; }
+    }
+
+    public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
+    public async ValueTask DisposeAsync()
+    {
+        await _writeGate.WaitAsync().ConfigureAwait(false);
+        try { if (!_disposed) { _disposed = true; await _stream.DisposeAsync().ConfigureAwait(false); } }
+        finally { _writeGate.Release(); }
     }
 
     private void Replay()

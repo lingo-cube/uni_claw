@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "parentAccepted": false,
+  "scope": "Host TaskInstance/ProductSession acknowledgement and close only; no full-suite/OS/crash/RuntimeRunStore historical reconstruction claim",
+  "checks": {
+    "entry:src/UniClaw.Host/Runtime/TaskInstanceStore.cs": true,
+    "entry:src/UniClaw.Host/Runtime/ProductSessionStore.cs": true,
+    "entry:tests/UniClaw.Host.Tests/RuntimeIdentityStoreTests.cs": true,
+    "candidate:src/UniClaw.Host/Runtime/TaskInstanceStore.cs": true,
+    "candidate:src/UniClaw.Host/Runtime/ProductSessionStore.cs": true,
+    "candidate:tests/UniClaw.Host.Tests/RuntimeIdentityStoreTests.cs": true,
+    "candidate:tests/UniClaw.Host.Tests/RuntimeIdentityCommitTests.cs": true,
+    "assets:identity-red": true,
+    "stable:identity-red": true,
+    "counts:identity-red": true,
+    "assets:identity-red-observed": true,
+    "stable:identity-red-observed": true,
+    "counts:identity-red-observed": true,
+    "assets:identity-green": true,
+    "stable:identity-green": true,
+    "counts:identity-green": true,
+    "compiled-source-binding": true,
+    "original-memory-reopen-gap": true,
+    "diagnosis-schema": true,
+    "diagnosis-entry-binding": true,
+    "review:spec": true,
+    "review:standards": true
+  },
+  "candidateSha256": {
+    "src/UniClaw.Host/Runtime/TaskInstanceStore.cs": "132071819d7dafc31be98b2290d0103d64db95cb428bf1faaca90e5f5407039d",
+    "src/UniClaw.Host/Runtime/ProductSessionStore.cs": "9ef76326bdbed51251aff5ea8d4dba76e21db7d759c7ccbafd85c7f162144de1",
+    "tests/UniClaw.Host.Tests/RuntimeIdentityStoreTests.cs": "50756230c75dfbedbd73053a23a1a9698bce6bb9e09c15a812732e62fb13f52f",
+    "tests/UniClaw.Host.Tests/RuntimeIdentityCommitTests.cs": "508d10e2385af0695fb158a49d2ba90c53f7a5535f45575a78530256be1fd002"
+  },
+  "diagnosisSha256": "91fe8bdf34f99db9243718bc8f930058d4ecccd59222264674b13f0c1c4299f0"
+}

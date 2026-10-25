@@ -1,0 +1,5 @@
+{
+  "path": "/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-storage002-s3-v2-wagh90an",
+  "base_archive": "../slice1/pure-build-inputs.tar.gz",
+  "scope": "slice1 pure v6 + frozen slice2 v2/read-only deps + frozen slice3 v2; no unrelated root source changes"
+}

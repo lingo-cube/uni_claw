@@ -1,0 +1,62 @@
+{
+  "files": [
+    {
+      "path": "tools/test_asset_operations.py",
+      "bytes": 18556,
+      "sha256": "e3ff5c1fd2241d512f2b14c34d7bc907215c332df99a5af2311acb7a09335c74"
+    },
+    {
+      "path": "tools/test-assets",
+      "bytes": 1974,
+      "sha256": "34fe7b17771a86f77441c8b02e348bd8fd52132f3854eb8cf6cb4cec21ea2043"
+    },
+    {
+      "path": "tools/test_assets.py",
+      "bytes": 17199,
+      "sha256": "3a30e9bcab12617739afaa9835791a4783ddf404ea0d8474a137165c278e5147"
+    },
+    {
+      "path": "tools/tests/test_asset_operations.py",
+      "bytes": 15339,
+      "sha256": "a98b45c5d49372052bdd0dc699b54e422900ebe34782d94586ad24f7c8c86dcc"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.cs",
+      "bytes": 20596,
+      "sha256": "912d7dfce1d4f0002cf927c403afeab19b2becd95446e260406d1188126a15c7"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.DevelopmentAssets.cs",
+      "bytes": 6293,
+      "sha256": "4e803e9c664dc93d8c98e12976f86d6232b1cee79a0ec91567c951b2816f09bc"
+    },
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs",
+      "bytes": 43112,
+      "sha256": "b316c42fb76936b123a2054e852d3f56a4674ce9cbd028b4f118b482f171bdc2"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureTests.cs",
+      "bytes": 14376,
+      "sha256": "506e6a93cba963a1f9c6bfdc7f6fc9d93e3e15eaeb96d631332be550b6d63025"
+    },
+    {
+      "path": "tests/UniClaw.Host.Dsh.Tests/RuntimeToolHostProcedureAssetTests.cs",
+      "bytes": 12109,
+      "sha256": "238bbb16b38c7d4fcc838e9194b75ec966b29a5883f515ccec429e00fba6b293"
+    },
+    {
+      "path": "tools/README.md",
+      "bytes": 6147,
+      "sha256": "154b06612e52574902a67449d8e2f85107872b5c2959df140ecb00b1d2079be0"
+    },
+    {
+      "path": "docs/agents/test-asset-retention.md",
+      "bytes": 12127,
+      "sha256": "5d0a0234cc791d1299e3872750f51a6c12b49a69b469a8ec688a411c0a521573"
+    }
+  ],
+  "comparison": "slice2/before; preserve all shared dirty",
+  "scope": "replay + explicit development diagnosis only; no archive/GC/storage ownership",
+  "lateDelta": "collector self-fingerprints, cancellation admission window, handler unwind and finalizer-error preservation verified by final Python22; latest real component runs preceded these bounded control/metadata fixes"
+}

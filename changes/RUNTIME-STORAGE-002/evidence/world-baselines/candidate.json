@@ -1,0 +1,56 @@
+{
+  "files": [
+    {
+      "path": "src/UniClaw.Host/Runtime/FileWorldJournal.cs",
+      "sha256": "d070954dcd02a92ca0988ddbce30bd86f7cddbf1cc5b9a97a8f7ae5a57ede9b6"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/FileWorldJournal.Versions.cs",
+      "sha256": "e4f780ec818f1b300c0ced500577c3fabfab67be9bbd6f6a2869946b6387a51d"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/WorldRevisionDeltaCodec.cs",
+      "sha256": "3cd892f7a8f4395ce8897b337206bee5e83b3e20713c33ffa09a0272dada339b"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/WorldHistoryVersionOptions.cs",
+      "sha256": "dba9ea3e0ee042bd640cfdd7e5c6ad59553443a41a02f0772247dae732ee0f87"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/WorldHistoryVersionReader.cs",
+      "sha256": "335a8e268a5a85d88ede56c83a575867969e86d4c46c4a61fe030b96ae269318"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldHistoryBaselineTests.cs",
+      "sha256": "a2f148484a228c570d2eb9232ad5789d5c6bc6e58c9a17400c68e466540931e5"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldHistoryDeltaTests.cs",
+      "sha256": "0af20ea91b0dc8e3ba9e2735076b8c2b1efdfccf5775192d03fb91c57267480a"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldHistoryRecoveryTests.cs",
+      "sha256": "87a61e9c827cb185b09c049fdc85fe25ccd291c8e514ee2f797ecc23165a8d6e"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/WorldAsyncStorageTests.cs",
+      "sha256": "58ccdf1d1ce9e82c3b5682e5747db1f2204c3a08b7868d3c7db6b29ff94e767f"
+    },
+    {
+      "path": "tools/RunRecoveryProbe/Program.cs",
+      "sha256": "465103e6d05f824eaa427536de47d3af731de8b103e0ae5330e834b72da05ea5"
+    },
+    {
+      "path": "tools/WorldStorageProbe/Program.cs",
+      "sha256": "a7b9bd876c25caff79ac7b3cde87cb9f044711649112e538675df9d191583b46"
+    },
+    {
+      "path": "tools/WorldStorageProbe/WorldStorageProbe.csproj",
+      "sha256": "d48931757262aeb63f52448ca9a944331b2d20083349c77a75f1ea6f351e1fc3"
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/world-baselines-contract.md",
+      "sha256": "42cddee6110f9d9f8c7990e1a142b4b915412a4af462a91ea5ef011c11ecb78c"
+    }
+  ]
+}

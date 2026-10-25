@@ -9,8 +9,6 @@ public sealed partial class WorldModel
 {
     // World's provenance index over records it reconciled. Admission and the
     // canonical store remain exclusively in EvidenceLedger.
-    private readonly Dictionary<string, EvidenceRecord> _worldEvidence = new(StringComparer.Ordinal);
-    private readonly List<PageCorrectionDecision> _pageCorrections = [];
     public IReadOnlyList<PageCorrectionDecision> PageCorrectionLog => _pageCorrections.AsReadOnly();
 
     private WorldBeliefRevision ReconcilePageInterpretation(EvidenceRecord record, WorldBeliefRevision? parent)

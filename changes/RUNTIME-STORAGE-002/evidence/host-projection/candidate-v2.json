@@ -1,0 +1,11 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "comparison": "entry to final; review delta against preserved candidate.json",
+  "files": {
+    "src/UniClaw.Host/Runtime/RuntimeRunStore.cs": "fc50aa65ca52200a09f154f5d63a1621c40dceb8b43ad982a2452278a1a2163e",
+    "src/UniClaw.Host/Runtime/ActivationRecordStore.cs": "f8f5636599cfc49df03b6b2221ad8c44079f3a9275eb369d17a8aee58f49cf1b",
+    "src/UniClaw.Host/Runtime/RuntimeRunStore.History.cs": "0eca99d86a3625bde0a9025c36cc2331b70f4ebd41bd29d426193dbb75b416aa",
+    "tests/UniClaw.Host.Tests/RuntimeRunProjectionVersionTests.cs": "92103aa4648193f848a38d03a5b293a31a8d3e338acd454751bf3e66d3197551",
+    "tests/UniClaw.Host.Tests/ActivationCommitTests.cs": "a8f167dd6dec2927a439d784effb9c94cbf98a041d4f664aaf5a607f643e4aa6"
+  }
+}

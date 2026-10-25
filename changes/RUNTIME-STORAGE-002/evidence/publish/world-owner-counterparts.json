@@ -1,0 +1,11 @@
+{
+  "tree": "b0cb04a59674eadf557a52e940c0403df707aabb",
+  "paths": [
+    "src/UniClaw.Kernel/World/WorldModel.Context.cs",
+    "src/UniClaw.Kernel/World/WorldModel.Corrections.cs",
+    "src/UniClaw.Kernel/World/WorldModel.SemanticKnowledge.cs",
+    "src/UniClaw.Kernel/World/WorldModel.Semantics.cs",
+    "src/UniClaw.Kernel/World/WorldModel.Viewports.cs"
+  ],
+  "reason": "World OwnerState moves these collections; original partial readonly declarations must pair with facade for the accepted history/async wrappers"
+}

@@ -1,0 +1,26 @@
+{
+  "kernel-final": {
+    "total": 1248,
+    "passed": 1245,
+    "failed": [
+      "UniClaw.Kernel.Tests.ClaimEvolutionTests.A6_ReplayDeterministic_LogCarriesFullEvolutionChain",
+      "UniClaw.Kernel.Tests.SourceReadmeOwnershipTests.SourceFiles_AreRegistered_InDimensionReadme",
+      "UniClaw.Kernel.Tests.RunTraceBulletTests.Artifact_EmissionAnchoredDeterministic_WithRealRunId"
+    ],
+    "otherOutcomes": []
+  },
+  "host-final": {
+    "total": 292,
+    "passed": 291,
+    "failed": [
+      "UniClaw.Host.Tests.WorldOperationReplayTests.RuntimeReplay_UsesActualNavigationEdgesReceiptsAndScrollTransforms"
+    ],
+    "otherOutcomes": []
+  },
+  "dsh-final": {
+    "total": 24,
+    "passed": 24,
+    "failed": [],
+    "otherOutcomes": []
+  }
+}

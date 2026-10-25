@@ -1,0 +1,56 @@
+{
+  "files": [
+    {
+      "path": "tools/test_assets.py",
+      "bytes": 17173,
+      "sha256": "2ee85a150448dbcc48c30fd617c2d9782d47515c323df2565a1d2208f673ee90",
+      "owner": "TEST-ASSET-LAYOUT-001 + TEST-ASSET-AUTOMATION-001 slice1"
+    },
+    {
+      "path": "tools/test-assets",
+      "bytes": 1633,
+      "sha256": "7344c87b451785eac4c49fe71505cff6e13ca83fb3b2cd1e71ef75381018249a",
+      "owner": "development assets"
+    },
+    {
+      "path": "tools/verify-change",
+      "bytes": 36846,
+      "sha256": "c1f6ea15c7a81237c4256c394bc177bad211cd21c17c36013f15b98103d2eb92",
+      "owner": "TEST-ASSET-LAYOUT-001 + TEST-ASSET-AUTOMATION-001 slice1"
+    },
+    {
+      "path": "tools/tests/test_test_assets.py",
+      "bytes": 9271,
+      "sha256": "28bd03918d6ec4cea7f31ea18b8e053f105109914d7948024068bdcc9a82e287",
+      "owner": "development assets"
+    },
+    {
+      "path": "tools/tests/test_verify_assets.py",
+      "bytes": 8709,
+      "sha256": "e33f238ad63305eeac7144559f7d5d262a539571467189b39b6b39536fd4128b",
+      "owner": "development assets"
+    },
+    {
+      "path": "tools/tests/test_verify_entry.py",
+      "bytes": 9597,
+      "sha256": "df63193727d13b8597bc063ad28a46f3ecb7098d639a3d37509cd3d38711f1b2",
+      "owner": "development assets"
+    },
+    {
+      "path": "tools/README.md",
+      "bytes": 5600,
+      "sha256": "a79a9511db5a94aeaead4a8c925d28302f798487457f4ad49de60e9b3abd9361",
+      "owner": "development assets"
+    },
+    {
+      "path": "docs/agents/test-asset-retention.md",
+      "bytes": 10574,
+      "sha256": "0ace6c3f3481e73988a2ea8757f82bb7be64ae59fd1f00412ab0e5c47fafe0dd",
+      "owner": "development assets"
+    }
+  ],
+  "algorithm": "sha256",
+  "comparison": "slice1/before; no broad HEAD ownership claim",
+  "productFilesModified": false,
+  "finalSmallDeltaReview": "Independent v3 reviews cover layout/cancel/consumer handling. baselineRefs registration and its contract test added afterwards, Leader reviewed; no claim of a second full agent review of that small delta."
+}

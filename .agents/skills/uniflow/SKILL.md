@@ -58,6 +58,13 @@ UNDERSTAND → RESOLVE → PERSIST → PLAN → IMPLEMENT → REVIEW → VERIFY 
 Acceptance 可表达？无阻塞 Human Decision？→ 全部满足 =
 `RESOLVED`（semantic state，不要求表格）。
 
+Bug 类 Change 在 RESOLVED 前须有可核验诊断引用：
+`diagnosis: {path: <diagnosis.packet.json>, sha256: <hex>}`。按
+`uniclaw-debug-evidence` 的 packet v0 输出证据；未知 FDP/Owner 必须保留，
+不能仅凭分诊信号或模型结论宣称根因明确。显式预期红不自动立案；
+意外验收失败由 `tools/verify-change` 出口生成双域统一信号，再经
+`uniclaw-evolution-loop` INTAKE 判断是否已有 case，仍由本流程决定立案与修复。
+
 ### A4. PERSIST（durability ALWAYS, depth VARIABLE）
 
 | 档 | 载体 | 约束 |
@@ -96,6 +103,15 @@ level: CONTRACT（命令/类型/边界）| DETERMINISTIC（单测/性质/转移�
 
 只有 trace 链接 ≠ 可复现验证。
 
+### A6.6 资产收尾（既有步骤内的必做项）
+
+诊断、重放、仿真和验证每次返回前，按
+[开发测试资产收尾规范](../../../docs/agents/test-asset-retention.md)
+完成本轮资产处置，成功、失败、取消均适用。保留后续仍需的最小证据和
+有效引用，清理本任务无继续用途的临时/重复产物，并记录实际结果；不得
+仅列删除计划便称已清理。规则、清单格式、重复测试与任务删除均以该文档
+为单一来源，不增加生命周期状态，也不由此删除他人的活动材料。
+
 ### A7. 失败转移边
 
 | 失败 | 转移 | 附加 |
@@ -106,7 +122,8 @@ level: CONTRACT（命令/类型/边界）| DETERMINISTIC（单测/性质/转移�
 | Verify：语义/假设失败 | → RESOLVE | 同上 |
 | Verify：harness/环境失败 | 留在 VERIFY | 有界重试；无解 → `disposition: BLOCKED`；恢复条件满足后继续 |
 
-失败尝试是证据：保留不删。
+失败先取证并保留仍需的最小复现、结果及有效引用；后续保留、归档和
+多余产物清理按A6.6执行，不要求永久保存所有失败过程副本。
 
 ### A8. LEARNING HOOK（可选，CLOSED 后）
 
@@ -116,7 +133,7 @@ level: CONTRACT（命令/类型/边界）| DETERMINISTIC（单测/性质/转移�
 ### A9. CLOSED
 
 范围完成 + acceptance 被证明 + 无未授权改动 + 文档同步 + 无阻塞 Human
-Decision。普通任务不需要毕业报告。
+Decision + A6.6资产收尾已完成并如实记录。普通任务不需要毕业报告。
 
 ## Part B — 执行引擎（HOW）
 

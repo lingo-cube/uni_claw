@@ -25,6 +25,7 @@ public sealed class TaskInstanceStore : IDisposable
     private readonly Dictionary<string, TaskInstanceRecord> _byKey = new();
     private readonly object _sync = new();
     private StreamWriter? _writer;
+    private bool _faulted;
 
     public TaskInstanceStore(string filePath)
     {
@@ -40,14 +41,15 @@ public sealed class TaskInstanceStore : IDisposable
     {
         lock (_sync)
         {
+            EnsureWritable();
             if (_byKey.TryGetValue(idempotencyKey, out var existing))
                 return existing;
             var record = new TaskInstanceRecord(
                 $"ti-{Guid.NewGuid():N}",
                 taskRef, idempotencyKey, DateTimeOffset.UtcNow);
+            Append(record);
             _byId[record.TaskInstanceId] = record;
             _byKey[idempotencyKey] = record;
-            Append(record);
             return record;
         }
     }
@@ -62,6 +64,7 @@ public sealed class TaskInstanceStore : IDisposable
     {
         lock (_sync)
         {
+            EnsureWritable();
             var record = _byId[taskInstanceId]
                 ?? throw new KeyNotFoundException($"TaskInstance {taskInstanceId} not found");
             if (record.ProductSessionId == productSessionId) return record;
@@ -69,16 +72,23 @@ public sealed class TaskInstanceStore : IDisposable
                 throw new InvalidOperationException(
                     $"TaskInstance {taskInstanceId} already bound to {record.ProductSessionId}");
             var updated = record with { ProductSessionId = productSessionId };
+            Append(updated);
             _byId[taskInstanceId] = updated;
             _byKey[updated.IdempotencyKey] = updated;
-            Append(updated);
             return updated;
         }
     }
 
     private void Append(TaskInstanceRecord record)
     {
-        _writer?.WriteLine(JsonSerializer.Serialize(record));
+        try { _writer!.WriteLine(JsonSerializer.Serialize(record)); }
+        catch { _faulted = true; throw; }
+    }
+
+    private void EnsureWritable()
+    {
+        ObjectDisposedException.ThrowIf(_writer is null, this);
+        if (_faulted) throw new IOException("task-instance-store-faulted-reopen-required");
     }
 
     private void Load()
@@ -100,7 +110,11 @@ public sealed class TaskInstanceStore : IDisposable
 
     public void Dispose()
     {
-        _writer?.Dispose();
-        _writer = null;
+        lock (_sync)
+        {
+            var writer = _writer;
+            _writer = null;
+            writer?.Dispose();
+        }
     }
 }

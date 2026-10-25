@@ -1,0 +1,47 @@
+{
+  "policyDocument": "docs/agents/test-asset-retention.md",
+  "localSkillMetadataChecked": 3,
+  "relativeLinksChecked": 53,
+  "brokenLinks": [],
+  "jsonExamplesParsed": 1,
+  "thirdPartyDiagnosisSkillAndLockUnchanged": true,
+  "verificationScope": "process/document contracts only; no CLI automation, file deletion, model or device execution",
+  "skillQuickValidation": [
+    {
+      "skill": "uniflow",
+      "original": {
+        "valid": false,
+        "message": "Unexpected key(s) in SKILL.md frontmatter: source. Allowed properties are: allowed-tools, description, license, metadata, name"
+      },
+      "repoCompatibleTemporaryCopy": {
+        "valid": true,
+        "message": "Skill is valid!"
+      },
+      "qualification": "generic validator excludes existing repo source metadata; original files preserved; only that known extension omitted from temporary validation copy"
+    },
+    {
+      "skill": "uniclaw-debug-evidence",
+      "original": {
+        "valid": false,
+        "message": "Unexpected key(s) in SKILL.md frontmatter: source. Allowed properties are: allowed-tools, description, license, metadata, name"
+      },
+      "repoCompatibleTemporaryCopy": {
+        "valid": true,
+        "message": "Skill is valid!"
+      },
+      "qualification": "generic validator excludes existing repo source metadata; original files preserved; only that known extension omitted from temporary validation copy"
+    },
+    {
+      "skill": "uniclaw-evolution-loop",
+      "original": {
+        "valid": false,
+        "message": "Unexpected key(s) in SKILL.md frontmatter: source. Allowed properties are: allowed-tools, description, license, metadata, name"
+      },
+      "repoCompatibleTemporaryCopy": {
+        "valid": true,
+        "message": "Skill is valid!"
+      },
+      "qualification": "generic validator excludes existing repo source metadata; original files preserved; only that known extension omitted from temporary validation copy"
+    }
+  ]
+}

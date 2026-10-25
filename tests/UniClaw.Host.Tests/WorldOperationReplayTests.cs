@@ -1,5 +1,6 @@
 using System.Text.Json;
 using UniClaw.Host;
+using UniClaw.Host.Runtime;
 using UniClaw.Kernel;
 using UniClaw.Kernel.Assurance;
 using UniClaw.Kernel.Control;
@@ -20,6 +21,61 @@ namespace UniClaw.Host.Tests;
 public sealed class WorldOperationReplayTests
 {
     private static readonly DateTimeOffset T0 = new(2026, 10, 20, 0, 0, 0, TimeSpan.Zero);
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void OriginalWorldStoragePreservesEveryVerifiedNavigationAndViewportRevision(bool navigationCycle)
+    {
+        var root = Directory.CreateTempSubdirectory("world-operations-original-").FullName;
+        try
+        {
+            var runId = Guid.NewGuid().ToString("N"); string wid, eid; ReplayResult original; IReadOnlyList<WorldBeliefRevision>? fullHistory = null;
+            using (var e = new FileEvidenceJournal(Path.Combine(root, "evidence")))
+            using (var w = new FileWorldJournal(Path.Combine(root, "world")))
+            {
+                wid = w.RecordingId; eid = e.RecordingId;
+                original = Execute(navigationCycle: navigationCycle, includePageCaptures: true,
+                    recording: new(w, runId, eid), originalLedger: new(e), captureHistory: rows => fullHistory = rows.ToArray());
+            }
+            using var er = new FileEvidenceJournal(Path.Combine(root, "evidence"), true);
+            using var wr = new FileWorldJournal(Path.Combine(root, "world"), true);
+            var history = WorldHistoryRead.ReadOriginal(wr, wid, runId, EvidenceLedger.RestoreReadOnly(er, eid));
+            Assert.Equal(4, original.Receipts.Count);
+            Assert.Equal(fullHistory!.Count, history.HistoricalRevisions.Count);
+            var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+            for (var i = 0; i < fullHistory!.Count; i++)
+                AssertOriginalJson(JsonSerializer.SerializeToElement(fullHistory![i], json), history.HistoricalRevisions[i]);
+            Assert.Contains(history.Operations, r => r.Operation == "navigation");
+            Assert.Equal(navigationCycle ? 0 : 2, history.Operations.Count(r => r.Operation == "viewport"));
+            if (Environment.GetEnvironmentVariable("UNICLAW_WORLD_HISTORY_EXPORT") is { Length: > 0 } output)
+            {
+                var destination = Path.Combine(output, navigationCycle ? "navigation" : "viewport");
+                Directory.CreateDirectory(destination);
+                foreach (var file in Directory.GetFiles(root)) File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), true);
+                File.WriteAllText(Path.Combine(destination, "original-expected.json"), JsonSerializer.Serialize(original, json));
+                File.WriteAllText(Path.Combine(destination, "full-original-history.json"), JsonSerializer.Serialize(fullHistory, json));
+            }
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    private static void AssertOriginalJson(JsonElement expected, JsonElement actual)
+    {
+        Assert.True(JsonElement.DeepEquals(expected, actual));
+        if (expected.ValueKind == JsonValueKind.Object)
+        {
+            var before = expected.EnumerateObject().ToArray(); var after = actual.EnumerateObject().ToArray();
+            Assert.Equal(before.Select(p => p.Name), after.Select(p => p.Name));
+            for (var i = 0; i < before.Length; i++) AssertOriginalJson(before[i].Value, after[i].Value);
+        }
+        else if (expected.ValueKind == JsonValueKind.Array)
+        {
+            var before = expected.EnumerateArray().ToArray(); var after = actual.EnumerateArray().ToArray();
+            Assert.Equal(before.Length, after.Length);
+            for (var i = 0; i < before.Length; i++) AssertOriginalJson(before[i], after[i]);
+        }
+    }
 
     [Fact]
     public void RuntimePageCaptures_ExposeOwnerAccumulationAfterActualScrollVerification()
@@ -72,7 +128,13 @@ public sealed class WorldOperationReplayTests
     public void RuntimeReplay_UsesActualNavigationEdgesReceiptsAndScrollTransforms()
     {
         var first = Execute(); var second = Execute();
-        Assert.Equal(JsonSerializer.Serialize(first), JsonSerializer.Serialize(second));
+        var firstOwner = CheckAttemptReferences(first);
+        var secondOwner = CheckAttemptReferences(second);
+        Assert.NotEqual(firstOwner, secondOwner);
+        // 先验证独立issuer及每张回执的关联，只在测试副本中重命名第二issuer。
+        var renamed = second with { Receipts = second.Receipts.Select(r => r with
+            { AttemptCorrelation = r.AttemptCorrelation! with { OwnerId = firstOwner } }).ToArray() };
+        Assert.Equal(JsonSerializer.Serialize(first), JsonSerializer.Serialize(renamed));
         Assert.Equal(4, first.Receipts.Count);
         Assert.Equal(2, first.Graph.Edges.Count);
         Assert.Equal(2, first.Graph.ViewportTransitions.Count);
@@ -123,20 +185,36 @@ public sealed class WorldOperationReplayTests
         }
     }
 
+    private static string CheckAttemptReferences(ReplayResult result)
+    {
+        Assert.NotEmpty(result.Receipts);
+        Assert.All(result.Receipts, receipt =>
+        {
+            var attempt = Assert.IsType<AttemptReference>(receipt.AttemptCorrelation);
+            Assert.True(Guid.TryParseExact(attempt.OwnerId, "N", out _));
+            Assert.Equal(receipt.ReceiptId, attempt.ReceiptId);
+            Assert.Equal(receipt.IntentId, attempt.IntentId);
+            Assert.Equal(receipt.BindingId, attempt.BindingId);
+        });
+        return Assert.Single(result.Receipts.Select(r => r.AttemptCorrelation!.OwnerId).Distinct());
+    }
+
     private sealed record ContentPoint(string OperationReceiptId, string RevisionId, string Label, double X, double Y);
     private sealed record ReplayResult(WorldGraphProjection Graph, IReadOnlyList<EffectReceipt> Receipts,
         IReadOnlyList<WorldBeliefRevision> Revisions, IReadOnlyList<ContentPoint> Content, string Status,
         IReadOnlyList<WorldPageView>? PageViews = null);
 
     private static ReplayResult Execute(string? recordedSequence = null, bool includePageCaptures = false,
-        bool navigationCycle = false, bool ordinaryRecapture = false)
+        bool navigationCycle = false, bool ordinaryRecapture = false,
+        WorldHistoryRecording? recording = null, EvidenceLedger? originalLedger = null,
+        Action<IReadOnlyList<WorldBeliefRevision>>? captureHistory = null)
     {
         var world = new WorldModel(new HashSet<string> { "ui.screen", "ui.screen.route", "ui.node.*",
                 PageObservationCodec.CaptureSubject, PageObservationCodec.IdentitySubject },
-            new ProductAssociationStrategy(), new UiHierarchyOccurrenceStrategy());
+            new ProductAssociationStrategy(), new UiHierarchyOccurrenceStrategy(), history: recording);
         var effects = new EffectBoundary(new RecordedDriver());
         var plan = new AgentPlanPolicy();
-        var kernel = new UniKernel(new EvidenceLedger(), world, DisabledRunTrace.Instance,
+        var kernel = new UniKernel(originalLedger ?? new EvidenceLedger(), world, DisabledRunTrace.Instance,
             new RunModel(), new ControlLoop(plan),
             new RuntimeAssurance(new ProductFreshnessEvaluator(() => T0.AddMinutes(1), TimeSpan.FromMinutes(5))), effects);
         var captures = navigationCycle
@@ -294,6 +372,7 @@ public sealed class WorldOperationReplayTests
         }
         var views = includePageCaptures ? world.RevisionHistory.Where(r => r.CurrentPageObservation?.ContainerId is not null)
             .Select(r => world.DerivePageView(r.CurrentPageObservation!.ContainerId!, r.RevisionId)).ToArray() : null;
+        captureHistory?.Invoke(world.RevisionHistory);
         return new(graph, effects.ReceiptLog, revisions, content, result.Status.ToString(), views);
     }
 

@@ -1,0 +1,233 @@
+{
+  "passed": true,
+  "method": "public report CLI RED/GREEN + Host file adapter/source capture + existing report Kill consumers + independent two-axis review",
+  "expected": "bounded incremental diagnostics, explicit gaps and compatible report delivery",
+  "actual": "Host32/32, DSH24/24, Python9/9, legacy golden byte match; reviews zero",
+  "checks": {
+    "report-red-assets": true,
+    "report-red-finalized": true,
+    "report-red-result": true,
+    "report-green-assets": true,
+    "report-green-finalized": true,
+    "report-green-result": true,
+    "report-green-stable": true,
+    "report-tail-red-assets": true,
+    "report-tail-red-finalized": true,
+    "report-tail-red-result": true,
+    "report-tail-red-stable": true,
+    "report-tail-green-assets": true,
+    "report-tail-green-finalized": true,
+    "report-tail-green-result": true,
+    "report-tail-green-stable": true,
+    "report-count-red-assets": true,
+    "report-count-red-finalized": true,
+    "report-count-red-result": true,
+    "report-count-red-stable": true,
+    "report-count-green-assets": true,
+    "report-count-green-finalized": true,
+    "report-count-green-result": true,
+    "report-count-green-stable": true,
+    "adapter-first-assets": true,
+    "adapter-first-finalized": true,
+    "adapter-first-result": true,
+    "adapter-first-stable": true,
+    "report-missing-red-assets": true,
+    "report-missing-red-finalized": true,
+    "report-missing-red-result": true,
+    "report-missing-red-stable": true,
+    "report-missing-green-assets": true,
+    "report-missing-green-finalized": true,
+    "report-missing-green-result": true,
+    "report-missing-green-stable": true,
+    "legacy-golden-assets": true,
+    "legacy-golden-finalized": true,
+    "legacy-golden-result": true,
+    "legacy-golden-stable": true,
+    "host-final-assets": true,
+    "host-final-finalized": true,
+    "host-final-result": true,
+    "host-final-stable": true,
+    "dsh-final-assets": true,
+    "dsh-final-finalized": true,
+    "dsh-final-result": true,
+    "dsh-final-stable": true,
+    "legacy-golden-final-assets": true,
+    "legacy-golden-final-finalized": true,
+    "legacy-golden-final-result": true,
+    "legacy-golden-final-stable": true,
+    "host-final-candidate": true,
+    "dsh-final-candidate": true,
+    "report-missing-green-candidate": true,
+    "first-red-generator-matches-entry": true,
+    "reviews": true,
+    "slice4-owned-source-preserved": true
+  },
+  "candidateSha256": {
+    "src/UniClaw.Host/HostRunner.cs": "9f382043bed7c7b28679136f211cec75c3c7536bb0e38cd65f263deb641e1250",
+    "src/UniClaw.Host/Runtime/AuxiliaryArtifacts.cs": "f0b06324ab33f9f641ec6de232db839996ad6a8aefd3661ac55eb91f5b208e85",
+    "src/UniClaw.Host/Runtime/ConsultationArtifactLog.cs": "91ec2919417518fba7affd86a515b009fcbe7856552abbb2e79e0869096897d7",
+    "tools/gen-run-report.py": "4decc47634e74eec210e1fb435be8d3b1796feb6adad4fd27f35aa10f2cacdc6",
+    "tools/tests/test_run_report_input_contract.py": "9ed90c6911d9864badc3031b1e64412f3df5054287f42a8960d87819f96dc301",
+    "tools/tests/test_run_report_consultation_log.py": "6993660ffacaf0c176efa3f0684bb1a6d59296b3f073b8b9c9377dde0940e5a9",
+    "tests/UniClaw.Host.Tests/ConsultationArtifactLogTests.cs": "7c4e1ac375c7ed3d8bdd8626bb1d425afb457fa1de3a001b571b52b3a6a6632d",
+    "tests/UniClaw.Host.Tests/ConsultationReportSourceTests.cs": "36e77a9526d2463fc5dd18201feabe8325e09374c2887141398e3ee30c4e11f1"
+  },
+  "patchSha256": "a2d546009690e6b584ada8af64dadfdc90334073223ae09eb6998afebe99f42b",
+  "runs": {
+    "report-red": {
+      "runId": "run-20261025T133429-434aea97e6054130af1c45d374135e48",
+      "counts": {
+        "total": 1,
+        "passed": 0,
+        "errors": 1
+      },
+      "summary": "report-red.json"
+    },
+    "report-green": {
+      "runId": "run-20261025T133511-3c7c5e3d9be3497cacd3929e02e692e4",
+      "counts": {
+        "total": 1,
+        "passed": 1
+      },
+      "summary": "report-green.json"
+    },
+    "report-tail-red": {
+      "runId": "run-20261025T133623-fbdcd9d0ff0d46008fb160d3d99fa1f4",
+      "counts": {
+        "total": 2,
+        "passed": 1,
+        "failures": 1
+      },
+      "summary": "report-tail-red.json"
+    },
+    "report-tail-green": {
+      "runId": "run-20261025T133701-7da21e29bfe34696bf9074094ee6535b",
+      "counts": {
+        "total": 2,
+        "passed": 2
+      },
+      "summary": "report-tail-green.json"
+    },
+    "report-count-red": {
+      "runId": "run-20261025T133830-faa436c9e1ee4037953776dafb1a3507",
+      "counts": {
+        "total": 6,
+        "passed": 5,
+        "failures": 1
+      },
+      "summary": "report-count-red.json"
+    },
+    "report-count-green": {
+      "runId": "run-20261025T133908-1e5b70793edc4058a266b231f2271a45",
+      "counts": {
+        "total": 8,
+        "passed": 8
+      },
+      "summary": "report-count-green.json"
+    },
+    "adapter-first": {
+      "runId": "run-20261025T134428-39f313f0019f4cf3a06240ce36db6e76",
+      "counts": {
+        "total": "10",
+        "executed": "10",
+        "passed": "10",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "summary": "adapter-first.json"
+    },
+    "report-missing-red": {
+      "runId": "run-20261025T134747-89e05321466247de9d05a280c3412957",
+      "counts": {
+        "total": 7,
+        "passed": 6,
+        "failures": 1
+      },
+      "summary": "report-missing-red.json"
+    },
+    "report-missing-green": {
+      "runId": "run-20261025T134805-4328818d9c574802b67cb504e085c42c",
+      "counts": {
+        "total": 9,
+        "passed": 9
+      },
+      "summary": "report-missing-green.json"
+    },
+    "legacy-golden": {
+      "runId": "run-20261025T134911-49106f4d8b6c40a89dc821e3f18562a6",
+      "counts": {
+        "passed": true
+      },
+      "summary": "legacy-golden.json"
+    },
+    "host-final": {
+      "runId": "run-20261025T135028-f3888a4a9eb241d48f2b15eeb5278379",
+      "counts": {
+        "total": "32",
+        "executed": "32",
+        "passed": "32",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "summary": "host-final.json"
+    },
+    "dsh-final": {
+      "runId": "run-20261025T135032-7d676fa4be034e5ba8060835c2a43167",
+      "counts": {
+        "total": "24",
+        "executed": "24",
+        "passed": "24",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "summary": "dsh-final.json"
+    },
+    "legacy-golden-final": {
+      "runId": "run-20261025T135150-f901e28177314bdba394b5ae7d847aa7",
+      "counts": {
+        "passed": true
+      },
+      "summary": "legacy-golden-final.json"
+    }
+  },
+  "scope": "slice5 selected/shared-source only; parent remains open; first RED full-source drift disclosed",
+  "cost": {
+    "records": 32,
+    "oldCumulativeRewriteBytes": 28852,
+    "newLogPlusOneMirrorBytes": 5415,
+    "claim": "synthetic payload bytes only, not throughput/peak/syscalls/final disk use"
+  }
+}

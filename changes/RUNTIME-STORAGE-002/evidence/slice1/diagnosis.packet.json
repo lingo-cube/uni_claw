@@ -1,0 +1,65 @@
+{
+  "schema": "uniclaw.diagnosis.packet.v0",
+  "authority": "non-authoritative",
+  "meta": {
+    "diagnosedAt": "2026-10-25",
+    "producer": {
+      "kind": "agent-skill"
+    },
+    "changeId": "RUNTIME-STORAGE-002"
+  },
+  "subject": {
+    "reproduce": {
+      "command": "dotnet test tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj --no-restore --filter FullyQualifiedName~AuxiliaryObservationIsolationTests.ObserverFailureDoesNotChangeFormalConsultationSettlement -m:1 -nr:false",
+      "trx": "changes/RUNTIME-STORAGE-002/evidence/slice1/luna-red/baseline-red-v2.trx"
+    },
+    "inputs": [
+      {
+        "path": "changes/RUNTIME-STORAGE-002/evidence/slice1/red-source/tests/UniClaw.Kernel.Tests/Runtime/AuxiliaryObservationIsolationTests.cs",
+        "sha256": "269ae2eb58bd5238d556cea61942751f4396d8af82771d20776fa9a8195b0062",
+        "role": "regression-test"
+      },
+      {
+        "path": "changes/RUNTIME-STORAGE-002/evidence/slice1/luna-red/baseline-red-v2.trx",
+        "sha256": "d0f0af449ed650292a31ff2d67727923fd84450d1f24cad8f46c5d4797652231",
+        "role": "trx"
+      },
+      {
+        "path": "changes/RUNTIME-STORAGE-002/evidence/slice1/entry-source/src/UniClaw.Kernel/Runtime/KernelRunDriver.cs",
+        "sha256": "269b775c42467a8bc26ae0654f31a44ed7013d5204253806f87c7b209c8d7b71",
+        "role": "source-baseline"
+      }
+    ]
+  },
+  "evidenceLevel": "E3",
+  "evidenceSummary": [
+    "Isolated original-source baseline red-v2: valid NoAction P25 expected Completed but actual Rejected; shared candidate-green-v2 passes same normalized test.",
+    "Run outcome itself may be TerminalNotProven because the synthetic observation has no independent completion proof; this is separate from successful P25 settlement.",
+    "First overwritten log and unverified diagnosis are preserved, explicitly superseded by baseline-red-v2."
+  ],
+  "failureClass": "D",
+  "lifecycleStage": "Driver P25 response observation before formal completion",
+  "lastCorrectState": "Agent returned a valid decision after reservation",
+  "firstDivergence": {
+    "where": "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs:3138",
+    "expected": "Diagnostic observer failure cannot reject a valid formal consultation (state A2)",
+    "observed": "Valid P25 response is Rejected when optional observer throws; original callback is awaited inside the same catch as ConsultAgent.",
+    "evidenceRefs": [
+      "changes/RUNTIME-STORAGE-002/evidence/slice1/luna-red/baseline-red-v2.trx",
+      "changes/RUNTIME-STORAGE-002/evidence/slice1/entry-source/src/UniClaw.Kernel/Runtime/KernelRunDriver.cs:3138"
+    ]
+  },
+  "owner": "KernelRunDriver optional diagnostic observation orchestration; not Agent/P25 storage",
+  "rootCauseSupport": [
+    "H1: the observer crosses the formal consultation catch boundary; the original fixed-input behavior RED differs only by observer.",
+    "H2 invalid Agent correlation is ruled out by Completed journal in the disabled-observer arm.",
+    "H3 formal journal failure is ruled out by identical in-memory journal and sole injected observer IOException."
+  ],
+  "remainingUncertainty": [
+    "Asynchronous stall/backpressure and Host final artifact failures require subsequent behavior cases; first RED diagnoses exception contamination only."
+  ],
+  "escalation": {
+    "required": false,
+    "reason": "Owner and commit/Effect authority remain unchanged"
+  }
+}

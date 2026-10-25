@@ -1,0 +1,9 @@
+{
+  "files": {
+    "tests/UniClaw.Host.Dsh.Tests/SettingsCoveragePopupTaskSimulationTests.cs": {
+      "entrySha256": "af50c7897fe61c2f74807a00c63fd2a8287fa362a970760a7e197836d00a35ef",
+      "observedSha256": "92096fd53b64f4581a0e97ab190ce0c85fa409ec04aabda0a8d9a2944ac3681c"
+    }
+  },
+  "classification": "External change outside candidate, only Dsh.Tests compilation; not a dependency of Kernel.Tests/Host.Tests and not selected by the two DSH filters. Preserved, not edited by this slice."
+}

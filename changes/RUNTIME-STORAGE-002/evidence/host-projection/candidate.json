@@ -1,0 +1,11 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "comparison": "captured entry only",
+  "files": {
+    "src/UniClaw.Host/Runtime/RuntimeRunStore.cs": "1745bd448c636ba2fe00ba015fc65bef4e151ef61047d255e5db595fbd17a284",
+    "src/UniClaw.Host/Runtime/ActivationRecordStore.cs": "f8f5636599cfc49df03b6b2221ad8c44079f3a9275eb369d17a8aee58f49cf1b",
+    "src/UniClaw.Host/Runtime/RuntimeRunStore.History.cs": "1b740792c4f0e7ba17667fb4fc7a77ac47dde7a0719af1131e8901dd90d394e5",
+    "tests/UniClaw.Host.Tests/RuntimeRunProjectionVersionTests.cs": "e1bc738bcbf853b107ba68e3accd0d861f1b5ae630d5b0c3b1201254aa2f7cfd",
+    "tests/UniClaw.Host.Tests/ActivationCommitTests.cs": "a8f167dd6dec2927a439d784effb9c94cbf98a041d4f664aaf5a607f643e4aa6"
+  }
+}

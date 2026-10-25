@@ -1,0 +1,7 @@
+{
+  "path": "changes/RUNTIME-STORAGE-001/evidence/slice4/baseline-entry-source.tar.gz",
+  "sha256": "2b5f4b67af4ac201eb08625f15fcbb09d807eef5f95d2e77d6d19486f8d841fd",
+  "verifiedEntryBuildInputs": 656,
+  "files": 887,
+  "baseline": "slice3 final TRX, exact Kernel/Host project source; Dsh popup test concurrent overlay only for final DSH build, separate evidence"
+}

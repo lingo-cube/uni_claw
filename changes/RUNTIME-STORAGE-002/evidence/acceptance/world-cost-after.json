@@ -1,0 +1,43 @@
+{
+  "runId": "run-20261025T142203-8265e5effa6f498cb2711869e9cc53da",
+  "source": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/RUNTIME-STORAGE-002/runs/run-20261025T142203-8265e5effa6f498cb2711869e9cc53da/raw/world-cost/size.json",
+  "measurement": {
+    "observations": 128,
+    "operations": 257,
+    "revisions": 128,
+    "logicalJsonEqual": true,
+    "logicalOperations": 257,
+    "logicalRevisions": 128,
+    "nativeV2": {
+      "fileBytes": 1107547,
+      "headBytes": 181,
+      "constructorAndReadElapsedMilliseconds": 85.0075,
+      "constructorAndReadAllocatedBytes": 130457392
+    },
+    "legacyV1": {
+      "fileBytes": 7951934,
+      "headBytes": 181,
+      "constructorAndReadElapsedMilliseconds": 53.0384,
+      "constructorAndReadAllocatedBytes": 58839280
+    },
+    "nativeWriter": {
+      "frameWrites": 258,
+      "frameFlushes": 258,
+      "headWrites": 258,
+      "headFlushes": 258,
+      "frameBytesSubmitted": 1107547,
+      "committedBatches": 257,
+      "peakBatchRecords": 1,
+      "peakBatchBytes": 14971
+    },
+    "fullBytes": 7951934,
+    "deltaBytes": 1107547,
+    "reduction": 0.8607197947065456,
+    "absentMetrics": {
+      "latestOnlyBuyer": "not_measured_no_buyer",
+      "filesystemSyscallOrReadByteCounter": "not_measured",
+      "peakMemory": "not_measured"
+    },
+    "qualification": "Same actual World operation outputs, same recording ID, uncompressed files. Constructor+ReadRecords wall time and current-thread managed allocations; no latest-only buyer, filesystem syscall/read-byte counter, or peak-memory claim."
+  }
+}

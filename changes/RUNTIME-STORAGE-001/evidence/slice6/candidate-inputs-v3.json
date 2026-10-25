@@ -1,0 +1,28 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": {
+    "src/UniClaw.Kernel/Runtime/RunResourceRecovery.cs": "faeed739ee59f9709bc02460ca894833e980eea9695c81233eba029b6b0c11e0",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.Resources.cs": "fb0ca5bcf535318362464c6b0c3ca881143b70f960441494358b7a7c50308ba2",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs": "269b775c42467a8bc26ae0654f31a44ed7013d5204253806f87c7b209c8d7b71",
+    "src/UniClaw.Kernel/Runtime/RunDriverInputs.cs": "dab81148523f104c732c04484f8df438ce8af872b39221b4093317cc299d3ac7",
+    "src/UniClaw.Kernel/Runtime/README.md": "46d618f3ccc640dcfc8477836b82a5afe23b2011d52d94e7582976b6d640c29a",
+    "src/UniClaw.Kernel/World/WorldModel.HistoryRecording.cs": "d88eb4c70a176fc8dbcb16b65aade6ea0ca704b7395d39ebd94a1b092e817d06",
+    "src/UniClaw.Kernel/World/README.md": "4c475e17e0373d73f9a00259f287acf9d4f7263503cbecee2ae57a80b11bde6b",
+    "src/UniClaw.Host/Runtime/FileRunRecoveryArchive.cs": "0f28ea6c5d565fbe3bae6ecd2a0c45b6f8836db39c054e8cf1c9b3a4e6b44256",
+    "src/UniClaw.Host/Runtime/FileEvidenceJournal.cs": "ed1f1ac46e55dbd13b14308cca7b1ddb1f5d48d6bf99fb3ff03622d3f404f080",
+    "src/UniClaw.Host/Runtime/FileWorldJournal.cs": "26c3a8fd36c7b5e4fcbd9c19da12f4914c730ace9d297d056b7b3593700d490a",
+    "src/UniClaw.Host/Runtime/FileRunResourceJournal.cs": "6ff8526c9edf4394c2f3199445fb794ee5d36dcb4ecf8cf9b592a793f6787743",
+    "src/UniClaw.Host/Runtime/FileRunStateJournal.cs": "ed3d8c1f6c602f56e65658eb5858ce1781479382f7915ff656fad84dfd99ab6d",
+    "src/UniClaw.Host/Runtime/FileConsultationJournal.cs": "c95f7372e77027edfc362a980d786b6e4cbaa7566d74d2fcea1960f6c731a3c4",
+    "src/UniClaw.Host/Runtime/FileCommittedHistory.cs": "93fb39dd971d4ef75bca0f198c543d1a3ea8e6b3ef642b209231029c0dabb96a",
+    "src/UniClaw.Host/HostRunner.cs": "11dd0fc0fefef87d97973b522718c7601b7b5c26c283ca32b1f327b5f10e19de",
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs": "111b345bedf75758bc77a374cb3157164f046d4f5bddb01ef4b1c6858d0898e9",
+    "src/UniClaw.Host/README.md": "9e81e4bd670da45961f3e5f7f019fa76ad764a06782bf686af629d1a5ef84953",
+    "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs": "c9225209b1b53ff785fb1e224d2f54283403035a619dc5c10029d9d3e91db8cd",
+    "tests/UniClaw.Kernel.Tests/Runtime/StorageClosureAsyncTests.cs": "ba179f67a3f61666d455f843fc57cd9bebc181d51cf6aee80ec9c0b61dc60ed6",
+    "tests/UniClaw.Host.Tests/StorageClosureFileTests.cs": "9e5138045efd75f7085fab4c2514ccec8ff4ac2d5debdc136da85814d6b94f8d",
+    "tools/RunRecoveryProbe/StorageClosureAsyncProbe.cs": "de5150ec68b3a07baf13c86f814d0905a168899b3f6114215ba09a10d8ec1800",
+    "tools/RunRecoveryProbe/Program.cs": "3919083202b1e24ff6eaedb5855a671258214dc03f897881f1df094e43fbf93d",
+    "src/UniClaw.Kernel/World/WorldHistory.cs": "e58c7a720f3f6b633f6223ccc5225dc030418b03d93d8bbd7f4ccd4a968c20d2"
+  }
+}

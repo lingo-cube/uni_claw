@@ -1,0 +1,19 @@
+{
+  "files": {
+    "tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.cs": {
+      "entrySha256": "a8065da07f45eae8b5d55de1ce3afc817ea5d21113c0b52c6f0b4521febcfaf8",
+      "observedSha256": "4bf91d4c80739742778241d675566ae11a7d2b551d607497d0a91a494524f65e",
+      "classification": "unowned concurrent test input, outside selected tests; not a candidate edit"
+    },
+    "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj": {
+      "entrySha256": "b8e1be247d168e163fd32bdb4bb453127571a69eb4d15f49c570217e71b11ca4",
+      "observedSha256": "f521d5d61721abab4d126030f115b14c3c3962ac9f75cb11eb42600caf1149c2",
+      "classification": "unowned concurrent test input, outside selected tests; not a candidate edit"
+    },
+    "tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.RealAgent.cs": {
+      "entrySha256": null,
+      "observedSha256": "a23e212733bef694dbbf3d2970739e16d422947ba0367f732a7ad9bd36dcc782",
+      "classification": "new unowned partial test class outside selected filters"
+    }
+  }
+}

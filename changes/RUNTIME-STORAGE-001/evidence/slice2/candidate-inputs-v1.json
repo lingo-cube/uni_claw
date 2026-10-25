@@ -1,0 +1,21 @@
+{
+  "base": "a05176f3c66e0a3206f49dde463f51df1335975c",
+  "files": {
+    "src/UniClaw.Kernel/World/WorldHistory.cs": "6803d11fe11099f66289d9a96e3b0427c59fd9c3528627d3ff79eb8019e71c3a",
+    "src/UniClaw.Kernel/World/WorldModel.HistoryRecording.cs": "c83e94ef5d11264c0f769402f19d7f7eed92a36abe32d698987d927c46283220",
+    "src/UniClaw.Kernel/World/WorldModel.Async.cs": "c133ec5ae6666aec9e465627c059deb563a6d56abbb5dab6661dc3f5085ec612",
+    "src/UniClaw.Kernel/World/README.md": "a72d6bd2e410bfb40c8f5664fa5a207628abb339257b7af8fd362c38fdf0a91c",
+    "src/UniClaw.Kernel/UniKernel.cs": "d8cb47e8f404dc2b0c423d1fd1e50c4cf7071743c6bd2d3ab67f6a08fee128de",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.cs": "56db7ecd98543d93df8d244377f5f5c0b1554e53d1afdcad93eb4cfc5b1cb875",
+    "src/UniClaw.Kernel/Runtime/README.md": "f3adf71ed776df0aaf588d8a1bb3b3a97a46de5af795ef2d42ec482e0c3e742d",
+    "tests/UniClaw.Kernel.Tests/Runtime/KernelRuntimeSurfaceWhitelistTests.cs": "c09fe2e70c5934c1997b9c93c207cda6883fa7158452488b92a54a0013efc67c",
+    "src/UniClaw.Host/Runtime/FileWorldJournal.cs": "c1fe23f2d330357610bca117ac7e16d10b3ea23100df17f5f4b27f78791a404e",
+    "src/UniClaw.Host/HostRunner.cs": "c1a7bf9a589cffab20df207bda82f8de021ac769f389fd6f554a60b837fdd66f",
+    "src/UniClaw.Host/SettingsCoverage/SettingsCoverageRunner.cs": "faacdf9a172b0ff855024d91f5e191e86d288e437453aeb9490f80cb9f16fe97",
+    "src/UniClaw.Host/README.md": "df16af4dbac88762fea533518829876ea435a3e2640b6a536a898c95ce3dbb40",
+    "tests/UniClaw.Kernel.Tests/World/WorldAsyncStorageTests.cs": "9262c9b94601971b0a30e5ea8f5b13d7ba7c07a93fa26e5439e012dd21073065",
+    "tests/UniClaw.Host.Tests/WorldAsyncStorageTests.cs": "aa149a60a088a6f84f7d6661f0f84b77a0733499fc768179f3d59466fd18917b",
+    "tools/RunRecoveryProbe/Program.cs": "171d346340aae49ea8de71ce11c4f96f3afb6b64aad4a38f8c489c8beadcb426",
+    "tools/RunRecoveryProbe/WorldAsyncProbe.cs": "737df086fb76eccc945d1b8bda0d973c27555bf62e2e6b62bb172652a22e3894"
+  }
+}

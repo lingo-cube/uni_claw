@@ -14,7 +14,6 @@ public sealed partial class WorldModel
 
     // This is an index of the accepted observation last associated with each
     // container, not a second evidence ledger or a new identity authority.
-    private readonly Dictionary<string, EvidenceRecord> _containerObservations = new(StringComparer.Ordinal);
 
     private static bool CurrentScopedMeaning(string subject, WorldClaim claim, WorldBeliefRevision revision)
     {

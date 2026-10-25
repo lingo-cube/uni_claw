@@ -25,6 +25,10 @@ public sealed class EffectBoundary
     private readonly ReadOnlyCollection<EffectReceipt> _receiptLogView;
 
     private bool _deliveryClosed;
+    private int _dispatchInProgress;
+    private string? _executionFailure;
+    private readonly string _attemptOwnerId = Guid.NewGuid().ToString("N");
+    internal object AttemptIssuer { get; } = new();
 
     /// <summary>
     /// CORE-013（CORE-012 Q1=A）：可选注入可靠执行源；null = 既有行为
@@ -158,14 +162,29 @@ public sealed class EffectBoundary
     public (GateDecision Gate, EffectReceipt? Receipt) Dispatch(
         CanonicalBinding binding,
         AssuranceJudgment judgment,
-        BindingView view)
+        BindingView view) => DispatchAsync(binding, judgment, view).AsTask().GetAwaiter().GetResult();
+
+    public async ValueTask<(GateDecision Gate, EffectReceipt? Receipt)> DispatchAsync(CanonicalBinding binding,
+        AssuranceJudgment judgment, BindingView view, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (Interlocked.CompareExchange(ref _dispatchInProgress, 1, 0) != 0)
+            throw new InvalidOperationException("dispatch-in-progress");
+        try { return await DispatchCoreAsync(binding, judgment, view, cancellationToken).ConfigureAwait(false); }
+        finally { Volatile.Write(ref _dispatchInProgress, 0); }
+    }
+
+    private async ValueTask<(GateDecision Gate, EffectReceipt? Receipt)> DispatchCoreAsync(CanonicalBinding binding,
+        AssuranceJudgment judgment, BindingView view, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(binding);
         ArgumentNullException.ThrowIfNull(judgment);
         ArgumentNullException.ThrowIfNull(view);
 
         GateDecision gate;
-        if (_deliveryClosed)
+        if (_executionFailure is not null)
+            gate = new GateDecision(false, _executionFailure);
+        else if (_deliveryClosed)
             gate = new GateDecision(false, "delivery-closed");
         else if (!judgment.IsAdmissible)
             gate = new GateDecision(false, "not-authorized");
@@ -192,7 +211,7 @@ public sealed class EffectBoundary
         string? committedAttemptId = null;
         if (_executionSource is { } source)
         {
-            var commit = source.CommitPrepare(new ExecutionRegistration(
+            var registration = new ExecutionRegistration(
                 AttemptId: null,
                 EffectRef: binding.BindingId,
                 IntentId: binding.IntentId,
@@ -205,7 +224,18 @@ public sealed class EffectBoundary
                 ExecutorId: _driver.GetType().Name,
                 AdmissionNote: $"admissible:{judgment.IsAdmissible}"
                     + $":checks:{judgment.Checks.Count}"
-                    + $":freshness:{judgment.Freshness.Sufficiency}"));
+                    + $":freshness:{judgment.Freshness.Sufficiency}");
+            ExecutionCommit commit;
+            try
+            {
+                commit = source is IAsyncReliableExecutionSource native
+                    ? await native.CommitPrepareAsync(registration).ConfigureAwait(false) : source.CommitPrepare(registration);
+            }
+            catch (Exception ex) when (ex is IOException or ObjectDisposedException or InvalidDataException)
+            {
+                _executionFailure = "execution-commit-unknown";
+                return (new GateDecision(false, _executionFailure), null);
+            }
             if (commit.Outcome != ExecutionCommitOutcome.Success)
                 return (new GateDecision(false, commit.Outcome switch
                 {
@@ -215,13 +245,19 @@ public sealed class EffectBoundary
             committedAttemptId = commit.AttemptId;
         }
 
+        if (_deliveryClosed) return (new GateDecision(false, "delivery-closed"), null);
+        if (cancellationToken.IsCancellationRequested) return (new GateDecision(false, "execution-cancelled"), null);
         var result = _driver.Deliver(ToDispatchRequest(binding, view));
         var receipt = new EffectReceipt(
             $"receipt-{binding.BindingId}-{_receipts.Count + 1}",
             binding.IntentId, binding.BindingId, binding.TargetSubject,
             binding.RevisionId, binding.RevisionNumber,
             result.Outcome, result.Report, result.CompletedAt,
-            Reason: result.Reason);
+            Reason: result.Reason)
+        {
+            AttemptCorrelation = new(_attemptOwnerId, $"receipt-{binding.BindingId}-{_receipts.Count + 1}",
+                binding.IntentId, binding.BindingId, committedAttemptId),
+        };
         _receipts.Add(receipt);
 
         // CORE-013：driver 已调用后的追加留痕。追加失败不得向上传播吞掉
@@ -231,11 +267,17 @@ public sealed class EffectBoundary
         {
             try
             {
-                committed.AppendSubmission(committedAttemptId, $"driver:{result.Outcome}");
-                committed.AppendReceipt(committedAttemptId, receipt);
+                if (committed is IAsyncReliableExecutionSource native)
+                    await native.AppendResultAsync(committedAttemptId, $"driver:{result.Outcome}", receipt).ConfigureAwait(false);
+                else
+                {
+                    committed.AppendSubmission(committedAttemptId, $"driver:{result.Outcome}");
+                    committed.AppendReceipt(committedAttemptId, receipt);
+                }
             }
-            catch (Exception ex) when (ex is IOException or ObjectDisposedException)
+            catch (Exception ex) when (ex is IOException or ObjectDisposedException or InvalidDataException)
             {
+                _executionFailure = "execution-journal-faulted";
                 // 追加失败：记录停留未决，receipt 照常返回
             }
         }
@@ -272,7 +314,7 @@ public sealed class EffectBoundary
     /// </summary>
     public ObservationProposal ExportAttemptEvidence(EffectReceipt receipt)
     {
-        ArgumentNullException.ThrowIfNull(receipt);
+        RequireOwnedReceipt(receipt);
         return new ObservationProposal(
             new ObservationClaim($"attempt.{receipt.TargetSubject}", receipt.Outcome.ToString().ToLowerInvariant()),
             IngressKind.AttemptReport,
@@ -282,7 +324,23 @@ public sealed class EffectBoundary
                 CaptureTime: receipt.DispatchedAt,
                 Scope: $"scope:attempt.{receipt.TargetSubject}",
                 TransformationLineage: new[] { $"dispatch:{receipt.ReceiptId}" }),
-            Origin: ObservationOrigin.PostActionSelf); // 诊断自报（ADR-0048；canonical 值由账本推导）
+            Origin: ObservationOrigin.PostActionSelf)
+        { AttemptCorrelation = new(AttemptIssuer, receipt.AttemptCorrelation!, IngressKind.AttemptReport) };
+    }
+
+    private void RequireOwnedReceipt(EffectReceipt receipt)
+    {
+        ArgumentNullException.ThrowIfNull(receipt);
+        if (!_receipts.Any(r => ReferenceEquals(r, receipt)) || receipt.AttemptCorrelation is null)
+            throw new ArgumentException("receipt-not-issued-by-this-boundary", nameof(receipt));
+    }
+
+    internal AttemptObservationLink BeginObservation(string receiptId)
+    {
+        var receipt = _receipts.SingleOrDefault(r => r.ReceiptId == receiptId)
+            ?? throw new InvalidOperationException("unknown-observation-receipt");
+        RequireOwnedReceipt(receipt);
+        return new(AttemptIssuer, receipt.AttemptCorrelation!, IngressKind.Observation);
     }
 
     /// <summary>

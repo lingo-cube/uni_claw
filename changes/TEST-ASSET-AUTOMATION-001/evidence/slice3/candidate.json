@@ -1,0 +1,37 @@
+{
+  "files": [
+    {
+      "path": "tools/test_asset_archives.py",
+      "bytes": 17336,
+      "sha256": "a61f5b508e12217d41204ed7d3e10c500ff8208c3bcff03143c139ffc35502d4"
+    },
+    {
+      "path": "tools/tests/test_asset_archives.py",
+      "bytes": 16367,
+      "sha256": "d2a61f6dcdaf7a6c34d45c690102db2aabe25cd962a0a03feb4bfc911a96da81"
+    },
+    {
+      "path": "tools/test_assets.py",
+      "bytes": 18006,
+      "sha256": "308a550858c39a077a120877f819a0684552270631b2dca791da7224643d3f77"
+    },
+    {
+      "path": "tools/test-assets",
+      "bytes": 3147,
+      "sha256": "899e9751e32b4c1d535f4b11da67b280de7fe10a94df3d1075df0016c5738608"
+    },
+    {
+      "path": "tools/README.md",
+      "bytes": 6780,
+      "sha256": "cd91bd7d19154f77f4cdaf7e5d72ca78bc3f93ba0c76f777e1ee11ae3fe40bb5"
+    },
+    {
+      "path": "docs/agents/test-asset-retention.md",
+      "bytes": 14432,
+      "sha256": "97a3d1007362230eb91309cc978ccd50a614f75dc0248bc2d06e98a60aa81894"
+    }
+  ],
+  "comparison": "slice3/before; no broad HEAD ownership claim",
+  "scope": "Run archives and recovery only; no source retirement API, task GC, product storage changes or source-tree copies",
+  "evidence": "12 archive +22 prior operation/layout +15 verify entry tests; real native consumer recovery; v2 mtime and conservative v1 compatibility"
+}

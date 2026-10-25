@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Update="Fixtures/LegacyEvidenceV1/*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageReference Include="xunit" Version="2.6.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4">
@@ -19,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\tools\RunRecoveryProbe\RunRecoveryProbe.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\UniClaw.Host\UniClaw.Host.csproj" />
     <!-- Shared test-only content gate; no reference to the Simulation composition root. -->
     <Compile Include="..\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs" Link="PopupReplay\ReplayCompositionGuard.cs" />

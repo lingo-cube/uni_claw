@@ -1,0 +1,39 @@
+{
+  "change_id": "RUNTIME-STORAGE-002",
+  "stage": "design-and-persist-only",
+  "level": "CONTRACT",
+  "method": "current-source references, exact anchor hashes, state/acceptance structure, generated index, whitespace checks",
+  "expected": "design persistence only; no product implementation or tests claimed; all checks pass",
+  "actual": {
+    "head_matches_declared_base": true,
+    "branch_matches_entry": true,
+    "design_anchors_and_previous_references_unchanged": true,
+    "state_is_persisted": true,
+    "acceptance_A1_through_A10": true,
+    "required_state_sections": true,
+    "implementation_not_claimed": true,
+    "verification_four_fields": true,
+    "contract_has_five_tables": false,
+    "explicit_file_references_exist": true,
+    "generated_index_matches_current_states": true,
+    "new_change_indexed_once": true,
+    "tracked_diff_whitespace": true,
+    "new_markdown_whitespace": true
+  },
+  "passed": false,
+  "changed_anchors": [],
+  "missing_references": [],
+  "product_tests_run": false,
+  "runtime_acceptance": "not executed",
+  "checked_anchor_count": 31,
+  "generated_index": {
+    "total": 305,
+    "open": 13
+  },
+  "artifacts_sha256": {
+    "changes/RUNTIME-STORAGE-002/state.md": "cfe4cf42de383ae203cc4e58ce264c2dbaef35e374f5d15a888349ea4d3941a9",
+    "changes/RUNTIME-STORAGE-002/storage-contract.md": "d7dfdc59c57feffb5bfdf68838d3542713fa435fc0a93eaced39331df3e5b005",
+    "changes/RUNTIME-STORAGE-002/evidence/design-entry.json": "ee02f4cb48c4a8fda69606fbeae58c2a007704ca1459a27278bf69f7af9681f5",
+    "changes/INDEX.md": "6b5cf84d16d6e76ba44c208ab586eba8b849c73f6bae1fba28706a4b7628c9e3"
+  }
+}

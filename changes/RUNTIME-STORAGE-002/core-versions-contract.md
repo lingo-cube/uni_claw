@@ -1,0 +1,5 @@
+# Control/Plan版本存储实施契约
+本片承接control-plan-contract.md实测：新写Control累计State及Plan累计Versions采用可逆差分，原Input/Result/Graph等事实每行完整关联保存；不删除源、不改变领域record和Owner。v1文件严格兼容只读；新格式独立版本。首行全值，后续增量；默认MaxTailRecords=64，MinDeltaBytesForSnapshot=65536，SnapshotByteRatio=4，构造选项固定到writer。基线与head显式绑定RecordingId、序号、hash、原日志offset/length，周期快照由记录数或增量/全值字节成本触发；快照不授权删历史。旧构造签名保留。
+公开file adapter提供ReadLatestVersion、ReadVersion(sequence,Forward/Reverse)数据查询，返回原逻辑record与读成本；查询不是完整历史证明或执行许可。完整ReadRecords及原领域ReadOriginal继续校验全部来源、序号、hash、原head，拒绝截断/错源/回滚/未知后缀。latest有界读可以不检查旧前缀内容，但必须检测源长度/末位及head/基线关联损坏；声明限制，不取代原恢复。
+保持原单writer、初始化CreateNew、1或2行合法batch一次确认、确认后发布、接受后取消须结算、失败锁死、释放等待。writer最多保留最新可变值及端点，不重建全历史。基线/逆向信息的额外写入成本单列。配置来自产品构造options，不读取Harness资产YAML。测试沿父state已确认公开adapter、实际Driver与probe缝：先实际Control同128场景文件/head/全部基线合计<9MiB的RED，再证明原行逻辑/源摘要相同、双向各版本、快照阈值、原故障与Kill。最终物理字节包含head及基线，性能不宣称全部更快。资源codec若提取公用结构差分，只能机械抽取并保持原v4 wire及回归，不扩大新格式。
+Leader拥有测试/文档/资产/探针；实施worker拥有FileCommittedHistory、Control/Plan wrappers及必要新存储文件。共享工作区他人修改保持，禁止提交推送、设备模型与删历史。

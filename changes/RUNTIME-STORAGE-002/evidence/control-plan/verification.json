@@ -1,0 +1,362 @@
+{
+  "passed": true,
+  "parentAccepted": false,
+  "method": "actual Driver growth plus public allocation RED/GREEN and original ack/pending/Kill regressions",
+  "expected": "truthful state growth and acknowledged latest positions without full history replay",
+  "actual": "Host28/28, Kernel167/167; 9 growth baseline+3 after+1 final samples; allocation464622240->40188360 bytes composition+Drive",
+  "checks": {
+    "growth-build-files": true,
+    "growth-build-receipt": true,
+    "growth-build-stable": true,
+    "growth-build-status": true,
+    "baseline-control-16-files": true,
+    "baseline-control-16-receipt": true,
+    "baseline-control-16-stable": true,
+    "baseline-control-16-status": true,
+    "baseline-control-16-owner": true,
+    "baseline-control-16-readonly": true,
+    "baseline-plan-distinct-16-files": true,
+    "baseline-plan-distinct-16-receipt": true,
+    "baseline-plan-distinct-16-stable": true,
+    "baseline-plan-distinct-16-status": true,
+    "baseline-plan-distinct-16-owner": true,
+    "baseline-plan-distinct-16-readonly": true,
+    "baseline-plan-versioned-16-files": true,
+    "baseline-plan-versioned-16-receipt": true,
+    "baseline-plan-versioned-16-stable": true,
+    "baseline-plan-versioned-16-status": true,
+    "baseline-plan-versioned-16-owner": true,
+    "baseline-plan-versioned-16-readonly": true,
+    "baseline-control-64-files": true,
+    "baseline-control-64-receipt": true,
+    "baseline-control-64-stable": true,
+    "baseline-control-64-status": true,
+    "baseline-control-64-owner": true,
+    "baseline-control-64-readonly": true,
+    "baseline-plan-distinct-64-files": true,
+    "baseline-plan-distinct-64-receipt": true,
+    "baseline-plan-distinct-64-stable": true,
+    "baseline-plan-distinct-64-status": true,
+    "baseline-plan-distinct-64-owner": true,
+    "baseline-plan-distinct-64-readonly": true,
+    "baseline-plan-versioned-64-files": true,
+    "baseline-plan-versioned-64-receipt": true,
+    "baseline-plan-versioned-64-stable": true,
+    "baseline-plan-versioned-64-status": true,
+    "baseline-plan-versioned-64-owner": true,
+    "baseline-plan-versioned-64-readonly": true,
+    "baseline-control-128-files": true,
+    "baseline-control-128-receipt": true,
+    "baseline-control-128-stable": true,
+    "baseline-control-128-status": true,
+    "baseline-control-128-owner": true,
+    "baseline-control-128-readonly": true,
+    "baseline-plan-distinct-128-files": true,
+    "baseline-plan-distinct-128-receipt": true,
+    "baseline-plan-distinct-128-stable": true,
+    "baseline-plan-distinct-128-status": true,
+    "baseline-plan-distinct-128-owner": true,
+    "baseline-plan-distinct-128-readonly": true,
+    "baseline-plan-versioned-128-files": true,
+    "baseline-plan-versioned-128-receipt": true,
+    "baseline-plan-versioned-128-stable": true,
+    "baseline-plan-versioned-128-status": true,
+    "baseline-plan-versioned-128-owner": true,
+    "baseline-plan-versioned-128-readonly": true,
+    "plan-latest-red-files": true,
+    "plan-latest-red-receipt": true,
+    "plan-latest-red-stable": true,
+    "plan-latest-red-status": true,
+    "plan-latest-red-count": true,
+    "plan-latest-green-files": true,
+    "plan-latest-green-receipt": true,
+    "plan-latest-green-stable": true,
+    "plan-latest-green-status": true,
+    "plan-latest-green-count": true,
+    "plan-kernel-final-files": true,
+    "plan-kernel-final-receipt": true,
+    "plan-kernel-final-stable": true,
+    "plan-kernel-final-status": true,
+    "plan-kernel-final-count": true,
+    "after-control-128-files": true,
+    "after-control-128-receipt": true,
+    "after-control-128-stable": true,
+    "after-control-128-status": true,
+    "after-control-128-owner": true,
+    "after-control-128-readonly": true,
+    "after-plan-distinct-128-files": true,
+    "after-plan-distinct-128-receipt": true,
+    "after-plan-distinct-128-stable": true,
+    "after-plan-distinct-128-status": true,
+    "after-plan-distinct-128-owner": true,
+    "after-plan-distinct-128-readonly": true,
+    "after-plan-versioned-128-files": true,
+    "after-plan-versioned-128-receipt": true,
+    "after-plan-versioned-128-stable": true,
+    "after-plan-versioned-128-status": true,
+    "after-plan-versioned-128-owner": true,
+    "after-plan-versioned-128-readonly": true,
+    "plan-latest-final-files": true,
+    "plan-latest-final-receipt": true,
+    "plan-latest-final-stable": true,
+    "plan-latest-final-status": true,
+    "plan-latest-final-count": true,
+    "final-plan-distinct-128-files": true,
+    "final-plan-distinct-128-receipt": true,
+    "final-plan-distinct-128-stable": true,
+    "final-plan-distinct-128-status": true,
+    "final-plan-distinct-128-owner": true,
+    "final-plan-distinct-128-readonly": true,
+    "final-candidate": true,
+    "reviews": true,
+    "same-physical-and-logical-lengths": true
+  },
+  "runs": {
+    "growth-build": {
+      "runId": "run-20261025T144037-3e0b0bb8cc874c5e983e45f4c17d4768",
+      "summary": "growth-build.json",
+      "counts": {
+        "built": true
+      }
+    },
+    "baseline-control-16": {
+      "runId": "run-20261025T144150-8cbbe52868b84f35957ff78ba81a476c",
+      "summary": "baseline-control-16.json",
+      "counts": {
+        "requested": 16,
+        "mode": "control",
+        "completedWork": 16,
+        "adoptions": 1,
+        "replacements": 0
+      }
+    },
+    "baseline-plan-distinct-16": {
+      "runId": "run-20261025T144150-e61989e893aa446ebdacf96bbcc9da80",
+      "summary": "baseline-plan-distinct-16.json",
+      "counts": {
+        "requested": 16,
+        "mode": "plan-distinct",
+        "completedWork": 0,
+        "adoptions": 16,
+        "replacements": 15
+      }
+    },
+    "baseline-plan-versioned-16": {
+      "runId": "run-20261025T144150-71684fe88f304a8bb13083850a9ad4d0",
+      "summary": "baseline-plan-versioned-16.json",
+      "counts": {
+        "requested": 16,
+        "mode": "plan-versioned",
+        "completedWork": 0,
+        "adoptions": 16,
+        "replacements": 15
+      }
+    },
+    "baseline-control-64": {
+      "runId": "run-20261025T144210-f570b1f40764410eac5044b2f9285a6e",
+      "summary": "baseline-control-64.json",
+      "counts": {
+        "requested": 64,
+        "mode": "control",
+        "completedWork": 64,
+        "adoptions": 1,
+        "replacements": 0
+      }
+    },
+    "baseline-plan-distinct-64": {
+      "runId": "run-20261025T144210-a5e3c6a6aa134bc092b3fec6c6e7ff5a",
+      "summary": "baseline-plan-distinct-64.json",
+      "counts": {
+        "requested": 64,
+        "mode": "plan-distinct",
+        "completedWork": 0,
+        "adoptions": 64,
+        "replacements": 63
+      }
+    },
+    "baseline-plan-versioned-64": {
+      "runId": "run-20261025T144210-03488af3ba3741a8bf4b6ec2dcbe4f6d",
+      "summary": "baseline-plan-versioned-64.json",
+      "counts": {
+        "requested": 64,
+        "mode": "plan-versioned",
+        "completedWork": 0,
+        "adoptions": 64,
+        "replacements": 63
+      }
+    },
+    "baseline-control-128": {
+      "runId": "run-20261025T144210-9e965ec0ad7d4a8fa7e15793a3d81db2",
+      "summary": "baseline-control-128.json",
+      "counts": {
+        "requested": 128,
+        "mode": "control",
+        "completedWork": 128,
+        "adoptions": 1,
+        "replacements": 0
+      }
+    },
+    "baseline-plan-distinct-128": {
+      "runId": "run-20261025T144210-9ed98f9ee7c84a218b0b5e0ae1cd2945",
+      "summary": "baseline-plan-distinct-128.json",
+      "counts": {
+        "requested": 128,
+        "mode": "plan-distinct",
+        "completedWork": 0,
+        "adoptions": 128,
+        "replacements": 127
+      }
+    },
+    "baseline-plan-versioned-128": {
+      "runId": "run-20261025T144210-3e65c3994dee415ebb7b90e6d2a6d2f4",
+      "summary": "baseline-plan-versioned-128.json",
+      "counts": {
+        "requested": 128,
+        "mode": "plan-versioned",
+        "completedWork": 0,
+        "adoptions": 128,
+        "replacements": 127
+      }
+    },
+    "plan-latest-red": {
+      "runId": "run-20261025T144521-80abaf4688674b3c99cb2471ba3373ec",
+      "summary": "plan-latest-red.json",
+      "counts": {
+        "total": "1",
+        "executed": "1",
+        "passed": "0",
+        "failed": "1",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    "plan-latest-green": {
+      "runId": "run-20261025T144645-7e644ac5493e4848aad551268a68d45f",
+      "summary": "plan-latest-green.json",
+      "counts": {
+        "total": "28",
+        "executed": "28",
+        "passed": "28",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    "plan-kernel-final": {
+      "runId": "run-20261025T144844-dd611826c190410c9760a51ca018d123",
+      "summary": "plan-kernel-final.json",
+      "counts": {
+        "total": "167",
+        "executed": "167",
+        "passed": "167",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    "after-control-128": {
+      "runId": "run-20261025T145150-840dfddd96f7447fb5fed4dc038f1b65",
+      "summary": "after-control-128.json",
+      "counts": {
+        "requested": 128,
+        "mode": "control",
+        "completedWork": 128,
+        "adoptions": 1,
+        "replacements": 0
+      }
+    },
+    "after-plan-distinct-128": {
+      "runId": "run-20261025T145150-174e113cfe4f4f5f9c42e758342cc6c8",
+      "summary": "after-plan-distinct-128.json",
+      "counts": {
+        "requested": 128,
+        "mode": "plan-distinct",
+        "completedWork": 0,
+        "adoptions": 128,
+        "replacements": 127
+      }
+    },
+    "after-plan-versioned-128": {
+      "runId": "run-20261025T145150-924d78e08c794a318f3aed2adc0ff6af",
+      "summary": "after-plan-versioned-128.json",
+      "counts": {
+        "requested": 128,
+        "mode": "plan-versioned",
+        "completedWork": 0,
+        "adoptions": 128,
+        "replacements": 127
+      }
+    },
+    "plan-latest-final": {
+      "runId": "run-20261025T145529-0168d19364fe4df38b07679090b01807",
+      "summary": "plan-latest-final.json",
+      "counts": {
+        "total": "28",
+        "executed": "28",
+        "passed": "28",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    "final-plan-distinct-128": {
+      "runId": "run-20261025T145800-9f132ed18d9246329a8054c39558a068",
+      "summary": "final-plan-distinct-128.json",
+      "counts": {
+        "requested": 128,
+        "mode": "plan-distinct",
+        "completedWork": 0,
+        "adoptions": 128,
+        "replacements": 127
+      }
+    }
+  },
+  "candidateSha256": {
+    "tools/RunRecoveryProbe/Program.cs": "34f7795f4bbf2194973db6b7903cefc195ae1320549a6a1e0804383eb5f9a196",
+    "tools/RunRecoveryProbe/ControlPlanGrowthProbe.cs": "ee5e4eb40b06c4ad0c0cb3e24604e1c8ad109514a79ebc0b313e91ba582ea176",
+    "src/UniClaw.Kernel/Runtime/KernelRunDriver.PlanHistory.cs": "40d598641b8836acb5ee9a4364326971cd11242bebef33f4230e4c2b9a9aaf15",
+    "tests/UniClaw.Host.Tests/RuntimePlanGrowthCostTests.cs": "23e90b9e7f25cdaa146aa1a3254cc3d51693330f392cb66462cb10187aac9f82"
+  },
+  "patchSha256": "2421c7e96115da8e8645008eacd26d5503c50136d34dfe573a1fdb2cbc36d562",
+  "scope": "original physical formats/facts unchanged; persistent State/Versions deltas still open; no full/live/device/peak claim"
+}
