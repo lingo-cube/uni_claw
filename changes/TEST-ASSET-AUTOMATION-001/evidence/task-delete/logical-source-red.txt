@@ -1,0 +1,20 @@
+test_external_run_logical_input_and_workitem_bare_identity_are_both_protected (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... FAIL
+
+======================================================================
+FAIL: test_external_run_logical_input_and_workitem_bare_identity_are_both_protected (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 262, in test_external_run_logical_input_and_workitem_bare_identity_are_both_protected
+    self.assertEqual(plan_task_delete(self.repo,'C-001')['candidates'],[])
+AssertionError: Lists differ: [{'runId': 'run-20261026T002438-823f21ed39[1739 chars]36]}] != []
+
+First list contains 4 additional elements.
+First extra element 0:
+{'runId': 'run-20261026T002438-823f21ed398e456f89cc07d619e5c7ab', 'location': 'work', 'path': '/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/tmp1_2un32h/data/staging/work/r/C-001/runs/run-20261026T002438-823f21ed398e456f89cc07d619e5c7ab/layout.json', 'bytes': 348, 'sha256': '865bd52beec53355ce1880e28642d4e90fcec1242c87f3bb3ba85d85759d180e', 'identity': [16777231, 15306822, 348, 1792974278771369076, 1792974278771445993]}
+
+Diff is 2155 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 1 test in 0.023s
+
+FAILED (failures=1)

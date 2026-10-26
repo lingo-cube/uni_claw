@@ -1,0 +1,8 @@
+test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_cli_plan_inventories_without_deleting_or_rebinding (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_external_logical_reference_retains_work_and_archive (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.139s
+
+OK

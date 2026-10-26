@@ -1,0 +1,6 @@
+test_cli_plan_inventories_without_deleting_or_rebinding (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.015s
+
+OK

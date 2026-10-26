@@ -1,0 +1,17 @@
+{
+  "runId": "run-20261026T004355-314ccf31621b4e44a7e21b398e9141f1",
+  "runRoot": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/TEST-ASSET-AUTOMATION-001/runs/run-20261026T004355-314ccf31621b4e44a7e21b398e9141f1",
+  "status": "passed",
+  "consumersCompleted": true,
+  "sourceStable": true,
+  "controlledFixture": true,
+  "deletedFiles": 5,
+  "deletedBytes": 3641,
+  "protectedFilesVerified": 7,
+  "originalRunFactsUnchanged": true,
+  "oldBindingsAndNestedPathsUsed": true,
+  "retiredReadRejected": true,
+  "protectedReadSucceeded": true,
+  "temporarySourceCopiesRemoved": 10,
+  "realHistoricalTasksDeleted": false
+}

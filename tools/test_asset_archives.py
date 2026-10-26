@@ -14,17 +14,14 @@ import uuid
 import xml.etree.ElementTree as ET
 import zipfile
 
-from test_assets import bound_layout, checked, file_digest, key, read_index, relative, serialized_run, update_index
+from test_assets import bound_layout, checked, file_digest, key, read_index, relative, serialized_run, update_index, run_record
 
 CODE_ROOT = Path(__file__).resolve().parents[1]
 HEADER = '__test_assets_archive_v1__.json'
 BINDING_KEYS = ('changeId', 'runId', 'purpose', 'sourceDigest', 'inputDigest', 'configDigest', 'batchId', 'layout', 'files', 'summary')
 
 
-def _record(repo, change, run):
-    record = next((r for r in read_index(repo, change)['runs'] if r['runId'] == key(run)), None)
-    if record is None: raise ValueError('unknown asset Run')
-    return record
+_record = run_record
 
 
 def _run_binding(change, record):

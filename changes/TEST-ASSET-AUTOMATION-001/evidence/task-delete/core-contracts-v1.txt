@@ -1,0 +1,14 @@
+test_active_external_consumer_provenance_protects_its_original_input (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_active_run_is_inventoried_and_protects_the_unfinished_task (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_archive_operation_and_task_retirement_share_an_outer_gate (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_cli_plan_inventories_without_deleting_or_rebinding (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_external_logical_reference_retains_work_and_archive (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_new_reference_or_changed_file_rejects_the_old_plan_without_deletion (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_partial_failure_is_persisted_and_fresh_plan_retries_without_double_counting (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_retained_consumer_keeps_its_same_task_input_and_independent_run_is_deleted (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.459s
+
+OK

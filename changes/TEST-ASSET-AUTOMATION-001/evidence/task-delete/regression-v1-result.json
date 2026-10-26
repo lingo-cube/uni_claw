@@ -1,0 +1,27 @@
+{
+  "runId": "run-20261026T002129-76682feaa1f7474bb6cf94c0a36e3664",
+  "runRoot": "/Users/fran/.local/share/uniclaw/test-assets/work/uni-claw/TEST-ASSET-AUTOMATION-001/runs/run-20261026T002129-76682feaa1f7474bb6cf94c0a36e3664",
+  "command": [
+    "/Library/Developer/CommandLineTools/usr/bin/python3",
+    "-m",
+    "unittest",
+    "tools.tests.test_test_assets",
+    "tools.tests.test_asset_operations",
+    "tools.tests.test_asset_archives",
+    "tools.tests.test_test_asset_cleanup",
+    "tools.tests.test_verify_assets",
+    "tools.tests.test_verify_entry",
+    "tools.tests.test_run_report_input_contract",
+    "tools.tests.test_task_asset_deletion",
+    "tools.tests.test_task_asset_references",
+    "-v"
+  ],
+  "exitCode": 1,
+  "counts": {
+    "total": 85,
+    "passed": false
+  },
+  "sourceStable": true,
+  "consumersCompleted": true,
+  "status": "failed"
+}

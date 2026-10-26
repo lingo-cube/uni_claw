@@ -1,0 +1,20 @@
+test_active_external_consumer_provenance_protects_its_original_input (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... FAIL
+
+======================================================================
+FAIL: test_active_external_consumer_provenance_protects_its_original_input (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 140, in test_active_external_consumer_provenance_protects_its_original_input
+    self.assertEqual(plan['candidates'],[])
+AssertionError: Lists differ: [{'runId': 'run-20261026T000953-c505ae22d3[1739 chars]40]}] != []
+
+First list contains 4 additional elements.
+First extra element 0:
+{'runId': 'run-20261026T000953-c505ae22d30e4f64a6ec18a8e7995ad1', 'location': 'work', 'path': '/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/tmpt4lo8nef/data/staging/work/r/C-001/runs/run-20261026T000953-c505ae22d30e4f64a6ec18a8e7995ad1/layout.json', 'bytes': 348, 'sha256': '0a21659bad1b9f8783a24a53a9a842a0317a3824cc0db368481ca9327117d938', 'identity': [16777231, 15298223, 348, 1792973393006160875, 1792973393006241376]}
+
+Diff is 2155 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 1 test in 0.019s
+
+FAILED (failures=1)

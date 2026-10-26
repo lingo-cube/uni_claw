@@ -1,0 +1,30 @@
+{
+  "base": "2703244ff3fdb618abedb93e65913862b0e981c0",
+  "files": [
+    {
+      "path": "tools/test_assets.py",
+      "sha256": "30a68971cbee767ae8d8d7464f7ecdb34611c47fd99c62ca970922c1f15e0be1"
+    },
+    {
+      "path": "tools/test_asset_archives.py",
+      "sha256": "15bb584dd9aabee02c221e02ee6b37458c1c45143690a6c6f1ce5b3b92060cc5"
+    },
+    {
+      "path": "tools/test_asset_cleanup.py",
+      "sha256": "333bf3928c689892085215a53e0fd9c4cea64d394159c57f3163f95035b34d63"
+    },
+    {
+      "path": "tools/test-assets",
+      "sha256": "dbbeb4e9770eb4f8ef430f7710102033a3fcf5901d6d9135d8fcba3dfb3526e9"
+    },
+    {
+      "path": "docs/agents/test-asset-retention.md",
+      "sha256": "f1c4b16e983acba4116c127760a80abaf916daa07249e11a5bc37968b704ef84"
+    },
+    {
+      "path": "tools/README.md",
+      "sha256": "3c58a822388b4eee411ef5a1a4dbe5ab1adb8bea8423688dfd2158f063d845d5"
+    }
+  ],
+  "scope": "explicit Change asset deletion only; shared product and prior sealed evidence unchanged"
+}

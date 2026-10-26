@@ -1,0 +1,54 @@
+test_retained_current_plan_inside_the_task_protects_its_input (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... FAIL
+test_unregistered_file_appearing_during_unlink_remains_pending (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... FAIL
+test_repository_owned_legacy_asset_relative_document_reference_is_protected (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... FAIL
+
+======================================================================
+FAIL: test_retained_current_plan_inside_the_task_protects_its_input (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 273, in test_retained_current_plan_inside_the_task_protects_its_input
+    self.assertEqual(plan['candidates'],[])
+AssertionError: Lists differ: [{'runId': 'run-20261026T003949-0289698c61[1739 chars]35]}] != []
+
+First list contains 4 additional elements.
+First extra element 0:
+{'runId': 'run-20261026T003949-0289698c613b43b2b7cf123f0b617e65', 'location': 'work', 'path': '/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/tmpm29m1m8q/data/staging/work/r/C-001/runs/run-20261026T003949-0289698c613b43b2b7cf123f0b617e65/layout.json', 'bytes': 348, 'sha256': '36817511cb86b504cf729edb67ac07bfb5ab11f9ff14714918d59332be99c793', 'identity': [16777231, 15314543, 348, 1792975189568328527, 1792975189568400861]}
+
+Diff is 2155 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_unregistered_file_appearing_during_unlink_remains_pending (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 286, in test_unregistered_file_appearing_during_unlink_remains_pending
+    self.assertFalse(receipt['completed'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_repository_owned_legacy_asset_relative_document_reference_is_protected (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 298, in test_repository_owned_legacy_asset_relative_document_reference_is_protected
+    self.assertEqual(plan['candidates'],[])
+AssertionError: Lists differ: [{'runId': 'legacy-run', 'location': 'repo[293 chars]02]}] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+{'runId': 'legacy-run', 'location': 'repository', 'path': '/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/tmpi743hgjs/repo/changes/C-001/evidence/owned.bin', 'bytes': 12, 'sha256': '308254f3d17aea6ee7d9cfbbee3288ffc8d2c4a833279ec186f996259d634121', 'identity': [16777231, 15314596, 12, 1792975189613606802, 1792975189613606802]}
+
++ []
+- [{'bytes': 12,
+-   'identity': [16777231,
+-                15314596,
+-                12,
+-                1792975189613606802,
+-                1792975189613606802],
+-   'location': 'repository',
+-   'path': '/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/tmpi743hgjs/repo/changes/C-001/evidence/owned.bin',
+-   'runId': 'legacy-run',
+-   'sha256': '308254f3d17aea6ee7d9cfbbee3288ffc8d2c4a833279ec186f996259d634121'}]
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.052s
+
+FAILED (failures=3)

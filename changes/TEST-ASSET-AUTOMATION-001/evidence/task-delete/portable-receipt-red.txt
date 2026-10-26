@@ -1,0 +1,14 @@
+test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... FAIL
+
+======================================================================
+FAIL: test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 88, in test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts
+    self.assertTrue(all(not Path(item['path']).is_absolute() for item in index['taskDeletions'][-1]['deleted']))
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 1 test in 0.108s
+
+FAILED (failures=1)

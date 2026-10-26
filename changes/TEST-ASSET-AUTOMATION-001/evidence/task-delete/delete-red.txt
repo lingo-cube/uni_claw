@@ -1,0 +1,18 @@
+test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... FAIL
+
+======================================================================
+FAIL: test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 80, in test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts
+    self.assertEqual(code, 0, error + text)
+AssertionError: 2 != 0 : usage: test-assets [-h]
+                   {resolved,list,validate,path,archive,restore,verify-archive,release-work,plan-delete-task}
+                   ...
+test-assets: error: argument command: invalid choice: 'delete-task-assets' (choose from 'resolved', 'list', 'validate', 'path', 'archive', 'restore', 'verify-archive', 'release-work', 'plan-delete-task')
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.077s
+
+FAILED (failures=1)

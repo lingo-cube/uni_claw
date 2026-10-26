@@ -1,0 +1,1227 @@
+--- a/tools/test_assets.py
++++ b/tools/test_assets.py
+@@ -5,6 +5,7 @@
+ """
+ from __future__ import annotations
+ import datetime
++import contextlib
+ import fcntl
+ import functools
+ import hashlib
+@@ -174,31 +175,51 @@
+     return value
+ 
+ 
++@contextlib.contextmanager
++def task_access(repo, change, exclusive=False, blocking=True):
++    """Outer asset-collection gate; index and Run locks are always acquired inside."""
++    path = checked(index_path(repo, change).parent, 'assets.task.lock')
++    with path.open('a') as lock:
++        flags = fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH
++        if not blocking: flags |= fcntl.LOCK_NB
++        fcntl.flock(lock, flags)
++        yield
++
++
+ def update_index(repo, change, action):
+     path = index_path(repo, change)
+-    # Lock a separate inode so atomic replacement cannot detach the lock.
+-    with checked(path.parent, 'assets.lock').open('a') as lock:
+-        fcntl.flock(lock, fcntl.LOCK_EX)
+-        value = read_index(repo, change)
+-        action(value)
+-        atomic_json(path, value)
++    with task_access(repo, change):
++        with checked(path.parent, 'assets.lock').open('a') as lock:
++            fcntl.flock(lock, fcntl.LOCK_EX)
++            value = read_index(repo, change)
++            action(value)
++            atomic_json(path, value)
+ 
+ 
+ def serialized_run(action):
+-    """Coordinate archive/restore/release using an inode outside the Run tree."""
++    """Task gate precedes the existing Run lock, then short index writes."""
+     @functools.wraps(action)
+     def locked(repo, change, run_id, *args, **kwargs):
+-        path = checked(index_path(repo, change).parent, 'assets.' + key(run_id) + '.lock')
+-        with path.open('a') as lock:
+-            fcntl.flock(lock, fcntl.LOCK_EX)
+-            return action(repo, change, run_id, *args, **kwargs)
++        with task_access(repo, change):
++            run_record(repo, change, run_id)
++            path = checked(index_path(repo, change).parent, 'assets.' + key(run_id) + '.lock')
++            with path.open('a') as lock:
++                fcntl.flock(lock, fcntl.LOCK_EX)
++                return action(repo, change, run_id, *args, **kwargs)
+     return locked
+ 
+ 
++def run_record(repo, change, run_id):
++    index = read_index(repo, change)
++    if key(run_id) in index.get('retiredRuns', {}):
++        raise ValueError('asset Run is retiring/retired; original inventory is audit only: ' + run_id)
++    record = next((r for r in index['runs'] if r['runId'] == run_id), None)
++    if record is None: raise ValueError('unknown asset Run')
++    return record
++
++
+ def locate_run(repo, change, run_id):
+-    index = read_index(repo, change)
+-    record = next((r for r in index['runs'] if r['runId'] == key(run_id)), None)
+-    if record is None: raise ValueError('unknown asset run')
++    record = run_record(repo, change, run_id)
+     return bound_layout(repo, record).run_root(change, run_id)
+ 
+ 
+@@ -214,8 +235,7 @@
+ 
+ 
+ def asset_path(repo, change, run_id, relative_path):
+-    record = next((r for r in read_index(repo, change)['runs'] if r['runId'] == run_id), None)
+-    if record is None: raise ValueError('unknown asset run')
++    record = run_record(repo, change, run_id)
+     item = next((f for f in record['files'] if f['path'] == relative_path), None)
+     if item is None: raise ValueError('path is not inventoried')
+     path = checked(locate_run(repo, change, run_id), relative_path)
+@@ -233,6 +253,8 @@
+ 
+ 
+ def validate_run(repo, change, run_id):
++    if key(run_id) in read_index(repo, change).get('retiredRuns', {}):
++        return {'valid': False, 'retired': True, 'problems': ['explicit task asset retirement; original inventory is audit only'], 'files': 0}
+     root = locate_run(repo, change, run_id)
+     record = next(r for r in read_index(repo, change)['runs'] if r['runId'] == run_id)
+     problems = []
+@@ -266,6 +288,8 @@
+             self.record['workReleasePolicy'] = {'schemaVersion': 'test-asset-work-release.v1', 'reason': work_release_reason,
+                 'readThrough': 'test-assets:path-ref', 'externalPhysicalConsumers': 'none'}
+         def register(index):
++            if index.get('assetRetirement'):
++                raise ValueError('task asset collection is retiring/retired; new Runs are disabled')
+             for reference in baseline_refs:
+                 if reference not in index['baselineRefs']:
+                     index['baselineRefs'].append(reference)
+@@ -289,7 +313,12 @@
+         return path
+ 
+     def finish(self, summary):
+-        """Call after real consumers. This slice deliberately retains evidence."""
++        with task_access(self.repo, self.change):
++            run_record(self.repo, self.change, self.run_id)
++            return self._finish(summary)
++
++    def _finish(self, summary):
++        """Call after real consumers; retired data is never recreated."""
+         checked(self.layout.parent, self.root.relative_to(self.layout.parent))
+         receipt = {'schemaVersion': 'test-asset-finalization.v1', 'changeId': self.change,
+                    'runId': self.run_id, 'operation': summary.get('operation', 'verification'), 'completed': bool(summary.get('consumersCompleted')),
+--- a/tools/test_asset_archives.py
++++ b/tools/test_asset_archives.py
+@@ -14,17 +14,14 @@
+ import xml.etree.ElementTree as ET
+ import zipfile
+ 
+-from test_assets import bound_layout, checked, file_digest, key, read_index, relative, serialized_run, update_index
++from test_assets import bound_layout, checked, file_digest, key, read_index, relative, serialized_run, update_index, run_record
+ 
+ CODE_ROOT = Path(__file__).resolve().parents[1]
+ HEADER = '__test_assets_archive_v1__.json'
+ BINDING_KEYS = ('changeId', 'runId', 'purpose', 'sourceDigest', 'inputDigest', 'configDigest', 'batchId', 'layout', 'files', 'summary')
+ 
+ 
+-def _record(repo, change, run):
+-    record = next((r for r in read_index(repo, change)['runs'] if r['runId'] == key(run)), None)
+-    if record is None: raise ValueError('unknown asset Run')
+-    return record
++_record = run_record
+ 
+ 
+ def _run_binding(change, record):
+--- a/tools/test_asset_cleanup.py
++++ b/tools/test_asset_cleanup.py
+@@ -79,6 +79,8 @@
+     index = read_index(repo, change)
+     incoming = {**index, 'runs': [r for r in index['runs'] if r['runId'] != run_id],
+                 'archives': [a for a in index['archives'] if a['runId'] != run_id], 'workReleases': []}
++    for metadata in ('taskDeletions','assetRetirement','retiredRuns'):
++        incoming.pop(metadata,None)  # Own retirement audit is not a new source consumer.
+     incoming['targetProtectedRefs'] = record.get('protectedRefs', [])
+     data = json.dumps(incoming, ensure_ascii=False).encode()
+     for pattern in patterns: data = pattern.sub(b'<archive-aware-reference>', data)
+--- a/tools/test_asset_operations.py
++++ b/tools/test_asset_operations.py
+@@ -97,7 +97,8 @@
+ 
+ 
+ def _record(change, run):
+-    return next((item for item in read_index(ROOT, change)['runs'] if item['runId'] == key(run)), None)
++    from test_assets import run_record
++    return run_record(ROOT, change, run)
+ 
+ 
+ def _layout_for(record):
+--- a/tools/test-assets
++++ b/tools/test-assets
+@@ -28,9 +28,23 @@
+         sub.add_argument('change')
+         sub.add_argument('identity', help='Run ID, or archive ID for verify-archive')
+         if name == 'restore': sub.add_argument('--archive-id')
++    sub = command.add_parser('plan-delete-task')
++    sub.add_argument('change'); sub.add_argument('--out', type=Path)
++    sub = command.add_parser('delete-task-assets')
++    sub.add_argument('change'); sub.add_argument('--plan', type=Path, required=True)
+     args = parser.parse_args()
+     try:
+-        if args.command == 'resolved': result = load_layout(ROOT, args.asset_config).resolved()
++        if args.command == 'delete-task-assets':
++            from test_asset_task_cleanup import delete_task_assets
++            result = delete_task_assets(ROOT, args.change, json.loads(args.plan.read_text(encoding='utf-8')))
++            print(json.dumps(result, ensure_ascii=False, indent=2))
++            return 0 if result['completed'] else 1
++        elif args.command == 'plan-delete-task':
++            from test_asset_task_cleanup import plan_task_delete
++            result = plan_task_delete(ROOT, args.change)
++            if args.out:
++                with args.out.open('x', encoding='utf-8') as output: json.dump(result, output, ensure_ascii=False, indent=2)
++        elif args.command == 'resolved': result = load_layout(ROOT, args.asset_config).resolved()
+         elif args.command == 'release-work':
+             from test_asset_cleanup import release_work
+             result = release_work(ROOT, args.change, args.identity)
+--- /dev/null
++++ b/tools/test_asset_task_cleanup.py
+@@ -0,0 +1,333 @@
++"""Explicit retirement of inventoried Change assets, retaining an audit shell."""
++from __future__ import annotations
++import copy
++from pathlib import Path
++
++from test_assets import bound_layout, checked, digest, file_digest, index_path, read_index
++from test_asset_archives import _files, _work_tree, _unpack, consumer_checks
++from test_asset_cleanup import _identity
++
++
++def _binding(index):
++    return {key: value for key, value in index.items() if key not in ('taskDeletions', 'assetRetirement', 'retiredRuns')}
++
++
++def _observed(root):
++    if not root.exists() and not root.is_symlink(): return []
++    _checked_candidate({'path':str(root)})
++    result=[]
++    for path in sorted(root.rglob('*')):
++        if path.is_dir() and not path.is_symlink(): continue
++        result.append({'path':str(path),'bytes':path.lstat().st_size})
++    return result
++
++
++def _inventory(repo, change, index):
++    owner=index_path(repo,change).parent
++    units={};kept=[];pending=[];absent=[];seen=set();archive_roots={}
++    for record in index['runs']:
++        run=record['runId']
++        if run.casefold() in seen: raise ValueError('duplicate Run identity')
++        seen.add(run.casefold())
++        unit={'runId':run,'record':record,'files':[],'roots':[],'candidates':[],'observed':[]};units[run]=unit
++        try:
++            if run in index.get('retiredRuns',{}) and index['retiredRuns'][run].get('status')=='retired':
++                unit['retired']=True;continue
++            if 'layout' in record:
++                layout=bound_layout(repo,record);root=layout.run_root(change,run)
++                unit['roots']=[str(root)];unit['observed']=_observed(root)
++                archive_roots.setdefault(str(layout.archive_root(change)),[]).append(run)
++            else:
++                declared=record.get('root')
++                if declared=='repository':root=Path(repo)
++                elif isinstance(declared,dict) and declared.get('kind')=='repository':root=checked(Path(repo),declared['path'])
++                else:raise ValueError('old Run has no explicit repository binding')
++            for item in record.get('files',[]):
++                path=checked(root,item['path'])
++                if 'layout' not in record and (not path.is_relative_to(owner) or path.name in ('state.md','assets.json')):
++                    raise ValueError('repository record is outside task asset ownership')
++                unit['files'].append(str(path))
++            summary=record.get('summary',{})
++            if summary.get('consumersCompleted') is not True:unit['active']=True
++            if (record.get('finalizationPending') or summary.get('consumersCompleted') is not True or
++                not(summary.get('sourceStable') is True or summary.get('sourceFilesUnchanged') is True)):
++                raise ValueError('active, pending or unverified-source Run must be retained')
++            expected=_files(record)
++            if any(item.get('retention') not in ('run','task') for item in expected.values()):
++                raise ValueError('unknown retention/ownership declaration')
++            if 'layout' in record:present=_work_tree(root,expected,False)
++            else:present={name for name in expected if checked(root,name).exists()}
++            for name,item in expected.items():
++                path=checked(root,name)
++                if name not in present:
++                    absent.append({'runId':run,'path':str(path),'bytes':item['bytes'],'sha256':item['sha256']});continue
++                identity=_identity(path)
++                if path.stat().st_size!=item['bytes'] or file_digest(path)!=item['sha256']:
++                    raise ValueError('inventoried file changed: '+name)
++                unit['candidates'].append({'runId':run,'location':'work' if 'layout' in record else 'repository',
++                    'path':str(path),'bytes':item['bytes'],'sha256':item['sha256'],'identity':list(identity)})
++            for archive in index.get('archives',[]):
++                if archive['runId']!=run:continue
++                if 'layout' not in record:raise ValueError('archive without old immutable binding')
++                path=checked(layout.archive_root(change),archive['path'])
++                unit['roots'].append(str(path));unit['files'].append(str(path))
++                if not path.exists():
++                    absent.append({'runId':run,'path':str(path),'bytes':archive['bytes'],'sha256':archive['sha256']});continue
++                with _unpack(repo,change,record,archive) as material:consumer_checks(repo,material,root,record)
++                unit['candidates'].append({'runId':run,'location':'archive','path':str(path),
++                    'bytes':archive['bytes'],'sha256':archive['sha256'],'identity':list(_identity(path))})
++        except (OSError,ValueError,KeyError,TypeError) as error:
++            unit['problem']=str(error);pending.append({'runId':run,'reason':str(error)})
++            kept.extend({**item,'runId':run,'reason':str(error)} for item in unit['observed'])
++    known={path for unit in units.values() for path in unit['files']}
++    for root,runs in archive_roots.items():
++        try:unknown=[item for item in _observed(Path(root)) if item['path'] not in known]
++        except (OSError,ValueError) as error:unknown=[{'path':root,'reason':str(error)}]
++        if unknown:
++            kept.extend({**item,'reason':'unregistered archive material retained'} for item in unknown)
++            for run in runs:
++                units[run]['problem']='archive root contains unknown or unreadable material'
++                pending.append({'runId':run,'reason':units[run]['problem']})
++    audit=[str(owner/'state.md'),str(owner/'assets.json')]
++    for path in sorted(owner.rglob('*')):
++        if (path.is_dir() and not path.is_symlink()) or path.name.endswith('.lock') or str(path) in audit:continue
++        if str(path) not in known:kept.append({'path':str(path),'reason':'not inventoried as a task-owned Run asset'})
++    kept.extend({'path':path,'reason':'minimal state/index/deletion audit retained'} for path in audit)
++    return units,kept,pending,absent
++
++
++def _plan_identity(plan):
++    # A saved plan/audit file is retained metadata, not a new deletion candidate.
++    return digest({key: value for key,value in plan.items() if key not in ('planId', 'kept')})
++
++
++def plan_task_delete(repo, change):
++    """Inventory only; configuration is resolved from each original Run binding."""
++    from test_asset_task_references import scan_task_references
++    repo = Path(repo).resolve(); index = read_index(repo, change)
++    units, kept, pending, absent = _inventory(repo, change, index)
++    targets = {run: unit for run,unit in units.items() if not unit.get('retired')}
++    for run, unit in targets.items():
++        if run not in index.get('retiredRuns', {}): continue
++        previous = next((entry for entry in reversed(index.get('taskDeletions', []))
++            if entry.get('runBindings', {}).get(run) == digest(unit['record'])), None)
++        if previous is None:
++            unit['problem'] = 'retiring Run has no verified original reference footprint'
++            pending.append({'runId': run, 'reason': unit['problem']})
++        else: unit['skipOwnDocuments'] = True
++    refs = scan_task_references(repo, change, targets)
++    for run,unit in targets.items():
++        if not unit.get('skipOwnDocuments'): continue
++        previous = next(entry for entry in reversed(index['taskDeletions']) if entry.get('runBindings', {}).get(run) == digest(unit['record']))
++        refs['internal'][run] = previous.get('internal', {}).get(run, [])
++    reasons = {run: [unit['problem']] for run,unit in units.items() if unit.get('problem')}
++    if any(unit.get('active') for unit in units.values()):
++        for run in targets: reasons.setdefault(run,[]).append('unfinished task Run may still consume previous task assets')
++    for kind in ('external', 'baselines'):
++        for run, values in refs[kind].items(): reasons.setdefault(run, []).extend(values)
++    if refs['errors']:
++        for run in targets: reasons.setdefault(run, []).extend(refs['errors'])
++        pending.extend({'reason': reason} for reason in refs['errors'])
++    # Kept consumers keep their same-task sources too.
++    def propagate():
++        changed = True
++        while changed:
++            changed = False
++            for source, dependencies in refs['internal'].items():
++                if source not in reasons: continue
++                for target in dependencies:
++                    if target not in reasons:
++                        reasons[target] = ['required by retained Run ' + source]; changed = True
++    propagate()
++    eligible = {run for run,unit in targets.items() if run not in reasons}
++    incoming = {run: 0 for run in eligible}
++    for source,dependencies in refs['internal'].items():
++        if source in eligible:
++            for target in dependencies:
++                if target in eligible: incoming[target] += 1
++    order=[]; ready=sorted(run for run,n in incoming.items() if n==0)
++    while ready:
++        source=ready.pop(0);order.append(source)
++        for target in refs['internal'].get(source, []):
++            if target in incoming:
++                incoming[target]-=1
++                if incoming[target]==0: ready.append(target);ready.sort()
++    for run in eligible-set(order):
++        reasons[run]=['cyclic or unresolved same-task consumer dependency']
++        pending.append({'runId':run,'reason':reasons[run][0]})
++    propagate()
++    for run, values in reasons.items():
++        for item in units[run]['candidates']:
++            kept.append({**item,'reason':'retained dependency or unresolved ownership','references':sorted(set(values))})
++    plan = {'schemaVersion':'test-asset-task-deletion-plan.v1','changeId':change,
++        'inventoryDigest':digest(_binding(index)),'runBindings':{r:digest(u['record']) for r,u in units.items()},
++        'candidates':[item for run in order if run not in reasons for item in units[run]['candidates']],
++        'kept':kept,'pending':pending,'alreadyAbsent':absent,
++        'runs':[{'runId':run,'roots':unit['roots'],'status':'retired' if unit.get('retired') else 'keep' if run in reasons else 'delete'} for run,unit in units.items()],
++        'deleteOrder':[run for run in order if run not in reasons], 'internal':refs['internal'],
++        'external':refs['external'],'baselines':refs['baselines']}
++    plan['planId']=_plan_identity(plan)
++    return plan
++
++
++def _portable_receipt(repo, change, receipt):
++    """Shared audit identities use the original binding, never a host root."""
++    index=read_index(repo,change);locations=[]
++    for record in index['runs']:
++        if 'layout' not in record:continue
++        try:
++            layout=bound_layout(repo,record)
++            for kind,root in (('work',layout.run_root(change,record['runId'])),('archive',layout.archive_root(change))):
++                locations.append((root,kind,record['runId'],record['layout']))
++        except (OSError,ValueError,KeyError):continue
++    def item(value):
++        if isinstance(value,str):value={'path':value,'directory':True}
++        result={key:data for key,data in value.items() if key!='identity'}
++        path=Path(value['path']) if isinstance(value.get('path'),str) else None
++        if path is None or not path.is_absolute():return result
++        if path.is_relative_to(Path(repo)):
++            result.update(logicalRoot='repository',path=path.relative_to(repo).as_posix());return result
++        for root,kind,run,binding in locations:
++            if path.is_relative_to(root) and (not value.get('runId') or value['runId']==run):
++                result.update(logicalRoot=kind,runId=run,configDigest=binding['configDigest'],repositoryKey=binding['repositoryKey'])
++                relative=path.relative_to(root)
++                if relative==Path('.'):
++                    result.pop('path',None);result['root']=True
++                else:result['path']=relative.as_posix()
++                return result
++        result.pop('path',None);result['unresolvedLocation']=True
++        return result
++    result=copy.deepcopy(receipt)
++    for key in ('kept','deleted','alreadyAbsent','deletedDirectories'):
++        if key in result:result[key]=[item(value) for value in result[key]]
++    return result
++
++
++def _save_delete(repo, change, receipt, *, start=False, retiring=(), retired=(), release=()):
++    """Caller holds the exclusive task gate; use only the inner index lock."""
++    import fcntl
++    from test_assets import atomic_json
++    path = index_path(repo, change)
++    with checked(path.parent, 'assets.lock').open('a') as lock:
++        fcntl.flock(lock, fcntl.LOCK_EX)
++        value = read_index(repo, change)
++        if start:
++            value.setdefault('assetRetirement', {'operationId': receipt['operationId'], 'creationClosed': True})
++        markers = value.setdefault('retiredRuns', {})
++        for run in retiring: markers[run] = {'status': 'retiring', 'operationId': receipt['operationId']}
++        for run in retired: markers[run] = {'status': 'retired', 'operationId': receipt['operationId']}
++        for run in release: markers.pop(run, None)
++        attempts = value.setdefault('taskDeletions', [])
++        for i, entry in enumerate(attempts):
++            if entry['operationId'] == receipt['operationId']:
++                attempts[i] = _portable_receipt(repo,change,receipt); break
++        else: attempts.append(_portable_receipt(repo,change,receipt))
++        atomic_json(path, value)
++
++
++def _checked_candidate(item):
++    # Check the full absolute ancestry, including a moved/symlinked Run parent.
++    path = Path(item['path'])
++    return checked(Path(path.anchor), path.relative_to(path.anchor))
++
++
++def _delete_locked(repo, change, expected, receipt):
++    from test_asset_task_references import scan_task_references
++    current = plan_task_delete(repo, change)
++    if current['planId'] != expected.get('planId'):
++        receipt['pending'] = [{'reason':'plan is stale; inventory, references or file identities changed'}]
++        _save_delete(repo, change, receipt)
++        return receipt
++    receipt.update(kept=current['kept'], alreadyAbsent=current['alreadyAbsent'],
++        runBindings=current['runBindings'], internal=current['internal'])
++    original_index=read_index(repo,change)
++    previously_retiring=set(original_index.get('retiredRuns',{}))
++    units,_,_,_=_inventory(repo,change,original_index)
++    targets={run:unit for run,unit in units.items() if not unit.get('retired')}
++    for run in current['deleteOrder']: targets[run]['skipOwnDocuments']=True
++    receipt['pending']=[{'reason':'task asset retirement in progress; only confirmed unlinks are counted'}]
++    _save_delete(repo,change,receipt,start=True,retiring=current['deleteOrder'])
++    errors=list(current['pending']); failed=set(); completed=[]
++    for run in current['deleteOrder']:
++        items=[item for item in current['candidates'] if item['runId']==run]
++        deleted_before=len(receipt['deleted'])
++        try:
++            if any(run in current['internal'].get(source,[]) for source in failed):
++                raise ValueError('required by a consumer whose retirement is pending')
++            refs=scan_task_references(repo,change,targets)
++            blockers=refs['errors']+refs['external'].get(run,[])+refs['baselines'].get(run,[])
++            if blockers: raise ValueError('new or unresolved references: '+'; '.join(blockers))
++            # A complete preflight precedes the first unlink in this Run.
++            for item in items:
++                path=_checked_candidate(item)
++                if tuple(item['identity'])!=_identity(path) or file_digest(path)!=item['sha256']:
++                    raise ValueError('asset drift before deletion: '+item['path'])
++            for item in sorted(items,key=lambda value:(value['location']=='archive',value['path'])):
++                path=_checked_candidate(item)
++                if tuple(item['identity'])!=_identity(path) or file_digest(path)!=item['sha256']:
++                    raise ValueError('asset drift during deletion: '+item['path'])
++                path.unlink()
++                receipt['deleted'].append({key:value for key,value in item.items() if key!='identity'})
++                receipt['deletedBytes']+=item['bytes']
++                _save_delete(repo,change,receipt)
++            completed.append(run)
++            _save_delete(repo,change,receipt,retired=[run])
++            # Only empty directories beneath the bound Run or the owned Change.
++            boundary=index_path(repo,change).parent
++            if 'layout' in units[run]['record']:
++                boundary=bound_layout(repo,units[run]['record']).run_root(change,run)
++            for item in items:
++                directory=Path(item['path']).parent
++                while directory.is_relative_to(boundary) and directory!=index_path(repo,change).parent:
++                    try: directory.rmdir()
++                    except OSError: break
++                    if directory==boundary: break
++                    directory=directory.parent
++            if 'layout' in units[run]['record']:
++                layout=bound_layout(repo,units[run]['record'])
++                for tree in (layout.run_root(change,run),layout.archive_root(change)):
++                    if not tree.exists(): continue
++                    _checked_candidate({'path':str(tree)})
++                    directories=sorted((p for p in tree.rglob('*') if p.is_dir() and not p.is_symlink()),key=lambda p:len(p.parts),reverse=True)+[tree]
++                    for directory in directories:
++                        _checked_candidate({'path':str(directory)})
++                        try: directory.rmdir()
++                        except OSError:
++                            if any(directory.iterdir()): continue
++                            raise
++                        receipt.setdefault('deletedDirectories',[]).append(str(directory))
++        except (OSError,ValueError,KeyError,TypeError) as error:
++            failed.add(run);errors.append({'runId':run,'reason':str(error)})
++            remaining=items[len(receipt['deleted'])-deleted_before:] if len(receipt['deleted'])==deleted_before else [item for item in items if Path(item['path']).exists()]
++            receipt['kept'].extend({**item,'reason':'retirement pending: '+str(error)} for item in remaining)
++            # A late reference before any removal must leave the intact source readable.
++            if len(receipt['deleted'])==deleted_before and run not in previously_retiring:
++                _save_delete(repo,change,receipt,release=[run])
++    receipt['pending']=errors
++    receipt['completed']=not errors
++    receipt['retiredRuns']=completed
++    _save_delete(repo,change,receipt)
++    return receipt
++
++
++def delete_task_assets(repo, change, plan):
++    """Execute this explicit plan, preserving blocked material and the audit shell."""
++    import datetime
++    import uuid
++    from test_assets import task_access
++    repo=Path(repo).resolve();index_path(repo,change)
++    if (not isinstance(plan,dict) or plan.get('schemaVersion')!='test-asset-task-deletion-plan.v1'
++        or plan.get('changeId')!=change or plan.get('planId')!=_plan_identity(plan)):
++        raise ValueError('invalid task deletion plan or owner')
++    receipt={'schemaVersion':'test-asset-task-deletion-audit.v1','operation':'delete-task-assets',
++        'operationId':'delete-'+uuid.uuid4().hex,'changeId':change,'planId':plan['planId'],
++        'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'completed':False,
++        'kept':[],'deleted':[],'alreadyAbsent':[],'pending':[],'deletedBytes':0}
++    try:
++        with task_access(repo,change,exclusive=True,blocking=False):
++            result=_delete_locked(repo,change,plan,receipt)
++            return _portable_receipt(repo,change,result)
++    except BlockingIOError:
++        receipt['pending']=[{'reason':'task assets busy; no mutation or deletion attempted'}]
++        receipt['persisted']=False
++        return receipt
+--- /dev/null
++++ b/tools/test_asset_task_references.py
+@@ -0,0 +1,235 @@
++"""Read-only projection of the consumers that prevent task asset retirement."""
++from __future__ import annotations
++
++import json
++import os
++import re
++from pathlib import Path
++
++from test_assets import bound_layout, checked, read_index
++from test_asset_archives import _archive_entry, _file_ok, _unpack
++
++_SKIP = {'.git', 'bin', 'obj', '__pycache__', 'node_modules'}
++_HISTORICAL = ('entry-source', 'source-snapshot', 'candidate-source')
++
++
++def _ref(path, kind):
++    return path.as_posix() + ':' + kind
++
++
++def _paths(target):
++    """All concrete paths denoting a target; archives are files, never roots."""
++    values = []
++    for position, value in enumerate(target.get('roots', ())):
++        path = Path(value).resolve()
++        # Contract: roots[0] is the work root even after release. Archives are
++        # concrete files and must never make their shared parent a dependency.
++        values.append((path, position == 0))
++    for value in target.get('files', ()):
++        values.append((Path(value).resolve(), False))
++    return values
++
++
++def _physical_match(data, target):
++    """Raw text may name exact concrete paths, never broad parent prefixes."""
++    for protected, _ in _paths(target):
++        value = re.escape(str(protected))
++        if re.search(r'(?<![^\s"\'(<\[=:])' + value + r'(?=$|[\s"\')>\],;:#?])', data):
++            return True
++    return False
++
++
++def _mentions_path(value, target, repo):
++    """Only explicit path-shaped declarations may establish a physical edge."""
++    if isinstance(value, dict):
++        for key in ('localPath', 'path'):
++            raw = value.get(key)
++            if not isinstance(raw, str): continue
++            candidate = Path(raw)
++            if not candidate.is_absolute() and value.get('logicalRoot') in ('repository', 'work'):
++                candidate = Path(repo) / candidate
++            if candidate.is_absolute():
++                candidate = Path(os.path.abspath(candidate)).resolve()
++                for protected, is_root in _paths(target):
++                    # Structured paths can deliberately name a directory that
++                    # covers either a work tree or an archive file.
++                    if candidate == protected or protected in candidate.parents or candidate in protected.parents:
++                        return True
++        return any(_mentions_path(item, target, repo) for item in value.values())
++    if isinstance(value, list): return any(_mentions_path(item, target, repo) for item in value)
++    return False
++
++
++def _run_mention(text, run):
++    return re.search(r'(?<![A-Za-z0-9_.-])'+re.escape(run)+r'(?![A-Za-z0-9_.-])',text) is not None
++
++
++def _logical_mentions(data, change, run):
++    prefix = 'test-assets:' + change + '/' + run + '/'
++    return prefix in data
++
++
++def _add(mapping, key, value):
++    mapping.setdefault(key, []).append(value)
++
++
++def _consumer_documents(repo, owner, record):
++    """Yield registered JSON consumers using their historic binding, never restore."""
++    json_files = [item['path'] for item in record.get('files', []) if str(item.get('path', '')).endswith('.json')]
++    if not json_files and 'layout' not in record: return []
++    entries = {item['path']: item for item in record.get('files', []) if str(item.get('path', '')).endswith('.json')}
++    json_files = list(entries)
++    if 'layout' not in record:
++        root = record.get('root')
++        if root == 'repository': base = Path(repo)
++        elif isinstance(root, dict) and root.get('kind') == 'repository': base = checked(Path(repo), root['path'])
++        else: raise ValueError('unbound incoming Run has no explicit repository root: ' + record.get('runId', '?'))
++        result = []
++        for name in json_files:
++            path = checked(base, name)
++            if not path.is_file() or ('sha256' in entries[name] and not _file_ok(path, entries[name])):
++                raise ValueError('incoming consumer JSON missing/changed: ' + record.get('runId', '?') + '/' + name)
++            result.append((name, path.read_bytes()))
++        return result
++    layout=bound_layout(repo,record)
++    root=layout.run_root(owner,record['runId'])
++    if record.get('summary',{}).get('consumersCompleted') is not True:
++        provenance=(layout.categories['raw']/'provenance.json').as_posix()
++        if not checked(root,provenance).is_file():
++            raise ValueError('active source provenance unavailable: '+record['runId'])
++        entries.setdefault(provenance,None)
++        json_files=list(entries)
++    if all(checked(root, name).is_file() for name in json_files):
++        result = []
++        for name in json_files:
++            path = checked(root, name)
++            if entries[name] is not None and not _file_ok(path, entries[name]): raise ValueError('incoming consumer JSON missing/changed: ' + record['runId'] + '/' + name)
++            result.append((name, path.read_bytes()))
++        return result
++    entry = _archive_entry(repo, owner, run_id=record['runId'])
++    with _unpack(repo, owner, record, entry) as unpacked:
++        return [(name, checked(unpacked, name).read_bytes()) for name in json_files]
++
++
++def scan_task_references(repo, change, targets):
++    """Return incoming external/internal/baseline retention edges without mutation."""
++    repo = Path(repo).resolve()
++    result = {'external': {}, 'internal': {}, 'baselines': {}, 'errors': []}
++    target_ids = set(targets)
++
++    def retired(index, run_id):
++        value = index.get('retiredRuns', [])
++        if isinstance(value,dict):
++            return isinstance(value.get(run_id),dict) and value[run_id].get('status')=='retired'
++        return run_id in value or any(isinstance(item,dict) and item.get('runId')==run_id and item.get('status')=='retired' for item in value)
++
++    def record_structured(document, location, source_run=None):
++        text=json.dumps(document,ensure_ascii=False)
++        for target_id,target in targets.items():
++            physical=_mentions_path(document,target,repo)
++            logical=_logical_mentions(text,change,target_id) or _run_mention(text,target_id)
++            if source_run==target_id and not physical:continue  # Self identity is metadata.
++            if physical or logical:
++                if source_run in target_ids and source_run!=target_id:
++                    _add(result['internal'],source_run,target_id)
++                else:_add(result['baselines'],target_id,location)
++
++    # Formal baselines and declared original sources are retention declarations,
++    # not arbitrary prose mentioning a path.
++    for index_file in repo.glob('changes/*/assets.json'):
++        owner = index_file.parent.name
++        try:
++            index = json.loads(index_file.read_text())
++            for target_id, target in targets.items():
++                for declaration in index.get('baselineRefs', []):
++                    if _mentions_path(declaration, target, repo): _add(result['baselines'], target_id, _ref(index_file.relative_to(repo), 'baseline'))
++            for source in index.get('runs', []):
++                if retired(index, source.get('runId')): continue
++                for declaration in source.get('protectedRefs', []):
++                    if not isinstance(declaration, dict): continue
++                    for target_id, target in targets.items():
++                        if _mentions_path(declaration, target, repo):
++                            location = _ref(index_file.relative_to(repo), 'original-source')
++                            if owner == change and source.get('runId') in target_ids and source['runId'] != target_id:
++                                _add(result['internal'], source['runId'], target_id)
++                            else:
++                                _add(result['baselines'], target_id, location)
++                # The supplied target inventory is the authority for the task
++                # being retired.  Do not make its historical index evidence an
++                # incoming external consumer (or require a stale work tree).
++                if owner == change:
++                    continue
++                try: documents = _consumer_documents(repo, owner, source)
++                except (OSError, ValueError, KeyError, json.JSONDecodeError) as error:
++                    result['errors'].append(f'{index_file.relative_to(repo)}:{source.get("runId", "?")}:{error}')
++                    continue
++                for name, raw in documents:
++                    try: document = json.loads(raw)
++                    except json.JSONDecodeError as error:
++                        result['errors'].append(f'{owner}/{source.get("runId", "?")}/{name}:{error.msg}')
++                        continue
++                    record_structured(document, f'test-assets:{owner}/{source.get("runId", "?")}/{name}')
++        except (OSError, ValueError, json.JSONDecodeError) as error:
++            result['errors'].append(f'{index_file.relative_to(repo)}:{error}')
++
++    # Supplied current candidates are authoritative even before their index is
++    # complete. Their JSON provenance creates same-task edges only.
++    for source_id, source in targets.items():
++        if source.get('skipOwnDocuments') is True:
++            continue
++        record = source['record']
++        try:
++            if record.get('layout', {}).get('repositoryKey'):
++                documents = _consumer_documents(repo, change, record)
++            else:
++                documents = []
++                for candidate in source.get('files', []):
++                    path = Path(candidate)
++                    if path.suffix != '.json': continue
++                    if not path.is_file(): raise ValueError('target consumer JSON missing: ' + str(path))
++                    try: name = path.resolve().relative_to(Path(source['roots'][0]).resolve()).as_posix()
++                    except (IndexError, ValueError): name = path.name
++                    documents.append((name, path.read_bytes()))
++            for name, raw in documents:
++                record_structured(json.loads(raw), f'test-assets:{change}/{source_id}/{name}', source_id)
++        except (OSError, ValueError, KeyError, json.JSONDecodeError) as error:
++            result['errors'].append(f'test-assets:{change}/{source_id}:{error}')
++
++    # Plans and WorkItems, including ignored files, are external consumers.
++    for current, directories, files in os.walk(repo, followlinks=False):
++        directories[:] = [item for item in directories if item not in _SKIP]
++        for name in directories + files:
++            path = Path(current) / name
++            if not path.is_symlink(): continue
++            try: resolved = path.resolve()
++            except OSError as error:
++                result['errors'].append(f'{path.relative_to(repo)}:{error}'); continue
++            for target_id, target in targets.items():
++                if _mentions_path({'localPath': str(resolved)}, target, repo):
++                    _add(result['external'], target_id, _ref(path.relative_to(repo), 'physical-link'))
++        for name in files:
++            path = Path(current) / name
++            relative = path.relative_to(repo)
++            if relative.parts[:2] == ('changes', change): continue
++            if path.name == 'assets.json' and relative.parts[:1] == ('changes',): continue
++            if 'evidence' in relative.parts and any(part in ('entry-source', 'source-snapshot') or part.startswith('candidate-source') for part in relative.parts): continue
++            try: data = path.read_text(errors='replace')
++            except OSError as error: result['errors'].append(f'{relative}:{error}'); continue
++            try: structured = json.loads(data)
++            except json.JSONDecodeError: structured = None
++            if (isinstance(structured, dict) and structured.get('changeId') == change and
++                    structured.get('schemaVersion') in ('test-asset-task-deletion-plan.v1', 'test-asset-task-deletion-audit.v1')):
++                continue
++            for target_id, target in targets.items():
++                if _logical_mentions(data,change,target_id):
++                    _add(result['external'],target_id,_ref(relative,'logical'))
++                elif _run_mention(data,target_id):
++                    _add(result['external'],target_id,_ref(relative,'run-identity'))
++                # physical paths are searched literally, preserving aliases and directories.
++                if _physical_match(data, target) or (structured is not None and _mentions_path(structured, target, repo)):
++                    _add(result['external'], target_id, _ref(relative, 'physical'))
++    for mapping in ('external', 'baselines'):
++        result[mapping] = {key: sorted(set(values)) for key, values in result[mapping].items()}
++    result['internal'] = {key: sorted(set(values)) for key, values in result['internal'].items()}
++    result['errors'] = sorted(set(result['errors']))
++    return result
+--- /dev/null
++++ b/tools/tests/test_task_asset_deletion.py
+@@ -0,0 +1,269 @@
++"""Explicit task asset retirement through the public CLI and planning seam."""
++import contextlib
++import io
++import json
++from pathlib import Path
++import runpy
++import sys
++import tempfile
++import unittest
++from unittest.mock import patch
++
++TOOLS = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(TOOLS))
++import test_assets as assets
++import test_asset_archives as archives
++
++
++class TaskDeletionContracts(unittest.TestCase):
++    def setUp(self):
++        temp = tempfile.TemporaryDirectory(); self.addCleanup(temp.cleanup)
++        self.base = Path(temp.name).resolve(); self.repo = self.base / 'repo'
++        owner = self.repo / 'changes/C-001'; owner.mkdir(parents=True)
++        (owner / 'state.md').write_text('lifecycle_state: closed\n')
++        binding = patch.object(assets, 'binding_home', return_value=self.base / 'bindings')
++        binding.start(); self.addCleanup(binding.stop)
++        self.layout = assets.Layout(self.repo, {'version': 1, 'parentRoot': str(self.base / 'data'),
++            'repositoryKey': 'r', 'workPath': 'staging/work', 'archivePath': 'retained/packages',
++            'categoryPaths': dict(raw='payload/raw', logs='diagnostics/logs', results='output/results', scratch='temporary')}, 'test')
++
++    def fixture(self, complete=True):
++        run = assets.AssetRun(self.repo, self.layout, 'C-001', 'verification', 'a', 'b')
++        run.path('raw', 'case.trx').write_text('<TestRun><UnitTestResult testName="retire" outcome="Failed"/></TestRun>')
++        if complete: run.finish({'status': 'COPY', 'consumersCompleted': True, 'sourceStable': True})
++        return run
++
++    def cli(self, args):
++        namespace = runpy.run_path(str(TOOLS / 'test-assets'), run_name='test_asset_cli')
++        namespace['legacy_main'].__globals__['ROOT'] = self.repo
++        out, error = io.StringIO(), io.StringIO()
++        with patch.object(sys, 'argv', ['test-assets', *args]), contextlib.redirect_stdout(out), contextlib.redirect_stderr(error):
++            try: code = namespace['main']()
++            except SystemExit as exit: code = exit.code
++        return code, out.getvalue(), error.getvalue()
++
++    def test_cli_plan_inventories_without_deleting_or_rebinding(self):
++        run = self.fixture()
++        original = (self.repo / 'changes/C-001/assets.json').read_bytes()
++        code, text, error = self.cli(['plan-delete-task', 'C-001'])
++        self.assertEqual(code, 0, error)
++        plan = json.loads(text)
++        self.assertEqual(plan['changeId'], 'C-001')
++        self.assertEqual(len(plan['planId']), 64)
++        self.assertIn(str(run.root / 'payload/raw/case.trx'), {item['path'] for item in plan['candidates']})
++        self.assertTrue((run.root / 'payload/raw/case.trx').exists())
++        self.assertEqual((self.repo / 'changes/C-001/assets.json').read_bytes(), original)
++
++
++    def test_external_logical_reference_retains_work_and_archive(self):
++        from test_asset_task_cleanup import plan_task_delete
++        run = self.fixture(); package = archives.archive_run(self.repo, 'C-001', run.run_id)
++        other = self.repo / 'changes/OTHER'; other.mkdir()
++        (other / 'state.md').write_text('input: test-assets:C-001/' + run.run_id + '/payload/raw/case.trx')
++        plan = plan_task_delete(self.repo, 'C-001')
++        self.assertNotIn(run.run_id, {item['runId'] for item in plan['candidates']})
++        self.assertTrue(any(item.get('runId') == run.run_id and item.get('references') for item in plan['kept']))
++        self.assertTrue((run.root / 'payload/raw/case.trx').exists())
++        self.assertTrue((self.layout.archive_root('C-001') / package['path']).exists())
++
++
++    def test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts(self):
++        run = self.fixture(); package = archives.archive_run(self.repo, 'C-001', run.run_id)
++        original = assets.read_index(self.repo, 'C-001')['runs'][0]
++        package_path = self.layout.archive_root('C-001') / package['path']
++        plan_file = self.repo / 'delete-plan.json'
++        code, _, error = self.cli(['plan-delete-task', 'C-001', '--out', str(plan_file)])
++        self.assertEqual(code, 0, error)
++        plan = json.loads(plan_file.read_text())
++        expected_bytes = sum(item['bytes'] for item in plan['candidates'])
++        code, text, error = self.cli(['delete-task-assets', 'C-001', '--plan', str(plan_file)])
++        self.assertEqual(code, 0, error + text)
++        receipt = json.loads(text)
++        self.assertTrue(receipt['completed'])
++        self.assertEqual(receipt['deletedBytes'], expected_bytes)
++        self.assertFalse(run.root.exists()); self.assertFalse(package_path.exists())
++        self.assertTrue((self.repo / 'changes/C-001/state.md').exists())
++        index = assets.read_index(self.repo, 'C-001')
++        self.assertEqual(index['runs'][0], original)
++        self.assertTrue(all(not Path(item['path']).is_absolute() for item in index['taskDeletions'][-1]['deleted']))
++        self.assertTrue(all('logicalRoot' in item for item in index['taskDeletions'][-1]['deleted']))
++        self.assertEqual(index['taskDeletions'][-1]['operationId'], receipt['operationId'])
++        with self.assertRaisesRegex(ValueError, 'retir'):
++            assets.asset_path(self.repo, 'C-001', run.run_id, 'payload/raw/case.trx')
++        self.assertFalse(run.root.exists())
++        with self.assertRaisesRegex(ValueError, 'retir'):
++            assets.AssetRun(self.repo, self.layout, 'C-001', 'verification', 'new', 'new')
++
++
++    def test_active_run_is_inventoried_and_protects_the_unfinished_task(self):
++        from test_asset_task_cleanup import plan_task_delete
++        finished = self.fixture(); active = self.fixture(complete=False)
++        plan = plan_task_delete(self.repo, 'C-001')
++        active_plan = next(item for item in plan['runs'] if item['runId'] == active.run_id)
++        self.assertIn(str(active.root), active_plan['roots'])
++        self.assertTrue(any(item['path'] == str(active.root / 'payload/raw/case.trx') for item in plan['kept']))
++        self.assertEqual(plan['candidates'], [])
++        self.assertTrue(plan['pending'])
++        self.assertTrue((finished.root / 'payload/raw/case.trx').exists())
++
++
++    def test_partial_failure_is_persisted_and_fresh_plan_retries_without_double_counting(self):
++        from test_asset_task_cleanup import plan_task_delete, delete_task_assets
++        run=self.fixture();package=archives.archive_run(self.repo,'C-001',run.run_id)
++        archive=self.layout.archive_root('C-001')/package['path']
++        plan=plan_task_delete(self.repo,'C-001')
++        work_bytes=sum(item['bytes'] for item in plan['candidates'] if item['location']=='work')
++        unlink=Path.unlink
++        def fail_archive(path,*args,**kwargs):
++            if path==archive:raise PermissionError('controlled archive removal failure')
++            return unlink(path,*args,**kwargs)
++        with patch.object(Path,'unlink',fail_archive):first=delete_task_assets(self.repo,'C-001',plan)
++        self.assertFalse(first['completed']);self.assertTrue(first['pending'])
++        self.assertEqual(first['deletedBytes'],work_bytes)
++        self.assertTrue(archive.exists())
++        self.assertFalse((run.root/'payload/raw/case.trx').exists())
++        with self.assertRaisesRegex(ValueError,'retir'):assets.asset_path(self.repo,'C-001',run.run_id,'payload/raw/case.trx')
++        second=delete_task_assets(self.repo,'C-001',plan_task_delete(self.repo,'C-001'))
++        self.assertTrue(second['completed'],second)
++        self.assertEqual(second['deletedBytes'],package['bytes'])
++        self.assertEqual(len(second['alreadyAbsent']),4)
++        self.assertFalse(run.root.exists());self.assertFalse(archive.exists())
++        self.assertEqual(len(assets.read_index(self.repo,'C-001')['taskDeletions']),2)
++
++
++    def test_active_external_consumer_provenance_protects_its_original_input(self):
++        from test_asset_task_cleanup import plan_task_delete
++        target=self.fixture();owner=self.repo/'changes/OTHER';owner.mkdir();(owner/'state.md').write_text('implemented')
++        consumer=assets.AssetRun(self.repo,self.layout,'OTHER','verification','c','d')
++        consumer.path('raw','provenance.json').write_text(json.dumps({'inputFiles':[{'localPath':str(target.root/'payload/raw/case.trx')}]}))
++        plan=plan_task_delete(self.repo,'C-001')
++        self.assertEqual(plan['candidates'],[])
++        self.assertTrue(any(item.get('runId')==target.run_id for item in plan['kept']))
++
++
++    def test_new_reference_or_changed_file_rejects_the_old_plan_without_deletion(self):
++        from test_asset_task_cleanup import plan_task_delete, delete_task_assets
++        run=self.fixture();plan=plan_task_delete(self.repo,'C-001')
++        path=self.repo/'consumer.md';path.write_text('test-assets:C-001/'+run.run_id+'/payload/raw/case.trx')
++        receipt=delete_task_assets(self.repo,'C-001',plan)
++        self.assertFalse(receipt['completed']);self.assertEqual(receipt['deleted'],[])
++        self.assertIn('stale',receipt['pending'][0]['reason'])
++        self.assertNotIn('assetRetirement',assets.read_index(self.repo,'C-001'))
++        path.unlink();plan=plan_task_delete(self.repo,'C-001')
++        (run.root/'payload/raw/case.trx').write_text('changed')
++        receipt=delete_task_assets(self.repo,'C-001',plan)
++        self.assertFalse(receipt['completed']);self.assertEqual(receipt['deleted'],[])
++        self.assertEqual((run.root/'payload/raw/case.trx').read_text(),'changed')
++
++    def test_retained_consumer_keeps_its_same_task_input_and_independent_run_is_deleted(self):
++        from test_asset_task_cleanup import plan_task_delete, delete_task_assets
++        source=self.fixture();consumer=self.fixture(complete=False)
++        consumer.path('raw','provenance.json').write_text(json.dumps({'inputFiles':[{'localPath':str(source.root/'payload/raw/case.trx')}]}))
++        consumer.finish({'consumersCompleted':True,'sourceStable':True})
++        independent=self.fixture()
++        (self.repo/'consumer.md').write_text('test-assets:C-001/'+consumer.run_id+'/payload/raw/case.trx')
++        plan=plan_task_delete(self.repo,'C-001')
++        self.assertEqual({item['runId'] for item in plan['candidates']},{independent.run_id})
++        self.assertIn(source.run_id,plan['internal'][consumer.run_id])
++        receipt=delete_task_assets(self.repo,'C-001',plan)
++        self.assertTrue(receipt['completed'],receipt)
++        self.assertTrue((source.root/'payload/raw/case.trx').exists())
++        self.assertTrue((consumer.root/'payload/raw/case.trx').exists())
++        self.assertFalse(independent.root.exists())
++        self.assertTrue(assets.asset_path(self.repo,'C-001',source.run_id,'payload/raw/case.trx').exists())
++
++    def test_archive_operation_and_task_retirement_share_an_outer_gate(self):
++        import multiprocessing
++        from test_asset_task_cleanup import plan_task_delete, delete_task_assets
++        run=self.fixture();plan=plan_task_delete(self.repo,'C-001')
++        ctx=multiprocessing.get_context('fork');entered=ctx.Event();release=ctx.Event()
++        original=archives.consumer_checks
++        def blocked(*args):
++            entered.set()
++            if not release.wait(5):raise RuntimeError('controlled gate timeout')
++            return original(*args)
++        def archive():
++            with patch.object(archives,'consumer_checks',blocked):archives.archive_run(self.repo,'C-001',run.run_id)
++        child=ctx.Process(target=archive);child.start()
++        try:
++            self.assertTrue(entered.wait(4))
++            receipt=delete_task_assets(self.repo,'C-001',plan)
++            self.assertFalse(receipt['completed']);self.assertEqual(receipt['deleted'],[])
++            self.assertIn('busy',receipt['pending'][0]['reason'])
++            self.assertTrue((run.root/'payload/raw/case.trx').exists())
++        finally:
++            release.set();child.join(5)
++            if child.is_alive():child.terminate();child.join()
++        self.assertEqual(child.exitcode,0)
++
++
++    def test_each_old_binding_and_nested_category_is_used_after_profile_changes(self):
++        from test_asset_task_cleanup import plan_task_delete, delete_task_assets
++        first=self.fixture()
++        second_layout=assets.Layout(self.repo,{'version':1,'parentRoot':str(self.base/'second-data'),'repositoryKey':'r',
++            'workPath':'work-two','archivePath':'archive-two','categoryPaths':dict(raw='r/input',logs='l',results='o/results',scratch='s')},'test')
++        second=assets.AssetRun(self.repo,second_layout,'C-001','verification','c','d')
++        second.path('raw','case.trx').write_text('<TestRun><UnitTestResult testName="second" outcome="Passed"/></TestRun>')
++        second.finish({'consumersCompleted':True,'sourceStable':True})
++        with patch.object(assets,'load_layout',side_effect=AssertionError('current profile must not locate old assets')):
++            plan=plan_task_delete(self.repo,'C-001')
++            self.assertIn(str(first.root/'payload/raw/case.trx'),{item['path'] for item in plan['candidates']})
++            self.assertIn(str(second.root/'r/input/case.trx'),{item['path'] for item in plan['candidates']})
++            receipt=delete_task_assets(self.repo,'C-001',plan)
++        self.assertTrue(receipt['completed'],receipt)
++        self.assertEqual({item['configDigest'] for item in receipt['deleted']},{self.layout.digest,second_layout.digest})
++        self.assertFalse(first.root.exists());self.assertFalse(second.root.exists())
++
++    def test_baseline_keeps_the_whole_run_and_unknown_task_evidence_is_never_deleted(self):
++        from test_asset_task_cleanup import plan_task_delete, delete_task_assets
++        run=self.fixture();original=(run.root/'payload/raw/case.trx').read_bytes()
++        assets.update_index(self.repo,'C-001',lambda index:index['baselineRefs'].append({'localPath':str(run.root/'payload/raw/case.trx'),'role':'controlled-independent-baseline'}))
++        evidence=self.repo/'changes/C-001/evidence/unmanaged.bin';evidence.parent.mkdir();evidence.write_bytes(b'not-owned-by-run')
++        receipt=delete_task_assets(self.repo,'C-001',plan_task_delete(self.repo,'C-001'))
++        self.assertTrue(receipt['completed'],receipt);self.assertEqual(receipt['deleted'],[])
++        self.assertEqual((run.root/'payload/raw/case.trx').read_bytes(),original)
++        self.assertEqual(evidence.read_bytes(),b'not-owned-by-run')
++        self.assertTrue(any(item.get('path')=='changes/C-001/evidence/unmanaged.bin' for item in receipt['kept']))
++
++    def test_unknown_changed_and_linked_run_material_is_preserved(self):
++        import os
++        from test_asset_task_cleanup import plan_task_delete
++        for variant in ('unknown','changed','symlink','hardlink'):
++            run=self.fixture();target=run.root/'payload/raw/case.trx'
++            if variant=='unknown':run.path('scratch','foreign').write_text('unregistered')
++            elif variant=='changed':target.write_text('changed')
++            elif variant=='symlink':
++                target.unlink();foreign=self.base/('foreign-'+run.run_id);foreign.write_text('foreign');target.symlink_to(foreign)
++            else:os.link(target,self.base/('alias-'+run.run_id))
++            plan=plan_task_delete(self.repo,'C-001')
++            self.assertNotIn(run.run_id,{item['runId'] for item in plan['candidates']})
++            self.assertTrue(any(item.get('runId')==run.run_id for item in plan['pending']))
++            self.assertTrue(target.exists())
++
++
++    def test_partly_retiring_external_consumer_is_still_a_protected_dependency(self):
++        from test_asset_task_cleanup import plan_task_delete
++        target=self.fixture();owner=self.repo/'changes/OTHER';owner.mkdir();(owner/'state.md').write_text('implemented')
++        consumer=assets.AssetRun(self.repo,self.layout,'OTHER','verification','c','d')
++        consumer.path('raw','provenance.json').write_text(json.dumps({'inputFiles':[{'localPath':str(target.root/'payload/raw/case.trx')}]}))
++        consumer.finish({'consumersCompleted':True,'sourceStable':True})
++        assets.update_index(self.repo,'OTHER',lambda index:index.update(retiredRuns={consumer.run_id:{'status':'retiring'}}))
++        plan=plan_task_delete(self.repo,'C-001')
++        self.assertEqual(plan['candidates'],[])
++        self.assertTrue((target.root/'payload/raw/case.trx').exists())
++
++
++    def test_external_run_logical_input_and_workitem_bare_identity_are_both_protected(self):
++        from test_asset_task_cleanup import plan_task_delete
++        target=self.fixture();owner=self.repo/'changes/OTHER';owner.mkdir();(owner/'state.md').write_text('implemented')
++        consumer=assets.AssetRun(self.repo,self.layout,'OTHER','verification','c','d')
++        consumer.path('raw','provenance.json').write_text(json.dumps({'source':'test-assets:C-001/'+target.run_id+'/payload/raw/case.trx'}))
++        consumer.finish({'consumersCompleted':True,'sourceStable':True})
++        self.assertEqual(plan_task_delete(self.repo,'C-001')['candidates'],[])
++        # A second independent source has no URI/path, only an explicit Run identity.
++        other=self.fixture();work=self.repo/'workitems';work.mkdir()
++        (work/'consumer.json').write_text(json.dumps({'sourceRunId':other.run_id}))
++        self.assertNotIn(other.run_id,{item['runId'] for item in plan_task_delete(self.repo,'C-001')['candidates']})
++
++
++if __name__ == '__main__': unittest.main()
+--- /dev/null
++++ b/tools/tests/test_task_asset_references.py
+@@ -0,0 +1,124 @@
++"""Contract tests for the non-mutating task-retirement reference projection."""
++import json
++from pathlib import Path
++import sys
++import tempfile
++import unittest
++import shutil
++from unittest.mock import patch
++
++sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
++from test_asset_task_references import scan_task_references
++import test_assets as assets
++import test_asset_archives as archives
++
++
++class TaskReferenceContracts(unittest.TestCase):
++    def setUp(self):
++        temporary = tempfile.TemporaryDirectory(); self.addCleanup(temporary.cleanup)
++        self.base = Path(temporary.name).resolve(); self.repo = self.base / 'repo'; self.repo.mkdir()
++        binding = patch.object(assets, 'binding_home', return_value=self.base / 'bindings')
++        binding.start(); self.addCleanup(binding.stop)
++        self.root = (self.repo / '.work/TARGET/runs/r1').resolve(); self.root.mkdir(parents=True)
++        self.packet = self.root / 'results/packet.json'; self.packet.parent.mkdir(); self.packet.write_text('{}')
++        self.archive = (self.repo / '.archives/TARGET/r1.zip').resolve(); self.archive.parent.mkdir(parents=True); self.archive.write_bytes(b'zip')
++        self.record = {'runId': 'r1', 'files': [{'path': 'results/packet.json'}], 'layout': {}}
++        self.targets = {'r1': {'record': self.record, 'roots': [self.root, self.archive], 'files': [self.packet]}}
++
++    def write(self, name, value):
++        path = self.repo / name; path.parent.mkdir(parents=True, exist_ok=True)
++        path.write_text(value if isinstance(value, str) else json.dumps(value)); return path
++
++    def test_external_logical_and_physical_aliases_are_retained_but_self_history_is_not(self):
++        self.write('plans/retire.md', 'test-assets:TARGET/r1/results/packet.json')
++        self.write('workitems/consumer.json', {'input': {'localPath': str(self.root.parent)}})
++        self.write('changes/TARGET/state.md', str(self.root))
++        result = scan_task_references(self.repo, 'TARGET', self.targets)
++        self.assertEqual(result['errors'], [])
++        self.assertEqual(len(result['external']['r1']), 2)
++        self.assertTrue(any('plans/retire.md' in ref for ref in result['external']['r1']))
++        self.assertTrue(any('workitems/consumer.json' in ref for ref in result['external']['r1']))
++
++    def test_registered_same_task_provenance_is_an_internal_edge_including_from_archive(self):
++        source = {'schemaVersion': 'test-assets.v1', 'changeId': 'TARGET', 'runs': [
++            {'runId': 'r2', 'layout': {}, 'files': [{'path': 'raw/provenance.json', 'bytes': 2, 'sha256': 'wrong'}]}]}
++        self.write('changes/TARGET/assets.json', source)
++        # The current-run document is explicitly supplied as an inventoried candidate.
++        consumer = self.root.parent / 'r2/raw/provenance.json'; consumer.parent.mkdir(parents=True)
++        consumer.write_text(json.dumps({'inputFiles': [{'localPath': str(self.packet)}]}))
++        self.targets['r2'] = {'record': {'runId': 'r2', 'files': [{'path': 'raw/provenance.json'}]},
++                              'roots': [consumer.parents[2]], 'files': [consumer]}
++        result = scan_task_references(self.repo, 'TARGET', self.targets)
++        self.assertEqual(result['internal'], {'r2': ['r1']})
++
++    def test_other_change_declared_baseline_and_original_source_are_protected(self):
++        self.write('changes/OTHER/assets.json', {
++            'schemaVersion': 'test-assets.v1', 'changeId': 'OTHER',
++            'baselineRefs': [{'localPath': str(self.packet)}],
++            'runs': [{'runId': 'other', 'protectedRefs': [{'localPath': str(self.root), 'role': 'original-source'}], 'files': []}]})
++        result = scan_task_references(self.repo, 'TARGET', self.targets)
++        self.assertEqual(len(result['baselines']['r1']), 2)
++        self.assertEqual(result['external'], {})
++
++    def test_repository_symlink_to_a_run_directory_is_an_external_physical_consumer(self):
++        (self.repo / 'live-reader').symlink_to(self.root, target_is_directory=True)
++        result = scan_task_references(self.repo, 'TARGET', self.targets)
++        self.assertEqual(result['errors'], [])
++        self.assertTrue(any('live-reader:physical-link' in ref for ref in result['external']['r1']))
++
++    def test_bad_registered_consumer_is_an_error_not_an_empty_projection(self):
++        self.write('changes/OTHER/assets.json', {
++            'schemaVersion': 'test-assets.v1', 'changeId': 'OTHER',
++            'runs': [{'runId': 'other', 'root': 'repository', 'files': [{'path': 'changes/OTHER/missing.json'}]}]})
++        result = scan_task_references(self.repo, 'TARGET', self.targets)
++        self.assertTrue(result['errors'])
++
++    def test_retiring_run_may_explicitly_skip_its_missing_own_document_only(self):
++        missing = self.root / 'results/missing.json'
++        self.targets['r1']['files'].append(missing)
++        self.assertTrue(scan_task_references(self.repo, 'TARGET', self.targets)['errors'])
++        self.targets['r1']['skipOwnDocuments'] = True
++        self.assertEqual(scan_task_references(self.repo, 'TARGET', self.targets)['errors'], [])
++
++    def test_archived_own_asset_run_json_is_read_without_restoring_its_work_tree(self):
++        state = self.repo / 'changes/TARGET/state.md'; state.parent.mkdir(parents=True, exist_ok=True); state.write_text('active')
++        layout = assets.Layout(self.repo, {'version': 1, 'parentRoot': str(self.base / 'data'), 'repositoryKey': 'r',
++            'workPath': 'work', 'archivePath': 'archives', 'categoryPaths': {'raw': 'raw', 'logs': 'logs', 'results': 'results', 'scratch': 'scratch'}}, 'test')
++        target = assets.AssetRun(self.repo, layout, 'TARGET', 'verification', 'a', 'b')
++        packet = target.path('results', 'packet.json'); packet.write_text('{}'); target.finish({'consumersCompleted': True})
++        source = assets.AssetRun(self.repo, layout, 'TARGET', 'verification', 'c', 'd')
++        source.path('raw', 'provenance.json').write_text(json.dumps({'inputFiles': [{'localPath': str(packet)}]})); source.finish({'consumersCompleted': True})
++        archive = archives.archive_run(self.repo, 'TARGET', source.run_id); shutil.rmtree(source.root)
++        records = {item['runId']: item for item in assets.read_index(self.repo, 'TARGET')['runs']}
++        targets = {target.run_id: {'record': records[target.run_id], 'roots': [target.root], 'files': [packet]},
++                   source.run_id: {'record': records[source.run_id], 'roots': [source.root, layout.archive_root('TARGET') / archive['path']], 'files': []}}
++        result = scan_task_references(self.repo, 'TARGET', targets)
++        self.assertEqual(result['errors'], [])
++        self.assertEqual(result['internal'][source.run_id], [target.run_id])
++        self.assertFalse(source.root.exists())
++
++    def test_other_change_markdown_is_scanned_but_unrelated_tmp_or_home_text_is_not(self):
++        self.write('changes/OTHER/state.md', 'test-assets:TARGET/r1/results/packet.json')
++        self.write('plans/noise.md', 'paths /tmp and /Users/fran are unrelated')
++        result = scan_task_references(self.repo, 'TARGET', self.targets)
++        self.assertTrue(any('changes/OTHER/state.md:logical' == item for item in result['external']['r1']))
++        self.assertEqual(len(result['external']['r1']), 1)
++
++    def test_declared_retired_consumer_does_not_create_a_new_reference(self):
++        self.write('changes/OTHER/assets.json', {'schemaVersion': 'test-assets.v1', 'changeId': 'OTHER',
++            'retiredRuns': ['old'], 'runs': [{'runId': 'old', 'root': 'repository',
++            'files': [{'path': 'changes/OTHER/consumer.json'}]}]})
++        self.write('changes/OTHER/consumer.json', {'input': {'localPath': str(self.packet)}})
++        self.assertEqual(scan_task_references(self.repo, 'TARGET', self.targets)['baselines'], {})
++
++    def test_own_deletion_plan_is_not_a_consumer_but_other_change_source_is(self):
++        self.write('delete-plan.json', {'schemaVersion': 'test-asset-task-deletion-plan.v1', 'changeId': 'TARGET',
++            'candidates': [{'path': str(self.packet)}]})
++        self.write('changes/OTHER/assets.json', {'schemaVersion': 'test-assets.v1', 'changeId': 'OTHER',
++            'runs': [{'runId': 'live', 'protectedRefs': [{'localPath': str(self.packet), 'role': 'original-source'}], 'files': []}]})
++        result = scan_task_references(self.repo, 'TARGET', self.targets)
++        self.assertEqual(result['external'], {})
++        self.assertTrue(result['baselines']['r1'])
++
++
++if __name__ == '__main__': unittest.main()
+--- a/docs/agents/test-asset-retention.md
++++ b/docs/agents/test-asset-retention.md
+@@ -58,7 +58,7 @@
+ 
+ - 操作结束：当轮先收尾，再返回诊断包、重放包或验证结果；有意保留的材料写清继续用途，不算未完成清理。
+ - UniFlow VERIFY结束：复核任务汇总清单及已执行处置；CLOSED前完成资产收尾，未决清理如实记录，不能只列计划便称完成。不增加第九状态。
+-- 任务删除：先解除/迁移其他任务、文档及正式基线的有效依赖，再级联处理该任务索引、过程证据、运行目录和所属归档。已移交正式基线的材料不随原任务删除。
++- 任务资产退役：按§12的只读计划和显式执行缝处理；其他任务、文档及正式基线的有效依赖、原来源和外部逻辑引用继续保护。旧片的归档/工作副本释放边界不代替任务退役，也不改写原Run条目或历史hash。
+ - 归档或显式退役：保留原事实内容不变，通过索引追加归档位置/摘要或退役说明；旧结果是历史记录，不冒称已删文件仍可重验证。
+ 
+ 本次规则不追认存量孤立判断。存量仍按具体所有权与引用核对，`closed`、未跟踪、老日期、相同hash或“看起来像日志”均非独立删除判据。
+@@ -116,7 +116,7 @@
+ 
+ 当前写入归档格式v2保留每文件mtimeNs，解包和最终恢复发布均保持原修改时间。现有覆盖率消费者用TRX时间拒绝陈旧结果，恢复不得把旧结果变成新鲜证据。早期v1包缺少精确mtime，继续兼容读取，恢复时采用保守Epoch 0并明确返回conservative-epoch-v1；旧包和摘要不重写。
+ 
+-本片没有通用删源、任务级联删除或自动GC。归档成功不构成删除许可；活动、未决、证明、待交付来源及独立baseline继续保护。资产文件恢复不授予产品续跑/执行权限，也不等于外部源码和输入的完整封存。存量盘点、迁移及受保护清理仍须另按实际归属和消费者验收。
++本片不提供通用删源、自动GC或历史存量迁移；任务资产退役见§12。归档成功不构成删除许可；活动、未决、证明、待交付来源及独立baseline继续保护。资产文件恢复不授予产品续跑/执行权限，也不等于外部源码和输入的完整封存。旧片不追认任务删除能力，受保护材料仍按实际归属和消费者验收处理。
+ 
+ ## 11. 明确登记的归档工作副本释放
+ 
+@@ -126,4 +126,21 @@
+ 
+ 归档、恢复和释放通过仓库内同一Run锁串行，删除前逐项复核文件身份/字节并重查引用。回执追加到`assets.json.workReleases`，不修改原业务结果或封存文件摘要；删除前先持久化pending，每个实际unlink后追加deleted和逻辑字节数。中途失败不谎报成功，重试只删除仍在的文件，原缺失项列alreadyAbsent且不重复计数。只有空目录才移除，不递归清空。外部不遵守Run协议的并发写入仍可能造成pending，不能绕过漂移检查。
+ 
+-释放后`validate`可只读检查归档，`path/path-ref`会按§10重新物化整个Run；原绝对路径中的消费者必须先由该入口取得路径，再读取。再次释放仍要满足同样条件。逻辑删除字节不等于物理空间释放，归档也占空间。通用临时文件自动GC、任务级联删除与存量迁移仍未实现。
++释放后`validate`可只读检查归档，`path/path-ref`会按§10重新物化整个Run；原绝对路径中的消费者必须先由该入口取得路径，再读取。再次释放仍要满足同样条件。逻辑删除字节不等于物理空间释放，归档也占空间。旧片不实现任务级联删除、通用临时文件自动GC或存量迁移；任务退役转§12。
++
++## 12. 显式任务资产退役
++
++任务资产退役只处理该Change自有、已登记且通过引用核对的开发证明，不删除Codex聊天、产品数据、正式基线或其他Owner材料。它不是GC、批量历史清理或迁移，也不把“看起来像日志”的文件变成删除候选。调用者须先结束目标任务自有读写；工具不宣称全机或跨Owner原子事务。
++
++`plan-delete-task CHANGE`是只读盘点，按每个Run记录的不可变`parentRoot/workPath/archivePath/repositoryKey`及Change/Run/categoryPaths binding定位，不按当前profile或当前配置猜根。它输出确定的`planId`、候选文件身份/大小/SHA256、`kept`、`pending`、`alreadyAbsent`、Run状态、同Task依赖和外部/基线引用；`--out FILE`只写明确计划文件，不删除数据。所有外部`test-assets`逻辑引用、物理路径/别名/覆盖目录、baseline、原来源、活动/未决/不完整/未知材料均保护；保留消费者依赖递归保留，循环或不确定依赖不强删。旧binding缺失或归档成员/摘要无法按原布局核对时保留并报告。
++
++`delete-task-assets CHANGE --plan FILE`只接受同Change、schema和`planId`有效的计划。执行前重算盘点；文件、引用、binding或元数据漂移即拒绝旧计划。开始退役后关闭该资产集合的新Run登记；已退役或退役中的Run读取、归档、恢复明确拒绝，仍保留的Run继续可读，既有活动Run可完成收尾。只对计划中仍一致的独占普通文件逐项unlink，拒绝链接/硬链接/未知文件；先写pending，再记录实际`deleted`、`alreadyAbsent`、逻辑字节和空目录移除。按消费者先于依赖处理，部分失败保留阻塞项，下一次必须生成新计划重试；不把计划数量冒充实际删除。
++
++`state.md`、`assets.json`以及追加的`taskDeletions`回执始终保留为最小审计壳；原Run/归档条目、结果内容和历史hash不重写。回执含原引用图、portable相对位置、binding摘要和每次实际处置，主机绝对路径不作为跨机身份。退役拒绝复活：已标记退役的Run不会因当前profile变化重新可读或新建；退役中的Run失败时仅按新计划恢复可处理的未退役范围，不回滚已确认删除。
++
++命令示例：
++
++```text
++tools/test-assets plan-delete-task CHANGE --out /tmp/CHANGE-delete-plan.json
++tools/test-assets delete-task-assets CHANGE --plan /tmp/CHANGE-delete-plan.json
++```
+--- a/tools/README.md
++++ b/tools/README.md
+@@ -6,13 +6,15 @@
+ 
+ - [`verify-change`](verify-change)：接受 Change ID；`--scope quick|full` 控制回归范围，`--scenarios` 只用于 quick，`--live` 才增加 live gate，`--self-test` 运行编排器契约自检。`--help` 输出实际参数。默认 `full` 包含 diff check、Kernel/Host 架构 tripwire、Simulation、其余 solution 测试项目、scenario 认证检查和 Simulation 覆盖率。Simulation 只运行一次并复用 TRX。quick 只验证 tripwire 和 manifest 选中的 scenario 子集，明确跳过其余项目及覆盖率；两者都不等于仓库内所有工具、外部服务或设备均通过。新运行从 `--asset-config`、`UNICLAW_TEST_ASSET_CONFIG`、本地 `~/.config/uniclaw/test-assets.json`（支持 XDG_CONFIG_HOME）中依次选择一份完整 JSON 配置，缺失或非法直接失败。`--print-asset-config` 只查询解析结果。TRX、日志、信号和解析快照写到该次独立 Run，覆盖率复用相同 TRX；旧仓库内产物保持原路径。`--signal-dir` 现在是 Run results 内的相对子目录，绝对覆盖会拒绝；`--retry-of` 只连接相同来源/配置/范围批次中的历史 Run。`--self-test` 仍独立且不生成资产。
+ - [`verify-live`](verify-live)：连接已有 Android 设备，或按其脚本调用测试设备准备/清理入口；会运行设备相关 gate。不要把它和默认离线回归混为一谈。
+-- [`test-assets`](test-assets)：开发资产读取入口；`resolved [--asset-config 文件]` 查询布局，`list CHANGE` 读清单，`validate CHANGE RUN` 校验每文件大小/SHA256，`path CHANGE RUN 相对路径` 返回历史 Run 原布局中的登记文件。路径绑定注册在固定本机 `~/.local/state/uniclaw/test-asset-bindings/<repositoryKey>/<configDigest>.json`（独立于配置选择和 XDG_CONFIG_HOME）；后改配置不迁移旧 Run。配置的 parentRoot 为仓库外绝对根，workPath/archivePath 与四类 categoryPaths 必须相对且不重叠。分类内可用 `raw/captures`，分类之间禁止祖先覆盖。当前材料保留为验收用途；支持Run归档/恢复，归档不自动删源。自动清理/任务删除/存量迁移仍未实现。
++- [`test-assets`](test-assets)：开发资产读取入口；`resolved [--asset-config 文件]` 查询布局，`list CHANGE` 读清单，`validate CHANGE RUN` 校验每文件大小/SHA256，`path CHANGE RUN 相对路径` 返回历史 Run 原布局中的登记文件。路径绑定注册在固定本机 `~/.local/state/uniclaw/test-asset-bindings/<repositoryKey>/<configDigest>.json`（独立于配置选择和 XDG_CONFIG_HOME）；后改配置不迁移旧 Run。配置的 parentRoot 为仓库外绝对根，workPath/archivePath 与四类 categoryPaths 必须相对且不重叠。分类内可用 `raw/captures`，分类之间禁止祖先覆盖。当前材料保留为验收用途；支持Run归档/恢复，归档不自动删源。任务退役见下方显式入口；自动GC、批量存量清理/迁移仍不启用。
+ 
+-- `test-assets` 的第二片操作：`begin/scope/finish`供显式开发调用者创建和结束Run；`path-ref test-assets:CHANGE/RUN/相对路径`返回校验后的实际文件；`replay CHANGE --case 文件`调用原封存脚本并在TRX/重放结果消费后收尾。诊断HTTP请求可选`developmentAssets: {changeId, assetConfig?, retryOf?}`，原产品模型路由保持；packet/信号进入同一资产Run，finish失败单独报告。一般来源列protectedRefs，正式baseline不自动晋升。Run归档/恢复见下，GC/任务删除/存量迁移仍未实现。
++- `test-assets` 的第二片操作：`begin/scope/finish`供显式开发调用者创建和结束Run；`path-ref test-assets:CHANGE/RUN/相对路径`返回校验后的实际文件；`replay CHANGE --case 文件`调用原封存脚本并在TRX/重放结果消费后收尾。诊断HTTP请求可选`developmentAssets: {changeId, assetConfig?, retryOf?}`，原产品模型路由保持；packet/信号进入同一资产Run，finish失败单独报告。一般来源列protectedRefs，正式baseline不自动晋升。Run归档/恢复见下；任务退役使用下方显式计划/执行入口，不扩展为GC或存量迁移。
+ 
+ - `test-assets archive CHANGE RUN`、`verify-archive CHANGE ARCHIVE`、`restore CHANGE RUN [--archive-id ID]`：按原Run布局归档与恢复，归档不会删源。新包保留纳秒mtime，旧v1无精确时间时保守恢复，防止旧TRX冒充新结果。`path`/`path-ref`可完整恢复缺失Run后读取；`validate`只读，不恢复、不掩盖现有损坏。字节可用但外部来源未决时restore返回1、validate不通过、path/ref拒绝成功；详见[收尾规范§10](../docs/agents/test-asset-retention.md#10-run归档与恢复读取)。
+ 
+-- `test-assets release-work CHANGE RUN`：仅对创建时通过`begin --work-release-reason 理由`声明的全新Run释放可恢复工作副本；要求无未完物理读写者、最终收尾、v2包及消费者复验、引用核对通过。默认Run与全部旧Run不获得授权。逐文件删除及pending回执追加`workReleases`，原索引/事实/归档保留，`path-ref`仍可恢复读取；任务级联删除/自动GC/存量迁移未启用。引用检查依赖`rg`；边界见[收尾规范§11](../docs/agents/test-asset-retention.md#11-明确登记的归档工作副本释放)。
++- `test-assets release-work CHANGE RUN`：仅对创建时通过`begin --work-release-reason 理由`声明的全新Run释放可恢复工作副本；要求无未完物理读写者、最终收尾、v2包及消费者复验、引用核对通过。默认Run与全部旧Run不获得授权。逐文件删除及pending回执追加`workReleases`，原索引/事实/归档保留，`path-ref`仍可恢复读取；通用GC/存量迁移未启用，任务退役见下方入口。引用检查依赖`rg`；边界见[收尾规范§11](../docs/agents/test-asset-retention.md#11-明确登记的归档工作副本释放)。
++
++- `test-assets plan-delete-task CHANGE [--out FILE]`：只读盘点任务自有资产，按每个Run旧binding定位，输出planId、候选身份/摘要、保护项、依赖与未决项；不按当前profile猜根，也不删除数据。`test-assets delete-task-assets CHANGE --plan FILE`：重算盘点核对同一计划后，才逐项删除仍一致的独占普通文件；保护外部引用、baseline、原来源、链接/未知材料，并保留state、assets索引、原结果/hash和portable `taskDeletions`审计回执。退役/退役中的Run拒绝读取、归档、恢复和新Run登记；部分失败只计实际删除，下一次用新计划重试。该入口不做自动GC、批量历史清理/迁移、产品存储或聊天删除；边界见[收尾规范§12](../docs/agents/test-asset-retention.md#12-显式任务资产退役)。
+ 
+ - [`evolution-signal.py`](evolution-signal.py)：统一测试TRX、回放资产漂移与运行终态的非权威失败信号。`verify-change`失败出口和`run-diagnosis`声明的退出适配复用此脚本；显式预期红不生成候选，重复失败去重。输出仅为evidence，不创建Change或自动修复。参数与范围见[信号契约](../changes/EVO-002/signal-contract.md)。
+ - [`evolution-case.py`](evolution-case.py)：显式从Settings运行产物、capture和独立Oracle导出封存组件case，校验后通过[`EvolutionReplay/`](EvolutionReplay/)公开分类器载体重放并记录真实TRX。仅组件输入可重放，不执行原动作；不覆盖旧case、改写原信号或采纳分类修复。范围见[EVO-003](../changes/EVO-003/state.md)。

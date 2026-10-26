@@ -1,0 +1,20 @@
+test_partly_retiring_external_consumer_is_still_a_protected_dependency (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... FAIL
+
+======================================================================
+FAIL: test_partly_retiring_external_consumer_is_still_a_protected_dependency (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 252, in test_partly_retiring_external_consumer_is_still_a_protected_dependency
+    self.assertEqual(plan['candidates'],[])
+AssertionError: Lists differ: [{'runId': 'run-20261026T002040-da1f358483[1739 chars]48]}] != []
+
+First list contains 4 additional elements.
+First extra element 0:
+{'runId': 'run-20261026T002040-da1f358483b44d88a3eeb0d4bfbb4d77', 'location': 'work', 'path': '/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/tmpllhbtzsd/data/staging/work/r/C-001/runs/run-20261026T002040-da1f358483b44d88a3eeb0d4bfbb4d77/layout.json', 'bytes': 348, 'sha256': 'c564aa3103cdcfd6f11a70a9e097cb4ee4b7a514cda594847c08912dbd4a06a7', 'identity': [16777231, 15301152, 348, 1792974040620067914, 1792974040620151745]}
+
+Diff is 2155 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 1 test in 0.023s
+
+FAILED (failures=1)

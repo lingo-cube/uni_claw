@@ -1,0 +1,13 @@
+F
+======================================================================
+FAIL: test_pending_audit_projects_repository_paths_in_diagnostics (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 298, in test_pending_audit_projects_repository_paths_in_diagnostics
+    self.assertNotIn(str(self.repo),json.dumps(audit))
+AssertionError: '/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/tmpc1om1pnq/repo' unexpectedly found in '[{"schemaVersion": "test-asset-task-deletion-audit.v1", "operation": "delete-task-assets", "operationId": "delete-75d9d5ec17e04fa49d585a8e54b4a832", "changeId": "C-001", "planId": "a9585a2dfcceb86a3481f57c79a44c99a6edcbd8659a40a36f9f575951025b70", "startedAt": "2026-10-26T00:45:57.276506+00:00", "completed": false, "kept": [{"path": "changes/C-001/state.md", "reason": "minimal state/index/deletion audit retained", "logicalRoot": "repository"}, {"path": "changes/C-001/assets.json", "reason": "minimal state/index/deletion audit retained", "logicalRoot": "repository"}], "deleted": [], "alreadyAbsent": [{"runId": "missing-json", "path": "changes/C-001/evidence/missing.json", "bytes": 2, "sha256": "0000000000000000000000000000000000000000000000000000000000000000", "logicalRoot": "repository"}], "pending": [{"reason": "test-assets:C-001/missing-json:target consumer JSON missing: /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/tmpc1om1pnq/repo/changes/C-001/evidence/missing.json"}], "deletedBytes": 0, "runBindings": {"missing-json": "97e9932a356c6448fd12aa886871401f1bd1c8c40bf17f9b4767567de8c7acca"}, "internal": {}, "external": {}, "baselines": {}, "recordDigestAlgorithm": "sha256", "retiredRuns": []}]'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.007s
+
+FAILED (failures=1)

@@ -1,0 +1,61 @@
+{
+  "base": "2703244ff3fdb618abedb93e65913862b0e981c0",
+  "comparison": "captured entry where present, otherwise fixed base; only declared 11 source/test/doc paths",
+  "files": [
+    {
+      "path": "tools/test_assets.py",
+      "sha256": "9062765578ebf4439f2b528c7933968547f1bfa73e6fc4b8b6062c75ea6e150c",
+      "beforeSha256": "30a68971cbee767ae8d8d7464f7ecdb34611c47fd99c62ca970922c1f15e0be1"
+    },
+    {
+      "path": "tools/test_asset_archives.py",
+      "sha256": "b108838fc7cd5ad2fe2063b64299c20342ffb2a67935ce5ce716d66bedadcb74",
+      "beforeSha256": "15bb584dd9aabee02c221e02ee6b37458c1c45143690a6c6f1ce5b3b92060cc5"
+    },
+    {
+      "path": "tools/test_asset_cleanup.py",
+      "sha256": "84429555970170cb91de75af1f4dcda8fb96a1b3ad7f4f4fa1f32df09f99fa0a",
+      "beforeSha256": "333bf3928c689892085215a53e0fd9c4cea64d394159c57f3163f95035b34d63"
+    },
+    {
+      "path": "tools/test_asset_operations.py",
+      "sha256": "2b737b12de8360f9d97ba8b06f183c09c80ca16b2b1d4748abe7d3924bb3191f",
+      "beforeSha256": "3b06b1ba1f285bbcb452bda9fbe98c8e18055695a2f48bead6bc1457ccc74711"
+    },
+    {
+      "path": "tools/test-assets",
+      "sha256": "01e905de82cdf85ebb18d330561f7a53dc44fb2152beed4edb1a37004259a1e5",
+      "beforeSha256": "dbbeb4e9770eb4f8ef430f7710102033a3fcf5901d6d9135d8fcba3dfb3526e9"
+    },
+    {
+      "path": "tools/test_asset_task_cleanup.py",
+      "sha256": "11545ba4e971512067c34bf0ca854f52034904309e52b9edc3f9978dcf9a4bf7",
+      "beforeSha256": null
+    },
+    {
+      "path": "tools/test_asset_task_references.py",
+      "sha256": "4eab6fc659d4eacb3b4aa6f9f4db7f9d5a3fc8695c0048384df85cd1d9f00a5d",
+      "beforeSha256": null
+    },
+    {
+      "path": "tools/tests/test_task_asset_deletion.py",
+      "sha256": "92f4486c503a01c1b740abc2052ad1ed18779515cbbaea089b8281f3ae3833d9",
+      "beforeSha256": null
+    },
+    {
+      "path": "tools/tests/test_task_asset_references.py",
+      "sha256": "48043744070ab85ef603fac037fdc0c1d2d3390adb263e1ee03db2317a4ef77b",
+      "beforeSha256": null
+    },
+    {
+      "path": "docs/agents/test-asset-retention.md",
+      "sha256": "fe0965ffda13a1cbbdc8dcb6b35d9bc5a1d9410794720743cedccafef19233ac",
+      "beforeSha256": "f1c4b16e983acba4116c127760a80abaf916daa07249e11a5bc37968b704ef84"
+    },
+    {
+      "path": "tools/README.md",
+      "sha256": "634add69648cde2653e4c263fdac05ff8d854114fcc92921ac1105ed837d27e4",
+      "beforeSha256": "3c58a822388b4eee411ef5a1a4dbe5ab1adb8bea8423688dfd2158f063d845d5"
+    }
+  ]
+}

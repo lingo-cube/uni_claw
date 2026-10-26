@@ -1,0 +1,373 @@
+{
+  "schemaVersion": "development-asset-slice-finalization.v1",
+  "changeId": "TEST-ASSET-AUTOMATION-001",
+  "slice": "explicit-task-retirement",
+  "kept": [
+    {
+      "path": "README.md",
+      "bytes": 3369,
+      "sha256": "31ef804bfdda9f336300c412cdea7b0721481e510d9d4c3752ef060cf5be7742",
+      "retention": "task"
+    },
+    {
+      "path": "active-inventory-green.txt",
+      "bytes": 621,
+      "sha256": "d5b4cdec2bdede51f3a51bba4c8e0ce1d29a1e81d69c8b69da779ab068a8ad10",
+      "retention": "task"
+    },
+    {
+      "path": "active-inventory-red.txt",
+      "bytes": 972,
+      "sha256": "f007ce30647951de40c2c47034ecb386f26bcdcd326e74e022123ee194dcb7f9",
+      "retention": "task"
+    },
+    {
+      "path": "active-source-green.txt",
+      "bytes": 2337,
+      "sha256": "077994eb2b319f346895281e5aa9bbef7f90732c281c8345d38defaf5b4ea2b5",
+      "retention": "task"
+    },
+    {
+      "path": "active-source-red.txt",
+      "bytes": 1451,
+      "sha256": "8c5f56d538dc0629fbd2024117785b4b699bc906e91b028d15def657dabfc023",
+      "retention": "task"
+    },
+    {
+      "path": "actual-cli-v1-result.json",
+      "bytes": 383,
+      "sha256": "2b559a4c678a803a6f8bc7a177ae981ffc914e911ac1d689279ff270f31ab936",
+      "retention": "task"
+    },
+    {
+      "path": "actual-cli-v2-result.json",
+      "bytes": 630,
+      "sha256": "eaf26871cf2d20cde7c48c8cafde534eb15680cd63d542f2c31c2bdde3ab0088",
+      "retention": "task"
+    },
+    {
+      "path": "actual-cli-v3-result.json",
+      "bytes": 630,
+      "sha256": "6dc7c6f6a622c4939788dd3f143fece1a9e998e5b20dfb4094f0411fb6f6c707",
+      "retention": "task"
+    },
+    {
+      "path": "actual-cli-v4-result.json",
+      "bytes": 630,
+      "sha256": "5cc44ea9e1ef7bb5b9994dae6461869f63e5722d47cf9947b572115490729d93",
+      "retention": "task"
+    },
+    {
+      "path": "adjudication-v1.md",
+      "bytes": 1650,
+      "sha256": "7107ceeff83e7300acaa94c98ab4a0ea80e52b18c64793ee73527dc6052321df",
+      "retention": "task"
+    },
+    {
+      "path": "before/docs/agents/test-asset-retention.md",
+      "bytes": 16969,
+      "sha256": "f1c4b16e983acba4116c127760a80abaf916daa07249e11a5bc37968b704ef84",
+      "retention": "task"
+    },
+    {
+      "path": "before/tools/README.md",
+      "bytes": 7373,
+      "sha256": "3c58a822388b4eee411ef5a1a4dbe5ab1adb8bea8423688dfd2158f063d845d5",
+      "retention": "task"
+    },
+    {
+      "path": "before/tools/test-assets",
+      "bytes": 3465,
+      "sha256": "dbbeb4e9770eb4f8ef430f7710102033a3fcf5901d6d9135d8fcba3dfb3526e9",
+      "retention": "task"
+    },
+    {
+      "path": "before/tools/test_asset_archives.py",
+      "bytes": 17515,
+      "sha256": "15bb584dd9aabee02c221e02ee6b37458c1c45143690a6c6f1ce5b3b92060cc5",
+      "retention": "task"
+    },
+    {
+      "path": "before/tools/test_asset_cleanup.py",
+      "bytes": 13970,
+      "sha256": "333bf3928c689892085215a53e0fd9c4cea64d394159c57f3163f95035b34d63",
+      "retention": "task"
+    },
+    {
+      "path": "before/tools/test_assets.py",
+      "bytes": 19075,
+      "sha256": "30a68971cbee767ae8d8d7464f7ecdb34611c47fd99c62ca970922c1f15e0be1",
+      "retention": "task"
+    },
+    {
+      "path": "candidate-v2.json",
+      "bytes": 2499,
+      "sha256": "cb38fe099de1082c98aad39ce063873809b4bcaee2327d03ec4ea22a0b59cfb3",
+      "retention": "task"
+    },
+    {
+      "path": "candidate-v2.patch",
+      "bytes": 86426,
+      "sha256": "b8b6eac8eff0ff4f984921dadebe96e980d6b46be8ebcf306542ee26f8167d2d",
+      "retention": "task"
+    },
+    {
+      "path": "candidate-v3.json",
+      "bytes": 2499,
+      "sha256": "1d88a0cec0aeaa135837c9511a80d873279cfc8c7fda99ae7de86079b4c518ab",
+      "retention": "task"
+    },
+    {
+      "path": "candidate-v3.patch",
+      "bytes": 88180,
+      "sha256": "2e95cc9d510f7f0b47aa646179bc68d8ce62d1e5c7310e4c0c86718c18bf744a",
+      "retention": "task"
+    },
+    {
+      "path": "candidate.json",
+      "bytes": 2499,
+      "sha256": "57d692243084efb44fb8b82e4a0e94beed8f4c09164dba395083c7d6ce7d3569",
+      "retention": "task"
+    },
+    {
+      "path": "candidate.patch",
+      "bytes": 82454,
+      "sha256": "f9d8e7d18c5bcaa4bbfd7ff6242bc4065a7c2258e7803718564bcf1291fec76e",
+      "retention": "task"
+    },
+    {
+      "path": "cli-plan-green.txt",
+      "bytes": 221,
+      "sha256": "862eaec0c138e1a4923a86dcca5dfc227b8c4ee0cadc12e8c1f0ba6dd083d1ba",
+      "retention": "task"
+    },
+    {
+      "path": "cli-plan-red.txt",
+      "bytes": 1087,
+      "sha256": "4b9980802e4c3c24ebb9a5fb9179a8d90a75f99553e67ddcf977dec2de1e5a63",
+      "retention": "task"
+    },
+    {
+      "path": "contracts-v2.txt",
+      "bytes": 3168,
+      "sha256": "4e61614ff8ee2db370b31b64e88788ef2fef3972fd65ae5fb844abfb41149979",
+      "retention": "task"
+    },
+    {
+      "path": "core-contracts-v1.txt",
+      "bytes": 1327,
+      "sha256": "aca017bd0c19b64948889bc287d242251ca341fb92b74b00392f6fb9497eaa7d",
+      "retention": "task"
+    },
+    {
+      "path": "delete-green-v1.txt",
+      "bytes": 1121,
+      "sha256": "64e494848f5f655730033d768f0187802149904b8fc5c5fb1d1595dac356e4b4",
+      "retention": "task"
+    },
+    {
+      "path": "delete-green-v2.txt",
+      "bytes": 489,
+      "sha256": "57175e16f97351fdac5a2f39df8c07304296c7effca3d128295115d9bd94b280",
+      "retention": "task"
+    },
+    {
+      "path": "delete-red.txt",
+      "bytes": 1187,
+      "sha256": "117a83f765e8085118cb4150fc887a15cf1de807c227aa1d7fa3d310c7e3bf0e",
+      "retention": "task"
+    },
+    {
+      "path": "diagnostic-portability-green.txt",
+      "bytes": 98,
+      "sha256": "d0bbd3fb4fcf80c9cbf5ce59bf4ce44bb927e9e40a6269d0b33dc8c4a94c4755",
+      "retention": "task"
+    },
+    {
+      "path": "diagnostic-portability-red.txt",
+      "bytes": 1981,
+      "sha256": "7e8b67f449ca24e8ac1e867904d73b64750b4adc2b9a39a99deb54c3501dd046",
+      "retention": "task"
+    },
+    {
+      "path": "entry.json",
+      "bytes": 1002,
+      "sha256": "e1547bc014a8c9ca149902d1a41c687863509ec23fae1846b4f5401706287fb9",
+      "retention": "task"
+    },
+    {
+      "path": "logical-source-green.txt",
+      "bytes": 4118,
+      "sha256": "9ae872100e0aafa61dd53fe7b9464bcd6c90bb847e7fc87619fd8c9c9a3496f6",
+      "retention": "task"
+    },
+    {
+      "path": "logical-source-red.txt",
+      "bytes": 1509,
+      "sha256": "c37761951d657fba89ee5b05a2493b36809f75419c577208729445b133aa3b87",
+      "retention": "task"
+    },
+    {
+      "path": "partial-retry-v1.txt",
+      "bytes": 246,
+      "sha256": "1c1e9be5777e0da876c8ac89d9255198ee6004ab73083df0d7ba202fc9824a6d",
+      "retention": "task"
+    },
+    {
+      "path": "pending-consumer-green.txt",
+      "bytes": 3307,
+      "sha256": "6d8a8cf603b56c9f301217cbc82785a958efa1b1041b88b0491d1807dede2d17",
+      "retention": "task"
+    },
+    {
+      "path": "pending-consumer-red.txt",
+      "bytes": 1457,
+      "sha256": "569a0d0a03f6fc1a365452758a94280dacc1403eea7c0091ec9ca3ac3f62f703",
+      "retention": "task"
+    },
+    {
+      "path": "portable-receipt-green.txt",
+      "bytes": 621,
+      "sha256": "1491bfc5662a1a712404bcdf6ce9cf1f1e4da5a279c5dfa1a6db5bd15d351ed9",
+      "retention": "task"
+    },
+    {
+      "path": "portable-receipt-red.txt",
+      "bytes": 903,
+      "sha256": "d51e879571b498f338c4b0edbafac9125374e32a5a84d07dbaf286c95280b69e",
+      "retention": "task"
+    },
+    {
+      "path": "protection-green.txt",
+      "bytes": 347,
+      "sha256": "0b69a85ce454bf2b9a9bbf427e23b49b967e0966499f2ae67b9754ef480c11ae",
+      "retention": "task"
+    },
+    {
+      "path": "protection-red.txt",
+      "bytes": 849,
+      "sha256": "08149aaf9e439c5d6a7710ac63f054ac557611a3be039baa5090c48139bf8d5c",
+      "retention": "task"
+    },
+    {
+      "path": "prove_cli.py",
+      "bytes": 6976,
+      "sha256": "ee57895a3a60f3e5509de492483e4e17c31ce98a849c284919f378ec9632d0ff",
+      "retention": "task"
+    },
+    {
+      "path": "regression-v1-result.json",
+      "bytes": 866,
+      "sha256": "5ee44500cdf6f3b0726ce8f2e833a42e6f28794078a02f719ab57244d8d2425c",
+      "retention": "task"
+    },
+    {
+      "path": "regression-v2-result.json",
+      "bytes": 865,
+      "sha256": "9bf32b4960819f803c0a23022f92e9f9a777a57899532903629954557acca74b",
+      "retention": "task"
+    },
+    {
+      "path": "regression-v3-result.json",
+      "bytes": 865,
+      "sha256": "6d8a7b34941e8da0d0a38d527e67ee4b69f5c973d333daef9140c2ebdf706344",
+      "retention": "task"
+    },
+    {
+      "path": "regression-v4-result.json",
+      "bytes": 865,
+      "sha256": "04a1a04492e02bde70b89355ccba9a6557091b523a885f532fe69f14b21f844f",
+      "retention": "task"
+    },
+    {
+      "path": "review-green-v1.txt",
+      "bytes": 98,
+      "sha256": "7e3044c65cb0f4913588d1d714ef3231d6c34bfa3dabb4f2ae46d2ec4dc7c5e4",
+      "retention": "task"
+    },
+    {
+      "path": "review-red-v1.txt",
+      "bytes": 3749,
+      "sha256": "edcd2bc71b60e6fd865a3c4f0b08d9136dd782022f6f9a992ed468f94280b68d",
+      "retention": "task"
+    },
+    {
+      "path": "review-spec-v1.md",
+      "bytes": 1287,
+      "sha256": "8826ba1b505d8370fb3f0c0f25e4efd5869dc0c649101574fb70e3523f5af12b",
+      "retention": "task"
+    },
+    {
+      "path": "review-spec-v2.md",
+      "bytes": 982,
+      "sha256": "06d62ab984218515a411ae323b3622b2c625f8550c9421b53e72369f2cc28a4b",
+      "retention": "task"
+    },
+    {
+      "path": "review-spec-v3.md",
+      "bytes": 654,
+      "sha256": "e17e3d8bb31520715c592b70259d632e0ec489def4fa98fe3c4010186f1f265f",
+      "retention": "task"
+    },
+    {
+      "path": "review-standards-v1.md",
+      "bytes": 639,
+      "sha256": "a962be6347d4254af38ae35ebe2c5430941f5678886263d7a8b189b5a8f055f2",
+      "retention": "task"
+    },
+    {
+      "path": "review-standards-v2.md",
+      "bytes": 625,
+      "sha256": "90843030c0b5d9d7891e41170d2ef8c800c0bc0193918703519acd4232b32173",
+      "retention": "task"
+    },
+    {
+      "path": "review-standards-v3.md",
+      "bytes": 506,
+      "sha256": "d8d801a7f2077ac930f0f79e67a72a994bd97d6e57db2f906b97e05979316208",
+      "retention": "task"
+    },
+    {
+      "path": "run_checks.py",
+      "bytes": 1994,
+      "sha256": "3f68cc5bbc2e10f0bb10cea4a355d5de61d07fcb19d2e8a2fb2f0fca9fdb207b",
+      "retention": "task"
+    },
+    {
+      "path": "verification.json",
+      "bytes": 2653,
+      "sha256": "d6017ae553c8651995f033d65d13a193685e23d73db7fa2af9f53998fd423fbb",
+      "retention": "task"
+    },
+    {
+      "path": "verify_final.py",
+      "bytes": 2984,
+      "sha256": "0c801537a4a204a87329e4be56a46d0058e829a11415c97cb43e07e68b58f4b1",
+      "retention": "task"
+    }
+  ],
+  "deleted": [
+    {
+      "path": "changes/TEST-ASSET-AUTOMATION-001/evidence/task-delete/verification-preview.json",
+      "bytes": 2655,
+      "reason": "interim read-only check before final review completion; superseded by verification.json"
+    }
+  ],
+  "pending": [],
+  "registeredRuns": "assets.json; original records preserved; final verification includes LAYOUT and AUTOMATION",
+  "controlledCliFinal": "actual-cli-v4-result.json",
+  "controlledDeletion": {
+    "files": 5,
+    "logicalBytes": 3644,
+    "protectedFilesShaVerified": 7,
+    "realHistoricalTasksDeleted": false
+  },
+  "temporarySourceCopiesRemovedPerSuccessfulCliRun": 10,
+  "temporaryTestFixtures": "owned context-managed directories removed after consumers; no unowned directory-prefix cleanup",
+  "scopeExclusions": [
+    "automatic GC",
+    "bulk historical migration or deletion",
+    "product or chat deletion"
+  ],
+  "retentionReason": "source-bound candidates, compact RED/GREEN logs, failed harness diagnostics, original results and protected controlled fixtures remain required for review/reproduction"
+}

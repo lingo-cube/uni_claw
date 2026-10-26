@@ -28,9 +28,23 @@ def legacy_main():
         sub.add_argument('change')
         sub.add_argument('identity', help='Run ID, or archive ID for verify-archive')
         if name == 'restore': sub.add_argument('--archive-id')
+    sub = command.add_parser('plan-delete-task')
+    sub.add_argument('change'); sub.add_argument('--out', type=Path)
+    sub = command.add_parser('delete-task-assets')
+    sub.add_argument('change'); sub.add_argument('--plan', type=Path, required=True)
     args = parser.parse_args()
     try:
-        if args.command == 'resolved': result = load_layout(ROOT, args.asset_config).resolved()
+        if args.command == 'delete-task-assets':
+            from test_asset_task_cleanup import delete_task_assets
+            result = delete_task_assets(ROOT, args.change, json.loads(args.plan.read_text(encoding='utf-8')))
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result['completed'] else 1
+        elif args.command == 'plan-delete-task':
+            from test_asset_task_cleanup import plan_task_delete
+            result = plan_task_delete(ROOT, args.change)
+            if args.out:
+                with args.out.open('x', encoding='utf-8') as output: json.dump(result, output, ensure_ascii=False, indent=2)
+        elif args.command == 'resolved': result = load_layout(ROOT, args.asset_config).resolved()
         elif args.command == 'release-work':
             from test_asset_cleanup import release_work
             result = release_work(ROOT, args.change, args.identity)

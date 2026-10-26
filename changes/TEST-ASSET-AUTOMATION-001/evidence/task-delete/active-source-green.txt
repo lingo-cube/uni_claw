@@ -1,0 +1,21 @@
+test_active_external_consumer_provenance_protects_its_original_input (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_active_run_is_inventoried_and_protects_the_unfinished_task (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_cli_plan_inventories_without_deleting_or_rebinding (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_external_logical_reference_retains_work_and_archive (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_partial_failure_is_persisted_and_fresh_plan_retries_without_double_counting (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_archived_own_asset_run_json_is_read_without_restoring_its_work_tree (tools.tests.test_task_asset_references.TaskReferenceContracts) ... ok
+test_bad_registered_consumer_is_an_error_not_an_empty_projection (tools.tests.test_task_asset_references.TaskReferenceContracts) ... ok
+test_declared_retired_consumer_does_not_create_a_new_reference (tools.tests.test_task_asset_references.TaskReferenceContracts) ... ok
+test_external_logical_and_physical_aliases_are_retained_but_self_history_is_not (tools.tests.test_task_asset_references.TaskReferenceContracts) ... ok
+test_other_change_declared_baseline_and_original_source_are_protected (tools.tests.test_task_asset_references.TaskReferenceContracts) ... ok
+test_other_change_markdown_is_scanned_but_unrelated_tmp_or_home_text_is_not (tools.tests.test_task_asset_references.TaskReferenceContracts) ... ok
+test_own_deletion_plan_is_not_a_consumer_but_other_change_source_is (tools.tests.test_task_asset_references.TaskReferenceContracts) ... ok
+test_registered_same_task_provenance_is_an_internal_edge_including_from_archive (tools.tests.test_task_asset_references.TaskReferenceContracts) ... ok
+test_repository_symlink_to_a_run_directory_is_an_external_physical_consumer (tools.tests.test_task_asset_references.TaskReferenceContracts) ... ok
+test_retiring_run_may_explicitly_skip_its_missing_own_document_only (tools.tests.test_task_asset_references.TaskReferenceContracts) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.327s
+
+OK

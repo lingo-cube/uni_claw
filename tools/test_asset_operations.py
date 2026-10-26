@@ -97,7 +97,8 @@ def begin(change, operation, config, retry_of, sources, inputs, context, protect
 
 
 def _record(change, run):
-    return next((item for item in read_index(ROOT, change)['runs'] if item['runId'] == key(run)), None)
+    from test_assets import run_record
+    return run_record(ROOT, change, run)
 
 
 def _layout_for(record):

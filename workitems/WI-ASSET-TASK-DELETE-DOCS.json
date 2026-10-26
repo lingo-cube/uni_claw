@@ -1,0 +1,30 @@
+{
+  "id": "WI-ASSET-TASK-DELETE-DOCS",
+  "objective": "Document the implemented explicit task asset retirement without expanding automatic cleanup scope",
+  "scope": {
+    "write": [
+      "docs/agents/test-asset-retention.md",
+      "tools/README.md"
+    ],
+    "read_hints": [
+      "changes/TEST-ASSET-AUTOMATION-001/task-delete-contract.md",
+      "tools/test_asset_task_cleanup.py",
+      "tools/test-assets"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Document local read-only plan plus explicit delete, per-old-binding paths, protection and portable audit; preserve existing content."
+  },
+  "acceptance": [
+    "Describe plan-delete-task CHANGE --out FILE and delete-task-assets CHANGE --plan FILE with exact current semantics",
+    "Explain state/index/audit shell retained, original results/hashes unchanged, retiring reads/newRun creation refused and partial fresh-plan retry",
+    "Retain parentRoot/workPath/archivePath/repositoryKey/Change/Run/categoryPaths composition; no current-profile fallback",
+    "Automatic GC, bulk historical cleanup/migration, product storage and Codex chat deletion excluded; only controlled own proofs executed",
+    "Adjust existing text saying task deletion unimplemented to reference new section without falsely claiming old slices did it"
+  ],
+  "forbidden": [
+    "Modify source/tests/state/evidence or other files",
+    "Run tests, real deletions, git stage/commit/push or message chats"
+  ],
+  "status": "done"
+}

@@ -1,0 +1,6 @@
+test_partial_failure_is_persisted_and_fresh_plan_retries_without_double_counting (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.127s
+
+OK

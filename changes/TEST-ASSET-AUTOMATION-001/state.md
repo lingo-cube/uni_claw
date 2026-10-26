@@ -1,5 +1,5 @@
 # TEST-ASSET-AUTOMATION-001 — 开发资产登记、收尾与可验证归档
-lifecycle_state: implemented · disposition: none · depth: standard · base: a05176f3c66e0a3206f49dde463f51df1335975c
+lifecycle_state: closed · disposition: none · depth: standard · base: a05176f3c66e0a3206f49dde463f51df1335975c
 
 ## Intent（WHAT/WHY）
 把TEST-ASSET-LIFECYCLE-001既有规范接到真实开发入口。当前verify-change在共享TestResults和仓库evidence写出，资产无统一生产/读取索引；配置改变或重复运行不能可靠关联布局和来源。
@@ -7,7 +7,7 @@ lifecycle_state: implemented · disposition: none · depth: standard · base: a0
 ## Scope / Out of Scope
 依赖TEST-ASSET-LAYOUT-001已验证的布局/绑定契约：实现test-assets.v1生产/读取/校验、来源与配置指纹、验证批次/retryOf、成功/失败/取消的消费者完成后收尾；再接重放/诊断/仿真、可验证归档恢复及任务自有清单清理。
 配置选择/父根与分类解析/首次verify-change路径接线归LAYOUT，不在本Change重复实现。产品剩余存储归原聊天负责的RUNTIME-STORAGE-002。本Change由local/01a1730a-957c-7ab2-8d46-2574de5a93e9接续。
-不清理存量、不操作.git、不修改产品运行/恢复/必交付来源、不提交推送、不调用设备/模型。正式baseline不纳入GC。
+不清理存量、不修改产品运行/恢复/必交付来源、不调用设备/模型。正式baseline不纳入GC。早期“不提交推送”仅约束原委派片；当前Leader按用户后续“完成一起提交推送、仓库健康”授权精确发布本次修改，不带入其他dirty。
 
 ## Decisions
 - 复用LAYOUT唯一配置解析与旧Run绑定，不另造路径优先级或独立拼接规则；分类路径与保留策略分开。
@@ -34,8 +34,8 @@ lifecycle_state: implemented · disposition: none · depth: standard · base: a0
 level: CONTRACT + DETERMINISTIC + SCENARIO
 method: 定向工具契约测试、真实verify-change quick新运行、清单读取校验、独立双轴审查。
 expected: 先证明A1–A3首个buyer，A4–A5按后续纵向片验证。
-actual: A1–A4既有切片保持，A5追加新verification Run显式授权的归档工作副本释放：实际v2包/原消费者/仓库与跨Run引用核对后删除，原事实和包保持，path-ref恢复可用。50项工具+15项入口=65项Python通过，两轴最终有界通过。实际仅本片新6文件工作副本最终缺失（逻辑10,630字节），包6,747字节保持；原100个物理文件全保留，现106登记文件均可用（6仅归档）。通用临时自动GC/任务级联删除/存量迁移仍open，父Change不关闭；无C#构建、设备模型服务或提交推送。
-evidence: evidence/slice1/README.md及原封存；evidence/slice2/README.md及原候选/审查/测试；evidence/slice3/README.md、candidate.json、verify.py、contracts-final-v3.txt、verify-entry-final-v3.txt、real-restore-proof.json、mtime-restore-proof.json、review-standards-v3.md、review-spec-v3.md及finalization.json；assets.json及../TEST-ASSET-LAYOUT-001/assets.json。
+actual: A1–A4既有切片保持，A5的显式任务资产退役完成；最终95项工具/入口契约通过，独立双轴v3无剩余问题。真实受控子进程CLI按旧绑定完成盘点、保护和退役：删除新建自有5文件、3,644逻辑字节，7个受保护文件SHA不变；退役读取拒绝、保留读取成功、原Run事实不变。LAYOUT+AUTOMATION共14Run、246登记文件、4归档校验可用，原Run/归档/baseline条目前缀保持。自动GC、存量批量迁移按本轮范围裁定排除，不再作为关闭尾项。仅对新建受控任务实际删除；无C#构建或设备模型执行。
+evidence: evidence/task-delete/README.md、candidate-v3.json/.patch、regression-v4-result.json、actual-cli-v4-result.json、verification.json、verify_final.py、review-spec-v3.md、review-standards-v3.md、finalization.json及assets.json；早期切片证据保持evidence/slice1–slice4及../TEST-ASSET-LAYOUT-001/assets.json。
 
 ## Status log
 - 2026-10-25 UNDERSTAND→RESOLVE→PERSIST→PLAN：用户联合交接明确授权新产物治理，已读AGENTS/UniFlow/规范与存储state/plan；首个buyer为verify-change，先配置和消费者，独立保留产品Owner及存量删除门槛。
@@ -53,3 +53,14 @@ evidence: evidence/slice1/README.md及原封存；evidence/slice2/README.md及�
 - 2026-10-25 IMPLEMENT→REVIEW→IMPLEMENT→REVIEW→VERIFY（第三片）：原Run归档、实际解包、原读取器及逐文件校验、按旧绑定完整恢复已接通；解决碰撞异常清理、外部来源pending状态传播及TRX时间刷新问题。v2保留mtime，旧v1以Epoch0保守恢复，旧包/hash不重写。真实同一6文件副本两次受控恢复（包括mtime修复）均通过，原94保留，净删源0，49项Python通过，两轴有界通过。A5剩余删除/迁移仍open；没有C#构建、模型/设备/服务或提交推送。
 
 - 2026-10-25 RESUME→IMPLEMENT→REVIEW→IMPLEMENT→REVIEW→VERIFY（第四片）：显式创建者授权仅新verification Run，release-work在v2解包/消费者/来源及链接别名依赖核验后逐文件释放。修复仓库链接、FIFO、跨Run provenance、完整逻辑ref边界、外根alias及既有repository根清单兼容；原结果/索引事实不改，准确记录partial/retry。65项通过，双轴v3有界通过，原100保留，新6副本净移除10,630逻辑字节且仍可归档恢复。任务删除/GC/迁移继续open。正式产品World→Coverage交接已收到，完成本片后按原Owner文件契约接续，不改变本Change残余状态。
+
+## 2026-10-26显式任务资产删除（当前授权）
+用户要求连续完成：删除前盘点归属/跨任务引用→保留仍使用的证据、基线及必要来源→清理允许项并留实际回执。Leader直接完成，不再逐步请求推进；只有改变已定保护规则或范围的决策才回用户。
+
+本轮封闭范围为开发Change的登记资产，不操作Codex聊天或产品任务数据。新增公开缝：`tools/test-assets plan-delete-task CHANGE [--out FILE]`只读盘点（显式out只写指定计划文件），`delete-task-assets CHANGE --plan FILE`按当前仍有效计划执行。公共Python缝为`plan_task_delete(repo,change)`及`delete_task_assets(repo,change,plan)`；沿原CLI/资产清单测试缝验收，既有用户授权适用，不重复询问。保留state/index和最小回执作为审计，不改原Run结果/hash；显式退役的Run由既有读取入口报告不可用，不恢复已退役材料。
+
+A5补充验收：计划列出Run工作文件、所属归档、任务内登记材料和未登记保留项，并按旧binding拼父根/分类路径；跨任务逻辑/物理/别名/目录引用、正式baseline与原来源、活动/未决、坏或未知归属保护；同任务中被保留消费者的依赖传递保留。执行复验计划与字节/文件身份，先持久化pending，逐项unlink并记实际计数，只删空目录；部分失败可在新计划中继续且不重复计数。创建/归档/恢复/释放与任务级删除共用外层锁，退役后拒绝新Run及复活。真实受控目录证明删除/保留、原消费者/来源和旧配置不受影响；原契约定向回归及独立双轴审查通过后关闭本Change。
+
+自动GC与存量批量迁移明确不属于本轮，不继续作为本Change关闭尾项；旧数据不被新规则追认归属。仅对本轮新建且自有的受控验证任务实际执行删除，不自行选择真实历史任务删除。原sealed资料及其他任务改动保持。
+
+- 2026-10-26 IMPLEMENT→REVIEW→IMPLEMENT→REVIEW→VERIFY→CLOSED：新增plan-delete-task/delete-task-assets公开入口；旧binding、多配置父根/分类路径、跨任务引用及保留消费者依赖保护、共享外层锁、pending先行逐文件回执、部分失败重试及退役拒绝复活已完成。评审修复当前计划/相对引用、执行中未知材料pending和诊断路径逻辑投影；95项通过、真实受控CLI通过、双轴v3通过、原清单和全部14Run可用。证据与临时物实际处置见task-delete/finalization.json。按用户连续推进指令关闭有限范围，既有产品存储2703244f不重开，Leader继续精确提交推送。

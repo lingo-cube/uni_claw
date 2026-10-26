@@ -5,6 +5,7 @@ profiles live locally; shared inventories identify a binding by SHA256.
 """
 from __future__ import annotations
 import datetime
+import contextlib
 import fcntl
 import functools
 import hashlib
@@ -174,31 +175,51 @@ def read_index(repo, change):
     return value
 
 
+@contextlib.contextmanager
+def task_access(repo, change, exclusive=False, blocking=True):
+    """Outer asset-collection gate; index and Run locks are always acquired inside."""
+    path = checked(index_path(repo, change).parent, 'assets.task.lock')
+    with path.open('a') as lock:
+        flags = fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH
+        if not blocking: flags |= fcntl.LOCK_NB
+        fcntl.flock(lock, flags)
+        yield
+
+
 def update_index(repo, change, action):
     path = index_path(repo, change)
-    # Lock a separate inode so atomic replacement cannot detach the lock.
-    with checked(path.parent, 'assets.lock').open('a') as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
-        value = read_index(repo, change)
-        action(value)
-        atomic_json(path, value)
+    with task_access(repo, change):
+        with checked(path.parent, 'assets.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            value = read_index(repo, change)
+            action(value)
+            atomic_json(path, value)
 
 
 def serialized_run(action):
-    """Coordinate archive/restore/release using an inode outside the Run tree."""
+    """Task gate precedes the existing Run lock, then short index writes."""
     @functools.wraps(action)
     def locked(repo, change, run_id, *args, **kwargs):
-        path = checked(index_path(repo, change).parent, 'assets.' + key(run_id) + '.lock')
-        with path.open('a') as lock:
-            fcntl.flock(lock, fcntl.LOCK_EX)
-            return action(repo, change, run_id, *args, **kwargs)
+        with task_access(repo, change):
+            run_record(repo, change, run_id)
+            path = checked(index_path(repo, change).parent, 'assets.' + key(run_id) + '.lock')
+            with path.open('a') as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                return action(repo, change, run_id, *args, **kwargs)
     return locked
 
 
-def locate_run(repo, change, run_id):
+def run_record(repo, change, run_id):
     index = read_index(repo, change)
-    record = next((r for r in index['runs'] if r['runId'] == key(run_id)), None)
-    if record is None: raise ValueError('unknown asset run')
+    if key(run_id) in index.get('retiredRuns', {}):
+        raise ValueError('asset Run is retiring/retired; original inventory is audit only: ' + run_id)
+    record = next((r for r in index['runs'] if r['runId'] == run_id), None)
+    if record is None: raise ValueError('unknown asset Run')
+    return record
+
+
+def locate_run(repo, change, run_id):
+    record = run_record(repo, change, run_id)
     return bound_layout(repo, record).run_root(change, run_id)
 
 
@@ -214,8 +235,7 @@ def bound_layout(repo, record):
 
 
 def asset_path(repo, change, run_id, relative_path):
-    record = next((r for r in read_index(repo, change)['runs'] if r['runId'] == run_id), None)
-    if record is None: raise ValueError('unknown asset run')
+    record = run_record(repo, change, run_id)
     item = next((f for f in record['files'] if f['path'] == relative_path), None)
     if item is None: raise ValueError('path is not inventoried')
     path = checked(locate_run(repo, change, run_id), relative_path)
@@ -233,6 +253,8 @@ def asset_path(repo, change, run_id, relative_path):
 
 
 def validate_run(repo, change, run_id):
+    if key(run_id) in read_index(repo, change).get('retiredRuns', {}):
+        return {'valid': False, 'retired': True, 'problems': ['explicit task asset retirement; original inventory is audit only'], 'files': 0}
     root = locate_run(repo, change, run_id)
     record = next(r for r in read_index(repo, change)['runs'] if r['runId'] == run_id)
     problems = []
@@ -266,6 +288,8 @@ class AssetRun:
             self.record['workReleasePolicy'] = {'schemaVersion': 'test-asset-work-release.v1', 'reason': work_release_reason,
                 'readThrough': 'test-assets:path-ref', 'externalPhysicalConsumers': 'none'}
         def register(index):
+            if index.get('assetRetirement'):
+                raise ValueError('task asset collection is retiring/retired; new Runs are disabled')
             for reference in baseline_refs:
                 if reference not in index['baselineRefs']:
                     index['baselineRefs'].append(reference)
@@ -289,7 +313,12 @@ class AssetRun:
         return path
 
     def finish(self, summary):
-        """Call after real consumers. This slice deliberately retains evidence."""
+        with task_access(self.repo, self.change):
+            run_record(self.repo, self.change, self.run_id)
+            return self._finish(summary)
+
+    def _finish(self, summary):
+        """Call after real consumers; retired data is never recreated."""
         checked(self.layout.parent, self.root.relative_to(self.layout.parent))
         receipt = {'schemaVersion': 'test-asset-finalization.v1', 'changeId': self.change,
                    'runId': self.run_id, 'operation': summary.get('operation', 'verification'), 'completed': bool(summary.get('consumersCompleted')),

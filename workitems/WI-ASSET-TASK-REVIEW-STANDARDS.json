@@ -1,0 +1,27 @@
+{
+  "id": "WI-ASSET-TASK-REVIEW-STANDARDS",
+  "objective": "Independently review the fixed task asset deletion candidate on standards axis",
+  "scope": {
+    "write": [
+      "changes/TEST-ASSET-AUTOMATION-001/evidence/task-delete/review-standards-v1.md"
+    ],
+    "read_hints": [
+      "changes/TEST-ASSET-AUTOMATION-001/task-delete-contract.md",
+      "changes/TEST-ASSET-AUTOMATION-001/evidence/task-delete/candidate.json",
+      "changes/TEST-ASSET-AUTOMATION-001/evidence/task-delete/candidate.patch"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Exact source-bound review only; explicit task-asset retirement, no bulk history deletion, auto GC, product data or chat deletion."
+  },
+  "acceptance": [
+    "Bind all 11 current file hashes; review candidate against frozen contract and actual consumers",
+    "Report only actionable issues with concrete supported trigger and requirement/rule, under 400 words",
+    "No tests/builds/source edits or extra runtime executions"
+  ],
+  "forbidden": [
+    "Modify production, tests, state, old evidence or other reviews",
+    "Stage/commit/push, real deletion, model/device or messaging other chats"
+  ],
+  "status": "done"
+}

@@ -1,0 +1,14 @@
+test_external_logical_reference_retains_work_and_archive (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... FAIL
+
+======================================================================
+FAIL: test_external_logical_reference_retains_work_and_archive (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 65, in test_external_logical_reference_retains_work_and_archive
+    self.assertTrue(any(item.get('runId') == run.run_id and item.get('references') for item in plan['kept']))
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 1 test in 0.090s
+
+FAILED (failures=1)

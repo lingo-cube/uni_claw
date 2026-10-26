@@ -1,0 +1,12 @@
+{
+  "runId": "run-20261026T002709-faad8779c6b54b00a1ae28f0d50b612c",
+  "status": "harness-failed",
+  "exitCode": 1,
+  "finalization": {
+    "changeId": "TEST-ASSET-AUTOMATION-001",
+    "runId": "run-20261026T002709-faad8779c6b54b00a1ae28f0d50b612c",
+    "completed": true,
+    "finalization": "results/finalization.json"
+  },
+  "qualification": "not product RED or accepted proof"
+}

@@ -1,0 +1,16 @@
+test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... FAIL
+test_cli_plan_inventories_without_deleting_or_rebinding (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+test_external_logical_reference_retains_work_and_archive (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... ok
+
+======================================================================
+FAIL: test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 84, in test_cli_deletes_only_planned_assets_and_retains_audit_and_original_facts
+    self.assertFalse(run.root.exists()); self.assertFalse(package_path.exists())
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.139s
+
+FAILED (failures=1)

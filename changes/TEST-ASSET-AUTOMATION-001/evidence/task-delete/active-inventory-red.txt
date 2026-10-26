@@ -1,0 +1,14 @@
+test_active_run_is_inventoried_and_protects_the_unfinished_task (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... FAIL
+
+======================================================================
+FAIL: test_active_run_is_inventoried_and_protects_the_unfinished_task (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 101, in test_active_run_is_inventoried_and_protects_the_unfinished_task
+    self.assertIn(str(active.root), active_plan['roots'])
+AssertionError: '/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/tmpcyjgk8ai/data/staging/work/r/C-001/runs/run-20261026T000413-1141c78b00ee4d568a9a016bb687e9ba' not found in []
+
+----------------------------------------------------------------------
+Ran 1 test in 0.016s
+
+FAILED (failures=1)

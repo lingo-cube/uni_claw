@@ -1,0 +1,32 @@
+{
+  "id": "WI-ASSET-TASK-REFERENCES",
+  "objective": "Identify actual incoming task-asset references and internal dependencies for explicit retirement",
+  "scope": {
+    "write": [
+      "tools/test_asset_task_references.py",
+      "tools/tests/test_task_asset_references.py"
+    ],
+    "read_hints": [
+      "tools/test_asset_cleanup.py",
+      "tools/test_asset_archives.py",
+      "docs/agents/test-asset-retention.md"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "Pure reference projection for task deletion; external references must preserve original source, internal dependencies propagate if their consumer is kept."
+  },
+  "acceptance": [
+    "Expose scan_task_references(repo, change, targets) returning external, internal, baselines, errors maps; no mutation or deletion",
+    "Targets maps runId to record, roots (absolute work root plus archive file paths), files (absolute owned file paths); only current index/declared sources establish ownership",
+    "External logical test-assets refs must retain target Run even when archive exists; physical aliases and directory ancestors also count",
+    "Separate self documents under changes/TARGET from incoming repo plans/WorkItems and other Change indexes; parse all registered consumer JSON using old binding or temporary archive unpack, never restore",
+    "Return internal sourceRun -> targetRuns edges for self-task Run provenance; formal baseline and original-source protection tracked; malformed/unknown incoming data produces errors rather than empty success",
+    "Use existing public test seams with isolated owned fixtures, RED then GREEN; do not run .NET or real model/device"
+  ],
+  "forbidden": [
+    "Modify files outside write scope",
+    "Modify metadata/indexes of real repo tasks or delete files",
+    "Stage/commit/push, rewrite sealed evidence or add generic reference platform"
+  ],
+  "status": "done"
+}

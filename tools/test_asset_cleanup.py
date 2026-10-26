@@ -79,6 +79,8 @@ def reference_blockers(repo, change, record, root):
     index = read_index(repo, change)
     incoming = {**index, 'runs': [r for r in index['runs'] if r['runId'] != run_id],
                 'archives': [a for a in index['archives'] if a['runId'] != run_id], 'workReleases': []}
+    for metadata in ('taskDeletions','assetRetirement','retiredRuns'):
+        incoming.pop(metadata,None)  # Own retirement audit is not a new source consumer.
     incoming['targetProtectedRefs'] = record.get('protectedRefs', [])
     data = json.dumps(incoming, ensure_ascii=False).encode()
     for pattern in patterns: data = pattern.sub(b'<archive-aware-reference>', data)

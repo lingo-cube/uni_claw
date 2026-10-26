@@ -931,6 +931,1219 @@
         }
       },
       "finalization": "results/finalization.json"
+    },
+    {
+      "runId": "run-20261026T002129-76682feaa1f7474bb6cf94c0a36e3664",
+      "purpose": "verification",
+      "sourceDigest": "1d6290a5363360f4bc64bfe3566004170b3fea8063239ed844aa837405d59b9b",
+      "inputDigest": "344471c0adbd96b556ef54545b9e459e1f5e496b9f824990d4ef595539e50e22",
+      "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615",
+      "batchId": "0b8e243eacec103796bc023f16576e27575dc0aa60208e0fbd2fa27fce0d7a22",
+      "layout": {
+        "logicalRoot": "work",
+        "repositoryKey": "uni-claw",
+        "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615"
+      },
+      "files": [
+        {
+          "path": "layout.json",
+          "kind": "results",
+          "bytes": 280,
+          "sha256": "e739bdd7079dfa9225396cde6529db3f7903e33b9e3ef9a4ed7f8bb58cc2050c",
+          "retention": "task"
+        },
+        {
+          "path": "logs/tests.txt",
+          "kind": "logs",
+          "bytes": 11852,
+          "sha256": "0148b5063f86ae03b62c9acd64846ef4cf53a2409a7a86d404c7b868b1043c38",
+          "retention": "task"
+        },
+        {
+          "path": "results/source-binding.json",
+          "kind": "results",
+          "bytes": 1915,
+          "sha256": "701f153bf29dc77ece0b8765fbe4f53b00191de69a4fecf91eac9863cfeb21aa",
+          "retention": "task"
+        },
+        {
+          "path": "results/summary.json",
+          "kind": "results",
+          "bytes": 152,
+          "sha256": "3933e2379a2ed23b034dc0480e372d89e7be96f731acc90e71c30bb54a303909",
+          "retention": "task"
+        },
+        {
+          "path": "results/finalization.json",
+          "kind": "results",
+          "bytes": 1111,
+          "sha256": "a2593087e9fdcb44818014e7d6c51dada6b2dd9243bffc2c5d54546a38669b42",
+          "retention": "task"
+        }
+      ],
+      "startedAt": "2026-10-26T00:21:29.347674+00:00",
+      "summary": {
+        "exitCode": 1,
+        "counts": {
+          "total": 85,
+          "passed": false
+        },
+        "sourceStable": true,
+        "consumersCompleted": true,
+        "status": "failed"
+      },
+      "finalization": "results/finalization.json"
+    },
+    {
+      "runId": "run-20261026T002524-158e5cfe885c45c190f79c1a05925541",
+      "purpose": "verification",
+      "sourceDigest": "ce32f1afe767e6603ea8d2cdfafdf8462953f1792f3a0c2dd1066b36004debbd",
+      "inputDigest": "344471c0adbd96b556ef54545b9e459e1f5e496b9f824990d4ef595539e50e22",
+      "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615",
+      "batchId": "f7c898f0a752eb21db4ac435986984fa6a10de3378dc0f0c71c71d9d90e824ef",
+      "layout": {
+        "logicalRoot": "work",
+        "repositoryKey": "uni-claw",
+        "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615"
+      },
+      "files": [
+        {
+          "path": "layout.json",
+          "kind": "results",
+          "bytes": 280,
+          "sha256": "e739bdd7079dfa9225396cde6529db3f7903e33b9e3ef9a4ed7f8bb58cc2050c",
+          "retention": "task"
+        },
+        {
+          "path": "logs/tests.txt",
+          "kind": "logs",
+          "bytes": 11884,
+          "sha256": "92a7500a5bf6cc38b91c63f23e545ca9f2deace2577a6b0c870e5277cf3a834b",
+          "retention": "task"
+        },
+        {
+          "path": "results/source-binding.json",
+          "kind": "results",
+          "bytes": 1915,
+          "sha256": "5e6065da5148e39f8765f5e9fa435ef50cd67a5491b13b09ef2a4857ad2ba464",
+          "retention": "task"
+        },
+        {
+          "path": "results/summary.json",
+          "kind": "results",
+          "bytes": 151,
+          "sha256": "c1d6dc33112dd3f09a6fad4820b39e86ad4ce6a2854dd0df8a373224bc304218",
+          "retention": "task"
+        },
+        {
+          "path": "results/finalization.json",
+          "kind": "results",
+          "bytes": 1111,
+          "sha256": "525d956c48b21ed995d8105c8b873a5b2a537981374b1cc5411f989974c8d8b0",
+          "retention": "task"
+        }
+      ],
+      "startedAt": "2026-10-26T00:25:24.290905+00:00",
+      "summary": {
+        "exitCode": 0,
+        "counts": {
+          "total": 91,
+          "passed": true
+        },
+        "sourceStable": true,
+        "consumersCompleted": true,
+        "status": "passed"
+      },
+      "finalization": "results/finalization.json"
+    },
+    {
+      "runId": "run-20261026T002709-faad8779c6b54b00a1ae28f0d50b612c",
+      "purpose": "verification",
+      "sourceDigest": "ac63c9c42ffca6442609088382004fc158dad64521b74a20b82d955ccca86bb7",
+      "inputDigest": "c2d1fc7fcc7331e1c84dcb06e4192073e64c16ddd820f8617f7a6dbcd159147d",
+      "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615",
+      "batchId": "7f12c4749b501d17e3eca67e6d6c5193c3d803de5b452edcb26b0271375a2096",
+      "layout": {
+        "logicalRoot": "work",
+        "repositoryKey": "uni-claw",
+        "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615"
+      },
+      "files": [
+        {
+          "path": "layout.json",
+          "kind": "results",
+          "bytes": 280,
+          "sha256": "e739bdd7079dfa9225396cde6529db3f7903e33b9e3ef9a4ed7f8bb58cc2050c",
+          "retention": "task"
+        },
+        {
+          "path": "logs/plan.stderr.txt",
+          "kind": "logs",
+          "bytes": 3241,
+          "sha256": "b2e8b38aec6a857823b5e091b00d05c4b376ca02bca570ba9b5a59e449fd1ccd",
+          "retention": "task"
+        },
+        {
+          "path": "logs/plan.stdout.json",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/archive/nested/proof/DELETE-PROOF/archive-0a5a537b37cb4fa28766ed4f6a4927aa.zip",
+          "kind": "raw",
+          "bytes": 2248,
+          "sha256": "9089c6841ea1591a8a27f9c8ca80566a9d958582d367797f2a96d3a06cddcbc3",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/archive/nested/proof/DELETE-PROOF/archive-90d2fee08e6b435b9bc2266af5f23530.zip",
+          "kind": "raw",
+          "bytes": 2246,
+          "sha256": "846c9d1a0116a089e9b5f1990996ef19a67bb42ee8d3af5e4bcab59de2aac368",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T002709-62c82dec4ef04b72a1738719cafcc1ee/layout.json",
+          "kind": "raw",
+          "bytes": 442,
+          "sha256": "b8f9d5e553919089a560694b1e9714f6cffa3ca3c8c3bb42dd8e1301ac7a7ed7",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T002709-62c82dec4ef04b72a1738719cafcc1ee/out/results/finalization.json",
+          "kind": "raw",
+          "bytes": 820,
+          "sha256": "dff733106a29674baaf7e823c65d3454619147ab1537f2df828d7f358464b632",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T002709-62c82dec4ef04b72a1738719cafcc1ee/out/results/summary.json",
+          "kind": "raw",
+          "bytes": 57,
+          "sha256": "d4e5b901b4728ea72404f0214759bf37db2eaff215ae05e879c3a7da93657fc5",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T002709-62c82dec4ef04b72a1738719cafcc1ee/payload/raw/case.trx",
+          "kind": "raw",
+          "bytes": 75,
+          "sha256": "3f7db5dd15bb30dc699c6b1d4971b323a96057e67dea08dc2656f0e642c5ce4d",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T002709-722a62ccf1954472ae6a5912dbf4145b/layout.json",
+          "kind": "raw",
+          "bytes": 442,
+          "sha256": "b8f9d5e553919089a560694b1e9714f6cffa3ca3c8c3bb42dd8e1301ac7a7ed7",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T002709-722a62ccf1954472ae6a5912dbf4145b/out/results/finalization.json",
+          "kind": "raw",
+          "bytes": 820,
+          "sha256": "de9c526489eb06ad3653bf7f912eb7aea23ed613dbe9b15959332555af9d2775",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T002709-722a62ccf1954472ae6a5912dbf4145b/out/results/summary.json",
+          "kind": "raw",
+          "bytes": 57,
+          "sha256": "d4e5b901b4728ea72404f0214759bf37db2eaff215ae05e879c3a7da93657fc5",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T002709-722a62ccf1954472ae6a5912dbf4145b/payload/raw/case.trx",
+          "kind": "raw",
+          "bytes": 75,
+          "sha256": "3f7db5dd15bb30dc699c6b1d4971b323a96057e67dea08dc2656f0e642c5ce4d",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/bindings/proof/23fd9e2ba3014fea2024b7ef4235a4bd057b5f10b2d15bdbdf9c26b07ab3d858.json",
+          "kind": "raw",
+          "bytes": 407,
+          "sha256": "2b14b555a685be8778ab23c7e2b708f95c76521b894246a6cf99960601146338",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.json",
+          "kind": "raw",
+          "bytes": 5690,
+          "sha256": "aac0bf98c2a78e7f12cf69d8df025943dc58297d262cb5a08c94f92355760b5f",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.run-20261026T002709-62c82dec4ef04b72a1738719cafcc1ee.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.run-20261026T002709-722a62ccf1954472ae6a5912dbf4145b.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.task.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/evidence/unmanaged.json",
+          "kind": "raw",
+          "bytes": 25,
+          "sha256": "a3c2379eef07ce162623620250f4370e01f938a5631bfae1ea8043cb5e8fc1cd",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/state.md",
+          "kind": "raw",
+          "bytes": 24,
+          "sha256": "56a27656a68492c7321d585132fa6f2c07c5c020783ccfd9682a0ad4cd1478f4",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/OTHER/state.md",
+          "kind": "raw",
+          "bytes": 115,
+          "sha256": "89315a4857a26a39856e472f3cd40d3f7944298d8a0b1f90659b11cdd5a33258",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/fixtures/independent.json",
+          "kind": "raw",
+          "bytes": 27,
+          "sha256": "3e507729d0897d14eadeaa4dc7c6b31b3fce0c4739f1add53d408ce8d22e53ce",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/schemas/diagnosis-packet.schema.json",
+          "kind": "raw",
+          "bytes": 5298,
+          "sha256": "7c96254a6543cc08b442200f127c163017f4a0d5f6200a6ebfd043b87cfa403a",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/schemas/evolution-signal.schema.json",
+          "kind": "raw",
+          "bytes": 2160,
+          "sha256": "871ed7d5fab359ab214c75901a652dab30ed1533c6d41805a95edcedacc879e7",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/tools/evolution-signal.py",
+          "kind": "raw",
+          "bytes": 11139,
+          "sha256": "3ef7f0dbfc74aa626eb317b6324f2d457fa3936f20b0ad06570d14bfbb1b0d1b",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/tools/scenario-coverage.py",
+          "kind": "raw",
+          "bytes": 20919,
+          "sha256": "20bea35e055cbdacb8fc348969d155f6a7a9469eb07f71efd3173a3acb06e8a7",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/tools/test-assets",
+          "kind": "raw",
+          "bytes": 4387,
+          "sha256": "01e905de82cdf85ebb18d330561f7a53dc44fb2152beed4edb1a37004259a1e5",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/tools/test_asset_archives.py",
+          "kind": "raw",
+          "bytes": 17340,
+          "sha256": "b108838fc7cd5ad2fe2063b64299c20342ffb2a67935ce5ce716d66bedadcb74",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/tools/test_asset_cleanup.py",
+          "kind": "raw",
+          "bytes": 14131,
+          "sha256": "84429555970170cb91de75af1f4dcda8fb96a1b3ad7f4f4fa1f32df09f99fa0a",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/tools/test_asset_operations.py",
+          "kind": "raw",
+          "bytes": 18835,
+          "sha256": "2b737b12de8360f9d97ba8b06f183c09c80ca16b2b1d4748abe7d3924bb3191f",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/tools/test_asset_task_cleanup.py",
+          "kind": "raw",
+          "bytes": 19910,
+          "sha256": "797fceb6cfcb771949b1669b8d607f3a9ab218bad052ac4e0ae232a75662ecc2",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/tools/test_asset_task_references.py",
+          "kind": "raw",
+          "bytes": 12802,
+          "sha256": "fa405aeb8443737cc8ec8eea07277cc628e1eb8a8ee618f85bd081fe42dd5815",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/tools/test_assets.py",
+          "kind": "raw",
+          "bytes": 20291,
+          "sha256": "9062765578ebf4439f2b528c7933968547f1bfa73e6fc4b8b6062c75ea6e150c",
+          "retention": "task"
+        },
+        {
+          "path": "results/summary.json",
+          "kind": "results",
+          "bytes": 391,
+          "sha256": "045d85301cc8beccc7022fddc22801f3afe5c67c4e8f78f8b6e7ae650176457d",
+          "retention": "task"
+        },
+        {
+          "path": "results/finalization.json",
+          "kind": "results",
+          "bytes": 11317,
+          "sha256": "1fcb1b50c7f2d49d81800af694d4247081e51c1785670bb06b35a85a7113ce8c",
+          "retention": "task"
+        }
+      ],
+      "startedAt": "2026-10-26T00:27:09.679261+00:00",
+      "summary": {
+        "status": "harness-failed",
+        "consumersCompleted": true,
+        "sourceStable": true,
+        "qualification": "missing scenario_certify in isolated CLI copy; failed before any deletion; diagnostics and minimal carrier retained",
+        "realHistoricalTasksDeleted": false,
+        "operation": "verification",
+        "sourceStability": {
+          "measured": false,
+          "reason": "begin provenance unavailable"
+        }
+      },
+      "finalization": "results/finalization.json"
+    },
+    {
+      "runId": "run-20261026T002752-693a61f6788347f0a5fbe6b16d358ef9",
+      "purpose": "verification",
+      "sourceDigest": "5f30f76070cd7c1e7d8112d2fa92dc96f6f750c8c6eb0c67369d9cb5b1a169f6",
+      "inputDigest": "a686712e35ff6f4fa71bcdb8c484de8dfce8702b511a37e8191f2dfef63ba6df",
+      "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615",
+      "batchId": "3ab0725fbdd7f36241f65f5f0b9f12ef8fc67840385c9325b9ee87c95b2b7eec",
+      "layout": {
+        "logicalRoot": "work",
+        "repositoryKey": "uni-claw",
+        "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615"
+      },
+      "files": [
+        {
+          "path": "layout.json",
+          "kind": "results",
+          "bytes": 280,
+          "sha256": "e739bdd7079dfa9225396cde6529db3f7903e33b9e3ef9a4ed7f8bb58cc2050c",
+          "retention": "task"
+        },
+        {
+          "path": "logs/delete.stderr.txt",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "logs/delete.stdout.json",
+          "kind": "logs",
+          "bytes": 7241,
+          "sha256": "0e36451ccea47e4c909e0e5fb049d26e301e2badef28d18a7f17305bfc00bd8d",
+          "retention": "task"
+        },
+        {
+          "path": "logs/plan.stderr.txt",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "logs/plan.stdout.json",
+          "kind": "logs",
+          "bytes": 10162,
+          "sha256": "74e9f4d85e9887b94a5ba1be26608fbfd352a1a227da2bb61e0d8e04c8a70ae7",
+          "retention": "task"
+        },
+        {
+          "path": "logs/retained-read.stderr.txt",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "logs/retained-read.stdout.json",
+          "kind": "logs",
+          "bytes": 281,
+          "sha256": "018accde8bc0d854b9b406c8ce5c40759c96ee1bff2237bfe353c7b9d69e8902",
+          "retention": "task"
+        },
+        {
+          "path": "logs/retired-read.stderr.txt",
+          "kind": "logs",
+          "bytes": 130,
+          "sha256": "24fb68cf22557b522cd4696e8bb0cba17d5a0589422bba2f3b4b0866ad751752",
+          "retention": "task"
+        },
+        {
+          "path": "logs/retired-read.stdout.json",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/archive/nested/proof/DELETE-PROOF/archive-b202f2880c3a4b1ebad40ba43273a805.zip",
+          "kind": "raw",
+          "bytes": 2251,
+          "sha256": "89fa4464a734eb1478139346e928d042e2ed4e4058b0cf22ce5817f35d65380c",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T002752-c61214f821e9410887317cf485fb2bd0/layout.json",
+          "kind": "raw",
+          "bytes": 442,
+          "sha256": "8e509573c16fd0f795c462aa540a8d2306b775f54cd48e45785e9f5ff77fc2ef",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T002752-c61214f821e9410887317cf485fb2bd0/out/results/finalization.json",
+          "kind": "raw",
+          "bytes": 820,
+          "sha256": "947972902d3d83984757759ca5d61c96654e3cca70d891541fa59259aece183c",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T002752-c61214f821e9410887317cf485fb2bd0/out/results/summary.json",
+          "kind": "raw",
+          "bytes": 57,
+          "sha256": "d4e5b901b4728ea72404f0214759bf37db2eaff215ae05e879c3a7da93657fc5",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T002752-c61214f821e9410887317cf485fb2bd0/payload/raw/case.trx",
+          "kind": "raw",
+          "bytes": 75,
+          "sha256": "3f7db5dd15bb30dc699c6b1d4971b323a96057e67dea08dc2656f0e642c5ce4d",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/bindings/proof/d362e93fe004c4f7dcb1fdc5cdb9fa865fd9f426d539afd2379ddabf5267b510.json",
+          "kind": "raw",
+          "bytes": 407,
+          "sha256": "56667cb0b58dbc908bfed70cea67963808f5033996d8b04e0831949386d6a02c",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.json",
+          "kind": "raw",
+          "bytes": 14028,
+          "sha256": "34f50587053369c5162d94ecf2fd47f08fcc44bf90820b56bc75c601cd519b54",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.run-20261026T002752-c61214f821e9410887317cf485fb2bd0.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.run-20261026T002752-e96d3036414548bcad5869ac46836936.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.task.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/evidence/unmanaged.json",
+          "kind": "raw",
+          "bytes": 25,
+          "sha256": "a3c2379eef07ce162623620250f4370e01f938a5631bfae1ea8043cb5e8fc1cd",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/state.md",
+          "kind": "raw",
+          "bytes": 24,
+          "sha256": "56a27656a68492c7321d585132fa6f2c07c5c020783ccfd9682a0ad4cd1478f4",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/OTHER/state.md",
+          "kind": "raw",
+          "bytes": 115,
+          "sha256": "d3960f76810324ff3ac9b575034df51a088ed959906bc32938231bb38f2f164f",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/delete-plan.json",
+          "kind": "raw",
+          "bytes": 10161,
+          "sha256": "9e03acbbb875bdb820dcf9cd2e3d4445616186edb1d8b6e6e810be22905fd137",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/fixtures/independent.json",
+          "kind": "raw",
+          "bytes": 27,
+          "sha256": "3e507729d0897d14eadeaa4dc7c6b31b3fce0c4739f1add53d408ce8d22e53ce",
+          "retention": "task"
+        },
+        {
+          "path": "results/source-binding.json",
+          "kind": "results",
+          "bytes": 1557,
+          "sha256": "71720ab4d7f7e81f96a7a36664cb54cd5c96cb8599eb081d66e93612029a8840",
+          "retention": "task"
+        },
+        {
+          "path": "results/summary.json",
+          "kind": "results",
+          "bytes": 404,
+          "sha256": "f0e8e54ec7c98635e05fbe97ac258c3347c8246bed4ac1ee66dfab33b28ff526",
+          "retention": "task"
+        },
+        {
+          "path": "results/finalization.json",
+          "kind": "results",
+          "bytes": 8359,
+          "sha256": "b1ce46716dbeec68a80b613156cee9a6607d2ecc149d2a857083be26e89c5cd2",
+          "retention": "task"
+        }
+      ],
+      "startedAt": "2026-10-26T00:27:52.124445+00:00",
+      "summary": {
+        "status": "passed",
+        "consumersCompleted": true,
+        "sourceStable": true,
+        "controlledFixture": true,
+        "deletedFiles": 5,
+        "deletedBytes": 3647,
+        "protectedFilesVerified": 7,
+        "originalRunFactsUnchanged": true,
+        "oldBindingsAndNestedPathsUsed": true,
+        "retiredReadRejected": true,
+        "protectedReadSucceeded": true,
+        "temporarySourceCopiesRemoved": 10,
+        "realHistoricalTasksDeleted": false
+      },
+      "finalization": "results/finalization.json"
+    },
+    {
+      "runId": "run-20261026T004327-6ee829a5bbff411a8c83474d93536b17",
+      "purpose": "verification",
+      "sourceDigest": "ef86a76ae068cffaa883a67ca86e1b346d39cb000a1d9b8e177b59b8de2f00e6",
+      "inputDigest": "344471c0adbd96b556ef54545b9e459e1f5e496b9f824990d4ef595539e50e22",
+      "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615",
+      "batchId": "7db9265e28c2a22a0641ebb1239cacbee49f43617f9838f58f8bb770df93752a",
+      "layout": {
+        "logicalRoot": "work",
+        "repositoryKey": "uni-claw",
+        "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615"
+      },
+      "files": [
+        {
+          "path": "layout.json",
+          "kind": "results",
+          "bytes": 280,
+          "sha256": "e739bdd7079dfa9225396cde6529db3f7903e33b9e3ef9a4ed7f8bb58cc2050c",
+          "retention": "task"
+        },
+        {
+          "path": "logs/tests.txt",
+          "kind": "logs",
+          "bytes": 12289,
+          "sha256": "0331cbe1c3e77fecf39a8732b2761f255d2181a8ffc307a0702b9ef689467136",
+          "retention": "task"
+        },
+        {
+          "path": "results/source-binding.json",
+          "kind": "results",
+          "bytes": 1915,
+          "sha256": "70e130e85733638592bd8a3463ac8ddc89e14c97dc8b5586eed78f075d1c7ff4",
+          "retention": "task"
+        },
+        {
+          "path": "results/summary.json",
+          "kind": "results",
+          "bytes": 151,
+          "sha256": "199e2228a67207076d64e3f4491e8d6008620ce7e6454a11622a20e1c1651640",
+          "retention": "task"
+        },
+        {
+          "path": "results/finalization.json",
+          "kind": "results",
+          "bytes": 1111,
+          "sha256": "61b8fe77e519ee0d07b086c0ca6e15a01c7fa4d5c2cfc7e64a1cad841046a652",
+          "retention": "task"
+        }
+      ],
+      "startedAt": "2026-10-26T00:43:27.139564+00:00",
+      "summary": {
+        "exitCode": 0,
+        "counts": {
+          "total": 94,
+          "passed": true
+        },
+        "sourceStable": true,
+        "consumersCompleted": true,
+        "status": "passed"
+      },
+      "finalization": "results/finalization.json"
+    },
+    {
+      "runId": "run-20261026T004355-314ccf31621b4e44a7e21b398e9141f1",
+      "purpose": "verification",
+      "sourceDigest": "29c1067d8a214e1d7fd01c53cdb83c9cc8090eb8412910c55fc8c529a3b1da1a",
+      "inputDigest": "09a1a185c00f64fe6d0e9a2d38c830c9ffdfdc2ce9104e432a662189fdd51bf8",
+      "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615",
+      "batchId": "0dc80fa2b7fc852da613aebc372d26b699690097a76fe61ab50c843abb8b03e7",
+      "layout": {
+        "logicalRoot": "work",
+        "repositoryKey": "uni-claw",
+        "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615"
+      },
+      "files": [
+        {
+          "path": "layout.json",
+          "kind": "results",
+          "bytes": 280,
+          "sha256": "e739bdd7079dfa9225396cde6529db3f7903e33b9e3ef9a4ed7f8bb58cc2050c",
+          "retention": "task"
+        },
+        {
+          "path": "logs/delete.stderr.txt",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "logs/delete.stdout.json",
+          "kind": "logs",
+          "bytes": 7425,
+          "sha256": "4f78ca170ba00e6b68375668544f1a98bbf5b18ee380cd5e5c173ac3dc66e75b",
+          "retention": "task"
+        },
+        {
+          "path": "logs/plan.stderr.txt",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "logs/plan.stdout.json",
+          "kind": "logs",
+          "bytes": 10162,
+          "sha256": "88cf2c3e576fd15a78b55db1cd7d02adb9be2c033b2b08096044420acbce9e95",
+          "retention": "task"
+        },
+        {
+          "path": "logs/retained-read.stderr.txt",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "logs/retained-read.stdout.json",
+          "kind": "logs",
+          "bytes": 281,
+          "sha256": "ee18887df4494eae1f06401f75cb357c7ca6936615baf1b4fd8a16862f55052b",
+          "retention": "task"
+        },
+        {
+          "path": "logs/retired-read.stderr.txt",
+          "kind": "logs",
+          "bytes": 130,
+          "sha256": "98dedf0d8ffd16bbc5ce2921d15ec3f675365d02980bd312eca6f4ed3901f069",
+          "retention": "task"
+        },
+        {
+          "path": "logs/retired-read.stdout.json",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/archive/nested/proof/DELETE-PROOF/archive-2930b6dcf2fa4677bd78051178acb3a0.zip",
+          "kind": "raw",
+          "bytes": 2242,
+          "sha256": "2bafafc04785dbb7d3d2c8cdd43d44e9cede4e1de458bcf19c3a55d0b3723642",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T004355-3ba61ce4aa1c4a9ba9cec796eb1f9751/layout.json",
+          "kind": "raw",
+          "bytes": 442,
+          "sha256": "a324e0dc26d6250fe4fdff1b28501afd762beb501aa76dfc3ea62647a834836b",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T004355-3ba61ce4aa1c4a9ba9cec796eb1f9751/out/results/finalization.json",
+          "kind": "raw",
+          "bytes": 820,
+          "sha256": "6f49fd4c97e4c6d23a98bb5ec286b2c2bc3c402558842195c3542ca73dbcc37f",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T004355-3ba61ce4aa1c4a9ba9cec796eb1f9751/out/results/summary.json",
+          "kind": "raw",
+          "bytes": 57,
+          "sha256": "d4e5b901b4728ea72404f0214759bf37db2eaff215ae05e879c3a7da93657fc5",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T004355-3ba61ce4aa1c4a9ba9cec796eb1f9751/payload/raw/case.trx",
+          "kind": "raw",
+          "bytes": 75,
+          "sha256": "3f7db5dd15bb30dc699c6b1d4971b323a96057e67dea08dc2656f0e642c5ce4d",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/bindings/proof/fa921a6db61389ba2c402347dd9b05bb15562d31a60a9d647d297ad88a3a0555.json",
+          "kind": "raw",
+          "bytes": 407,
+          "sha256": "dfbcafca14f96dca6198ef81b85b2bcf9435bd74f9998625963bd80d90ef78ee",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.json",
+          "kind": "raw",
+          "bytes": 14240,
+          "sha256": "5f01c66fb44fed22901e1572e8820760021f37cba46becb7a2b4be4af871c0f8",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.run-20261026T004355-039edc36257344c6ad48696012788df5.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.run-20261026T004355-3ba61ce4aa1c4a9ba9cec796eb1f9751.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.task.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/evidence/unmanaged.json",
+          "kind": "raw",
+          "bytes": 25,
+          "sha256": "a3c2379eef07ce162623620250f4370e01f938a5631bfae1ea8043cb5e8fc1cd",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/state.md",
+          "kind": "raw",
+          "bytes": 24,
+          "sha256": "56a27656a68492c7321d585132fa6f2c07c5c020783ccfd9682a0ad4cd1478f4",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/OTHER/state.md",
+          "kind": "raw",
+          "bytes": 115,
+          "sha256": "5627d5a501e8dc861ad3078ae4561bc285275133da93900db58ecb58f1181eae",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/delete-plan.json",
+          "kind": "raw",
+          "bytes": 10161,
+          "sha256": "4e7a73cdc719f37d7e53ae7625bf7f9fdc6ea03a3ffdb72cb5694ab64804be6e",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/fixtures/independent.json",
+          "kind": "raw",
+          "bytes": 27,
+          "sha256": "3e507729d0897d14eadeaa4dc7c6b31b3fce0c4739f1add53d408ce8d22e53ce",
+          "retention": "task"
+        },
+        {
+          "path": "results/source-binding.json",
+          "kind": "results",
+          "bytes": 1557,
+          "sha256": "0fc9b7330c7c2c851918bb38b579bbd4ee5961259a9bfb6a5c379e37b794ecd4",
+          "retention": "task"
+        },
+        {
+          "path": "results/summary.json",
+          "kind": "results",
+          "bytes": 404,
+          "sha256": "92a7162cad9dd5014bdf8482dd824547ee05f2edab0743c0e0cf6de902af579d",
+          "retention": "task"
+        },
+        {
+          "path": "results/finalization.json",
+          "kind": "results",
+          "bytes": 8359,
+          "sha256": "d104eba31046e099a82ab03ca43388cc60b6600eb1e839b3b59cf14c888e38b5",
+          "retention": "task"
+        }
+      ],
+      "startedAt": "2026-10-26T00:43:55.485162+00:00",
+      "summary": {
+        "status": "passed",
+        "consumersCompleted": true,
+        "sourceStable": true,
+        "controlledFixture": true,
+        "deletedFiles": 5,
+        "deletedBytes": 3641,
+        "protectedFilesVerified": 7,
+        "originalRunFactsUnchanged": true,
+        "oldBindingsAndNestedPathsUsed": true,
+        "retiredReadRejected": true,
+        "protectedReadSucceeded": true,
+        "temporarySourceCopiesRemoved": 10,
+        "realHistoricalTasksDeleted": false
+      },
+      "finalization": "results/finalization.json"
+    },
+    {
+      "runId": "run-20261026T004626-bb949dad9ec344699bea18ee42cf77a6",
+      "purpose": "verification",
+      "sourceDigest": "d985df09e47409c6e20353656dcfd1c81230680da55fc638b27c19cde0a41ade",
+      "inputDigest": "344471c0adbd96b556ef54545b9e459e1f5e496b9f824990d4ef595539e50e22",
+      "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615",
+      "batchId": "f69ea9a684650117e7a445f0d3e571b45953c9d9d53f6f0b784262ab3a609218",
+      "layout": {
+        "logicalRoot": "work",
+        "repositoryKey": "uni-claw",
+        "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615"
+      },
+      "files": [
+        {
+          "path": "layout.json",
+          "kind": "results",
+          "bytes": 280,
+          "sha256": "e739bdd7079dfa9225396cde6529db3f7903e33b9e3ef9a4ed7f8bb58cc2050c",
+          "retention": "task"
+        },
+        {
+          "path": "logs/tests.txt",
+          "kind": "logs",
+          "bytes": 12417,
+          "sha256": "fc07e5cdd068650c63127857555aa573111a57230c9ad032746887e0cd451969",
+          "retention": "task"
+        },
+        {
+          "path": "results/source-binding.json",
+          "kind": "results",
+          "bytes": 1915,
+          "sha256": "71b5fdb0e4fe7d6549767be0999c8b2fb2cee323c8dc6163db4b647df0a05487",
+          "retention": "task"
+        },
+        {
+          "path": "results/summary.json",
+          "kind": "results",
+          "bytes": 151,
+          "sha256": "34066549d3f712bd3f9584550d1df51bde73f8d13fffd46360981c75e50b191a",
+          "retention": "task"
+        },
+        {
+          "path": "results/finalization.json",
+          "kind": "results",
+          "bytes": 1111,
+          "sha256": "579a50c6d3f5162c7f11c1901bf2da9ae2d5dc115a984eaf026faa40603fc3bf",
+          "retention": "task"
+        }
+      ],
+      "startedAt": "2026-10-26T00:46:26.177202+00:00",
+      "summary": {
+        "exitCode": 0,
+        "counts": {
+          "total": 95,
+          "passed": true
+        },
+        "sourceStable": true,
+        "consumersCompleted": true,
+        "status": "passed"
+      },
+      "finalization": "results/finalization.json"
+    },
+    {
+      "runId": "run-20261026T004630-8bc9a5e4aa3b4a8b856ff7e89818e728",
+      "purpose": "verification",
+      "sourceDigest": "0e70d444af5000b7a406585311ff79c4104bd54061e75ad65b67b6c549d9a7d8",
+      "inputDigest": "43afc578e90f8221e4b5f2e437862a6d36f436e980340ed730b639b3d33e3eb8",
+      "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615",
+      "batchId": "f57c45038742cb713c6ff8a2a8cc3dc2f364e095e5bb44e3d93ecda9c6d1043c",
+      "layout": {
+        "logicalRoot": "work",
+        "repositoryKey": "uni-claw",
+        "configDigest": "24f3a08b6fcd30ebd664c0068078aab1f8433824632d1ac212417f46933c0615"
+      },
+      "files": [
+        {
+          "path": "layout.json",
+          "kind": "results",
+          "bytes": 280,
+          "sha256": "e739bdd7079dfa9225396cde6529db3f7903e33b9e3ef9a4ed7f8bb58cc2050c",
+          "retention": "task"
+        },
+        {
+          "path": "logs/delete.stderr.txt",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "logs/delete.stdout.json",
+          "kind": "logs",
+          "bytes": 7425,
+          "sha256": "f499c85a5e33e9c42c62f4f55493332d83bcefce3ef71646251d76903046a850",
+          "retention": "task"
+        },
+        {
+          "path": "logs/plan.stderr.txt",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "logs/plan.stdout.json",
+          "kind": "logs",
+          "bytes": 10162,
+          "sha256": "4058b158bafcfce716a4df7267ffb8be6b44ce62e4c2a61e09b597fffe5033bb",
+          "retention": "task"
+        },
+        {
+          "path": "logs/retained-read.stderr.txt",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "logs/retained-read.stdout.json",
+          "kind": "logs",
+          "bytes": 281,
+          "sha256": "7b8a4cadf4e01b8b9a26187161d458d6981975041f63e5af9726b78042ed6319",
+          "retention": "task"
+        },
+        {
+          "path": "logs/retired-read.stderr.txt",
+          "kind": "logs",
+          "bytes": 130,
+          "sha256": "cabc62e8500fe58a694b2af5f19670ea7476fa9e524619e79b8acbe3d8e6f447",
+          "retention": "task"
+        },
+        {
+          "path": "logs/retired-read.stdout.json",
+          "kind": "logs",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/archive/nested/proof/DELETE-PROOF/archive-5eca4c6f71fd452ba808a91a535a6ff2.zip",
+          "kind": "raw",
+          "bytes": 2249,
+          "sha256": "289e47afc40f743da30b945fd809859e72529b426f311991c0f7e632a0c3bd7a",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T004630-6514ab4c3b85410caa7eb75b7bf428f2/layout.json",
+          "kind": "raw",
+          "bytes": 442,
+          "sha256": "7ffe0c62fd643a3dc27341909903b93fbd8dc126034682f11ae6be683341eb0f",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T004630-6514ab4c3b85410caa7eb75b7bf428f2/out/results/finalization.json",
+          "kind": "raw",
+          "bytes": 820,
+          "sha256": "050ba616750eadce0a55a720b48841d80dedd20f3a6a1087fd8bf8bac74c65c5",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T004630-6514ab4c3b85410caa7eb75b7bf428f2/out/results/summary.json",
+          "kind": "raw",
+          "bytes": 57,
+          "sha256": "d4e5b901b4728ea72404f0214759bf37db2eaff215ae05e879c3a7da93657fc5",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/asset-parent/work/nested/proof/DELETE-PROOF/runs/run-20261026T004630-6514ab4c3b85410caa7eb75b7bf428f2/payload/raw/case.trx",
+          "kind": "raw",
+          "bytes": 75,
+          "sha256": "3f7db5dd15bb30dc699c6b1d4971b323a96057e67dea08dc2656f0e642c5ce4d",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/bindings/proof/ea7d368ecd41b6bf5ec212688e1aed6a5c1da93cdf86d732a823725860332edc.json",
+          "kind": "raw",
+          "bytes": 407,
+          "sha256": "f8aec2b2d6cfd06687793b1094ce8b388c44fca8f2ab2af8fce8c335394d98a6",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.json",
+          "kind": "raw",
+          "bytes": 14240,
+          "sha256": "d848b3230ee28b8d56dca6dbae8ebb6061eb79728091f222d73e1d0a0d2d291c",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.run-20261026T004630-61d229246381414098cf14998a8f0dad.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.run-20261026T004630-6514ab4c3b85410caa7eb75b7bf428f2.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/assets.task.lock",
+          "kind": "raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/evidence/unmanaged.json",
+          "kind": "raw",
+          "bytes": 25,
+          "sha256": "a3c2379eef07ce162623620250f4370e01f938a5631bfae1ea8043cb5e8fc1cd",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/DELETE-PROOF/state.md",
+          "kind": "raw",
+          "bytes": 24,
+          "sha256": "56a27656a68492c7321d585132fa6f2c07c5c020783ccfd9682a0ad4cd1478f4",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/changes/OTHER/state.md",
+          "kind": "raw",
+          "bytes": 115,
+          "sha256": "1f7640761d590054c3bd6a874c67712817d9b3ff0430e45825ae6dbe61b9f76b",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/delete-plan.json",
+          "kind": "raw",
+          "bytes": 10161,
+          "sha256": "f7152b3dfaa635597d0c4b97b3f9a8c947f15fbd2c08da8d97933e7270b6dd08",
+          "retention": "task"
+        },
+        {
+          "path": "raw/controlled/repo/fixtures/independent.json",
+          "kind": "raw",
+          "bytes": 27,
+          "sha256": "3e507729d0897d14eadeaa4dc7c6b31b3fce0c4739f1add53d408ce8d22e53ce",
+          "retention": "task"
+        },
+        {
+          "path": "results/source-binding.json",
+          "kind": "results",
+          "bytes": 1557,
+          "sha256": "d929f440e9e531442e960a0f361f6bafd35e7308ba1570eda7b22aeb32d41697",
+          "retention": "task"
+        },
+        {
+          "path": "results/summary.json",
+          "kind": "results",
+          "bytes": 404,
+          "sha256": "27a60d97e6ddc827f8da49eee11241b1419c89efc19b918c19b5fa31d8c79e1c",
+          "retention": "task"
+        },
+        {
+          "path": "results/finalization.json",
+          "kind": "results",
+          "bytes": 8359,
+          "sha256": "5c6a1d9dc330d45d4789bb3ca2aa5a99937b14b22eaca74f99da3f49b3eee797",
+          "retention": "task"
+        }
+      ],
+      "startedAt": "2026-10-26T00:46:30.734736+00:00",
+      "summary": {
+        "status": "passed",
+        "consumersCompleted": true,
+        "sourceStable": true,
+        "controlledFixture": true,
+        "deletedFiles": 5,
+        "deletedBytes": 3644,
+        "protectedFilesVerified": 7,
+        "originalRunFactsUnchanged": true,
+        "oldBindingsAndNestedPathsUsed": true,
+        "retiredReadRejected": true,
+        "protectedReadSucceeded": true,
+        "temporarySourceCopiesRemoved": 10,
+        "realHistoricalTasksDeleted": false
+      },
+      "finalization": "results/finalization.json"
     }
   ],
   "baselineRefs": [],

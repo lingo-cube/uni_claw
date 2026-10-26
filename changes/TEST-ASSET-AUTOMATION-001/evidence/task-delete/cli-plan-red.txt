@@ -1,0 +1,18 @@
+test_cli_plan_inventories_without_deleting_or_rebinding (tools.tests.test_task_asset_deletion.TaskDeletionContracts) ... FAIL
+
+======================================================================
+FAIL: test_cli_plan_inventories_without_deleting_or_rebinding (tools.tests.test_task_asset_deletion.TaskDeletionContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/fran/Documents/Code/spacex/uni_claw/tools/tests/test_task_asset_deletion.py", line 49, in test_cli_plan_inventories_without_deleting_or_rebinding
+    self.assertEqual(code, 0, error)
+AssertionError: 2 != 0 : usage: test-assets [-h]
+                   {resolved,list,validate,path,archive,restore,verify-archive,release-work}
+                   ...
+test-assets: error: argument command: invalid choice: 'plan-delete-task' (choose from 'resolved', 'list', 'validate', 'path', 'archive', 'restore', 'verify-archive', 'release-work')
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.011s
+
+FAILED (failures=1)
