@@ -188,7 +188,12 @@ public sealed class StorageClosureFileTests : IDisposable
         try
         {
             var first = await Task.WhenAny(done.Task, Task.Delay(TimeSpan.FromSeconds(3))); Assert.Same(done.Task, first); await done.Task;
-            var run = Assert.Single(Directory.GetDirectories(directory));
+            // RUNTIME-TASK-001 S2-1：无 Launch 的 run 落 _untasked/run-<ts>/
+            //（旧平铺 run-<ts> 布局向后兼容读取）。
+            var leaves = Directory.GetDirectories(directory);
+            var run = leaves.Length == 1 && Path.GetFileName(leaves[0]) == "_untasked"
+                ? Assert.Single(Directory.GetDirectories(leaves[0]))
+                : Assert.Single(leaves);
             using var artifact = JsonDocument.Parse(File.ReadAllText(Path.Combine(run, "failure.json")));
             Assert.StartsWith("ENVIRONMENT_UNAVAILABLE:", artifact.RootElement.GetProperty("message").GetString());
             using var evidence = new FileEvidenceJournal(Path.Combine(run, "evidence.journal.jsonl"), true);

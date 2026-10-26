@@ -45,7 +45,11 @@ public sealed class HostRunner
         string? TaskInstanceId = null,
         string? ContractRef = null,
         string? AcceptedContractViewRef = null,
-        int? ContractGeneration = null);
+        int? ContractGeneration = null,
+        // RUNTIME-TASK-001 S2-4：task 组织布局与声明指纹由上游 Runtime 查
+        // TaskInstanceStore 传入；HostRunner 不解析声明内容。
+        string? TaskRef = null,
+        string? DeclarationFingerprint = null);
 
     public sealed record HostOptions(
         string? DeviceId = null,
@@ -117,8 +121,10 @@ public sealed class HostRunner
                 throw new InvalidOperationException("launch-context-incomplete: RunId, ProductSessionId, LaunchId, IdempotencyKey and CorrelationId are required");
         }
         Directory.CreateDirectory(runRoot);
-        var runDir = Path.Combine(runRoot, $"run-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}");
-        Directory.CreateDirectory(runDir);
+        // RUNTIME-TASK-001 S2-1/2/3：有 taskRef → tasks/<taskDir>/<instanceDir>/；
+        // 无 Launch（CLI）→ _untasked/run-<ts>/；旧平铺 run-<ts> 原地共存不迁移。
+        var runDir = RunLayout.CreateRunDir(runRoot, options.Launch?.TaskRef,
+            options.Launch?.TaskInstanceId, options.Launch?.RunId);
         var journalPath = Path.Combine(runDir, "exec.journal");
         var consultationPath = Path.Combine(runDir, "p25-consultation.journal.ndjson");
         await using var consultationJournal = new FileConsultationJournal(consultationPath);
@@ -428,6 +434,12 @@ public sealed class HostRunner
             };
             var factsJson = JsonSerializer.Serialize(facts, JsonOptions);
             await WriteTextAsync(runDir, "facts.json", factsJson).ConfigureAwait(false);
+            // RUNTIME-TASK-001 S2-5/S2-6：metadata.json（v2）与 task.json 引用
+            // 由 Host 侧单一所有，CLI/HTTP 双路径一致（F4）。
+            if (options.Launch?.TaskRef is { } taskReference)
+                RunLayout.WriteTaskReferenceIfAbsent(runRoot, taskReference,
+                    options.Launch.DeclarationFingerprint, kernel.RunId);
+            await RunMetadata.WriteAsync(runRoot, runDir, kernel.RunId, options.Launch).ConfigureAwait(false);
             var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
                 $"{facts.status}|{facts.outcome}|{facts.delivered}|{string.Join(",", receipts)}|{facts.journalBytes}")));
 

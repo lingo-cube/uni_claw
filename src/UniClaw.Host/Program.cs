@@ -4,7 +4,7 @@ using UniClaw.Host;
 //   --live          全真闭环（实屏截图 → 真推理 → 真 ADB 投递 → 实屏复查）
 //   --device <id>   ADB 设备号（或 UNICLAW_ANDROID_DEVICE）
 //   --target <s>    目标态（默认按当前态翻转）
-//   --runs <dir>    产物根目录（默认 runs）
+//   --runs <dir>    产物根目录（默认 state；RUNTIME-TASK-001 S2-8 由 runs 改名）
 //   --analyze <png> 标定诊断：真感知服务推理该截图，打印 switch 检测
 //   <path> 位置参数 = runs 根（兼容旧用法）
 // 仿真/回放/半真档已随 SIM-002 G1 移出产品 Host（tests 侧 DevLoopRunner
@@ -27,7 +27,8 @@ if (args.Length >= 2 && args[0] == "--analyze")
     return 0;
 }
 
-var runsRoot = "runs";
+// RUNTIME-TASK-001 S2-8：默认根 runs→state（已显式配置的根不受影响）。
+var runsRoot = "state";
 string? deviceId = null;
 string? targetState = null;
 var live = false;

@@ -384,3 +384,19 @@ verification:
   环境问题，不属本切片，留待单独裁决；既有测试副产物目录（changes/
   RUNTIME-STORAGE-002/evidence/slice2/*）保留未动。lifecycle_state →
   implementing。
+- 2026-10-26 IMPLEMENT（切片 2 布局与执行投影）：Worker＝glm-5.3-flash
+  （WI-RUNTIME-TASK-001-S2，TDD）。落地：RunLayout（`tasks/<slug.hash8(taskRef)>/
+  <ti|runId>/` + `_untasked/run-<ts>`，D2/D9；task.json write-if-absent，D7；
+  CountUntaskedRuns，A2）；RunMetadata + ImplementationFingerprint（metadata v2
+  由 HostRunner 单一写点、CLI/HTTP 双路径统一——F4 修死；T2 指纹＝commit+
+  srcDigest，repo 探测失败双 null 不 fail）；LaunchContext +TaskRef/
+  DeclarationFingerprint（S2-4，接切片 1 admission）；ResolveRunDir 契约升级
+  （相对多段+包含性校验，旧单段名与旧 ownerRef 等价兼容，A4/A6-⑥）；根默认
+  runs→state（CLI/HTTP 双入口+.gitignore，S2-8）；旧 run-* 原地共存不迁移。
+  **Leader REVIEW 通过**（RunLayout/RunMetadata/ResolveRunDir/owner 校验逐行
+  审，预留 1:N 注释未动，零越界）；复跑取证 Host.Tests 36/36、Dsh.Tests
+  18/18（PATH 补 dotnet 后含原 2 条环境红转绿）。Worker 发现处置：
+  InternalsVisibleTo 走程序集 attribute（Web SDK 限制，有先例）；artifact-set
+  端到端因 python3 预存红仅单侧验证——**记为遗留核对点**（环境修复或切片 3
+  后补跑）；python3 PATH 22 条与 sharing violation 环境红不属本 change。
+  A1–A6 全部有测试锚定。切片 3（workbench 接线+psi 收口）待派发。

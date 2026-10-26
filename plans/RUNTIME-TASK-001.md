@@ -84,6 +84,38 @@ task-instances.jsonl 同目录）；**只记录不判定**（T6）。**实现落
   productSessionId | null, createdAt }`
 - 404：`{ ok: false, error: "task-instance-not-found" }`；只读、无副作用。
 
+### 定形 S2 · 切片 2 布局与执行投影（Leader，2026-10-26）
+
+- **S2-1 单根共存**：不迁移。同一介质根内新旧布局共存：新 run 落
+  `tasks/<taskDir>/<instanceDir>/` 或 `_untasked/run-<ts>/`；旧 `run-<ts>`
+  平铺目录原地保留、继续可解析（A4/A6-⑥）。
+- **S2-2 TaskDirName**（O2 基线 slug+后缀；非身份，D8）：取 taskRef 尾段，
+  清洗为 `[a-z0-9-]`、压缩连字符、截断 40；后缀 `.` + sha256(taskRef) 前 8 hex。
+  例：`task/android-settings/toggle-wifi-reuse` → `toggle-wifi-reuse.a1b2c3d4`。
+- **S2-3 instanceDir**：`Launch.TaskInstanceId`（admission 铸的 `ti-`）；
+  缺省回退 runId。无 Launch（CLI）→ `_untasked/run-<时间戳>`（沿用旧命名）。
+- **S2-4 LaunchContext 扩展**：`string? TaskRef`、`string? DeclarationFingerprint`。
+  RuntimeHttpServer 在 request.TaskInstanceId 存在时查 TaskInstanceStore 取声明
+  指纹传入；HostRunner 不解析声明内容。
+- **S2-5 metadata.json 归 HostRunner 单一所有**（CLI/HTTP 双路径都写，F4）：
+  `{ schemaVersion:"uniclaw.run-metadata.v2", runId, productSessionId,
+  taskInstanceId, taskRef, launchId, correlationId, changeId(env
+  UNICLAW_CHANGE_ID, 可空), declarationFingerprint(可空),
+  implementationFingerprint, runDir(相对根), createdAt }`。RuntimeHttpServer
+  原有写点合并到此（字段不丢失）。
+- **S2-6 task.json**（D7 引用非副本）：`tasks/<taskDir>/task.json`，
+  write-if-absent、永不改写：`{ schemaVersion:"task-reference.v1", taskRef,
+  declarationFingerprint(首见), firstSeenRunId, createdAt }`。
+- **S2-7 T2 ImplementationFingerprint**：`{ commit, sourceDigest }`；
+  sourceDigest＝`src/UniClaw.*/**/*.cs`（排除 bin/obj）按路径排序、CRLF→LF
+  归一拼接的 SHA-256；repo root 由 AppContext.BaseDirectory 向上探测
+  `.git`/`*.sln`，找不到 → 两字段 null（不 fail）。测试经可注入根目录。
+- **S2-8 ResolveRunDir 契约升级**：接受**相对多段路径**（新布局）与单段名
+  （旧布局）；拒绝 `..` 与 rooted/盘符；`Path.GetFullPath` 后必须仍以 runsRoot
+  为前缀（包含性校验）。`artifact-set:` 等标签里的 `/` 可替换 `_`（仅标签，
+  路径不撒谎）。**根改名＝默认值变更**：Program.cs 默认 `runs`→`state`，
+  `.gitignore` 补条目；已配置根不动。
+
 ## 切片 1 · admission 闭环（评审指定先行；O4a+O4d 核心）
 
 行为链：**创建实例 → 持久化声明输入 → 重复提交/冲突 → 重启查询**。

@@ -26,6 +26,9 @@ __pycache__/
 .codex-artifacts/
 # PRF-005: runtime initialization envelopes (run artifacts; review copies via evidence select)
 src/UniClaw.Host.Dsh/runs/
+# RUNTIME-TASK-001 S2-8: default runs root renamed runs→state (configured roots untouched)
+src/UniClaw.Host.Dsh/state/
+/state/
 show-me-*.html
 
 # ScreenParser v2 weights — deliberately not in git (README: download prerequisite)

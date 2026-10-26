@@ -13,7 +13,7 @@ using UniClaw.Host.Dsh;
 //   --settings-traversal 真实 DSH Agent 驱动的 Android Settings 多步导航
 //   --settings-coverage  AGT-005 可配置有界 Settings 菜单覆盖遍历
 //   --device <id>         ADB 设备号（或 UNICLAW_ANDROID_DEVICE）
-//   --runs <dir>          产物根目录（默认 runs）
+//   --runs <dir>          产物根目录（默认 state；RUNTIME-TASK-001 S2-8 由 runs 改名）
 //   --target <state>      目标态（Settings traversal 默认 checked）
 //   --target-descriptor   目标控件语义名（默认 Wi-Fi）
 //   --decision-inbox <dir> 测试专用 leader-file 决策桥（不连接 DSH 决策通道）
@@ -21,7 +21,8 @@ using UniClaw.Host.Dsh;
 //   --runtime-http        启动 DSH Host 的 Runtime HTTP launch surface
 //   --runtime-port <p>    Runtime HTTP 监听端口（默认 5080）
 
-var runsRoot = "runs";
+// RUNTIME-TASK-001 S2-8：默认根 runs→state（已显式配置的根不受影响）。
+var runsRoot = "state";
 string? deviceId = null;
 string? targetState = null;
 var targetDescriptor = "Wi-Fi";

@@ -2,6 +2,10 @@ using System.Diagnostics;
 using System.Text;
 using UniClaw.Agent.Dsh;
 
+// 测试缝（照 UniClaw.Host 的 InternalsVisibleTo 先例）：S2-8 ResolveRunDir
+// 契约升级对 UniClaw.Host.Dsh.Tests 可见（Web SDK 不支持 csproj item 形式）。
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("UniClaw.Host.Dsh.Tests")]
+
 namespace UniClaw.Host.Dsh;
 
 /// <summary>
@@ -222,7 +226,7 @@ public sealed partial class RuntimeToolHost
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(budget);
-            text = await transport($"{name}:{runDirName}", prompt, model, cts.Token).ConfigureAwait(false);
+            text = await transport($"{name}:{SanitizeLabel(runDirName)}", prompt, model, cts.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -337,21 +341,35 @@ public sealed partial class RuntimeToolHost
 
     private static string Relative(string root, string path) => Path.GetRelativePath(root, path);
 
-    private static string ResolveRunDir(string runsRoot, string runDirName)
+    /// <summary>
+    /// RUNTIME-TASK-001 S2-8（A4）：契约升级——接受相对多段路径（新布局
+    /// tasks/&lt;taskDir&gt;/&lt;instanceDir&gt;）与单段旧名（旧布局 run-&lt;ts&gt;，完全
+    /// 向后兼容）；拒绝 ..、rooted/盘符、空；Path.GetFullPath 后必须仍以
+    /// runsRoot 全路径为前缀（包含性校验，Windows 不区分大小写）。
+    /// internal = 测试缝（UniClaw.Host.Dsh.Tests）。
+    /// </summary>
+    internal static string ResolveRunDir(string runsRoot, string runDirName)
     {
-        if (string.IsNullOrWhiteSpace(runDirName)
-            || runDirName.Contains('/') || runDirName.Contains('\\')
-            || runDirName.Contains("..", StringComparison.Ordinal)
-            || Path.GetFileName(runDirName) != runDirName)
-            throw new InvalidOperationException($"invalid-run-dir: '{runDirName}' must be a single directory name under the runs root");
+        if (string.IsNullOrWhiteSpace(runDirName))
+            throw new InvalidOperationException("invalid-run-dir: run directory path is required");
+        if (Path.IsPathRooted(runDirName) || runDirName.Contains(':'))
+            throw new InvalidOperationException($"invalid-run-dir: '{runDirName}' must be a relative path under the runs root");
+        if (runDirName.Contains("..", StringComparison.Ordinal))
+            throw new InvalidOperationException($"invalid-run-dir: '{runDirName}' must not contain '..'");
         var runDir = Path.GetFullPath(Path.Combine(runsRoot, runDirName));
         var root = Path.GetFullPath(runsRoot);
-        if (!runDir.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        if (!runDir.StartsWith(root + Path.DirectorySeparatorChar, comparison))
             throw new InvalidOperationException("invalid-run-dir: resolved path escapes the runs root");
         if (!Directory.Exists(runDir))
             throw new InvalidOperationException($"invalid-run-dir: no run directory '{runDirName}' under the runs root");
         return runDir;
     }
+
+    /// <summary>S2-8：标签字符串（artifact-set: 等后缀）含路径分隔符时以 _
+    /// 替换——仅展示/标识用途，不改路径真相。</summary>
+    internal static string SanitizeLabel(string value) =>
+        value.Replace('/', '_').Replace('\\', '_');
 
     private static ToolDescriptor NewBlank(string name) => new(
         name, string.Empty, string.Empty, string.Empty, null, null, null, string.Empty, string.Empty,

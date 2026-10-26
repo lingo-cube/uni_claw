@@ -1,0 +1,69 @@
+{
+  "id": "WI-RUNTIME-TASK-001-S2",
+  "objective": "落地切片 2：task 组织的 run 存储布局（tasks/<taskDir>/<instanceDir>/ 与 _untasked/）、metadata.json 双路径统一（CLI+HTTP）、T2 实现指纹、ResolveRunDir 多段路径契约升级、旧布局共存（TDD）。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Host/**",
+      "src/UniClaw.Host.Dsh/**",
+      "tests/UniClaw.Host.Tests/**",
+      "tests/UniClaw.Host.Dsh.Tests/**",
+      ".gitignore"
+    ],
+    "read_hints": [
+      "plans/RUNTIME-TASK-001.md（定形 S2-1..S2-8——实现必须逐条照此）",
+      "changes/RUNTIME-TASK-001/state.md（D1-D10、A1-A6）",
+      "src/UniClaw.Host/HostRunner.cs（:120 目录计算、:39 LaunchContext、:379 产物落盘）",
+      "src/UniClaw.Host.Dsh/RuntimeToolHost.cs（:297 ResolveOutputDir、:340 ResolveRunDir）",
+      "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs（:700-730 既有 metadata 写点、LaunchContext 组装）",
+      "src/UniClaw.Host/Program.cs（runs 默认根、CLI 无 Launch 路径）"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "RUNTIME-TASK-001 切片 2：run 目录从 run-<时间戳> 平铺改为按 task 两层组织 + 无 task 兜底段；metadata/指纹双路径统一；工具契约升级为相对多段路径；旧布局原地共存。",
+    "core_points": [
+      "新布局 tasks/<slug.hash8(taskRef)>/<ti|runId>/；无 Launch → _untasked/run-<ts>（S2-1/2/3）",
+      "metadata.json 由 HostRunner 单一所有，CLI 也写（S2-5）",
+      "task.json write-if-absent，引用+指纹非副本（S2-6，D7）",
+      "T2 指纹：commit + src 归一哈希，repo 探测失败→null 不 fail（S2-7）",
+      "ResolveRunDir 允许相对多段 + 拒 .. + 包含性校验；单段旧名继续有效（S2-8，A4）",
+      "根默认值 runs→state + .gitignore 补条目；已配置根不动（S2-8）"
+    ]
+  },
+  "anchors": [
+    { "path": "src/UniClaw.Host/HostRunner.cs", "symbol": "RunOnceAsync" },
+    { "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.cs", "symbol": "ResolveRunDir" },
+    { "path": "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs", "symbol": "RuntimeTaskEndpoints" },
+    { "path": "src/UniClaw.Host/Program.cs" }
+  ],
+  "contract_refs": [
+    "plans/RUNTIME-TASK-001.md",
+    "changes/RUNTIME-TASK-001/state.md",
+    "changes/RUNTIME-TASK-001/solution.md"
+  ],
+  "acceptance": [
+    "A1：带 TaskInstanceId+TaskRef 的 run 目录＝<root>/tasks/<slug.hash8>/<ti>/，metadata.json 含 runId/productSessionId/taskInstanceId/taskRef/launchId/correlationId/changeId(可空)/declarationFingerprint(可空)/implementationFingerprint/runDir(相对)/createdAt（S2-5 字段表）",
+    "A1-CLI：无 Launch 的 run 落 _untasked/run-<ts>/ 且同样写 metadata.json（声明层字段为 null）——CLI 与 HTTP 双路径覆盖（F4）",
+    "A2：_untasked 数量可统计（最小实现：目录枚举 API 或工具函数 + 测试）",
+    "A3/A5：重命名/篡改 run 目录名后，TaskInstanceStore 与 RuntimeRunStore 的身份查询结果不变（新增反向测试）",
+    "A4/A6-⑥：旧式单段 run-<ts> 目录仍可被 ResolveRunDir 解析（同根共存）；既有报告交付（绝对 SourceDirectory）不受影响",
+    "A6-⑤：同 commit 不同源码内容 → sourceDigest 不同（用可注入根的临时目录测试，不改真实 src）",
+    "S2-8：ResolveRunDir 接受相对多段路径、拒绝 .. 与 rooted/盘符、包含性校验（测试覆盖四种拒绝分支）",
+    "S2-6：task.json write-if-absent——同 task 第二次 run 不改写首见内容（测试）",
+    "受影响测试套件绿（Host.Tests / Dsh.Tests 相关过滤器 + 全新测试），evidence 含命令与输出摘录；git status 零越界"
+  ],
+  "forbidden": [
+    "禁止改动切片 1 的 admission/declaration 语义与 TaskInstanceStore 行为（预留 1:N 注释仍不许动）",
+    "禁止迁移/删除/改名任何既有 run 目录与旧数据；禁止改 .identity/.runtime-runs/.required-reports 子目录名",
+    "禁止实现 T3 验收记录存储、场景库/catalog 改动、多 Run 语义",
+    "禁止修改 changes/**、plans/**、workitems/**、schemas/**、model-routing.yaml、.dsh/**、CONTEXT.md、scenarios/**、testsets/**、dsh/uniclaw-task-workbench/**（本切片纯 Runtime/Host 侧）",
+    "禁止 git commit / push（Leader REVIEW 后统一提交）",
+    "禁止 reset / clean / 全仓 stage；禁止重构与本切片无关代码"
+  ],
+  "frozen_decisions": [
+    "changes/RUNTIME-TASK-001/state.md D1-D17（尤其 D1-D10 布局裁决与 D8 身份权威）",
+    "plans/RUNTIME-TASK-001.md 定形 S2-1..S2-8"
+  ],
+  "required_capability": "implementation",
+  "required_skills": ["tdd"],
+  "status": "done"
+}

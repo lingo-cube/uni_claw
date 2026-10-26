@@ -22,7 +22,8 @@ public sealed partial class RuntimeToolHost
         string requestId = "primary", bool strict = false, CancellationToken cancellationToken = default)
     {
         _ = ResolveRunDir(runsRoot, runDirName);
-        var requirement = await RequireReportAsync(runsRoot, "artifact-set:" + runDirName, requestId, strict, cancellationToken);
+        var requirement = await RequireReportAsync(runsRoot,
+            "artifact-set:" + SanitizeLabel(runDirName), requestId, strict, cancellationToken);
         return await RetryRequiredReportAsync(runsRoot, requirement.DeliveryId, runDirName, cancellationToken);
     }
 
@@ -74,7 +75,7 @@ public sealed partial class RuntimeToolHost
         {
             var source = runDirName is not null ? ResolveRunDir(runsRoot, runDirName) : row.SourceDirectory;
             if (source is null) return new(snapshot, new(1, "", "report-source-required", null, null));
-            await ValidateReportOwnerAsync(row.Request, source, cancellationToken);
+            await ValidateReportOwnerAsync(runsRoot, row.Request, source, cancellationToken);
             var label = row.SourceLabel ?? Path.GetFileName(source);
             row = await store.PrepareAsync(deliveryId, source, label, cancellationToken);
         }
@@ -86,7 +87,7 @@ public sealed partial class RuntimeToolHost
                 var args = new List<string> { "--run-dir", context.InputDirectory, "--out-dir", context.OutputDirectory,
                     "--source-label", context.SourceLabel };
                 if (context.Strict) args.Add("--strict");
-                await ValidateReportOwnerAsync(row.Request, context.InputDirectory, token, row.SourceDirectory);
+                await ValidateReportOwnerAsync(runsRoot, row.Request, context.InputDirectory, token, row.SourceDirectory);
                 process = await RunReportScriptAsync(context.GeneratorPath, args.ToArray(), token,
                     Path.Combine(Path.GetDirectoryName(context.GeneratorPath)!, ".generator.lock"));
                 return new(process.ExitCode, process.Stderr);
@@ -144,12 +145,17 @@ public sealed partial class RuntimeToolHost
         return Convert.ToHexString(await SHA256.HashDataAsync(stream, token)).ToLowerInvariant();
     }
 
-    private static async Task ValidateReportOwnerAsync(ReportDeliveryRequest request, string directory,
+    private static async Task ValidateReportOwnerAsync(string runsRoot, ReportDeliveryRequest request, string directory,
         CancellationToken token, string? originalDirectory = null)
     {
         if (request.OwnerRef.StartsWith("artifact-set:", StringComparison.Ordinal))
         {
-            if (Path.GetFileName(originalDirectory ?? directory) != request.OwnerRef[13..])
+            // RUNTIME-TASK-001 S2-8：ownerRef 后缀是标签（路径分隔符已替换为
+            // _）；验证时以源目录相对 runsRoot 的真实路径做同一替换后比对
+            //（路径不撒谎：比较基准仍是磁盘真相）。
+            var source = originalDirectory ?? directory;
+            var relative = Path.GetRelativePath(Path.GetFullPath(runsRoot), Path.GetFullPath(source));
+            if (request.OwnerRef[13..] != SanitizeLabel(relative))
                 throw new InvalidOperationException("report-source-owner-mismatch");
             return;
         }

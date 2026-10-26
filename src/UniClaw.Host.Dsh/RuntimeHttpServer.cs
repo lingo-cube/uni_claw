@@ -377,6 +377,10 @@ public sealed class RuntimeHttpServer
         var launch = new HostRunner.LaunchContext(running.RunId, running.ProductSessionId,
             launchId, idempotency, correlation,
             TaskInstanceId: taskInstanceId,
+            // RUNTIME-TASK-001 S2-4：查 TaskInstanceStore 取 taskRef 与声明指纹
+            // 传入（HostRunner 不解析声明内容；S2-1 布局据此落 tasks/<taskDir>/）。
+            TaskRef: taskRecord.TaskRef,
+            DeclarationFingerprint: taskRecord.DeclarationFingerprint,
             ContractRef: $"contract-view:{acceptedContractViewRef}",
             AcceptedContractViewRef: acceptedContractViewRef,
             ContractGeneration: request.ContractGeneration);
@@ -502,7 +506,8 @@ public sealed class RuntimeHttpServer
             var outcome = status == "completed" ? "completion" : status == "interrupted" ? "unknown" : "failure";
 
             // Execution is terminal before report work begins. Report retry has no execution authority.
-            var dirName = Path.GetFileName(result.RunDir);
+            // RUNTIME-TASK-001 S2-8：run 目录改为相对多段路径（tasks/<taskDir>/<ti>）。
+            var dirName = Path.GetRelativePath(Path.GetFullPath(_runsRoot), result.RunDir);
             var artifacts = BuildArtifacts(runId);
             if (reportDeliveryId is not null)
                 artifacts = [.. artifacts, new("report", "report", "partial", "report-deliveries/" + reportDeliveryId)];
@@ -796,36 +801,49 @@ public sealed class RuntimeHttpServer
 
     /// <summary>
     /// PNL-011：run 目录的 metadata 投影（adapter 层观测：设备/模型/endpoint 是
-    /// realization 关切，产品 HostRunner 不拥有）。历史 fixture 的 metadata.json
-    /// 由采集流程手写；本方法使其成为 finalize 的正式产物。
+    /// realization 关切，产品 HostRunner 不拥有）。
+    /// RUNTIME-TASK-001 S2-5：身份/指纹字段（schemaVersion/runId/productSessionId/
+    /// taskInstanceId/taskRef/launchId/correlationId/changeId/declarationFingerprint/
+    /// implementationFingerprint/runDir/createdAt）已由 HostRunner 统一写入
+    /// uniclaw.run-metadata.v2——本方法只合并 adapter 层字段，不覆盖、不丢字段。
     /// </summary>
     private void WriteRunMetadata(string runDir, string runId, HostRunner.LaunchContext launch, string device, string model,
         string? requirement, string? title, string? taskSet, string status, string outcome, HostRunner.HostRunResult result)
     {
-        var dshSessionId = _store.Get(runId)?.HostSessionRef?.SessionId;
-        var metadata = new Dictionary<string, object?>
+        var path = Path.Combine(runDir, "metadata.json");
+        var metadata = new Dictionary<string, object?>(StringComparer.Ordinal);
+        if (File.Exists(path))
         {
-            ["schemaVersion"] = "uniclaw.host-metadata.v1",
-            ["runDir"] = runDir,
-            ["runId"] = runId,
-            ["productSessionId"] = launch.ProductSessionId,
-            ["launchId"] = launch.LaunchId,
-            ["correlationId"] = launch.CorrelationId,
-            ["dshSessionId"] = dshSessionId,
-            ["requirement"] = requirement,
-            ["productSessionTitle"] = title,
-            ["taskSet"] = taskSet,
-            ["workspace"] = taskSet,
-            ["device"] = device,
-            ["productModel"] = model,
-            ["dshEndpoint"] = _bindings.Service.BaseUri?.ToString(),
-            ["real"] = true,
-            ["status"] = status,
-            ["outcome"] = outcome,
-            ["deliveredEffects"] = result.DeliveredEffects,
-            ["receipts"] = result.ReceiptOutcomes,
-        };
-        File.WriteAllText(Path.Combine(runDir, "metadata.json"), JsonSerializer.Serialize(metadata, ArtifactJson));
+            // HostRunner 已写入 v2 投影——原样保留其字段，仅并入 adapter 层观测。
+            using var document = JsonDocument.Parse(File.ReadAllText(path));
+            foreach (var property in document.RootElement.EnumerateObject())
+                metadata[property.Name] = JsonSerializer.Deserialize<JsonElement>(property.Value.GetRawText());
+        }
+        else
+        {
+            // 兜底（HostRunner 未写到的历史路径）：保留旧 v1 形状，不丢字段。
+            metadata["schemaVersion"] = "uniclaw.host-metadata.v1";
+            metadata["runDir"] = runDir;
+            metadata["runId"] = runId;
+            metadata["productSessionId"] = launch.ProductSessionId;
+            metadata["launchId"] = launch.LaunchId;
+            metadata["correlationId"] = launch.CorrelationId;
+        }
+        var dshSessionId = _store.Get(runId)?.HostSessionRef?.SessionId;
+        metadata["dshSessionId"] = dshSessionId;
+        metadata["requirement"] = requirement;
+        metadata["productSessionTitle"] = title;
+        metadata["taskSet"] = taskSet;
+        metadata["workspace"] = taskSet;
+        metadata["device"] = device;
+        metadata["productModel"] = model;
+        metadata["dshEndpoint"] = _bindings.Service.BaseUri?.ToString();
+        metadata["real"] = true;
+        metadata["status"] = status;
+        metadata["outcome"] = outcome;
+        metadata["deliveredEffects"] = result.DeliveredEffects;
+        metadata["receipts"] = result.ReceiptOutcomes;
+        File.WriteAllText(path, JsonSerializer.Serialize(metadata, ArtifactJson));
     }
 
     /// <summary>PNL-011：把 RuntimeRunStore 的生命周期事件导出进 run 目录，让报告
