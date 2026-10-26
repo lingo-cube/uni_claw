@@ -33,3 +33,6 @@ platforms/perception/models/yolo/screenparser_v2/
 
 # SIM-006 raw run artifacts (resolved-config snapshots; selected redacted copies live under evidence/sim-006/snapshots/)
 evidence/sim-006/runs/
+
+# WORLD-VISUALIZATION-001: world-viz standalone harness 是生成物（node scripts/build-world-viz-harness.mjs）
+web/uniclaw-workspace/harness/

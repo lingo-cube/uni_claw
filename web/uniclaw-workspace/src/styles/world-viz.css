@@ -1,0 +1,55 @@
+/* WORLD-VISUALIZATION-001 切片 2：WorldViz 组件样式（wv- 前缀，宿主安全）。
+   状态不只靠颜色：未知/缺省/失败均有文字徽章（QV7）。 */
+.wv-root { display: flex; flex-direction: column; height: 100%; background: #10141b; color: #e8edf5; font: 14px/1.5 system-ui, "Microsoft YaHei", sans-serif; overflow: hidden; }
+.wv-header { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid #2b3442; background: #171d27; }
+.wv-header h1 { font-size: 16px; margin: 0; }
+.wv-source { color: #8fa3bd; font-size: 12px; }
+.wv-timeline { display: flex; gap: 2px; padding: 8px 16px; border-bottom: 1px solid #2b3442; background: #131824; overflow-x: auto; }
+.wv-rev { min-width: 76px; border: 1px solid #2b3442; border-radius: 8px; padding: 5px 7px; cursor: pointer; background: #171d27; flex-shrink: 0; }
+.wv-rev:hover { border-color: #4a5a74; }
+.wv-rev.wv-current { border-color: #5b9cff; background: #16213a; }
+.wv-no { font-size: 12px; color: #8fa3bd; }
+.wv-time { font-size: 11px; color: #6f81a0; }
+.wv-chips { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 3px; height: 26px; align-content: flex-start; }
+.wv-chip { font-size: 10px; border-radius: 4px; padding: 1px 4px; background: #232d3f; color: #aebfd8; }
+.wv-chip.wv-nav { color: #7fc4ff; } .wv-chip.wv-corr { color: #ff9d7f; } .wv-chip.wv-sem { color: #9fe6a8; }
+.wv-chip.wv-reused { color: #d8b96a; } .wv-chip.wv-struct { color: #c9a0ff; }
+.wv-main { display: flex; flex: 1; min-height: 0; }
+.wv-graph-wrap { flex: 1; position: relative; min-width: 0; }
+.wv-legend { position: absolute; top: 10px; left: 12px; background: #171d27ee; border: 1px solid #2b3442; border-radius: 8px; padding: 8px 10px; font-size: 12px; display: flex; flex-direction: column; gap: 5px; z-index: 2; }
+.wv-legend label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+.wv-graph { width: 100%; height: 100%; }
+.wv-detail { width: 340px; border-left: 1px solid #2b3442; background: #171d27; padding: 14px; overflow-y: auto; }
+.wv-detail h2 { font-size: 14px; margin: 0 0 8px; color: #aebfd8; }
+.wv-kv { margin: 4px 0; font-size: 13px; word-break: break-all; }
+.wv-kv b { color: #8fa3bd; font-weight: 500; margin-right: 6px; }
+.wv-badge { display: inline-block; font-size: 11px; border-radius: 5px; padding: 1px 7px; margin-right: 4px; border: 1px solid; }
+.wv-badge.wv-unknown { background: #2a2413; color: #d8b96a; border-color: #5a4a1a; }
+.wv-badge.wv-current { background: #12233f; color: #7fc4ff; border-color: #2a4a7f; }
+.wv-badge.wv-reused { background: #1e2a1a; color: #9fe6a8; border-color: #2a5a3a; }
+.wv-badge.wv-withdrawn { background: #2a1414; color: #ff9d7f; border-color: #5a2a2a; }
+.wv-changes { border-top: 1px solid #2b3442; padding: 8px 16px; font-size: 12px; color: #aebfd8; background: #131824; display: flex; gap: 16px; flex-wrap: wrap; }
+.wv-changes b { color: #e8edf5; }
+.wv-deferred-bar { display: flex; gap: 8px; padding: 6px 16px; border-top: 1px solid #2b3442; background: #14120c; flex-wrap: wrap; }
+.wv-deferred { font-size: 12px; color: #d8b96a; border: 1px dashed #6a5a2a; border-radius: 6px; padding: 3px 10px; background: #1e1a10; }
+.wv-notice { color: #6f81a0; font-size: 12px; }
+.wv-empty-state, .wv-failed-state { margin: auto; padding: 40px; font-size: 15px; color: #aebfd8; }
+.wv-failed-state { color: #ff9d7f; }
+/* 节点卡（HTML in foreignObject） */
+.wv-node { width: 206px; background: #1b2331; border: 1.2px solid #3a465c; border-radius: 12px; padding: 7px; cursor: pointer; }
+.wv-node.wv-node-current { background: #16233c; border: 2.2px solid #5b9cff; }
+.wv-node.wv-node-selected { outline: 2px solid #e8edf5; }
+.wv-thumb { height: 64px; border-radius: 7px; background: #e9edf3; position: relative; overflow: hidden; }
+.wv-shot { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 7px; display: block; }
+.wv-shot-tag { position: absolute; right: 3px; bottom: 3px; font-size: 9px; background: #10141bcc; color: #9fe6a8; border: 1px solid #2a5a3a; border-radius: 3px; padding: 0 4px; }
+.wv-ti { position: absolute; border: 1px solid #8fa0b8; background: #f6f8fb; color: #1c2733; font-size: 8px; line-height: 1.15; padding: 0 2px; border-radius: 2px; overflow: hidden; }
+.wv-ti.wv-title { font-weight: 700; background: #dde5ef; }
+.wv-noshot { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #7a8698; font-size: 11px; background: repeating-linear-gradient(45deg, #e5e9ef 0 8px, #dce2ea 8px 16px); }
+.wv-nlabel { margin-top: 5px; font-size: 13px; font-weight: 600; color: #e8edf5; display: flex; align-items: center; gap: 4px; min-height: 20px; }
+.wv-nid { font-size: 10px; color: #6f81a0; }
+.wv-nbadges { margin-top: 3px; min-height: 18px; }
+.wv-detail-thumb { height: 190px; margin: 6px 0; }
+.wv-obslist { font-size: 12px; margin-top: 4px; }
+.wv-ob { display: flex; gap: 6px; padding: 2px 4px; background: #141a26; border-radius: 4px; margin: 2px 0; color: #aebfd8; }
+.wv-ob-role { color: #7fc4ff; min-width: 46px; }
+.wv-ob-state { color: #9fe6a8; }

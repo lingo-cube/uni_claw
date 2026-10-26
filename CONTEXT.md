@@ -1098,6 +1098,9 @@ _Avoid_: 页面直接创建目录、查询接口隐式创建运行、文件名�
 **Launch Metadata**: 任务发起和创建过程中的分阶段元信息集合；每个字段都要标明来源类别：`configured`（测试集、manifest、Host 或 launch config 提供）、`generated`（authority 在创建过程中生成的 ID、时间和绑定）、`observed`（设备、Runtime、Host 实际观察）、`derived`（由已有关联记录计算出的展示值）。这些类别不能互相冒充，且都要带 source、authority、availability；需要时间语义时再带 observedAt。
 _Avoid_: 一次性 metadata blob、配置冒充实测、派生值冒充原始事实、空值即完成、模型输出元信息
 
+**缺省标注（Deferred Marker）**: Workspace 表面对"功能属于已规划的后续切片、当前未实现"的显式不可用占位（可见入口 + 归属切片说明 + 变更记录引用）；它与 World 认识的"未知"、链路正常的"无数据"、"加载失败"是四个互不冒充的界面状态，不静默隐藏入口。（WORLD-VISUALIZATION-001 QV7，2026-10-23）
+_Avoid_: 未实现伪装成未知或空态、静默隐藏入口、以面板存在声称能力已交付
+
 ### Simulation Substrate（RFS-001 落定）
 
 **ScenarioStimulus**: 由 sealed Trace 或 reviewed fixture 经 Scenario Importer

@@ -114,4 +114,24 @@ public sealed record WorldGraphProjection(
 {
     public IReadOnlyList<ViewportTransition> ViewportTransitions { get; init; } =
         System.Collections.Immutable.ImmutableArray<ViewportTransition>.Empty;
+
+    /// <summary>WORLD-VISUALIZATION-001：结构关系（Contains/Overlays）快照。
+    /// capture-scoped（Scope 为 "capture:{id}"），与 NavigatesTo 的 run-scope
+    /// 不同域，故不做 run-scope 过滤（DerivePageView ContextRelations 先例）；
+    /// graph relation ≠ timeless structural truth。</summary>
+    public IReadOnlyList<ContainerRelation> StructuralRelations { get; init; } =
+        System.Collections.Immutable.ImmutableArray<ContainerRelation>.Empty;
+
+    /// <summary>WORLD-VISUALIZATION-001：Owner 侧 join 的节点稳定语义标签；
+    /// 无条目 = 语义未知（UI 降级），不是"已确认但无名称"。</summary>
+    public IReadOnlyList<WorldNodeLabel> NodeLabels { get; init; } =
+        System.Collections.Immutable.ImmutableArray<WorldNodeLabel>.Empty;
+
+    /// <summary>WORLD-VISUALIZATION-001：签名被撤回的容器集合。判定：该容器的
+    /// 唯一 signature 曾被 Applied 纠错撤走（PreviousContainer 指向它、目标是
+    /// 别的容器），且本 revision 的 WorldState 中它没有新 signature。容器仍
+    /// 作为世界事实保留，但旧签名不再参与未来匹配——后续同签名观察会铸造新
+    /// 容器；历史 projection 只按选定 revision 界定，不回填。</summary>
+    public IReadOnlyList<string> SignatureWithdrawnContainers { get; init; } =
+        System.Collections.Immutable.ImmutableArray<string>.Empty;
 }

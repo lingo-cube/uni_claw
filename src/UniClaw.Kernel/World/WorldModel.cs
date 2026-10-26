@@ -253,7 +253,13 @@ public sealed partial class WorldModel
             unknown.Add("no-navigation-edge-observed-in-scope");
         return new WorldGraphProjection(
             revision.RevisionId, scope, anchor, nodes, edges, unknown)
-        { ViewportTransitions = revision.ViewportTransitions.Where(t => t.Scope == scope).ToImmutableArray() };
+        { ViewportTransitions = revision.ViewportTransitions.Where(t => t.Scope == scope).ToImmutableArray(),
+          // WORLD-VISUALIZATION-001：结构关系（capture-scoped，不做 run-scope
+          // 过滤，ContextRelations 先例）与 Owner 侧语义标签；见
+          // WorldModel.Visualization.cs 与 read-seam-interface-draft.md。
+          StructuralRelations = DeriveStructuralRelations(revision),
+          NodeLabels = DeriveNodeLabels(revision),
+          SignatureWithdrawnContainers = DeriveSignatureWithdrawn(revision) };
     }
 
     /// <summary>

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>World 可视化 · 原型预览</title>
+<style>
+  :root { color-scheme: dark; font: 14px/1.5 system-ui, "Microsoft YaHei", sans-serif; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background:#10141b; color:#e8edf5; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+  header { display:flex; align-items:center; gap:14px; padding:10px 16px; border-bottom:1px solid #2b3442; background:#171d27; }
+  header h1 { font-size:16px; }
+  .source { color:#8fa3bd; font-size:12px; }
+  .deferred { margin-left:auto; font-size:12px; color:#d8b96a; border:1px dashed #6a5a2a; border-radius:6px; padding:3px 10px; background:#1e1a10; cursor:not-allowed; }
+  .deferred::before { content:"缺省 "; font-weight:600; }
+  #timeline { display:flex; align-items:stretch; gap:2px; padding:8px 16px; border-bottom:1px solid #2b3442; background:#131824; overflow-x:auto; }
+  .rev { min-width:76px; border:1px solid #2b3442; border-radius:8px; padding:5px 7px; cursor:pointer; background:#171d27; flex-shrink:0; }
+  .rev:hover { border-color:#4a5a74; }
+  .rev.current { border-color:#5b9cff; background:#16213a; }
+  .rev .no { font-size:12px; color:#8fa3bd; }
+  .rev .time { font-size:11px; color:#6f81a0; }
+  .chips { display:flex; gap:3px; flex-wrap:wrap; margin-top:3px; height:26px; align-content:flex-start; }
+  .chip { font-size:10px; border-radius:4px; padding:1px 4px; background:#232d3f; color:#aebfd8; }
+  .chip.nav { color:#7fc4ff; } .chip.corr { color:#ff9d7f; } .chip.sem { color:#9fe6a8; }
+  .chip.reused { color:#d8b96a; } .chip.struct { color:#c9a0ff; }
+  #main { display:flex; flex:1; min-height:0; }
+  #graphWrap { flex:1; position:relative; min-width:0; }
+  #legend { position:absolute; top:10px; left:12px; background:#171d27ee; border:1px solid #2b3442; border-radius:8px; padding:8px 10px; font-size:12px; display:flex; flex-direction:column; gap:5px; }
+  #legend label { display:flex; gap:6px; align-items:center; cursor:pointer; }
+  #zoomHint { position:absolute; bottom:8px; left:12px; color:#6f81a0; font-size:11px; }
+  svg { width:100%; height:100%; cursor:grab; }
+  #detail { width:340px; border-left:1px solid #2b3442; background:#171d27; padding:14px; overflow-y:auto; }
+  #detail h2 { font-size:14px; margin-bottom:8px; color:#aebfd8; }
+  .kv { margin:4px 0; font-size:13px; word-break:break-all; }
+  .kv b { color:#8fa3bd; font-weight:500; margin-right:6px; }
+  .badge { display:inline-block; font-size:11px; border-radius:5px; padding:1px 7px; margin-right:4px; }
+  .badge.unknown { background:#2a2413; color:#d8b96a; border:1px solid #5a4a1a; }
+  .badge.current { background:#12233f; color:#7fc4ff; border:1px solid #2a4a7f; }
+  .badge.reused { background:#1e2a1a; color:#9fe6a8; border:1px solid #2a5a3a; }
+  #changes { border-top:1px solid #2b3442; padding:8px 16px; font-size:12px; color:#aebfd8; background:#131824; display:flex; gap:16px; flex-wrap:wrap; }
+  #changes span b { color:#e8edf5; }
+  .notice { color:#6f81a0; }
+  /* 节点卡（HTML in foreignObject） */
+  .node { width:206px; background:#1b2331; border:1.2px solid #3a465c; border-radius:12px; padding:7px; cursor:pointer; }
+  .node.current { background:#16233c; border:2.2px solid #5b9cff; }
+  .node.selected { outline:2px solid #e8edf5; }
+  .thumb { height:100px; border-radius:7px; background:#e9edf3; position:relative; overflow:hidden; }
+  .thumb .ti { position:absolute; border:1px solid #8fa0b8; background:#f6f8fb; color:#1c2733; font-size:8px; line-height:1.15; padding:0 2px; border-radius:2px; overflow:hidden; }
+  .thumb .ti.title { font-weight:700; background:#dde5ef; }
+  .noshot { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#7a8698; font-size:11px;
+    background:repeating-linear-gradient(45deg,#e5e9ef 0 8px,#dce2ea 8px 16px); }
+  .nlabel { margin-top:5px; font-size:13px; font-weight:600; color:#e8edf5; display:flex; align-items:center; gap:4px; min-height:20px; }
+  .nid { font-size:10px; color:#6f81a0; }
+  .nbadges { margin-top:3px; min-height:18px; }
+  .nbadges .badge { font-size:10px; padding:0 6px; }
+  /* 详情面板缩略 */
+  .detail-thumb { height:190px; margin:6px 0; }
+  .obslist { font-size:12px; margin-top:4px; }
+  .obslist .ti { display:flex; gap:6px; padding:2px 4px; background:#141a26; border-radius:4px; margin:2px 0; color:#aebfd8; }
+</style>
+<header>
+  <h1>World 模型可视化</h1>
+  <span class="source">原型预览 · 数据源：<b id="source"></b> · 节点缩略 = Container 页面表达重绘（ProjectWorldPage）</span>
+  <span class="deferred" title="QV7 缺省标注">live 运行链（runtime-http 适配器）属切片 4，未实现</span>
+</header>
+<div id="timeline"></div>
+<div id="main">
+  <div id="graphWrap">
+    <div id="legend">
+      <label><input type="checkbox" checked data-kind="nav"> 导航（已验证，允许环）</label>
+      <label><input type="checkbox" checked data-kind="struct"> Contains 结构关系</label>
+      <label><span class="badge current">当前页</span>当前锚</label>
+      <label><span class="badge unknown">语义未知</span>无已采信语义</label>
+      <label><span class="badge reused">沿用</span>稳定语义复用</label>
+    </div>
+    <div id="zoomHint">滚轮缩放 · 拖拽平移 · 单击选中节点</div>
+    <svg id="graph"></svg>
+  </div>
+  <div id="detail"><h2>详情</h2><div id="detailBody" class="notice">未选中节点。单击图节点查看 Container 详情与页面表达。</div></div>
+</div>
+<div id="changes"></div>
+<script src="data.js"></script>
+<script>
+const DATA = window.__WORLD_VIZ_DATA__;
+const svg = document.getElementById('graph');
+const NS = 'http://www.w3.org/2000/svg';
+let revision = (location.hash.length > 1 && DATA.graphs[location.hash.slice(1)]) ? location.hash.slice(1)
+  : DATA.timeline.CurrentRevisionId;
+let selected = null;
+let showNav = true, showStruct = true;
+document.getElementById('source').textContent = DATA.provenance;
+
+function layout(graph) {
+  const ids = graph.nodes.map(n => n.id);
+  const adj = new Map(ids.map(id => [id, []]));
+  for (const e of [...graph.navigationEdges, ...graph.structuralRelations]) adj.get(e.source)?.push(e.target);
+  const depth = new Map(); const queue = [ids[0]]; depth.set(ids[0], 0);
+  while (queue.length) { const cur = queue.shift();
+    for (const next of adj.get(cur) ?? []) if (!depth.has(next)) { depth.set(next, depth.get(cur) + 1); queue.push(next); } }
+  ids.forEach(id => { if (!depth.has(id)) depth.set(id, Math.max(0, ...[...depth.values()]) + 1); });
+  const byDepth = new Map();
+  for (const id of ids) { const d = depth.get(id); if (!byDepth.has(d)) byDepth.set(d, []); byDepth.get(d).push(id); }
+  const pos = new Map();
+  for (const [d, group] of byDepth) group.forEach((id, i) => pos.set(id, { x: 130 + d * 300, y: 80 + i * 250 + (d % 2) * 60 }));
+  return pos;
+}
+
+function thumbHtml(t, height) {
+  if (!t) return `<div class="noshot">无观察片段（未采集）</div>`;
+  const w = Math.max(1, t.width), h = Math.max(1, t.height);
+  const items = t.items.map(it => {
+    if (it.x1 == null || it.y1 == null) return '';
+    const left = (it.x1 / w * 100).toFixed(2), top = (it.y1 / h * 100).toFixed(2);
+    const width = Math.max(2, (it.x2 - it.x1) / w * 100).toFixed(2), heightPct = Math.max(2, (it.y2 - it.y1) / h * 100).toFixed(2);
+    const cls = it.role === 'title' ? ' ti title' : ' ti';
+    const label = it.text || it.role || '·';
+    return `<div class="${cls.trim()}" style="left:${left}%;top:${top}%;width:${width}%;height:${heightPct}%" title="${it.role}: ${it.text ?? ''}${it.state ? ' · ' + it.state : ''}">${label}</div>`;
+  }).join('');
+  return items || `<div class="noshot">观察片段为空（未知）</div>`;
+}
+
+let view = { x: 0, y: 0, k: 1 };
+function render() {
+  const graph = DATA.graphs[revision];
+  const pos = layout(graph);
+  svg.innerHTML = '';
+  const defs = document.createElementNS(NS, 'defs');
+  defs.innerHTML = '<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#7fc4ff"/></marker>';
+  svg.appendChild(defs);
+  const root = document.createElementNS(NS, 'g');
+  root.setAttribute('transform', `translate(${view.x},${view.y}) scale(${view.k})`);
+  svg.appendChild(root);
+  for (const e of graph.structuralRelations) {
+    if (!showStruct) continue;
+    const a = pos.get(e.source), b = pos.get(e.target); if (!a || !b) continue;
+    root.appendChild(edge(a, b, '#c9a0ff', '6 5', '包含'));
+  }
+  for (const e of graph.navigationEdges) {
+    if (!showNav) continue;
+    const a = pos.get(e.source), b = pos.get(e.target); if (!a || !b) continue;
+    root.appendChild(edge(a, b, '#7fc4ff', 'solid', '导航'));
+  }
+  for (const n of graph.nodes) {
+    const p = pos.get(n.id);
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('transform', `translate(${p.x},${p.y})`);
+    const isCurrent = n.id === graph.currentContainerId;
+    const badges = [];
+    if (isCurrent) badges.push('<span class="badge current">当前页</span>');
+    if (n.reused) badges.push('<span class="badge reused">沿用</span>');
+    const fo = document.createElementNS(NS, 'foreignObject');
+    fo.setAttribute('x', -103); fo.setAttribute('y', -90); fo.setAttribute('width', 206); fo.setAttribute('height', 180);
+    fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" class="node${isCurrent ? ' current' : ''}${selected === n.id ? ' selected' : ''}">
+      <div class="thumb">${thumbHtml(n.pageThumb)}</div>
+      <div class="nlabel">${n.label ? escapeHtml(n.label) : '<span class="badge unknown">语义未知</span>'}</div>
+      <div class="nid">${n.id.slice(0, 20)}</div>
+      <div class="nbadges">${badges.join('')}</div>
+    </div>`;
+    g.appendChild(fo);
+    g.addEventListener('click', ev => { ev.stopPropagation(); selected = n.id; render(); showDetail(n); });
+    root.appendChild(g);
+  }
+  renderChanges(graph);
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function edge(a, b, color, dash, label) {
+  const el = document.createElementNS(NS, 'line');
+  el.setAttribute('x1', a.x); el.setAttribute('y1', a.y + 40); el.setAttribute('x2', b.x); el.setAttribute('y2', b.y - 60);
+  el.setAttribute('stroke', color); el.setAttribute('stroke-width', 2);
+  if (dash !== 'solid') el.setAttribute('stroke-dasharray', dash);
+  if (color === '#7fc4ff') el.setAttribute('marker-end', 'url(#arrow)');
+  const t = document.createElementNS(NS, 'text');
+  t.setAttribute('x', (a.x + b.x) / 2); t.setAttribute('y', (a.y + b.y) / 2 - 6);
+  t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-size', 10); t.setAttribute('fill', color);
+  t.textContent = label;
+  const g = document.createElementNS(NS, 'g'); g.appendChild(el); g.appendChild(t);
+  return g;
+}
+function showDetail(n) {
+  const graph = DATA.graphs[revision];
+  const body = document.getElementById('detailBody');
+  body.className = '';
+  const t = n.pageThumb;
+  body.innerHTML = `
+    <div class="kv"><b>Container</b>${n.id}</div>
+    <div class="kv"><b>稳定语义</b>${n.label ? escapeHtml(n.label) : '<span class="badge unknown">语义未知（无已采信知识）</span>'}${n.reused ? ' <span class="badge reused">沿用</span>' : ''}</div>
+    <div class="kv"><b>知识来源</b>${n.knowledgeSource ?? '未采集'}</div>
+    <div class="kv"><b>当前锚</b>${n.id === graph.currentContainerId ? '是' : '否'}</div>
+    <div class="kv"><b>证据引用</b>${(n.evidenceRefs ?? []).slice(0, 4).map(e => e.slice(0, 10)).join(' · ') || '—'}</div>
+    <div class="kv"><b>页面表达</b>${t ? `重绘自 capture <b style="color:#e8edf5">${t.captureId.slice(0, 12)}</b>${t.isCurrent ? '（当前）' : '（最近观察，非当前）'}` : '<span class="badge unknown">无观察片段</span>'}</div>
+    ${t ? `<div class="thumb detail-thumb">${thumbHtml(t)}</div>
+    <div class="obslist">${t.items.filter(i => i.x1 != null).map(i =>
+      `<div class="ti"><span style="color:#7fc4ff;min-width:46px">${i.role}</span><span style="flex:1">${escapeHtml(i.text ?? '')}</span>${i.state ? `<span style="color:#9fe6a8">${i.state}</span>` : ''}</div>`).join('')}
+      <div class="notice" style="margin-top:4px">未知声明：${(t.viewUnknown ?? []).join('、') || '—'}</div></div>` : ''}`;
+}
+function renderChanges(graph) {
+  const s = DATA.timeline.Revisions.find(r => r.RevisionId === revision);
+  const c = s.Changes;
+  document.getElementById('changes').innerHTML =
+    `<span>revision <b>${s.RevisionId}</b>（#${s.RevisionNumber}）</span>` +
+    `<span>采集时间高水位 <b>${s.LatestCaptureTime ? new Date(s.LatestCaptureTime).toISOString().slice(11, 16) : '—'}</b>（提交时间未记录）</span>` +
+    `<span>变更标记 <b>${[c.NavigationVerified && '导航验证', c.CorrectionApplied && '纠错(接受)', c.CorrectionRejected && '纠错(拒绝)', c.SemanticKnowledgeUpdated && '语义知识更新', c.SemanticKnowledgeReused && '语义沿用', c.StructuralRelationChanges.length && '结构关系变化'].filter(Boolean).join('、') || '仅证据并入'}</b></span>` +
+    `<span>新增证据 <b>${c.NewEvidenceIds.length}</b> 条</span>`;
+}
+function renderTimeline() {
+  const el = document.getElementById('timeline');
+  el.innerHTML = '';
+  for (const s of DATA.timeline.Revisions) {
+    const d = document.createElement('div');
+    d.className = 'rev' + (s.RevisionId === revision ? ' current' : '');
+    const c = s.Changes;
+    d.innerHTML = `<div class="no">#${s.RevisionNumber} ${s.RevisionId}</div>` +
+      `<div class="time">${s.LatestCaptureTime ? new Date(s.LatestCaptureTime).toISOString().slice(11, 16) : '—'}</div>` +
+      `<div class="chips">${[c.NavigationVerified && '<span class="chip nav">导航</span>',
+        c.CorrectionApplied && '<span class="chip corr">纠错</span>', c.CorrectionRejected && '<span class="chip corr">拒</span>',
+        c.SemanticKnowledgeUpdated && '<span class="chip sem">语义</span>', c.SemanticKnowledgeReused && '<span class="chip reused">沿用</span>',
+        c.StructuralRelationChanges.length && '<span class="chip struct">结构</span>'].filter(Boolean).join('')}</div>`;
+    d.addEventListener('click', () => { revision = s.RevisionId; renderTimeline(); render(); });
+    el.appendChild(d);
+  }
+}
+document.getElementById('legend').addEventListener('change', ev => {
+  if (ev.target.dataset.kind === 'nav') showNav = ev.target.checked;
+  if (ev.target.dataset.kind === 'struct') showStruct = ev.target.checked;
+  render();
+});
+svg.addEventListener('wheel', ev => { ev.preventDefault();
+  view.k = Math.min(2.5, Math.max(0.35, view.k * (ev.deltaY < 0 ? 1.12 : 0.9))); render(); }, { passive: false });
+let drag = null;
+svg.addEventListener('mousedown', ev => { drag = { x: ev.clientX, y: ev.clientY, vx: view.x, vy: view.y }; });
+window.addEventListener('mousemove', ev => { if (drag) { view.x = drag.vx + ev.clientX - drag.x; view.y = drag.vy + ev.clientY - drag.y; render(); } });
+window.addEventListener('mouseup', () => drag = null);
+svg.addEventListener('click', () => { selected = null; render();
+  document.getElementById('detailBody').className = 'notice';
+  document.getElementById('detailBody').textContent = '未选中节点。单击图节点查看 Container 详情与页面表达。'; });
+renderTimeline(); render();
+</script>

@@ -113,9 +113,20 @@ public sealed partial class UniKernel
     /// <summary>Current WorldBelief 透传（Kernel 不持有平行 belief）。</summary>
     public WorldBeliefRevision? CurrentBelief => _world.Current;
 
-    /// <summary>Read-only World-owned graph view; does not authorize navigation.</summary>
-    public WorldGraphProjection? ProjectWorldGraph(string scope) => _world.Current is { } current
-        ? _world.DeriveGraphProjection(current.RevisionId, scope) : null;
+    /// <summary>Read-only World-owned graph view; does not authorize navigation.
+    /// WORLD-VISUALIZATION-001：可选 sourceRevisionId 选择固定历史 revision；
+    /// null = current（既有字段语义不变），未知 revision 返回空投影并在
+    /// Unknown 标记 "source-revision-unknown"（不抛）。</summary>
+    public WorldGraphProjection? ProjectWorldGraph(string scope, string? sourceRevisionId = null) =>
+        sourceRevisionId is null
+            ? _world.Current is { } current
+                ? _world.DeriveGraphProjection(current.RevisionId, scope) : null
+            : _world.DeriveGraphProjection(sourceRevisionId, scope);
+
+    /// <summary>Read-only revision timeline for visualization
+    /// (WORLD-VISUALIZATION-001)；LatestCaptureTime 是采集时间高水位，
+    /// 不代表提交时间。</summary>
+    public WorldRevisionTimeline ProjectWorldTimeline() => _world.DeriveRevisionTimeline();
 
     /// <summary>Read-only World page supply. Historical fragments do not authorize effects.</summary>
     public WorldPageView ProjectWorldPage(string containerId, string? sourceRevisionId = null) =>

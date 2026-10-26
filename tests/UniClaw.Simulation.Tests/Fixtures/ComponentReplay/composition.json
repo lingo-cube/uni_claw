@@ -1,6 +1,6 @@
 {
   "schemaVersion": "component-replay-composition.v1",
-  "causalChange": "WORLD-UNCERTAINTY-001",
+  "causalChange": "WORLD-VISUALIZATION-001（切片0只读缝：WorldBeliefRevision/WorldModel 增补 + 新增 WorldRevisionTimeline/WorldModel.Visualization；录制输入与独立 oracle 未改）",
   "pins": [
     {
       "kind": "oracle",
@@ -70,7 +70,12 @@
     {
       "kind": "product-contract",
       "path": "src/UniClaw.Kernel/World/WorldBeliefRevision.cs",
-      "sha256": "879ff1369b188bcf08d3a804db5ec40dedb4e21b8ff345dd315f882de31e57d7"
+      "sha256": "054b7c287873f8de4a50de8d70b19d45b5840ff3a5b5d9e3ca74c1f76f98be72"
+    },
+    {
+      "kind": "product-contract",
+      "path": "src/UniClaw.Kernel/World/WorldRevisionTimeline.cs",
+      "sha256": "acb651d467e76ca1ca70a2f95e46ef99d2705d5d9122c202d2442a14c9720c3c"
     },
     {
       "kind": "product-implementation",
@@ -259,8 +264,13 @@
     },
     {
       "kind": "product-implementation",
+      "path": "src/UniClaw.Kernel/World/WorldModel.Visualization.cs",
+      "sha256": "8b255f845cdfadb2ebac156f560fbd776fc9a2bc91216535b1adeb153114935b"
+    },
+    {
+      "kind": "product-implementation",
       "path": "src/UniClaw.Kernel/World/WorldModel.cs",
-      "sha256": "b41d84f83dfb7704118462747192fc24ea68f4a226d10d767dc1db46a115935f"
+      "sha256": "dd99bff207506cd1c1587c519dda2ed8d938942bea32cef65d465dbb388ade76"
     },
     {
       "kind": "product-implementation",

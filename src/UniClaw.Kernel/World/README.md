@@ -71,3 +71,11 @@ belief/reconciliation/世界投影语义进本目录；UI realization 细节进
 - `PageInterpretationCorrection`：指定原capture与旧解释的纠正载荷和处置记录。
 - `WorldKnowledgeView`：身份/归属/关系依据/观察覆盖四类只读摘要。
 - `ContainerContextObservation`：原生父子上下文证据载荷及严格codec。
+
+## WORLD-VISUALIZATION-001 实现（切片 0）
+
+- `WorldRevisionTimeline`：revision 时间线与节点语义标签的只读投影类型；
+  时间为采集高水位，提交墙钟不伪造。
+- `WorldModel.Visualization`：图投影增补（capture-scoped 结构关系、Owner 侧
+  语义标签 join 与界定内纠错冲突判定）与 revision 时间线派生；纯读取，
+  不修改 World 状态、不产生 revision。

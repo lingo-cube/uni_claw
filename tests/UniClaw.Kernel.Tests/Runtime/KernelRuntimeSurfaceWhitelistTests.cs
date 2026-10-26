@@ -539,11 +539,18 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.World.WorldKnowledgeGapKind",
             "UniClaw.Kernel.World.WorldKnowledgeView",
             "UniClaw.Kernel.World.WorldModel",
+            // WORLD-VISUALIZATION-001 增集（4）：两个可视化只读缝的公开投影
+            // 类型（历史图标签 / revision 时间线）；无新 Owner、无执行语义。
+            "UniClaw.Kernel.World.WorldNodeLabel",
             // WORLD-UNCERTAINTY-001: immutable page/Agent read supply from World history.
             "UniClaw.Kernel.World.WorldPageObservation",
             "UniClaw.Kernel.World.WorldPageView",
             "UniClaw.Kernel.World.WorldPresentation",
             "UniClaw.Kernel.World.WorldPresentationElement",
+            // WORLD-VISUALIZATION-001 增集：revision 时间线投影三型。
+            "UniClaw.Kernel.World.WorldRevisionChangeSummary",
+            "UniClaw.Kernel.World.WorldRevisionSummary",
+            "UniClaw.Kernel.World.WorldRevisionTimeline",
             "UniClaw.Kernel.World.WorldSemanticKnowledge",
             "UniClaw.Kernel.World.WorldSemanticReference",
         }, actual);
