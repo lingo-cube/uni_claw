@@ -108,6 +108,7 @@ instance（ADR-0045）；基线 §22 的"多 Run"是产品模型层概念，不�
 | 先持久化后成功 | Runtime 先把 instance 身份 + 声明输入钉扎写入 **TaskInstanceStore**（扩展 TaskInstanceRecord 或伴生记录，PLAN 定形），再返回成功；持久化失败＝发起失败，不存在"成功但无记录" |
 | 幂等与冲突 | 同 idempotencyKey 重入 → 返回**原记录**（含原声明输入）；**同 key 但声明输入不同 → 显式拒绝**（input-conflict），绝不静默覆盖或改写 |
 | 投影非权威 | run 目录 metadata.json 只是钉扎的**投影**；未产生 Run / 启动失败的实例靠 Store 查询（不查目录） |
+| 比较范围（P-A） | 声明指纹参与：意图正文 digest、test set revision、fixture(id+version+digest)、scenario(id+version+digest)、acceptanceRefs；**排除** displayName、时间戳、临时环境字段；钉扎材料须与实际执行所用材料一致（不一致记分歧，不静默） |
 
 **契约 2：执行交接（Execution handoff）**
 
@@ -129,6 +130,10 @@ instance（ADR-0045）；基线 §22 的"多 Run"是产品模型层概念，不�
 | 报告交付 | required-reports | 既有交付体系 | deliveryId / 不可变版本 + head 原子替换（不变） |
 
 反馈成新场景：必须过显式认证（certify 门），无自动晋升。
+
+**权威边界（P-B，评审补入）**：instance 侧**只记录不判定**——不得改写 Run
+Outcome，不得替代 UniAgent 的 Goal Evaluation；每条验收结果可追溯判定者、
+规则版本、对应实例/Run 与证据。**保存位置 ≠ 判定权。**
 
 ## 2. 已定案总表（D1–D17，详证见 state.md）
 
@@ -155,7 +160,12 @@ instance（ADR-0045）；基线 §22 的"多 Run"是产品模型层概念，不�
 | **O3** | 存量 run 数据 | 不迁移 / 一次性迁移 / 双读 | **不迁移 + 工具双读**（旧平铺留原地，新 run 落新布局） | 本仓既有演进模式（Evidence/World/Resource/run-state 四次先例）；迁移触碰 required-reports **绝对路径 + fail-closed**，风险大收益小 |
 | **O4** | 落地顺序 | (a) 身份统一 (b) 布局 (c) Workbench 接线 (d) 指纹落地 | **(a) → (b，含 d) → (c)**：布局路径段编码 task 身份，须先统一（三前缀）；钉扎落点就是 (b) 的 metadata，同步实现最自然 | 断点映射见 §4 |
 | **O5** | 重放标准 | verify-only vs reconstruct（存输入快照） | **verify-only 起步**：digest 作漂移哨兵 + requirement 原文已在 run metadata（PNL-011）；PLAN 时核实"是否存在只凭 run 树重放的消费者"，有则升级 reconstruct（D16 确认快照＝证据、架构无障碍，仍待真实 buyer） | 证据见 state.md O5 收窄表述；D16 |
-| **待办** | 重试的精确定义 | — | 进 PLAN 前补（用户明确推迟项） | D13 附注 |
+| **待办** | 重试的精确定义 | — | **已收口（2026-10-26 评审）**：两分法＝提交重试（同 key 同输入复用）/ 再次执行（新 instance）；不做通用恢复机制 | D13 |
+
+> **2026-10-26 评审**：O2–O5 记录为"本轮采用选项（PLAN 基线，PLAN 内可调）"：
+> O2＝slug+ID 后缀；O3＝不迁移+双读；O4＝(a)→(b 含 d)→(c)；O5＝verify-only。
+> 重试按两分法收口。可判定验收（评审 P-C）入 state.md A6；比较范围（P-A）与
+> 验收权威边界（P-B）入 §1.7。计划见 `plans/RUNTIME-TASK-001.md`。
 
 ## 4. 待修正（现状缺陷 → 修正动作 → 归属）
 
@@ -214,6 +224,7 @@ instance（ADR-0045）；基线 §22 的"多 Run"是产品模型层概念，不�
 
 ## 8. 下一步
 
-1. 裁决 §3 五项（O2/O3/O4/O5/重试定义）→ 回填 state.md；
-2. 补全 Acceptance 四元组 → 进入 PLAN（`plans/RUNTIME-TASK-001.md`）；
-3. 布局类裁决按 ADR 三判据评估是否单独成 ADR（难以逆转/缺上下文困惑/真实取舍）。
+2026-10-26 评审通过进入 PLAN：§3 五项已按"本轮采用选项"记录为基线；计划见
+`plans/RUNTIME-TASK-001.md`（切片 0＝定形 → 切片 1＝admission 闭环 → 切片 2＝
+布局与执行投影 → 切片 3＝workbench 接线）。布局落地时按 ADR 三判据评估是否
+单独成 ADR（难以逆转 / 缺上下文困惑 / 真实取舍）。
