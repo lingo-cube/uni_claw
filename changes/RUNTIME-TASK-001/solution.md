@@ -5,6 +5,7 @@
 > **事实真相源仍是 state.md**（D1–D15、O1–O5、Acceptance）；与 state.md 冲突时以
 > state.md 为准。推演过程见 [discussion-record.md](discussion-record.md)。
 > 时点：2026-10-26，base `c3f1833c`，RESOLVE 阶段，尚无实现。
+> 2026-10-26 架构评审：总体保留、架构主体不推倒；补齐交接契约（§1.7，D16/D17）。
 
 四项要求与章节映射：职责清晰 → §1.1；流程闭环 → §1.4；易于维护 → §2/§5；
 符合架构原则 → §6。
@@ -17,9 +18,9 @@
 |---|---|---|---|---|---|---|
 | **Task 定义**（D14 单物种） | 可重复发起的工作的规范：意图正文 + 引用集（fixture/acceptance 必选、scenario 可选）+ 归类 + 状态 | 意图复用；材料归属锚 | 不承载执行过程；不铸造身份；**无版本字段**（D11）；验收细节只经引用指向、不复制 | taskId（被引用） | workbench `tasks.json`（意图为主）/ catalog manifest（引用集为主）＝同物种两种不完整 realization，合并方向 Host-owned Catalog（留门） | workbench: draft/active/archived；catalog: 声明式 |
 | **Scenario**（场景） | 测试与能力基线资产：可重复检验声明（期望快照 + 载体绑定 + 三层认证摘要） | 行为基线；验收判据来源 | **不持有任何 task/实例引用**（零耦合）；不做执行 | `SCN-*` | `scenarios/` + 资产目录（captures 等） | 认证三摘要；version bump；status 须与 TRX 真值一致；sensitiveReview fail-closed |
-| **TaskInstance**（D13） | 一次发起（立项） | 幂等（同 key 重入同实例）；尝试身份；绑 session；**钉声明输入**（D11） | 不是执行本身；不管执行内容 | Runtime 铸 `ti-`（调用方不得传入/覆盖，ADR-0045） | TaskInstanceStore（append-only） | append-only；绑定后不可改绑 |
+| **TaskInstance**（D13） | 一次发起（立项） | 幂等（同 key 重入同实例、同 key 异输入显式拒绝——D17）；尝试身份；绑 session；**钉声明输入**（D11：落 Store、立项时持久化） | 不是执行本身；不管执行内容 | Runtime 铸 `ti-`（调用方不得传入/覆盖，ADR-0045） | TaskInstanceStore（append-only） | append-only；绑定后不可改绑 |
 | **ProductSession** | 一次产品执行的 correlation root | 承载契约形成；关联 Goal/Contract/Run/Outcome | 不等于 instance；不等于 run | Runtime 铸 | ProductSessionStore | 二绑 run 409 硬挡 |
-| **Run** | 一次执行 | 记**实际**执行版本（codeSha/profileRevision）；产出执行材料（journal/trace/captures/报告） | 不拥有 task/session 身份；目录名不参与身份（D8） | Runtime 铸 runId（落 metadata，不占路径段，D3） | run 目录 + `runtime-runs/` 投影 | journal 帧链 + head 原子提交；默认不删 |
+| **Run** | 一次执行 | 记**实际执行内容**指纹（D10 修正：不限于 codeSha，须覆盖未提交工作区，形状 PLAN 定——D17 契约 2）；产出执行材料（journal/trace/captures/报告） | 不拥有 task/session 身份；目录名不参与身份（D8） | Runtime 铸 runId（落 metadata，不占路径段，D3） | run 目录 + `runtime-runs/` 投影 | journal 帧链 + head 原子提交；默认不删 |
 | **Fixture** | 执行时被消费的资产（设备状态/安全策略/golden bundle/真值数据） | 执行前置条件 | 不含验收判据 | manifest fixtureRef | 仓库资产目录 | manifest contentHash 双检 |
 | **Acceptance** | task 侧的验收引用 | 声明"怎样算通过" | 当前无独立工件（见 F7） | acceptanceRef | 无（部分指回场景认证期望） | — |
 | **TestSet / Catalog** | 引用组合容器 + 版本轴（Catalog Revision） | 组织 task/fixture/acceptance/scenario 关系；提供可定位版本 | 不取得执行 authority | testSetRef + version | `testsets/*/manifest.json`（临时声明式） | version/sourceRevision 由 workbench 发起时核对 |
@@ -41,24 +42,26 @@ ScenarioStimulus（← sealed trace）；经转换门（提炼+认证），非�
 | 层 | 记什么 | 回答 |
 |---|---|---|
 | **instance（声明）** | task 引用 + test set revision + 场景/fixture 的 version+digest | "这次尝试**针对**什么" |
-| **run（实际）** | codeSha / profileRevision | "真的**跑了**什么" |
+| **run（实际）** | 实际执行内容指纹（不限于 codeSha，覆盖未提交工作区；形状 PLAN 定） | "真的**跑了**什么" |
 
 - Task 定义无版本字段；会变的资产各自带版本机制（场景 version+三摘要、test set
   version、代码 hash），instance/run 只**钉引用**，不发明版本。
 - "第几版" = 派生视图（同一 task 的实例序列按声明指纹去重数出），不落存储。
-- 两层缺一不可：只记一层答不了"这次绿是改场景还是改代码"。
+- 两层缺一不可：只记一层答不了"这次绿是改场景还是改代码"——比较发生在
+  **同一 task 的相邻尝试之间**（D10 修正：不存在"同 instance 重跑"，
+  再执行＝新 instance）。
 
 ### 1.4 流程闭环（声明 → 立项 → 执行 → 验收 → 反馈）
 
 ```
 [声明] Task 定义 + 场景库 + TestSet（repo / workbench；人写）
    ↓ 发起（人/定时器）：workbench 解析 manifest → Runtime 铸 ti- → session → run
-[立项] instance 钉声明输入（D11，待落地 F3）
+[立项] 先持久化后成功：instance 身份 + 声明输入落 TaskInstanceStore（D17 契约 1，待落地 F3）；同 key 异输入显式拒绝
    ↓
 [执行] run 在基底上跑（真机 / 仿真），记实际版本；
        产物落 <task>/<instance>/（待落地 F4/F5）；无 task 落 _untasked/（D9）
    ↓
-[验收] acceptance 引用：仿真类→对拍场景认证期望；真机类→设备/策略判定
+[验收] acceptance 引用，判定者显式（仿真类→对拍场景认证期望；真机类→验收规则/人工），结果归 instance 侧（D17 契约 3）
    ↓
 [反馈] 被认可行为 →（显式提炼+认证）→ 新场景版本 → 回到声明层，新基线
 ```
@@ -93,7 +96,41 @@ instance（ADR-0045）；基线 §22 的"多 Run"是产品模型层概念，不�
 └── required-reports/
 ```
 
-## 2. 已定案总表（D1–D15，详证见 state.md）
+### 1.7 交接契约（2026-10-26 评审补齐，D17）
+
+流程闭环的三个交接点——不加组件，只把边界上的**时序与数据承诺**写完整。
+评审结论：总体设计保留，架构主体不推倒重来。
+
+**契约 1：立项确认（Admission）**
+
+| 承诺 | 内容 |
+|---|---|
+| 先持久化后成功 | Runtime 先把 instance 身份 + 声明输入钉扎写入 **TaskInstanceStore**（扩展 TaskInstanceRecord 或伴生记录，PLAN 定形），再返回成功；持久化失败＝发起失败，不存在"成功但无记录" |
+| 幂等与冲突 | 同 idempotencyKey 重入 → 返回**原记录**（含原声明输入）；**同 key 但声明输入不同 → 显式拒绝**（input-conflict），绝不静默覆盖或改写 |
+| 投影非权威 | run 目录 metadata.json 只是钉扎的**投影**；未产生 Run / 启动失败的实例靠 Store 查询（不查目录） |
+
+**契约 2：执行交接（Execution handoff）**
+
+- 时序沿既有权威链不动：Session → 契约细化 → accepted Contract View →
+  Legal Activation（P24 幂等）→ Run（ADR-0045）；session 二绑 run 409 保持，
+  不放宽基数。
+- Run 侧记录**实际实现指纹**：须能区分"同提交、不同工作区"（共享脏工作区是
+  本仓常态）——codeSha 之外覆盖实际执行的源内容（如工作区内容摘要），
+  具体形状 PLAN 定。
+
+**契约 3：结果交接（Result handoff）**
+
+三件事分离，各有来源与状态：
+
+| 结果 | 是什么 | 判定/产出者 | 记录归属 |
+|---|---|---|---|
+| Run Outcome | 执行终局（状态/指标） | Run / Kernel | run 产物（journal / 终局记录） |
+| 任务验收 | "是否达到 task 的 acceptance" | **显式**：仿真类＝对拍场景认证期望的执行者；真机类＝验收规则/人工（PLAN 定形） | instance 侧（与钉扎同 Store 或伴生）——验收结果不靠 run 产物自证 |
+| 报告交付 | required-reports | 既有交付体系 | deliveryId / 不可变版本 + head 原子替换（不变） |
+
+反馈成新场景：必须过显式认证（certify 门），无自动晋升。
+
+## 2. 已定案总表（D1–D17，详证见 state.md）
 
 | | 裁决 | | 裁决 |
 |---|---|---|---|
@@ -104,7 +141,8 @@ instance（ADR-0045）；基线 §22 的"多 Run"是产品模型层概念，不�
 | D5 | 不预置 run 目录层 | D13 | TaskInstance＝立项，非执行；重试定义待强化（待办） |
 | D6 | session 不进路径 | D14 | **Task 单物种**（意图正文+引用集；不设类型字段） |
 | D7 | task 定义存引用不存副本 | D15 | 回归可发起：留门不修路 |
-| D8 | 身份权威在 store，路径只定位 | | |
+| D8 | 身份权威在 store，路径只定位 | D16 | 快照证据≠第二真相（D7 禁的是可编辑重复权威） |
+| D17 | 交接三契约：立项确认 / 执行交接 / 结果交接（§1.7） | | |
 
 词汇表已落册（CONTEXT.md）：新增 **Scenario** 词条（测试与能力基线资产）；
 **UniClaw Task** 词条更新为单物种表述。
@@ -116,7 +154,7 @@ instance（ADR-0045）；基线 §22 的"多 Run"是产品模型层概念，不�
 | **O2** | task 路径段命名 | 纯 `taskId` vs 可读 slug+ID 后缀 | **slug+ID 后缀**：slug 取 displayName/taskRef 尾段（清洗+截断），后缀保唯一与可查 | 满足 U8"打开目录读出 task"；`taskRef` 是自由中文不可直接作路径；需处理非法字符/长度/PII/Windows 限制 |
 | **O3** | 存量 run 数据 | 不迁移 / 一次性迁移 / 双读 | **不迁移 + 工具双读**（旧平铺留原地，新 run 落新布局） | 本仓既有演进模式（Evidence/World/Resource/run-state 四次先例）；迁移触碰 required-reports **绝对路径 + fail-closed**，风险大收益小 |
 | **O4** | 落地顺序 | (a) 身份统一 (b) 布局 (c) Workbench 接线 (d) 指纹落地 | **(a) → (b，含 d) → (c)**：布局路径段编码 task 身份，须先统一（三前缀）；钉扎落点就是 (b) 的 metadata，同步实现最自然 | 断点映射见 §4 |
-| **O5** | 重放标准 | verify-only vs reconstruct（存输入快照） | **verify-only 起步**：digest 作漂移哨兵 + requirement 原文已在 run metadata（PNL-011）；PLAN 时核实"是否存在只凭 run 树重放的消费者"，有则升级 reconstruct（与 required-reports `inputs/` 同构，非 D7 禁止的定义副本） | 证据见 state.md O5 收窄表述 |
+| **O5** | 重放标准 | verify-only vs reconstruct（存输入快照） | **verify-only 起步**：digest 作漂移哨兵 + requirement 原文已在 run metadata（PNL-011）；PLAN 时核实"是否存在只凭 run 树重放的消费者"，有则升级 reconstruct（D16 确认快照＝证据、架构无障碍，仍待真实 buyer） | 证据见 state.md O5 收窄表述；D16 |
 | **待办** | 重试的精确定义 | — | 进 PLAN 前补（用户明确推迟项） | D13 附注 |
 
 ## 4. 待修正（现状缺陷 → 修正动作 → 归属）
@@ -125,12 +163,14 @@ instance（ADR-0045）；基线 §22 的"多 Run"是产品模型层概念，不�
 |---|---|---|---|
 | F1 | 两套 task 定义表面互不相认（workbench 有意图无引用集 / catalog 有引用集无意图正文），无 resolver 互通 | 合并为统一 Catalog；本 change 只接身份缝 | **留门**（Host-owned Catalog，Out of Scope）+ O4(c) |
 | F2 | 三前缀编号：`psi-*`（workbench 兼容）/ `ti-*`（Runtime 铸造）/ `task-instance-*`（RuntimeRunStore 缺省合成） | 统一 task 身份，消除 known deviation（ADR-0045 已记录） | **O4(a)** |
-| F3 | 引用解析只在 workbench 侧（index.js:186-196）；Runtime 只透传，run 记录无 version/成员/digest（PNL-003 缺口） | instance 钉扎 + run 记录补齐（D10/D11 落地） | **O4(d)**（并入 O4(b) 的 metadata） |
+| F3 | 引用解析只在 workbench 侧（index.js:186-196）；Runtime 只透传，run 记录无 version/成员/digest（PNL-003 缺口） | 钉扎落 **TaskInstanceStore**（立项时持久化，D17 契约 1）；metadata.json 仅投影 | **O4(d)** |
 | F4 | `HostRunner` 文档写 `./runs/<runid>/`、实现写 `run-时间戳`；CLI 路径不传 `Launch`，run 零身份、无 metadata.json | 文档实现对齐；CLI 与 HTTP 双路径都写 metadata | **O4(b)** |
 | F5 | 介质根叫 `runs/` 误导（装着 tasks 的目录叫 runs） | 改名（D1）；注意 `runDirName` 29 处调用点与三层契约 | **O4(b)** |
 | F6 | 仿真基线 task 条目无发起链（跑回归=dotnet test，不铸 instance/run） | **不修**（模型留门） | D15 留门 |
 | F7 | acceptance 无独立工件（部分指回场景认证期望，部分为裸字符串、语义活在测试代码） | 将来 Catalog 课题 | 留门 |
 | F8 | 新场景不记录出生执行（provenance 缺口：能追溯致因 change/srRef，不能追溯源 run） | **不做**（无 buyer；致因 change 够审计） | 记录在案 |
+| F10 | 实际执行指纹仅 codeSha，无法覆盖未提交工作区（共享脏工作区为本仓常态） | 实际实现指纹须区分"同提交不同工作区"（形状 PLAN 定，D17 契约 2） | **O4(d)** |
+| F11 | 验收"有引用"但判定者与结果记录归属未定义 | 契约 3：判定者显式、结果归 instance 侧（PLAN 定形） | **O4(d/c)** |
 
 ## 5. 维护纪律（防方案腐化；违反即停）
 
@@ -140,6 +180,8 @@ instance（ADR-0045）；基线 §22 的"多 Run"是产品模型层概念，不�
 4. **意图正文不抄验收细节**：验收只经 acceptanceRefs/scenarioRefs 引用；抄了就是两处真相。
 5. **不为想象 buyer 预造**：provenance 字段、Sim/Product 类型字段、统一治理面板均无真实需求，出现 buyer 再立项（AGENTS.md §1.5 原则 5）。
 6. **`TaskInstanceStore` "预留 1:N"注释不得改写**（换边+净减信息，state.md Alternatives 6）。
+7. **快照三要件**（D16）：不可变（append-only）、带来源与摘要、永不回写权威源；
+   权威源唯一且可编辑——快照是证据（provenance），不是第二真相。
 
 ## 6. 架构原则符合性
 

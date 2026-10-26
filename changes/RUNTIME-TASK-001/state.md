@@ -76,6 +76,26 @@ lifecycle_state: resolved · disposition: none · depth: decision-heavy · base:
   基线回归"是一次可发起的 task 尝试——仿真只是 run 的一种执行基底（与真机
   并列）；本 Change 不实现仿真链接入发起链（真实 buyer 如带审计的 nightly
   回归出现再立项），布局与身份设计不得预先排除该可能。
+- **D16（2026-10-26 评审修正）快照证据 ≠ 第二真相**。D7 禁止的是**可编辑的
+  重复权威**（两处都能改、都自称权威）；立项/执行侧钉扎的**不可变时间点
+  快照**（append-only、带来源与摘要、永不回写权威源）属于证据（provenance），
+  不构成第二真相。O5 的 reconstruct 选项因此在架构上成立；task.json 仍为
+  引用 + digest 形态（权威源唯一且可编辑）。
+- **D17（2026-10-26 评审裁决）交接三契约**——方案主体保留，补齐边界时序与
+  数据承诺（展开见 solution.md §1.7）：
+  1. **立项确认**：Runtime **先持久化** instance 身份 + 声明输入钉扎（落
+     TaskInstanceStore，扩展 TaskInstanceRecord 或伴生记录，PLAN 定形），
+     **后返回成功**；同 idempotencyKey 重入复用原记录，**同 key 但声明输入
+     不同 → 显式拒绝**（input-conflict），绝不静默覆盖；run 目录
+     metadata.json 只是投影；未产生 Run / 启动失败的实例靠 Store 可查询。
+  2. **执行交接**：时序沿既有权威链不动（Session → 契约细化 → accepted
+     Contract View → Legal Activation → Run，ADR-0045/P24；session 二绑 409
+     保持）；Run 记录**实际实现指纹**，须能区分"同提交、不同工作区"
+     （共享脏工作区为本仓常态）。
+  3. **结果交接**：Run Outcome（执行终局，run 产物）/ 任务验收（判定者
+     **显式**：仿真类=对拍场景认证期望的执行者、真机类=验收规则/人工；
+     结果记录归 instance 侧，不靠 run 产物自证）/ 报告交付（required-reports
+     体系不变）三者分离，各留来源与状态；反馈成新场景必须过显式认证。
 
 ### 技术裁决（本轮核实后确认）
 
@@ -90,9 +110,13 @@ lifecycle_state: resolved · disposition: none · depth: decision-heavy · base:
   "不能靠目录名猜身份"、`CONTEXT.md:1025`、`PNL-005` 一致。
 - **D9 无 task 的 run 走显式兜底段**（CLI 路径不传 `Launch`，README 记为 `_untasked/`），
   并要求可统计其数量——数量高说明 task 层没被真正用起来。
-- **D10 版本指纹分两层**：instance 记**声明**的输入版本（scenario / task 定义版本）；
-  run 记**实际**执行版本（codeSha / profileRevision）。同一 instance 重跑换代码时两者会分叉，
-  只记一层则"这次绿了是改了 scenario 还是改了代码"无法回答。
+- **D10 版本指纹分两层**（2026-10-26 评审修正措辞）：instance 记**声明**的输入
+  版本（task 引用 / test set revision / 场景 version+digest）；run 记**实际执行
+  内容**指纹（不限于 codeSha——须覆盖实际执行的源内容，含未提交工作区，
+  形状 PLAN 定）。两层的比较发生在**同一 task 的相邻尝试之间**：声明层相同
+  而实际层不同 → 改了代码；声明层变化 → 输入变了。原表述"同一 instance 重跑
+  换代码"与 D13/ADR-0045（再执行=新 instance、session 二绑 409）矛盾，废除
+  该例；"只记一层则无法回答这次绿是改了 scenario 还是改了代码"的结论不变。
 
 ### 目标布局
 
@@ -170,7 +194,8 @@ lifecycle_state: resolved · disposition: none · depth: decision-heavy · base:
   2) instance 双编号（psi-*/ti-*）+ 合成兜底前缀（task-instance-*）；
   3) 引用解析只在 workbench 侧（index.js:186-196 解析 manifest），Runtime 只
      透传（RuntimeHttpServer.cs:161-162/227），run 记录无 version/成员/digest
-     ——D11 钉扎的落点；
+     ——D11 钉扎的落点为 **TaskInstanceStore**（立项时持久化，D17 契约 1；
+     metadata.json 仅投影）；
   4) 仿真基线 task 条目无发起链消费（跑回归=dotnet test，不铸 instance/run）；
   5) acceptance 无独立工件（部分指回场景认证期望，部分为裸字符串、语义活在
      测试代码）。
@@ -293,3 +318,15 @@ verification:
   基数链/目标布局）、§2 D1–D15 总表、§3 待敲定五项（O2/O3/O4/O5/重试定义，
   附建议）、§4 待修正 F1–F8（断点→动作→归属）、§5 维护纪律六条、
   §6 架构原则符合性、§7 证据索引。state.md 仍为唯一事实真相源。未改源码。
+- 2026-10-26 RESOLVE（续五，架构评审处置）：用户评审结论——**总体设计保留，
+  架构主体不推倒；先修正交接契约**。处置四项：(1) **D10 措辞修正**：废除
+  "同一 instance 重跑换代码"例（与 D13/ADR-0045 矛盾，继承自前会话的表述
+  缺陷，本轮评审揪出）；两层比较改述为"同一 task 相邻尝试之间"。(2) 新增
+  **D16**：快照证据≠第二真相——D7 禁的是可编辑重复权威，不可变时间点快照
+  属 provenance（O5 reconstruct 因此架构成立）。(3) 新增 **D17 交接三契约**：
+  立项确认（先持久化后成功、同键异输入显式拒绝、钉扎落 Store、无 Run 实例
+  可查询）；执行交接（权威链不动、实际实现指纹覆盖未提交工作区）；结果交接
+  （Outcome/验收/交付三分离，验收判定者显式、结果归 instance 侧，反馈过
+  认证门）。(4) solution.md 同步：新增 §1.7 交接契约、F3 落点修正、新增
+  F10/F11、§5 补快照三要件纪律、D10/D16/D17 相关表述更新。流程闭环评级：
+  概念链已有 → 交接契约已定义（待 PLAN 落实）。未改源码。
