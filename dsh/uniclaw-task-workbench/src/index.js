@@ -21,7 +21,7 @@
  */
 
 import { createRequire } from 'node:module'
-import { randomBytes } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -197,6 +197,79 @@ const loadCatalog = (testSetRef) => {
   } catch { return null }
 }
 
+// ---------------------------------------------------------------------------
+// RUNTIME-TASK-001 切片 1 — 声明块（定形 T1，task-declaration.v1）组装与指纹。
+// declarationFingerprint ＝ canonical JSON（键递归排序、无缩进）SHA-256 的
+// 64 位小写 hex；与 Runtime（C# TaskInstanceStore.CanonicalJson）双端一致，
+// 一致性由 tests/UniClaw.Host.Tests/RuntimeTaskDeclarationTests.cs 冻结样例锁定。
+// ---------------------------------------------------------------------------
+
+const sha256Hex = (text) => createHash('sha256').update(text, 'utf8').digest('hex')
+const normalizeLf = (text) => text.replace(/\r\n/g, '\n')
+
+const canonicalJsonStringify = (value) => {
+  if (Array.isArray(value)) return `[${value.map(canonicalJsonStringify).join(',')}]`
+  if (value !== null && typeof value === 'object') {
+    return `{${Object.keys(value).sort()
+      .map(key => `${JSON.stringify(key)}:${canonicalJsonStringify(value[key])}`).join(',')}}`
+  }
+  return JSON.stringify(value)
+}
+
+export const declarationFingerprint = (declaration) => sha256Hex(canonicalJsonStringify(declaration))
+
+export { canonicalJsonStringify }
+
+/** intentDigest：requirement 正文 canonical（trim + CRLF→LF）SHA-256；
+ * 纯 catalog task（无 requirement 正文）→ null（displayName 排除，T5）。 */
+const intentDigestOf = (requirement) => {
+  const body = typeof requirement === 'string' ? normalizeLf(requirement.trim()) : ''
+  return body.length > 0 ? `sha256:${sha256Hex(body)}` : null
+}
+
+/** 声明块组装（消费既有 manifest 解析结果 + workbench task 意图）。
+ * scenarios 的 digest ＝ 场景 JSON 文件整体 LF 归一化后的 sha256；
+ * fixtures 有 contentHash 则带 `sha256:` digest、描述型为 null。 */
+const buildDeclarationBlock = ({ taskRefId, testSetRef, catalog, requirement }) => {
+  const manifest = catalog?.manifest ?? null
+  const catalogTask = catalog?.task ?? null
+  const testSetDir = String(testSetRef.id).replace(/^testset\//, '')
+  const scenarios = (Array.isArray(manifest?.scenarios) ? manifest.scenarios : []).map(scenario => {
+    const id = scenario.id ?? scenario.scenarioRef ?? null
+    const file = typeof scenario.file === 'string' ? scenario.file : (id === null ? null : `${id}.json`)
+    let digest = null
+    if (file !== null) {
+      try {
+        digest = `sha256:${sha256Hex(normalizeLf(readFileSync(join(catalogRoot(), testSetDir, file), 'utf8')))}`
+      } catch { digest = null }
+    }
+    return { id, version: scenario.version ?? null, digest }
+  })
+  const fixtures = (Array.isArray(catalogTask?.fixtureRefs) ? catalogTask.fixtureRefs : []).map(ref => {
+    const entry = (Array.isArray(manifest?.fixtures) ? manifest.fixtures : [])
+      .find(item => item?.fixtureRef === ref)
+    const contentHash = typeof entry?.contentHash === 'string' && entry.contentHash.length > 0 ? entry.contentHash : null
+    return {
+      id: ref,
+      digest: contentHash === null ? null
+        : (contentHash.startsWith('sha256:') ? contentHash : `sha256:${contentHash}`),
+    }
+  })
+  return {
+    schemaVersion: 'task-declaration.v1',
+    taskRef: taskRefId,
+    intentDigest: intentDigestOf(requirement),
+    testSet: {
+      id: testSetRef.id,
+      version: testSetRef.version,
+      ...(testSetRef.sourceRevision ? { sourceRevision: testSetRef.sourceRevision } : { sourceRevision: 'repo-default' }),
+    },
+    scenarios,
+    fixtures,
+    acceptanceRefs: Array.isArray(catalogTask?.acceptanceRefs) ? [...catalogTask.acceptanceRefs] : [],
+  }
+}
+
 const logicalRefValid = (ref) => typeof ref?.id === 'string'
   && ref.id.length > 0
   && !ref.id.startsWith(('/', './', '../'))
@@ -280,6 +353,13 @@ const launchTask = async (ctx, repository, request) => {
       return { ok: false, status: 409, code: 'task-project-mismatch', message: 'task reference belongs to a different logical project' }
     }
   }
+  // RUNTIME-TASK-001 切片 1：声明块由 workbench 计算（manifest 解析结果 +
+  // 既有 workbench task 的 requirement 正文）；intentDigest 只在存在既有
+  // requirement 正文时计算（纯 catalog 场景 null）。
+  const declaration = buildDeclarationBlock({
+    taskRefId: taskRef, testSetRef: request.testSetRef, catalog,
+    requirement: taskRecord?.requirement ?? null,
+  })
   let taskId = taskRecord?.taskId
   if (!taskId) {
     try {
@@ -313,6 +393,21 @@ const launchTask = async (ctx, repository, request) => {
     return { ok: false, status: 500, code: 'runtime-unavailable', message: 'UniClaw Runtime run seam is unavailable' }
   }
   let run
+  // RUNTIME-TASK-001 切片 1：admission——声明块随 POST /api/uniclaw-runtime/tasks
+  // 提交；同 key 异声明 → input-conflict（fail closed，先于任何 run 创建）。
+  // Runtime 铸造的 taskInstanceId 回填进 createRun（消除缺省合成 task-instance-*）。
+  let admissionTaskInstanceId = null
+  if (typeof runtime.createTaskInstance === 'function') {
+    try {
+      const admission = await runtime.createTaskInstance({ taskRef, idempotencyKey: request.idempotencyKey, declaration })
+      if (typeof admission?.taskInstanceId === 'string' && admission.taskInstanceId.length > 0) {
+        admissionTaskInstanceId = admission.taskInstanceId
+      }
+    } catch (error) {
+      const code = typeof error?.code === 'string' && error.code.length > 0 ? error.code : 'task-admission-failed'
+      return { ok: false, status: code === 'input-conflict' ? 409 : 502, code, message: String(error?.message ?? error) }
+    }
+  }
   if (existing?.instance?.runId) run = { runId: existing.instance.runId, productSessionId: existing.instance.productSessionId }
   if (!run && existing?.instance?.runtimeStatus === 'unknown') {
     const recover = typeof runtime.recoverRun === 'function' ? runtime.recoverRun
@@ -325,7 +420,7 @@ const launchTask = async (ctx, repository, request) => {
     }
   }
   try {
-    if (!run) run = await runtime.createRun({ projectRef: request.projectRef, testSetRef: request.testSetRef, taskRef: request.taskRef, correlationId: request.correlationId, idempotencyKey: request.idempotencyKey, launchId, ...(request.environmentIntent ? { environmentIntent: request.environmentIntent } : {}) })
+    if (!run) run = await runtime.createRun({ projectRef: request.projectRef, testSetRef: request.testSetRef, taskRef: request.taskRef, correlationId: request.correlationId, idempotencyKey: request.idempotencyKey, launchId, ...(admissionTaskInstanceId ? { taskInstanceId: admissionTaskInstanceId } : {}), ...(request.environmentIntent ? { environmentIntent: request.environmentIntent } : {}) })
   } catch (error) {
     const code = typeof error?.code === 'string' && error.code.length > 0 ? error.code : 'run-create-failed'
     try { repository.updateInstance(taskId, instanceId, { runtimeStatus: 'unknown', recovery: { code: 'run-create-unknown', message: String(error?.message ?? error) } }) } catch { /* preserve original error */ }

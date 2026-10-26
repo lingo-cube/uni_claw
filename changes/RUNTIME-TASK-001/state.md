@@ -1,5 +1,5 @@
 # RUNTIME-TASK-001 — Task 组件一等化：身份、本地状态布局与版本归属
-lifecycle_state: planning · disposition: none · depth: decision-heavy · base: c3f1833c8d76bea0bcbc3faac0b9bb8568018387
+lifecycle_state: implementing · disposition: none · depth: decision-heavy · base: c3f1833c8d76bea0bcbc3faac0b9bb8568018387
 
 > 本 Change 由一次跨会话设计讨论产出（推演见 [discussion-record.md](discussion-record.md)；
 > 方案视图见 [solution.md](solution.md)——域模型/职责矩阵/流程闭环/待敲定/待修正）。
@@ -366,3 +366,21 @@ verification:
   评审 P-C）与 PLAN 定形项 **T1–T6**（评审 P-A/P-B 入 T5/T6）。计划落
   plans/RUNTIME-TASK-001.md（切片 0 定形 → 1 admission 闭环 → 2 布局与执行
   投影 → 3 workbench 接线）。lifecycle_state → planning。未改源码。
+- 2026-10-26 PLAN→**IMPLEMENT（切片 1 admission 闭环）**：Worker＝glm-5.3-flash
+  （zai-coding-cn，owner 指定覆盖 standard 默认绑定，WI-RUNTIME-TASK-001-S1，
+  TDD）。落地：TaskInstanceRecord +Declaration/DeclarationFingerprint（canonical
+  JSON+sha256，双端一致由冻结样例 f011bc6f…89d3e8e 锁定）；Create 冲突分支
+  （同 key 异声明抛 TaskInstanceInputConflictException）；POST /tasks 接受
+  declaration（v1 校验、409 input-conflict、先持久化后成功）；GET
+  /tasks/{id}（定形 T4）；workbench 声明块组装+admission 先于 run 创建。
+  **Leader REVIEW 通过**（预留 1:N 注释未动、零越界、复跑取证）并 Direct 补缺：
+  runtime-provider 增 createTaskInstance 传输（postRaw+错误码透传）、admission
+  的 taskInstanceId 回填 createRun（消除合成 task-instance-* 路径）。
+  验证：Host.Tests 13/13（RuntimeTaskDeclaration|RuntimeIdentityStore）、
+  Dsh.Tests 5/5（RuntimeTaskEndpoint）、workbench+provider 45/45，二次复跑稳定
+  （首跑一次 instance-store-failed 偶发未复现，判环境瞬态）。Worker 新发现
+  处置：provider 传输缺失→Leader 已接线；Windows 预存套件红（sharing
+  violation / python3 不在 PATH / ESM 可移植性，stash 基线复核）→ 记录为
+  环境问题，不属本切片，留待单独裁决；既有测试副产物目录（changes/
+  RUNTIME-STORAGE-002/evidence/slice2/*）保留未动。lifecycle_state →
+  implementing。

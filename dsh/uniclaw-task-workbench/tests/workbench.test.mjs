@@ -8,11 +8,12 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, copyFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { dirname, join } from 'node:path'
 
 const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
-const plugin = await import(join(PACKAGE_ROOT, 'src', 'index.js'))
+// pathToFileURL：Windows 上绝对路径（D:\…）不能直接作为 ESM import 说明符。
+const plugin = await import(pathToFileURL(join(PACKAGE_ROOT, 'src', 'index.js')).href)
 
 const FROZEN_SCHEMA_DIR = join(PACKAGE_ROOT, 'schema')
 
@@ -699,7 +700,7 @@ test('panel workspace/session: explicit run metadata links an observed session a
   assert.equal(detail.uniclawTrace[0].status, 'OK')
   assert.equal(detail.uniclawTrace[0].durationMs, 125)
   assert.equal(detail.uniclawTrace[0].references[0].kind, 'Evidence')
-  assert.ok(detail.evidence.some(ref => ref.endsWith('/trace.json')))
+  assert.ok(detail.evidence.some(ref => /[\\/]trace\.json$/.test(ref)))
   assert.deepEqual(detail.runStages.map(stage => [stage.kind, stage.label, stage.status]), [
     ['execution', '执行结果', 'Satisfied'], ['verification', '验证结果', '已验证'],
   ])
@@ -787,6 +788,161 @@ test('typert-protocol unavailable offline: apply() still registers working HTTP 
   const { routes } = applyHost()
   assert.ok(routes.get('/api/uniclaw-task/tasks'))
   assert.ok(routes.get('/api/uniclaw-task/tasks/instantiate'))
+})
+
+// ---------------------------------------------------------------------------
+// RUNTIME-TASK-001 切片 1 — launch 声明块组装（定形 T1）与 admission 提交。
+// ---------------------------------------------------------------------------
+
+import { createHash } from 'node:crypto'
+import { canonicalJsonStringify, declarationFingerprint } from '../src/index.js'
+
+const sha256Hex = (text) => createHash('sha256').update(text, 'utf8').digest('hex')
+
+test('declaration fingerprint: dual-implementation lock (JS canonical sha256 equals the C#-frozen literal)', () => {
+  const FIXED_DECLARATION = {
+    schemaVersion: 'task-declaration.v1',
+    taskRef: 'task/android-settings/toggle-wifi-reuse',
+    intentDigest: null,
+    testSet: { id: 'testset/android-settings', version: 'default', sourceRevision: 'repo-default' },
+    scenarios: [],
+    fixtures: [{ id: 'fixture/android-settings/settings-root', digest: null }],
+    acceptanceRefs: [],
+  }
+  // 与 tests/UniClaw.Host.Tests/RuntimeTaskDeclarationTests.cs 中冻结的期望值一致：
+  // canonical（键递归排序、无缩进）sha256 的 64 位 hex。
+  assert.equal(
+    canonicalJsonStringify(FIXED_DECLARATION),
+    '{"acceptanceRefs":[],"fixtures":[{"digest":null,"id":"fixture/android-settings/settings-root"}],"intentDigest":null,"scenarios":[],"schemaVersion":"task-declaration.v1","taskRef":"task/android-settings/toggle-wifi-reuse","testSet":{"id":"testset/android-settings","sourceRevision":"repo-default","version":"default"}}')
+  assert.equal(declarationFingerprint(FIXED_DECLARATION),
+    'f011bc6fd68c1f152cc4cc4954ab11e3d2357563676bc8f5193e07e7089d3e8e')
+})
+
+test('launch: admission declaration block (task-declaration.v1) is assembled and submitted to Runtime', async () => {
+  const catalogRoot = join(TEST_ROOT, 'declaration-testsets')
+  const manifestDir = join(catalogRoot, 'decl-catalog')
+  mkdirSync(manifestDir, { recursive: true })
+  writeFileSync(join(manifestDir, 'manifest.json'), JSON.stringify({
+    schemaVersion: 'testset-manifest.v1',
+    projectRef: 'project/decl-catalog',
+    testSetRef: 'testset/decl-catalog',
+    version: 'default',
+    sourceRevision: 'repo-default',
+    tasks: [{
+      taskRef: 'task/decl-catalog/smoke',
+      displayName: 'Declaration smoke',
+      fixtureRefs: ['fixture/decl-catalog/root', 'fixture/decl-catalog/described'],
+      acceptanceRefs: ['acceptance/decl-catalog/smoke-ok'],
+    }],
+    fixtures: [
+      { fixtureRef: 'fixture/decl-catalog/root', contentHash: 'abc123' },
+      { fixtureRef: 'fixture/decl-catalog/described', description: 'no contentHash' },
+    ],
+    scenarios: [{ id: 'SCN-DECL-001', version: 3, file: 'scenarios/scn-001.json' }],
+  }))
+  mkdirSync(join(manifestDir, 'scenarios'), { recursive: true })
+  // CRLF 内容 → LF 归一后整体 sha256（钉"当时整份文件"）。
+  writeFileSync(join(manifestDir, 'scenarios', 'scn-001.json'), '{\r\n  "id": "SCN-DECL-001"\r\n}\r\n')
+
+  const runtime = {
+    admissionCalls: [],
+    createRunCalls: [],
+    async createTaskInstance(request) { runtime.admissionCalls.push(request); return { taskInstanceId: 'ti-admission-1' } },
+    async createRun(request) { runtime.createRunCalls.push(request); return { runId: 'run-admission-1', productSessionId: 'product-admission-1' } },
+  }
+  const previous = process.env.UNICLAW_TESTSET_ROOT
+  process.env.UNICLAW_TESTSET_ROOT = catalogRoot
+  try {
+    const { routes } = applyHost({ controller: mockController(), registry: mockRegistry(), runtime })
+    const response = await post(routes, '/api/uniclaw-task/tasks/launch', {
+      schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1',
+      launchRequestId: 'launch-declaration-1', projectRef: { id: 'project/decl-catalog' },
+      testSetRef: { id: 'testset/decl-catalog', version: 'default' }, taskRef: { id: 'task/decl-catalog/smoke' },
+      idempotencyKey: 'idem-declaration-1', correlationId: 'corr-declaration-1', requestedAt: new Date().toISOString(), metadata: [],
+    })
+    assert.equal(response.status, 200)
+    // admission 先于 run 创建。
+    assert.equal(runtime.admissionCalls.length, 1)
+    const admission = runtime.admissionCalls[0]
+    assert.equal(admission.taskRef, 'task/decl-catalog/smoke')
+    assert.equal(admission.idempotencyKey, 'idem-declaration-1')
+    const declaration = admission.declaration
+    assert.deepEqual(Object.keys(declaration).sort(),
+      ['acceptanceRefs', 'fixtures', 'intentDigest', 'scenarios', 'schemaVersion', 'taskRef', 'testSet'])
+    assert.equal(declaration.schemaVersion, 'task-declaration.v1')
+    assert.equal(declaration.taskRef, 'task/decl-catalog/smoke')
+    assert.deepEqual(declaration.testSet, { id: 'testset/decl-catalog', version: 'default', sourceRevision: 'repo-default' })
+    // 纯 catalog 场景（无 requirement 正文）→ intentDigest null。
+    assert.equal(declaration.intentDigest, null)
+    // scenario digest = 场景 JSON 文件整体 LF 归一化后的 sha256（前缀 sha256:）。
+    assert.deepEqual(declaration.scenarios, [{
+      id: 'SCN-DECL-001', version: 3,
+      digest: `sha256:${sha256Hex('{\n  "id": "SCN-DECL-001"\n}\n')}`,
+    }])
+    // fixtures：有 contentHash 带 sha256: 前缀 digest；描述型为 null。
+    assert.deepEqual(declaration.fixtures, [
+      { id: 'fixture/decl-catalog/root', digest: 'sha256:abc123' },
+      { id: 'fixture/decl-catalog/described', digest: null },
+    ])
+    assert.deepEqual(declaration.acceptanceRefs, ['acceptance/decl-catalog/smoke-ok'])
+    // Runtime 铸造的 taskInstanceId 回填进 createRun（切片 1 Leader 接线）。
+    assert.equal(runtime.createRunCalls[0]?.taskInstanceId, 'ti-admission-1')
+  } finally {
+    if (previous === undefined) delete process.env.UNICLAW_TESTSET_ROOT
+    else process.env.UNICLAW_TESTSET_ROOT = previous
+  }
+})
+
+test('launch: intentDigest is computed from a stored requirement body (trim + CRLF→LF sha256)', async () => {
+  const runtime = {
+    admissionCalls: [],
+    async createTaskInstance(request) { runtime.admissionCalls.push(request); return { taskInstanceId: 'ti-admission-2' } },
+    async createRun() { return { runId: 'run-admission-2', productSessionId: 'product-admission-2' } },
+  }
+  const { routes, storePath } = applyHost({ controller: mockController(), registry: mockRegistry(), runtime })
+  // 预置带 requirement 正文的 workbench task（HTTP 创建路由不允许自定义 taskId，
+  // 故直接经同一 JSON store 的独立 repository 实例种子化；插件实例惰性加载）。
+  const seed = createTaskRepository(storePath)
+  seed.create({
+    taskId: 'task/workspace-contract/request-decision-result',
+    title: 'Declaration intent task',
+    requirement: '  Line one.\r\nLine two.  ',
+    projectRef: { id: 'project/uni-claw-test-lab' },
+    status: 'active',
+  })
+  const response = await post(routes, '/api/uniclaw-task/tasks/launch', {
+    schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1',
+    launchRequestId: 'launch-declaration-2', projectRef: { id: 'project/uni-claw-test-lab' },
+    testSetRef: { id: 'testset/workspace-contract', version: 'default' },
+    taskRef: { id: 'task/workspace-contract/request-decision-result', label: 'Declaration intent task' },
+    idempotencyKey: 'idem-declaration-2', correlationId: 'corr-declaration-2', requestedAt: new Date().toISOString(), metadata: [],
+  })
+  assert.equal(response.status, 200)
+  const declaration = runtime.admissionCalls[0].declaration
+  assert.equal(declaration.intentDigest, `sha256:${sha256Hex('Line one.\nLine two.')}`)
+})
+
+test('launch: Runtime admission input-conflict fails closed before run creation', async () => {
+  const runtime = {
+    async createTaskInstance() {
+      const error = new Error('idempotencyKey pinned to a different declaration')
+      error.code = 'input-conflict'
+      throw error
+    },
+    createRunCalls: 0,
+    async createRun() { runtime.createRunCalls += 1; return { runId: 'run-never', productSessionId: 'ps-never' } },
+  }
+  const { routes } = applyHost({ controller: mockController(), registry: mockRegistry(), runtime })
+  const response = await post(routes, '/api/uniclaw-task/tasks/launch', {
+    schemaVersion: 'uniclaw.workspace.task-launch-request.v1', contractVersion: 'uniclaw.workspace.contract.v1',
+    launchRequestId: 'launch-conflict-1', projectRef: { id: 'project/uni-claw-test-lab' },
+    testSetRef: { id: 'testset/workspace-contract', version: 'default' },
+    taskRef: { id: 'task/workspace-contract/request-decision-result' },
+    idempotencyKey: 'idem-conflict-1', correlationId: 'corr-conflict-1', requestedAt: new Date().toISOString(), metadata: [],
+  })
+  assert.equal(response.status, 409)
+  assert.equal((await response.json()).error.code, 'input-conflict')
+  assert.equal(runtime.createRunCalls, 0)
 })
 
 // Mirrors the plugin's own sync probe so the test asserts the degrade path,

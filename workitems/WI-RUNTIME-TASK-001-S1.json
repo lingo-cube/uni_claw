@@ -1,0 +1,67 @@
+{
+  "id": "WI-RUNTIME-TASK-001-S1",
+  "objective": "落地 admission 闭环（D17 契约 1）：创建 TaskInstance 时持久化声明输入，同幂等键同声明复用、异声明显式拒绝，重启后钉扎不变，未产生 Run 的实例可查询（TDD）。",
+  "scope": {
+    "write": [
+      "src/UniClaw.Host/Runtime/TaskInstanceStore.cs",
+      "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs",
+      "tests/UniClaw.Host.Tests/**",
+      "tests/UniClaw.Host.Dsh.Tests/**",
+      "dsh/uniclaw-task-workbench/src/index.js",
+      "dsh/uniclaw-task-workbench/tests/**"
+    ],
+    "read_hints": [
+      "plans/RUNTIME-TASK-001.md（切片 0 定形 T1/T4——声明块与端点契约）",
+      "changes/RUNTIME-TASK-001/state.md（D11/D13/D17、A6）",
+      "changes/RUNTIME-TASK-001/solution.md（§1.7 交接契约）",
+      "tests/UniClaw.Host.Tests/RuntimeIdentityStoreTests.cs（既有 store 测试模式）",
+      "dsh/uniclaw-task-workbench/tests/workbench.test.mjs（既有 launch 测试模式）"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "RUNTIME-TASK-001 切片 1：Runtime admission 端点扩展声明块（先持久化后成功、input-conflict），新增 instance 只读查询端点，workbench launch 组装声明块。",
+    "core_points": [
+      "先持久化后返回成功；持久化失败＝发起失败",
+      "同 idempotencyKey 且 declarationFingerprint 相同 → 复用原记录（返回原声明）",
+      "同 key 但 fingerprint 不同 → 4xx input-conflict，原记录不变、不覆盖、不追加",
+      "append-only 语义与重启重放（Load）不破坏",
+      "声明块由 workbench 计算、Runtime 原样持久化，不引入 Runtime 侧 resolver"
+    ]
+  },
+  "anchors": [
+    { "path": "src/UniClaw.Host/Runtime/TaskInstanceStore.cs", "symbol": "TaskInstanceStore.Create" },
+    { "path": "src/UniClaw.Host.Dsh/RuntimeHttpServer.cs", "symbol": "CreateTaskInstanceAsync" },
+    { "path": "dsh/uniclaw-task-workbench/src/index.js", "symbol": "resolveRepositoryTask" },
+    { "path": "tests/UniClaw.Host.Tests/RuntimeIdentityStoreTests.cs" }
+  ],
+  "contract_refs": [
+    "plans/RUNTIME-TASK-001.md",
+    "changes/RUNTIME-TASK-001/state.md",
+    "changes/RUNTIME-TASK-001/solution.md"
+  ],
+  "acceptance": [
+    "A6-① 同 idempotencyKey + 同声明块（fingerprint 相同）→ 复用原记录，返回原 taskInstanceId 与原声明；不追加新行",
+    "A6-② 同 idempotencyKey + 异声明块 → 显式拒绝（HTTP 4xx，错误码 input-conflict），原记录不变、不覆盖、不追加",
+    "A6-③ store 关闭重开（模拟重启）→ 身份与声明钉扎逐字段不变",
+    "A6-④ GET /api/uniclaw-runtime/tasks/{taskInstanceId} 可查未产生 Run 的实例（含 declaration 与 declarationFingerprint），未知 id 404",
+    "POST /api/uniclaw-runtime/tasks 请求体接受 declaration 块（形状=定形 T1）；缺 idempotencyKey/taskRef 仍 400",
+    "workbench launch 组装声明块并随请求提交（形状=定形 T1；intentDigest 有 requirement 时计算、catalog 场景 null）；既有 workbench 测试全绿",
+    "受影响测试套件全绿（dotnet test tests/UniClaw.Host.Tests + workbench 测试），evidence 含命令与输出摘录",
+    "git status 证明零越界（仅 scope.write 内文件改动）"
+  ],
+  "forbidden": [
+    "禁止修改 TaskInstanceStore.cs 内『1:N（taskInstance → productSession）预留但当前 1:1（ADR-0045 当前范围）』注释",
+    "禁止实现切片 2 内容：介质根改名、<task>/<instance>/ 布局、metadata.json 投影、T2 实际实现指纹",
+    "禁止实现 T3 验收记录存储（形状已定形，实现属后续切片）",
+    "禁止修改 changes/**、plans/**、schemas/**、model-routing.yaml、.dsh/**、CONTEXT.md、scenarios/**、testsets/**、workitems/**",
+    "禁止 git commit / push（Leader REVIEW 后统一提交）",
+    "禁止 reset / clean / 全仓 stage；禁止重排与本切片无关的代码"
+  ],
+  "frozen_decisions": [
+    "changes/RUNTIME-TASK-001/state.md D1–D17（尤其 D11/D13/D17）",
+    "state.md Acceptance A6 六条"
+  ],
+  "required_capability": "implementation",
+  "required_skills": ["tdd"],
+  "status": "done"
+}

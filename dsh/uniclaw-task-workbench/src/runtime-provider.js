@@ -7,6 +7,7 @@
 
 const DEFAULT_CREATE_PATH = '/api/uniclaw-runtime/runs'
 const DEFAULT_RECOVER_PATH = '/api/uniclaw-runtime/runs/recover'
+const DEFAULT_TASK_INSTANCE_PATH = '/api/uniclaw-runtime/tasks'
 const CONTRACT_VERSION = 'uniclaw.workspace.contract.v1'
 const REQUEST_SCHEMA = 'uniclaw.workspace.task-launch-request.v1'
 
@@ -52,6 +53,14 @@ const validateRun = (value) => {
   return { ...value }
 }
 
+const validateTaskInstance = (value) => {
+  if (!value || typeof value !== 'object'
+    || typeof value.taskInstanceId !== 'string' || value.taskInstanceId.length === 0) {
+    throw invalidResponse('Runtime admission response must contain taskInstanceId')
+  }
+  return { ...value }
+}
+
 const requestBody = (request) => ({
   schemaVersion: REQUEST_SCHEMA,
   contractVersion: CONTRACT_VERSION,
@@ -79,8 +88,11 @@ export function createRuntimeProvider(options = {}) {
   const timeoutMs = Number.isFinite(options.timeoutMs) && options.timeoutMs > 0 ? options.timeoutMs : 15_000
   const createPath = options.createPath || DEFAULT_CREATE_PATH
   const recoverPath = options.recoverPath || DEFAULT_RECOVER_PATH
+  const taskInstancePath = options.taskInstancePath || DEFAULT_TASK_INSTANCE_PATH
 
-  const post = async (path, body) => {
+  // RUNTIME-TASK-001 切片 1：postRaw 只做传输与错误映射（含 409 input-conflict
+  // 的 error.code 透传），不套 run 响应校验——admission 响应无 runId。
+  const postRaw = async (path, body) => {
     if (baseUrl === null) throw unavailable('UNICLAW_RUNTIME_BASE_URL is not configured')
     if (typeof fetchImpl !== 'function') throw unavailable('Runtime transport fetch is unavailable')
     const controller = typeof AbortController === 'function' ? new AbortController() : null
@@ -92,7 +104,7 @@ export function createRuntimeProvider(options = {}) {
         body: JSON.stringify(body),
         ...(controller === null ? {} : { signal: controller.signal }),
       })
-      return validateRun(await readJson(response))
+      return readJson(response)
     } catch (error) {
       if (error?.code) throw error
       if (error?.name === 'AbortError') throw unavailable(`Runtime transport timed out after ${timeoutMs}ms`)
@@ -101,9 +113,15 @@ export function createRuntimeProvider(options = {}) {
       if (timer !== null) clearTimeout(timer)
     }
   }
+  const post = async (path, body) => validateRun(await postRaw(path, body))
 
   return Object.freeze({
     createRun: (request) => post(createPath, requestBody(request)),
+    createTaskInstance: (request) => postRaw(taskInstancePath, {
+      taskRef: request.taskRef,
+      idempotencyKey: request.idempotencyKey,
+      ...(request.declaration && typeof request.declaration === 'object' ? { declaration: request.declaration } : {}),
+    }).then(validateTaskInstance),
     recoverRun: (request) => post(recoverPath, {
       schemaVersion: REQUEST_SCHEMA,
       contractVersion: CONTRACT_VERSION,
@@ -118,4 +136,5 @@ export const runtimeProviderContract = Object.freeze({
   contractVersion: CONTRACT_VERSION,
   createPath: DEFAULT_CREATE_PATH,
   recoverPath: DEFAULT_RECOVER_PATH,
+  taskInstancePath: DEFAULT_TASK_INSTANCE_PATH,
 })

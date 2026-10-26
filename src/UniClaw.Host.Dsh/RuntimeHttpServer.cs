@@ -72,6 +72,8 @@ public sealed class RuntimeHttpServer
         // Step 2：POST /sessions → ProductSessionStore 铸造 productSessionId
         // Step 3：POST /runs（既有）→ 消费上面两步铸造的 ID
         app.MapPost("/api/uniclaw-runtime/tasks", server.CreateTaskInstanceAsync);
+        // RUNTIME-TASK-001 切片 1（定形 T4）：instance 只读查询端点。
+        app.MapGet("/api/uniclaw-runtime/tasks/{taskInstanceId}", server.GetTaskInstanceAsync);
         app.MapPost("/api/uniclaw-runtime/sessions", server.CreateProductSessionAsync);
         app.MapPost("/api/uniclaw-runtime/runs", server.StartRunAsync);
         app.MapGet("/api/uniclaw-runtime/runs", server.ListRunsAsync);
@@ -116,20 +118,102 @@ public sealed class RuntimeHttpServer
     /// <summary>
     /// RUNTIME-IDENTITY-001 · ADR-0045 Step 1：Runtime 铸造 taskInstanceId。
     /// 调用方不传 ID；同 idempotencyKey 重入返回已有实例。
+    /// RUNTIME-TASK-001 切片 1：请求体可选 declaration 块（定形 T1），先持久化后
+    /// 成功；同 key 异声明 → 409 input-conflict（A6-②）。
     /// </summary>
-    private Task<IResult> CreateTaskInstanceAsync(JsonElement? body, CancellationToken ct)
+    private Task<IResult> CreateTaskInstanceAsync(JsonElement? body, CancellationToken ct) =>
+        RuntimeTaskEndpoints.CreateTaskInstanceAsync(_taskStore, body);
+
+    /// <summary>RUNTIME-TASK-001 切片 1（定形 T4）：instance 只读查询。</summary>
+    private Task<IResult> GetTaskInstanceAsync(string taskInstanceId) =>
+        RuntimeTaskEndpoints.GetTaskInstanceAsync(_taskStore, taskInstanceId);
+
+    /// <summary>
+    /// RUNTIME-TASK-001 切片 1：admission（POST /tasks + declaration 块）与
+    /// instance 只读查询（GET /tasks/{id}，定形 T4）端点实现。静态可映射，
+    /// 供 RuntimeHttpServer 与端点锚定测试复用同一条实现。
+    /// </summary>
+    public static class RuntimeTaskEndpoints
     {
-        string taskRef, idempotencyKey;
-        if (body is { ValueKind: JsonValueKind.Object } json)
+        public static void Map(WebApplication app, TaskInstanceStore store)
         {
-            taskRef = json.TryGetProperty("taskRef", out var tr) && tr.ValueKind == JsonValueKind.String ? tr.GetString() ?? "" : "";
-            idempotencyKey = json.TryGetProperty("idempotencyKey", out var ik) && ik.ValueKind == JsonValueKind.String ? ik.GetString() ?? "" : "";
+            app.MapPost("/api/uniclaw-runtime/tasks", (JsonElement? body, CancellationToken ct) => CreateTaskInstanceAsync(store, body));
+            app.MapGet("/api/uniclaw-runtime/tasks/{taskInstanceId}", (string taskInstanceId) => GetTaskInstanceAsync(store, taskInstanceId));
         }
-        else { taskRef = ""; idempotencyKey = ""; }
-        if (string.IsNullOrWhiteSpace(taskRef) || string.IsNullOrWhiteSpace(idempotencyKey))
-            return Task.FromResult<IResult>(Error(400, "invalid-request", "taskRef and idempotencyKey are required", retryable: false));
-        var record = _taskStore.Create(taskRef, idempotencyKey);
-        return Task.FromResult<IResult>(Results.Ok(new { ok = true, taskInstanceId = record.TaskInstanceId, taskRef = record.TaskRef, productSessionId = record.ProductSessionId }));
+
+        public static Task<IResult> CreateTaskInstanceAsync(TaskInstanceStore store, JsonElement? body)
+        {
+            string taskRef, idempotencyKey;
+            JsonElement? declaration = null;
+            var declarationInvalid = false;
+            if (body is { ValueKind: JsonValueKind.Object } json)
+            {
+                taskRef = json.TryGetProperty("taskRef", out var tr) && tr.ValueKind == JsonValueKind.String ? tr.GetString() ?? "" : "";
+                idempotencyKey = json.TryGetProperty("idempotencyKey", out var ik) && ik.ValueKind == JsonValueKind.String ? ik.GetString() ?? "" : "";
+                if (json.TryGetProperty("declaration", out var d))
+                {
+                    // 定形 T1 校验：必须是对象且 schemaVersion == "task-declaration.v1"。
+                    if (d.ValueKind == JsonValueKind.Object
+                        && d.TryGetProperty("schemaVersion", out var sv)
+                        && sv.ValueKind == JsonValueKind.String
+                        && sv.GetString() == "task-declaration.v1")
+                    {
+                        declaration = d;
+                    }
+                    else
+                    {
+                        declarationInvalid = true;
+                    }
+                }
+            }
+            else { taskRef = ""; idempotencyKey = ""; }
+            if (string.IsNullOrWhiteSpace(taskRef) || string.IsNullOrWhiteSpace(idempotencyKey))
+                return Task.FromResult<IResult>(Error(400, "invalid-request", "taskRef and idempotencyKey are required", retryable: false));
+            if (declarationInvalid)
+                return Task.FromResult<IResult>(Error(400, "invalid-declaration",
+                    "declaration must be an object with schemaVersion 'task-declaration.v1'", retryable: false));
+            TaskInstanceRecord record;
+            try
+            {
+                // Runtime 原样持久化声明块（不改写、不解析语义）；先持久化后成功。
+                record = store.Create(taskRef, idempotencyKey, declaration is null ? null : declaration.Value.GetRawText());
+            }
+            catch (TaskInstanceInputConflictException ex)
+            {
+                return Task.FromResult<IResult>(Error(409, "input-conflict", ex.Message, retryable: false));
+            }
+            catch (JsonException ex)
+            {
+                return Task.FromResult<IResult>(Error(400, "invalid-declaration", ex.Message, retryable: false));
+            }
+            return Task.FromResult<IResult>(Results.Ok(new
+            {
+                ok = true,
+                taskInstanceId = record.TaskInstanceId,
+                taskRef = record.TaskRef,
+                declaration = record.Declaration is null ? (object?)null : JsonDocument.Parse(record.Declaration).RootElement.Clone(),
+                declarationFingerprint = record.DeclarationFingerprint,
+                productSessionId = record.ProductSessionId,
+            }));
+        }
+
+        public static Task<IResult> GetTaskInstanceAsync(TaskInstanceStore store, string taskInstanceId)
+        {
+            var record = store.Get(taskInstanceId);
+            if (record is null)
+                return Task.FromResult<IResult>(Results.Json(
+                    new { ok = false, error = "task-instance-not-found" }, statusCode: StatusCodes.Status404NotFound));
+            return Task.FromResult<IResult>(Results.Ok(new
+            {
+                ok = true,
+                taskInstanceId = record.TaskInstanceId,
+                taskRef = record.TaskRef,
+                declaration = record.Declaration is null ? (object?)null : JsonDocument.Parse(record.Declaration).RootElement.Clone(),
+                declarationFingerprint = record.DeclarationFingerprint,
+                productSessionId = record.ProductSessionId,
+                createdAt = record.CreatedAt,
+            }));
+        }
     }
 
     /// <summary>

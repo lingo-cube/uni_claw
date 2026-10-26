@@ -22,8 +22,21 @@ public sealed class RuntimeIdentityStoreTests : IDisposable
             var a = store.Create("settings-coverage", "launch-key-001");
             var b = store.Create("settings-coverage", "launch-key-001");
             Assert.Equal(a.TaskInstanceId, b.TaskInstanceId);
-            Assert.Single(System.IO.File.ReadAllLines(file).Where(l => !string.IsNullOrWhiteSpace(l)));
+            Assert.Single(ReadAllLinesShared(file).Where(l => !string.IsNullOrWhiteSpace(l)));
         }
+    }
+
+    /// <summary>
+    /// Windows 上 append-only writer 持有写句柄时，File.ReadAllLines 的
+    /// FileShare.Read 会产生 sharing violation；读取须显式允许 ShareWrite。
+    /// </summary>
+    internal static string[] ReadAllLinesShared(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var reader = new StreamReader(stream);
+        var lines = new List<string>();
+        while (reader.ReadLine() is { } line) lines.Add(line);
+        return lines.ToArray();
     }
 
     [Fact]

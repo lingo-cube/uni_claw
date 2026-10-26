@@ -9,16 +9,80 @@
 > 不改 `TaskInstanceStore` "预留 1:N"注释；不动基线 §22 未锁定语义；
 > 不做多 Run / 通用 Catalog / 存量迁移 / provenance / 场景库改动。
 
-## 切片 0 · 定形（无代码）
+## 切片 0 · 定形（无代码）——Leader 已定形（2026-10-26）
 
-| # | 定形项（详见 state.md "PLAN 内定形项"） | 输出 |
+| # | 定形项 | 状态 |
 |---|---|---|
-| T1 | 声明块 schema：workbench 计算（manifest 解析结果）→ launch 请求携带 → Runtime 原样持久化 | 字段表 + 请求/记录形状 |
-| T2 | 实际实现指纹：哈希路径集 + launch 路径性能预算（区分同提交不同工作区） | 指纹定义 |
-| T3 | 验收记录形状：与钉扎同记录或伴生；只记录不判定（T6 边界） | 记录 schema |
-| T4 | instance 查询端点：`GET /api/uniclaw-runtime/tasks/{taskInstanceId}` | 端点契约 |
-| T5 | 声明指纹比较范围（P-A）：参与/排除清单 + 钉扎-执行一致性 | 比较规范 |
-| T6 | 验收权威边界（P-B）措辞 | 已先行落入 solution.md §1.7 |
+| T1 | 声明块 schema | ✅ 见下 §定形 T1 |
+| T2 | 实际实现指纹 | ✅ 见下 §定形 T2（实现落切片 2） |
+| T3 | 验收记录形状 | ✅ 见下 §定形 T3（实现落后续切片） |
+| T4 | instance 查询端点 | ✅ 见下 §定形 T4（实现落切片 1） |
+| T5 | 声明指纹比较范围（P-A） | ✅ 已在 state.md 定形项 T5 |
+| T6 | 验收权威边界（P-B） | ✅ 已落 solution.md §1.7 |
+
+### 定形 T1 · 声明块（DeclarationBlock，`task-declaration.v1`）
+
+由 workbench 计算（manifest 解析结果 + workbench task 意图），随 admission
+请求提交；Runtime **原样持久化**（不改写、不解析语义）。
+
+```json
+{
+  "schemaVersion": "task-declaration.v1",
+  "taskRef": "task/android-settings/toggle-wifi-reuse",
+  "intentDigest": "sha256:<hex> | null",
+  "testSet": { "id": "testset/android-settings", "version": "default", "sourceRevision": "repo-default" },
+  "scenarios": [ { "id": "SCN-WIFI-001", "version": 1, "digest": "sha256:<hex>" } ],
+  "fixtures":  [ { "id": "fixture/android-settings/settings-root", "digest": "sha256:<hex> | null" } ],
+  "acceptanceRefs": [ "acceptance/..." ]
+}
+```
+
+- `intentDigest`：requirement 正文 canonical（trim + CRLF→LF）SHA-256；
+  纯 catalog task 无正文 → null（displayName 排除，T5）。
+- `scenarios[]` 可空（真机 task）；`version` 取场景文件 `version` 字段；
+  `digest`＝场景 JSON 文件整体（LF 归一化）摘要——钉"当时整份文件"。
+- `fixtures[]`：manifest 条目；有 contentHash 的带 digest，描述型为 null。
+- 排除：displayName、时间戳、环境意图（device 等 launch 环境字段不属声明）。
+- **declarationFingerprint**＝声明块 canonical JSON（键排序、无空白）SHA-256
+  ——input-conflict 的比较基准。
+
+### 定形 T2 · 实际实现指纹（implementationFingerprint）
+
+```json
+{ "commit": "<git HEAD sha> | null", "sourceDigest": "sha256:<hex>" }
+```
+
+- `sourceDigest`：`src/UniClaw.*/**/*.cs`（排除 bin/obj）按路径排序、内容
+  CRLF→LF 归一后拼接的 SHA-256（与场景认证 runtimeSourceHash 同纪律）；
+  预算：src 规模数十文件，launch 时 <100ms。
+- `commit`：git HEAD（无 repo 场景 null）。满足 A6-⑤：同 commit 不同工作区
+  → sourceDigest 不同。**实现落切片 2。**
+
+### 定形 T3 · 验收记录（`task-instance-acceptance.v1`，伴生 store）
+
+伴生 append-only JSONL（`task-instance-acceptances.jsonl`，与
+task-instances.jsonl 同目录）；**只记录不判定**（T6）。**实现落后续切片。**
+
+```json
+{
+  "schemaVersion": "task-instance-acceptance.v1",
+  "taskInstanceId": "ti-...",
+  "acceptanceRef": "acceptance/...",
+  "judgedBy": "<executor-id | human>",
+  "ruleVersion": "<string>",
+  "runId": "run-... | null",
+  "outcome": "pass | fail | pending",
+  "evidenceRefs": ["..."],
+  "recordedAt": "<ISO8601>"
+}
+```
+
+### 定形 T4 · instance 查询端点
+
+- `GET /api/uniclaw-runtime/tasks/{taskInstanceId}`
+- 200：`{ ok, taskInstanceId, taskRef, declaration, declarationFingerprint,
+  productSessionId | null, createdAt }`
+- 404：`{ ok: false, error: "task-instance-not-found" }`；只读、无副作用。
 
 ## 切片 1 · admission 闭环（评审指定先行；O4a+O4d 核心）
 
