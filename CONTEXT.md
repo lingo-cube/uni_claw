@@ -1012,9 +1012,12 @@ execution log
 
 ### Task Workbench（PNL-001 立项 2026-09-30）
 
-**UniClaw Task**: 任务定义——一项可重复发起的工作的规范：需求文本、
-项目归类、状态；不承载执行过程。同一 Task 可被实例化多次。
-_Avoid_: WorkItem（委派契约）、ticket、Product Session、plan
+**UniClaw Task**: 任务定义——一项可重复发起的工作的规范：意图正文（需求
+文本）、引用集（fixture 与 acceptance 必选、scenario 可选）、项目归类、
+状态；不承载执行过程。同一 Task 可被实例化多次；回归检验与真机操作是
+同一物种在不同执行基底上的形态，不设类型字段。
+_Avoid_: WorkItem（委派契约）、ticket、Product Session、plan、
+Sim/Product Task 物种分叉
 
 **Product Session**: 一次产品执行的 correlation root；由 UniClaw Runtime 根据
 Task 创建并分配自己的 `productSessionId`，发生在 Primary Run 之前。它承载 UniAgent
@@ -1076,6 +1079,15 @@ _Avoid_: Workspace database、Host session store、second source of truth
 
 **Catalog Revision**: 测试集内容、任务定义、fixture 关系或验收条件的一组可定位版本；它跟随测试目录内容变化，不跟随前端样式、查询实现或整个应用版本变化。当前本地来源使用用户可读的 `default`，历史可重现性由 source revision 或 Host 版本补充。
 _Avoid_: app version、UI version、directory mtime、runId
+
+**Scenario**: 仿真场景库条目——测试与能力基线资产：对一项产品能力的可重复
+检验声明，含 run 级期望快照、执行载体绑定（认证 golden 载体或专有
+harness）、防篡改认证（期望 / 载体 / 被测源码三层摘要）；自带 version
+（行为变更时递增）与 status（须与真实执行结果一致）。基线属于能力行为而非
+工作：可由被认可的行为经显式提炼与认证固化而来；不持有任何 task 或实例
+引用，被 Task 定义可选引用（scenarioRefs）。
+_Avoid_: ScenarioStimulus（sealed trace 派生的仿真输入）、test case（通用义）、
+task 验收记录、场景推理文档条目（srRef 溯源对象）
 
 **Run-Session Binding**: UniClaw Runtime 在已有 Product Session 上创建 canonical
 `runId`，并将一次 Primary Run 与该 Session 及其 primary Host Session 建立显式关联；
