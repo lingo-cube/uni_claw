@@ -1,0 +1,337 @@
+{
+  "scope": "Predeclared edge and delivery Oracle. Factory reset is refused after the normal path; safe graph accounting and product terminal status are separate.",
+  "cases": {
+    "complete": {
+      "reached": 8,
+      "skipped": 1,
+      "blocked": 1,
+      "undiscovered": 0,
+      "pending": 0,
+      "returns": 8,
+      "deliveries": 19,
+      "wrongReturns": 0,
+      "allTraversableReached": true,
+      "allTargetsAccounted": true,
+      "sequence": [
+        [
+          "Settings",
+          "Network",
+          "Network"
+        ],
+        [
+          "Network",
+          "Details",
+          "Details"
+        ],
+        [
+          "Details",
+          "finite:id/scroll",
+          "Details"
+        ],
+        [
+          "Details",
+          "Diagnostics",
+          "Diagnostics"
+        ],
+        [
+          "Diagnostics",
+          "Navigate up",
+          "Details"
+        ],
+        [
+          "Details",
+          "Summary",
+          "DetailsSummary"
+        ],
+        [
+          "DetailsSummary",
+          "Navigate up",
+          "Details"
+        ],
+        [
+          "Details",
+          "Navigate up",
+          "Network"
+        ],
+        [
+          "Network",
+          "finite:id/scroll",
+          "Network"
+        ],
+        [
+          "Network",
+          "Advanced",
+          "Advanced"
+        ],
+        [
+          "Advanced",
+          "Navigate up",
+          "Network"
+        ],
+        [
+          "Network",
+          "Navigate up",
+          "Settings"
+        ],
+        [
+          "Settings",
+          "finite:id/scroll",
+          "Settings"
+        ],
+        [
+          "Settings",
+          "Apps",
+          "Apps"
+        ],
+        [
+          "Apps",
+          "Permissions",
+          "Permissions"
+        ],
+        [
+          "Permissions",
+          "Summary",
+          "PermissionSummary"
+        ],
+        [
+          "PermissionSummary",
+          "Navigate up",
+          "Permissions"
+        ],
+        [
+          "Permissions",
+          "Navigate up",
+          "Apps"
+        ],
+        [
+          "Apps",
+          "Navigate up",
+          "Settings"
+        ]
+      ]
+    },
+    "deep-wrong-return": {
+      "reached": 3,
+      "skipped": 1,
+      "blocked": 0,
+      "undiscovered": 4,
+      "pending": 2,
+      "returns": 0,
+      "deliveries": 5,
+      "wrongReturns": 1,
+      "allTraversableReached": false,
+      "allTargetsAccounted": false,
+      "sequence": [
+        [
+          "Settings",
+          "Network",
+          "Network"
+        ],
+        [
+          "Network",
+          "Details",
+          "Details"
+        ],
+        [
+          "Details",
+          "finite:id/scroll",
+          "Details"
+        ],
+        [
+          "Details",
+          "Diagnostics",
+          "Diagnostics"
+        ],
+        [
+          "Diagnostics",
+          "Navigate up",
+          "Detour"
+        ]
+      ],
+      "observedPendingTargets": [
+        [
+          "Settings",
+          "Factory reset"
+        ],
+        [
+          "Details",
+          "Summary"
+        ]
+      ],
+      "undiscoveredTargets": [
+        [
+          "Settings",
+          "Apps"
+        ],
+        [
+          "Network",
+          "Advanced"
+        ],
+        [
+          "Apps",
+          "Permissions"
+        ],
+        [
+          "Permissions",
+          "Summary"
+        ]
+      ]
+    },
+    "missing-deep-scroll": {
+      "reached": 2,
+      "skipped": 1,
+      "blocked": 0,
+      "undiscovered": 6,
+      "pending": 1,
+      "returns": 0,
+      "deliveries": 3,
+      "wrongReturns": 0,
+      "allTraversableReached": false,
+      "allTargetsAccounted": false,
+      "sequence": [
+        [
+          "Settings",
+          "Network",
+          "Network"
+        ],
+        [
+          "Network",
+          "Details",
+          "Details"
+        ],
+        [
+          "Details",
+          "finite:id/scroll",
+          "Details"
+        ]
+      ],
+      "undiscoveredTargets": [
+        [
+          "Settings",
+          "Apps"
+        ],
+        [
+          "Network",
+          "Advanced"
+        ],
+        [
+          "Details",
+          "Diagnostics"
+        ],
+        [
+          "Details",
+          "Summary"
+        ],
+        [
+          "Apps",
+          "Permissions"
+        ],
+        [
+          "Permissions",
+          "Summary"
+        ]
+      ],
+      "observedPendingTargets": [
+        [
+          "Settings",
+          "Factory reset"
+        ]
+      ]
+    },
+    "supplement-budget-exhausted": {
+      "scope": "Independent product recovery contract permits16 requests; fixture requires one identity supplementation per capture. The 17th capture cannot be supplemented, so the 16th delivery is retained unverified and later returns must not execute.",
+      "reached": 7,
+      "skipped": 1,
+      "blocked": 0,
+      "undiscovered": 0,
+      "pending": 2,
+      "returns": 5,
+      "deliveries": 16,
+      "wrongReturns": 0,
+      "allTraversableReached": false,
+      "allTargetsAccounted": false,
+      "sequence": [
+        [
+          "Settings",
+          "Network",
+          "Network"
+        ],
+        [
+          "Network",
+          "Details",
+          "Details"
+        ],
+        [
+          "Details",
+          "finite:id/scroll",
+          "Details"
+        ],
+        [
+          "Details",
+          "Diagnostics",
+          "Diagnostics"
+        ],
+        [
+          "Diagnostics",
+          "Navigate up",
+          "Details"
+        ],
+        [
+          "Details",
+          "Summary",
+          "DetailsSummary"
+        ],
+        [
+          "DetailsSummary",
+          "Navigate up",
+          "Details"
+        ],
+        [
+          "Details",
+          "Navigate up",
+          "Network"
+        ],
+        [
+          "Network",
+          "finite:id/scroll",
+          "Network"
+        ],
+        [
+          "Network",
+          "Advanced",
+          "Advanced"
+        ],
+        [
+          "Advanced",
+          "Navigate up",
+          "Network"
+        ],
+        [
+          "Network",
+          "Navigate up",
+          "Settings"
+        ],
+        [
+          "Settings",
+          "finite:id/scroll",
+          "Settings"
+        ],
+        [
+          "Settings",
+          "Apps",
+          "Apps"
+        ],
+        [
+          "Apps",
+          "Permissions",
+          "Permissions"
+        ],
+        [
+          "Permissions",
+          "Summary",
+          "PermissionSummary"
+        ]
+      ]
+    }
+  }
+}

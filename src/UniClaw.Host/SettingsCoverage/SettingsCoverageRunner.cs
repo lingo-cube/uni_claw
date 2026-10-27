@@ -327,6 +327,8 @@ public sealed partial class SettingsCoverageRunner
                 {
                     NextInput = interleave.WrappedNext,
                     PollCancellation = options.PollCancellation,
+                    ObservationRecoveryTimeout = TimeSpan.FromMilliseconds(config.ObservationRecoverySettings.BoundedWaitMs),
+                    MaxObservationRecoveryRequests = config.ObservationRecoverySettings.MaxRequestsPerRun,
                     ConsultationJournal = consultationJournal,
                     ResourceJournal = resourceJournal,
                     RuntimePlanJournal = planJournal,
@@ -357,6 +359,22 @@ public sealed partial class SettingsCoverageRunner
                         var facts = SettingsPlanFacts.Project(source, ledger, config);
                         candidateProjections.Add(new { source, facts });
                         return facts;
+                    },
+                    ProjectExpectedEffect = (step, context) =>
+                    {
+                        // Production authoring only. Binding, permission and proof
+                        // still belong to Kernel/Effect Boundary/Assurance.
+                        var current = kernel.CurrentBelief;
+                        return step.EffectClass is "tap" or "click" && step.DesiredState is null
+                            && step.TargetDescriptor is { } target && config.PopupSettings.Targets.Contains(target)
+                            && !config.PopupSettings.DenyTargets.Contains(target)
+                            && current?.ObservationNeed is null
+                            && current?.WorldState.GetValueOrDefault(ProductAssociationStrategy.PopupSubject)?.Value == "present"
+                            && current.WorldState.TryGetValue(OverlayObservationCodec.Subject, out var overlay)
+                            && OverlayObservationCodec.TryRead(overlay.Value, out var observation)
+                            && observation!.State == "present"
+                            && current.CurrentPageObservation?.Capture.RequiresOverlayEvidence == true
+                            ? ExpectedEffect.OfChanges(ChangePredicate.OverlayDismissed) : null;
                     },
                     GuardStep = (step, context) =>
                     {

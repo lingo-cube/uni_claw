@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-facts.v2",
+  "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/changes/SIM-037/evidence/v2/live/normal-002/run-20261025-062033-336",
+  "status": "AgentDecisionFailed",
+  "reason": "no-response",
+  "outcome": null,
+  "delivered": 0,
+  "budgetRenewals": [],
+  "receipts": [
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted",
+    "DeliveryCompleted"
+  ],
+  "terminal": false,
+  "coverageStatus": "BoundedStop",
+  "coverageRate": 0.625,
+  "stepSuccessRate": 1,
+  "uncovered": [
+    "scroll-discovered-entry",
+    "second-level-pages",
+    "dynamic-root-entries"
+  ],
+  "firstDivergence": null,
+  "terminalJustification": null,
+  "diagnostics": {
+    "firstDivergence": null,
+    "terminalJustification": null,
+    "nextFiles": [
+      "facts.json",
+      "consult-bridge.json",
+      "environment-preflight.json",
+      "coverage-report.json",
+      "coverage-steps.json",
+      "trace.json",
+      "settings-trace.json",
+      "exec.journal",
+      "failure.json"
+    ],
+    "guidance": "\u5148\u770B firstDivergence/reason\uFF0C\u518D\u7528 DecisionId \u5BF9\u7167 coverage-steps.json\u3001trace.json \u548C exec.journal\u3002"
+  },
+  "languageInspection": {
+    "requested": false,
+    "file": null,
+    "findings": 0,
+    "persistenceHealthy": true,
+    "diagnostics": []
+  },
+  "consultMode": "advisory-direct",
+  "actionPolicy": {
+    "policyRef": "product/android-settings/forbidden-actions",
+    "digest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+    "sourcePath": "/Users/fran/Documents/Code/spacex/uni_claw/product/policy/android-settings-forbidden-actions.json"
+  },
+  "evidenceDir": null,
+  "evidenceFiles": 0,
+  "journalBytes": 7605,
+  "consults": [
+    {
+      "decisionId": "decision-aa104ef535ba-1",
+      "phase": "InitialPlanning",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "plan",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Root observed with Network navigable; scroll needed to reveal offscreen entries; visit Network (and nested if present), return to root after each.",
+      "policyDigest": null,
+      "guardVerdict": null
+    },
+    {
+      "decisionId": "decision-aa104ef535ba-2",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "plan",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "Details leaf reached; return to Settings root and continue root traversal; scroll for offscreen entries; each second-level entry returned from individually.",
+      "policyDigest": null,
+      "guardVerdict": null
+    },
+    {
+      "decisionId": "decision-aa104ef535ba-3",
+      "phase": "StepRejected",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": "act",
+      "deviationReason": null,
+      "attempts": 1,
+      "justification": "On Settings root. Factory reset is explicit exclusion and must not be tapped; root-navigation forEach surfaced it. Scroll the root container once to discover offscreen entries (scrollDiscoveredEntries pending), then re-evaluate root frontier.",
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "ALLOW"
+    },
+    {
+      "decisionId": "decision-aa104ef535ba-4",
+      "phase": "StepVerified",
+      "directive": null,
+      "directiveKind": "advisory-direct",
+      "decisionKind": null,
+      "deviationReason": "policy-guard:unknown-action:multi-step act is not policy-guardable",
+      "attempts": 1,
+      "justification": null,
+      "policyDigest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+      "guardVerdict": "REJECT"
+    }
+  ],
+  "steps": [
+    {
+      "decision": 1,
+      "step": 1,
+      "receipt": "receipt-bind-intent-1-occ-0dc12559bbaa-0-1"
+    },
+    {
+      "decision": 1,
+      "step": 0,
+      "receipt": "receipt-bind-intent-2-occ-41855c995183-0-2"
+    },
+    {
+      "decision": 2,
+      "step": 0,
+      "receipt": "receipt-bind-intent-3-occ-2ed52953bbe2-0-3"
+    },
+    {
+      "decision": 2,
+      "step": 1,
+      "receipt": "receipt-bind-intent-4-occ-a24c4f37585a-1-4"
+    },
+    {
+      "decision": 3,
+      "step": 0,
+      "receipt": "receipt-bind-intent-5-occ-9e6495439073-3-5"
+    }
+  ]
+}

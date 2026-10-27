@@ -1367,6 +1367,11 @@ test('PRF-003: preset mount registers the scoped product-prompt section; host mo
   assert.match(section.text, /effectClass.*runtime token/i)
   assert.match(section.text, /顶层提交 `reviewResponse/)
   assert.match(section.text, /不是事实来源/)
+  assert.match(section.text, /targetRole取当前元素的role/)
+  assert.match(section.text, /targetDescriptor取该元素的text或语义描述/)
+  assert.match(section.text, /Android Settings.*点击、返回和滚动.*非空targetDescriptor/)
+  assert.match(section.text, /Reobserve.*废弃当前Plan的全部未执行内容/)
+  assert.match(section.text, /不会自动续跑.*尾部/)
   assert.equal(skillSection.name, 'uniagent-prod:skill:android-automotive-ui-testing')
   assert.equal(skillSection.order, 110)
   assert.match(skillSection.text, /独立期望与授权预算/)
@@ -1435,6 +1440,9 @@ test('PRF-003: per-turn fallback mounts the full static text in every turn', asy
   const prompt = harness.controller.promptCalls[0].content[0].text
   assert.match(prompt, /You are the UniAgent decision component/)
   assert.match(prompt, /current Product DecisionId is decision-perturn-1/)
+  assert.match(prompt, /targetRole取当前元素的role/)
+  assert.match(prompt, /targetDescriptor取该元素的text或语义描述/)
+  assert.match(prompt, /Reobserve.*废弃当前Plan的全部未执行内容/)
   emitTurnEnd(harness, harness.controller.promptCalls[0].sessionId)
   await consultPromise
 })

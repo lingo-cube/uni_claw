@@ -1,0 +1,95 @@
+{
+  "status": "BoundedStop",
+  "items": [
+    {
+      "requirement": "root-page",
+      "detail": "root route observed",
+      "covered": true,
+      "evidence": "android.settings|rk1:Settings|src=homepage_title|up=0"
+    },
+    {
+      "requirement": "first-level-all-visible",
+      "detail": "entered 1/1",
+      "covered": true,
+      "evidence": "entered:Network-\u003Eandroid.settings|route:Network"
+    },
+    {
+      "requirement": "scroll-discovered-entry",
+      "detail": "entered 0/1 scroll-discovered",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "second-level-pages",
+      "detail": "distinct second-level routes 1/2",
+      "covered": false,
+      "evidence": "android.settings|route:Network"
+    },
+    {
+      "requirement": "back-navigation",
+      "detail": "back verified 1",
+      "covered": true,
+      "evidence": "Navigate up"
+    },
+    {
+      "requirement": "repeated-entry",
+      "detail": "satisfied 0/0",
+      "covered": true,
+      "evidence": null
+    },
+    {
+      "requirement": "dynamic-root-entries",
+      "detail": "visited 0, frontier 0, skipped 4",
+      "covered": true,
+      "evidence": null
+    },
+    {
+      "requirement": "dynamic-nested-entries",
+      "detail": "visited 1, frontier 0, skipped 3",
+      "covered": true,
+      "evidence": "visited=android.settings|route:Network\u003EAdvanced;frontier="
+    }
+  ],
+  "coverageRate": 0.75,
+  "stepSuccessRate": 0.8333333333333334,
+  "uncoveredItems": [
+    "scroll-discovered-entry",
+    "second-level-pages"
+  ],
+  "firstDivergence": "step 4 decision decision-aa104ef535ba-5: post-action-content-transition",
+  "stepsExecuted": 6,
+  "stepsVerified": 5,
+  "scrollsUsed": 1,
+  "scrollAttempts": 2,
+  "consultRounds": 8,
+  "dynamicRootFrontier": [],
+  "dynamicRootVisited": [],
+  "dynamicRootSkipReasons": {
+    "Network": "configured-target",
+    "Factory reset": "explicit-exclusion",
+    "Airplane mode": "non-ui-element-role",
+    "finite:id/scroll": "non-ui-element-role"
+  },
+  "dynamicNestedFrontier": [],
+  "dynamicNestedVisited": [
+    "android.settings|route:Network\u003EAdvanced"
+  ],
+  "dynamicNestedSkipReasons": {
+    "android.settings|route:Network\u003ENavigate up": "back-descriptor",
+    "android.settings|route:Network\u003Efinite:id/scroll": "non-ui-element-role",
+    "android.settings|route:Advanced\u003ENavigate up": "back-descriptor"
+  },
+  "reachedTargets": [],
+  "agentSkippedTargets": [
+    "Details"
+  ],
+  "structuralSkippedTargets": [
+    "Airplane mode",
+    "Factory reset",
+    "Network",
+    "android.settings|route:Advanced\u003ENavigate up",
+    "android.settings|route:Network\u003ENavigate up",
+    "android.settings|route:Network\u003Efinite:id/scroll",
+    "finite:id/scroll"
+  ]
+}

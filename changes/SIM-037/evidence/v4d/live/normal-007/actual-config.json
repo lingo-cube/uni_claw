@@ -1,0 +1,245 @@
+{
+  "configVersion": "1",
+  "session": {
+    "taskTitle": "SIM037 real Agent finite-menu simulation",
+    "workspace": "UniClaw_Product_Tasks",
+    "workspaceReuse": true,
+    "autoCloseTurn": false
+  },
+  "bounds": {
+    "maxSteps": 32,
+    "maxConsultRounds": 36,
+    "maxScrolls": 8,
+    "maxConsecutiveFailures": 3,
+    "maxDirectiveRetries": 1,
+    "stagnationInjectConsults": 3,
+    "stagnationStopConsults": 5,
+    "maxTotalSteps": null,
+    "maxTotalConsultRounds": null,
+    "renewalThresholdSteps": 0,
+    "renewalThresholdRounds": 0,
+    "goalDirectedContinuationEnabled": false,
+    "authorizedTotalSteps": null,
+    "authorizedTotalConsultRounds": null
+  },
+  "coverage": {
+    "rootPage": true,
+    "firstLevelMode": "configured",
+    "scrollDiscoveredEntries": 1,
+    "secondLevelPages": 2,
+    "backNavigation": true,
+    "repeatedEntries": 0,
+    "scrollCandidateEntries": null,
+    "explicitScrollCandidates": []
+  },
+  "targetPages": [
+    "Network"
+  ],
+  "termination": {
+    "onCoverageComplete": true,
+    "onMaxSteps": true,
+    "onMaxScrolls": true,
+    "onConsecutiveFailures": true
+  },
+  "rootRoute": "android.settings|rk1:Settings|src=homepage_title|up=0",
+  "scrollContainerDescriptor": "finite:id/scroll",
+  "backDescriptor": "Navigate up",
+  "evidence": {
+    "persistScreenshots": true,
+    "persistHierarchies": true
+  },
+  "popup": {
+    "hostPackage": "com.android.settings",
+    "popupResourceIds": null,
+    "obstacleTargets": null,
+    "maxObstacleRetries": 2,
+    "denyObstacleTargets": [
+      "button1",
+      "OK",
+      "CONFIRM",
+      "ALLOW",
+      "ACCEPT",
+      "AGREE",
+      "CONTINUE",
+      "NEXT",
+      "DONE"
+    ],
+    "resourceIds": [
+      "android:id/alertTitle",
+      "android:id/parentPanel",
+      "android:id/buttonPanel",
+      "com.android.settings:id/alertTitle",
+      "com.android.settings:id/parentPanel",
+      "com.android.settings:id/buttonPanel"
+    ],
+    "targets": [
+      "CANCEL",
+      "button2",
+      "DISMISS"
+    ],
+    "denyTargets": [
+      "button1",
+      "OK",
+      "CONFIRM",
+      "ALLOW",
+      "ACCEPT",
+      "AGREE",
+      "CONTINUE",
+      "NEXT",
+      "DONE"
+    ]
+  },
+  "slow": {
+    "enabled": true,
+    "boundedWaitMs": 15000,
+    "maxRequestsPerRun": 6,
+    "visualEnabled": false,
+    "popupConsecutiveCycles": 2
+  },
+  "actionPolicy": {
+    "schemaVersion": "android-settings-action-policy.v1",
+    "policyRef": "product/android-settings/forbidden-actions",
+    "safetyPolicyRevision": 1,
+    "generatedBeforeFirstConsultation": true,
+    "safeActionClasses": [
+      "observe",
+      "scroll",
+      "navigate",
+      "back"
+    ],
+    "targetedActionClasses": [
+      "toggle:Wi-Fi"
+    ],
+    "forbiddenActionClasses": [
+      "toggle-non-target",
+      "destructive",
+      "account-removal",
+      "credential-change",
+      "developer-debug",
+      "permission-grant",
+      "unknown-action"
+    ],
+    "forbiddenTargetPatterns": [
+      "factory reset",
+      "erase all data",
+      "reset options",
+      "remove account",
+      "delete account",
+      "developer options",
+      "usb debugging",
+      "oem unlocking"
+    ],
+    "unknownTargetDisposition": "reject",
+    "digest": "d6b3a0c65bde9776daf031c671d2684e8218626b7d3f33a868601209a43113a8",
+    "sourcePath": "/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-sim037-v4-o1o7n8n3/source/product/policy/android-settings-forbidden-actions.json",
+    "declaredTargetSwitchLabels": [
+      "Wi-Fi"
+    ]
+  },
+  "actionPolicyRequired": true,
+  "languageInspection": null,
+  "deepTraversal": null,
+  "dynamicRootEntries": {
+    "enabled": true,
+    "mode": "all-visible",
+    "excludedDescriptors": [
+      "Factory reset"
+    ],
+    "allVisible": true,
+    "exclusions": [
+      "Factory reset"
+    ]
+  },
+  "dynamicNestedEntries": {
+    "enabled": true,
+    "maxDepth": 3,
+    "maxEntriesPerPage": 4,
+    "isActive": true
+  },
+  "navigationScope": null,
+  "observationRecovery": {
+    "boundedWaitMs": 15000,
+    "maxRequestsPerRun": 16
+  },
+  "evidenceSettings": {
+    "persistScreenshots": true,
+    "persistHierarchies": true
+  },
+  "popupSettings": {
+    "hostPackage": "com.android.settings",
+    "popupResourceIds": null,
+    "obstacleTargets": null,
+    "maxObstacleRetries": 2,
+    "denyObstacleTargets": [
+      "button1",
+      "OK",
+      "CONFIRM",
+      "ALLOW",
+      "ACCEPT",
+      "AGREE",
+      "CONTINUE",
+      "NEXT",
+      "DONE"
+    ],
+    "resourceIds": [
+      "android:id/alertTitle",
+      "android:id/parentPanel",
+      "android:id/buttonPanel",
+      "com.android.settings:id/alertTitle",
+      "com.android.settings:id/parentPanel",
+      "com.android.settings:id/buttonPanel"
+    ],
+    "targets": [
+      "CANCEL",
+      "button2",
+      "DISMISS"
+    ],
+    "denyTargets": [
+      "button1",
+      "OK",
+      "CONFIRM",
+      "ALLOW",
+      "ACCEPT",
+      "AGREE",
+      "CONTINUE",
+      "NEXT",
+      "DONE"
+    ]
+  },
+  "slowSettings": {
+    "enabled": true,
+    "boundedWaitMs": 15000,
+    "maxRequestsPerRun": 6,
+    "visualEnabled": false,
+    "popupConsecutiveCycles": 2
+  },
+  "observationRecoverySettings": {
+    "boundedWaitMs": 15000,
+    "maxRequestsPerRun": 16
+  },
+  "languageInspectionRequest": null,
+  "deepTraversalSettings": {
+    "enabled": false,
+    "maxDepth": 1,
+    "maxEntriesPerPage": 0,
+    "nestedEntries": null,
+    "entries": []
+  },
+  "dynamicRootEntriesSettings": {
+    "enabled": true,
+    "mode": "all-visible",
+    "excludedDescriptors": [
+      "Factory reset"
+    ],
+    "allVisible": true,
+    "exclusions": [
+      "Factory reset"
+    ]
+  },
+  "dynamicNestedEntriesSettings": {
+    "enabled": true,
+    "maxDepth": 3,
+    "maxEntriesPerPage": 4,
+    "isActive": true
+  }
+}

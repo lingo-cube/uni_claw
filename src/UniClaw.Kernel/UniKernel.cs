@@ -564,13 +564,13 @@ public sealed partial class UniKernel
         TargetSpec target,
         IReadOnlyList<KernelResult> processedObservations,
         DateTimeOffset? dispatchTime = null,
-        WorldBeliefRevision? preActionBelief = null, string? receiptId = null)
-        => VerifyPostActionEffectAsync(target, processedObservations, dispatchTime, preActionBelief, receiptId)
+        WorldBeliefRevision? preActionBelief = null, string? receiptId = null, ExpectedEffect? authoredExpected = null)
+        => VerifyPostActionEffectAsync(target, processedObservations, dispatchTime, preActionBelief, receiptId, authoredExpected)
             .AsTask().GetAwaiter().GetResult();
 
     internal async ValueTask<PostActionEffectVerification> VerifyPostActionEffectAsync(
         TargetSpec target, IReadOnlyList<KernelResult> processedObservations, DateTimeOffset? dispatchTime = null,
-        WorldBeliefRevision? preActionBelief = null, string? receiptId = null)
+        WorldBeliefRevision? preActionBelief = null, string? receiptId = null, ExpectedEffect? authoredExpected = null)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(processedObservations);
@@ -620,10 +620,10 @@ public sealed partial class UniKernel
         // 侧豁免）。期望（authoring 侧）与观测证据分离：变化型求值所需的
         // pre/post 派生事实收敛进 ChangeEvidence。
         var isSwipe = target.EffectClass.ToLowerInvariant() is "swipe-up" or "swipe-down";
-        var expected = isSwipe
+        var expected = authoredExpected ?? (isSwipe
             ? ExpectedEffect.OfChanges(
                 ChangePredicate.RouteStable, ChangePredicate.ContentChanged)
-            : ExpectedEffect.OfState(target.Role, "present");
+            : ExpectedEffect.OfState(target.Role, "present"));
         // A small scroll can move the same visible rows without exposing a new
         // label. Compare observed geometry as well; occurrence ids/capture ids
         // must not make an unchanged viewport appear to have moved.
@@ -640,7 +640,9 @@ public sealed partial class UniKernel
             new PostActionEffectVerificationInput(target, slice, processedObservations,
                 expected,
                 TargetDisappearedAfterRouteChange: navigationTransition,
-                Change: new ChangeEvidence(routeBefore, routeAfter, visibleContentChanged)));
+                Change: new ChangeEvidence(routeBefore, routeAfter, visibleContentChanged),
+                Overlay: expected.Changes.Contains(ChangePredicate.OverlayDismissed)
+                    ? BuildOverlayDismissalEvidence(preActionBelief, current, verifyingReceipt) : null));
         // WRC-003: same-page scroll connects observations, not containers.
         // Project only an actual matching dispatch; World derives displacement
         // from accepted observations and may honestly leave it unknown.

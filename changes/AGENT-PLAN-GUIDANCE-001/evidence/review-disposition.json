@@ -1,0 +1,12 @@
+{
+  "standards": {
+    "findings": 0,
+    "report": "review-standards.md"
+  },
+  "spec": {
+    "findings": 0,
+    "report": "review-spec.md"
+  },
+  "reviewBase": "Exact entry bytes for ten owned files; no whole-checkout diff or task commits.",
+  "requiredProductChangesAfterReview": []
+}

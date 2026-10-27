@@ -1,0 +1,97 @@
+{
+  "schema": "uniclaw.diagnosis.packet.v0",
+  "authority": "non-authoritative",
+  "meta": {
+    "diagnosedAt": "2026-10-26T17:00:33.822398+00:00",
+    "producer": {
+      "kind": "agent-skill"
+    },
+    "changeId": "AGENT-PLAN-GUIDANCE-001"
+  },
+  "subject": {
+    "inputs": [
+      {
+        "path": "changes/SIM-037/evidence/v3/live/normal-003/consults/01/trajectory-summary.json",
+        "sha256": "5feb6144b6e0d416d78dddf0932aceb073a03e76828eace07e08da256559bbb2",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v3/live/normal-003/consults/01/decision.json",
+        "sha256": "f882112d69c44f7035ceb6aaad848e63eaf4f477f9c6784df729098bbd51a020",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v3/live/normal-003/consults/02/input-context.json",
+        "sha256": "4da4a92e95eeb4477a911e68007846d269bd48138e4f937bcb12d05d02ed2687",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v3/live/normal-003/consults/02/decision.json",
+        "sha256": "47bfaa070fd9b88ec7a6604494fbc03bbbeb40bc6f30e7a6c8ca4e36450f0e1b",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v3/live/normal-003/consults/03/decision.json",
+        "sha256": "674f9b7e9ddf92cd1ff6a06ed5490ad9bfbb8dffb269bff9ee7a0da24d328dfd",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/AGENT-PLAN-GUIDANCE-001/evidence/entry/product/prompt/uniagent-prod/03-payload-shapes.txt",
+        "sha256": "2c148d931ee24d7f364456e49ac106b6dda9e20e36bf1f2f64bed9393a7ebf48",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "src/UniClaw.Kernel/Runtime/AgentDecision.cs",
+        "sha256": "b8ff3bd2c75140a803175f0d5850569ef5df8a0711e357e501846a5c88114f96",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs",
+        "sha256": "658a2c076031b9cd81409c429f4d3ed9daf7bd68ddf16e534520335f5da13ca4",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "src/UniClaw.Agent.Dsh/DecisionJsonConverters.cs",
+        "sha256": "fb8a95ce9a443d5eb74b04b8c58b5312cce27e278fd668acfbd5d81ac1d533c2",
+        "role": "verification-evidence"
+      }
+    ]
+  },
+  "evidenceLevel": "E3",
+  "evidenceSummary": [
+    "normal-003 raw submit already omitted targetDescriptor and used control caption as targetRole; parser only supplies continueOnBlocked=false defaults.",
+    "next Agent request contains StepRejected/missing target descriptor; next decision supplies the correct descriptor.",
+    "captured system prompt and canonical entry text list targetDescriptor? but do not explain role/text distinction or Settings policy requirement; Reobserve appears only in the control enum.",
+    "PlanControlKind.Reobserve formally discards the remaining plan; normal-003 decisions 02/03 put actions after it."
+  ],
+  "failureClass": "B",
+  "lifecycleStage": "Product Agent instruction assembly",
+  "lastCorrectState": "Existing action field types, Settings guard and PlanControlKind semantics are authoritative; Runtime rejects malformed actions before delivery.",
+  "firstDivergence": {
+    "where": "product/prompt/uniagent-prod/03-payload-shapes.txt -> assembled Product prompt",
+    "expected": "Describe declared action fields and existing control effects accurately, including current Host policy obligations, without changing optional wire fields or execution authority.",
+    "observed": "Optional descriptor syntax is given without the policy condition; Reobserve enum lacks its discard-and-reconsult meaning.",
+    "evidenceRefs": [
+      "changes/SIM-037/evidence/v3/live/normal-003/consults/01/trajectory-summary.json",
+      "changes/AGENT-PLAN-GUIDANCE-001/evidence/entry/product/prompt/uniagent-prod/03-payload-shapes.txt",
+      "src/UniClaw.Kernel/Runtime/AgentDecision.cs",
+      "src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs"
+    ]
+  },
+  "owner": "Product canonical static prompt assembly, not Kernel/World/Grounding/Effect authority",
+  "rootCauseSupport": [
+    "Recorded system prompt equals captured raw system message; current canonical payload segment is present verbatim.",
+    "Raw submitted action contains the error before C# parsing; no evidence of parser field loss.",
+    "Correct rejection feedback is understood in the next decision; fix addresses instruction completeness rather than replacing that feedback."
+  ],
+  "remainingUncertainty": [
+    "Instruction omission does not prove it is the sole cause of failed autonomous traversal.",
+    "A deterministic artifact/mount check does not prove future model behavior or full traversal success.",
+    "Generic role-only target matching remains valid; no global required-field schema change is justified."
+  ],
+  "escalation": {
+    "required": false,
+    "reason": "User approved instruction clarification and deterministic verification; existing execution semantics and authority remain unchanged.",
+    "decisionRequest": []
+  }
+}

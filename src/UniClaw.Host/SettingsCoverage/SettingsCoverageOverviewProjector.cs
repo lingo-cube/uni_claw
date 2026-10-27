@@ -47,6 +47,7 @@ public static class SettingsCoverageOverviewProjector
         var factRefs = new HashSet<string>(StringComparer.Ordinal);
         var progressKeys = new HashSet<string>(StringComparer.Ordinal);
         var actionableItems = new Dictionary<string, ActionableItem>(StringComparer.Ordinal);
+        var enteredRoots = ledger.EnteredRootDescriptors(config);
 
         foreach (var target in config.TargetPages)
         {
@@ -58,6 +59,11 @@ public static class SettingsCoverageOverviewProjector
                     => ("verified", "target mark", new[] { mark.EventSequence }),
                 TargetCoverageMarkKind.Skipped
                     => ("skipped", mark.Reason ?? "Agent marked skipped", new[] { mark.EventSequence }),
+                _ when enteredRoots.Contains(target)
+                    => ("verified", "root route entry verified; subtree completion not implied", ledger.Events
+                        .Where(item => item.Type == CoverageEventType.PostActionVerified
+                            && item.Verified == true && item.Target == target)
+                        .Select(item => item.Sequence).ToArray()),
                 _ when unresolvedFailures.TryGetValue(target, out var failure)
                     => ("blocked", failure.Reason ?? "latest action verification failed", new[] { failure.Sequence }),
                 _ => ("pending", discovered ? "observed at root" : "configured seed; not yet observed", discovered ? observedAtRoot! : Array.Empty<long>()),

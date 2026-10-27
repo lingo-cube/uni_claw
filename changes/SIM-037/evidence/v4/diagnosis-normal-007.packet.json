@@ -1,0 +1,88 @@
+{
+  "schema": "uniclaw.diagnosis.packet.v0",
+  "authority": "non-authoritative",
+  "meta": {
+    "diagnosedAt": "2026-10-27T00:05:47.245651+00:00",
+    "producer": {
+      "kind": "agent-skill"
+    },
+    "changeId": "SIM-037"
+  },
+  "subject": {
+    "inputs": [
+      {
+        "path": "changes/SIM-037/evidence/v4d/live/normal-007/consults/02/input-context.json",
+        "sha256": "8955097b5789fa7d656fd03cfa4c1033b8d44b702adc080db8b404f179736eb0",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v4d/live/normal-007/consults/02/decision.json",
+        "sha256": "e6ba6a1ddd4fbbb7e6a17b4fdf361a55f2e2f5788eb7c6bcad0aa1e2563643aa",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v4d/live/normal-007/consults/05/input-context.json",
+        "sha256": "e37aa1d42b421ee028d921bc432a4894820a76219b4191b36d3db44e07c2a93f",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v4d/live/normal-007/consults/08/decision.json",
+        "sha256": "766dd63d6f71a587f2416bd09a994821b15e57667b3c615b5daab4dd1931a3c3",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v4d/live/normal-007/independent-graph-audit.json",
+        "sha256": "16590acc14f3d52453546a6433cc3529e11ab9c7baad9bc6186724ed0e037e65",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v4d/live/normal-007/run-20261027-000206-586/coverage-steps.json",
+        "sha256": "5c2ded6a5d718fd894a097282fdedead202e20dde8dbc78619f71035c8be3573",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v4d/live/normal-007/run-20261027-000206-586/coverage-report.json",
+        "sha256": "a3f0baec0016d16b334554c0e63b811e16a019379fb46e353fc85ed32eedda64",
+        "role": "verification-evidence"
+      }
+    ]
+  },
+  "evidenceLevel": "E3",
+  "evidenceSummary": [
+    "Eight real model consultations are captured; independent audit remains 2/8 navigations and 2/8 returns.",
+    "No missing descriptor or Reobserve-tail pattern occurs in this new sample; no causal guarantee is claimed.",
+    "Visible Details is left unvisited before one-way scrolling. A later attempt is rejected as missing/ambiguous; repeat scroll fails verification.",
+    "Agent NoAction explicitly acknowledges unproven root offscreen content and second-level gap, while the narrow mandatory root obligation allows Kernel Completed."
+  ],
+  "failureClass": "A",
+  "lifecycleStage": "Agent exploration ordering and whole-task completion judgment",
+  "lastCorrectState": "Network entered and Verified; Details and the scroll container are both visible in consult02.",
+  "firstDivergence": {
+    "where": "normal007 consult02 Plan",
+    "expected": "Preserve a way to cover known safe pending subtrees and unproven root frontier; end-on-root alone cannot satisfy the independently specified full traversal.",
+    "observed": "Scroll first hides unvisited Details in the one-way retained viewport; later NoAction ends with whole-menu gaps.",
+    "evidenceRefs": [
+      "changes/SIM-037/evidence/v4d/live/normal-007/consults/02/input-context.json",
+      "changes/SIM-037/evidence/v4d/live/normal-007/consults/02/decision.json",
+      "changes/SIM-037/evidence/v4d/live/normal-007/independent-graph-audit.json",
+      "changes/SIM-037/evidence/v4d/live/normal-007/run-20261027-000206-586/coverage-steps.json",
+      "changes/SIM-037/evidence/v4d/live/normal-007/run-20261027-000206-586/coverage-report.json"
+    ]
+  },
+  "owner": "Agent exploration/continuation strategy; completion/Contract task mapping remains a separate product design question, not a proven execution-authority defect.",
+  "rootCauseSupport": [
+    "Source fixture, Oracle and budgets are unchanged; deterministic full-graph carrier remains feasible.",
+    "Guard rejects offscreen ambiguous target and content-unchanged swipe, with no dangerous deliveries.",
+    "The final claim acknowledges partial progress; independent test correctly prevents a whole-task PASS."
+  ],
+  "remainingUncertainty": [
+    "This one new sample cannot isolate causal effects of the two Product fixes.",
+    "Whether whole-task proof requirements should be represented differently in a Product Contract needs separate bounded design; no such redesign was authorized or implemented here.",
+    "The fixture is one-way synthetic scrolling; do not generalize its recovery limits to a real device."
+  ],
+  "escalation": {
+    "required": false,
+    "reason": "Preserve normal FAIL and do not start anomaly sampling or expand Product behavior in this validation task.",
+    "decisionRequest": []
+  }
+}

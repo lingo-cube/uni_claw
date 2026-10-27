@@ -1,0 +1,414 @@
+{
+  "scope": "Redacted extracts of actual collector records. Complete provider/session raw artifacts remain locally retained; this is not a provider request/retry count.",
+  "consultations": [
+    {
+      "consultation": "01",
+      "requestId": "dsh-req-00000001",
+      "sections": [
+        "uniagent-prod:product-prompt",
+        "uniagent-prod:skill:android-automotive-ui-testing"
+      ],
+      "inputContextSha256": "3accbbd6e633ccd1df400004654067889c0e4e61a07a73d450655bc958d3e256",
+      "decisionSha256": "845360dfdca8007e1dcfbbd1fc41f0cdb2484c4ed4007322af9305d8b1238c36",
+      "submitCalls": [
+        {
+          "payload": {
+            "decisionId": "decision-aa104ef535ba-1",
+            "kind": "plan",
+            "proposal": {
+              "planId": "plan-settings-coverage-1",
+              "version": 1,
+              "justification": "Root shows Network as the only configured first-level target; root also has a scrollable container whose offscreen content is unknown. Enter Network, inspect its nested page (including offscreen via scrolling if scrollable), return via Navigate up, then return to root and check root offscreen entries.",
+              "items": [
+                {
+                  "kind": "act",
+                  "targetRole": "ui.element",
+                  "targetDescriptor": "Network",
+                  "effectClass": "tap"
+                },
+                {
+                  "kind": "observe",
+                  "subject": "ui.container.current"
+                },
+                {
+                  "kind": "checkpoint",
+                  "reason": "Assess Network page contents and whether a nested frontier depth-3 exists"
+                }
+              ],
+              "maxLocalOperations": 16,
+              "stageExpectation": "Enter Network second-level page and capture its semantic hierarchy"
+            }
+          },
+          "accepted": true,
+          "resultText": "submit_decision accepted: decision captured"
+        }
+      ],
+      "usageAttempts": [
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        },
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        }
+      ],
+      "localRawSummarySha256": "7052fda636f0044b357659ecee24c24e6acae9d857c7bd3864b8fd82fa2a22bc"
+    },
+    {
+      "consultation": "02",
+      "requestId": "dsh-req-00000002",
+      "sections": [
+        "uniagent-prod:product-prompt",
+        "uniagent-prod:skill:android-automotive-ui-testing"
+      ],
+      "inputContextSha256": "8955097b5789fa7d656fd03cfa4c1033b8d44b702adc080db8b404f179736eb0",
+      "decisionSha256": "e6ba6a1ddd4fbbb7e6a17b4fdf361a55f2e2f5788eb7c6bcad0aa1e2563643aa",
+      "submitCalls": [
+        {
+          "payload": {
+            "decisionId": "decision-aa104ef535ba-2",
+            "kind": "plan",
+            "proposal": {
+              "planId": "plan-settings-coverage-1",
+              "version": 2,
+              "justification": "Network page has a scrollable container with unproven offscreen content, and one pending nested entry 'Details'. Scroll to reveal offscreen entries, then enter Details (depth-3) and return via Navigate up.",
+              "items": [
+                {
+                  "effectClass": "swipe-up",
+                  "kind": "act",
+                  "targetDescriptor": "finite:id/scroll",
+                  "targetRole": "scrollable"
+                },
+                {
+                  "kind": "observe",
+                  "subject": "ui.container.current"
+                },
+                {
+                  "kind": "checkpoint",
+                  "reason": "Assess Network page after scroll for offscreen entries before descending"
+                }
+              ],
+              "maxLocalOperations": 12,
+              "stageExpectation": "Reveal Network offscreen entries via scroll, then assess nested frontier"
+            }
+          },
+          "accepted": true,
+          "resultText": "submit_decision accepted: decision captured"
+        }
+      ],
+      "usageAttempts": [
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        },
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        }
+      ],
+      "localRawSummarySha256": "e1c91de3b604e9084f91ca582aec3e37cde764b791b3dd3981aebaceaa962ae0"
+    },
+    {
+      "consultation": "03",
+      "requestId": "dsh-req-00000003",
+      "sections": [
+        "uniagent-prod:product-prompt",
+        "uniagent-prod:skill:android-automotive-ui-testing"
+      ],
+      "inputContextSha256": "65e6e16e80c0f090745d4d858ddac02ffde6c2a4671c984590c1ef3108ce9c81",
+      "decisionSha256": "da6c2b97534faae265ea22327ea5fbfccb670966961c01d006662c86fb06374c",
+      "submitCalls": [
+        {
+          "payload": {
+            "decisionId": "decision-aa104ef535ba-3",
+            "kind": "plan",
+            "proposal": {
+              "planId": "plan-settings-coverage-1",
+              "version": 3,
+              "justification": "Scroll revealed Advanced; Details is offscreen from the current viewport but already discovered. Also need a second distinct second-level page. Enter Advanced (depth-3) to verify it, return to Network, then return to root.",
+              "items": [
+                {
+                  "effectClass": "tap",
+                  "kind": "act",
+                  "targetDescriptor": "Advanced",
+                  "targetRole": "ui.element"
+                },
+                {
+                  "kind": "observe",
+                  "subject": "ui.container.current"
+                },
+                {
+                  "kind": "checkpoint",
+                  "reason": "Assess Advanced page; then return to Network and root"
+                }
+              ],
+              "maxLocalOperations": 12,
+              "stageExpectation": "Enter Advanced nested page and inspect depth-3 frontier"
+            }
+          },
+          "accepted": true,
+          "resultText": "submit_decision accepted: decision captured"
+        }
+      ],
+      "usageAttempts": [
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        },
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        }
+      ],
+      "localRawSummarySha256": "48a808f471d73a1606e84e219b2843a11f0f786e86791b14c4a13f50f49cb6c4"
+    },
+    {
+      "consultation": "04",
+      "requestId": "dsh-req-00000004",
+      "sections": [
+        "uniagent-prod:product-prompt",
+        "uniagent-prod:skill:android-automotive-ui-testing"
+      ],
+      "inputContextSha256": "9bb10e33d7f02e833f59a3d0e29ff547cc7505483c123c4706f3a64e54688558",
+      "decisionSha256": "1aa62d3961741be7b0ae1e0e72cf8d1d6245c41363be41c980e65b9afb94689d",
+      "submitCalls": [
+        {
+          "payload": {
+            "decisionId": "decision-aa104ef535ba-4",
+            "kind": "plan",
+            "proposal": {
+              "planId": "plan-settings-coverage-1",
+              "version": 4,
+              "justification": "Advanced page has no scrollable container, so it is a leaf at depth 3. Unwind: Navigate up to Network, then enter the remaining pending nested entry Details to reach the second distinct second-level route, then unwind to root.",
+              "items": [
+                {
+                  "effectClass": "tap",
+                  "kind": "act",
+                  "targetDescriptor": "Navigate up",
+                  "targetRole": "ui.element"
+                },
+                {
+                  "effectClass": "tap",
+                  "kind": "act",
+                  "targetDescriptor": "Details",
+                  "targetRole": "ui.element"
+                },
+                {
+                  "kind": "observe",
+                  "subject": "ui.container.current"
+                },
+                {
+                  "kind": "checkpoint",
+                  "reason": "Assess Details page and return path to root"
+                }
+              ],
+              "maxLocalOperations": 16,
+              "stageExpectation": "Return to Network, enter Details, then plan unwind to Settings root"
+            }
+          },
+          "accepted": true,
+          "resultText": "submit_decision accepted: decision captured"
+        }
+      ],
+      "usageAttempts": [
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        },
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        }
+      ],
+      "localRawSummarySha256": "a2dcec00c92f2da58f20369e0f8cb0b695113545bee023df042782e5135f88e4"
+    },
+    {
+      "consultation": "05",
+      "requestId": "dsh-req-00000005",
+      "sections": [
+        "uniagent-prod:product-prompt",
+        "uniagent-prod:skill:android-automotive-ui-testing"
+      ],
+      "inputContextSha256": "e37aa1d42b421ee028d921bc432a4894820a76219b4191b36d3db44e07c2a93f",
+      "decisionSha256": "596a3a8e1a640da4cef2cb6ffe56908f86409ae9d0bb0bd089bcd3eb41bdad79",
+      "submitCalls": [
+        {
+          "payload": {
+            "decisionId": "decision-aa104ef535ba-5",
+            "kind": "plan",
+            "proposal": {
+              "planId": "plan-settings-coverage-2",
+              "version": 1,
+              "justification": "Back on Network after verified Navigate up. Details is not visible in the current viewport (previous tap failed as ambiguous). Scroll to reveal offscreen entries, then enter Details to reach the second distinct second-level route.",
+              "items": [
+                {
+                  "effectClass": "swipe-up",
+                  "kind": "act",
+                  "targetDescriptor": "finite:id/scroll",
+                  "targetRole": "scrollable"
+                },
+                {
+                  "kind": "observe",
+                  "subject": "ui.container.current"
+                },
+                {
+                  "kind": "checkpoint",
+                  "reason": "Confirm Details is now visible before tapping"
+                }
+              ],
+              "maxLocalOperations": 12,
+              "stageExpectation": "Reveal offscreen Network entries including Details"
+            }
+          },
+          "accepted": true,
+          "resultText": "submit_decision accepted: decision captured"
+        }
+      ],
+      "usageAttempts": [
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        },
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        }
+      ],
+      "localRawSummarySha256": "91aaedae671981cfb4d61e4f171e9e9ef9387063f9ec6bdfe07bd42cb86ea1cd"
+    },
+    {
+      "consultation": "06",
+      "requestId": "dsh-req-00000006",
+      "sections": [
+        "uniagent-prod:product-prompt",
+        "uniagent-prod:skill:android-automotive-ui-testing"
+      ],
+      "inputContextSha256": "a4e0651ac4d9b6b1077f8ddbf9fd4e6405bf52794bd1eb7d9f506c7908e88019",
+      "decisionSha256": "929e8a90e9bfdfcf8ea221b490488ba5bf9f8cc14cb9ac76c21f262ee485c3a9",
+      "submitCalls": [
+        {
+          "payload": {
+            "decisionId": "decision-aa104ef535ba-6",
+            "kind": "plan",
+            "proposal": {
+              "planId": "plan-settings-coverage-3",
+              "version": 1,
+              "justification": "Scroll verification failed (post-action-content-transition) and the second-level count remains 1/2. This segment prioritizes the mandatory end-on-root obligation and back-navigation: return from Network to Settings root via Navigate up. Details entry will be reconsidered on a later segment from fresh evidence.",
+              "items": [
+                {
+                  "effectClass": "tap",
+                  "kind": "act",
+                  "targetDescriptor": "Navigate up",
+                  "targetRole": "ui.element"
+                },
+                {
+                  "kind": "observe",
+                  "subject": "ui.container.current"
+                }
+              ],
+              "maxLocalOperations": 8,
+              "stageExpectation": "Return to Settings root"
+            }
+          },
+          "accepted": true,
+          "resultText": "submit_decision accepted: decision captured"
+        }
+      ],
+      "usageAttempts": [
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        },
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        }
+      ],
+      "localRawSummarySha256": "6f07736d0b20c917ab9038118e21a5bf9c68a7565b4bd30e0a7cd698728182da"
+    },
+    {
+      "consultation": "07",
+      "requestId": "dsh-req-00000007",
+      "sections": [
+        "uniagent-prod:product-prompt",
+        "uniagent-prod:skill:android-automotive-ui-testing"
+      ],
+      "inputContextSha256": "66ba5c9fd7b41e1634a405fc98a400e9e652a2f0da19bffc2c90d4d8cae56606",
+      "decisionSha256": "31f8207a249d477a5c3d129dcb146e697d01e6f7054a35f3d25dc2d64cbe5235",
+      "submitCalls": [
+        {
+          "payload": {
+            "decisionId": "decision-aa104ef535ba-7",
+            "kind": "skip",
+            "reason": "Details was already probed and failed as missing/ambiguous; it is not present in the current Network viewport and the scrollable container's offscreen content cannot be reliably revealed (post-action-content-transition). Repeated attempts stagnate. Second-level route count stays 1/2 and is reported as partial, not complete.",
+            "target": "Details",
+            "evidenceRefs": [
+              "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-5",
+              "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-6",
+              "coverage-event:18"
+            ]
+          },
+          "accepted": true,
+          "resultText": "submit_decision accepted: decision captured"
+        }
+      ],
+      "usageAttempts": [
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        },
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        }
+      ],
+      "localRawSummarySha256": "05b427f7000b6eaee9ec17d31c2411ab9ba01bacfdc6411959ee1ba5b5bfc221"
+    },
+    {
+      "consultation": "08",
+      "requestId": "dsh-req-00000008",
+      "sections": [
+        "uniagent-prod:product-prompt",
+        "uniagent-prod:skill:android-automotive-ui-testing"
+      ],
+      "inputContextSha256": "c20b52e967eb204c0537c6bf54905621aa98175cc9ee9515dfa3d6e7df1b497c",
+      "decisionSha256": "766dd63d6f71a587f2416bd09a994821b15e57667b3c615b5daab4dd1931a3c3",
+      "submitCalls": [
+        {
+          "payload": {
+            "decisionId": "decision-aa104ef535ba-8",
+            "kind": "noAction",
+            "proposal": {
+              "decisionId": "decision-aa104ef535ba-8",
+              "justification": "Current observation is the Settings root (ui.screen.route=android.settings|rk1:Settings|src=homepage_title|up=0), satisfying the mandatory end-on-root obligation. Verified: rootPage (Network entered from root), dynamic root frontier discovered (Advanced via scroll), depth-3 nested entry Advanced visited, back-navigation verified (Network->root). Details skipped as ambiguous/unreachable. Remaining gaps reported honestly: secondLevelPages 1/2 not reached; root container offscreen content unproven.",
+              "completion": {
+                "basis": "Verified trace: Network entry, Network scroll discovery, Advanced depth-3 visit and return, Network->root back navigation, ending observation on Settings root.",
+                "checklist": [
+                  "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-1",
+                  "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-2",
+                  "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-3",
+                  "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-4",
+                  "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-7"
+                ]
+              }
+            }
+          },
+          "accepted": true,
+          "resultText": "submit_decision accepted: decision captured"
+        }
+      ],
+      "usageAttempts": [
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        },
+        {
+          "provider": "commandcode",
+          "model": "deepseek/deepseek-v4.1-flash"
+        }
+      ],
+      "localRawSummarySha256": "409e77d1ab1377b6e7a78b807ad09e56eab07a0d5429cc833e4ee797d1200432"
+    }
+  ]
+}

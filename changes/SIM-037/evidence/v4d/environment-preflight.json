@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "modelAvailability": "not assumed; formal call will prove or fail",
+  "deviceStarted": false,
+  "noVisualServicesRequired": true,
+  "formalFlowStartedAfterPreflight": true,
+  "ownedDshPid": 38972,
+  "port": 3081,
+  "sourceEntrySha256": "bc03b52fcc8e809d68ee707bdd4f208602b45d1bb898ff52c4bf797f716ac268",
+  "configHashes": {
+    "/Users/fran/.dsh/profiles/uniclaw-product/cordis.yml": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+    "/Users/fran/.dsh/profiles/uniclaw-product/cordis.patch.yml": "da7ee498069ccfe1aaa022f33bb21884d18587d3c937dca8bd6e76d35e696df6",
+    "/Users/fran/.dsh/profiles/uniclaw-product/package.json": "fd368b826aa613692527d7e10e7704b80bc8cbc086193fe3dd31df8d5966981e",
+    "/Users/fran/.dsh/.env": "abd70d338e2d886ba78b37ba2c0c6937f8fa9990208fb29c60e92f8b94357935"
+  }
+}

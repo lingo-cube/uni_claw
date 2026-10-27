@@ -1,0 +1,252 @@
+--- a/tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.cs
++++ b/tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.cs
+@@ -11,7 +11,7 @@
+ namespace UniClaw.Host.Tests;
+ 
+ // External XML/window/Agent/delivery are synthetic; all Product Runtime owners are real.
+-public sealed class FiniteMenuGraphSimulationTests
++public sealed partial class FiniteMenuGraphSimulationTests
+ {
+     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+     private const string Scroll = "finite:id/scroll";
+--- a/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj
++++ b/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj
+@@ -28,6 +28,7 @@
+     <ProjectReference Include="..\..\src\UniClaw.Agent.Dsh\UniClaw.Agent.Dsh.csproj" />
+     <!-- Shared test-only content gate; no reference to the Simulation composition root. -->
+     <Compile Include="..\UniClaw.Simulation.Tests\ComponentReplay\ReplayCompositionGuard.cs" Link="PopupReplay\ReplayCompositionGuard.cs" />
++    <Compile Include="..\UniClaw.Host.Dsh.Tests\PlanGenerationTrajectory.cs" Link="RealAgentSimulation\PlanGenerationTrajectory.cs" />
+   </ItemGroup>
+ 
+ </Project>
+--- a/tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.RealAgent.cs
++++ b/tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.RealAgent.cs
+@@ -0,0 +1,228 @@
++using System.Diagnostics;
++using System.Security.Cryptography;
++using System.Text.Json;
++using UniClaw.Agent.Dsh;
++using UniClaw.Agent.Profile;
++using UniClaw.Host.Dsh.Tests;
++using UniClaw.Host.SettingsCoverage;
++using UniClaw.Kernel.Capability;
++using UniClaw.Kernel.Runtime;
++using Xunit;
++
++namespace UniClaw.Host.Tests;
++
++public sealed class RealAgentFiniteMenuSimulationTests
++{
++    [Fact]
++    public void EarlyCompletionClaimDoesNotSatisfyTheIndependentGraph() =>
++        FiniteMenuGraphSimulationTests.CheckRealAgentCarrier(earlyCompletion: true);
++
++    [Fact]
++    public void ScriptedCarrierPreservesTheOriginalGraphAndReturns() =>
++        FiniteMenuGraphSimulationTests.CheckRealAgentCarrier(earlyCompletion: false);
++
++    [RealAgentSimulationFact]
++    public Task RealAgentTraversesTheThreeLevelMenu() => FiniteMenuGraphSimulationTests.RunRealAgentMenuAsync();
++}
++
++public sealed class RealAgentSimulationFactAttribute : FactAttribute
++{
++    public RealAgentSimulationFactAttribute()
++    {
++        if (Environment.GetEnvironmentVariable("UNICLAW_SIM037_LIVE") != "1")
++            Skip = "Requires explicit real-model simulation invocation; deterministic tests do not prove this case.";
++    }
++}
++
++public sealed partial class FiniteMenuGraphSimulationTests
++{
++    private const string RealAgentTask = "本轮是有限Android Settings菜单仿真，外部页面和点击结果为合成资料，决策由你自主作出。"
++        + "请在当前公开观察范围内遍历最多三级的安全菜单，区分不同父页面下的同名目标，逐层返回，最终停在Settings根页。"
++        + "只使用当前语义层级及已有运行历史；遇到滚动容器时检查屏外入口，不能把当前未显示当作不存在。"
++        + "不得操作开关、Factory reset或修改设置，不得猜测隐藏菜单或坐标。"
++        + "计划可分段提交，后续动作仍需当前证据。完成时提交有依据的NoAction；证据不足或卡住时诚实Blocked，不得虚报完成。";
++
++    private static (MenuGraph Oracle, MenuWorld World, SettingsCoverageConfig Config) RealAgentFixture(string mode)
++    {
++        var folder = Path.Combine(RepositoryRoot(), "tests/UniClaw.Host.Tests/Fixtures/ThreeLevelMenuGraph");
++        var oracle = JsonSerializer.Deserialize<MenuGraph>(File.ReadAllText(Path.Combine(folder, "menu.json")), Json)!;
++        var source = JsonSerializer.Deserialize<MenuGraph>(File.ReadAllText(Path.Combine(folder, "world.json")), Json)!;
++        var original = SettingsCoverageConfig.Load(Path.Combine(RepositoryRoot(), SettingsCoverageConfig.DefaultConfigRelativePath));
++        return (oracle, new MenuWorld(source, mode, supplyIdentityInCapture: true), original with
++        {
++            Session = original.Session with { TaskTitle = "SIM037 real Agent finite-menu simulation" },
++            Bounds = new(32, 36, 8, 3, 1), Coverage = new(true, "configured", 1, 2, true, 0),
++            RootRoute = RootRoute, ScrollContainerDescriptor = Scroll, BackDescriptor = Back,
++            TargetPages = ["Network", "Apps"], DynamicRootEntries = new(true, "all-visible"),
++            DynamicNestedEntries = new(true, 3, 4), NavigationScope = null, LanguageInspection = null,
++            ObservationRecovery = new(15000, 16),
++        });
++    }
++
++    private static SettingsCoverageRunner.Options RealAgentOptions(MenuWorld world, SettingsCoverageConfig config,
++        Func<AgentDecisionContext, AgentDecision?> consult, Func<string?>? session = null,
++        Func<RunDriverInput.Cancel?>? cancel = null) => new("synthetic-finite-device",
++        new("synthetic-finite-device", "unused", "/unused", "/unused/python"), config, consult,
++        ViewportWidth: 1000, ViewportHeight: 1000, FeedNext: world.Next,
++        CurrentCaptureId: () => world.CaptureId, EffectDriver: world, UseCoverageDirector: false,
++        DshSessionIdAccessor: session, PollCancellation: cancel);
++
++    internal static void CheckRealAgentCarrier(bool earlyCompletion)
++    {
++        var (oracle, world, config) = RealAgentFixture("complete");
++        var root = Path.Combine(Path.GetTempPath(), "sim037-carrier-" + Guid.NewGuid().ToString("N"));
++        var consults = 0;
++        try
++        {
++            var result = SettingsCoverageRunner.Run(root, RealAgentOptions(world, config, context =>
++                earlyCompletion
++                    ? new AgentDecision.NoAction(new(context.DecisionId, "synthetic premature completion claim"))
++                    : ++consults == 1
++                        ? new AgentDecision.Plan(context.DecisionId, new(ThreeLevelPlan()[..^1],
++                            "scripted carrier check only; no model", "sim037-carrier", MaxLocalOperations: 48))
++                        : new AgentDecision.Blocked(context.DecisionId, "scripted carrier ended")));
++            var audit = Audit(oracle, result);
++            Export("sim037-carrier-" + (earlyCompletion ? "early" : "scripted"), world, result, audit);
++            Assert.True(audit.AllTraversableReached == !earlyCompletion,
++                $"status={result.Status}, reason={result.Reason}, steps={result.Steps.Count}");
++            Assert.Equal(earlyCompletion ? 0 : 8, audit.Returns.Count(r => r.Status == "verified-destination"));
++            Assert.Equal(earlyCompletion ? 0 : 8, audit.Targets.Count(t => t.Status == "reached"));
++            Assert.DoesNotContain(world.Delivered, d => d.Descriptor is "Factory reset" or "Airplane mode");
++            // The contract's mandatory obligation is ending at root. Kernel
++            // completion alone cannot replace the independent traversal audit.
++            if (earlyCompletion)
++            {
++                Assert.Empty(result.Steps);
++                Assert.All(audit.Returns, r => Assert.Equal("unproven", r.Status));
++            }
++        }
++        finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
++    }
++
++    internal static async Task RunRealAgentMenuAsync()
++    {
++        var folder = Environment.GetEnvironmentVariable("UNICLAW_SIM037_OUTPUT")
++            ?? throw new InvalidOperationException("Real-model evidence output directory is required.");
++        Assert.False(Directory.Exists(folder), "Use a fresh trial directory; do not overwrite evidence.");
++        Directory.CreateDirectory(folder);
++        var mode = Environment.GetEnvironmentVariable("UNICLAW_SIM037_MODE") ?? "complete";
++        Assert.Equal("complete", mode); // Freeze and qualify each fault only after the normal trial passes.
++        var (oracle, world, config) = RealAgentFixture(mode);
++        File.WriteAllText(Path.Combine(folder, "task-instruction.txt"), RealAgentTask);
++        Save("actual-config.json", config);
++        var bindings = UniagentDshBindingsYaml.LoadDefault();
++        Assert.Equal(3081, bindings.Service.BaseUri.Port);
++        var profile = UniAgentProfileYaml.LoadDefault();
++        var model = DshModelManagement.ResolveDshModel(DshModelManagement.FromBindings(bindings, profile), LogicalProfileId.AgentDecision);
++        Save("artifact-identities.json", new
++        {
++            sourceKind = "synthetic external menu; real Agent and Product Runtime", model, profile.Revision,
++            schemaHash = ProductProtocolSchema.Current.SchemaHash,
++            assemblies = new[] { typeof(FiniteMenuGraphSimulationTests).Assembly, typeof(SettingsCoverageRunner).Assembly,
++                typeof(KernelRunDriver).Assembly, typeof(DshAgentAdapter).Assembly }
++                .ToDictionary(a => a.GetName().Name!, a => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(a.Location)))),
++        });
++        using var traffic = new RealAgentTraffic();
++        await using var peer = new DshOpenedHttpPeer(bindings.Service, handler: traffic, model: model,
++            requestTimeout: TimeSpan.FromSeconds(100), expectedProfile: profile);
++        DshAgentAdapter? agent = null;
++        var snapshots = new List<PlanGenerationTrajectorySnapshot>();
++        var decisions = new List<string>();
++        var errors = new List<string>();
++        SettingsCoverageRunner.RunResult? result = null;
++        var timer = Stopwatch.StartNew();
++        try
++        {
++            result = await Task.Run(() => SettingsCoverageRunner.Run(folder, RealAgentOptions(world, config, context =>
++            {
++                agent ??= new DshAgentAdapter(new DshOpenedDecisionChannel(peer), "sim037-" + Guid.NewGuid().ToString("N"),
++                    context.RunId, turnTimeout: TimeSpan.FromSeconds(90));
++                var index = decisions.Count + 1;
++                var dir = Path.Combine(folder, "consults", index.ToString("D2")); Directory.CreateDirectory(dir);
++                var sent = context with { Objective = context.Objective + "\n" + RealAgentTask };
++                File.WriteAllText(Path.Combine(dir, "input-context.json"), JsonSerializer.Serialize(sent, ProductProtocolJson.CreateOptions()));
++                var requestsBefore = traffic.RequestIds.Count;
++                try
++                {
++                    var decision = agent.Consult(sent);
++                    File.WriteAllText(Path.Combine(dir, "decision.json"), decision is null ? "null"
++                        : JsonSerializer.Serialize(decision, typeof(AgentDecision), ProductProtocolJson.CreateOptions()));
++                    decisions.Add(decision?.GetType().Name ?? "null");
++                    return decision;
++                }
++                finally
++                {
++                    Save("transport.json", traffic.Exchanges);
++                    if (agent.DshSessionId is { Length: > 0 } session && traffic.RequestIds.Count > requestsBefore)
++                    {
++                        try
++                        {
++                            var snapshot = PlanGenerationTrajectoryCollector.CaptureAsync(bindings.Service, session,
++                                traffic.RequestIds[^1], Path.Combine(dir, "trajectory")).GetAwaiter().GetResult();
++                            snapshots.Add(snapshot);
++                            File.WriteAllText(Path.Combine(dir, "trajectory-summary.json"), JsonSerializer.Serialize(
++                                snapshot with { ConsultationRawJsonl = "see trajectory/dsh-consultation.raw.jsonl" }, Json));
++                        }
++                        catch (Exception ex) { errors.Add("trajectory: " + ex.Message); }
++                    }
++                }
++            }, () => agent?.DshSessionId, () => timer.Elapsed > TimeSpan.FromSeconds(600)
++                ? new RunDriverInput.Cancel("sim037-wall-clock-bound", DateTimeOffset.UtcNow) : null)));
++        }
++        catch (Exception ex) { errors.Add(ex.ToString()); throw; }
++        finally
++        {
++            try { await peer.DetachAsync(CancellationToken.None); }
++            catch (Exception ex) { errors.Add("detach: " + ex.Message); }
++            if (agent is not null)
++                try { await agent.DisposeAsync(); }
++                catch (Exception ex) { errors.Add("dispose: " + ex.Message); }
++            timer.Stop();
++            Save("transport.json", traffic.Exchanges);
++            Save("synthetic-source.json", world.Observations);
++            Save("synthetic-delivery.json", world.Delivered);
++            Save("trial-summary.json", new { mode, elapsedMs = timer.ElapsedMilliseconds, result?.RunDir,
++                status = result?.Status.ToString(), result?.Reason, consultations = agent?.SemanticConsultationsStarted ?? 0,
++                dshSessionId = agent?.DshSessionId, decisions, capturedTrajectories = snapshots.Count, errors });
++        }
++        Assert.NotNull(result); Assert.NotNull(agent);
++        var audit = Audit(oracle, result!); Save("independent-graph-audit.json", audit);
++        Assert.Empty(errors);
++        Assert.InRange(agent!.SemanticConsultationsStarted, 1, 36);
++        Assert.Equal(agent.SemanticConsultationsStarted, snapshots.Count);
++        Assert.All(snapshots, s =>
++        {
++            Assert.NotEmpty(s.SubmitCalls);
++            Assert.Contains(s.UsageAttempts, u => u.Provider == model.Provider && u.Model == model.Name);
++        });
++        Assert.DoesNotContain(world.Delivered, d => d.Descriptor is "Factory reset" or "Airplane mode");
++        Assert.True(audit.AllTraversableReached, "Independent graph is incomplete; model self-report is insufficient.");
++        Assert.Equal(8, audit.Targets.Count(t => t.Status == "reached"));
++        Assert.Equal(8, audit.Returns.Count(r => r.Status == "verified-destination"));
++        Assert.Empty(audit.WrongReturns);
++        Assert.All(result!.Steps, s => Assert.True(s.Verified, s.FailureReason));
++        Assert.Equal(RootRoute, result.Steps[^1].RouteAfter);
++        Assert.Equal(RunDriveStatus.Completed, result.Status);
++
++        void Save(string name, object value) => File.WriteAllText(Path.Combine(folder, name), JsonSerializer.Serialize(value, Json));
++    }
++
++    private sealed class RealAgentTraffic() : DelegatingHandler(new HttpClientHandler())
++    {
++        public List<object> Exchanges { get; } = [];
++        public List<string> RequestIds { get; } = [];
++        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
++        {
++            var body = request.Content is null ? "" : await request.Content.ReadAsStringAsync(token);
++            if (request.RequestUri!.AbsolutePath.EndsWith("/consult", StringComparison.Ordinal))
++            {
++                using var json = JsonDocument.Parse(body);
++                RequestIds.Add(json.RootElement.GetProperty("requestId").GetString()!);
++            }
++            var response = await base.SendAsync(request, token);
++            Exchanges.Add(new { path = request.RequestUri.AbsolutePath, body,
++                status = (int)response.StatusCode, response = await response.Content.ReadAsStringAsync(token) });
++            return response;
++        }
++    }
++}

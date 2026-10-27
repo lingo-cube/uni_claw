@@ -1,0 +1,38 @@
+[
+  {
+    "from": "Settings",
+    "descriptor": "Network",
+    "to": "Network",
+    "effect": "tap"
+  },
+  {
+    "from": "Network",
+    "descriptor": "finite:id/scroll",
+    "to": "Network",
+    "effect": "swipe-up"
+  },
+  {
+    "from": "Network",
+    "descriptor": "Advanced",
+    "to": "Advanced",
+    "effect": "tap"
+  },
+  {
+    "from": "Advanced",
+    "descriptor": "Navigate up",
+    "to": "Network",
+    "effect": "tap"
+  },
+  {
+    "from": "Network",
+    "descriptor": "finite:id/scroll",
+    "to": "Network",
+    "effect": "swipe-up"
+  },
+  {
+    "from": "Network",
+    "descriptor": "Navigate up",
+    "to": "Settings",
+    "effect": "tap"
+  }
+]

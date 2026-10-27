@@ -1,0 +1,18 @@
+{
+  "began": "2026-10-26T23:56:13.634617+00:00",
+  "case": "normal-005",
+  "modelAttemptStarted": false,
+  "passed": false,
+  "deviceStarted": false,
+  "error": "ENVIRONMENT_UNAVAILABLE: Product handshake route did not activate",
+  "classification": "ENVIRONMENT_UNAVAILABLE",
+  "elapsedSeconds": 31.788682959,
+  "withinExternal600SecondBound": true,
+  "cleanup": {
+    "ownedServiceStopped": true,
+    "ownedTestStopped": true,
+    "configurationUnchanged": true,
+    "errors": []
+  },
+  "ended": "2026-10-26T23:56:45.422822+00:00"
+}

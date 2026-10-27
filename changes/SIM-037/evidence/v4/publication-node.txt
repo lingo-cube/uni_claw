@@ -1,0 +1,130 @@
+TAP version 13
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 27, mount per-turn); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 27, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 27, mount per-turn); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: PRF-003: package prompt artifact stays byte-identical with product/prompt canonical
+ok 1 - PRF-003: package prompt artifact stays byte-identical with product/prompt canonical
+  ---
+  duration_ms: 2.697625
+  type: 'test'
+  ...
+# Subtest: PRF-003: prompt artifact hash mismatch fails closed at load
+ok 2 - PRF-003: prompt artifact hash mismatch fails closed at load
+  ---
+  duration_ms: 2.488625
+  type: 'test'
+  ...
+# Subtest: PRF-009: package skill artifact stays byte-identical with product canonical
+ok 3 - PRF-009: package skill artifact stays byte-identical with product canonical
+  ---
+  duration_ms: 1.127916
+  type: 'test'
+  ...
+# Subtest: PRF-009: skill path/name/revision/hash drift fails closed at boot
+ok 4 - PRF-009: skill path/name/revision/hash drift fails closed at boot
+  ---
+  duration_ms: 1.059917
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult retry { requestId: 'req-skill-perturn-1', reason: 'no-submit-decision' }
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-skill-perturn-1',
+#   code: 'no-submit-decision',
+#   durationMs: 30009
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 27, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 27, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 27, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 27, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 27, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 27, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: PRF-009: per-turn fallback carries Skill guidance with the static prompt
+ok 5 - PRF-009: per-turn fallback carries Skill guidance with the static prompt
+  ---
+  duration_ms: 30037.729875
+  type: 'test'
+  ...
+# Subtest: PRF-003: prompt manifest protocol coupling mismatch fails closed at load
+ok 6 - PRF-003: prompt manifest protocol coupling mismatch fails closed at load
+  ---
+  duration_ms: 4.889334
+  type: 'test'
+  ...
+# Subtest: PRF-003: preset mount registers the scoped product-prompt section; host mount does not
+ok 7 - PRF-003: preset mount registers the scoped product-prompt section; host mount does not
+  ---
+  duration_ms: 9.127
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult retry { requestId: 'req-prompt-section-1', reason: 'no-submit-decision' }
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-prompt-section-1',
+#   code: 'no-submit-decision',
+#   durationMs: 30008
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 27, mount section); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] session-scoped submit_decision published for agent-scope registration (schemaHash 71640fe6b0e5…, promptRevision 27, skill android-automotive-ui-testing@4)
+# [uniclaw-decision-channel] generated protocol artifact loaded: schemaHash=71640fe6b0e5…
+# [uniclaw-decision-channel] product prompt manifest loaded (revision 27, mount per-turn); skill android-automotive-ui-testing@4 loaded
+# [uniclaw-decision-channel] registered: submit_decision tool + /api/uniclaw-agent/{handshake,consult,slow,abort,detach} (schemaHash 71640fe6b0e5…)
+# [uniclaw-decision-channel] submit_decision registered into the restricted agent scope
+# [uniclaw-decision-channel] restricted session verified: visible tools = submit_decision
+# [uniclaw-decision-channel] handshake accepted {
+#   productSessionId: 'product-A',
+#   productRunId: 'run-A',
+#   dshSessionId: 'session-test-1-1'
+# }
+# Subtest: PRF-003: section mount keeps per-turn content dynamic-only; consult-start carries promptRevision
+ok 8 - PRF-003: section mount keeps per-turn content dynamic-only; consult-start carries promptRevision
+  ---
+  duration_ms: 30018.445666
+  type: 'test'
+  ...
+# [uniclaw-decision-channel] consult retry { requestId: 'req-prompt-perturn-1', reason: 'no-submit-decision' }
+# [uniclaw-decision-channel] consult failed {
+#   requestId: 'req-prompt-perturn-1',
+#   code: 'no-submit-decision',
+#   durationMs: 30006
+# }
+# [uniclaw-decision-channel] detached { hadAttachment: true }
+# Subtest: PRF-003: per-turn fallback mounts the full static text in every turn
+ok 9 - PRF-003: per-turn fallback mounts the full static text in every turn
+  ---
+  duration_ms: 30020.223083
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 90179.829042

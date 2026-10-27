@@ -1,0 +1,1 @@
+Spec预审：补齐prelive-review.json及prereg source/patch hash等值执法后0阻断。载体32步/36咨询/90秒每咨，外层启动测试合570秒、回收30秒、总<=600；3081占用拒绝不抢租约。8导航/8正确返回/全部Verified/根页/Completed/provider+model+submit轨迹共同判定，零禁手开关。menu/world/oracle与v3逐SHA一致，旧三例保持；新任务只对齐已接受的局部Act/跨页Plan语义。

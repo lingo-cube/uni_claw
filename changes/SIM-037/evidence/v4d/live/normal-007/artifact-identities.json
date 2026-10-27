@@ -1,0 +1,15 @@
+{
+  "sourceKind": "synthetic external menu; real Agent and Product Runtime",
+  "model": {
+    "provider": "commandcode",
+    "name": "deepseek/deepseek-v4.1-flash"
+  },
+  "revision": 28,
+  "schemaHash": "71640fe6b0e546426053de0cca94836cffe8536fdb7c35af0ebe32fb77693a25",
+  "assemblies": {
+    "UniClaw.Host.Tests": "17f9ac6ec2d7006d3a625ea280b4e89cf97b323ae5b37986d25053044a6cb546",
+    "UniClaw.Host": "de718443641ff942a099af42c5ecf3cd0f824eb639d6b5ce8ae8af79a20ea31e",
+    "UniClaw.Kernel": "10a11ab23a8e9ee0b6f55fb48327837db489c27e2b0343194e089eb3c984ac02",
+    "UniClaw.Agent.Dsh": "0dee883374c78164648ee1735345161843187dd2db436def09f2865c68d0aaba"
+  }
+}

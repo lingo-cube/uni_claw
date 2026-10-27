@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "--test-name-pattern=PRF-003: preset mount registers",
+    "dsh/uniclaw-decision-channel/tests/plugin.test.mjs"
+  ],
+  "exitCode": 1,
+  "date": "2026-10-27",
+  "purpose": "Existing mounted Product instruction omits formal action/control explanation; no model/service/device."
+}

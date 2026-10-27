@@ -1,0 +1,95 @@
+{
+  "schema": "uniclaw.diagnosis.packet.v0",
+  "authority": "non-authoritative",
+  "meta": {
+    "diagnosedAt": "2026-10-25T06:37:49.877813+00:00",
+    "producer": {
+      "kind": "agent-skill"
+    },
+    "changeId": "SIM-037"
+  },
+  "subject": {
+    "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/changes/SIM-037/evidence/v3/live/normal-003/run-20261025-062855-823",
+    "reproduce": {
+      "command": "Inspect immutable normal-003 decision01, request02 and original public Runner trace. No additional model sampling; no same-case deterministic full-model fix claimed.",
+      "trx": "changes/SIM-037/evidence/v3/live-test-results/normal-003.trx"
+    },
+    "inputs": [
+      {
+        "path": "changes/SIM-037/evidence/v3/live/normal-003/consults/01/input-context.json",
+        "sha256": "d4b48a556f3280cb7648e9aa7f605acc359d9fbd2e5aa1ddebf3fbaceb2ec869",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v3/live/normal-003/consults/01/decision.json",
+        "sha256": "f882112d69c44f7035ceb6aaad848e63eaf4f477f9c6784df729098bbd51a020",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v3/live/normal-003/consults/02/input-context.json",
+        "sha256": "4da4a92e95eeb4477a911e68007846d269bd48138e4f937bcb12d05d02ed2687",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v3/live/normal-003/consults/08/decision.json",
+        "sha256": "e80d0998c5bebc6915b0c4cc0c056c4081a3346e9047904fb075d5ca1a690105",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v3/live/normal-003/run-20261025-062855-823/consult-bridge.json",
+        "sha256": "fc5cc27db174f79ae8e533775cd793da1df41dfb1e566659cb9fc2177b3a7e0b",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v3/live/normal-003/run-20261025-062855-823/coverage-steps.json",
+        "sha256": "db8f193be28d4cad4cf3453c3f062e705eec0ac5bb66d7dede61128ad4d9c865",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v3/live/normal-003/independent-graph-audit.json",
+        "sha256": "16590acc14f3d52453546a6433cc3529e11ab9c7baad9bc6186724ed0e037e65",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v3/carrier/carrier.trx",
+        "sha256": "3bc3e4836f67f6678e4f9a03218a1d72b5d2a5c031f3c5838a853d86602c706e",
+        "role": "verification-evidence"
+      }
+    ]
+  },
+  "evidenceLevel": "E3",
+  "evidenceSummary": [
+    "Feasible fixture and explicit existing Act/Plan policy are fixed; 4 deterministic carriers and original 79 tests pass.",
+    "Eight actual model consultations; 2/8 independent navigations and 2/8 returns; six delivered effects, five Verified, zero dangerous deliveries.",
+    "First Plan writes targetRole=Navigate up and omits targetDescriptor; following real request reports StepRejected: missing target descriptor.",
+    "Agent then scrolls past the unvisited visible Details subtree, repeatedly scrolls upward at the same end viewport, and finally honestly Blocked."
+  ],
+  "failureClass": "B",
+  "lifecycleStage": "Agent-authored plan binding and exploration strategy",
+  "lastCorrectState": "Network is entered and independently Verified; initial source observation and role/text evidence were available.",
+  "firstDivergence": {
+    "where": "normal-003 first Plan first forEach body[1], before any back delivery",
+    "expected": "A concrete navigation action uses the semantic role and target description under the existing public protocol; future steps still require fresh grounding.",
+    "observed": "Back caption is supplied as role and no descriptor is provided. Runtime correctly refuses it and returns missing target descriptor.",
+    "evidenceRefs": [
+      "v3/live/normal-003/consults/01/decision.json",
+      "v3/live/normal-003/consults/02/input-context.json"
+    ]
+  },
+  "owner": "Agent plan authoring / its protocol-facing validation and feedback; not a proven grounding or Effect-authority implementation defect.",
+  "rootCauseSupport": [
+    "Immutable first decision contains the malformed role/descriptor pair and the next request has the corresponding rejection reason.",
+    "Original full-script carrier proves the same graph/config can satisfy all declared requirements and Kernel completion.",
+    "Previous multi-step Act issue is independently guarded; current task explicitly discloses the existing rule and no two-step Act is emitted here."
+  ],
+  "remainingUncertainty": [
+    "Full autonomous navigation, scrolling, same-named targets and return completion remain FAIL; no Product fix or global Prompt/Skill change has been implemented.",
+    "Generated plans also misuse traversal order and put tails after Reobserve; their full causal contribution needs separate fixed-case work.",
+    "The source permits upward scrolling only and retains viewport offsets; do not infer real-device recovery impossibility from this bounded fixture."
+  ],
+  "escalation": {
+    "required": false,
+    "reason": "Evidence and owner localized; A2 is gated by failed normal prerequisite. Any later Product authoring-contract fix needs its own bounded scope, not more same-input sampling here.",
+    "decisionRequest": []
+  }
+}

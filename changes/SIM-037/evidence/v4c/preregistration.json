@@ -1,0 +1,46 @@
+{
+  "case": "normal-006",
+  "scope": "Finite three-level synthetic menu; real Agent decisions. Not a real Android device.",
+  "mode": "complete",
+  "maximumFormalAttemptsSameInput": 1,
+  "budgets": {
+    "maxSteps": 32,
+    "maxConsultations": 36,
+    "maxScrolls": 8,
+    "turnTimeoutSeconds": 90,
+    "externalHardTimeoutSeconds": 600,
+    "renewal": false,
+    "startupAndTestSharedSeconds": 570,
+    "cleanupReserveSeconds": 30
+  },
+  "expected": {
+    "navigableTargets": 8,
+    "parentReturns": 8,
+    "allEffectsVerified": true,
+    "forbiddenOrSwitchDeliveries": 0,
+    "endOnSettingsRoot": true,
+    "kernelCompleted": true,
+    "independentGraphRequired": true,
+    "actualProviderModelAndSubmitRequired": true
+  },
+  "notSentToAgent": [
+    "menu.json",
+    "world.json",
+    "oracle.json",
+    "expected action sequence",
+    "preregistration expected counts"
+  ],
+  "faultStage": "only after normal passed; freeze independent inputs before each case",
+  "newInputReason": "Profile28/Prompt27 guidance and reviewed progress/local-Act repairs are integrated on a HEAD-based minimal publication candidate. Only outdated single-step Act task text is replaced with current local Act/Plan semantics; menu/Oracle/32-step/36-round/600-second acceptance unchanged. New fixed source/input, not resampling prior cases.",
+  "priorRealCase": "../v3/live/normal-003",
+  "goalFeasibilityEvidence": "carrier/carrier.trx",
+  "dependencies": [
+    "AGENT-TRAVERSAL-001",
+    "AGENT-PLAN-GUIDANCE-001"
+  ],
+  "publicationBase": "7769d11deaa0cc9c4b8ae6a7c36dcdbe3db29fe5",
+  "sourceEntrySha256": "e09da14526cc87c27b5fb38791d365f1e62844a9f32840351f8f7fd80fadbb1b",
+  "candidateDiffSha256": "a01ee05eefe5479e885d2b6d9f0954572f9c6002364676c773d150e976f84e3a",
+  "retryOf": "normal-005",
+  "retryReason": "normal005 route preflight made zero model consultations: patch rows cannot rename an existing plugin entry. Use documented disabled+insert to load the same frozen module as a private root and scoped Agent tool. No persistent config, route/model/credentials/proxy changes."
+}

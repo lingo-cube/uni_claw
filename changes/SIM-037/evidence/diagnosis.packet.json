@@ -1,0 +1,95 @@
+{
+  "schema": "uniclaw.diagnosis.packet.v0",
+  "authority": "non-authoritative",
+  "meta": {
+    "diagnosedAt": "2026-10-25T06:18:01.561958+00:00",
+    "producer": {
+      "kind": "agent-skill"
+    },
+    "changeId": "SIM-037"
+  },
+  "subject": {
+    "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/changes/SIM-037/evidence/live/normal-001/run-20261025-060918-983",
+    "reproduce": {
+      "command": "Frozen original normal-001 is not resampled. Its full scripted public-Runner goal-feasibility RED and target-only RED are preserved under evidence/v2/goal-red and goal-target-fix.",
+      "trx": "changes/SIM-037/evidence/live-test-results/normal-001.trx"
+    },
+    "inputs": [
+      {
+        "path": "changes/SIM-037/evidence/candidate-entry.json",
+        "sha256": "d8d5bda6acc26ba00064cb8a059842beddb7f8b1a2ba1697d34aa34b117d518c",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/candidate.diff",
+        "sha256": "8ecc17f21391738ffb5ca05394e4cdc492966515f7217a2e1999e3b91bd7a741",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/live/normal-001/actual-config.json",
+        "sha256": "508e0daaa9bb7416317f972c98615e1131e3cf2308ea2e537be75553ebcd0c53",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/live/normal-001/trial-summary.json",
+        "sha256": "7705390c3674678a87c8cf7bba55af19f4489861f810a945df05a96f46b14ed9",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/live/normal-001/independent-graph-audit.json",
+        "sha256": "99f274f0e978e2393c4047a623efacfe06c16d49c9eb0da834e127f6ad2d9b74",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v2/goal-red/sim037-carrier-scripted/coverage-report.json",
+        "sha256": "f9865c99db0cc8d877ffb022c46b07115c7d29eec66c00bbe896df1b4842970f",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v2/goal-red/sim037-carrier-scripted/independent-graph-audit.json",
+        "sha256": "5512f92f368a523bd3cf3469ed775f8a4cfcf60e3272a813ac0a70007f3212b8",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v2/goal-target-fix/goal-target-fix.trx",
+        "sha256": "4270fe32efdc76b28647295d0dbbe6d1bcaa9c4095d4f5a1e674e901b9b12ecd",
+        "role": "verification-evidence"
+      }
+    ]
+  },
+  "evidenceLevel": "E3",
+  "evidenceSummary": [
+    "Seven actual model consultations and submit_decision trajectories verified; independent graph records 2/8 navigation targets and 2/8 returns, final Agent honestly Blocked.",
+    "Full original scripted 8/8 traversal followed by NoAction completes Kernel but still leaves scroll-discovered-entry and Factory reset dynamic frontier uncovered.",
+    "ScrollCandidates excludes every configured TargetPages entry; both safe root navigations were configured, leaving no safe new root target for the declared one-entry requirement.",
+    "Original wire includes Details and Permissions on their respective current pages; omitted acquisition/context hypothesis is rejected."
+  ],
+  "failureClass": "F",
+  "lifecycleStage": "New simulation task/goal configuration",
+  "lastCorrectState": "Immutable source/world/Oracle and real DSH transport work; current visible child elements reach the Agent.",
+  "firstDivergence": {
+    "where": "New FiniteMenuGraphSimulationTests.RealAgent.cs RealAgentFixture config: TargetPages=[Network,Apps], ScrollDiscoveredEntries=1, unsafe Factory reset left in dynamic frontier.",
+    "expected": "A positive autonomous scenario must have a satisfiable declared goal, independently proved before real model evaluation.",
+    "observed": "Even full original navigation and return script cannot satisfy the extra scroll metric or pending forbidden frontier; original carrier checked graph but not every declared requirement.",
+    "evidenceRefs": [
+      "v2/goal-red/sim037-carrier-scripted/coverage-report.json",
+      "v2/goal-target-fix/goal-target-fix.trx",
+      "live/normal-001/actual-config.json"
+    ]
+  },
+  "owner": "New test carrier RealAgentFixture and its goal-feasibility qualification; no proven Product Runtime regression.",
+  "rootCauseSupport": [
+    "Deterministic public Runner with all 8 navigations and 8 returns reproduces both uncovered requirements without any model.",
+    "Changing only configured targets makes scroll-discovered-entry satisfiable while leaving forbidden frontier RED.",
+    "Original model request evidence contains current Details/Permissions; no child-input omission."
+  ],
+  "remainingUncertainty": [
+    "Visible child menus were not explored in normal-001, but the infeasible task confounds a capability verdict. A new feasible-input case is required; original trial remains FAIL.",
+    "Native latest-scroll aggregate is order-sensitive; this fixture does not establish a Product Runtime fix or general autonomous Settings completion."
+  ],
+  "escalation": {
+    "required": false,
+    "reason": "Correct only the newly introduced test goal and strengthen its feasibility check; preserve old fixtures, product source and real trial.",
+    "decisionRequest": []
+  }
+}

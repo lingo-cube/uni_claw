@@ -1,0 +1,11 @@
+{
+  "files": 175,
+  "parent": "7769d11deaa0cc9c4b8ae6a7c36dcdbe3db29fe5",
+  "codeFiles": 46,
+  "remote": "origin",
+  "branch": "uni-harness",
+  "selection": "Exact private candidate blobs plus checked compact artifacts; shared unrelated file contents remain in worktree.",
+  "publishedIndexGeneratedFrom": "HEAD states plus only SIM037/GUIDANCE/TRAVERSAL; current shared INDEX content untouched.",
+  "preFinalizationTree": "f4a14077d0b43e305d5211999071758d0d238f52",
+  "whitespaceCheck": "Code and task Markdown passed. Unified patch/diff captures retain their literal context markers and immutable hashes."
+}

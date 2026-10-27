@@ -1,0 +1,147 @@
+{
+  "case": "normal-007",
+  "normalPassed": false,
+  "actualModel": {
+    "provider": "commandcode",
+    "name": "deepseek/deepseek-v4.1-flash"
+  },
+  "realSemanticConsultations": 8,
+  "capturedModelTrajectories": 8,
+  "targetsReached": 2,
+  "expectedNavigations": 8,
+  "returnsVerified": 2,
+  "expectedReturns": 8,
+  "stepsDelivered": 6,
+  "stepsVerified": 5,
+  "unsafeDeliveries": 0,
+  "runStatus": "Completed",
+  "coverageStatus": "BoundedStop",
+  "firstBehaviorDivergence": "consult02 scrolls Network before visiting currently visible unvisited Details; later missing/ambiguous Details and failed scroll do not complete the graph.",
+  "targetDescriptorOmissionObserved": false,
+  "reobserveTailObserved": false,
+  "terminalQualification": "NoAction admits partial gaps. Kernel Completed proves only its root obligation; independent whole-menu acceptance remains FAIL.",
+  "modelEvidence": [
+    {
+      "consultation": "01",
+      "summarySha256": "7052fda636f0044b357659ecee24c24e6acae9d857c7bd3864b8fd82fa2a22bc",
+      "submitCalls": 1,
+      "model": {
+        "provider": "commandcode",
+        "name": "deepseek/deepseek-v4.1-flash"
+      },
+      "requestId": "dsh-req-00000001"
+    },
+    {
+      "consultation": "02",
+      "summarySha256": "e1c91de3b604e9084f91ca582aec3e37cde764b791b3dd3981aebaceaa962ae0",
+      "submitCalls": 1,
+      "model": {
+        "provider": "commandcode",
+        "name": "deepseek/deepseek-v4.1-flash"
+      },
+      "requestId": "dsh-req-00000002"
+    },
+    {
+      "consultation": "03",
+      "summarySha256": "48a808f471d73a1606e84e219b2843a11f0f786e86791b14c4a13f50f49cb6c4",
+      "submitCalls": 1,
+      "model": {
+        "provider": "commandcode",
+        "name": "deepseek/deepseek-v4.1-flash"
+      },
+      "requestId": "dsh-req-00000003"
+    },
+    {
+      "consultation": "04",
+      "summarySha256": "a2dcec00c92f2da58f20369e0f8cb0b695113545bee023df042782e5135f88e4",
+      "submitCalls": 1,
+      "model": {
+        "provider": "commandcode",
+        "name": "deepseek/deepseek-v4.1-flash"
+      },
+      "requestId": "dsh-req-00000004"
+    },
+    {
+      "consultation": "05",
+      "summarySha256": "91aaedae671981cfb4d61e4f171e9e9ef9387063f9ec6bdfe07bd42cb86ea1cd",
+      "submitCalls": 1,
+      "model": {
+        "provider": "commandcode",
+        "name": "deepseek/deepseek-v4.1-flash"
+      },
+      "requestId": "dsh-req-00000005"
+    },
+    {
+      "consultation": "06",
+      "summarySha256": "6f07736d0b20c917ab9038118e21a5bf9c68a7565b4bd30e0a7cd698728182da",
+      "submitCalls": 1,
+      "model": {
+        "provider": "commandcode",
+        "name": "deepseek/deepseek-v4.1-flash"
+      },
+      "requestId": "dsh-req-00000006"
+    },
+    {
+      "consultation": "07",
+      "summarySha256": "05b427f7000b6eaee9ec17d31c2411ab9ba01bacfdc6411959ee1ba5b5bfc221",
+      "submitCalls": 1,
+      "model": {
+        "provider": "commandcode",
+        "name": "deepseek/deepseek-v4.1-flash"
+      },
+      "requestId": "dsh-req-00000007"
+    },
+    {
+      "consultation": "08",
+      "summarySha256": "409e77d1ab1377b6e7a78b807ad09e56eab07a0d5429cc833e4ee797d1200432",
+      "submitCalls": 1,
+      "model": {
+        "provider": "commandcode",
+        "name": "deepseek/deepseek-v4.1-flash"
+      },
+      "requestId": "dsh-req-00000008"
+    }
+  ],
+  "environmentAttempts": [
+    {
+      "case": "normal-004",
+      "classification": "ENVIRONMENT_UNAVAILABLE",
+      "actualModelConsultations": 0,
+      "elapsedSeconds": 4.586277709,
+      "cleanup": {
+        "ownedServiceStopped": true,
+        "ownedTestStopped": true,
+        "configurationUnchanged": true,
+        "errors": []
+      }
+    },
+    {
+      "case": "normal-005",
+      "classification": "ENVIRONMENT_UNAVAILABLE",
+      "actualModelConsultations": 0,
+      "elapsedSeconds": 31.788682959,
+      "cleanup": {
+        "ownedServiceStopped": true,
+        "ownedTestStopped": true,
+        "configurationUnchanged": true,
+        "errors": []
+      }
+    },
+    {
+      "case": "normal-006",
+      "classification": "ENVIRONMENT_UNAVAILABLE",
+      "actualModelConsultations": 0,
+      "elapsedSeconds": 31.784610834,
+      "cleanup": {
+        "ownedServiceStopped": true,
+        "ownedTestStopped": true,
+        "configurationUnchanged": true,
+        "errors": []
+      }
+    }
+  ],
+  "faultCasesStarted": 0,
+  "configurationUnchanged": true,
+  "deviceStarted": false,
+  "elapsedSeconds": 66.832928334
+}

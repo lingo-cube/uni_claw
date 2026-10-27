@@ -1,0 +1,51 @@
+{
+  "began": "2026-10-26T23:52:19.724205+00:00",
+  "case": "normal-004",
+  "modelAttemptStarted": true,
+  "passed": false,
+  "deviceStarted": false,
+  "testArgs": [
+    "dotnet",
+    "test",
+    "/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-sim037-v4-o1o7n8n3/source/tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj",
+    "--no-build",
+    "--no-restore",
+    "--filter",
+    "FullyQualifiedName=UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.RealAgentTraversesTheThreeLevelMenu",
+    "--logger",
+    "trx;LogFileName=normal-004.trx",
+    "--results-directory",
+    "/Users/fran/Documents/Code/spacex/uni_claw/changes/SIM-037/evidence/v4/live-test-results",
+    "-m:1",
+    "-nr:false"
+  ],
+  "testPid": 34521,
+  "testExitCode": 1,
+  "counters": {
+    "total": "1",
+    "executed": "1",
+    "passed": "0",
+    "failed": "1",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "elapsedSeconds": 4.586277709,
+  "withinExternal600SecondBound": true,
+  "cleanup": {
+    "ownedServiceStopped": true,
+    "ownedTestStopped": true,
+    "configurationUnchanged": true,
+    "errors": []
+  },
+  "ended": "2026-10-26T23:52:24.309159+00:00"
+}

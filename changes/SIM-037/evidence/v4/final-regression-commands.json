@@ -1,0 +1,70 @@
+[
+  {
+    "project": "host",
+    "command": [
+      "dotnet",
+      "test",
+      "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj",
+      "-m:1",
+      "-nr:false",
+      "--filter",
+      "FullyQualifiedName~SettingsTraversalIntegrationTests|FullyQualifiedName~SettingsWindowClearanceBuyerTests|FullyQualifiedName~FiniteMenuGraphSimulationTests|FullyQualifiedName~SettingsCoverageProgressConsistencyTests|FullyQualifiedName~SettingsLocalActionGuardTests|FullyQualifiedName~LocalAct|FullyQualifiedName~RealAgentFiniteMenuSimulationTests&FullyQualifiedName!~RealAgentTraversesTheThreeLevelMenu",
+      "--logger",
+      "trx;LogFileName=host.trx",
+      "--results-directory",
+      "/Users/fran/Documents/Code/spacex/uni_claw/changes/SIM-037/evidence/v4/final-regression"
+    ],
+    "exitCode": 0
+  },
+  {
+    "project": "dsh",
+    "command": [
+      "dotnet",
+      "test",
+      "tests/UniClaw.Host.Dsh.Tests/UniClaw.Host.Dsh.Tests.csproj",
+      "-m:1",
+      "-nr:false",
+      "--filter",
+      "FullyQualifiedName~SettingsCoverageEventSimulationTests|FullyQualifiedName~SettingsCoveragePopupTaskSimulationTests|FullyQualifiedName~InitializationEnvelopeTests",
+      "--logger",
+      "trx;LogFileName=dsh.trx",
+      "--results-directory",
+      "/Users/fran/Documents/Code/spacex/uni_claw/changes/SIM-037/evidence/v4/final-regression"
+    ],
+    "exitCode": 0
+  },
+  {
+    "project": "simulation",
+    "command": [
+      "dotnet",
+      "test",
+      "tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj",
+      "-m:1",
+      "-nr:false",
+      "--filter",
+      "FullyQualifiedName~TraversalScenarioTests|FullyQualifiedName~HandlerTraversalScenarioTests|FullyQualifiedName~AsyncHandlerTraversalScenarioTests",
+      "--logger",
+      "trx;LogFileName=simulation.trx",
+      "--results-directory",
+      "/Users/fran/Documents/Code/spacex/uni_claw/changes/SIM-037/evidence/v4/final-regression"
+    ],
+    "exitCode": 0
+  },
+  {
+    "project": "profile",
+    "command": [
+      "dotnet",
+      "test",
+      "tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj",
+      "-m:1",
+      "-nr:false",
+      "--filter",
+      "FullyQualifiedName~UniAgentProfileYamlTests",
+      "--logger",
+      "trx;LogFileName=profile.trx",
+      "--results-directory",
+      "/Users/fran/Documents/Code/spacex/uni_claw/changes/SIM-037/evidence/v4/final-regression"
+    ],
+    "exitCode": 0
+  }
+]

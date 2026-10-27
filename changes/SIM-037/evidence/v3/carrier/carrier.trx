@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="d2fa6aa2-2b39-4e1d-b90e-76edb5bfc513" name="@frandeMac-mini 2026-10-25 14:24:58" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-25T14:24:58.5966370+08:00" queuing="2026-10-25T14:24:58.5966370+08:00" start="2026-10-25T14:24:56.0386350+08:00" finish="2026-10-25T14:24:58.5995550+08:00" />
+  <TestSettings name="default" id="2dce65bf-a53c-4004-a378-bf258ce5bcc1">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-25_14_24_58" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="3ac2a5ac-b890-4aea-8a6e-bbe0f8599b48" testId="8eadd91e-b0fc-7406-9e64-05c941a7e7da" testName="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.ExistingGuardRejectsMultiStepActButAllowsTheSamePlan(asPlan: False)" computerName="frandeMac-mini" duration="00:00:00.0756384" startTime="2026-10-25T14:24:58.2277490+08:00" endTime="2026-10-25T14:24:58.2277490+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3ac2a5ac-b890-4aea-8a6e-bbe0f8599b48" />
+    <UnitTestResult executionId="23aca8df-a704-4f75-b02b-94a51ebf73e2" testId="8dd73ffc-6cd2-a4ae-5fba-8f5b1b2910dd" testName="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.ScriptedCarrierPreservesTheOriginalGraphAndReturns" computerName="frandeMac-mini" duration="00:00:01.6143384" startTime="2026-10-25T14:24:58.1527720+08:00" endTime="2026-10-25T14:24:58.1527790+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="23aca8df-a704-4f75-b02b-94a51ebf73e2" />
+    <UnitTestResult executionId="d968074d-389c-4180-83d8-25af06861fb6" testId="c89c8458-e796-d93e-b22b-b0cd22dd67f2" testName="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.EarlyCompletionClaimDoesNotSatisfyTheIndependentGraph" computerName="frandeMac-mini" duration="00:00:00.0624421" startTime="2026-10-25T14:24:58.4258050+08:00" endTime="2026-10-25T14:24:58.4258050+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d968074d-389c-4180-83d8-25af06861fb6" />
+    <UnitTestResult executionId="79b9db77-57b8-489a-91be-a98b1ab5b5ff" testId="db90a9f2-b7bc-0a86-0deb-41df8e9e4443" testName="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.ExistingGuardRejectsMultiStepActButAllowsTheSamePlan(asPlan: True)" computerName="frandeMac-mini" duration="00:00:00.1354344" startTime="2026-10-25T14:24:58.3632870+08:00" endTime="2026-10-25T14:24:58.3632870+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="79b9db77-57b8-489a-91be-a98b1ab5b5ff" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.ExistingGuardRejectsMultiStepActButAllowsTheSamePlan(asPlan: True)" storage="/users/fran/documents/code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v3/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="db90a9f2-b7bc-0a86-0deb-41df8e9e4443">
+      <Execution id="79b9db77-57b8-489a-91be-a98b1ab5b5ff" />
+      <TestMethod codeBase="/Users/fran/Documents/Code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v3/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests" name="ExistingGuardRejectsMultiStepActButAllowsTheSamePlan" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.EarlyCompletionClaimDoesNotSatisfyTheIndependentGraph" storage="/users/fran/documents/code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v3/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="c89c8458-e796-d93e-b22b-b0cd22dd67f2">
+      <Execution id="d968074d-389c-4180-83d8-25af06861fb6" />
+      <TestMethod codeBase="/Users/fran/Documents/Code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v3/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests" name="EarlyCompletionClaimDoesNotSatisfyTheIndependentGraph" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.ScriptedCarrierPreservesTheOriginalGraphAndReturns" storage="/users/fran/documents/code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v3/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="8dd73ffc-6cd2-a4ae-5fba-8f5b1b2910dd">
+      <Execution id="23aca8df-a704-4f75-b02b-94a51ebf73e2" />
+      <TestMethod codeBase="/Users/fran/Documents/Code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v3/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests" name="ScriptedCarrierPreservesTheOriginalGraphAndReturns" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.ExistingGuardRejectsMultiStepActButAllowsTheSamePlan(asPlan: False)" storage="/users/fran/documents/code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v3/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="8eadd91e-b0fc-7406-9e64-05c941a7e7da">
+      <Execution id="3ac2a5ac-b890-4aea-8a6e-bbe0f8599b48" />
+      <TestMethod codeBase="/Users/fran/Documents/Code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v3/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests" name="ExistingGuardRejectsMultiStepActButAllowsTheSamePlan" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="8eadd91e-b0fc-7406-9e64-05c941a7e7da" executionId="3ac2a5ac-b890-4aea-8a6e-bbe0f8599b48" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8dd73ffc-6cd2-a4ae-5fba-8f5b1b2910dd" executionId="23aca8df-a704-4f75-b02b-94a51ebf73e2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c89c8458-e796-d93e-b22b-b0cd22dd67f2" executionId="d968074d-389c-4180-83d8-25af06861fb6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="db90a9f2-b7bc-0a86-0deb-41df8e9e4443" executionId="79b9db77-57b8-489a-91be-a98b1ab5b5ff" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="4" executed="4" passed="4" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.04]   Discovering: UniClaw.Host.Tests
+[xUnit.net 00:00:00.10]   Discovered:  UniClaw.Host.Tests
+[xUnit.net 00:00:00.11]   Starting:    UniClaw.Host.Tests
+[xUnit.net 00:00:02.01]   Finished:    UniClaw.Host.Tests
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

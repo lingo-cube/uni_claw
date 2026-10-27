@@ -71,7 +71,9 @@ public sealed record SettingsActionPolicy(
         + $"forbidden=[{string.Join(",", ForbiddenActionClasses.OrderBy(x => x, StringComparer.Ordinal))}]; "
         + $"unknownTargetDisposition={UnknownTargetDisposition}; "
         + "effectClass=runtime token from context.allowedEffects; "
-        + "semanticMapping={navigate:tap,back:tap,scroll:swipe-up}";
+        + "semanticMapping={navigate:tap,back:tap,scroll:swipe-up}; "
+        + "Act范围=发起时当前容器内的有界多步，可使用同容器滚动后取得的可靠Slice元素；"
+        + "离开容器或覆盖层状态改变后不执行Act尾部，跨Slice后续安排使用Plan；每一步仍重新检查当前事实和权限";
 
     public static SettingsActionPolicy Load(string path)
     {
@@ -218,6 +220,9 @@ public static class SettingsActionGuard
         AgentActionStep? step = null;
         if (decision is AgentDecision.Act act)
         {
+            // The installed Runtime constraint checks each action against its
+            // current Slice. Admission does not pre-ground future scroll facts.
+            if (currentStepGuardInstalled) return decision;
             if (act.Proposal.Steps.Count != 1)
             {
                 result = Reject("unknown-action", "multi-step act is not policy-guardable", policy);
@@ -380,6 +385,36 @@ public static class SettingsActionGuard
         var baseResult = EvaluateCurrentStep(step, context, policy);
         if (baseResult.Verdict is PlanStepGuardVerdict.Reject or PlanStepGuardVerdict.Unknown)
             return baseResult;
+        var popupPresent = false;
+        if (context.CurrentWorldClaims.TryGetValue(
+            UniClaw.Kernel.World.UiRealization.ProductAssociationStrategy.PopupSubject, out var popup))
+        {
+            if (popup.InConflict || popup.Value is "unknown" or "conflict")
+                return new(PlanStepGuardVerdict.Unknown, "popup-state-requires-reobservation", baseResult.EvidenceRefs);
+            if (popup.Value == "present")
+            {
+                popupPresent = true;
+                var target = step.TargetDescriptor?.Trim();
+                if (config.PopupSettings.DenyTargets.Any(denied => string.Equals(target, denied, StringComparison.OrdinalIgnoreCase)))
+                    return new(PlanStepGuardVerdict.Reject, "popup-confirm-requires-reauthorization", baseResult.EvidenceRefs);
+                var safeDismiss = step.EffectClass is "tap" or "click"
+                    && (config.PopupSettings.Targets.Contains(target, StringComparer.OrdinalIgnoreCase)
+                        || config.BackDescriptor is not null && string.Equals(target, config.BackDescriptor, StringComparison.OrdinalIgnoreCase));
+                if (!safeDismiss)
+                    return new(PlanStepGuardVerdict.Reject, "popup-safe-dismiss-required", baseResult.EvidenceRefs);
+            }
+        }
+        if (!popupPresent && context.CurrentWorldClaims.TryGetValue(
+            UniClaw.Kernel.World.UiRealization.ProductAssociationStrategy.ScreenRouteSubject, out var route)
+            && route.Value == SettingsCoverageDirector.UnknownRouteIdentity)
+        {
+            var recovery = step.DesiredState is null
+                && (step.EffectClass is "tap" or "click" && config.BackDescriptor is not null
+                        && step.TargetDescriptor == config.BackDescriptor
+                    || step.EffectClass == "swipe-up" && step.TargetDescriptor == config.ScrollContainerDescriptor);
+            if (!recovery)
+                return new(PlanStepGuardVerdict.Unknown, "unknown-route-requires-reobservation-or-safe-recovery", baseResult.EvidenceRefs);
+        }
         return config.NavigationScope?.EvaluateCurrentStep(step, context, config) ?? baseResult;
     }
 

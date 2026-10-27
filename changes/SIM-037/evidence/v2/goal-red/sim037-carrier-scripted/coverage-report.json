@@ -1,0 +1,114 @@
+{
+  "status": "BoundedStop",
+  "items": [
+    {
+      "requirement": "root-page",
+      "detail": "root route observed",
+      "covered": true,
+      "evidence": "android.settings|rk1:Settings|src=homepage_title|up=0"
+    },
+    {
+      "requirement": "first-level-all-visible",
+      "detail": "entered 2/2",
+      "covered": true,
+      "evidence": "entered:Network-\u003Eandroid.settings|route:Network;entered:Apps-\u003Eandroid.settings|route:Apps"
+    },
+    {
+      "requirement": "scroll-discovered-entry",
+      "detail": "entered 0/1 scroll-discovered",
+      "covered": false,
+      "evidence": null
+    },
+    {
+      "requirement": "second-level-pages",
+      "detail": "distinct second-level routes 2/2",
+      "covered": true,
+      "evidence": "android.settings|route:Network;android.settings|route:Apps"
+    },
+    {
+      "requirement": "back-navigation",
+      "detail": "back verified 2",
+      "covered": true,
+      "evidence": "Navigate up"
+    },
+    {
+      "requirement": "repeated-entry",
+      "detail": "satisfied 0/0",
+      "covered": true,
+      "evidence": null
+    },
+    {
+      "requirement": "dynamic-root-entries",
+      "detail": "visited 0, frontier 1, skipped 4",
+      "covered": false,
+      "evidence": "visited=;frontier=Factory reset"
+    },
+    {
+      "requirement": "dynamic-nested-entries",
+      "detail": "visited 6, frontier 0, skipped 10",
+      "covered": true,
+      "evidence": "visited=android.settings|route:Network\u003EDetails,android.settings|route:Details\u003EDiagnostics,android.settings|route:Details\u003ESummary,android.settings|route:Network\u003EAdvanced,android.settings|route:Apps\u003EPermissions,android.settings|route:Permissions\u003ESummary;frontier="
+    }
+  ],
+  "coverageRate": 0.75,
+  "stepSuccessRate": 1,
+  "uncoveredItems": [
+    "scroll-discovered-entry",
+    "dynamic-root-entries"
+  ],
+  "firstDivergence": null,
+  "stepsExecuted": 19,
+  "stepsVerified": 19,
+  "scrollsUsed": 3,
+  "scrollAttempts": 3,
+  "consultRounds": 2,
+  "dynamicRootFrontier": [
+    "Factory reset"
+  ],
+  "dynamicRootVisited": [],
+  "dynamicRootSkipReasons": {
+    "Network": "configured-target",
+    "Airplane mode": "non-ui-element-role",
+    "finite:id/scroll": "non-ui-element-role",
+    "Apps": "configured-target"
+  },
+  "dynamicNestedFrontier": [],
+  "dynamicNestedVisited": [
+    "android.settings|route:Network\u003EDetails",
+    "android.settings|route:Details\u003EDiagnostics",
+    "android.settings|route:Details\u003ESummary",
+    "android.settings|route:Network\u003EAdvanced",
+    "android.settings|route:Apps\u003EPermissions",
+    "android.settings|route:Permissions\u003ESummary"
+  ],
+  "dynamicNestedSkipReasons": {
+    "android.settings|route:Network\u003ENavigate up": "back-descriptor",
+    "android.settings|route:Network\u003Efinite:id/scroll": "non-ui-element-role",
+    "android.settings|route:Details\u003ENavigate up": "back-descriptor",
+    "android.settings|route:Details\u003Efinite:id/scroll": "non-ui-element-role",
+    "android.settings|route:Diagnostics\u003ENavigate up": "back-descriptor",
+    "android.settings|route:DetailsSummary\u003ENavigate up": "back-descriptor",
+    "android.settings|route:Advanced\u003ENavigate up": "back-descriptor",
+    "android.settings|route:Apps\u003ENavigate up": "back-descriptor",
+    "android.settings|route:Permissions\u003ENavigate up": "back-descriptor",
+    "android.settings|route:PermissionSummary\u003ENavigate up": "back-descriptor"
+  },
+  "reachedTargets": [],
+  "agentSkippedTargets": [],
+  "structuralSkippedTargets": [
+    "Airplane mode",
+    "Apps",
+    "Network",
+    "android.settings|route:Advanced\u003ENavigate up",
+    "android.settings|route:Apps\u003ENavigate up",
+    "android.settings|route:Details\u003ENavigate up",
+    "android.settings|route:Details\u003Efinite:id/scroll",
+    "android.settings|route:DetailsSummary\u003ENavigate up",
+    "android.settings|route:Diagnostics\u003ENavigate up",
+    "android.settings|route:Network\u003ENavigate up",
+    "android.settings|route:Network\u003Efinite:id/scroll",
+    "android.settings|route:PermissionSummary\u003ENavigate up",
+    "android.settings|route:Permissions\u003ENavigate up",
+    "finite:id/scroll"
+  ]
+}

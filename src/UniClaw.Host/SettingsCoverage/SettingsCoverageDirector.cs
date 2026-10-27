@@ -220,6 +220,16 @@ public sealed class SettingsCoverageDirector
             };
         }
 
+        // Runtime normally resolves this barrier before consultation. An
+        // unresolved Owner projection can never authorize a Host direction.
+        if (snapshot.PopupState is "unknown" or "conflict")
+        {
+            _terminalJustification = "bounded-stop:popup-evidence-unresolved";
+            _log.Add(new ConsultRecord(context.DecisionId, context.Phase.ToString(), null, null,
+                "noAction", null, 0, _terminalJustification));
+            return new AgentDecision.NoAction(new(context.DecisionId, _terminalJustification));
+        }
+
         // Goal-directed Host mode contributes facts and guards effects, while
         // the Agent owns path choice and completion judgement. Every call is
         // one consultation; Runtime owns any correction or budget review.

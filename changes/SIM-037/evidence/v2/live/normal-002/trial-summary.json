@@ -1,0 +1,17 @@
+{
+  "mode": "complete",
+  "elapsedMs": 28287,
+  "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/changes/SIM-037/evidence/v2/live/normal-002/run-20261025-062033-336",
+  "status": "AgentDecisionFailed",
+  "reason": "no-response",
+  "consultations": 4,
+  "dshSessionId": "session-b53baa07-4281-4b33-b78c-0d5ce11c634e",
+  "decisions": [
+    "Plan",
+    "Plan",
+    "Act",
+    "Act"
+  ],
+  "capturedTrajectories": 4,
+  "errors": []
+}

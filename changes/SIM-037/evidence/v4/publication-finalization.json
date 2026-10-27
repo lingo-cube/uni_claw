@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "test-asset-finalization.v1",
+  "changeId": "SIM-037",
+  "runId": "normal-007-publication",
+  "operation": "real-model-synthetic-menu-verification",
+  "completed": true,
+  "kept": [
+    {
+      "path": "evidence/v4d/live/normal-007/",
+      "reason": "Unresolved E3 failure: primary context/decision/state and raw trajectories remain task evidence locally."
+    },
+    {
+      "path": "evidence/v4/service-diagnostics/",
+      "reason": "Redacted service startup/error diagnostics; raw private logs retired."
+    }
+  ],
+  "archived": [
+    {
+      "path": "evidence/v4/publication-candidate.zip",
+      "bytes": 1978657,
+      "sha256": "e9b95f8eb942591a8515afcec7060e67d1dafdbc0653d90df6d26df7aa7949fd",
+      "reason": "Local-only exact code delta, six executed assemblies and authentication probe; restored source SHA verification recorded."
+    }
+  ],
+  "deleted": [
+    {
+      "path": "/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-sim037-v4-o1o7n8n3",
+      "bytes": 306575111,
+      "files": 2466,
+      "treeSha256": "b2cfe56d08848740cc069726f01f50564652ced452b6255924052292d9c623c9"
+    },
+    {
+      "path": "/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-sim037-dsh-protryr9",
+      "bytes": 1138,
+      "files": 1,
+      "treeSha256": "1b11ff45fc0e90908ef5356fac17bb1b8e51e525f338fa095091928f389b6182"
+    },
+    {
+      "path": "/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-sim037-dsh-neoc_wza",
+      "bytes": 1545,
+      "files": 1,
+      "treeSha256": "6ab8e5e9226bbefd7a453d15107d73eb80f1496671a575628d2d2d1c83a1d7bf"
+    },
+    {
+      "path": "/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-sim037-dsh-bjk27guu",
+      "bytes": 1802,
+      "files": 1,
+      "treeSha256": "176c668a14d5f5d146fd1c4932fa87d44cb0606776bb17e44279c1fa5b080a9e"
+    },
+    {
+      "path": "/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-sim037-dsh-o4v_sd3r",
+      "bytes": 3184,
+      "files": 1,
+      "treeSha256": "76f587e6bb6bcb4539a68f75878801721febda874bb88308aba1bcc195ea8261"
+    }
+  ],
+  "pending": [],
+  "deletedBytes": 306582780,
+  "sharedProtectedFiles": 340,
+  "sharedUnrelatedContentDrift": [],
+  "modelResampling": false,
+  "anomalyCasesStarted": 0,
+  "persistentConfigurationChanged": false
+}

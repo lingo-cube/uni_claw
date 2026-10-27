@@ -1,0 +1,110 @@
+{
+  "targets": [
+    {
+      "from": "Settings",
+      "descriptor": "Network",
+      "expectedTo": "Network",
+      "status": "reached"
+    },
+    {
+      "from": "Settings",
+      "descriptor": "Apps",
+      "expectedTo": "Apps",
+      "status": "reached"
+    },
+    {
+      "from": "Settings",
+      "descriptor": "Factory reset",
+      "expectedTo": null,
+      "status": "observed-pending"
+    },
+    {
+      "from": "Settings",
+      "descriptor": "Airplane mode",
+      "expectedTo": null,
+      "status": "structural-skipped"
+    },
+    {
+      "from": "Network",
+      "descriptor": "Details",
+      "expectedTo": "Details",
+      "status": "observed-pending"
+    },
+    {
+      "from": "Network",
+      "descriptor": "Advanced",
+      "expectedTo": "Advanced",
+      "status": "undiscovered"
+    },
+    {
+      "from": "Details",
+      "descriptor": "Diagnostics",
+      "expectedTo": "Diagnostics",
+      "status": "undiscovered"
+    },
+    {
+      "from": "Details",
+      "descriptor": "Summary",
+      "expectedTo": "DetailsSummary",
+      "status": "undiscovered"
+    },
+    {
+      "from": "Apps",
+      "descriptor": "Permissions",
+      "expectedTo": "Permissions",
+      "status": "observed-pending"
+    },
+    {
+      "from": "Permissions",
+      "descriptor": "Summary",
+      "expectedTo": "PermissionSummary",
+      "status": "undiscovered"
+    }
+  ],
+  "returns": [
+    {
+      "from": "Network",
+      "expectedTo": "Settings",
+      "status": "verified-destination"
+    },
+    {
+      "from": "Details",
+      "expectedTo": "Network",
+      "status": "unproven"
+    },
+    {
+      "from": "Diagnostics",
+      "expectedTo": "Details",
+      "status": "unproven"
+    },
+    {
+      "from": "DetailsSummary",
+      "expectedTo": "Details",
+      "status": "unproven"
+    },
+    {
+      "from": "Advanced",
+      "expectedTo": "Network",
+      "status": "unproven"
+    },
+    {
+      "from": "Apps",
+      "expectedTo": "Settings",
+      "status": "verified-destination"
+    },
+    {
+      "from": "Permissions",
+      "expectedTo": "Apps",
+      "status": "unproven"
+    },
+    {
+      "from": "PermissionSummary",
+      "expectedTo": "Permissions",
+      "status": "unproven"
+    }
+  ],
+  "wrongReturns": [],
+  "productCoverageStatus": "BoundedStop",
+  "allTraversableReached": false,
+  "allTargetsAccounted": false
+}

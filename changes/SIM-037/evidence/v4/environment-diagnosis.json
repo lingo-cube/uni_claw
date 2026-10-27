@@ -1,0 +1,8 @@
+{
+  "classification": "ENVIRONMENT_UNAVAILABLE",
+  "realModelConsultations": 0,
+  "error": "Installed DSH package import references missing src/contract-authoring.js; no Product routes activated.",
+  "originalTestFailurePreserved": true,
+  "installedFilesOrPersistentConfigChanged": false,
+  "boundedRetry": "normal-005 with exact frozen Product module via temporary --patch; handshake route readiness required before test."
+}

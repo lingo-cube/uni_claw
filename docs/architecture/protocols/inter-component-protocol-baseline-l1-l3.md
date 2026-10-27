@@ -967,6 +967,8 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   Package 的完整 scope/capability/risk/budget 校验仍是 TRACER_HYPOTHESIS（H14，
   roadmap Phase 6）。
 
+- **Local Act（AGENT-TRAVERSAL-001，Owner Q1–Q4）**：普通`AgentDecision.Act`为发起时当前容器/覆盖层范围内的有界有序具体建议；最多延伸到同容器滚动后取得且对当前动作仍可靠的Slice元素，不沿用旧Slice或旧binding。进入子页、返回或清障可以作为末步；容器或覆盖层状态已改变时，未执行尾部不得投递，沿既有StepRejected边界携带原提案引用、剩余步骤、正确失败索引及本提案已验证receipt引用回Agent。该局部限制不施加于Plan内部的ActItem：跨Slice阶段/条件仍由Plan表达，并在新事实下逐步展开。Host只有强制接入逐步Guard时才能延后Act政策检查；无Guard保持保守拒收，Contract许可、预算、禁手及验证链不变。此项不声称完整Contract scope/capability/risk验证已经闭合，不新增wire字段或Owner。
+
 > Phase 1 realization may represent the advisory action as an ordered `Steps`
 > list bounded to at most 16 steps. This is a tracer safety bound, not a frozen
 > public Interface or Decision Package shape.

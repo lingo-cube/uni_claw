@@ -1,0 +1,20 @@
+{
+  "blockingFindings": 0,
+  "evidenceSha256": {
+    "candidate-entry.json": "bc03b52fcc8e809d68ee707bdd4f208602b45d1bb898ff52c4bf797f716ac268",
+    "preregistration.json": "d7d481ae58f8f3136eac891a6a0782dcd42215dd93ddf8cda2ee2f39d31187f1",
+    "publication.patch": "a01ee05eefe5479e885d2b6d9f0954572f9c6002364676c773d150e976f84e3a",
+    "run-live.py": "276ffaf62888549184d074f705017f1f0c1edd2fb7db2c699fa12a8cdd93922a",
+    "RoutePreflight.cs": "b538fbca962580806e41d0bd872558ab6c4acc400ab28a0507678c1d1e45f96e",
+    "../v4/prelive-review.json": "d3d0e580ff2e415180f7d18a53102f7104b292e46c5eb9bc995407d48b975936"
+  },
+  "binaries": {
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "10a11ab23a8e9ee0b6f55fb48327837db489c27e2b0343194e089eb3c984ac02",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.dll": "de718443641ff942a099af42c5ecf3cd0f824eb639d6b5ce8ae8af79a20ea31e",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll": "17f9ac6ec2d7006d3a625ea280b4e89cf97b323ae5b37986d25053044a6cb546",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Core.dll": "bc43a07ee78a175ff3ec4ae5bd901fb39100aa40c8cec91ee77f7655cf86d2dd",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll": "0dee883374c78164648ee1735345161843187dd2db436def09f2865c68d0aaba",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Agent.dll": "36395adc2adc4141365c9764a0bcd0dbfe2f569746d47925483bd7ad0b3d6f73"
+  },
+  "qualification": "Final deterministic candidate; one normal-004 attempt allowed; old failures remain."
+}

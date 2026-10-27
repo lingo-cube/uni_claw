@@ -1,0 +1,103 @@
+{
+  "allSelectedPassed": true,
+  "originalBuyersConfirmed": 79,
+  "projects": {
+    "host": {
+      "path": "final-regression/host.trx",
+      "sha256": "7d2e57eb0e769bf1f04c1bfa75e91d5ed3d544d171598ce974df3ddc39a28645",
+      "counters": {
+        "total": "77",
+        "executed": "77",
+        "passed": "77",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "originalBuyersConfirmed": 36
+    },
+    "dsh": {
+      "path": "final-regression/dsh.trx",
+      "sha256": "0786d6687014210be598302d394c4d2bf684315a8dccfa9dc0ad7d05fd71e99b",
+      "counters": {
+        "total": "13",
+        "executed": "13",
+        "passed": "13",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "originalBuyersConfirmed": 10
+    },
+    "simulation": {
+      "path": "final-regression/simulation.trx",
+      "sha256": "0e52dc34cd5a117066646237e859d7b2bec0388d245e980f9edc2608bd950249",
+      "counters": {
+        "total": "33",
+        "executed": "33",
+        "passed": "33",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "originalBuyersConfirmed": 33
+    },
+    "profile": {
+      "path": "final-regression/profile.trx",
+      "sha256": "5315a7c699f550afc4998067fdc24f58459207f001b74397987f4a980c345275",
+      "counters": {
+        "total": "19",
+        "executed": "19",
+        "passed": "19",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "originalBuyersConfirmed": 0
+    }
+  },
+  "nodePassed": 9,
+  "nodeFailed": 0,
+  "scope": "Final publication candidate, no model/device in these deterministic checks.",
+  "kernelLocalActPassed": 2,
+  "totalChecksPassed": 153
+}

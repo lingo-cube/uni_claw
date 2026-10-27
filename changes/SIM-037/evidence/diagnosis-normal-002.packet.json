@@ -1,0 +1,90 @@
+{
+  "schema": "uniclaw.diagnosis.packet.v0",
+  "authority": "non-authoritative",
+  "meta": {
+    "diagnosedAt": "2026-10-25T06:26:42.422053+00:00",
+    "producer": {
+      "kind": "agent-skill"
+    },
+    "changeId": "SIM-037"
+  },
+  "subject": {
+    "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/changes/SIM-037/evidence/v2/live/normal-002/run-20261025-062033-336",
+    "reproduce": {
+      "command": "v3 deterministic CheckRealAgentActPlanBoundary replays the recorded two-intent Act pattern at the public Runner seam; original normal-002 is immutable and not resampled.",
+      "trx": "changes/SIM-037/evidence/v3/carrier/carrier.trx"
+    },
+    "inputs": [
+      {
+        "path": "changes/SIM-037/evidence/v2/live/normal-002/consults/04/input-context.json",
+        "sha256": "031150bb5e8f32153c515b46e0d76d2e6c029364420f8fd51a38229e6f32bc36",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v2/live/normal-002/consults/04/decision.json",
+        "sha256": "39b4b9424ccecb4ed46b0a7e8212164f3002b72cabd923212c54488c14848217",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v2/live/normal-002/run-20261025-062033-336/consult-bridge.json",
+        "sha256": "3cfd0789c9bb0a57a773befbf15b51ddaadb368fad2c8d953f4dcbe68fec52da",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v2/live/normal-002/run-20261025-062033-336/facts.json",
+        "sha256": "0b7eb58bc3ee201ff7ccc54e296f4044b2ce8d25077baaec9b1bd9a4aad93a63",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v2/live/normal-002/trial-summary.json",
+        "sha256": "2e3f70919889822d189fb6e5dd5d791d427c63ab3c4d7212283362b3d59371f7",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v2/live/normal-002/independent-graph-audit.json",
+        "sha256": "ff8d63ef45921eb3985a30a12f20d715e0353a383d60cd6b3d9f6c631fd3538f",
+        "role": "verification-evidence"
+      },
+      {
+        "path": "changes/SIM-037/evidence/v2/goal-green/goal-green.trx",
+        "sha256": "83a623c8c8ad9d5bc79ca8a13dbadb7971bdd9df6bd1d1a73a50b1deb260b9fc",
+        "role": "verification-evidence"
+      }
+    ]
+  },
+  "evidenceLevel": "E3",
+  "evidenceSummary": [
+    "Feasible v2 fixture passed original full 8 navigation/8 return script, all CoverageItems and Kernel completion before the real call.",
+    "Four actual model consultations and submit_decision trajectories; the fourth returns a syntactically accepted Act with two steps.",
+    "Host RecordAdvisoryDecision applies existing SettingsActionGuard; multi-step Act is not policy-guardable, so it returns null; Kernel ends no-response before any of these two steps dispatch.",
+    "Wire task and captured system prompt did not state a hard single-step Act constraint; payload shape advertises steps[]. Same intents as a Plan are supported by existing current-step guard."
+  ],
+  "failureClass": "C",
+  "lifecycleStage": "Agent response admission at Host action-policy guard",
+  "lastCorrectState": "Five effects verified, model fourth response present and decoded; Apps not yet dispatched.",
+  "firstDivergence": {
+    "where": "SettingsCoverageDirector.RecordAdvisoryDecision -> SettingsActionGuard.GuardDecision; fourth Act contains Apps then Navigate up.",
+    "expected": "Consultation input should disclose the existing Host-specific single-step Act constraint; multi-step navigation uses Plan and each fresh step is independently guarded.",
+    "observed": "Formal model response exists, but Host policy rejects two-step Act and converts it to null; terminal no-response hides the upstream reason in its short text.",
+    "evidenceRefs": [
+      "v2/live/normal-002/consults/04/decision.json",
+      "v2/live/normal-002/run-20261025-062033-336/consult-bridge.json",
+      "v2/live/normal-002/run-20261025-062033-336/facts.json"
+    ]
+  },
+  "owner": "Call-specific operation-contract alignment between the new test task and existing Host policy; guard refusal is correct. No Product Runtime or global Prompt/Skill modification.",
+  "rootCauseSupport": [
+    "Captured fourth decision has two concrete steps and original DecisionId; raw non-null/effective null and guard log agree.",
+    "Current public Runner deterministic Act/Plan pair yields zero delivery for multi-Act and two verified deliveries for the same Plan.",
+    "v3 adds only explicit existing Act/Plan and child-scroll scope instructions to the test task; product, v2 config, budget and independent 8/8 acceptance remain."
+  ],
+  "remainingUncertainty": [
+    "Complete autonomous traversal remains unproven; original v2 only reaches Network and Details and prematurely treats an unscrolled page as a leaf.",
+    "Task-specific instructions are not a general Product context/diagnostic fix. The Kernel no-response wording does not mean provider silence."
+  ],
+  "escalation": {
+    "required": false,
+    "reason": "Only clarify already-enforced operation semantics in the newly introduced test task, with deterministic replay. Existing safety/authority rules stay fixed.",
+    "decisionRequest": []
+  }
+}

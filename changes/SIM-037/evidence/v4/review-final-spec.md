@@ -1,0 +1,1 @@
+最终结果对账：0阻断。normal007是E3真实失败样本：8咨询/8 submit+usage、2/8导航/2/8返回、6投递5Verified、零危险，TRX1/1失败且独立图false。Completed仅根页义务，不能写全遍历完成。66.83秒、无设备、own进程回收与配置一致均有记录。normal004原modelAttemptStarted=true指测试进程启动；后续根据0 semantic咨询/无session归类环境接线失败，未修改其原字段。异常不启动。

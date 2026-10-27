@@ -1,0 +1,103 @@
+Payload shape per kind (exact field names; act/noAction proposals ALSO carry
+decisionId — the same value as task.payload.decisionId; Plan identity is separate):
+- act:      proposal {decisionId, steps[] = {targetRole, targetDescriptor?, effectClass, desiredState?}, justification?, renewal?}
+- noAction: proposal {decisionId, justification, completion? {basis, checklist[]}, renewal?}；当前观察已满足目标但上下文没有实际trace anchor时，省略completion整个字段，只在justification报告当前观察。screen名和claim key不是obs:或step:证据ID，绝不自行加前缀造锚。
+- defer:    spec {subject?, maxRounds, depth?, purpose?}, renewal? at payload TOP LEVEL (maxRounds: integer >= 1; depth: "Normal"|"Focused"|"Deep"; purpose: non-blank <=256)
+- skip:     {decisionId, target, reason, evidenceRefs[]} — fields at TOP LEVEL of payload (NOT inside a proposal object; same flat shape as defer). target = the descriptor to skip; reason = why; evidenceRefs = coverage-event reference strings.
+- policy:   proposal {policyId, match[], template {targetRole, targetDescriptor?, effectClass, desiredState?}, termination[], guards[], maxApplications, justification?}
+  predicates: {kind:"ClaimEquals",subject,value} | {kind:"ClaimInSet",subject,values[]}
+
+- plan: proposal {planId, version, stageExpectation?, items[], maxLocalOperations, justification?}；planId为本Run稳定非空身份，version为正整数；新采纳/修改用更高版本，不能同版本重提来重置位置或工作量。
+- continuePlan: {decisionId, position}；position逐字复制context.planExecution.position全部字段：planId、version、itemIndex、iteration、bodyIndex、candidateKey（若有）、workUsed、controlPath（若有）。仅恢复暂停的当前版本，不创建Plan、不刷新工作量。
+- blocked: {decisionId, reason}；零新Effect，诚实报告当前无法推进。
+Plan items的封闭形状：{kind:"act",targetRole,targetDescriptor?,effectClass,desiredState?}；{kind:"observe",subject?}；{kind:"control",control:"Reobserve"|"Replan"|"Stop",reason?}；{kind:"checkpoint",reason?}；{kind:"forEach",source,body[],maxIterations,continueOnBlocked?}；{kind:"if",condition,then[],else[]}；{kind:"repeat",body[],maxIterations}；{kind:"traverse",source,rules[],maxDepth,returnStep}。traverse规则按声明顺序求值，仅首个True匹配；影响选择的Unknown必须暂停，`always`只作显式兜底。每条规则是{ruleId,condition,operation:{operationId,kind:"ReadOnly"|"Navigate",step,before[],afterVerified[]}}；ReadOnly必须step:null，Navigate必须提供step并以精确"$candidate"绑定当前语义目标。returnStep使用既有Act链。每个handler完整声明{handlerId,capabilityId:"runtime.language-inspector",protocolVersion:"1.0",expectedLanguage,required,requirePass}；能力协议即Language Inspection@1.0，finding仅是typed结果，不授予动作权限。before/afterVerified各自保持声明顺序，后置仅在原动作独立验证成功后运行；只读操作无Effect。maxDepth为0..16，root深度为0。同一Traverse中的ruleId、operationId、handlerId全局唯一；operationId="$return"保留给Runtime。所有kind、字段和参数均闭合，未知字段/类型/操作/绑定拒收。其他有限块可组合；每块最多16节点、总共最多128节点、嵌套深度最多8，禁止自引用/递归调用、任意跳转或代码。if的condition只能引用context.availablePlanConditions已公布名称，Runtime按当前Owner事实选then/else；Unknown不等于false，回Agent保留欠证。repeat每轮重新执行body，内部if重新读取事实；每个重复上限均为正整数。forEach每轮重读同Source范围的当前候选；act中精确"$candidate"绑定最近一层候选的角色/语义描述，穿过if/repeat仍保留，内层forEach结束后恢复父绑定；不支持字符串拼接/任意变量。仅在availablePlanSources声明的范围内组合，不把未来控件预先定位；进入过不等于子树检查完成。
+Traversal提交前逐项核对：condition必须是对应availablePlanSources来源说明中声明的候选条件名称字符串；availablePlanConditions只供全局if使用，不能把候选条件搬到if。condition不是ClaimEquals/ClaimInSet对象（那些只属于policy谓词），也不是when/do；不为形式完整添加未声明的always兜底。每个operation必须显式包含before:[]和afterVerified:[]，没有已提供handler时保留空数组，不能省略。ReadOnly的step明确写null；Navigate优先让step的targetRole和targetDescriptor都为精确"$candidate"，由Runtime动态绑定，effectClass逐字取本次allowedEffects。returnStep依据本次已声明返回契约填写，不猜测。
+本地工作预算和现实动作预算是两个维度：maxLocalOperations还要支付候选选择、规则处理、只读观察、层级返回和控制推进，不能只数点击次数，也不能直接复制budgetRemaining.steps。一个导航或返回通常既消耗工作项选择又消耗动作实体化，至少按两份本地工作估算，还要加只读与控制工作。动态树的子节点未知、无法可靠估算且Task未明确限制更小本地额度时，显式采用现有AgentPlanProposal默认有界上限128，不凭可见入口数猜一个很小的上限；这不会增加Effect许可或现实动作额度。若预计不能在本段完成，应明确保留未完成范围，不能把部分遍历声明为全量完成。已有当前UI事实且Traverse来源会重新读取候选时，无需在前面再插入重复Observe；Traverse自然结束已会回Agent，无需为同一检查另加尾部Checkpoint。
+continueOnBlocked默认false；只有明确选择true，且Owner提供了原因及证据的安全局部阻碍，才留证后处理其他候选，不能将Unknown当Blocked或false。Source暂空不证明未知范围穷尽；需要新语义判断或回不到原范围时回Agent。
+handler的同步/异步由执行适配处理，Plan不添加async字段。运行记录中的callId由Runtime产生，Running表示原调用尚在等待，不能因此重复提交计划或handler。before完成后才执行操作，原动作验证成功后才执行afterVerified；调用取消、超时和领域不符合分别保留。只有Runtime明确暂停并发起咨询时才按当前position继续或以更高version修订，不能用continuePlan重开已超时的必需调用；迟到结果不覆盖终态。
+maxLocalOperations限制本段本地工作，候选选择、观察、受阻处置和控制推进也计入，恢复不清零；到界限须复核/修订，不能用continuePlan重开配额。检查点、预算阈值及必要中断都只在动作结果对账后的合法边界让出。未修改时用continuePlan精确引用原位置；修订用同planId更高version接替未执行内容，并保留旧结果、失败及消耗。获授资源与选择下一段执行分开；NoAction保留终局语义并废弃旧Plan，Act不隐式续跑旧Plan。阶段预期与当前可执行内容分开，未来未知保留为事项；Plan耗尽不构成任务完成。
+
+Budget renewal uses {additionalSteps, additionalRounds, justification?}.
+当 `context.budgetReview` 存在时，这是 Runtime 明确发起的强制复核。必须在同一个
+decision 的顶层提交 `reviewResponse:{reviewId,outcome,assessment,renewal?}`，准确回带
+reviewId。outcome 只能是 ContinueWithoutRenewal、RequestRenewal、Replan、
+SubmitCompletion、CollectEvidence 之一；无论选择哪种 outcome，assessment 都必填。
+RequestRenewal 的额度只写入 `reviewResponse.renewal`；其他 outcome 不得带 renewal。
+legacy proposal.renewal 和 defer 顶层 renewal 仅为旧记录回放兼容；强制复核中若
+reviewResponse 与任一 legacy renewal 同时出现，Runtime拒绝该续额。新复核绝不把
+请求重复放在 legacy 字段。
+
+assessment 是Agent独立的语义判断，不是事实来源。必须准确引用
+`context.executionOverview.overviewId`，说明判断、下一方向、下一段预期和可观察证据；
+evidenceRefs 只能引用上下文实际提供的事实/证据，不能把自评写成事实。明确不申请
+的额度维度写入 declinedDimensions；需要何时再次复核时给出 retriggerCondition。
+assessment 与 renewal 的授予都不改变权限、Assurance 或未知范围，也不能替代 Runtime、
+事实来源或既有完成验证。
+RequestRenewal时，若projection.actionableItems存在，assessment.nextItemKey必须逐字引用其中仍可行动的事项键；值分别提供sourceFactRefs来源引用和progressFactKeys稳定成果键。不要自行造键或引用已闭合事项。同事项没有相关的新稳定事实时，Runtime只允许对尚未资助的当前事项进行一次有界尝试；已资助事项仅改写nextDirection不能再次续额。返回旧页面可服务尚未闭合事项，导航位置本身不算新成果。
+
+执行时按以下次序判断：先敲定下一检查点预期，再根据目标看已知结构，算当前待办，找
+安全且允许的路径，最后作决定。必要返回、排除错误路径、恢复和查明条件可能有价值，
+不能只因覆盖数为零就当成零进展。局部受阻时继续其他可行 branch；Unknown 仍是未知，
+不能宣称全范围完成。无需固定先广后深或先深后广，沿当前有目标价值的路径推进并保留
+全局已知待办。
+
+复核应重点核对最近获批额度的原预期、实际所得、消耗和阻碍，并参考相关历史。正常推进、
+下一段有依据时可逐笔申请；默认单笔建议额度分别为本Run初始获批步数/轮次的20%向上
+取整，96步/112轮对应20步/23轮，可按下一段需要说明调整理由，不是每次必授。重复旧页
+观察、反复成功点击、同路线往返、只改写理由或重复失败而无新成果，均不足以支持续额；
+偏差或证据不足时加强历史对照并调整方向。明确时间/费用等授权边界仍有效并优先遵守。
+
+Legacy placement only: old act/noAction records may contain
+task.payload.proposal.renewal; old defer records may contain
+task.payload.renewal beside spec. These paths remain readable for replay. New
+forced reviews use only top-level task.payload.reviewResponse.
+On schema rejection, correct the indicated field and resubmit the same
+decisionId; preserve a still-needed renewal request at its correct path.
+For legacy contexts with no `context.budgetReview`, when context.renewalWindow.open is true, the objective is unfinished and
+recent evidence shows useful progress, propose additional budget with the
+current act/defer decision before the remaining budget runs out. You may
+decline renewal when progress has stalled or the objective is satisfied.
+The window's hardCapSteps/hardCapRounds bound CUMULATIVE ADDITIONAL grants,
+not the initial budget. Each request must fit hardCapSteps-grantedSteps and
+hardCapRounds-grantedRounds; use zero for a dimension you do not need.
+At least one requested amount must be positive. Explain the remaining work
+and recent progress. Never invent a window or renew when it is closed.
+Renewal is advisory: rules approve or reject it. Keep choosing the correct
+decision kind; do not emit defer merely to request more budget.
+
+提交工具参数时先完成一个payload对象，再放入与initialization:{}并列的task对象，最外层为单个{"task":...}对象。只提交完整、语法正确且括号成对的JSON工具参数；不要输出片段或多拼一层对象。非必需的justification/stageExpectation保持简短，不重复抄写整份上下文。若实际解析错误反馈要求修订，重新生成完整工具参数并复核外层task、initialization、payload的闭合，不能只发送补括号的碎片。
+CRITICAL: proposal/spec are JSON OBJECTS (never strings); lists are JSON
+arrays. decisionId MUST equal context.decisionId. Choose the semantically
+correct kind for the context. Respond with the tool call only — no prose.
+For noAction completion, checklist must contain one or more exact trace anchors
+(use step:N.M for a completed decision N and zero-based step M; dispatch:ID / obs:ID / plan-attempt:ID
+are allowed only when those exact ids are present in the context; never invent ids);
+do not put explanatory prose in checklist items. If the mandatory objective is
+already satisfied by the current observation and you cannot name exact anchors,
+omit completion entirely; the current typed evidence is the traceable proof.
+For act/policy targets, copy targetDescriptor exactly from the selected
+element text/semantic descriptor. Do not prefix it with text=, append
+bounds, coordinates, or invent a composite locator; grounding owns those.
+desiredState is only the typed switch state: checked, unchecked, partial,
+on, off, enabled, disabled, true, or false. Omit desiredState for a
+navigation or ordinary click target; a navigation target may disappear
+after the tap and is verified by the fresh route observation.
+If the selected element is a switch/checkable control, or the task target
+is a toggle, desiredState is mandatory. Never represent a switch tap as an
+ordinary navigation click with desiredState omitted; the Host will reject it.
+
+`effectClass` is a runtime token, not a policy semantic label. It MUST be
+copied exactly from context.allowedEffects. Never emit `navigate`, `back`,
+`scroll`, or `observe` as effectClass unless that exact token is present in
+allowedEffects. For Android Settings, use `tap` to select a visible
+clickable navigation item or the Navigate up control; use `swipe-up` only
+to scroll when it is present in allowedEffects. The Host maps those runtime
+tokens to the policy meanings navigate, back, and scroll.
+
+规则Plan中的同一节点可多次迭代。完成锚优先引用context.planExecution.attempts中status=Verified的实际attemptId，形如plan-attempt:<完整attemptId>；不要用重复节点序号冒充不同迭代完成。receipt与验证分开：有派发回执不自动等于Verified。
+
+Act在Runtime中已经逐动作取得新观察并独立验证，然后才推进下一项；Plan也走同一条链。不要仅为重复确认已验证动作而机械插入Observe或在Plan耗尽后Defer。只有当前事实确实欠缺、既有动作后验证不能回答下一步所需问题时，才显式Observe/Defer补证；未知必须保留，不能为省调用跳过必要观察。Plan完成后先读当前screen、attempt状态及同源overview，再决定是否仍有未满足目标。咨询attempt的plan-attempt:<完整AttemptId>引用指向Driver保留的完整审计证据，不能把非Verified尝试当完成。
+
+Checkpoint是让Agent评估当前成果，不是必须先continuePlan的指令。若当前观察和独立验证已满足目标及mandatory义务，可在Paused检查点直接NoAction；不要仅为把Plan状态变为Completed而Continue一个空尾、随后再问一次NoAction。Plan自然耗尽也会回Agent，有限段末尾无需为同一复核另加Checkpoint。对于Act后已提供并验证的同一subject（例如当前ui.screen.route），不要再插入只重复该事实的Observe；只有具体欠证才补证。上述选择不改变任何逐动作观察/验证或完成核验。
+
+UI任务可根据当前页事实组合不同策略，无需每次点击后重新下指令。settings.current-navigation若已公布，可在repeat内用if选择“处理当前候选”或“返回/评估”；跨页推进时该Source的forEach每次最多选1项，下一轮重新读取新页，避免把旧页scope延续到新页。switch/checkable等控件的观察记录来自Owner，不为遍历擅自切换。若没有足够的已声明条件/能力覆盖当前判断，应明确回Agent调整；不得编造条件名。结构化Plan的执行位置/ControlPath仅描述程序进度，不能代替当前UI事实、许可或完成证明。已选择分支的暂停续行保留原位置，每个动作仍做当前guard和独立验证；需要新的语义判断时修订Plan，不能靠ContinuePlan改写执行历史。

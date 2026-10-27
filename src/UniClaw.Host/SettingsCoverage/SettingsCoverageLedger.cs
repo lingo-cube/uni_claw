@@ -52,7 +52,7 @@ public sealed record CoverageSnapshot(
     int StepsVerified,
     string? NextDirective,
     string? NextDirectiveKind,              // "enter"|"scroll"|"back"|"re-enter"|"nested-enter"|"obstacle"|null
-    string? PopupState = null,              // AGT-009：最新弹窗分类声明（present/absent/null=无声明）
+    string? PopupState = null,              // Owner投影（present/absent/unknown/conflict；null=无投影）
     IReadOnlyList<string>? VisibleDescriptors = null) // AGT-009：最新观察的可见 descriptor（清障目标发现）
 {
     internal CoverageDirective? SelectedDirective { get; init; }
@@ -227,14 +227,14 @@ public sealed partial class SettingsCoverageLedger
     public void RecordConsultRound(string decisionId) => _consultRounds++;
 
     /// <summary>
-    /// AGT-009：记录每周期弹窗分类声明（"present"/"absent"）。小 additive API——
-    /// director 经 Snapshot.PopupState 分支，不经 Kernel。
+    /// 记录Owner派生的当前弹窗投影；legacy fixture可提供既有二态。
+    /// Ledger仅留痕，不裁决观察相关性、新鲜度或运行授权。
     /// </summary>
     public void RecordPopupState(string state)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(state);
-        if (state is not ("present" or "absent"))
-            throw new ArgumentException($"popup state must be 'present' or 'absent', got '{state}'", nameof(state));
+        if (state is not ("present" or "absent" or "unknown" or "conflict"))
+            throw new ArgumentException($"unsupported projected popup state '{state}'", nameof(state));
         var sequence = ++_sequence;
         _popupStates.Add((sequence, state));
         _events.Add(new CoverageEvent(
@@ -308,7 +308,7 @@ public sealed partial class SettingsCoverageLedger
         return true;
     }
 
-    /// <summary>AGT-009：最新弹窗声明（从未记录 → null = 无声明）。</summary>
+    /// <summary>最新Owner投影（从未记录 → null）；不是独立当前性权威。</summary>
     public string? LatestPopupState =>
         _popupStates.Count > 0 ? _popupStates[^1].State : null;
 
@@ -509,20 +509,12 @@ public sealed partial class SettingsCoverageLedger
                 backVerified++;
             }
 
-            if (config.DeepTraversalSettings.Enabled
-                && step.RouteBefore is not null
-                && step.RouteAfter is not null
-                && !IsRoot(config, step.RouteBefore)
-                && !IsRoot(config, step.RouteAfter))
-            {
-                var parent = RoutePage(step.RouteBefore);
-                var key = NestedKey(parent, descriptor);
-                if (parent is not null && descriptor is not null
-                    && AllowedNested(config, parent, descriptor)
-                    && key is not null)
-                    nestedEntered.Add(key);
-            }
         }
+
+        if (config.DeepTraversalSettings.Enabled)
+            foreach (var (parent, children) in NestedTargets(config))
+                foreach (var child in children.Where(child => NestedWasEntered(config, parent, child)))
+                    nestedEntered.Add(NestedKey(parent, child)!);
 
         var scrollCandidates = ScrollCandidates(config);
         var dynamicFrontier = DynamicRootFrontier(config);
@@ -537,12 +529,16 @@ public sealed partial class SettingsCoverageLedger
         };
 
         var enteredEvidence = string.Join(";",
-            enteredPages.SelectMany(kv => kv.Value.Select(entry => $"entered:{kv.Key}->{entry.RouteAfter}")));
-        var targetPagesEntered = config.TargetPages.Count(page => enteredPages.ContainsKey(page) || IsAgentSkipped(page));
+            enteredPages.SelectMany(kv => kv.Value.Select(entry => $"entered:{kv.Key}->{entry.RouteAfter}"))
+                .Concat(config.TargetPages.Where(IsTargetReached).Select(page =>
+                    $"target-mark:{FindTargetMark(page)!.EventSequence}:{page}:{FindTargetMark(page)!.Kind}")));
+        bool TargetSatisfied(string page) =>
+            enteredPages.ContainsKey(page) || IsAgentSkipped(page) || IsTargetReached(page);
+        var targetPagesEntered = config.TargetPages.Count(TargetSatisfied);
         items.Add(new(
             Requirement: "first-level-all-visible",
             Detail: $"entered {targetPagesEntered}/{config.TargetPages.Count}",
-            Covered: config.TargetPages.All(page => enteredPages.ContainsKey(page) || IsAgentSkipped(page)),
+            Covered: config.TargetPages.All(TargetSatisfied),
             Evidence: enteredEvidence.Length > 0 ? enteredEvidence : null));
 
         var enteredCandidates = scrollCandidates
@@ -623,6 +619,23 @@ public sealed partial class SettingsCoverageLedger
 
     private bool NestedWasEntered(SettingsCoverageConfig config, string parent, string child)
     {
+        var mark = FindTargetMark(NestedKey(parent, child)!);
+        if (mark?.Kind is TargetCoverageMarkKind.ReachedOverlay or TargetCoverageMarkKind.RouteEntered)
+        {
+            var arrival = _events.First(item => item.Sequence == mark.EventSequence);
+            if (arrival.Route is not null && RoutePage(arrival.Route) == parent)
+                return true;
+            // A popup can retain only the Settings package route. Its parent
+            // comes from the preceding delivered entry, never from that fallback.
+            var entry = _steps.LastOrDefault(item => item.Sequence < mark.EventSequence).Step;
+            if (arrival.Route == "android.settings" && entry is not null
+                && entry.SelectedDirective?.Kind == CoverageDirectiveKind.NestedEnter
+                && entry.TargetDescriptor == child && entry.ReceiptId is not null
+                && entry.ReceiptOutcome == nameof(UniClaw.Kernel.Effects.DispatchOutcome.DeliveryCompleted)
+                && entry.RouteBefore is not null && RoutePage(entry.RouteBefore) == parent
+                && entry.RouteAfter == arrival.Route)
+                return true;
+        }
         foreach (var (_, step) in _steps)
         {
             if (!step.Verified || !IsTapOrClick(step.EffectClass)
@@ -658,9 +671,6 @@ public sealed partial class SettingsCoverageLedger
         }
         return map;
     }
-
-    private static bool AllowedNested(SettingsCoverageConfig config, string parent, string child) =>
-        NestedTargets(config).TryGetValue(parent, out var children) && children.Contains(child, StringComparer.Ordinal);
 
     private static string? NestedKey(string? parent, string? child) =>
         parent is null || child is null ? null : $"{parent}>{child}";
@@ -993,6 +1003,8 @@ public sealed partial class SettingsCoverageLedger
         foreach (var target in AgentSkippedTargets)
             if (config.TargetPages.Contains(target, StringComparer.Ordinal))
                 entered.Add(target);
+        foreach (var target in config.TargetPages.Where(IsTargetReached))
+            entered.Add(target);
         return entered;
     }
 

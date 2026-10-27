@@ -1,0 +1,109 @@
+{
+  "scope": "Independent finite Oracle: 8 navigable occurrences, including Summary on two distinct parent routes; 3 levels from Settings. Not live Settings enumeration.",
+  "targets": [
+    {
+      "from": "Settings",
+      "descriptor": "Network",
+      "to": "Network",
+      "viewport": 0,
+      "kind": "navigate"
+    },
+    {
+      "from": "Settings",
+      "descriptor": "Apps",
+      "to": "Apps",
+      "viewport": 1,
+      "kind": "navigate"
+    },
+    {
+      "from": "Settings",
+      "descriptor": "Factory reset",
+      "to": null,
+      "viewport": -1,
+      "kind": "blocked"
+    },
+    {
+      "from": "Settings",
+      "descriptor": "Airplane mode",
+      "to": null,
+      "viewport": -1,
+      "kind": "readOnly"
+    },
+    {
+      "from": "Network",
+      "descriptor": "Details",
+      "to": "Details",
+      "viewport": 0,
+      "kind": "navigate"
+    },
+    {
+      "from": "Network",
+      "descriptor": "Advanced",
+      "to": "Advanced",
+      "viewport": 1,
+      "kind": "navigate"
+    },
+    {
+      "from": "Details",
+      "descriptor": "Diagnostics",
+      "to": "Diagnostics",
+      "viewport": 1,
+      "kind": "navigate"
+    },
+    {
+      "from": "Details",
+      "descriptor": "Summary",
+      "to": "DetailsSummary",
+      "viewport": 1,
+      "kind": "navigate"
+    },
+    {
+      "from": "Apps",
+      "descriptor": "Permissions",
+      "to": "Permissions",
+      "viewport": 0,
+      "kind": "navigate"
+    },
+    {
+      "from": "Permissions",
+      "descriptor": "Summary",
+      "to": "PermissionSummary",
+      "viewport": 0,
+      "kind": "navigate"
+    }
+  ],
+  "returns": [
+    {
+      "from": "Network",
+      "to": "Settings"
+    },
+    {
+      "from": "Details",
+      "to": "Network"
+    },
+    {
+      "from": "Diagnostics",
+      "to": "Details"
+    },
+    {
+      "from": "DetailsSummary",
+      "to": "Details"
+    },
+    {
+      "from": "Advanced",
+      "to": "Network"
+    },
+    {
+      "from": "Apps",
+      "to": "Settings"
+    },
+    {
+      "from": "Permissions",
+      "to": "Apps"
+    },
+    {
+      "from": "PermissionSummary",
+      "to": "Permissions"
+    }
+  ]
+}

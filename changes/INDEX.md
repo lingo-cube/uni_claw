@@ -2,7 +2,7 @@
 
 > 派生索引：列出所有 lifecycle_state ≠ closed 的 change。
 > 再生：`python3 tools/gen-open-changes.py`（GATE-001 P-E′；一致性执法二期）。
-> 统计：257 changes · 10 open。
+> 统计：260 changes · 11 open。
 
 | change | lifecycle_state | disposition | depth | title |
 |---|---|---|---|---|
@@ -12,7 +12,8 @@
 | REPLAY-STATE-EVIDENCE-001 | resolving | none | decision-heavy | REPLAY-STATE-EVIDENCE-001 — checked 状态补采与证明前置设计 |
 | RUN-006 | implementing | none | standard | RUN-006 — 全遍历真机轮（AGT-019 机制 live 验证） |
 | RUNTIME-PLAN-001 | RESOLVE | none | decision-heavy | RUNTIME-PLAN-001 — 可组合产品Plan与有界本地展开实施 |
-| RUNTIME-TASK-001 | resolved | none | decision-heavy | RUNTIME-TASK-001 — Task 组件一等化：身份、本地状态布局与版本归属 |
+| RUNTIME-TASK-001 | implementing | none | decision-heavy | RUNTIME-TASK-001 — Task 组件一等化：身份、本地状态布局与版本归属 |
 | SETTINGS-COVERAGE-003 | verified | blocked | decision-heavy | SETTINGS-COVERAGE-003 — 动态前沿驱动的 Android Settings 可达界面遍历 |
 | SETTINGS-COVERAGE-005 | implemented | none | standard | SETTINGS-COVERAGE-005 — 弹窗到达事实接入遍历待办与跳过后继续 |
+| SIM-037 | resolving | none | standard | SIM-037 — 真实Agent在有限三层菜单仿真中的自主遍历 |
 | TRAJECTORY-001 | verified | blocked | decision-heavy | TRAJECTORY-001 — Event Stream / Heartbeat / 事件触发咨询（Agent 介入判断基础设施） |

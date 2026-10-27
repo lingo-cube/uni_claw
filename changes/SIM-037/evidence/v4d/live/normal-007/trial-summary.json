@@ -1,0 +1,21 @@
+{
+  "mode": "complete",
+  "elapsedMs": 63137,
+  "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/changes/SIM-037/evidence/v4d/live/normal-007/run-20261027-000206-586",
+  "status": "Completed",
+  "reason": "terminal-emitted",
+  "consultations": 8,
+  "dshSessionId": "session-68297dd0-80a2-4afd-8144-78148529b445",
+  "decisions": [
+    "Plan",
+    "Plan",
+    "Plan",
+    "Plan",
+    "Plan",
+    "Plan",
+    "Skip",
+    "NoAction"
+  ],
+  "capturedTrajectories": 8,
+  "errors": []
+}

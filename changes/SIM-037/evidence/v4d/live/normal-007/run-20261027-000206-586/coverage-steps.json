@@ -1,0 +1,280 @@
+[
+  {
+    "index": 0,
+    "decisionId": "decision-aa104ef535ba-1",
+    "dshSessionId": "session-68297dd0-80a2-4afd-8144-78148529b445",
+    "directive": null,
+    "targetRole": "ui.element",
+    "targetDescriptor": "Network",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-1-occ-f3d3b22b945c-0-1",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "synthetic finite-menu spatial delivery",
+    "routeBefore": "android.settings|rk1:Settings|src=homepage_title|up=0",
+    "routeAfter": "android.settings|route:Network",
+    "postCaptureId": "finite-2",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ],
+    "directiveKind": null,
+    "directiveTargetDescriptor": null
+  },
+  {
+    "index": 1,
+    "decisionId": "decision-aa104ef535ba-2",
+    "dshSessionId": "session-68297dd0-80a2-4afd-8144-78148529b445",
+    "directive": null,
+    "targetRole": "scrollable",
+    "targetDescriptor": "finite:id/scroll",
+    "effectClass": "swipe-up",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-2-occ-1b17a9f473f8-2-2",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "synthetic finite-menu spatial delivery",
+    "routeBefore": "android.settings|route:Network",
+    "routeAfter": "android.settings|route:Network",
+    "postCaptureId": "finite-4",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-route-unchanged",
+        "value": true
+      },
+      {
+        "key": "post-action-content-transition",
+        "value": true
+      }
+    ],
+    "directiveKind": null,
+    "directiveTargetDescriptor": null
+  },
+  {
+    "index": 2,
+    "decisionId": "decision-aa104ef535ba-3",
+    "dshSessionId": "session-68297dd0-80a2-4afd-8144-78148529b445",
+    "directive": null,
+    "targetRole": "ui.element",
+    "targetDescriptor": "Advanced",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-3-occ-7d9afb7abd04-0-3",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "synthetic finite-menu spatial delivery",
+    "routeBefore": "android.settings|route:Network",
+    "routeAfter": "android.settings|route:Advanced",
+    "postCaptureId": "finite-6",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ],
+    "directiveKind": null,
+    "directiveTargetDescriptor": null
+  },
+  {
+    "index": 3,
+    "decisionId": "decision-aa104ef535ba-4",
+    "dshSessionId": "session-68297dd0-80a2-4afd-8144-78148529b445",
+    "directive": null,
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-4-occ-423c89dc4c67-0-4",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "synthetic finite-menu spatial delivery",
+    "routeBefore": "android.settings|route:Advanced",
+    "routeAfter": "android.settings|route:Network",
+    "postCaptureId": "finite-8",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ],
+    "directiveKind": null,
+    "directiveTargetDescriptor": null
+  },
+  {
+    "index": 4,
+    "decisionId": "decision-aa104ef535ba-5",
+    "dshSessionId": "session-68297dd0-80a2-4afd-8144-78148529b445",
+    "directive": null,
+    "targetRole": "scrollable",
+    "targetDescriptor": "finite:id/scroll",
+    "effectClass": "swipe-up",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-5-occ-6a49f1e6c865-2-5",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "synthetic finite-menu spatial delivery",
+    "routeBefore": "android.settings|route:Network",
+    "routeAfter": "android.settings|route:Network",
+    "postCaptureId": "finite-9",
+    "verified": false,
+    "failureReason": "post-action-content-transition",
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-route-unchanged",
+        "value": true
+      },
+      {
+        "key": "post-action-content-transition",
+        "value": false
+      }
+    ],
+    "directiveKind": null,
+    "directiveTargetDescriptor": null
+  },
+  {
+    "index": 5,
+    "decisionId": "decision-aa104ef535ba-6",
+    "dshSessionId": "session-68297dd0-80a2-4afd-8144-78148529b445",
+    "directive": null,
+    "targetRole": "ui.element",
+    "targetDescriptor": "Navigate up",
+    "effectClass": "tap",
+    "desiredState": null,
+    "preActionTargetUnique": true,
+    "receiptId": "receipt-bind-intent-6-occ-46abe066f084-1-6",
+    "receiptOutcome": "DeliveryCompleted",
+    "receiptCommand": "synthetic finite-menu spatial delivery",
+    "routeBefore": "android.settings|route:Network",
+    "routeAfter": "android.settings|rk1:Settings|src=homepage_title|up=0",
+    "postCaptureId": "finite-10",
+    "verified": true,
+    "failureReason": null,
+    "checks": [
+      {
+        "key": "post-action-evidence-accepted",
+        "value": true
+      },
+      {
+        "key": "post-action-reconciled",
+        "value": true
+      },
+      {
+        "key": "post-action-target-unique",
+        "value": true
+      },
+      {
+        "key": "post-action-desired-state-satisfied",
+        "value": true
+      },
+      {
+        "key": "post-action-navigation-transition",
+        "value": true
+      },
+      {
+        "key": "post-action-expected-state",
+        "value": true
+      }
+    ],
+    "directiveKind": null,
+    "directiveTargetDescriptor": null
+  }
+]

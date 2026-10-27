@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="49b49518-e03a-470a-b9db-a3baadef004f" name="@frandeMac-mini 2026-10-27 01:03:45" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-27T01:03:45.0169950+08:00" queuing="2026-10-27T01:03:45.0169950+08:00" start="2026-10-27T01:03:44.3833970+08:00" finish="2026-10-27T01:03:45.0190990+08:00" />
+  <TestSettings name="default" id="da56c8de-9f4f-4cbb-b3e6-ecba46d9dc71">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-27_01_03_45" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="a422e56e-e5d5-43f7-861e-74b292575b49" testId="38150ac3-fcf9-eaba-6274-42efec528719" testName="UniClaw.Host.Dsh.Tests.InitializationEnvelopeTests.First_Run_Writes_Envelope_With_Full_Assembly_Fingerprint" computerName="frandeMac-mini" duration="00:00:00.0045623" startTime="2026-10-27T01:03:44.8267390+08:00" endTime="2026-10-27T01:03:44.8267390+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a422e56e-e5d5-43f7-861e-74b292575b49" />
+    <UnitTestResult executionId="e279be5b-aea4-4e83-ac8c-e0261a566061" testId="4bdf514c-524a-9932-4428-9f5fe892b93f" testName="UniClaw.Host.Dsh.Tests.InitializationEnvelopeTests.Later_Runs_Of_Same_Session_Keep_The_First_Envelope" computerName="frandeMac-mini" duration="00:00:00.0280340" startTime="2026-10-27T01:03:44.8223690+08:00" endTime="2026-10-27T01:03:44.8223770+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e279be5b-aea4-4e83-ac8c-e0261a566061" />
+    <UnitTestResult executionId="22a0ecc8-e24d-438f-bd01-5bd9b6a3c151" testId="626ecf39-e6e9-3568-b42c-85b80e4108df" testName="UniClaw.Host.Dsh.Tests.InitializationEnvelopeTests.Multiple_Allowed_Skills_Fail_Closed_Without_A_Primary_Selection" computerName="frandeMac-mini" duration="00:00:00.0077068" startTime="2026-10-27T01:03:44.8344930+08:00" endTime="2026-10-27T01:03:44.8344930+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="22a0ecc8-e24d-438f-bd01-5bd9b6a3c151" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Dsh.Tests.InitializationEnvelopeTests.Later_Runs_Of_Same_Session_Keep_The_First_Envelope" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-agent-plan-guidance-001-rug7qnzd/source/tests/uniclaw.host.dsh.tests/bin/debug/net10.0/uniclaw.host.dsh.tests.dll" id="4bdf514c-524a-9932-4428-9f5fe892b93f">
+      <Execution id="e279be5b-aea4-4e83-ac8c-e0261a566061" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-agent-plan-guidance-001-rug7qnzd/source/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Dsh.Tests.InitializationEnvelopeTests" name="Later_Runs_Of_Same_Session_Keep_The_First_Envelope" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Dsh.Tests.InitializationEnvelopeTests.Multiple_Allowed_Skills_Fail_Closed_Without_A_Primary_Selection" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-agent-plan-guidance-001-rug7qnzd/source/tests/uniclaw.host.dsh.tests/bin/debug/net10.0/uniclaw.host.dsh.tests.dll" id="626ecf39-e6e9-3568-b42c-85b80e4108df">
+      <Execution id="22a0ecc8-e24d-438f-bd01-5bd9b6a3c151" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-agent-plan-guidance-001-rug7qnzd/source/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Dsh.Tests.InitializationEnvelopeTests" name="Multiple_Allowed_Skills_Fail_Closed_Without_A_Primary_Selection" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Dsh.Tests.InitializationEnvelopeTests.First_Run_Writes_Envelope_With_Full_Assembly_Fingerprint" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-agent-plan-guidance-001-rug7qnzd/source/tests/uniclaw.host.dsh.tests/bin/debug/net10.0/uniclaw.host.dsh.tests.dll" id="38150ac3-fcf9-eaba-6274-42efec528719">
+      <Execution id="a422e56e-e5d5-43f7-861e-74b292575b49" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-agent-plan-guidance-001-rug7qnzd/source/tests/UniClaw.Host.Dsh.Tests/bin/Debug/net10.0/UniClaw.Host.Dsh.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Dsh.Tests.InitializationEnvelopeTests" name="First_Run_Writes_Envelope_With_Full_Assembly_Fingerprint" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="38150ac3-fcf9-eaba-6274-42efec528719" executionId="a422e56e-e5d5-43f7-861e-74b292575b49" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4bdf514c-524a-9932-4428-9f5fe892b93f" executionId="e279be5b-aea4-4e83-ac8c-e0261a566061" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="626ecf39-e6e9-3568-b42c-85b80e4108df" executionId="22a0ecc8-e24d-438f-bd01-5bd9b6a3c151" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="3" executed="3" passed="3" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Host.Dsh.Tests
+[xUnit.net 00:00:00.06]   Discovered:  UniClaw.Host.Dsh.Tests
+[xUnit.net 00:00:00.06]   Starting:    UniClaw.Host.Dsh.Tests
+[xUnit.net 00:00:00.11]   Finished:    UniClaw.Host.Dsh.Tests
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

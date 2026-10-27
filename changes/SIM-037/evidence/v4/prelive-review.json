@@ -1,0 +1,26 @@
+{
+  "blockingFindings": 0,
+  "evidenceSha256": {
+    "candidate-entry.json": "f9a26c89e3b3709bf489fa5f638044ab30d3e9febb586cf67c7547caa37b505e",
+    "preregistration.json": "66011cf5fef635efa3a27fd92b9e760e5bf89119ad8af1cb958e8790d1a9d5c7",
+    "publication.patch": "a01ee05eefe5479e885d2b6d9f0954572f9c6002364676c773d150e976f84e3a",
+    "run-live.py": "cda15ebb0419490fdbcd5a36eb92b4d739db876c8c9caa108286f931cfca0069",
+    "final-regression-summary.json": "63976830b4de4d3a3e0c8de254a11f265196e9c90095e0f55e78c538c028ba66",
+    "prelive-review-spec.md": "0bdec9eafeb50cb8a5b9a4dfc8356a385285ddadee3f984a08b0ec5b5659d519",
+    "prelive-review-standards.md": "25d53a84010d6321a9fdcad53819182b55e4d4c23a4b0a960b4237a3a64d5916",
+    "publication-node.txt": "98645fb5a1dafe0f5cfc8b072c7c999d0c034f8b577a4f68033d39b9ad8d0712",
+    "final-regression/host.trx": "7d2e57eb0e769bf1f04c1bfa75e91d5ed3d544d171598ce974df3ddc39a28645",
+    "final-regression/dsh.trx": "0786d6687014210be598302d394c4d2bf684315a8dccfa9dc0ad7d05fd71e99b",
+    "final-regression/simulation.trx": "0e52dc34cd5a117066646237e859d7b2bec0388d245e980f9edc2608bd950249",
+    "final-regression/profile.trx": "5315a7c699f550afc4998067fdc24f58459207f001b74397987f4a980c345275"
+  },
+  "binaries": {
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Kernel.dll": "10a11ab23a8e9ee0b6f55fb48327837db489c27e2b0343194e089eb3c984ac02",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.dll": "de718443641ff942a099af42c5ecf3cd0f824eb639d6b5ce8ae8af79a20ea31e",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll": "17f9ac6ec2d7006d3a625ea280b4e89cf97b323ae5b37986d25053044a6cb546",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Core.dll": "bc43a07ee78a175ff3ec4ae5bd901fb39100aa40c8cec91ee77f7655cf86d2dd",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Agent.Dsh.dll": "0dee883374c78164648ee1735345161843187dd2db436def09f2865c68d0aaba",
+    "tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Agent.dll": "36395adc2adc4141365c9764a0bcd0dbfe2f569746d47925483bd7ad0b3d6f73"
+  },
+  "qualification": "Final deterministic candidate; one normal-004 attempt allowed; old failures remain."
+}

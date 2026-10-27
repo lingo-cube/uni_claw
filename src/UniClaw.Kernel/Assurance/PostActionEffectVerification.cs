@@ -47,6 +47,9 @@ public enum ChangePredicate
 
     /// <summary>路由保持不变。</summary>
     RouteStable,
+
+    /// <summary>The observed original overlay was dismissed and its base window restored.</summary>
+    OverlayDismissed,
 }
 
 /// <summary>
@@ -68,11 +71,17 @@ public sealed record ExpectedEffect
     {
         ArgumentNullException.ThrowIfNull(states);
         ArgumentNullException.ThrowIfNull(changes);
-        if (states.Count == 0 && changes.Count == 0)
+        var stateSnapshot = states.ToArray();
+        var changeSnapshot = changes.ToArray();
+        if (stateSnapshot.Length == 0 && changeSnapshot.Length == 0)
             throw new ArgumentException(
                 "expected effect requires at least one predicate (empty predicate set is rejected, PROTOCOL-FIX-002 A3)");
-        States = states;
-        Changes = changes;
+        if (stateSnapshot.Any(state => state is null || string.IsNullOrWhiteSpace(state.Subject)
+                || string.IsNullOrWhiteSpace(state.Value))
+            || changeSnapshot.Any(change => !Enum.IsDefined(change)))
+            throw new ArgumentException("expected effect requires valid states and defined change predicates");
+        States = Array.AsReadOnly(stateSnapshot);
+        Changes = Array.AsReadOnly(changeSnapshot);
     }
 
     /// <summary>单状态型期望的便捷构造。</summary>
@@ -117,7 +126,8 @@ internal sealed record PostActionEffectVerificationInput(
     IReadOnlyList<KernelResult> ProcessedObservations,
     ExpectedEffect Expected,
     bool TargetDisappearedAfterRouteChange = false,
-    ChangeEvidence? Change = null);
+    ChangeEvidence? Change = null,
+    OverlayDismissalEvidence? Overlay = null);
 
 /// <summary>Mechanical, ephemeral facts for post-action judgment; no Owner
 /// aggregate, accepted-state mutation or verification verdict crosses this seam.</summary>
@@ -127,3 +137,13 @@ internal sealed record PostActionBeliefFacts(
     string? PageContainerId,
     bool HasObservationNeed,
     SemanticCheckedResolver.Resolution? Checked);
+
+/// <summary>Read-only observation/binding/receipt inputs. No verification verdict is supplied.</summary>
+internal sealed record OverlayDismissalEvidence(
+    World.PageObservationState? BeforePage, World.PageObservationState? AfterPage,
+    Evidence.EvidenceRecord? BeforeOverlay, Evidence.EvidenceRecord? AfterOverlay,
+    Effects.EffectReceipt? Receipt, Effects.CanonicalBinding? Binding,
+    World.UiRealization.OccurrenceBelief? BoundTarget,
+    IReadOnlyList<Evidence.EvidenceRecord> TargetSources,
+    World.ObservationNeed? BeforeNeed, World.ObservationNeed? AfterNeed,
+    IReadOnlyList<World.Conflict> Conflicts);

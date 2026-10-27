@@ -1,0 +1,66 @@
+{
+  "schema": "uniclaw.diagnosis.packet.v0",
+  "authority": "non-authoritative",
+  "meta": {
+    "diagnosedAt": "2026-10-25T08:59:51.490236+00:00",
+    "producer": {
+      "kind": "agent-skill"
+    },
+    "changeId": "AGENT-TRAVERSAL-001"
+  },
+  "subject": {
+    "reproduce": {
+      "command": "dotnet test tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj --filter FullyQualifiedName~LocalAct_ScrollThenEnter",
+      "trx": "changes/AGENT-TRAVERSAL-001/evidence/m/admission-red-v2/admission-red-v2.trx"
+    },
+    "inputs": [
+      {
+        "path": "changes/AGENT-TRAVERSAL-001/evidence/m/admission-red-v2/admission-red-v2.trx",
+        "sha256": "7a5f3f3145c06947074d91fc8a3d080e686b5d0f01d63a50b5ff00c2982b9869",
+        "role": "trx"
+      },
+      {
+        "path": "changes/AGENT-TRAVERSAL-001/evidence/m/admission-red-v2/test-source.cs",
+        "sha256": "d091a8edd34d82cc8af3f203eea3360736bfaa0f97f4cd67889bde33c92fc299",
+        "role": "source-baseline"
+      },
+      {
+        "path": "changes/AGENT-TRAVERSAL-001/evidence/m/entry/src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs",
+        "sha256": "7f4a4da942373970dea9659ba736f3d540480f53cf852a56e806c5f312a5172c",
+        "role": "source-baseline"
+      }
+    ]
+  },
+  "evidenceLevel": "E3",
+  "evidenceSummary": [
+    "Public Runner fixture contains a safe same-container scroll then final entry; expected 2 verified effects, observed 0.",
+    "Installed per-step guard is mandatory in Runner; Host GuardDecision rejects the Act solely because step count is two.",
+    "Initial fixture language-inspection-registry error retained separately; admission-red-v2 excludes unrelated language buyer and reaches the exact assertion."
+  ],
+  "failureClass": "C",
+  "lifecycleStage": "Host proposal admission before Kernel per-step execution",
+  "lastCorrectState": "Current root observation and mandatory per-step Guard wiring exist before consultation.",
+  "firstDivergence": {
+    "where": "SettingsActionGuard.GuardDecision Act count branch",
+    "expected": "Accepted Q1/Q4: bounded Act may scroll in originating container and finish by entering a newly observed safe entry.",
+    "observed": "Act returns null before any effects; public test expected 2 steps, actual 0.",
+    "evidenceRefs": [
+      "changes/AGENT-TRAVERSAL-001/evidence/m/admission-red-v2/admission-red-v2.trx",
+      "changes/AGENT-TRAVERSAL-001/evidence/m/entry/src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs"
+    ]
+  },
+  "owner": "Host SettingsActionGuard proposal admission; Kernel Runtime will separately enforce accepted Act container scope.",
+  "rootCauseSupport": [
+    "Unconditional step-count check rejects Act despite installed current-step guard; Plan already defers policy checks.",
+    "This is a fixed public Runner assertion, not a new model sample or a claim of a Kernel deadlock."
+  ],
+  "remainingUncertainty": [
+    "Act container-tail enforcement and feedback/index behavior must be independently exercised by subsequent regression.",
+    "No real model/device evidence; no claim this resolves SIM037 full traversal failure."
+  ],
+  "escalation": {
+    "required": false,
+    "reason": "Q1/Q3/Q4 approved; existing authority remains.",
+    "decisionRequest": []
+  }
+}

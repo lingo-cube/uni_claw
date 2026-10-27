@@ -278,8 +278,8 @@ public sealed class UniAgentProfileYamlTests
     {
         var profile = UniAgentProfileYaml.LoadDefault();
 
-        // RUNTIME-PLAN-002：持续遍历/typed handlers提示词及生成Schema装配随动。
-        Assert.Equal(27, profile.Revision);
+        // AGENT-PLAN-GUIDANCE-001：动作字段与Reobserve语义说明装配随动。
+        Assert.Equal(28, profile.Revision);
         Assert.NotNull(profile.Assembly);
         Assert.NotNull(profile.Assembly!.PromptManifest);
         Assert.Equal("product/prompt/uniagent-prod", profile.Assembly.PromptManifest!.Path);

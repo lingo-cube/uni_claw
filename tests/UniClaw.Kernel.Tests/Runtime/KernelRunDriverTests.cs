@@ -17,7 +17,7 @@ namespace UniClaw.Kernel.Tests.Runtime;
 /// baseline §24.1 不变量 44）+ P25 机械入口校验 + Kernel 级 activation gate
 /// （D20）+ 可恢复 Drive phase 状态机（D21/D22，不变量 43 屏障）。
 /// </summary>
-public sealed class KernelRunDriverTests
+public sealed partial class KernelRunDriverTests
 {
     private static readonly DateTimeOffset T0 = new(2026, 9, 13, 9, 0, 0, TimeSpan.Zero);
     private static readonly DateTimeOffset T1 = new(2026, 9, 13, 9, 5, 0, TimeSpan.Zero);

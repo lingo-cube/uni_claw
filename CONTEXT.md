@@ -1166,3 +1166,6 @@ hypothesis / historical reference 身份进入 Agent / Control / World Model
 （non-evidentiary），不得直接建立、刷新或证明 current-world claim——
 WorldBelief 的事实更新必须依据 accepted current Evidence。
 _Avoid_: memory evidence、current truth、context injection（无约束义）
+
+**Agent Action Proposal（动作建议）**: UniAgent一次回答中提出的有限、有序局部动作建议，可以包含多步；范围以发起时当前容器为界，最多延伸到同容器滚动后取得且仍有可靠依据的Slice元素，进入子页或返回等离开容器的动作只能作为最后一步。它表达执行意图，不构成Effect许可或完成证明，每一步仍须依据当时事实独立准入、执行和验证，不预写到达其他容器后的动作。
+_Avoid_: 一次回答等于一个动作、整包授权、已接收即已完成、预知Slice外的具体动作

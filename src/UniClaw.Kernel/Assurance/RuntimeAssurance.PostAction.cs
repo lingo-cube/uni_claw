@@ -74,8 +74,10 @@ public sealed partial class RuntimeAssurance
         // changed across the post-action reconciliation.  This keeps a stale
         // or incomplete hierarchy fail-closed while making multi-step
         // navigation verifiable.
+        var overlayDismissed = input.Expected.Changes.Contains(ChangePredicate.OverlayDismissed)
+            && VerifyOverlayDismissal(input);
         var targetObservedOrNavigationTransition = candidates.Count == 1
-            || input.TargetDisappearedAfterRouteChange;
+            || input.TargetDisappearedAfterRouteChange || overlayDismissed;
         // PER-014 R3：DesiredState 已是 typed CheckedState 值域；occurrence
         // presentation state 经严格映射比较（Unknown 不判 satisfied，零折叠）。
         var observedChecked = CheckedSemantics.FromPresentation(observedState);
@@ -90,6 +92,8 @@ public sealed partial class RuntimeAssurance
                 input.Target.DesiredState is null
                 || (observedChecked is { } observed && observed == input.Target.DesiredState)),
         };
+        if (input.Expected.Changes.Contains(ChangePredicate.OverlayDismissed))
+            checks.Add(new AssuranceCheck("post-action-overlay-dismissed", overlayDismissed));
         if (input.TargetDisappearedAfterRouteChange)
             checks.Add(new AssuranceCheck("post-action-navigation-transition", true));
         // PROTOCOL-FIX-002 / ADR-0049：判定对照物 = 显式期望谓词求值（非

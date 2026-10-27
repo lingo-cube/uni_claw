@@ -1,0 +1,2195 @@
+{
+  "schemaVersion": "uniclaw.settings-coverage-consult-bridge.v1",
+  "mode": "advisory-direct",
+  "exchanges": [
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-aa104ef535ba-1",
+        "runId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba",
+        "contractVersion": "v0",
+        "objective": "Traverse Android Settings within the current device, account, permissions and system state. Enter every configured first-level target: Network. Required evidence: rootPage=True, scrollDiscoveredEntries=1, secondLevelPages=2, backNavigation=True, repeatedEntries=0. Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. End on the observed Settings root. Select every action from the current semantic hierarchy. A configured scope result never proves all possible UI states exhaustive.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "finite-page:Settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-12cded18302b",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-12cded18302b": {
+            "value": "finite-page:Settings",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 0,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-12cded18302b",
+          "signature": "finite-page:Settings"
+        },
+        "elements": [
+          {
+            "role": "ui.element",
+            "text": "Network",
+            "bounds": "0,0.1,1,0.18",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Factory reset",
+            "bounds": "0,0.2,1,0.28",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "switch",
+            "text": "Airplane mode",
+            "bounds": "0,0.3,1,0.38",
+            "clickable": true,
+            "checkable": true,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "finite:id/scroll",
+            "bounds": "0,0.06,1,0.95",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 1,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 1,
+          "stepsDispatched": 0,
+          "stepsVerified": 0,
+          "policyState": null,
+          "stagnantConsultations": 0,
+          "sameRouteConsultations": 0
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 35,
+          "stepsRemaining": 32
+        },
+        "availableCapabilities": {},
+        "renewalWindow": null,
+        "localView": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:boundary-1",
+        "heartbeat": null,
+        "contextReferenceIndex": null,
+        "casePacket": null,
+        "executionOverview": {
+          "overviewId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:overview-1",
+          "runId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba",
+          "contractVersion": "v0",
+          "objective": "Traverse Android Settings within the current device, account, permissions and system state. Enter every configured first-level target: Network. Required evidence: rootPage=True, scrollDiscoveredEntries=1, secondLevelPages=2, backNavigation=True, repeatedEntries=0. Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. End on the observed Settings root. Select every action from the current semantic hierarchy. A configured scope result never proves all possible UI states exhaustive.",
+          "initialSteps": 32,
+          "initialRounds": 36,
+          "grantedSteps": 0,
+          "grantedRounds": 0,
+          "stepsConsumed": 0,
+          "roundsConsumed": 1,
+          "stepsRemaining": 32,
+          "roundsRemaining": 35,
+          "segmentStepsConsumed": 0,
+          "segmentRoundsConsumed": 1,
+          "projection": {
+            "currentBranch": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "knownItems": [
+              "[pending][configured-target] Network \u2014 discovered=true; source=config\u002Broot-observation; observed at root [coverage-event:1]",
+              "[skipped][dynamic-observation] Airplane mode \u2014 discovered=true; non-ui-element-role [coverage-event:1]",
+              "[skipped][dynamic-observation] Factory reset \u2014 discovered=true; explicit-exclusion [coverage-event:1]",
+              "[skipped][dynamic-observation] finite:id/scroll \u2014 discovered=true; non-ui-element-role [coverage-event:1]"
+            ],
+            "unknowns": [
+              "scope=SIM037 real Agent finite-menu simulation; limited to current device/account/permissions/system state; unobserved pages and branches are not proven exhaustive"
+            ],
+            "blockers": [],
+            "previousSegmentExpectation": null,
+            "previousSegmentActual": null,
+            "sourceFactRefs": [
+              "coverage-config:coverage",
+              "coverage-config:scope",
+              "coverage-config:targetPages",
+              "coverage-event:1"
+            ],
+            "projectionRevision": "coverage-ledger:1",
+            "worldGraph": {
+              "sourceRevisionId": "rev-41",
+              "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+              "currentContainerId": "ctr-12cded18302b",
+              "nodes": [
+                {
+                  "identity": {
+                    "containerId": "ctr-12cded18302b"
+                  },
+                  "evidenceBasis": [
+                    "ev-12cded18302b1526f6891b1c8bf1033b3390940f2e0a2581e1df7c6e30d57b00"
+                  ]
+                }
+              ],
+              "edges": [],
+              "unknown": [
+                "navigation-graph-is-observation-bounded",
+                "no-navigation-edge-observed-in-scope"
+              ],
+              "viewportTransitions": []
+            },
+            "progressFactKeys": [
+              "discovered:dynamic-root:Airplane mode",
+              "discovered:dynamic-root:Factory reset",
+              "discovered:dynamic-root:finite:id/scroll",
+              "discovered:root:Network",
+              "excluded:dynamic-root:Airplane mode:non-ui-element-role",
+              "excluded:dynamic-root:Factory reset:explicit-exclusion",
+              "excluded:dynamic-root:finite:id/scroll:non-ui-element-role",
+              "scope:current-device-account-permissions-system-state",
+              "verified:requirement:dynamic-nested-entries",
+              "verified:requirement:dynamic-root-entries",
+              "verified:requirement:repeated-entry",
+              "verified:requirement:root-page"
+            ],
+            "actionableItems": {
+              "root:Network": {
+                "sourceFactRefs": [
+                  "coverage-event:1"
+                ],
+                "progressFactKeys": [
+                  "item-state:root:Network:pending:discovered=true; source=config\u002Broot-observation; observed at root"
+                ]
+              },
+              "explore:unobserved-scope": {
+                "sourceFactRefs": [
+                  "coverage-config:scope"
+                ],
+                "progressFactKeys": [
+                  "discovered:dynamic-root:Airplane mode",
+                  "discovered:dynamic-root:Factory reset",
+                  "discovered:dynamic-root:finite:id/scroll",
+                  "discovered:root:Network",
+                  "excluded:dynamic-root:Airplane mode:non-ui-element-role",
+                  "excluded:dynamic-root:Factory reset:explicit-exclusion",
+                  "excluded:dynamic-root:finite:id/scroll:non-ui-element-role",
+                  "scope:current-device-account-permissions-system-state"
+                ]
+              },
+              "requirement:first-level-all-visible": {
+                "sourceFactRefs": [
+                  "coverage-config:coverage"
+                ],
+                "progressFactKeys": [
+                  "requirement-state:first-level-all-visible:entered 0/1"
+                ]
+              },
+              "requirement:scroll-discovered-entry": {
+                "sourceFactRefs": [
+                  "coverage-config:coverage"
+                ],
+                "progressFactKeys": [
+                  "requirement-state:scroll-discovered-entry:entered 0/1 scroll-discovered"
+                ]
+              },
+              "requirement:second-level-pages": {
+                "sourceFactRefs": [
+                  "coverage-config:coverage"
+                ],
+                "progressFactKeys": [
+                  "requirement-state:second-level-pages:distinct second-level routes 0/2"
+                ]
+              },
+              "requirement:back-navigation": {
+                "sourceFactRefs": [
+                  "coverage-config:coverage"
+                ],
+                "progressFactKeys": [
+                  "requirement-state:back-navigation:back verified 0"
+                ]
+              }
+            }
+          },
+          "previousSegmentStepsConsumed": 0,
+          "previousSegmentRoundsConsumed": 0,
+          "previousSegmentExpectation": null,
+          "previousSegmentActual": null,
+          "currentSegmentExpectation": "Traverse Android Settings within the current device, account, permissions and system state. Enter every configured first-level target: Network. Required evidence: rootPage=True, scrollDiscoveredEntries=1, secondLevelPages=2, backNavigation=True, repeatedEntries=0. Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. End on the observed Settings root. Select every action from the current semantic hierarchy. A configured scope result never proves all possible UI states exhaustive.",
+          "currentSegmentActual": "verified=0;new-known=0;new-unknown=0;new-progress-facts=0;owner-actual=unknown",
+          "relevantHistory": null,
+          "previousOverviewStepsConsumed": 0,
+          "previousOverviewRoundsConsumed": 0,
+          "stepsConsumedSincePreviousOverview": 0,
+          "roundsConsumedSincePreviousOverview": 1,
+          "newlyVerifiedStepsSincePreviousOverview": 0,
+          "newSourceFactRefsSincePreviousOverview": [
+            "coverage-config:coverage",
+            "coverage-config:scope",
+            "coverage-config:targetPages",
+            "coverage-event:1"
+          ],
+          "newlyKnownItemsSincePreviousOverview": [
+            "[pending][configured-target] Network \u2014 discovered=true; source=config\u002Broot-observation; observed at root [coverage-event:1]",
+            "[skipped][dynamic-observation] Airplane mode \u2014 discovered=true; non-ui-element-role [coverage-event:1]",
+            "[skipped][dynamic-observation] Factory reset \u2014 discovered=true; explicit-exclusion [coverage-event:1]",
+            "[skipped][dynamic-observation] finite:id/scroll \u2014 discovered=true; non-ui-element-role [coverage-event:1]"
+          ],
+          "newlyUnknownItemsSincePreviousOverview": [
+            "scope=SIM037 real Agent finite-menu simulation; limited to current device/account/permissions/system state; unobserved pages and branches are not proven exhaustive"
+          ],
+          "segmentStepsVerified": 0,
+          "planExecution": null
+        },
+        "budgetReview": null,
+        "planExecution": null,
+        "availablePlanSources": {
+          "settings.current-navigation": "\u5F53\u524D\u89C2\u5BDF\u9875\u914D\u7F6E\u8303\u56F4\u5185\u5C1A\u672A\u9A8C\u8BC1\u8FDB\u5165\u7684\u5BFC\u822A\u5165\u53E3\uFF1B\u7ED3\u5408If/Repeat\u8DE8\u9875\u63A8\u8FDB\u65F6\uFF0C\u6BCF\u6B21ForEach\u6700\u591A\u90091\u9879\uFF0C\u4E0B\u4E00\u6B21\u5FAA\u73AF\u91CD\u65B0\u8BFB\u53D6\u65B0\u9875\u3002switch\u7B49\u8BB0\u5F55\u578B\u63A7\u4EF6\u6765\u81EA\u539F\u89C2\u5BDF\u8D26\u672C\uFF0C\u4E0D\u4F5C\u4E3A\u5BFC\u822A\u70B9\u51FB\u3002\u8FD4\u56DE\u8DEF\u5F84\u7531\u5DF2\u9A8C\u8BC1\u5BFC\u822A\u8BB0\u5F55\u63D0\u4F9B\uFF1B\u7A7A\u96C6\u5408\u4E0D\u8BC1\u660E\u5168\u6811\u5B8C\u6210\u3002",
+          "settings.root-navigation": "\u5F53\u524DSettings\u6839\u9875\u5DF2\u89C2\u5BDF\u3001\u5728\u914D\u7F6E\u8303\u56F4\u5185\u4E14\u5C1A\u672A\u8FDB\u5165\u7684\u5BFC\u822A\u5165\u53E3\uFF1B\u6BCF\u8F6E\u91CD\u8BFB\u3002\u6BCF\u6B21body\u5185\u5148\u8FDB\u5165\u5019\u9009\uFF0C\u518D\u70B9\u51FB\u5F53\u524DNavigate up\u8FD4\u56DE\uFF1B\u6BCF\u4E2AAct\u5747\u7531Runtime\u81EA\u52A8\u53D6\u5F97\u65B0\u89C2\u5BDF\u5E76\u72EC\u7ACB\u9A8C\u8BC1\uFF0C\u56E0\u6B64\u4EC5\u786E\u8BA4\u540C\u4E00\u8DEF\u7531\u4E0D\u5FC5\u518D\u52A0Observe\u3002\u82E5\u786E\u6709\u989D\u5916\u6B20\u8BC1\u4ECD\u987B\u8865\u8BC1\u3002\u8FD4\u56DE\u4E0D\u80FD\u653E\u5728forEach\u4E4B\u540E\uFF0C\u9009\u62E9\u4E0B\u4E00\u5019\u9009\u524D\u5FC5\u987B\u5DF2\u56DE\u5230\u540C\u4E00\u6839\u9875\u3002\u96C6\u5408\u6682\u7A7A\u4E0D\u8BC1\u660E\u672A\u77E5\u8303\u56F4\u7A77\u5C3D\u3002",
+          "settings.menu": "\u6301\u7EED\u83DC\u5355\u904D\u5386\uFF1B\u5019\u9009\u6761\u4EF6navigation\u8868\u793A\u5F53\u524D\u6839\u9875Task\u663E\u5F0F\u76EE\u6807\uFF0CreadOnly\u8868\u793A\u53EA\u8BFBswitch\uFF1B\u4E24\u8005\u4EC5\u5728\u672CSource\u7684TraversalRule\u4E2D\u6C42\u503C\uFF0C\u4E0D\u5C5E\u4E8E\u5168\u5C40If\u6761\u4EF6\u3002\u975E\u4EFB\u52A1\u5BFC\u822A\u8303\u56F4Blocked\uFF1B\u52A8\u6001\u672A\u5206\u7C7B\u4E3AUnknown\u3002live\u53D1\u73B0\u7A77\u5C3D\u672A\u8BC1\u660E\uFF0C\u62A5\u544A\u90E8\u5206\u8986\u76D6\u3002"
+        },
+        "availablePlanConditions": {
+          "settings.has-ready-navigation": "\u5F53\u524D\u89C2\u5BDF\u9875\u5728\u914D\u7F6E\u6DF1\u5EA6/\u8303\u56F4\u5185\u4ECD\u6709Ready\u5BFC\u822A\u5019\u9009\uFF1B\u672A\u77E5\u4E8B\u5B9E\u8FD4\u56DEUnknown\uFF0C\u4E0D\u7531\u7A7A\u96C6\u5408\u63A8\u65AD\u5168\u4EFB\u52A1\u5B8C\u6210\u3002",
+          "settings.at-root": "\u5F53\u524D\u89C2\u5BDF\u4F4D\u4E8E\u4EFB\u52A1\u6839\u9875\uFF1B\u975E\u6839\u9875\u987B\u6709\u5DF2\u9A8C\u8BC1\u5BFC\u822A\u94FE\u652F\u6301\u3002False\u53EF\u7528\u4E8E\u58F0\u660E\u8FD4\u56DE\u7B56\u7565\uFF0C\u4E0D\u81EA\u884C\u6267\u884C\u8FD4\u56DE\u3002"
+        },
+        "worldKnowledge": {
+          "sourceRevisionId": "rev-41",
+          "collectionStatus": "collected",
+          "gaps": [
+            {
+              "gapId": "world-gap:33a8cb5e103f20e6687b48873c523072d12e9fe663671f10221ca1f4608b26be",
+              "kind": 3,
+              "objectRef": "ctr-12cded18302b",
+              "scope": "capture:finite-1:viewport",
+              "reason": "viewport-export;offscreen-and-virtualized-content-unproven",
+              "sourceRevisionId": "rev-41",
+              "evidenceIds": [
+                "ev-ebb963ad94daea71a93d81324ff47bb2aac34c611d0de30dec62c539aa93f04a"
+              ],
+              "conflicted": false,
+              "causeRef": "capture:ev-ebb963ad94daea71a93d81324ff47bb2aac34c611d0de30dec62c539aa93f04a"
+            }
+          ],
+          "semanticReferences": [],
+          "currentSemantics": [],
+          "corrections": []
+        },
+        "worldRecovery": {
+          "gaps": [
+            {
+              "gapId": "world-gap:33a8cb5e103f20e6687b48873c523072d12e9fe663671f10221ca1f4608b26be",
+              "knownExecutionCount": null,
+              "recordCoverage": "not_collected",
+              "executions": [],
+              "resultHistory": []
+            }
+          ],
+          "reviewRequired": false,
+          "reviewKey": null,
+          "reason": null
+        },
+        "worldEffectImpacts": []
+      },
+      "decision": {
+        "kind": "plan",
+        "justification": "Root observed with Network navigable; scroll needed to reveal offscreen entries; visit Network (and nested if present), return to root after each.",
+        "steps": [
+          {
+            "targetRole": "scrollable",
+            "targetDescriptor": "finite:id/scroll",
+            "effectClass": "swipe-up",
+            "desiredState": null
+          }
+        ],
+        "skipTarget": null,
+        "skipReason": null,
+        "evidenceRefs": null,
+        "renewal": null,
+        "reviewResponse": null
+      },
+      "effectiveDecision": {
+        "kind": "plan",
+        "justification": "Root observed with Network navigable; scroll needed to reveal offscreen entries; visit Network (and nested if present), return to root after each.",
+        "steps": [
+          {
+            "targetRole": "scrollable",
+            "targetDescriptor": "finite:id/scroll",
+            "effectClass": "swipe-up",
+            "desiredState": null
+          }
+        ],
+        "skipTarget": null,
+        "skipReason": null,
+        "evidenceRefs": null,
+        "renewal": null,
+        "reviewResponse": null
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-aa104ef535ba-2",
+        "runId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba",
+        "contractVersion": "v0",
+        "objective": "Traverse Android Settings within the current device, account, permissions and system state. Enter every configured first-level target: Network. Required evidence: rootPage=True, scrollDiscoveredEntries=1, secondLevelPages=2, backNavigation=True, repeatedEntries=0. Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. End on the observed Settings root. Select every action from the current semantic hierarchy. A configured scope result never proves all possible UI states exhaustive.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.screen.route": {
+            "value": "android.settings|route:Details",
+            "disposition": "revised",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-a17eb56e1b2f",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-7ed65d643480": {
+            "value": "finite-page:Network",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-a17eb56e1b2f": {
+            "value": "finite-page:Details",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "finite-page:Details",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-12cded18302b": {
+            "value": "finite-page:Settings",
+            "disposition": "established",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-a17eb56e1b2f",
+          "signature": "finite-page:Details"
+        },
+        "elements": [
+          {
+            "role": "ui.element",
+            "text": "Navigate up",
+            "bounds": "0,0.8,1,0.88",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "finite:id/scroll",
+            "bounds": "0,0.06,1,0.95",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 1,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 2,
+          "stepsDispatched": 2,
+          "stepsVerified": 2,
+          "policyState": null,
+          "stagnantConsultations": 0,
+          "sameRouteConsultations": 0
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 34,
+          "stepsRemaining": 30
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "localView": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:boundary-2",
+        "heartbeat": null,
+        "contextReferenceIndex": null,
+        "casePacket": null,
+        "executionOverview": {
+          "overviewId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:overview-2",
+          "runId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba",
+          "contractVersion": "v0",
+          "objective": "Traverse Android Settings within the current device, account, permissions and system state. Enter every configured first-level target: Network. Required evidence: rootPage=True, scrollDiscoveredEntries=1, secondLevelPages=2, backNavigation=True, repeatedEntries=0. Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. End on the observed Settings root. Select every action from the current semantic hierarchy. A configured scope result never proves all possible UI states exhaustive.",
+          "initialSteps": 32,
+          "initialRounds": 36,
+          "grantedSteps": 0,
+          "grantedRounds": 0,
+          "stepsConsumed": 2,
+          "roundsConsumed": 2,
+          "stepsRemaining": 30,
+          "roundsRemaining": 34,
+          "segmentStepsConsumed": 2,
+          "segmentRoundsConsumed": 2,
+          "projection": {
+            "currentBranch": "android.settings|route:Details",
+            "knownItems": [
+              "[pending][configured-target] Network \u2014 discovered=true; source=config\u002Broot-observation; observed at root [coverage-event:1,coverage-event:2]",
+              "[skipped][dynamic-observation] Airplane mode \u2014 discovered=true; non-ui-element-role [coverage-event:1,coverage-event:2]",
+              "[skipped][dynamic-observation] Factory reset \u2014 discovered=true; explicit-exclusion [coverage-event:1,coverage-event:2]",
+              "[skipped][dynamic-observation] finite:id/scroll \u2014 discovered=true; non-ui-element-role [coverage-event:1,coverage-event:2]",
+              "[skipped][dynamic-nested-observation] android.settings|route:Details\u003ENavigate up \u2014 discovered=true; parent-route=android.settings|route:Details; back-descriptor [coverage-event:8]",
+              "[skipped][dynamic-nested-observation] android.settings|route:Details\u003Efinite:id/scroll \u2014 discovered=true; parent-route=android.settings|route:Details; non-ui-element-role [coverage-event:8]",
+              "[verified][dynamic-nested-observation] android.settings|route:Network\u003EDetails \u2014 discovered=true; parent-route=android.settings|route:Network; nested route entry verified [coverage-event:5]",
+              "[skipped][dynamic-nested-observation] android.settings|route:Network\u003ENavigate up \u2014 discovered=true; parent-route=android.settings|route:Network; back-descriptor [coverage-event:5]",
+              "[skipped][dynamic-nested-observation] android.settings|route:Network\u003Efinite:id/scroll \u2014 discovered=true; parent-route=android.settings|route:Network; non-ui-element-role [coverage-event:5]"
+            ],
+            "unknowns": [
+              "scope=SIM037 real Agent finite-menu simulation; limited to current device/account/permissions/system state; unobserved pages and branches are not proven exhaustive"
+            ],
+            "blockers": [],
+            "previousSegmentExpectation": null,
+            "previousSegmentActual": null,
+            "sourceFactRefs": [
+              "coverage-config:coverage",
+              "coverage-config:scope",
+              "coverage-config:targetPages",
+              "coverage-event:1",
+              "coverage-event:2",
+              "coverage-event:5",
+              "coverage-event:8"
+            ],
+            "projectionRevision": "coverage-ledger:8",
+            "worldGraph": {
+              "sourceRevisionId": "rev-142",
+              "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+              "currentContainerId": "ctr-a17eb56e1b2f",
+              "nodes": [
+                {
+                  "identity": {
+                    "containerId": "ctr-12cded18302b"
+                  },
+                  "evidenceBasis": [
+                    "ev-12cded18302b1526f6891b1c8bf1033b3390940f2e0a2581e1df7c6e30d57b00",
+                    "ev-fb3405168bfeb4d0275ea66ffaeba374101ef3e9c521d0af4c25df404007b20c"
+                  ]
+                },
+                {
+                  "identity": {
+                    "containerId": "ctr-7ed65d643480"
+                  },
+                  "evidenceBasis": [
+                    "ev-7ed65d6434804d1d8d1780c0e32af83e4fa6b5661fd748f56b45c9e69aaabd2b"
+                  ]
+                },
+                {
+                  "identity": {
+                    "containerId": "ctr-a17eb56e1b2f"
+                  },
+                  "evidenceBasis": [
+                    "ev-a17eb56e1b2f0a20d5dec935eba7dd3b8d21a0793072a142b69839fe6ce358b1"
+                  ]
+                }
+              ],
+              "edges": [
+                {
+                  "kind": 2,
+                  "sourceContainerId": "ctr-12cded18302b",
+                  "targetContainerId": "ctr-7ed65d643480",
+                  "evidenceBasis": [
+                    "ev-fb3405168bfeb4d0275ea66ffaeba374101ef3e9c521d0af4c25df404007b20c",
+                    "ev-7ed65d6434804d1d8d1780c0e32af83e4fa6b5661fd748f56b45c9e69aaabd2b"
+                  ],
+                  "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+                  "verificationSourceRef": "verification:rev-115:receipt-bind-intent-1-occ-0dc12559bbaa-0-1",
+                  "sourceRevisionId": "rev-82",
+                  "targetRevisionId": "rev-115"
+                },
+                {
+                  "kind": 2,
+                  "sourceContainerId": "ctr-7ed65d643480",
+                  "targetContainerId": "ctr-a17eb56e1b2f",
+                  "evidenceBasis": [
+                    "ev-7ed65d6434804d1d8d1780c0e32af83e4fa6b5661fd748f56b45c9e69aaabd2b",
+                    "ev-a17eb56e1b2f0a20d5dec935eba7dd3b8d21a0793072a142b69839fe6ce358b1"
+                  ],
+                  "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+                  "verificationSourceRef": "verification:rev-141:receipt-bind-intent-2-occ-41855c995183-0-2",
+                  "sourceRevisionId": "rev-116",
+                  "targetRevisionId": "rev-141"
+                }
+              ],
+              "unknown": [
+                "navigation-graph-is-observation-bounded"
+              ],
+              "viewportTransitions": []
+            },
+            "progressFactKeys": [
+              "discovered:dynamic-root:Airplane mode",
+              "discovered:dynamic-root:Factory reset",
+              "discovered:dynamic-root:finite:id/scroll",
+              "discovered:nested:android.settings|route:Details:Navigate up",
+              "discovered:nested:android.settings|route:Details:finite:id/scroll",
+              "discovered:nested:android.settings|route:Network:Details",
+              "discovered:nested:android.settings|route:Network:Navigate up",
+              "discovered:nested:android.settings|route:Network:finite:id/scroll",
+              "discovered:root:Network",
+              "excluded:dynamic-root:Airplane mode:non-ui-element-role",
+              "excluded:dynamic-root:Factory reset:explicit-exclusion",
+              "excluded:dynamic-root:finite:id/scroll:non-ui-element-role",
+              "excluded:nested:android.settings|route:Details:Navigate up:back-descriptor",
+              "excluded:nested:android.settings|route:Details:finite:id/scroll:non-ui-element-role",
+              "excluded:nested:android.settings|route:Network:Navigate up:back-descriptor",
+              "excluded:nested:android.settings|route:Network:finite:id/scroll:non-ui-element-role",
+              "navigation:ctr-12cded18302b\u003Ectr-7ed65d643480",
+              "navigation:ctr-7ed65d643480\u003Ectr-a17eb56e1b2f",
+              "scope:current-device-account-permissions-system-state",
+              "verified:nested:android.settings|route:Network:Details",
+              "verified:requirement:dynamic-nested-entries",
+              "verified:requirement:dynamic-root-entries",
+              "verified:requirement:first-level-all-visible",
+              "verified:requirement:repeated-entry",
+              "verified:requirement:root-page"
+            ],
+            "actionableItems": {
+              "root:Network": {
+                "sourceFactRefs": [
+                  "coverage-event:1",
+                  "coverage-event:2"
+                ],
+                "progressFactKeys": [
+                  "item-state:root:Network:pending:discovered=true; source=config\u002Broot-observation; observed at root"
+                ]
+              },
+              "explore:unobserved-scope": {
+                "sourceFactRefs": [
+                  "coverage-config:scope"
+                ],
+                "progressFactKeys": [
+                  "discovered:dynamic-root:Airplane mode",
+                  "discovered:dynamic-root:Factory reset",
+                  "discovered:dynamic-root:finite:id/scroll",
+                  "discovered:nested:android.settings|route:Details:Navigate up",
+                  "discovered:nested:android.settings|route:Details:finite:id/scroll",
+                  "discovered:nested:android.settings|route:Network:Details",
+                  "discovered:nested:android.settings|route:Network:Navigate up",
+                  "discovered:nested:android.settings|route:Network:finite:id/scroll",
+                  "discovered:root:Network",
+                  "excluded:dynamic-root:Airplane mode:non-ui-element-role",
+                  "excluded:dynamic-root:Factory reset:explicit-exclusion",
+                  "excluded:dynamic-root:finite:id/scroll:non-ui-element-role",
+                  "excluded:nested:android.settings|route:Details:Navigate up:back-descriptor",
+                  "excluded:nested:android.settings|route:Details:finite:id/scroll:non-ui-element-role",
+                  "excluded:nested:android.settings|route:Network:Navigate up:back-descriptor",
+                  "excluded:nested:android.settings|route:Network:finite:id/scroll:non-ui-element-role",
+                  "navigation:ctr-12cded18302b\u003Ectr-7ed65d643480",
+                  "navigation:ctr-7ed65d643480\u003Ectr-a17eb56e1b2f",
+                  "scope:current-device-account-permissions-system-state",
+                  "verified:nested:android.settings|route:Network:Details"
+                ]
+              },
+              "requirement:scroll-discovered-entry": {
+                "sourceFactRefs": [
+                  "coverage-config:coverage"
+                ],
+                "progressFactKeys": [
+                  "requirement-state:scroll-discovered-entry:entered 0/1 scroll-discovered"
+                ]
+              },
+              "requirement:second-level-pages": {
+                "sourceFactRefs": [
+                  "coverage-config:coverage"
+                ],
+                "progressFactKeys": [
+                  "requirement-state:second-level-pages:distinct second-level routes 1/2"
+                ]
+              },
+              "requirement:back-navigation": {
+                "sourceFactRefs": [
+                  "coverage-config:coverage"
+                ],
+                "progressFactKeys": [
+                  "requirement-state:back-navigation:back verified 0"
+                ]
+              }
+            }
+          },
+          "previousSegmentStepsConsumed": 0,
+          "previousSegmentRoundsConsumed": 0,
+          "previousSegmentExpectation": null,
+          "previousSegmentActual": null,
+          "currentSegmentExpectation": "Traverse Android Settings within the current device, account, permissions and system state. Enter every configured first-level target: Network. Required evidence: rootPage=True, scrollDiscoveredEntries=1, secondLevelPages=2, backNavigation=True, repeatedEntries=0. Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. End on the observed Settings root. Select every action from the current semantic hierarchy. A configured scope result never proves all possible UI states exhaustive.",
+          "currentSegmentActual": "verified=2;new-known=9;new-unknown=0;new-progress-facts=13;owner-actual=unknown",
+          "relevantHistory": null,
+          "previousOverviewStepsConsumed": 0,
+          "previousOverviewRoundsConsumed": 1,
+          "stepsConsumedSincePreviousOverview": 2,
+          "roundsConsumedSincePreviousOverview": 1,
+          "newlyVerifiedStepsSincePreviousOverview": 2,
+          "newSourceFactRefsSincePreviousOverview": [
+            "coverage-event:2",
+            "coverage-event:5",
+            "coverage-event:8"
+          ],
+          "newlyKnownItemsSincePreviousOverview": [
+            "[pending][configured-target] Network \u2014 discovered=true; source=config\u002Broot-observation; observed at root [coverage-event:1,coverage-event:2]",
+            "[skipped][dynamic-nested-observation] android.settings|route:Details\u003ENavigate up \u2014 discovered=true; parent-route=android.settings|route:Details; back-descriptor [coverage-event:8]",
+            "[skipped][dynamic-nested-observation] android.settings|route:Details\u003Efinite:id/scroll \u2014 discovered=true; parent-route=android.settings|route:Details; non-ui-element-role [coverage-event:8]",
+            "[skipped][dynamic-nested-observation] android.settings|route:Network\u003ENavigate up \u2014 discovered=true; parent-route=android.settings|route:Network; back-descriptor [coverage-event:5]",
+            "[skipped][dynamic-nested-observation] android.settings|route:Network\u003Efinite:id/scroll \u2014 discovered=true; parent-route=android.settings|route:Network; non-ui-element-role [coverage-event:5]",
+            "[skipped][dynamic-observation] Airplane mode \u2014 discovered=true; non-ui-element-role [coverage-event:1,coverage-event:2]",
+            "[skipped][dynamic-observation] Factory reset \u2014 discovered=true; explicit-exclusion [coverage-event:1,coverage-event:2]",
+            "[skipped][dynamic-observation] finite:id/scroll \u2014 discovered=true; non-ui-element-role [coverage-event:1,coverage-event:2]",
+            "[verified][dynamic-nested-observation] android.settings|route:Network\u003EDetails \u2014 discovered=true; parent-route=android.settings|route:Network; nested route entry verified [coverage-event:5]"
+          ],
+          "newlyUnknownItemsSincePreviousOverview": [],
+          "segmentStepsVerified": 2,
+          "planExecution": {
+            "position": {
+              "planId": "settings-coverage-plan",
+              "version": 1,
+              "itemIndex": 0,
+              "iteration": 0,
+              "bodyIndex": 0,
+              "candidateKey": "android.settings|route:Network\u003EDetails",
+              "workUsed": 9,
+              "controlPath": "1.0.1:candidate-body:0/0.0.0:then:0/0.0.1:candidate-body:0"
+            },
+            "status": 3,
+            "interruptionReason": "plan:replan",
+            "attempts": 2,
+            "blockedCandidates": 0,
+            "stageExpectation": null
+          }
+        },
+        "budgetReview": null,
+        "planExecution": {
+          "position": {
+            "planId": "settings-coverage-plan",
+            "version": 1,
+            "itemIndex": 0,
+            "iteration": 0,
+            "bodyIndex": 0,
+            "candidateKey": "android.settings|route:Network\u003EDetails",
+            "workUsed": 9,
+            "controlPath": "1.0.1:candidate-body:0/0.0.0:then:0/0.0.1:candidate-body:0"
+          },
+          "status": 3,
+          "stageExpectation": null,
+          "interruptionReason": "plan:replan",
+          "attempts": [
+            {
+              "attemptId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-1",
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 1,
+                "itemIndex": 1,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": "root:Network",
+                "workUsed": 3,
+                "controlPath": null
+              },
+              "decisionId": "decision-aa104ef535ba-1",
+              "step": {
+                "targetRole": "ui.element",
+                "targetDescriptor": "Network",
+                "effectClass": "tap",
+                "desiredState": null
+              },
+              "status": 2,
+              "receiptId": "receipt-bind-intent-1-occ-0dc12559bbaa-0-1",
+              "evidenceRefs": [
+                "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-1"
+              ],
+              "reason": null
+            },
+            {
+              "attemptId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-2",
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 1,
+                "itemIndex": 0,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": "android.settings|route:Network\u003EDetails",
+                "workUsed": 7,
+                "controlPath": "1.0.1:candidate-body:0/0.0.0:then:0"
+              },
+              "decisionId": "decision-aa104ef535ba-1",
+              "step": {
+                "targetRole": "ui.element",
+                "targetDescriptor": "Details",
+                "effectClass": "tap",
+                "desiredState": null
+              },
+              "status": 2,
+              "receiptId": "receipt-bind-intent-2-occ-41855c995183-0-2",
+              "evidenceRefs": [
+                "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-2"
+              ],
+              "reason": null
+            }
+          ],
+          "blockedEvidence": [],
+          "conditionEvaluations": [
+            {
+              "evaluationId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-condition-1",
+              "condition": "settings.has-ready-navigation",
+              "result": {
+                "truth": 0,
+                "scopeKey": "android.settings|route:Network",
+                "revision": "coverage:5",
+                "evidenceRefs": [
+                  "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-condition-1"
+                ],
+                "reason": null
+              },
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 1,
+                "itemIndex": 0,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": "root:Network",
+                "workUsed": 5,
+                "controlPath": "1.0.1:candidate-body:0"
+              }
+            }
+          ],
+          "traversal": null
+        },
+        "availablePlanSources": null,
+        "availablePlanConditions": null,
+        "worldKnowledge": {
+          "sourceRevisionId": "rev-142",
+          "collectionStatus": "collected",
+          "gaps": [
+            {
+              "gapId": "world-gap:0d23dc8e02e7112cb790a9bcc82f7dfe78223f96acef0847ea3aa3fe18b5ebbb",
+              "kind": 3,
+              "objectRef": "ctr-a17eb56e1b2f",
+              "scope": "capture:finite-4:viewport",
+              "reason": "viewport-export;offscreen-and-virtualized-content-unproven",
+              "sourceRevisionId": "rev-142",
+              "evidenceIds": [
+                "ev-0c35641ea5253223ab9ed1362d1db8f71340ab64e7df3d67bc6069bb48722c7b"
+              ],
+              "conflicted": false,
+              "causeRef": "capture:ev-0c35641ea5253223ab9ed1362d1db8f71340ab64e7df3d67bc6069bb48722c7b"
+            }
+          ],
+          "semanticReferences": [],
+          "currentSemantics": [],
+          "corrections": []
+        },
+        "worldRecovery": {
+          "gaps": [
+            {
+              "gapId": "world-gap:0d23dc8e02e7112cb790a9bcc82f7dfe78223f96acef0847ea3aa3fe18b5ebbb",
+              "knownExecutionCount": null,
+              "recordCoverage": "not_collected",
+              "executions": [],
+              "resultHistory": []
+            }
+          ],
+          "reviewRequired": false,
+          "reviewKey": null,
+          "reason": null
+        },
+        "worldEffectImpacts": []
+      },
+      "decision": {
+        "kind": "plan",
+        "justification": "Details leaf reached; return to Settings root and continue root traversal; scroll for offscreen entries; each second-level entry returned from individually.",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          },
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          },
+          {
+            "targetRole": "scrollable",
+            "targetDescriptor": "finite:id/scroll",
+            "effectClass": "swipe-up",
+            "desiredState": null
+          }
+        ],
+        "skipTarget": null,
+        "skipReason": null,
+        "evidenceRefs": null,
+        "renewal": null,
+        "reviewResponse": null
+      },
+      "effectiveDecision": {
+        "kind": "plan",
+        "justification": "Details leaf reached; return to Settings root and continue root traversal; scroll for offscreen entries; each second-level entry returned from individually.",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          },
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          },
+          {
+            "targetRole": "scrollable",
+            "targetDescriptor": "finite:id/scroll",
+            "effectClass": "swipe-up",
+            "desiredState": null
+          }
+        ],
+        "skipTarget": null,
+        "skipReason": null,
+        "evidenceRefs": null,
+        "renewal": null,
+        "reviewResponse": null
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-aa104ef535ba-3",
+        "runId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba",
+        "contractVersion": "v0",
+        "objective": "Traverse Android Settings within the current device, account, permissions and system state. Enter every configured first-level target: Network. Required evidence: rootPage=True, scrollDiscoveredEntries=1, secondLevelPages=2, backNavigation=True, repeatedEntries=0. Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. End on the observed Settings root. Select every action from the current semantic hierarchy. A configured scope result never proves all possible UI states exhaustive.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.container.signature.ctr-7ed65d643480": {
+            "value": "finite-page:Network",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen": {
+            "value": "finite-page:Settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-12cded18302b": {
+            "value": "finite-page:Settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-12cded18302b",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-a17eb56e1b2f": {
+            "value": "finite-page:Details",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "disposition": "revised",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 2,
+        "failureReason": "plan:candidate-blocked:root:Factory reset",
+        "failedStepIndex": 2,
+        "screen": {
+          "containerId": "ctr-12cded18302b",
+          "signature": "finite-page:Settings"
+        },
+        "elements": [
+          {
+            "role": "ui.element",
+            "text": "Network",
+            "bounds": "0,0.1,1,0.18",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Factory reset",
+            "bounds": "0,0.2,1,0.28",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "switch",
+            "text": "Airplane mode",
+            "bounds": "0,0.3,1,0.38",
+            "clickable": true,
+            "checkable": true,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "finite:id/scroll",
+            "bounds": "0,0.06,1,0.95",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 1,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 3,
+          "stepsDispatched": 4,
+          "stepsVerified": 4,
+          "policyState": null,
+          "stagnantConsultations": 0,
+          "sameRouteConsultations": 0
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 33,
+          "stepsRemaining": 28
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "localView": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:boundary-3",
+        "heartbeat": null,
+        "contextReferenceIndex": null,
+        "casePacket": null,
+        "executionOverview": {
+          "overviewId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:overview-3",
+          "runId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba",
+          "contractVersion": "v0",
+          "objective": "Traverse Android Settings within the current device, account, permissions and system state. Enter every configured first-level target: Network. Required evidence: rootPage=True, scrollDiscoveredEntries=1, secondLevelPages=2, backNavigation=True, repeatedEntries=0. Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. End on the observed Settings root. Select every action from the current semantic hierarchy. A configured scope result never proves all possible UI states exhaustive.",
+          "initialSteps": 32,
+          "initialRounds": 36,
+          "grantedSteps": 0,
+          "grantedRounds": 0,
+          "stepsConsumed": 4,
+          "roundsConsumed": 3,
+          "stepsRemaining": 28,
+          "roundsRemaining": 33,
+          "segmentStepsConsumed": 4,
+          "segmentRoundsConsumed": 3,
+          "projection": {
+            "currentBranch": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "knownItems": [
+              "[pending][configured-target] Network \u2014 discovered=true; source=config\u002Broot-observation; observed at root [coverage-event:1,coverage-event:2,coverage-event:14]",
+              "[skipped][dynamic-observation] Airplane mode \u2014 discovered=true; non-ui-element-role [coverage-event:1,coverage-event:2,coverage-event:14]",
+              "[skipped][dynamic-observation] Factory reset \u2014 discovered=true; explicit-exclusion [coverage-event:1,coverage-event:2,coverage-event:14]",
+              "[skipped][dynamic-observation] finite:id/scroll \u2014 discovered=true; non-ui-element-role [coverage-event:1,coverage-event:2,coverage-event:14]",
+              "[skipped][dynamic-nested-observation] android.settings|route:Details\u003ENavigate up \u2014 discovered=true; parent-route=android.settings|route:Details; back-descriptor [coverage-event:8]",
+              "[skipped][dynamic-nested-observation] android.settings|route:Details\u003Efinite:id/scroll \u2014 discovered=true; parent-route=android.settings|route:Details; non-ui-element-role [coverage-event:8]",
+              "[verified][dynamic-nested-observation] android.settings|route:Network\u003EDetails \u2014 discovered=true; parent-route=android.settings|route:Network; nested route entry verified [coverage-event:11]",
+              "[skipped][dynamic-nested-observation] android.settings|route:Network\u003ENavigate up \u2014 discovered=true; parent-route=android.settings|route:Network; back-descriptor [coverage-event:11]",
+              "[skipped][dynamic-nested-observation] android.settings|route:Network\u003Efinite:id/scroll \u2014 discovered=true; parent-route=android.settings|route:Network; non-ui-element-role [coverage-event:11]"
+            ],
+            "unknowns": [
+              "scope=SIM037 real Agent finite-menu simulation; limited to current device/account/permissions/system state; unobserved pages and branches are not proven exhaustive"
+            ],
+            "blockers": [],
+            "previousSegmentExpectation": null,
+            "previousSegmentActual": null,
+            "sourceFactRefs": [
+              "coverage-config:coverage",
+              "coverage-config:scope",
+              "coverage-config:targetPages",
+              "coverage-event:1",
+              "coverage-event:11",
+              "coverage-event:14",
+              "coverage-event:2",
+              "coverage-event:5",
+              "coverage-event:8"
+            ],
+            "projectionRevision": "coverage-ledger:14",
+            "worldGraph": {
+              "sourceRevisionId": "rev-218",
+              "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+              "currentContainerId": "ctr-12cded18302b",
+              "nodes": [
+                {
+                  "identity": {
+                    "containerId": "ctr-12cded18302b"
+                  },
+                  "evidenceBasis": [
+                    "ev-12cded18302b1526f6891b1c8bf1033b3390940f2e0a2581e1df7c6e30d57b00",
+                    "ev-fb3405168bfeb4d0275ea66ffaeba374101ef3e9c521d0af4c25df404007b20c",
+                    "ev-0c379c8a5d5586348b8e2705e863464d30ff27d955ab5d5cfee181b6e2c2c811"
+                  ]
+                },
+                {
+                  "identity": {
+                    "containerId": "ctr-7ed65d643480"
+                  },
+                  "evidenceBasis": [
+                    "ev-7ed65d6434804d1d8d1780c0e32af83e4fa6b5661fd748f56b45c9e69aaabd2b",
+                    "ev-b8635db660cb0298412359ced7ca030c587079c8564bc4b6e3e74ef104cbb937"
+                  ]
+                },
+                {
+                  "identity": {
+                    "containerId": "ctr-a17eb56e1b2f"
+                  },
+                  "evidenceBasis": [
+                    "ev-a17eb56e1b2f0a20d5dec935eba7dd3b8d21a0793072a142b69839fe6ce358b1"
+                  ]
+                }
+              ],
+              "edges": [
+                {
+                  "kind": 2,
+                  "sourceContainerId": "ctr-12cded18302b",
+                  "targetContainerId": "ctr-7ed65d643480",
+                  "evidenceBasis": [
+                    "ev-fb3405168bfeb4d0275ea66ffaeba374101ef3e9c521d0af4c25df404007b20c",
+                    "ev-7ed65d6434804d1d8d1780c0e32af83e4fa6b5661fd748f56b45c9e69aaabd2b"
+                  ],
+                  "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+                  "verificationSourceRef": "verification:rev-115:receipt-bind-intent-1-occ-0dc12559bbaa-0-1",
+                  "sourceRevisionId": "rev-82",
+                  "targetRevisionId": "rev-115"
+                },
+                {
+                  "kind": 2,
+                  "sourceContainerId": "ctr-7ed65d643480",
+                  "targetContainerId": "ctr-a17eb56e1b2f",
+                  "evidenceBasis": [
+                    "ev-7ed65d6434804d1d8d1780c0e32af83e4fa6b5661fd748f56b45c9e69aaabd2b",
+                    "ev-a17eb56e1b2f0a20d5dec935eba7dd3b8d21a0793072a142b69839fe6ce358b1"
+                  ],
+                  "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+                  "verificationSourceRef": "verification:rev-141:receipt-bind-intent-2-occ-41855c995183-0-2",
+                  "sourceRevisionId": "rev-116",
+                  "targetRevisionId": "rev-141"
+                },
+                {
+                  "kind": 2,
+                  "sourceContainerId": "ctr-a17eb56e1b2f",
+                  "targetContainerId": "ctr-7ed65d643480",
+                  "evidenceBasis": [
+                    "ev-a17eb56e1b2f0a20d5dec935eba7dd3b8d21a0793072a142b69839fe6ce358b1",
+                    "ev-b8635db660cb0298412359ced7ca030c587079c8564bc4b6e3e74ef104cbb937"
+                  ],
+                  "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+                  "verificationSourceRef": "verification:rev-175:receipt-bind-intent-3-occ-2ed52953bbe2-0-3",
+                  "sourceRevisionId": "rev-142",
+                  "targetRevisionId": "rev-175"
+                },
+                {
+                  "kind": 2,
+                  "sourceContainerId": "ctr-7ed65d643480",
+                  "targetContainerId": "ctr-12cded18302b",
+                  "evidenceBasis": [
+                    "ev-b8635db660cb0298412359ced7ca030c587079c8564bc4b6e3e74ef104cbb937",
+                    "ev-0c379c8a5d5586348b8e2705e863464d30ff27d955ab5d5cfee181b6e2c2c811"
+                  ],
+                  "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+                  "verificationSourceRef": "verification:rev-217:receipt-bind-intent-4-occ-a24c4f37585a-1-4",
+                  "sourceRevisionId": "rev-176",
+                  "targetRevisionId": "rev-217"
+                }
+              ],
+              "unknown": [
+                "navigation-graph-is-observation-bounded"
+              ],
+              "viewportTransitions": []
+            },
+            "progressFactKeys": [
+              "discovered:dynamic-root:Airplane mode",
+              "discovered:dynamic-root:Factory reset",
+              "discovered:dynamic-root:finite:id/scroll",
+              "discovered:nested:android.settings|route:Details:Navigate up",
+              "discovered:nested:android.settings|route:Details:finite:id/scroll",
+              "discovered:nested:android.settings|route:Network:Details",
+              "discovered:nested:android.settings|route:Network:Navigate up",
+              "discovered:nested:android.settings|route:Network:finite:id/scroll",
+              "discovered:root:Network",
+              "excluded:dynamic-root:Airplane mode:non-ui-element-role",
+              "excluded:dynamic-root:Factory reset:explicit-exclusion",
+              "excluded:dynamic-root:finite:id/scroll:non-ui-element-role",
+              "excluded:nested:android.settings|route:Details:Navigate up:back-descriptor",
+              "excluded:nested:android.settings|route:Details:finite:id/scroll:non-ui-element-role",
+              "excluded:nested:android.settings|route:Network:Navigate up:back-descriptor",
+              "excluded:nested:android.settings|route:Network:finite:id/scroll:non-ui-element-role",
+              "navigation:ctr-12cded18302b\u003Ectr-7ed65d643480",
+              "navigation:ctr-7ed65d643480\u003Ectr-12cded18302b",
+              "navigation:ctr-7ed65d643480\u003Ectr-a17eb56e1b2f",
+              "navigation:ctr-a17eb56e1b2f\u003Ectr-7ed65d643480",
+              "scope:current-device-account-permissions-system-state",
+              "verified:nested:android.settings|route:Network:Details",
+              "verified:requirement:back-navigation",
+              "verified:requirement:dynamic-nested-entries",
+              "verified:requirement:dynamic-root-entries",
+              "verified:requirement:first-level-all-visible",
+              "verified:requirement:repeated-entry",
+              "verified:requirement:root-page"
+            ],
+            "actionableItems": {
+              "root:Network": {
+                "sourceFactRefs": [
+                  "coverage-event:1",
+                  "coverage-event:2",
+                  "coverage-event:14"
+                ],
+                "progressFactKeys": [
+                  "item-state:root:Network:pending:discovered=true; source=config\u002Broot-observation; observed at root"
+                ]
+              },
+              "explore:unobserved-scope": {
+                "sourceFactRefs": [
+                  "coverage-config:scope"
+                ],
+                "progressFactKeys": [
+                  "discovered:dynamic-root:Airplane mode",
+                  "discovered:dynamic-root:Factory reset",
+                  "discovered:dynamic-root:finite:id/scroll",
+                  "discovered:nested:android.settings|route:Details:Navigate up",
+                  "discovered:nested:android.settings|route:Details:finite:id/scroll",
+                  "discovered:nested:android.settings|route:Network:Details",
+                  "discovered:nested:android.settings|route:Network:Navigate up",
+                  "discovered:nested:android.settings|route:Network:finite:id/scroll",
+                  "discovered:root:Network",
+                  "excluded:dynamic-root:Airplane mode:non-ui-element-role",
+                  "excluded:dynamic-root:Factory reset:explicit-exclusion",
+                  "excluded:dynamic-root:finite:id/scroll:non-ui-element-role",
+                  "excluded:nested:android.settings|route:Details:Navigate up:back-descriptor",
+                  "excluded:nested:android.settings|route:Details:finite:id/scroll:non-ui-element-role",
+                  "excluded:nested:android.settings|route:Network:Navigate up:back-descriptor",
+                  "excluded:nested:android.settings|route:Network:finite:id/scroll:non-ui-element-role",
+                  "navigation:ctr-12cded18302b\u003Ectr-7ed65d643480",
+                  "navigation:ctr-7ed65d643480\u003Ectr-12cded18302b",
+                  "navigation:ctr-7ed65d643480\u003Ectr-a17eb56e1b2f",
+                  "navigation:ctr-a17eb56e1b2f\u003Ectr-7ed65d643480",
+                  "scope:current-device-account-permissions-system-state",
+                  "verified:nested:android.settings|route:Network:Details"
+                ]
+              },
+              "requirement:scroll-discovered-entry": {
+                "sourceFactRefs": [
+                  "coverage-config:coverage"
+                ],
+                "progressFactKeys": [
+                  "requirement-state:scroll-discovered-entry:entered 0/1 scroll-discovered"
+                ]
+              },
+              "requirement:second-level-pages": {
+                "sourceFactRefs": [
+                  "coverage-config:coverage"
+                ],
+                "progressFactKeys": [
+                  "requirement-state:second-level-pages:distinct second-level routes 1/2"
+                ]
+              }
+            }
+          },
+          "previousSegmentStepsConsumed": 0,
+          "previousSegmentRoundsConsumed": 0,
+          "previousSegmentExpectation": null,
+          "previousSegmentActual": null,
+          "currentSegmentExpectation": "Traverse Android Settings within the current device, account, permissions and system state. Enter every configured first-level target: Network. Required evidence: rootPage=True, scrollDiscoveredEntries=1, secondLevelPages=2, backNavigation=True, repeatedEntries=0. Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. End on the observed Settings root. Select every action from the current semantic hierarchy. A configured scope result never proves all possible UI states exhaustive.",
+          "currentSegmentActual": "verified=4;new-known=9;new-unknown=0;new-progress-facts=16;owner-actual=unknown",
+          "relevantHistory": null,
+          "previousOverviewStepsConsumed": 2,
+          "previousOverviewRoundsConsumed": 2,
+          "stepsConsumedSincePreviousOverview": 2,
+          "roundsConsumedSincePreviousOverview": 1,
+          "newlyVerifiedStepsSincePreviousOverview": 2,
+          "newSourceFactRefsSincePreviousOverview": [
+            "coverage-event:11",
+            "coverage-event:14"
+          ],
+          "newlyKnownItemsSincePreviousOverview": [
+            "[pending][configured-target] Network \u2014 discovered=true; source=config\u002Broot-observation; observed at root [coverage-event:1,coverage-event:2,coverage-event:14]",
+            "[skipped][dynamic-nested-observation] android.settings|route:Network\u003ENavigate up \u2014 discovered=true; parent-route=android.settings|route:Network; back-descriptor [coverage-event:11]",
+            "[skipped][dynamic-nested-observation] android.settings|route:Network\u003Efinite:id/scroll \u2014 discovered=true; parent-route=android.settings|route:Network; non-ui-element-role [coverage-event:11]",
+            "[skipped][dynamic-observation] Airplane mode \u2014 discovered=true; non-ui-element-role [coverage-event:1,coverage-event:2,coverage-event:14]",
+            "[skipped][dynamic-observation] Factory reset \u2014 discovered=true; explicit-exclusion [coverage-event:1,coverage-event:2,coverage-event:14]",
+            "[skipped][dynamic-observation] finite:id/scroll \u2014 discovered=true; non-ui-element-role [coverage-event:1,coverage-event:2,coverage-event:14]",
+            "[verified][dynamic-nested-observation] android.settings|route:Network\u003EDetails \u2014 discovered=true; parent-route=android.settings|route:Network; nested route entry verified [coverage-event:11]"
+          ],
+          "newlyUnknownItemsSincePreviousOverview": [],
+          "segmentStepsVerified": 4,
+          "planExecution": {
+            "position": {
+              "planId": "settings-coverage-plan",
+              "version": 2,
+              "itemIndex": 2,
+              "iteration": 0,
+              "bodyIndex": 0,
+              "candidateKey": null,
+              "workUsed": 3,
+              "controlPath": null
+            },
+            "status": 3,
+            "interruptionReason": "plan:candidate-blocked:root:Factory reset",
+            "attempts": 4,
+            "blockedCandidates": 0,
+            "stageExpectation": null
+          }
+        },
+        "budgetReview": null,
+        "planExecution": {
+          "position": {
+            "planId": "settings-coverage-plan",
+            "version": 2,
+            "itemIndex": 2,
+            "iteration": 0,
+            "bodyIndex": 0,
+            "candidateKey": null,
+            "workUsed": 3,
+            "controlPath": null
+          },
+          "status": 3,
+          "stageExpectation": null,
+          "interruptionReason": "plan:candidate-blocked:root:Factory reset",
+          "attempts": [
+            {
+              "attemptId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-1",
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 1,
+                "itemIndex": 1,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": "root:Network",
+                "workUsed": 3,
+                "controlPath": null
+              },
+              "decisionId": "decision-aa104ef535ba-1",
+              "step": {
+                "targetRole": "ui.element",
+                "targetDescriptor": "Network",
+                "effectClass": "tap",
+                "desiredState": null
+              },
+              "status": 2,
+              "receiptId": "receipt-bind-intent-1-occ-0dc12559bbaa-0-1",
+              "evidenceRefs": [
+                "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-1"
+              ],
+              "reason": null
+            },
+            {
+              "attemptId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-2",
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 1,
+                "itemIndex": 0,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": "android.settings|route:Network\u003EDetails",
+                "workUsed": 7,
+                "controlPath": "1.0.1:candidate-body:0/0.0.0:then:0"
+              },
+              "decisionId": "decision-aa104ef535ba-1",
+              "step": {
+                "targetRole": "ui.element",
+                "targetDescriptor": "Details",
+                "effectClass": "tap",
+                "desiredState": null
+              },
+              "status": 2,
+              "receiptId": "receipt-bind-intent-2-occ-41855c995183-0-2",
+              "evidenceRefs": [
+                "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-2"
+              ],
+              "reason": null
+            },
+            {
+              "attemptId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-3",
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 2,
+                "itemIndex": 0,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": null,
+                "workUsed": 1,
+                "controlPath": null
+              },
+              "decisionId": "decision-aa104ef535ba-2",
+              "step": {
+                "targetRole": "ui.element",
+                "targetDescriptor": "Navigate up",
+                "effectClass": "tap",
+                "desiredState": null
+              },
+              "status": 2,
+              "receiptId": "receipt-bind-intent-3-occ-2ed52953bbe2-0-3",
+              "evidenceRefs": [
+                "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-3"
+              ],
+              "reason": null
+            },
+            {
+              "attemptId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-4",
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 2,
+                "itemIndex": 1,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": null,
+                "workUsed": 2,
+                "controlPath": null
+              },
+              "decisionId": "decision-aa104ef535ba-2",
+              "step": {
+                "targetRole": "ui.element",
+                "targetDescriptor": "Navigate up",
+                "effectClass": "tap",
+                "desiredState": null
+              },
+              "status": 2,
+              "receiptId": "receipt-bind-intent-4-occ-a24c4f37585a-1-4",
+              "evidenceRefs": [
+                "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-4"
+              ],
+              "reason": null
+            }
+          ],
+          "blockedEvidence": [],
+          "conditionEvaluations": [
+            {
+              "evaluationId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-condition-1",
+              "condition": "settings.has-ready-navigation",
+              "result": {
+                "truth": 0,
+                "scopeKey": "android.settings|route:Network",
+                "revision": "coverage:5",
+                "evidenceRefs": [
+                  "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-condition-1"
+                ],
+                "reason": null
+              },
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 1,
+                "itemIndex": 0,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": "root:Network",
+                "workUsed": 5,
+                "controlPath": "1.0.1:candidate-body:0"
+              }
+            }
+          ],
+          "traversal": null
+        },
+        "availablePlanSources": null,
+        "availablePlanConditions": null,
+        "worldKnowledge": {
+          "sourceRevisionId": "rev-218",
+          "collectionStatus": "collected",
+          "gaps": [
+            {
+              "gapId": "world-gap:2c28c3aef217c627594924edf65ed64ce6f577584834d2162426a796b8bd18bf",
+              "kind": 3,
+              "objectRef": "ctr-12cded18302b",
+              "scope": "capture:finite-6:viewport",
+              "reason": "viewport-export;offscreen-and-virtualized-content-unproven",
+              "sourceRevisionId": "rev-218",
+              "evidenceIds": [
+                "ev-d175d76b1048e9224953294dfa61bd76f3f41d36f2c6bd03f71171ca3a49d247"
+              ],
+              "conflicted": false,
+              "causeRef": "capture:ev-d175d76b1048e9224953294dfa61bd76f3f41d36f2c6bd03f71171ca3a49d247"
+            }
+          ],
+          "semanticReferences": [],
+          "currentSemantics": [],
+          "corrections": []
+        },
+        "worldRecovery": {
+          "gaps": [
+            {
+              "gapId": "world-gap:2c28c3aef217c627594924edf65ed64ce6f577584834d2162426a796b8bd18bf",
+              "knownExecutionCount": null,
+              "recordCoverage": "not_collected",
+              "executions": [],
+              "resultHistory": []
+            }
+          ],
+          "reviewRequired": false,
+          "reviewKey": null,
+          "reason": null
+        },
+        "worldEffectImpacts": []
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "On Settings root. Factory reset is explicit exclusion and must not be tapped; root-navigation forEach surfaced it. Scroll the root container once to discover offscreen entries (scrollDiscoveredEntries pending), then re-evaluate root frontier.",
+        "steps": [
+          {
+            "targetRole": "scrollable",
+            "targetDescriptor": "finite:id/scroll",
+            "effectClass": "swipe-up",
+            "desiredState": null
+          }
+        ],
+        "skipTarget": null,
+        "skipReason": null,
+        "evidenceRefs": null,
+        "renewal": null,
+        "reviewResponse": null
+      },
+      "effectiveDecision": {
+        "kind": "act",
+        "justification": "On Settings root. Factory reset is explicit exclusion and must not be tapped; root-navigation forEach surfaced it. Scroll the root container once to discover offscreen entries (scrollDiscoveredEntries pending), then re-evaluate root frontier.",
+        "steps": [
+          {
+            "targetRole": "scrollable",
+            "targetDescriptor": "finite:id/scroll",
+            "effectClass": "swipe-up",
+            "desiredState": null
+          }
+        ],
+        "skipTarget": null,
+        "skipReason": null,
+        "evidenceRefs": null,
+        "renewal": null,
+        "reviewResponse": null
+      }
+    },
+    {
+      "mode": "advisory-direct",
+      "context": {
+        "decisionId": "decision-aa104ef535ba-4",
+        "runId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba",
+        "contractVersion": "v0",
+        "objective": "Traverse Android Settings within the current device, account, permissions and system state. Enter every configured first-level target: Network. Required evidence: rootPage=True, scrollDiscoveredEntries=1, secondLevelPages=2, backNavigation=True, repeatedEntries=0. Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. End on the observed Settings root. Select every action from the current semantic hierarchy. A configured scope result never proves all possible UI states exhaustive.",
+        "allowedEffects": [
+          "tap",
+          "swipe-up"
+        ],
+        "currentWorldClaims": {
+          "ui.screen": {
+            "value": "finite-page:Settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-a17eb56e1b2f": {
+            "value": "finite-page:Details",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.current": {
+            "value": "ctr-12cded18302b",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-12cded18302b": {
+            "value": "finite-page:Settings",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.container.signature.ctr-7ed65d643480": {
+            "value": "finite-page:Network",
+            "disposition": "established",
+            "inConflict": false
+          },
+          "ui.screen.route": {
+            "value": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "disposition": "revised",
+            "inConflict": false
+          }
+        },
+        "pendingObligations": [
+          {
+            "obligationId": "obj-end-on-root",
+            "kind": "Objective",
+            "subject": "ui.screen.route",
+            "requiredValue": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "mandatory": true
+          }
+        ],
+        "phase": 1,
+        "failureReason": null,
+        "failedStepIndex": null,
+        "screen": {
+          "containerId": "ctr-12cded18302b",
+          "signature": "finite-page:Settings"
+        },
+        "elements": [
+          {
+            "role": "ui.element",
+            "text": "Apps",
+            "bounds": "0,0.1,1,0.18",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "ui.element",
+            "text": "Factory reset",
+            "bounds": "0,0.2,1,0.28",
+            "clickable": true,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "switch",
+            "text": "Airplane mode",
+            "bounds": "0,0.3,1,0.38",
+            "clickable": true,
+            "checkable": true,
+            "enabled": true,
+            "epistemic": 0,
+            "state": null
+          },
+          {
+            "role": "scrollable",
+            "text": "finite:id/scroll",
+            "bounds": "0,0.06,1,0.95",
+            "clickable": false,
+            "checkable": false,
+            "enabled": true,
+            "epistemic": 1,
+            "state": null
+          }
+        ],
+        "progress": {
+          "roundsUsed": 4,
+          "stepsDispatched": 5,
+          "stepsVerified": 5,
+          "policyState": null,
+          "stagnantConsultations": 0,
+          "sameRouteConsultations": 0
+        },
+        "budgetRemaining": {
+          "roundsRemaining": 32,
+          "stepsRemaining": 27
+        },
+        "availableCapabilities": null,
+        "renewalWindow": null,
+        "localView": null,
+        "productSessionId": "session-settings-coverage",
+        "contractViewRef": "view-settings-coverage",
+        "decisionBoundaryId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:boundary-4",
+        "heartbeat": null,
+        "contextReferenceIndex": null,
+        "casePacket": null,
+        "executionOverview": {
+          "overviewId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:overview-4",
+          "runId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba",
+          "contractVersion": "v0",
+          "objective": "Traverse Android Settings within the current device, account, permissions and system state. Enter every configured first-level target: Network. Required evidence: rootPage=True, scrollDiscoveredEntries=1, secondLevelPages=2, backNavigation=True, repeatedEntries=0. Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. End on the observed Settings root. Select every action from the current semantic hierarchy. A configured scope result never proves all possible UI states exhaustive.",
+          "initialSteps": 32,
+          "initialRounds": 36,
+          "grantedSteps": 0,
+          "grantedRounds": 0,
+          "stepsConsumed": 5,
+          "roundsConsumed": 4,
+          "stepsRemaining": 27,
+          "roundsRemaining": 32,
+          "segmentStepsConsumed": 5,
+          "segmentRoundsConsumed": 4,
+          "projection": {
+            "currentBranch": "android.settings|rk1:Settings|src=homepage_title|up=0",
+            "knownItems": [
+              "[pending][configured-target] Network \u2014 discovered=true; source=config\u002Broot-observation; observed at root [coverage-event:1,coverage-event:2,coverage-event:14]",
+              "[skipped][dynamic-observation] Airplane mode \u2014 discovered=true; non-ui-element-role [coverage-event:1,coverage-event:2,coverage-event:14,coverage-event:17]",
+              "[pending][dynamic-observation] Apps \u2014 discovered=true; observed at root; not yet verified [coverage-event:17]",
+              "[skipped][dynamic-observation] Factory reset \u2014 discovered=true; explicit-exclusion [coverage-event:1,coverage-event:2,coverage-event:14,coverage-event:17]",
+              "[skipped][dynamic-observation] finite:id/scroll \u2014 discovered=true; non-ui-element-role [coverage-event:1,coverage-event:2,coverage-event:14,coverage-event:17]",
+              "[skipped][dynamic-nested-observation] android.settings|route:Details\u003ENavigate up \u2014 discovered=true; parent-route=android.settings|route:Details; back-descriptor [coverage-event:8]",
+              "[skipped][dynamic-nested-observation] android.settings|route:Details\u003Efinite:id/scroll \u2014 discovered=true; parent-route=android.settings|route:Details; non-ui-element-role [coverage-event:8]",
+              "[verified][dynamic-nested-observation] android.settings|route:Network\u003EDetails \u2014 discovered=true; parent-route=android.settings|route:Network; nested route entry verified [coverage-event:11]",
+              "[skipped][dynamic-nested-observation] android.settings|route:Network\u003ENavigate up \u2014 discovered=true; parent-route=android.settings|route:Network; back-descriptor [coverage-event:11]",
+              "[skipped][dynamic-nested-observation] android.settings|route:Network\u003Efinite:id/scroll \u2014 discovered=true; parent-route=android.settings|route:Network; non-ui-element-role [coverage-event:11]"
+            ],
+            "unknowns": [
+              "scope=SIM037 real Agent finite-menu simulation; limited to current device/account/permissions/system state; unobserved pages and branches are not proven exhaustive"
+            ],
+            "blockers": [],
+            "previousSegmentExpectation": null,
+            "previousSegmentActual": null,
+            "sourceFactRefs": [
+              "coverage-config:coverage",
+              "coverage-config:scope",
+              "coverage-config:targetPages",
+              "coverage-event:1",
+              "coverage-event:11",
+              "coverage-event:14",
+              "coverage-event:17",
+              "coverage-event:2",
+              "coverage-event:5",
+              "coverage-event:8"
+            ],
+            "projectionRevision": "coverage-ledger:17",
+            "worldGraph": {
+              "sourceRevisionId": "rev-260",
+              "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+              "currentContainerId": "ctr-12cded18302b",
+              "nodes": [
+                {
+                  "identity": {
+                    "containerId": "ctr-12cded18302b"
+                  },
+                  "evidenceBasis": [
+                    "ev-12cded18302b1526f6891b1c8bf1033b3390940f2e0a2581e1df7c6e30d57b00",
+                    "ev-fb3405168bfeb4d0275ea66ffaeba374101ef3e9c521d0af4c25df404007b20c",
+                    "ev-0c379c8a5d5586348b8e2705e863464d30ff27d955ab5d5cfee181b6e2c2c811",
+                    "ev-74d707c8f2d37ce3e328622c100fc51b13cfd92a317e3e82855d0681b326daba"
+                  ]
+                },
+                {
+                  "identity": {
+                    "containerId": "ctr-7ed65d643480"
+                  },
+                  "evidenceBasis": [
+                    "ev-7ed65d6434804d1d8d1780c0e32af83e4fa6b5661fd748f56b45c9e69aaabd2b",
+                    "ev-b8635db660cb0298412359ced7ca030c587079c8564bc4b6e3e74ef104cbb937"
+                  ]
+                },
+                {
+                  "identity": {
+                    "containerId": "ctr-a17eb56e1b2f"
+                  },
+                  "evidenceBasis": [
+                    "ev-a17eb56e1b2f0a20d5dec935eba7dd3b8d21a0793072a142b69839fe6ce358b1"
+                  ]
+                }
+              ],
+              "edges": [
+                {
+                  "kind": 2,
+                  "sourceContainerId": "ctr-12cded18302b",
+                  "targetContainerId": "ctr-7ed65d643480",
+                  "evidenceBasis": [
+                    "ev-fb3405168bfeb4d0275ea66ffaeba374101ef3e9c521d0af4c25df404007b20c",
+                    "ev-7ed65d6434804d1d8d1780c0e32af83e4fa6b5661fd748f56b45c9e69aaabd2b"
+                  ],
+                  "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+                  "verificationSourceRef": "verification:rev-115:receipt-bind-intent-1-occ-0dc12559bbaa-0-1",
+                  "sourceRevisionId": "rev-82",
+                  "targetRevisionId": "rev-115"
+                },
+                {
+                  "kind": 2,
+                  "sourceContainerId": "ctr-7ed65d643480",
+                  "targetContainerId": "ctr-a17eb56e1b2f",
+                  "evidenceBasis": [
+                    "ev-7ed65d6434804d1d8d1780c0e32af83e4fa6b5661fd748f56b45c9e69aaabd2b",
+                    "ev-a17eb56e1b2f0a20d5dec935eba7dd3b8d21a0793072a142b69839fe6ce358b1"
+                  ],
+                  "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+                  "verificationSourceRef": "verification:rev-141:receipt-bind-intent-2-occ-41855c995183-0-2",
+                  "sourceRevisionId": "rev-116",
+                  "targetRevisionId": "rev-141"
+                },
+                {
+                  "kind": 2,
+                  "sourceContainerId": "ctr-a17eb56e1b2f",
+                  "targetContainerId": "ctr-7ed65d643480",
+                  "evidenceBasis": [
+                    "ev-a17eb56e1b2f0a20d5dec935eba7dd3b8d21a0793072a142b69839fe6ce358b1",
+                    "ev-b8635db660cb0298412359ced7ca030c587079c8564bc4b6e3e74ef104cbb937"
+                  ],
+                  "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+                  "verificationSourceRef": "verification:rev-175:receipt-bind-intent-3-occ-2ed52953bbe2-0-3",
+                  "sourceRevisionId": "rev-142",
+                  "targetRevisionId": "rev-175"
+                },
+                {
+                  "kind": 2,
+                  "sourceContainerId": "ctr-7ed65d643480",
+                  "targetContainerId": "ctr-12cded18302b",
+                  "evidenceBasis": [
+                    "ev-b8635db660cb0298412359ced7ca030c587079c8564bc4b6e3e74ef104cbb937",
+                    "ev-0c379c8a5d5586348b8e2705e863464d30ff27d955ab5d5cfee181b6e2c2c811"
+                  ],
+                  "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+                  "verificationSourceRef": "verification:rev-217:receipt-bind-intent-4-occ-a24c4f37585a-1-4",
+                  "sourceRevisionId": "rev-176",
+                  "targetRevisionId": "rev-217"
+                }
+              ],
+              "unknown": [
+                "navigation-graph-is-observation-bounded"
+              ],
+              "viewportTransitions": [
+                {
+                  "containerId": "ctr-12cded18302b",
+                  "sourceRevisionId": "rev-218",
+                  "targetRevisionId": "rev-259",
+                  "operationReceiptId": "receipt-bind-intent-5-occ-9e6495439073-3-5",
+                  "operationBindingId": "bind-intent-5-occ-9e6495439073-3",
+                  "sourceTargetOccurrenceId": "occ-9e6495439073-3",
+                  "effectClass": "swipe-up",
+                  "dispatchedAt": "2026-10-24T00:00:06.1+00:00",
+                  "scope": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:v0",
+                  "verificationSourceRef": "verification:rev-259:receipt-bind-intent-5-occ-9e6495439073-3-5",
+                  "sourceEvidenceIds": [
+                    "ev-9e64954390733c337a3a89883d49dbe26ead83a315933225652dd783ce425cb5",
+                    "ev-d175d76b1048e9224953294dfa61bd76f3f41d36f2c6bd03f71171ca3a49d247"
+                  ],
+                  "targetEvidenceIds": [
+                    "ev-7e2a96d4887789dce9923a9d06f9edee54c517adcd0009a776ee9dddfae98c40",
+                    "ev-8895927a89e6452975a88c5efcf2a1c3f6ebd88d5ac36f24ce1b40aad355b445"
+                  ],
+                  "alignmentStatus": "InsufficientMovingAnchors",
+                  "offsetX": null,
+                  "offsetY": null,
+                  "correspondences": [],
+                  "space": {
+                    "coordinateSpaceId": "device-viewport:1000x1000@0",
+                    "pixelWidth": 1000,
+                    "pixelHeight": 1000,
+                    "rotation": 0,
+                    "captureId": "finite-6"
+                  },
+                  "sourceRegion": {
+                    "x1": 0,
+                    "y1": 0.06,
+                    "x2": 1,
+                    "y2": 0.95,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.5,
+                    "centerY": 0.505
+                  },
+                  "targetRegion": {
+                    "x1": 0,
+                    "y1": 0.06,
+                    "x2": 1,
+                    "y2": 0.95,
+                    "spatialFrameId": "device-viewport",
+                    "centerX": 0.5,
+                    "centerY": 0.505
+                  }
+                }
+              ]
+            },
+            "progressFactKeys": [
+              "discovered:dynamic-root:Airplane mode",
+              "discovered:dynamic-root:Apps",
+              "discovered:dynamic-root:Factory reset",
+              "discovered:dynamic-root:finite:id/scroll",
+              "discovered:nested:android.settings|route:Details:Navigate up",
+              "discovered:nested:android.settings|route:Details:finite:id/scroll",
+              "discovered:nested:android.settings|route:Network:Details",
+              "discovered:nested:android.settings|route:Network:Navigate up",
+              "discovered:nested:android.settings|route:Network:finite:id/scroll",
+              "discovered:root:Network",
+              "excluded:dynamic-root:Airplane mode:non-ui-element-role",
+              "excluded:dynamic-root:Factory reset:explicit-exclusion",
+              "excluded:dynamic-root:finite:id/scroll:non-ui-element-role",
+              "excluded:nested:android.settings|route:Details:Navigate up:back-descriptor",
+              "excluded:nested:android.settings|route:Details:finite:id/scroll:non-ui-element-role",
+              "excluded:nested:android.settings|route:Network:Navigate up:back-descriptor",
+              "excluded:nested:android.settings|route:Network:finite:id/scroll:non-ui-element-role",
+              "navigation:ctr-12cded18302b\u003Ectr-7ed65d643480",
+              "navigation:ctr-7ed65d643480\u003Ectr-12cded18302b",
+              "navigation:ctr-7ed65d643480\u003Ectr-a17eb56e1b2f",
+              "navigation:ctr-a17eb56e1b2f\u003Ectr-7ed65d643480",
+              "scope:current-device-account-permissions-system-state",
+              "verified:nested:android.settings|route:Network:Details",
+              "verified:requirement:back-navigation",
+              "verified:requirement:dynamic-nested-entries",
+              "verified:requirement:first-level-all-visible",
+              "verified:requirement:repeated-entry",
+              "verified:requirement:root-page"
+            ],
+            "actionableItems": {
+              "root:Network": {
+                "sourceFactRefs": [
+                  "coverage-event:1",
+                  "coverage-event:2",
+                  "coverage-event:14"
+                ],
+                "progressFactKeys": [
+                  "item-state:root:Network:pending:discovered=true; source=config\u002Broot-observation; observed at root"
+                ]
+              },
+              "root:Apps": {
+                "sourceFactRefs": [
+                  "coverage-event:17"
+                ],
+                "progressFactKeys": [
+                  "item-state:root:Apps:pending:discovered=true; observed at root; not yet verified"
+                ]
+              },
+              "explore:unobserved-scope": {
+                "sourceFactRefs": [
+                  "coverage-config:scope"
+                ],
+                "progressFactKeys": [
+                  "discovered:dynamic-root:Airplane mode",
+                  "discovered:dynamic-root:Apps",
+                  "discovered:dynamic-root:Factory reset",
+                  "discovered:dynamic-root:finite:id/scroll",
+                  "discovered:nested:android.settings|route:Details:Navigate up",
+                  "discovered:nested:android.settings|route:Details:finite:id/scroll",
+                  "discovered:nested:android.settings|route:Network:Details",
+                  "discovered:nested:android.settings|route:Network:Navigate up",
+                  "discovered:nested:android.settings|route:Network:finite:id/scroll",
+                  "discovered:root:Network",
+                  "excluded:dynamic-root:Airplane mode:non-ui-element-role",
+                  "excluded:dynamic-root:Factory reset:explicit-exclusion",
+                  "excluded:dynamic-root:finite:id/scroll:non-ui-element-role",
+                  "excluded:nested:android.settings|route:Details:Navigate up:back-descriptor",
+                  "excluded:nested:android.settings|route:Details:finite:id/scroll:non-ui-element-role",
+                  "excluded:nested:android.settings|route:Network:Navigate up:back-descriptor",
+                  "excluded:nested:android.settings|route:Network:finite:id/scroll:non-ui-element-role",
+                  "navigation:ctr-12cded18302b\u003Ectr-7ed65d643480",
+                  "navigation:ctr-7ed65d643480\u003Ectr-12cded18302b",
+                  "navigation:ctr-7ed65d643480\u003Ectr-a17eb56e1b2f",
+                  "navigation:ctr-a17eb56e1b2f\u003Ectr-7ed65d643480",
+                  "scope:current-device-account-permissions-system-state",
+                  "verified:nested:android.settings|route:Network:Details"
+                ]
+              },
+              "requirement:scroll-discovered-entry": {
+                "sourceFactRefs": [
+                  "coverage-config:coverage"
+                ],
+                "progressFactKeys": [
+                  "requirement-state:scroll-discovered-entry:entered 0/1 scroll-discovered"
+                ]
+              },
+              "requirement:second-level-pages": {
+                "sourceFactRefs": [
+                  "coverage-config:coverage"
+                ],
+                "progressFactKeys": [
+                  "requirement-state:second-level-pages:distinct second-level routes 1/2"
+                ]
+              },
+              "requirement:dynamic-root-entries": {
+                "sourceFactRefs": [
+                  "coverage-config:coverage"
+                ],
+                "progressFactKeys": [
+                  "requirement-state:dynamic-root-entries:visited 0, frontier 1, skipped 4"
+                ]
+              }
+            }
+          },
+          "previousSegmentStepsConsumed": 0,
+          "previousSegmentRoundsConsumed": 0,
+          "previousSegmentExpectation": null,
+          "previousSegmentActual": null,
+          "currentSegmentExpectation": "Traverse Android Settings within the current device, account, permissions and system state. Enter every configured first-level target: Network. Required evidence: rootPage=True, scrollDiscoveredEntries=1, secondLevelPages=2, backNavigation=True, repeatedEntries=0. Discover and inspect the safe dynamic root frontier; keep unobserved branches unknown. Inspect the configured dynamic nested frontier, keeping depth and scope limits explicit. End on the observed Settings root. Select every action from the current semantic hierarchy. A configured scope result never proves all possible UI states exhaustive.",
+          "currentSegmentActual": "verified=5;new-known=10;new-unknown=0;new-progress-facts=17;owner-actual=unknown",
+          "relevantHistory": null,
+          "previousOverviewStepsConsumed": 4,
+          "previousOverviewRoundsConsumed": 3,
+          "stepsConsumedSincePreviousOverview": 1,
+          "roundsConsumedSincePreviousOverview": 1,
+          "newlyVerifiedStepsSincePreviousOverview": 1,
+          "newSourceFactRefsSincePreviousOverview": [
+            "coverage-event:17"
+          ],
+          "newlyKnownItemsSincePreviousOverview": [
+            "[pending][dynamic-observation] Apps \u2014 discovered=true; observed at root; not yet verified [coverage-event:17]",
+            "[skipped][dynamic-observation] Airplane mode \u2014 discovered=true; non-ui-element-role [coverage-event:1,coverage-event:2,coverage-event:14,coverage-event:17]",
+            "[skipped][dynamic-observation] Factory reset \u2014 discovered=true; explicit-exclusion [coverage-event:1,coverage-event:2,coverage-event:14,coverage-event:17]",
+            "[skipped][dynamic-observation] finite:id/scroll \u2014 discovered=true; non-ui-element-role [coverage-event:1,coverage-event:2,coverage-event:14,coverage-event:17]"
+          ],
+          "newlyUnknownItemsSincePreviousOverview": [],
+          "segmentStepsVerified": 5,
+          "planExecution": {
+            "position": {
+              "planId": "settings-coverage-plan",
+              "version": 2,
+              "itemIndex": 0,
+              "iteration": 0,
+              "bodyIndex": 0,
+              "candidateKey": null,
+              "workUsed": 3,
+              "controlPath": null
+            },
+            "status": 3,
+            "interruptionReason": "plan:candidate-blocked:root:Factory reset",
+            "attempts": 4,
+            "blockedCandidates": 0,
+            "stageExpectation": null
+          }
+        },
+        "budgetReview": null,
+        "planExecution": {
+          "position": {
+            "planId": "settings-coverage-plan",
+            "version": 2,
+            "itemIndex": 0,
+            "iteration": 0,
+            "bodyIndex": 0,
+            "candidateKey": null,
+            "workUsed": 3,
+            "controlPath": null
+          },
+          "status": 3,
+          "stageExpectation": null,
+          "interruptionReason": "plan:candidate-blocked:root:Factory reset",
+          "attempts": [
+            {
+              "attemptId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-1",
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 1,
+                "itemIndex": 1,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": "root:Network",
+                "workUsed": 3,
+                "controlPath": null
+              },
+              "decisionId": "decision-aa104ef535ba-1",
+              "step": {
+                "targetRole": "ui.element",
+                "targetDescriptor": "Network",
+                "effectClass": "tap",
+                "desiredState": null
+              },
+              "status": 2,
+              "receiptId": "receipt-bind-intent-1-occ-0dc12559bbaa-0-1",
+              "evidenceRefs": [
+                "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-1"
+              ],
+              "reason": null
+            },
+            {
+              "attemptId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-2",
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 1,
+                "itemIndex": 0,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": "android.settings|route:Network\u003EDetails",
+                "workUsed": 7,
+                "controlPath": "1.0.1:candidate-body:0/0.0.0:then:0"
+              },
+              "decisionId": "decision-aa104ef535ba-1",
+              "step": {
+                "targetRole": "ui.element",
+                "targetDescriptor": "Details",
+                "effectClass": "tap",
+                "desiredState": null
+              },
+              "status": 2,
+              "receiptId": "receipt-bind-intent-2-occ-41855c995183-0-2",
+              "evidenceRefs": [
+                "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-2"
+              ],
+              "reason": null
+            },
+            {
+              "attemptId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-3",
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 2,
+                "itemIndex": 0,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": null,
+                "workUsed": 1,
+                "controlPath": null
+              },
+              "decisionId": "decision-aa104ef535ba-2",
+              "step": {
+                "targetRole": "ui.element",
+                "targetDescriptor": "Navigate up",
+                "effectClass": "tap",
+                "desiredState": null
+              },
+              "status": 2,
+              "receiptId": "receipt-bind-intent-3-occ-2ed52953bbe2-0-3",
+              "evidenceRefs": [
+                "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-3"
+              ],
+              "reason": null
+            },
+            {
+              "attemptId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-4",
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 2,
+                "itemIndex": 1,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": null,
+                "workUsed": 2,
+                "controlPath": null
+              },
+              "decisionId": "decision-aa104ef535ba-2",
+              "step": {
+                "targetRole": "ui.element",
+                "targetDescriptor": "Navigate up",
+                "effectClass": "tap",
+                "desiredState": null
+              },
+              "status": 2,
+              "receiptId": "receipt-bind-intent-4-occ-a24c4f37585a-1-4",
+              "evidenceRefs": [
+                "plan-attempt:run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-attempt-4"
+              ],
+              "reason": null
+            }
+          ],
+          "blockedEvidence": [],
+          "conditionEvaluations": [
+            {
+              "evaluationId": "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-condition-1",
+              "condition": "settings.has-ready-navigation",
+              "result": {
+                "truth": 0,
+                "scopeKey": "android.settings|route:Network",
+                "revision": "coverage:5",
+                "evidenceRefs": [
+                  "run-52f4c7be0966732789d02cb8ad094a7c820ebf06e5c12eeca821aa104ef535ba:plan-condition-1"
+                ],
+                "reason": null
+              },
+              "position": {
+                "planId": "settings-coverage-plan",
+                "version": 1,
+                "itemIndex": 0,
+                "iteration": 0,
+                "bodyIndex": 0,
+                "candidateKey": "root:Network",
+                "workUsed": 5,
+                "controlPath": "1.0.1:candidate-body:0"
+              }
+            }
+          ],
+          "traversal": null
+        },
+        "availablePlanSources": null,
+        "availablePlanConditions": null,
+        "worldKnowledge": {
+          "sourceRevisionId": "rev-260",
+          "collectionStatus": "collected",
+          "gaps": [
+            {
+              "gapId": "world-gap:3b88539e36fb12e0e4af317940d228823b9e8129966b818b5abcfc71a10818a9",
+              "kind": 3,
+              "objectRef": "ctr-12cded18302b",
+              "scope": "capture:finite-7:viewport",
+              "reason": "viewport-export;offscreen-and-virtualized-content-unproven",
+              "sourceRevisionId": "rev-260",
+              "evidenceIds": [
+                "ev-7e2a96d4887789dce9923a9d06f9edee54c517adcd0009a776ee9dddfae98c40"
+              ],
+              "conflicted": false,
+              "causeRef": "capture:ev-7e2a96d4887789dce9923a9d06f9edee54c517adcd0009a776ee9dddfae98c40"
+            }
+          ],
+          "semanticReferences": [],
+          "currentSemantics": [],
+          "corrections": []
+        },
+        "worldRecovery": {
+          "gaps": [
+            {
+              "gapId": "world-gap:3b88539e36fb12e0e4af317940d228823b9e8129966b818b5abcfc71a10818a9",
+              "knownExecutionCount": null,
+              "recordCoverage": "not_collected",
+              "executions": [],
+              "resultHistory": []
+            }
+          ],
+          "reviewRequired": false,
+          "reviewKey": null,
+          "reason": null
+        },
+        "worldEffectImpacts": []
+      },
+      "decision": {
+        "kind": "act",
+        "justification": "Root observed after scroll. Apps is the scroll-discovered offscreen entry (satisfies scrollDiscoveredEntries) and a distinct second-level route pending entry; Factory reset is excluded and will not be tapped. Enter Apps, then return to root via Navigate up and end on Settings root.",
+        "steps": [
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Apps",
+            "effectClass": "tap",
+            "desiredState": null
+          },
+          {
+            "targetRole": "ui.element",
+            "targetDescriptor": "Navigate up",
+            "effectClass": "tap",
+            "desiredState": null
+          }
+        ],
+        "skipTarget": null,
+        "skipReason": null,
+        "evidenceRefs": null,
+        "renewal": null,
+        "reviewResponse": null
+      },
+      "effectiveDecision": null
+    }
+  ]
+}

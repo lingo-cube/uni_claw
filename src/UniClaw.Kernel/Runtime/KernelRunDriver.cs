@@ -177,6 +177,7 @@ public sealed partial class KernelRunDriver : IAsyncDisposable
     private readonly List<(int DecisionN, int StepIndex, string ReceiptId)> _completedSteps = new();
     private readonly HashSet<(int DecisionN, int StepIndex)> _linearStepAnchors = new();
     private WorldBeliefRevision? _preDispatchBelief;
+    private ExpectedEffect? _stepExpectedEffect;
     private string? _inFlightReceiptId;
     private IReadOnlyList<string> _executionWorldDecisionRefs = Array.Empty<string>();
 
@@ -357,6 +358,9 @@ public sealed partial class KernelRunDriver : IAsyncDisposable
     private AgentDecision? _adoptedDecision;
     private string? _consultRejection;
     private int _stepIndex;
+    // Scope cursor for an ordinary Act, not World identity or Effect authority.
+    private string? _actOriginContainerId;
+    private string? _actOriginOverlayState;
     private string? _boundarySignature;
     private int _boundarySequence;
     private InterruptionSignal? _pendingInterruption;
@@ -964,6 +968,8 @@ public sealed partial class KernelRunDriver : IAsyncDisposable
                             _deferRoundsUsed = 0;
                             _deferExhaustedPending = false;
                             _stepIndex = 0;
+                            _actOriginContainerId = CurrentInteractionContainerId(_kernel.CurrentBelief);
+                            _actOriginOverlayState = _kernel.CurrentBelief?.WorldState.GetValueOrDefault(ProductAssociationStrategy.PopupSubject)?.Value;
                             _phase = DrivePhase.StepAct;
                             continue;
                         }
@@ -1095,6 +1101,28 @@ public sealed partial class KernelRunDriver : IAsyncDisposable
 
                     // 采纳「仅本 step」的 TargetSpec（Control 仍独占 intent 签发）
                     var step = steps[_stepIndex];
+                    if (_adoptedDecision is AgentDecision.Act localAct && steps.Count > 1)
+                    {
+                        var currentContainer = CurrentInteractionContainerId(_kernel.CurrentBelief);
+                        var overlayState = _kernel.CurrentBelief?.WorldState.GetValueOrDefault(ProductAssociationStrategy.PopupSubject)?.Value;
+                        if (_actOriginContainerId is null || currentContainer != _actOriginContainerId
+                            || overlayState != _actOriginOverlayState)
+                        {
+                            // A boundary action may finish the Act; an unexecuted
+                            // tail cannot follow it into another container.
+                            _pendingFailureReason = $"act-scope-changed:proposal={localAct.Proposal.DecisionId};"
+                                + $"origin={_actOriginContainerId ?? "unknown"};current={currentContainer ?? "unknown"};"
+                                + $"overlay={_actOriginOverlayState ?? "unknown"}->{overlayState ?? "unknown"};"
+                                + $"last-receipt={_completedSteps.LastOrDefault(item => item.DecisionN == _consultCounter).ReceiptId ?? "none"};"
+                                + $"unexecuted-from={_stepIndex};remaining="
+                                + System.Text.Json.JsonSerializer.Serialize(steps.Skip(_stepIndex));
+                            _pendingFailurePhase = AgentDecisionPhase.StepRejected;
+                            _pendingFailedStepIndex = _stepIndex;
+                            _adoptedDecision = null;
+                            _phase = DrivePhase.NeedDecision;
+                            continue;
+                        }
+                    }
                     _activeGuardEvidenceRefs = Array.Empty<string>();
                     if (_inputs.GuardStep is { } stepGuard)
                     {
@@ -1139,11 +1167,12 @@ public sealed partial class KernelRunDriver : IAsyncDisposable
                                     guard.Verdict == PlanStepGuardVerdict.Unknown ? PlanAttemptStatus.UnknownOutcome : PlanAttemptStatus.Rejected,
                                     null, guard.EvidenceRefs ?? Array.Empty<string>(), guard.Reason);
                             }
+                            var failedStepIndex = _planItems is not null ? _planItemIndex : _stepIndex;
                             VoidActivePolicyForStepFailure(AgentDecisionPhase.StepRejected, guard.Reason);
                             await VoidActivePlanForStepFailureAsync().ConfigureAwait(false);
                             _pendingFailureReason = guard.Reason;
                             _pendingFailurePhase = AgentDecisionPhase.StepRejected;
-                            _pendingFailedStepIndex = _planItemIndex;
+                            _pendingFailedStepIndex = failedStepIndex;
                             _adoptedDecision = null;
                             _phase = DrivePhase.NeedDecision;
                             continue;
@@ -1285,6 +1314,7 @@ public sealed partial class KernelRunDriver : IAsyncDisposable
                             null, 0);
                     }
 
+                    _stepExpectedEffect = _inputs.ProjectExpectedEffect?.Invoke(step, BuildGuardContext(view));
                     _preDispatchBelief = _kernel.CurrentBelief;
                     await BeginResourceOperationAsync("dispatch", intentId: intent.IntentId).ConfigureAwait(false);
                     if (cancellationToken.IsCancellationRequested) continue;
@@ -1379,7 +1409,7 @@ public sealed partial class KernelRunDriver : IAsyncDisposable
                         step.TargetRole, step.TargetDescriptor, step.EffectClass,
                         CheckedSemantics.FromPresentation(step.DesiredState));
                     var verification = await _kernel.VerifyPostActionEffectAsync(
-                        target, post.ProcessedObservations, _lastDispatchAt, _preDispatchBelief, _inFlightReceiptId).ConfigureAwait(false);
+                        target, post.ProcessedObservations, _lastDispatchAt, _preDispatchBelief, _inFlightReceiptId, _stepExpectedEffect).ConfigureAwait(false);
                     _resourceVerificationSettled = true;
                     if (!verification.IsVerified)
                     {
@@ -1418,6 +1448,7 @@ public sealed partial class KernelRunDriver : IAsyncDisposable
                         post.ProcessedObservations.Select(o => o.Admission.EvidenceId)
                             .Where(id => id is not null).Cast<string>().ToArray(), null);
                     _preDispatchBelief = null;
+                    _stepExpectedEffect = null;
                     _inFlightReceiptId = null;
                     _stepIndex++;
                     if (_policy is not null)
@@ -3885,13 +3916,16 @@ public sealed partial class KernelRunDriver : IAsyncDisposable
             _observationRecoveryEvidence.Clear();
         }
         var processed = _observationRecoveryEvidence;
-        const string recoverySubject = "page-identity";
+        var overlayRecovery = _kernel.CurrentBelief?.ObservationNeed?.Kind == OverlayObservationCodec.NeedKind;
+        var recoverySubject = overlayRecovery ? "overlay" : "page-identity";
         if (_observationRecovery.IsExpired(slot))
             return await RecordObservationRecoveryFailureAsync(slot,
                 $"{recoverySubject}-observation-expired", expected, processed).ConfigureAwait(false);
         while (true)
         {
         var need = _kernel.CurrentBelief?.ObservationNeed;
+        overlayRecovery = need?.Kind == OverlayObservationCodec.NeedKind;
+        recoverySubject = overlayRecovery ? "overlay" : "page-identity";
         TimeSpan? remaining = null;
         if (need is not null)
         {
@@ -3908,8 +3942,8 @@ public sealed partial class KernelRunDriver : IAsyncDisposable
         try
         {
         var input = _inputs.NextInput(new ObservationDirective(expected,
-            need is null ? depth : ObservationDepth.Slow,
-            need is null ? subjects : new[] { WorldModel.CurrentContainerSubject }, need, remaining) { AttemptCorrelation = link });
+            need is null ? depth : overlayRecovery ? ObservationDepth.Normal : ObservationDepth.Slow,
+            need is null ? subjects : new[] { overlayRecovery ? ProductAssociationStrategy.PopupSubject : WorldModel.CurrentContainerSubject }, need, remaining) { AttemptCorrelation = link });
         if (need is not null && input is RunDriverInput.Observation && !_observationRecovery.CanAccept(slot))
             return await RecordObservationRecoveryFailureAsync(slot,
                 $"{recoverySubject}-observation-timeout", expected, processed).ConfigureAwait(false);

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="0c20a16a-4d42-4352-999d-60b11c91d5b7" name="@frandeMac-mini 2026-10-25 14:14:59" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-25T14:14:59.9947820+08:00" queuing="2026-10-25T14:14:59.9947820+08:00" start="2026-10-25T14:14:57.9595080+08:00" finish="2026-10-25T14:14:59.9967210+08:00" />
+  <TestSettings name="default" id="7c2fc9dc-efc3-4e96-9fc5-300ccb0cf681">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-25_14_14_59" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="316baca7-f288-4995-916e-151fd80d0317" testId="8dd73ffc-6cd2-a4ae-5fba-8f5b1b2910dd" testName="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.ScriptedCarrierPreservesTheOriginalGraphAndReturns" computerName="frandeMac-mini" duration="00:00:01.4510037" startTime="2026-10-25T14:14:59.8301940+08:00" endTime="2026-10-25T14:14:59.8302030+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="316baca7-f288-4995-916e-151fd80d0317">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.All() Failure: 1 out of 8 items in the collection did not pass.
+[6]: Item:  CoverageItem { Requirement = dynamic-root-entries, Detail = visited 1, frontier 1, skipped 3, Covered = False, Evidence = visited=Apps;frontier=Factory reset }
+     Error: dynamic-root-entries: visited 1, frontier 1, skipped 3</Message>
+          <StackTrace>   at UniClaw.Host.Tests.FiniteMenuGraphSimulationTests.CheckRealAgentCarrier(Boolean earlyCompletion) in /Users/fran/Documents/Code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v2/tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.RealAgent.cs:line 94
+   at UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.ScriptedCarrierPreservesTheOriginalGraphAndReturns() in /Users/fran/Documents/Code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v2/tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.RealAgent.cs:line 22
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.ScriptedCarrierPreservesTheOriginalGraphAndReturns" storage="/users/fran/documents/code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v2/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="8dd73ffc-6cd2-a4ae-5fba-8f5b1b2910dd">
+      <Execution id="316baca7-f288-4995-916e-151fd80d0317" />
+      <TestMethod codeBase="/Users/fran/Documents/Code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v2/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests" name="ScriptedCarrierPreservesTheOriginalGraphAndReturns" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="8dd73ffc-6cd2-a4ae-5fba-8f5b1b2910dd" executionId="316baca7-f288-4995-916e-151fd80d0317" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Host.Tests
+[xUnit.net 00:00:00.08]   Discovered:  UniClaw.Host.Tests
+[xUnit.net 00:00:00.08]   Starting:    UniClaw.Host.Tests
+[xUnit.net 00:00:01.55]       Assert.All() Failure: 1 out of 8 items in the collection did not pass.
+[xUnit.net 00:00:01.55]       [6]: Item:  CoverageItem { Requirement = dynamic-root-entries, Detail = visited 1, frontier 1, skipped 3, Covered = False, Evidence = visited=Apps;frontier=Factory reset }
+[xUnit.net 00:00:01.55]            Error: dynamic-root-entries: visited 1, frontier 1, skipped 3
+[xUnit.net 00:00:01.55]       Stack Trace:
+[xUnit.net 00:00:01.55]         /Users/fran/Documents/Code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v2/tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.RealAgent.cs(94,0): at UniClaw.Host.Tests.FiniteMenuGraphSimulationTests.CheckRealAgentCarrier(Boolean earlyCompletion)
+[xUnit.net 00:00:01.55]         /Users/fran/Documents/Code/spacex/uni_claw/.codex-artifacts/sim037-real-agent/source-v2/tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.RealAgent.cs(22,0): at UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.ScriptedCarrierPreservesTheOriginalGraphAndReturns()
+[xUnit.net 00:00:01.55]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:01.55]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.55]   Finished:    UniClaw.Host.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-25T14:14:59.8292620+08:00">
+        <Text>[xUnit.net 00:00:01.55]     UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.ScriptedCarrierPreservesTheOriginalGraphAndReturns [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

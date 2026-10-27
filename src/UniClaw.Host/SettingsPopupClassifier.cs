@@ -4,7 +4,7 @@ namespace UniClaw.Host;
 
 /// <summary>XML-only popup classification shared by live acquisition and offline
 /// replay. Produces no action authorization; missing or malformed XML yields no claim.</summary>
-public static class SettingsPopupClassifier
+public static partial class SettingsPopupClassifier
 {
     public static string? Classify(string? xml, string hostPackage, IReadOnlyList<string> popupResourceIds)
     {

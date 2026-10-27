@@ -1,0 +1,20 @@
+{
+  "mode": "complete",
+  "elapsedMs": 74122,
+  "runDir": "/Users/fran/Documents/Code/spacex/uni_claw/changes/SIM-037/evidence/live/normal-001/run-20261025-060918-983",
+  "status": "TerminalNotProven",
+  "reason": "agent-blocked:Mandatory end-on-root obligation is satisfied (on android.settings|rk1:Settings|src=homepage_title|up=0) and rootPage/backNavigation/secondLevelPages=2/firstLevelAllVisible=2-2/repeatedEntries=0 are all verified. However required evidence scrollDiscoveredEntries=1 remains 0/1. The swipe-up used to discover offscreen entries now fails verification (post-action-content-transition) and the effect is recorded blocked. The only scroll-revealed entries beyond configured targets are Factory reset and the Airplane mode switch, both forbidden by task constraints (no Factory reset, no switch operation). No safe navigable scroll-discovered entry remains to enter, so this requirement cannot be honestly satisfied within the safe scope; further scroll attempts would only repeat the same failed effect.",
+  "consultations": 7,
+  "dshSessionId": "session-5bbec47a-9c2b-4e96-906b-68cb13bd6cc0",
+  "decisions": [
+    "Plan",
+    "Act",
+    "Act",
+    "Act",
+    "Act",
+    "Act",
+    "Blocked"
+  ],
+  "capturedTrajectories": 7,
+  "errors": []
+}

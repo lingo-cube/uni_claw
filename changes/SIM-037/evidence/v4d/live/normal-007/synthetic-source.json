@@ -1,0 +1,79 @@
+[
+  {
+    "id": "finite-1",
+    "page": "Settings",
+    "viewport": 0,
+    "xml": "\u003Chierarchy\u003E\u003Cnode text=\u0027Settings\u0027 resource-id=\u0027finite:id/title\u0027 class=\u0027android.widget.TextView\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027false\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,0][1000,80]\u0027/\u003E\u003Cnode text=\u0027Network\u0027 resource-id=\u0027finite:id/Network\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,100][1000,180]\u0027/\u003E\u003Cnode text=\u0027Factory reset\u0027 resource-id=\u0027finite:id/Factory_reset\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,200][1000,280]\u0027/\u003E\u003Cnode text=\u0027Airplane mode\u0027 resource-id=\u0027finite:id/Airplane_mode\u0027 class=\u0027android.widget.Switch\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027true\u0027 bounds=\u0027[0,300][1000,380]\u0027/\u003E\u003Cnode resource-id=\u0027finite:id/scroll\u0027 class=\u0027android.widget.ScrollView\u0027 package=\u0027com.android.settings\u0027 scrollable=\u0027true\u0027 enabled=\u0027true\u0027 bounds=\u0027[0,60][1000,950]\u0027/\u003E\u003C/hierarchy\u003E",
+    "synthetic": true
+  },
+  {
+    "id": "finite-2",
+    "page": "Network",
+    "viewport": 0,
+    "xml": "\u003Chierarchy\u003E\u003Cnode text=\u0027Network\u0027 resource-id=\u0027finite:id/title\u0027 class=\u0027android.widget.TextView\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027false\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,0][1000,80]\u0027/\u003E\u003Cnode text=\u0027Details\u0027 resource-id=\u0027finite:id/Details\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,100][1000,180]\u0027/\u003E\u003Cnode text=\u0027Navigate up\u0027 resource-id=\u0027finite:id/Navigate_up\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,800][1000,880]\u0027/\u003E\u003Cnode resource-id=\u0027finite:id/scroll\u0027 class=\u0027android.widget.ScrollView\u0027 package=\u0027com.android.settings\u0027 scrollable=\u0027true\u0027 enabled=\u0027true\u0027 bounds=\u0027[0,60][1000,950]\u0027/\u003E\u003C/hierarchy\u003E",
+    "synthetic": true
+  },
+  {
+    "id": "finite-3",
+    "page": "Network",
+    "viewport": 0,
+    "xml": "\u003Chierarchy\u003E\u003Cnode text=\u0027Network\u0027 resource-id=\u0027finite:id/title\u0027 class=\u0027android.widget.TextView\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027false\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,0][1000,80]\u0027/\u003E\u003Cnode text=\u0027Details\u0027 resource-id=\u0027finite:id/Details\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,100][1000,180]\u0027/\u003E\u003Cnode text=\u0027Navigate up\u0027 resource-id=\u0027finite:id/Navigate_up\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,800][1000,880]\u0027/\u003E\u003Cnode resource-id=\u0027finite:id/scroll\u0027 class=\u0027android.widget.ScrollView\u0027 package=\u0027com.android.settings\u0027 scrollable=\u0027true\u0027 enabled=\u0027true\u0027 bounds=\u0027[0,60][1000,950]\u0027/\u003E\u003C/hierarchy\u003E",
+    "synthetic": true
+  },
+  {
+    "id": "finite-4",
+    "page": "Network",
+    "viewport": 1,
+    "xml": "\u003Chierarchy\u003E\u003Cnode text=\u0027Network\u0027 resource-id=\u0027finite:id/title\u0027 class=\u0027android.widget.TextView\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027false\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,0][1000,80]\u0027/\u003E\u003Cnode text=\u0027Advanced\u0027 resource-id=\u0027finite:id/Advanced\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,100][1000,180]\u0027/\u003E\u003Cnode text=\u0027Navigate up\u0027 resource-id=\u0027finite:id/Navigate_up\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,800][1000,880]\u0027/\u003E\u003Cnode resource-id=\u0027finite:id/scroll\u0027 class=\u0027android.widget.ScrollView\u0027 package=\u0027com.android.settings\u0027 scrollable=\u0027true\u0027 enabled=\u0027true\u0027 bounds=\u0027[0,60][1000,950]\u0027/\u003E\u003C/hierarchy\u003E",
+    "synthetic": true
+  },
+  {
+    "id": "finite-5",
+    "page": "Network",
+    "viewport": 1,
+    "xml": "\u003Chierarchy\u003E\u003Cnode text=\u0027Network\u0027 resource-id=\u0027finite:id/title\u0027 class=\u0027android.widget.TextView\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027false\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,0][1000,80]\u0027/\u003E\u003Cnode text=\u0027Advanced\u0027 resource-id=\u0027finite:id/Advanced\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,100][1000,180]\u0027/\u003E\u003Cnode text=\u0027Navigate up\u0027 resource-id=\u0027finite:id/Navigate_up\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,800][1000,880]\u0027/\u003E\u003Cnode resource-id=\u0027finite:id/scroll\u0027 class=\u0027android.widget.ScrollView\u0027 package=\u0027com.android.settings\u0027 scrollable=\u0027true\u0027 enabled=\u0027true\u0027 bounds=\u0027[0,60][1000,950]\u0027/\u003E\u003C/hierarchy\u003E",
+    "synthetic": true
+  },
+  {
+    "id": "finite-6",
+    "page": "Advanced",
+    "viewport": 0,
+    "xml": "\u003Chierarchy\u003E\u003Cnode text=\u0027Advanced\u0027 resource-id=\u0027finite:id/title\u0027 class=\u0027android.widget.TextView\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027false\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,0][1000,80]\u0027/\u003E\u003Cnode text=\u0027Navigate up\u0027 resource-id=\u0027finite:id/Navigate_up\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,800][1000,880]\u0027/\u003E\u003C/hierarchy\u003E",
+    "synthetic": true
+  },
+  {
+    "id": "finite-7",
+    "page": "Advanced",
+    "viewport": 0,
+    "xml": "\u003Chierarchy\u003E\u003Cnode text=\u0027Advanced\u0027 resource-id=\u0027finite:id/title\u0027 class=\u0027android.widget.TextView\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027false\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,0][1000,80]\u0027/\u003E\u003Cnode text=\u0027Navigate up\u0027 resource-id=\u0027finite:id/Navigate_up\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,800][1000,880]\u0027/\u003E\u003C/hierarchy\u003E",
+    "synthetic": true
+  },
+  {
+    "id": "finite-8",
+    "page": "Network",
+    "viewport": 1,
+    "xml": "\u003Chierarchy\u003E\u003Cnode text=\u0027Network\u0027 resource-id=\u0027finite:id/title\u0027 class=\u0027android.widget.TextView\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027false\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,0][1000,80]\u0027/\u003E\u003Cnode text=\u0027Advanced\u0027 resource-id=\u0027finite:id/Advanced\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,100][1000,180]\u0027/\u003E\u003Cnode text=\u0027Navigate up\u0027 resource-id=\u0027finite:id/Navigate_up\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,800][1000,880]\u0027/\u003E\u003Cnode resource-id=\u0027finite:id/scroll\u0027 class=\u0027android.widget.ScrollView\u0027 package=\u0027com.android.settings\u0027 scrollable=\u0027true\u0027 enabled=\u0027true\u0027 bounds=\u0027[0,60][1000,950]\u0027/\u003E\u003C/hierarchy\u003E",
+    "synthetic": true
+  },
+  {
+    "id": "finite-9",
+    "page": "Network",
+    "viewport": 1,
+    "xml": "\u003Chierarchy\u003E\u003Cnode text=\u0027Network\u0027 resource-id=\u0027finite:id/title\u0027 class=\u0027android.widget.TextView\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027false\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,0][1000,80]\u0027/\u003E\u003Cnode text=\u0027Advanced\u0027 resource-id=\u0027finite:id/Advanced\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,100][1000,180]\u0027/\u003E\u003Cnode text=\u0027Navigate up\u0027 resource-id=\u0027finite:id/Navigate_up\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,800][1000,880]\u0027/\u003E\u003Cnode resource-id=\u0027finite:id/scroll\u0027 class=\u0027android.widget.ScrollView\u0027 package=\u0027com.android.settings\u0027 scrollable=\u0027true\u0027 enabled=\u0027true\u0027 bounds=\u0027[0,60][1000,950]\u0027/\u003E\u003C/hierarchy\u003E",
+    "synthetic": true
+  },
+  {
+    "id": "finite-10",
+    "page": "Settings",
+    "viewport": 0,
+    "xml": "\u003Chierarchy\u003E\u003Cnode text=\u0027Settings\u0027 resource-id=\u0027finite:id/title\u0027 class=\u0027android.widget.TextView\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027false\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,0][1000,80]\u0027/\u003E\u003Cnode text=\u0027Network\u0027 resource-id=\u0027finite:id/Network\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,100][1000,180]\u0027/\u003E\u003Cnode text=\u0027Factory reset\u0027 resource-id=\u0027finite:id/Factory_reset\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,200][1000,280]\u0027/\u003E\u003Cnode text=\u0027Airplane mode\u0027 resource-id=\u0027finite:id/Airplane_mode\u0027 class=\u0027android.widget.Switch\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027true\u0027 bounds=\u0027[0,300][1000,380]\u0027/\u003E\u003Cnode resource-id=\u0027finite:id/scroll\u0027 class=\u0027android.widget.ScrollView\u0027 package=\u0027com.android.settings\u0027 scrollable=\u0027true\u0027 enabled=\u0027true\u0027 bounds=\u0027[0,60][1000,950]\u0027/\u003E\u003C/hierarchy\u003E",
+    "synthetic": true
+  },
+  {
+    "id": "finite-11",
+    "page": "Settings",
+    "viewport": 0,
+    "xml": "\u003Chierarchy\u003E\u003Cnode text=\u0027Settings\u0027 resource-id=\u0027finite:id/title\u0027 class=\u0027android.widget.TextView\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027false\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,0][1000,80]\u0027/\u003E\u003Cnode text=\u0027Network\u0027 resource-id=\u0027finite:id/Network\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,100][1000,180]\u0027/\u003E\u003Cnode text=\u0027Factory reset\u0027 resource-id=\u0027finite:id/Factory_reset\u0027 class=\u0027android.widget.Button\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027false\u0027 bounds=\u0027[0,200][1000,280]\u0027/\u003E\u003Cnode text=\u0027Airplane mode\u0027 resource-id=\u0027finite:id/Airplane_mode\u0027 class=\u0027android.widget.Switch\u0027 package=\u0027com.android.settings\u0027 clickable=\u0027true\u0027 enabled=\u0027true\u0027 checkable=\u0027true\u0027 bounds=\u0027[0,300][1000,380]\u0027/\u003E\u003Cnode resource-id=\u0027finite:id/scroll\u0027 class=\u0027android.widget.ScrollView\u0027 package=\u0027com.android.settings\u0027 scrollable=\u0027true\u0027 enabled=\u0027true\u0027 bounds=\u0027[0,60][1000,950]\u0027/\u003E\u003C/hierarchy\u003E",
+    "synthetic": true
+  }
+]

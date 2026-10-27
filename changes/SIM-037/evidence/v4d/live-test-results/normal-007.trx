@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="fee2d13e-a96a-4fce-afdb-2478c52fe9f1" name="@frandeMac-mini 2026-10-27 08:03:09" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-27T08:03:09.8824270+08:00" queuing="2026-10-27T08:03:09.8824270+08:00" start="2026-10-27T08:02:06.1368640+08:00" finish="2026-10-27T08:03:09.8846470+08:00" />
+  <TestSettings name="default" id="c81fb8e7-4c9e-4287-9caa-d3a51e7be301">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-27_08_03_09" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="e220afd6-2375-4039-8f6b-52d141b27640" testId="ae09d170-dab3-6eaf-97df-d8d2d5ba86c4" testName="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.RealAgentTraversesTheThreeLevelMenu" computerName="frandeMac-mini" duration="00:01:03.1995119" startTime="2026-10-27T08:03:09.7347770+08:00" endTime="2026-10-27T08:03:09.7347850+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e220afd6-2375-4039-8f6b-52d141b27640">
+      <Output>
+        <ErrorInfo>
+          <Message>Independent graph is incomplete; model self-report is insufficient.</Message>
+          <StackTrace>   at UniClaw.Host.Tests.FiniteMenuGraphSimulationTests.RunRealAgentMenuAsync() in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-sim037-v4-o1o7n8n3/source/tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.RealAgent.cs:line 252
+   at UniClaw.Host.Tests.FiniteMenuGraphSimulationTests.RunRealAgentMenuAsync() in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-sim037-v4-o1o7n8n3/source/tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.RealAgent.cs:line 258
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.RealAgentTraversesTheThreeLevelMenu" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-sim037-v4-o1o7n8n3/source/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="ae09d170-dab3-6eaf-97df-d8d2d5ba86c4">
+      <Execution id="e220afd6-2375-4039-8f6b-52d141b27640" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-sim037-v4-o1o7n8n3/source/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests" name="RealAgentTraversesTheThreeLevelMenu" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="ae09d170-dab3-6eaf-97df-d8d2d5ba86c4" executionId="e220afd6-2375-4039-8f6b-52d141b27640" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.03]   Discovering: UniClaw.Host.Tests
+[xUnit.net 00:00:00.08]   Discovered:  UniClaw.Host.Tests
+[xUnit.net 00:00:00.08]   Starting:    UniClaw.Host.Tests
+[xUnit.net 00:01:03.30]       Independent graph is incomplete; model self-report is insufficient.
+[xUnit.net 00:01:03.30]       Stack Trace:
+[xUnit.net 00:01:03.30]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-sim037-v4-o1o7n8n3/source/tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.RealAgent.cs(252,0): at UniClaw.Host.Tests.FiniteMenuGraphSimulationTests.RunRealAgentMenuAsync()
+[xUnit.net 00:01:03.30]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-sim037-v4-o1o7n8n3/source/tests/UniClaw.Host.Tests/FiniteMenuGraphSimulationTests.RealAgent.cs(258,0): at UniClaw.Host.Tests.FiniteMenuGraphSimulationTests.RunRealAgentMenuAsync()
+[xUnit.net 00:01:03.30]         --- End of stack trace from previous location ---
+[xUnit.net 00:01:03.30]   Finished:    UniClaw.Host.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-27T08:03:09.7342160+08:00">
+        <Text>[xUnit.net 00:01:03.30]     UniClaw.Host.Tests.RealAgentFiniteMenuSimulationTests.RealAgentTraversesTheThreeLevelMenu [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

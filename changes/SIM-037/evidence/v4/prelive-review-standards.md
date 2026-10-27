@@ -1,0 +1,1 @@
+规范预审：原发现1项范围问题，RuntimeAssurance.cs额外来源语义注释已从发布候选剔除。SIM024事件/停滞测试是原79买方回归中5项的明确依赖，按测试先决保留。其余无合同作者、存储或UI夹带；Profile28/Prompt27和副本同步，合成feed/effect＋真实Agent，无设备。两份正式域/协议说明仅加入既有Local Act规则，未复制共享Context或协议迁移大改。

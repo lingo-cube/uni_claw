@@ -134,6 +134,9 @@ public sealed record SlowTriggerConfig(
     bool VisualEnabled = false,
     int PopupConsecutiveCycles = 2);
 
+/// <summary>Shared read-only identity/overlay recovery limits, separate from model triggers.</summary>
+public sealed record ObservationRecoveryConfig(int BoundedWaitMs = 15000, int MaxRequestsPerRun = 4);
+
 public sealed record SettingsCoverageConfig(
     string ConfigVersion,
     CoverageSessionConfig Session,
@@ -153,7 +156,8 @@ public sealed record SettingsCoverageConfig(
     DeepTraversalConfig? DeepTraversal = null,
     DynamicRootEntriesConfig? DynamicRootEntries = null,
     DynamicNestedEntriesConfig? DynamicNestedEntries = null,
-    SettingsNavigationScope? NavigationScope = null)
+    SettingsNavigationScope? NavigationScope = null,
+    ObservationRecoveryConfig? ObservationRecovery = null)
 {
     /// <summary>证据持久化（缺省全开；旧配置无该段时保持缺省）。</summary>
     public CoverageEvidenceOptions EvidenceSettings => Evidence ?? new CoverageEvidenceOptions();
@@ -163,6 +167,7 @@ public sealed record SettingsCoverageConfig(
 
     /// <summary>AGT-009：Slow 触发配置（缺省关闭——现有行为不变）。</summary>
     public SlowTriggerConfig SlowSettings => Slow ?? new SlowTriggerConfig();
+    public ObservationRecoveryConfig ObservationRecoverySettings => ObservationRecovery ?? new();
 
     /// <summary>CAP-013：可选语言检查任务要求；缺段 = 本任务不请求该能力。</summary>
     public LanguageInspectionTaskRequest? LanguageInspectionRequest => LanguageInspection;
@@ -223,6 +228,7 @@ public sealed record SettingsCoverageConfig(
             Evidence: ReadEvidenceOptions(document, path),
             Popup: ReadPopupOptions(document, path),
             Slow: ReadSlowOptions(document, path),
+            ObservationRecovery: ReadObservationRecovery(document, path),
             ActionPolicy: ReadActionPolicy(document, path, out var actionPolicyRequired),
             ActionPolicyRequired: actionPolicyRequired,
             LanguageInspection: ReadLanguageInspectionOptions(document, path),
@@ -231,6 +237,17 @@ public sealed record SettingsCoverageConfig(
             DynamicNestedEntries: ReadDynamicNestedEntriesOptions(document, path),
             ScrollContainerDescriptor: RequireNamed(document, ["scrollContainerDescriptor"], path),
             BackDescriptor: RequireNamed(document, ["backDescriptor"], path));
+    }
+
+    private static ObservationRecoveryConfig? ReadObservationRecovery(YamlDocument document, string path)
+    {
+        var wait = document.OptionalInt(["observationRecovery", "boundedWaitMs"], minimum: 1);
+        var requests = document.OptionalInt(["observationRecovery", "maxRequestsPerRun"], minimum: 0);
+        if (wait is null && requests is null) return null;
+        var value = new ObservationRecoveryConfig(wait ?? 15000, requests ?? 4);
+        if (value.BoundedWaitMs is <= 0 or > 30000 || value.MaxRequestsPerRun is < 0 or > 16)
+            throw new InvalidOperationException($"config-invalid:observationRecovery:limits-out-of-range ({path})");
+        return value;
     }
 
     private static SettingsActionPolicy? ReadActionPolicy(

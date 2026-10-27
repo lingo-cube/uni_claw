@@ -97,6 +97,10 @@ public sealed record AgentObligationView(
 /// （baseline §24.2）。有界有序 steps——非 DAG、非 Decision Package（Package
 /// 仍 Phase 6）；每步独立完整链（每步各自 grounding → binding → assurance →
 /// gate → dispatch，且串行受不变量 43 屏障约束）。
+/// Ordinary Act stays in its originating container and overlay scope. Fresh
+/// same-container scroll observations may support later steps; a boundary
+/// action can end the Act, but its tail cannot enter the new scope. Use Plan
+/// for cross-Slice continuation; Plan ActItems retain their own semantics.
 /// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
 public sealed record AgentActionProposal(
