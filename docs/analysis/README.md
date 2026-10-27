@@ -47,3 +47,6 @@
 | `jev-ui-layout-semantic-recognition-research.md` | Jev 用于 UI 布局识别/语义识别的可行性调研（布局不可承担；语义只在已枚举候选上判别） | CANDIDATE / NOT_ADOPTED |
 | `world-model-capability-gap-and-kernel-fallback-assessment-2026-10-22.md` | World 模型胜任性/当前-设计 Gap/Kernel 兜底健壮性评估（含设计缺陷 vs 实现缺陷归类） | COMPLETE / EVIDENCE-BOUNDED |
 | `world-model-uncertainty-and-verification-plan-2026-10-22.md` | 承接上篇的处方提案：未知清单+计数+看门狗路线（S0-S4）、验证体系四层（A/B1/B2/C）、回放式决策回归、场景库补题与不做清单 | DRAFT / CANDIDATE |
+| `self-improving-ui-automation-ones-worklog-case-2026-10-27.md` | 自改进机制单案例实证：ONES 工时登记的 7 个失败—纠正对、三种收缩、六步闭环、四类资产与度量判据 | COMPLETE / EVIDENCE-BOUNDED |
+| `in-flight-agent-intervention-scan-2026-10-27.md` | 运行中生效：7 条 Agent 介入面扫描、skill/提示词/反馈三通道判定、ONES 只读日期复演的三断点与 Run-Local Lesson 候选设计 | COMPLETE / EVIDENCE-BOUNDED |
+| `multi-step-and-submit-gating-discussion-2026-10-27.md` | 多步提案与提交门禁的可讨论结论：单步是 Host 策略、提速/正确性两轴、提交检查三档分层、委托三标准与 8 个待裁决问题 | DRAFT / FOR-DISCUSSION |
