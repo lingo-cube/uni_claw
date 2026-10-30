@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "test-asset-finalization.v1",
+  "changeId": "REPO-PUBLISH-001",
+  "runId": "audit-20261030",
+  "operation": "diagnosis",
+  "completed": false,
+  "kept": [
+    "source and all unpublished evidence originals",
+    "external inventory/status/full failure log/isolated log/secret-scan metadata"
+  ],
+  "archived": [],
+  "deleted": [
+    {
+      "path": "import signal,time;signal.signal(signal.SIGTERM, lambda *_: None);time.sleep(60)/replay.json",
+      "bytes": 44,
+      "sha256": "7ec53e8433229bd02bdea44828dae7a805910ccd1cbf5bba5159becbc1e32819",
+      "reason": "tools/tests/test_asset_operations.py test_os_sigterm_kills_owned_ignoring_writer_then_finalizes mocked Popen command[-1] output; exact fixture contents, no source or real result"
+    },
+    {
+      "path": "import signal,time;signal.signal(signal.SIGTERM, lambda *_: None);time.sleep(60)/case.trx",
+      "bytes": 10,
+      "sha256": "00b2536acaf0ae925284e7433fdfc81c73f5e5f35c212d586120802cafcc662d",
+      "reason": "tools/tests/test_asset_operations.py test_os_sigterm_kills_owned_ignoring_writer_then_finalizes mocked Popen command[-1] output; exact fixture contents, no source or real result"
+    }
+  ],
+  "pending": [
+    "publication format decision",
+    "full-regression asynchronous handler failure diagnosis"
+  ],
+  "deletedBytes": 54
+}

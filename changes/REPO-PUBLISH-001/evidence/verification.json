@@ -1,0 +1,43 @@
+{
+  "fullSolution": {
+    "passed": 3342,
+    "failed": 1,
+    "skipped": 1,
+    "exitCode": 1
+  },
+  "isolatedFailingTest": {
+    "passed": 1,
+    "failed": 0,
+    "exitCode": 0
+  },
+  "simulationProjectFollowup": {
+    "passed": 329,
+    "failed": 0,
+    "exitCode": 0
+  },
+  "verdict": "Initial full-suite failure retained; isolation and project follow-up pass do not prove cause or erase failure. No source fix applied.",
+  "hypotheses": [
+    {
+      "hypothesis": "Handler start signal precedes Running state",
+      "status": "source order contradicts; Running recorded before inspector invocation"
+    },
+    {
+      "hypothesis": "2-second handler deadline exceeded during full solution scheduling",
+      "status": "plausible; fixture default 2s, failing test waits up to5s; no timestamp/status evidence captured at original failure"
+    },
+    {
+      "hypothesis": "Repeated consultation while handler pending",
+      "status": "unproven; 16 matches fixture cap but original per-call state missing"
+    }
+  ],
+  "sourcePins": {
+    "path": "current-source-sha256.json.gz",
+    "count": 1410,
+    "uncompressedSha256": "6e14aabf0f5f7b9ecdb0a8e7fd474c8084193cb9cc49b8e5a90bb4b14b1c0537"
+  },
+  "publication": {
+    "retirementCommit": "ef8c7a45b",
+    "remote": "origin/uni-harness",
+    "fullPublication": "pending raw evidence format decision"
+  }
+}

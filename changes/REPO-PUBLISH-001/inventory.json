@@ -1,0 +1,454 @@
+{
+  "head": "600e74df07aab300e55345163cd0434c6b9eea17",
+  "untrackedCount": 55843,
+  "untrackedBytes": 6847905416,
+  "over10MiB": 87,
+  "over100MiB": 9,
+  "trackedEvidenceRetirements": {
+    "count": 95,
+    "allExplicitlyListed": true,
+    "headBytesMatchSizeAndSha256": true,
+    "manifests": [
+      "changes/ORPHAN-CLEANUP-001/cleanup.json",
+      "changes/REPLAY-CLEANUP-001/evidence/deletion-manifest.json"
+    ]
+  },
+  "largeFiles": [
+    {
+      "path": "changes/EVO-005/evidence/current-03/menu/complete/world.journal.jsonl",
+      "bytes": 45540915,
+      "sha256": "6e5af5475850b88cb9e16964313c272144b7e3e4bf3c46cb491660800d2a9f2b"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-03/menu/missing-child-scroll/world.journal.jsonl",
+      "bytes": 29007640,
+      "sha256": "5ea41d0295275287df598fa8a3186e4b75106ac9d16900b11e9a97ce65b0edb9"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-03/menu/missing-root-scroll/world.journal.jsonl",
+      "bytes": 18241006,
+      "sha256": "76b897e0e47b623d1328db29b72722df049fda53212d77d4f50a7fc20e51c818"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-03/menu/three-level-supplement-budget-exhausted/world.journal.jsonl",
+      "bytes": 76401928,
+      "sha256": "03ba71f21a229180921958ff85e8d606a70be9715e5e20d10513d0767363340f"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-03/traversal/interrupted-route-change/world.journal.jsonl",
+      "bytes": 16189246,
+      "sha256": "463f38bd0e090b1de51697c79685c4813686ba46234a703ab34da6f70e888ddd"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-03/traversal/interrupted/world.journal.jsonl",
+      "bytes": 16160650,
+      "sha256": "f2e68ddeaa6f0c27855bc2b88ab664c3ce3cb67a27fb42d201442dd053aba9ad"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-03/traversal/normal-route-change/world.journal.jsonl",
+      "bytes": 10945329,
+      "sha256": "f9823c363ece5a44e58de43953499e9e022f8619777d97fce187d80b53bd7ac8"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-03/traversal/normal/world.journal.jsonl",
+      "bytes": 10924413,
+      "sha256": "2da18802bbec161bc28f4d430f7f3357e18644ca04c04b2f0e99803ac1d5b8a8"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-05/menu/complete/world.journal.jsonl",
+      "bytes": 45540915,
+      "sha256": "0a4e168e63f3d4876f12fd161ee9343f728480c66ceb86eba169fffeb07f5ecc"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-05/menu/missing-child-scroll/world.journal.jsonl",
+      "bytes": 29007640,
+      "sha256": "d2e1c47a07ca0aad0eec7fcf128f2e7d1f704d316e3cfc02ccaf17ab62758269"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-05/menu/missing-root-scroll/world.journal.jsonl",
+      "bytes": 18241006,
+      "sha256": "ea2ffcab6f0d45b587ba74e51e6c32d2538bc21ebf2c48a525ae7568385eac3a"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-05/menu/three-level-supplement-budget-exhausted/world.journal.jsonl",
+      "bytes": 76401928,
+      "sha256": "75a971d0a4b40f24cf9b297443086cf0a102c96908bff6521f3dce449b33e352"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-05/traversal/interrupted-route-change/world.journal.jsonl",
+      "bytes": 16189246,
+      "sha256": "218cd3cf844464b6116080613f6f22418fb80ec9eefc36f492384724aec7cd65"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-05/traversal/interrupted/world.journal.jsonl",
+      "bytes": 16160650,
+      "sha256": "269d604009745fd96f49d5ee2e344ac83cde5fd60f45c12855da243d69095f12"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-05/traversal/normal-route-change/world.journal.jsonl",
+      "bytes": 10945329,
+      "sha256": "0a7afe6b5779817659c4727fd0442263879c54e6a4386faa7ebfa75323b1b5e1"
+    },
+    {
+      "path": "changes/EVO-005/evidence/current-05/traversal/normal/world.journal.jsonl",
+      "bytes": 10924413,
+      "sha256": "160a7791458ceb6497f2b513426d221f39f7acff4c4befcc203135fc6f229b06"
+    },
+    {
+      "path": "changes/RUNTIME-PLAN-001/assets.json",
+      "bytes": 11906157,
+      "sha256": "ae03a08a6236ddc7aad8d2fcfd909b4465e3ceb4b81d2dfd4d659585241d14b4"
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice1/pure-build-inputs.tar.gz",
+      "bytes": 11494823,
+      "sha256": "efa73ecf3c9c915f4527ece9be2c37a6527d0763eb0bfb27686c72cd6821f1b0"
+    },
+    {
+      "path": "changes/RUNTIME-STORAGE-002/evidence/slice3/cost/legacy-256/resource.journal.jsonl",
+      "bytes": 40323675,
+      "sha256": "76a5d48a92625f98afcfc2faa26ef4648b8c22e3da4f43ce8064ded15228edbc"
+    },
+    {
+      "path": "changes/SIM-029/evidence/mobile-subtree-retry/runs/run-20261024-131631-489/evidence.journal.jsonl",
+      "bytes": 15220905,
+      "sha256": "b24b803a103308793ee32fe32c5ed00f126fb16364de518916fbf611255606e0"
+    },
+    {
+      "path": "changes/SIM-030/evidence/checkpoint-v1/menu/complete/world.journal.jsonl",
+      "bytes": 45540653,
+      "sha256": "7e0e499229e28b19446f8dd6ffb8b6fb22e4e4946cce92f6c15f8c45209b9b00"
+    },
+    {
+      "path": "changes/SIM-030/evidence/checkpoint-v1/menu/missing-child-scroll/world.journal.jsonl",
+      "bytes": 29007378,
+      "sha256": "fc5ce689ed81b12579e6bb9663dd90e852b6765c224f33063099c01e7186e7d4"
+    },
+    {
+      "path": "changes/SIM-030/evidence/checkpoint-v1/menu/missing-root-scroll/world.journal.jsonl",
+      "bytes": 18240744,
+      "sha256": "cbe1a2faec818dc79a84f489a97e834e7901212143768d01b1c30a1214219751"
+    },
+    {
+      "path": "changes/SIM-030/evidence/checkpoint-v1/traversal/interrupted-route-change/world.journal.jsonl",
+      "bytes": 16188984,
+      "sha256": "9e5fecc00d181c33d244c150ab37e3aea4ea1bdc14b0a53d05f9339a50c9f2b7"
+    },
+    {
+      "path": "changes/SIM-030/evidence/checkpoint-v1/traversal/interrupted/world.journal.jsonl",
+      "bytes": 16160388,
+      "sha256": "44a33b302f196c2420bc095cfa9c61943b10c0a06dabd91ef06900bc749efb8d"
+    },
+    {
+      "path": "changes/SIM-030/evidence/checkpoint-v1/traversal/normal-route-change/world.journal.jsonl",
+      "bytes": 10945067,
+      "sha256": "2666a89ea8179e18cfe7d138dd20309b7357e9fe765ef11fbe327d6b072e47c2"
+    },
+    {
+      "path": "changes/SIM-030/evidence/checkpoint-v1/traversal/normal/world.journal.jsonl",
+      "bytes": 10924151,
+      "sha256": "a50d883f628f842c60042682c47d3d15270fcbe7b06e068de10b861340f8a241"
+    },
+    {
+      "path": "changes/SIM-031/evidence/four-green/three-level-complete/world.journal.jsonl",
+      "bytes": 104889582,
+      "sha256": "686689ba0887f4f9042d3f7c75a4346f8b569bd9648baa0f7474c984c34e29e3"
+    },
+    {
+      "path": "changes/SIM-031/evidence/four-green/three-level-supplement-budget-exhausted/world.journal.jsonl",
+      "bytes": 76401666,
+      "sha256": "70d0190eb609021265d7c9e9a504056a028bd1da0a4d353e45eba5aea1763f47"
+    },
+    {
+      "path": "changes/SIM-031/evidence/missing-deep-red/three-level-complete/world.journal.jsonl",
+      "bytes": 104889582,
+      "sha256": "96d0d5f8e654a1cb239c829ecdf390d84fe31657d3fbbb7bde6c1eae58d8aa3b"
+    },
+    {
+      "path": "changes/SIM-031/evidence/missing-deep-red/three-level-missing-deep-scroll/world.journal.jsonl",
+      "bytes": 104889582,
+      "sha256": "4a632088106390bb540ceac168a9beaaebd86ed2068015b93548573265523ddf"
+    },
+    {
+      "path": "changes/SIM-031/evidence/normal-v2/three-level-complete/world.journal.jsonl",
+      "bytes": 76401666,
+      "sha256": "dd27a25ffa114df4c5923c9835ee867af73a4371aeba8e570a92831cd3e0d0bb"
+    },
+    {
+      "path": "changes/SIM-031/evidence/normal-v3/three-level-complete/world.journal.jsonl",
+      "bytes": 76401666,
+      "sha256": "b6b013528b0ac0a293c22db04bb6e3326b912f24304f5d738beb3cccaee695c5"
+    },
+    {
+      "path": "changes/SIM-031/evidence/normal-v5/three-level-complete/world.journal.jsonl",
+      "bytes": 79147572,
+      "sha256": "3b87be310b471ee3bc9971313b0ecdd225b684737f2fe77b862e3007cd540b1c"
+    },
+    {
+      "path": "changes/SIM-031/evidence/normal-v7/three-level-complete/world.journal.jsonl",
+      "bytes": 104889582,
+      "sha256": "42e0623ea0448f7e7446e4d1536634be0356e28ce55a92250c5152cac0e6bb13"
+    },
+    {
+      "path": "changes/SIM-031/evidence/three-green/three-level-complete/world.journal.jsonl",
+      "bytes": 104889582,
+      "sha256": "a62d1f42563542a4a3e65d094b4cc1c2f9f97339659a5570d97e32b841b9145d"
+    },
+    {
+      "path": "changes/SIM-031/evidence/wrong-return-green-v2/three-level-complete/world.journal.jsonl",
+      "bytes": 104889582,
+      "sha256": "265a37e3aa8b94684b9ca7c856252c86271fe5be81dc7c6ced5738e3e4de6ab4"
+    },
+    {
+      "path": "changes/SIM-031/evidence/wrong-return-green/three-level-complete/world.journal.jsonl",
+      "bytes": 104889582,
+      "sha256": "45fb32415f41fb29c2e049195f580b02071f3e7e9be99d6de8266422b9af5044"
+    },
+    {
+      "path": "changes/SIM-031/evidence/wrong-return-red/three-level-complete/world.journal.jsonl",
+      "bytes": 104889582,
+      "sha256": "5f438d962a6162eeec34aecb165c3643f72c7c631a9039967fa3c329ff1d1b0b"
+    },
+    {
+      "path": "changes/SIM-031/evidence/wrong-return-red/three-level-deep-wrong-return/world.journal.jsonl",
+      "bytes": 104889582,
+      "sha256": "617e9a101ee7591e8a5707d75e70b1416a50b35cd0f386519332d112e7ec78aa"
+    },
+    {
+      "path": "changes/SIM-033/evidence/expanded-menu-retry/runs/run-20261024-155302-856/evidence.journal.jsonl",
+      "bytes": 10741599,
+      "sha256": "683ad90d911827c151545c5767b220246d4bcf65b660a3460355a1481da475d4"
+    },
+    {
+      "path": "changes/SIM-033/evidence/expanded-menu/runs/run-20261024-155018-444/evidence.journal.jsonl",
+      "bytes": 11801584,
+      "sha256": "82cecce0b1aa29adf95ac9a3ded0134b0899eb79a546e0a75e01d74a7d9e5a72"
+    },
+    {
+      "path": "changes/SIM-034/evidence/expanded-menu/runs/run-20261024-162737-991/evidence.journal.jsonl",
+      "bytes": 22783042,
+      "sha256": "260401cad1ee72d74ffc56717ca6cadbe6528396c9771684895546ee4ad84133"
+    },
+    {
+      "path": "changes/SIM-035/evidence/attempt1/menu/complete/world.journal.jsonl",
+      "bytes": 10752037,
+      "sha256": "44f9ab5be5ef86ba391549b73928562338d818a553bf19ca3ebe9ca25c60895d"
+    },
+    {
+      "path": "changes/SIM-035/evidence/attempt1/menu/three-level-complete/world.journal.jsonl",
+      "bytes": 25548568,
+      "sha256": "e740c4d12836336bc8e92a1426e0705807138df736baedba7f5346703363f96a"
+    },
+    {
+      "path": "changes/SIM-035/evidence/attempt1/menu/three-level-supplement-budget-exhausted/world.journal.jsonl",
+      "bytes": 18444316,
+      "sha256": "473c1cfb515ec873cc776642bd6391603182e4cf72a32c3396b22beb88d6f8a6"
+    },
+    {
+      "path": "changes/SIM-036/evidence/regression/menu/complete/world.journal.jsonl",
+      "bytes": 10752037,
+      "sha256": "d29b69a3c611f0ff0bc49b133c61010c6ef086f545cdf2abaecc59ed9a64fe23"
+    },
+    {
+      "path": "changes/SIM-036/evidence/regression/menu/three-level-complete/world.journal.jsonl",
+      "bytes": 25548568,
+      "sha256": "e0c27c4790c14f4c7833650854b39c0eae95fec2399736c92267b20f2b4ed077"
+    },
+    {
+      "path": "changes/SIM-036/evidence/regression/menu/three-level-supplement-budget-exhausted/world.journal.jsonl",
+      "bytes": 18444316,
+      "sha256": "c6959d0490eba14fb15ebc6745eeac2ebbdd508e7dc0abc3f7df719297e9eb98"
+    },
+    {
+      "path": "changes/SIM-037/evidence/carrier-v3/sim037-carrier-scripted/world.journal.jsonl",
+      "bytes": 25548568,
+      "sha256": "3a63653e02e674927993a2fa2dbed8a71277c8cd458ecac4cf4330177f0391f7"
+    },
+    {
+      "path": "changes/SIM-037/evidence/regression/menu/complete/world.journal.jsonl",
+      "bytes": 10752037,
+      "sha256": "ac133009be054a08daab75e3b550adcf5a0f90f39bb4bec1507413e34141a083"
+    },
+    {
+      "path": "changes/SIM-037/evidence/regression/menu/three-level-complete/world.journal.jsonl",
+      "bytes": 25548568,
+      "sha256": "fb74244acc5fc9576966f87e2bbe9a40fa07100ea22cb958312f34ff5b0d41e8"
+    },
+    {
+      "path": "changes/SIM-037/evidence/regression/menu/three-level-supplement-budget-exhausted/world.journal.jsonl",
+      "bytes": 18444316,
+      "sha256": "c7b6736619c1138692a47521126e6df1a7786636dab4aa862bf2bf0be15d6132"
+    },
+    {
+      "path": "changes/SIM-037/evidence/v2/goal-green/sim037-carrier-scripted/world.journal.jsonl",
+      "bytes": 25548568,
+      "sha256": "0a666ace1ab0e71ec0fb73be7012e481222571f4807b4fe0b52514717146fd3a"
+    },
+    {
+      "path": "changes/SIM-037/evidence/v2/goal-red/sim037-carrier-scripted/world.journal.jsonl",
+      "bytes": 25548568,
+      "sha256": "e2f70669df33332a599507bd1cb24d6a77206bc70f18c6094c475d530f1afc9c"
+    },
+    {
+      "path": "changes/SIM-037/evidence/v2/goal-target-fix/sim037-carrier-scripted/world.journal.jsonl",
+      "bytes": 25548568,
+      "sha256": "9e1e1ba4c490b611282d7aaf2e1079753acc58a089921022c394e68c1885c6fc"
+    },
+    {
+      "path": "changes/SIM-037/evidence/v2/regression/menu/complete/world.journal.jsonl",
+      "bytes": 10752037,
+      "sha256": "fbb5a7ede241ebfe1d1ce6694f99c6083df060563c3f8d78fd22a7dfaaf025f0"
+    },
+    {
+      "path": "changes/SIM-037/evidence/v2/regression/menu/three-level-complete/world.journal.jsonl",
+      "bytes": 25548568,
+      "sha256": "6f15f3734f5ec77bf63705117c055d692cea524c6a838a8aa53f8a4e57f83f2c"
+    },
+    {
+      "path": "changes/SIM-037/evidence/v2/regression/menu/three-level-supplement-budget-exhausted/world.journal.jsonl",
+      "bytes": 18444316,
+      "sha256": "682a45b73bccfed451afd2fb937786d831220e0a3957c6411669432a9a735ecd"
+    },
+    {
+      "path": "changes/SIM-037/evidence/v3/carrier/sim037-carrier-scripted/world.journal.jsonl",
+      "bytes": 25548568,
+      "sha256": "3ad5cb3c13c62ebd6dfd812128cdc9e3c8a65cc8d5077227606f75e8adb4df45"
+    },
+    {
+      "path": "changes/SIM-037/evidence/v3/regression/menu/complete/world.journal.jsonl",
+      "bytes": 10752037,
+      "sha256": "ee82da56ba02a57c241263929b650408cce962b4d9b52758e5f4d5a9186cc2bb"
+    },
+    {
+      "path": "changes/SIM-037/evidence/v3/regression/menu/three-level-complete/world.journal.jsonl",
+      "bytes": 25548568,
+      "sha256": "5ae07577d2efb2d8093f4cacad862c3e4b9df876d9b24d227f2b027f1e70c3d1"
+    },
+    {
+      "path": "changes/SIM-037/evidence/v3/regression/menu/three-level-supplement-budget-exhausted/world.journal.jsonl",
+      "bytes": 18444316,
+      "sha256": "59c8ec955b8b1bda92e084a1ad96c3eabc7fd9e672fe4cbc898c997cf2219476"
+    },
+    {
+      "path": "changes/WORLD-OBSERVATION-001/evidence/implementation-entry/before/src/UniClaw.Host.Dsh/runs-d9/run-20261007-134444-117/trace.json",
+      "bytes": 17659189,
+      "sha256": "9002d710891c5374c2b391e8c9ca263df3848ac01f8262658db2f6f4623ef451"
+    },
+    {
+      "path": "changes/WORLD-OBSERVATION-001/evidence/implementation-entry/before/src/UniClaw.Host.Dsh/runs-d9/run-20261007-135120-724/trace.json",
+      "bytes": 17652399,
+      "sha256": "cd5018c4ce1ee1b2265b3668d9b14b3aa16f9df1c2bebec1eb5000a521115969"
+    },
+    {
+      "path": "evidence/run-006/diag-2/run-20261017-041103-722/trace.json",
+      "bytes": 58815534,
+      "sha256": "36f3f3229045609dfd1a1196b98a0b2e9403a388ad2096a0ccc3d687bc3627cb"
+    },
+    {
+      "path": "evidence/run-006/full-traversal-1/run-20261015-165826-729/trace.json",
+      "bytes": 60059465,
+      "sha256": "d38f5b78a4f7a735f6fcf86a085e645855c0dc333cc27eec438317faae1a369c"
+    },
+    {
+      "path": "evidence/run-006/full-traversal-3b/run-20261015-225305-029/trace.json",
+      "bytes": 58807386,
+      "sha256": "1eaf3b9dbcf595d73f54073494e949115fc7efa7689152d4b38945faaa792238"
+    },
+    {
+      "path": "evidence/run-006/full-traversal-4/run-20261015-233520-403/trace.json",
+      "bytes": 58807386,
+      "sha256": "f1c0c2d6c3da407b2db2a57aa1d0c60b3a7d7e51d0ef229c13e2c3f730d8523e"
+    },
+    {
+      "path": "evidence/run-006/full-traversal-5/run-20261015-235706-784/trace.json",
+      "bytes": 58807386,
+      "sha256": "174ec607ec5e17470ef0e0a9ecb10836de44fd18aeb119bd56bbda4d2f3f2376"
+    },
+    {
+      "path": "evidence/run-006/full-traversal-6/run-20261016-001948-908/trace.json",
+      "bytes": 58815534,
+      "sha256": "ef797c33194a8d315e1fa7e02e8969e26cfefd89cd1920f3d1e3b85277e7bf62"
+    },
+    {
+      "path": "evidence/runtime-plan-001/comparison/nested-scope/ShortPlan/composition-r18-commongoal-1/run-20261018-160454-400/trace.json",
+      "bytes": 12901728,
+      "sha256": "77b577595eefcb3837e07536afa097181e86db178fcdbee03b4280999c30d3af"
+    },
+    {
+      "path": "evidence/runtime-plan-006/depth1/epoch-001/run-20261020-151958-262/current-step-guards.json",
+      "bytes": 19325740,
+      "sha256": "1c6f34a69a4c134eef3f88f6b148c61f843d82106f33ab521cfe3eec1cbdf227"
+    },
+    {
+      "path": "evidence/runtime-plan-006/depth1/epoch-001/run-20261020-151958-262/plan-execution.json",
+      "bytes": 20791161,
+      "sha256": "c68e95ef3a676c534845d28a4fb222da91940e99155659450742fccd98c4c96e"
+    },
+    {
+      "path": "evidence/runtime-plan-006/depth1/epoch-001/run-20261020-151958-262/trace.json",
+      "bytes": 25943592,
+      "sha256": "2ac5eabb0e14bacc3d5e9cd69bb11c0955380f7d9f692d5ef5786b16e208cfbb"
+    },
+    {
+      "path": "evidence/runtime-plan-006/depth1/epoch-001/run-20261020-151958-262/traversal-recovery.json",
+      "bytes": 20791042,
+      "sha256": "911791bab6964b113c8763960cd1b79dd10675da362da0634541e15db40ca40d"
+    },
+    {
+      "path": "evidence/runtime-plan-006/depth2/epoch-004/run-20261020-160407-494/current-step-guards.json",
+      "bytes": 15589382,
+      "sha256": "8b28f7876af23eb3f5227076e9dd19f25eb7e300e6a2174d6277cd951e73f271"
+    },
+    {
+      "path": "evidence/runtime-plan-006/depth2/epoch-004/run-20261020-160407-494/plan-execution.json",
+      "bytes": 16723193,
+      "sha256": "996660dad38b3e8c101264964e28842918fe108a76fbe40f9fa6c4583dafd685"
+    },
+    {
+      "path": "evidence/runtime-plan-006/depth2/epoch-004/run-20261020-160407-494/trace.json",
+      "bytes": 21945989,
+      "sha256": "67ee86c2ded89cd5af8dce8e4f2952b16a87e1979d042194cd5b0745b339e6d7"
+    },
+    {
+      "path": "evidence/runtime-plan-006/depth2/epoch-005/run-20261020-161015-557/current-step-guards.json",
+      "bytes": 12401152,
+      "sha256": "252647c28b930a713a74e325eff717e19782267fd11eb4b141f3a576f546c1a2"
+    },
+    {
+      "path": "evidence/runtime-plan-006/depth2/epoch-005/run-20261020-161015-557/plan-execution.json",
+      "bytes": 13483760,
+      "sha256": "187e49599721ef2a0564d289d4fe174ac5f06572d7506733032a72bece102eac"
+    },
+    {
+      "path": "evidence/runtime-plan-006/depth2/epoch-005/run-20261020-161015-557/trace.json",
+      "bytes": 19022997,
+      "sha256": "21fce99a9b4e91271eaa336816428f1cc2e094a01853471473114521dfa167e0"
+    },
+    {
+      "path": "evidence/settings-coverage-003/leader-pass1/run-20261014-172846-128/trace.json",
+      "bytes": 17839803,
+      "sha256": "f48074b39b1b8f713dd505c177cb87b5093e09e01b0345bf419c4c602d03e97f"
+    },
+    {
+      "path": "evidence/settings-coverage-003/leader-pass2/run-20261014-173302-367/trace.json",
+      "bytes": 22163255,
+      "sha256": "e29bc3543bbe8621b9aa2ab92ad8ce777f763815bd1e6093b72e84d09425866b"
+    },
+    {
+      "path": "evidence/settings-coverage-003/leader-pass5/run-20261014-173949-705/trace.json",
+      "bytes": 42276436,
+      "sha256": "7c23d128ff5894b12d03c85e6cd3ad946411be40f9fbbcaa47b6a1609081a634"
+    },
+    {
+      "path": "evidence/settings-coverage-005/full-traversal-20261018-103122/runs/run-20261018-023125-401/trace.json",
+      "bytes": 56284654,
+      "sha256": "87763b684450715a4da14b875bf391b969fb0494be734ffbf600fc822708d2f2"
+    },
+    {
+      "path": "evidence/settings-coverage-005/live-2/run-20261017-145850-180/trace.json",
+      "bytes": 56431276,
+      "sha256": "333ca6e3838bcb75a52b682df16507ea902eb4d47f3f53caa80cf6080d128b80"
+    }
+  ],
+  "disposition": "Raw originals preserved; publication format pending user choice; no bulk ignore or deletion."
+}
