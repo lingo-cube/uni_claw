@@ -1,0 +1,30 @@
+{
+  "qualification": "private counterfactual only: restore exact executable candidate carriers/composition; unused provenance absent from frozen M input, not needed by Guard; current product/baselines unchanged",
+  "restoredFiles": [
+    {
+      "path": "changes/SIM-024/evidence/resume/current-replay/composition.json",
+      "bytes": 38710,
+      "sha256": "87bc4c7916c393b778f88a71792d3a6c412d8a009e4cfcbced1b738794608bdc",
+      "role": "candidate-replay-composition"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/CurrentCandidatePopupComposition.cs",
+      "bytes": 398,
+      "sha256": "1efec4024b9e1ddbf775ec3326f700b1e13c96507b5a0a3bd8d45c9e2062175e",
+      "role": "obsolete-candidate-carrier"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/CurrentCandidateRecordedPopupReplayTests.cs",
+      "bytes": 3095,
+      "sha256": "8a67393a3e9c7aab635d457d270eae2ae0bd20456cf2f9637f007ece76dfc1a9",
+      "role": "obsolete-candidate-carrier"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/CurrentCandidateRecordedPopupRuntimeReplayTests.cs",
+      "bytes": 9763,
+      "sha256": "15a1a16ccfeb26f449a852db76be1d7da37287781aa264ede59704284b2d0434",
+      "role": "obsolete-candidate-carrier"
+    }
+  ],
+  "earlierControl": "control.trx is incomplete setup, not counted as before-cleanup control"
+}

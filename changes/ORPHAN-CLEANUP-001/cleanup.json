@@ -1,0 +1,362 @@
+{
+  "change": "ORPHAN-CLEANUP-001",
+  "executedAt": "2026-10-25",
+  "deleted": [
+    {
+      "path": "evidence/.DS_Store",
+      "bytes": 6148,
+      "sha256": "896601321989f0626886e2ae9dddfe8a614d6e4b916dbfcd54181ee64a8c9f66",
+      "reason": "系统元数据；不属于证据、fixture、Oracle、录制或任务产物，无消费者。",
+      "checks": [
+        "WorkItem允许删除evidence/**/.DS_Store",
+        "protected-sha256.json零交集"
+      ]
+    },
+    {
+      "path": "changes/WORLD-OBSERVATION-001/evidence/implementation-entry/before/src/.DS_Store",
+      "bytes": 6148,
+      "sha256": "4755d2d0c1a9764bde0ea7ed3b8e4aec331301bf77de3b84b3eb7dff25df40be",
+      "reason": "系统元数据；不属于实现快照内容，无消费者。",
+      "checks": [
+        "WorkItem允许删除changes/**/.DS_Store",
+        "protected-sha256.json零交集"
+      ]
+    },
+    {
+      "path": "evidence/real-settings-traversal-20261001/README.md",
+      "bytes": 2209,
+      "sha256": "255083f4ff14386186183e789ce6defbdc8e6a029aac8f4be3a58b547dab6716",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "f77b01543e96d722c80624569f6497ec08b03b57"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20261001/dsh/session-04de3df7-3221-4dc6-875a-c12f6360ce60.json",
+      "bytes": 13068,
+      "sha256": "78d9d6392ddcf1dd1f2c9bd06f15d5f0295ec1b644da2f39b6b2388ee036aa46",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "1b58bda343bc777cef39c83355881b83334fbf81"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20261001/run-final/exec.journal",
+      "bytes": 3070,
+      "sha256": "c770140f455b672fa93adc836bf05d6f0c94619cebf736873b5f8355ae11ead5",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "56470c2a0d8bd3b009783b134fdbc1f57fd9fb21"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20261001/run-final/facts.json",
+      "bytes": 499,
+      "sha256": "a165f0140d1ec04e2bf2ffa5b2c81cc2bf7c43855ac9cac0cf140a8b2f5c71f5",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "0e6812b434664648175a56345ab64e4049c12a6c"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20261001/run-final/metadata.json",
+      "bytes": 817,
+      "sha256": "c443b6f581cb25ff7d9347568e25558c0d0cca9a4c6674eb8e69332075882cb3",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "8894fa631cdb35ad2bbd8340895897dccbd60575"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20261001/run-final/settings-trace.json",
+      "bytes": 1511,
+      "sha256": "6f8035ab911932082f8152a07719a33477cee0b62e2f7146f3ab5897ff579a5c",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "174f83f0e8b258e3878c5411c5f022e78efa42ad"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20261001/run-final/trace.json",
+      "bytes": 2577472,
+      "sha256": "1ea9c883546ea5c54c7271c8c0993a5f8a2a64d1da657febac9197a3f9327dd2",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "c26dbdaf23ba9768f059e65719a5c8d44d7768ab"
+    },
+    {
+      "path": "evidence/2026-09-13-corpus-raw-recognition/artifacts/nav03-childa.yolo-ocr.raw.json",
+      "bytes": 1192,
+      "sha256": "ccd61c44de13896763bf8c8f1d34b58540f35da00c40c79401693a6560bedac4",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "e68d18671e7a67ed20c9fb3dec42561fe877fd18"
+    },
+    {
+      "path": "evidence/2026-09-13-corpus-raw-recognition/artifacts/nav03-parent.yolo-ocr.raw.json",
+      "bytes": 2956,
+      "sha256": "a26a3fbb86fb99bad76bb2947f3791043caf382b349558e522a121b0f7d0d042",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "6945f7fc4145f83cd464e08aac7fc9d93cdb23ec"
+    },
+    {
+      "path": "evidence/2026-09-13-corpus-raw-recognition/artifacts/popup01-dialog.yolo-ocr.raw.json",
+      "bytes": 6138,
+      "sha256": "202a23d98107a9956fabf33a445dc98640e70223bc79d388f58c8c7be3a5c5a8",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "e359fe144836d64a02fcedc9532f6b375960ff3a"
+    },
+    {
+      "path": "evidence/2026-09-13-corpus-raw-recognition/artifacts/popup04-page.yolo-ocr.raw.json",
+      "bytes": 3443,
+      "sha256": "928cd4434f8c0b47d501aba916e84b0c1495eb2f066c1e34c44835007f942792",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "adfd2826bcfa8a6813b19b3750deff854384e9b5"
+    },
+    {
+      "path": "evidence/2026-09-13-corpus-raw-recognition/artifacts/popup09-before.yolo-ocr.raw.json",
+      "bytes": 1199,
+      "sha256": "52b086cd5f09321e38d8060b3689c7e8ed6ba0f3d66d15a45b5f52b22e4226cd",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "6dc144c3488ec1f05a9c98d0979eaf3ddbdcafd1"
+    },
+    {
+      "path": "evidence/2026-09-13-corpus-raw-recognition/artifacts/run-manifest.json",
+      "bytes": 3987,
+      "sha256": "bb36d413d63073a19269d7ca880280c3918e7977ba997fea80318fb6ac918df2",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "8f999e636d0419893c3d47406095970f9962f165"
+    },
+    {
+      "path": "evidence/2026-09-13-corpus-raw-recognition/artifacts/scroll01-v1.yolo-ocr.raw.json",
+      "bytes": 9985,
+      "sha256": "eac04635b0db716e616ba1a4e5d9bbdfefdcecce1054540daf686d6e1adc236f",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "068e6b3163b1c00b44850ebf3433d3f33c138e9a"
+    },
+    {
+      "path": "evidence/2026-09-13-corpus-raw-recognition/artifacts/scroll01-v2.yolo-ocr.raw.json",
+      "bytes": 10413,
+      "sha256": "621cff0e3579c2865a1fd23f40da837c8a9a15b945c023369cb415ed18f954e5",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "9658447ccbb53f36768cf45ea3a5a5373ca7fb75"
+    },
+    {
+      "path": "evidence/2026-09-13-corpus-raw-recognition/report.md",
+      "bytes": 5652,
+      "sha256": "e7a1a2651c62c6899c4a8963904a9a2913fada7dc2c78372612de7921f7fbc97",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "7ce9e8fe7503721bc19ddc86fb1c0ab84987400e"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/diagnostic-navigation/run-20260928-134943-190/exec.journal",
+      "bytes": 3070,
+      "sha256": "eb7bc2cb944751c850c536fb886679537be4894cd86bbbc411798732032e963e",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "a80b77ea8a4cd5ad19387b983d38ee11d140e84a"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/diagnostic-navigation/run-20260928-134943-190/facts.json",
+      "bytes": 224,
+      "sha256": "54a4889df695d98430be91515f96f589473b2541ef25396cebc23c49fc723781",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "111cecb30f58a62f9a71b837fa8c8d0c4c08a3ac"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/diagnostic-navigation/run-20260928-134943-190/settings-trace.json",
+      "bytes": 1340,
+      "sha256": "6a153c7e52c8417b4e05b0e24cf6b70236233c52b76f6ccd503c58fa6fca6458",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "e3fa6f482eccca890fbed590f84dccd749e2c9df"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/diagnostic-navigation/run-20260928-134943-190/trace.json",
+      "bytes": 2413029,
+      "sha256": "c89a54b86f79ad0b18dd59bd151d04cd740c66c3747cbfedbea360c7823b27bf",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "93d7894167452438047eebb5e1b64ca2f73d4f59"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/diagnostic-unproven/run-20260928-140405-900/exec.journal",
+      "bytes": 3070,
+      "sha256": "3808f836740e9147896d15d966f1bbee4f5dd8178dad61dc2475a9035b10d2c3",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "99c1423b5b08502ee1d8ec07cc2bd836af774c41"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/diagnostic-unproven/run-20260928-140405-900/facts.json",
+      "bytes": 224,
+      "sha256": "54a4889df695d98430be91515f96f589473b2541ef25396cebc23c49fc723781",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "111cecb30f58a62f9a71b837fa8c8d0c4c08a3ac"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/diagnostic-unproven/run-20260928-140405-900/settings-trace.json",
+      "bytes": 1340,
+      "sha256": "39875c881e4ed0951056f6d2bb9a8d21d5ff772db4bd8f7c28d5cfd9a5b0fb35",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "a60af631a23d0a3a65ce6d5c0bddde7bf0333aac"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/diagnostic-unproven/run-20260928-140405-900/trace.json",
+      "bytes": 2413029,
+      "sha256": "04ea7f5264bb19a9a7f8df84ec9723483033ccbd4666ad0f3d90d3d66d3ddd33",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "24f2e26277df47d51468f44987f03dd95feb4d7c"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/diagnostic-wrong-toggle/run-20260928-135941-374/exec.journal",
+      "bytes": 4606,
+      "sha256": "06b2ea6ebcd41dec41fb54def672625f4ab1696cdfd31eb1f687e90cd9b38113",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "19461cf2af1795aff33f6aef1261defddcb4969a"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/diagnostic-wrong-toggle/run-20260928-135941-374/facts.json",
+      "bytes": 249,
+      "sha256": "7cf98694a11ba1dd4334d4d96a51fc1f6dfbed0a9c34159698fae0e9e9bcd827",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "e7ea3fd1a883dc14043953c540403471bbe424e9"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/diagnostic-wrong-toggle/run-20260928-135941-374/settings-trace.json",
+      "bytes": 1790,
+      "sha256": "f19d37d3ac2b070ee82d41318db255b479289591c990a620a6dd6d6ad6ce751f",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "776e8d8929981a344d18887bf162c31330c79f40"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/diagnostic-wrong-toggle/run-20260928-135941-374/trace.json",
+      "bytes": 2930062,
+      "sha256": "f0cd5e69059bbaaa6561e9b9369e89396583aadf7fbc043e0e4244a81a55db28",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "baec190bf993b2486a10082acdc4f0e1c9df0e5c"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/final-hierarchy.xml",
+      "bytes": 18756,
+      "sha256": "3f0e64cb3546d434d860efb92831560652bcda88a0a785012487fd6629bde629",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "0637b6c247d41b07b22bdce08d0c93e08f194df7"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/final-screen.png",
+      "bytes": 107612,
+      "sha256": "4183c628785502a7a4bac90d135c5e7a10e071714dad635f4de8672640dd053f",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "6b38891d4cb42cc6473ed579f575d4adc3251e7f"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/formal-session-failure/run-20260928-134156-375/exec.journal",
+      "bytes": 1534,
+      "sha256": "04670599e527a0e71f27f53910bd3f687fe5dc26f9d7e1b3465c5336a5190559",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "bcc3ee336b2fb5abcdce5cc953530aa5ed13180d"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/formal-session-failure/run-20260928-134156-375/facts.json",
+      "bytes": 199,
+      "sha256": "d20994394346e52753e822174a3aae8efe64ec2ecdb74ba819f14db79d4f12fe",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "b6e05ab799c55e13e27a6d7c49c75519a70ffeb6"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/formal-session-failure/run-20260928-134156-375/settings-trace.json",
+      "bytes": 890,
+      "sha256": "bd30ca98ed69631fee504aa05ca6fcb410c0a4f9cb78b1b0e2d132e1ac39a6a5",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "9a05eff73f0d30adf2f217acea18cd2c944b89cf"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/formal-session-failure/run-20260928-134156-375/trace.json",
+      "bytes": 1630574,
+      "sha256": "147e382b843499a52412beb1c89c17eb636cd5f2a0727826bb229bc53edbc28e",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "a989146f1fadd5b68bc73e7585b8d524b6fa02b5"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/retry-deepseek-flash/run-20260928-141650-075/exec.journal",
+      "bytes": 1534,
+      "sha256": "b8e4e46a88f640af236cc76b1e0fc4008271e9b98edeb83dd953e2bd5a6c4066",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "765cdb201d036d0dbdd6977ad367c206534f14f1"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/retry-deepseek-flash/run-20260928-141650-075/facts.json",
+      "bytes": 199,
+      "sha256": "d20994394346e52753e822174a3aae8efe64ec2ecdb74ba819f14db79d4f12fe",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "b6e05ab799c55e13e27a6d7c49c75519a70ffeb6"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/retry-deepseek-flash/run-20260928-141650-075/settings-trace.json",
+      "bytes": 890,
+      "sha256": "292c302aec7a71bce4d0b2bc762bb545885903a70f23fa581384fd01adc910bf",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "aac30e288f4cca36dea4e3fc2f6ba8492c45a86f"
+    },
+    {
+      "path": "evidence/real-settings-traversal-20260928/retry-deepseek-flash/run-20260928-141650-075/trace.json",
+      "bytes": 1630574,
+      "sha256": "b3a6c9343dd5d887e3e8b9fd74e55a939152a33c3889ed2245ba127306fb6432",
+      "reason": "核对无现存任务Owner、正式manifest依赖或有效入站引用；已授权删除。",
+      "gitBlobSha1": "f3883d0a08988bc596f02483551d0f0d7550a24b"
+    }
+  ],
+  "retained": [
+    {
+      "path": "evidence/agnes-uniclaw-prompt-comparison-20261020",
+      "reason": "有效文档/任务的实际入站引用，保留。",
+      "reference": "docs/research/agnes-uniclaw-prompt-profile-skill-comparison-20261020.md:14"
+    },
+    {
+      "path": "evidence/jev-traversal-comparison-20261021",
+      "reason": "有效文档/任务的实际入站引用，保留。",
+      "reference": "docs/research/jev-traversal-integration-assessment-20261021.md:3"
+    },
+    {
+      "path": "evidence/legacy-closeout-20261022",
+      "reason": "有效文档/任务的实际入站引用，保留。",
+      "reference": "changes/WORLD-UNCERTAINTY-001/coverage-audit.md:36"
+    },
+    {
+      "path": "evidence/design-boundary-review-20261021",
+      "reason": "有效文档/任务的实际入站引用，保留。",
+      "reference": "docs/analysis/uniclaw-module-boundary-design-review-2026-10-21.md:144-145"
+    },
+    {
+      "path": "evidence/glm-doc-index-20261022",
+      "reason": "现存有序推进计划明确记录委派Owner及交付；已原样恢复。",
+      "reference": "plans/2026-10-22-ordered-closeout.md:16,22"
+    },
+    {
+      "path": "evidence/glm-runtime-http-review-20261022",
+      "reason": "现存有序推进计划明确记录委派Owner及交付；已原样恢复。",
+      "reference": "plans/2026-10-22-ordered-closeout.md:16,22"
+    }
+  ],
+  "verification": {
+    "deletedPathsAbsent": true,
+    "candidateProtectedShaIntersections": 0,
+    "scope": "最终净删除两项系统元数据及三个无归属/实际引用的旧过程目录中的38个文件；四份误判的GLM材料按原SHA恢复。",
+    "deletedFileCount": 40,
+    "deletedBytes": 13820702,
+    "digestQualification": "38个原记录是Git blob SHA-1，Leader已读取现存Git对象核对字节数、补算SHA256并保留原blob身份；其余6个为执行者记录的文件SHA256。未复制被删内容。"
+  },
+  "restoredAfterReview": [
+    {
+      "path": "evidence/glm-doc-index-20261022/inventory.md",
+      "bytes": 5372,
+      "sha256": "ccf6be9184039a0e2739d5c3ba362c66ed6aa3981bf7dde18feb19a426d361ec",
+      "reason": "Leader发现仍有有效任务归属/交付记录：plans/2026-10-22-ordered-closeout.md:16、22。撤销孤立判定，按原SHA恢复。",
+      "disposition": "restored-byte-exact"
+    },
+    {
+      "path": "evidence/glm-doc-index-20261022/verification.md",
+      "bytes": 3284,
+      "sha256": "4fc0c9934471f0bcbe12627271c02383217bb7580a2b26b9f39640458763a844",
+      "reason": "Leader发现仍有有效任务归属/交付记录：plans/2026-10-22-ordered-closeout.md:16、22。撤销孤立判定，按原SHA恢复。",
+      "disposition": "restored-byte-exact"
+    },
+    {
+      "path": "evidence/glm-runtime-http-review-20261022/acceptance-cases.md",
+      "bytes": 4437,
+      "sha256": "761a042225b63e7b8d56ba8fa6ec919fb9baedaca733f1555ce5edce331ffbd5",
+      "reason": "Leader发现仍有有效任务归属/交付记录：plans/2026-10-22-ordered-closeout.md:16、22。撤销孤立判定，按原SHA恢复。",
+      "disposition": "restored-byte-exact"
+    },
+    {
+      "path": "evidence/glm-runtime-http-review-20261022/review.md",
+      "bytes": 13934,
+      "sha256": "b01b6e9de5405c955ef90ce2c372141ca31c812783f892f945b14a677cf647ec",
+      "reason": "Leader发现仍有有效任务归属/交付记录：plans/2026-10-22-ordered-closeout.md:16、22。撤销孤立判定，按原SHA恢复。",
+      "disposition": "restored-byte-exact"
+    }
+  ]
+}

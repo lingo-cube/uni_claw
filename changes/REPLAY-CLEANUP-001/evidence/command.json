@@ -1,0 +1,17 @@
+{
+  "cwd": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv",
+  "argv": [
+    "dotnet",
+    "test",
+    "tests/UniClaw.Host.Tests/UniClaw.Host.Tests.csproj",
+    "-m:1",
+    "-nr:false",
+    "-v:q",
+    "--filter",
+    "FullyQualifiedName~RecordedPopupReplayTests|FullyQualifiedName~RecordedPopupRuntimeReplayTests|FullyQualifiedName~SettingsWindowClearanceBuyerTests",
+    "--logger",
+    "trx;LogFileName=targeted.trx",
+    "--results-directory",
+    "/Users/fran/Documents/Code/spacex/uni_claw/changes/REPLAY-CLEANUP-001/evidence/targeted"
+  ]
+}

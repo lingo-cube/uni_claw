@@ -1,0 +1,43 @@
+{
+  "cleanupVerified": true,
+  "netDeletedFiles": 40,
+  "netDeletedBytes": 13820702,
+  "restoredMisclassifiedFiles": 4,
+  "protectedFiles": 1119,
+  "protectedMissing": 0,
+  "cleanupIntersectionWithProtected": 0,
+  "concurrentDriftPreserved": [
+    {
+      "path": "src/UniClaw.Host/Runtime/FileRunResourceJournal.Versioned.cs",
+      "entrySha256": "7769cf82fe0010d7acc99988a54590af3c4b21e31315c3a266aa1a2c4b563851",
+      "observedSha256": "2eb654f52c07d4033a2e3182aeb6444173464dd5bde96870d70cbeb9bf5c9563",
+      "disposition": "shared concurrent edit outside cleanup writes; preserved"
+    },
+    {
+      "path": "src/UniClaw.Host/Runtime/ResourceSnapshotDelta.cs",
+      "entrySha256": "cfaa378cdc7d588d066bb2bf7c3e709cdd21619b5c7d3d7703c24d395578659b",
+      "observedSha256": "452097528b94c0bca5813cf9e6f8fd63dced65d04aee1ea44dac2e25e0c8dfb5",
+      "disposition": "shared concurrent edit outside cleanup writes; preserved"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunEvidenceRecoveryConsistencyTests.cs",
+      "entrySha256": "e3ab02d9ec32ad1774cab40db08f7c6c80bdc1ca65a76ba3ea5889d839aee203",
+      "observedSha256": "f5ae197652dc1d4e6333ccc63880189ecf85db1bd642a15545e7063eb8b14f84",
+      "disposition": "shared concurrent edit outside cleanup writes; preserved"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunRecoveryConsistencyTests.cs",
+      "entrySha256": "45ff3420b0b75ce4daffa0ffb3e379ec9b328a64bad322c5dda6fe1ed5b7ef3e",
+      "observedSha256": "f1e33de537ca9a8bdefbf5ad0688e9922b6b1c542bdf984990d43bfb39be6418",
+      "disposition": "shared concurrent edit outside cleanup writes; preserved"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/RunResourceVersionTests.cs",
+      "entrySha256": "bb1e141cf9267c7fab76843bde22da79592a4e5fe5fe275b84a17932a0df2c4c",
+      "observedSha256": "cd8bfcada290fe6fbec0ca092ab25131726f6783c05cd61c7e6ecf9f3e579e09",
+      "disposition": "shared concurrent edit outside cleanup writes; preserved"
+    }
+  ],
+  "allSuitesRun": false,
+  "sourceOrTestsEditedByCleanup": false
+}

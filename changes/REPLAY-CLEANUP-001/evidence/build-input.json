@@ -1,0 +1,5 @@
+{
+  "snapshot": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv",
+  "qualification": "current shared source after bounded cleanup; build/test outputs private; not a new baseline certification",
+  "files": 1082
+}

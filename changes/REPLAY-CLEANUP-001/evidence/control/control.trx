@@ -1,0 +1,336 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="32948242-4fcc-4164-96d9-625d2343c667" name="@frandeMac-mini 2026-10-25 18:37:57" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-25T18:37:57.6228120+08:00" queuing="2026-10-25T18:37:57.6228120+08:00" start="2026-10-25T18:37:55.9796550+08:00" finish="2026-10-25T18:37:58.7356200+08:00" />
+  <TestSettings name="default" id="3bd73280-054c-4428-befc-debee81c9189">
+    <Deployment runDeploymentRoot="_frandeMac-mini_2026-10-25_18_37_57" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="79f765fb-7271-4bc3-b157-9f59fc95f916" testId="498b4a10-8898-e8c6-b582-bd2ebdb54e51" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;conflict&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.0960065" startTime="2026-10-25T18:37:57.8453990+08:00" endTime="2026-10-25T18:37:57.8453990+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="79f765fb-7271-4bc3-b157-9f59fc95f916" />
+    <UnitTestResult executionId="d42762a6-1250-4bd1-90cd-0d54c8d85904" testId="a93db0e4-725c-b129-1c0a-665d625a6013" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;persistent&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.0923585" startTime="2026-10-25T18:37:57.9939480+08:00" endTime="2026-10-25T18:37:57.9939480+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d42762a6-1250-4bd1-90cd-0d54c8d85904" />
+    <UnitTestResult executionId="d425750f-9213-4552-b5e0-71f2026e55ee" testId="7b414098-997d-29e2-2459-7c1ed6ee3365" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;route-change&quot;, verified: True)" computerName="frandeMac-mini" duration="00:00:00.8148396" startTime="2026-10-25T18:37:57.3991780+08:00" endTime="2026-10-25T18:37:57.3991780+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d425750f-9213-4552-b5e0-71f2026e55ee" />
+    <UnitTestResult executionId="4fa4b826-9601-4834-a370-ba0239fd03fb" testId="299e1307-de8a-00bf-e382-b421a1add15b" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;other-popup&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.0963847" startTime="2026-10-25T18:37:58.6160330+08:00" endTime="2026-10-25T18:37:58.6160330+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4fa4b826-9601-4834-a370-ba0239fd03fb" />
+    <UnitTestResult executionId="86d8dd11-9b6f-4971-8b2c-1d8ef85411e2" testId="364344f7-9b4a-c168-6665-332b75319329" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;unknown-windows&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.0783555" startTime="2026-10-25T18:37:58.3649850+08:00" endTime="2026-10-25T18:37:58.3649850+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="86d8dd11-9b6f-4971-8b2c-1d8ef85411e2" />
+    <UnitTestResult executionId="a5b004c1-f9ae-433a-9488-047ea1b88180" testId="5ad770c3-9d3e-7713-2dc4-f71efdfd9277" testName="UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: &quot;sim-dialog&quot;)" computerName="frandeMac-mini" duration="00:00:00.0010845" startTime="2026-10-25T18:37:56.5918350+08:00" endTime="2026-10-25T18:37:56.5918350+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a5b004c1-f9ae-433a-9488-047ea1b88180">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs:line 41
+   at UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(String id) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupReplayTests.cs:line 15
+   at InvokeStub_RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="5ef4facd-4c7a-419b-91e7-fcde135aea64" testId="96492611-5c4c-fa38-3ada-38792bb966cb" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(mode: &quot;other-popup&quot;, cleared: False)" computerName="frandeMac-mini" duration="00:00:00.0048310" startTime="2026-10-25T18:37:56.5872940+08:00" endTime="2026-10-25T18:37:56.5873120+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5ef4facd-4c7a-419b-91e7-fcde135aea64">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : Could not find a part of the path '/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/local-act-overlay-2618485983f747cfbf764353c886981a'.</Message>
+          <StackTrace>   at System.IO.FileSystem.RemoveEmptyDirectory(String fullPath, Boolean topLevel, Boolean throwWhenNotEmpty)
+   at System.IO.Directory.Delete(String path, Boolean recursive)
+   at UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(String mode, Boolean cleared) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/SettingsWindowClearanceBuyerTests.LocalAct.cs:line 50
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="f8901290-8d23-46c8-98ce-069ea986a091" testId="fdcff522-861b-7d50-6dbb-76f80b8e6129" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;unrelated-target&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.0748273" startTime="2026-10-25T18:37:58.1418460+08:00" endTime="2026-10-25T18:37:58.1418460+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f8901290-8d23-46c8-98ce-069ea986a091" />
+    <UnitTestResult executionId="3b67bb6c-c05d-444a-bfcb-a528d232eacb" testId="fde8950a-a397-1647-f50f-43be7db67818" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(mode: &quot;same-route&quot;, cleared: True)" computerName="frandeMac-mini" duration="00:00:00.0005406" startTime="2026-10-25T18:37:56.5900840+08:00" endTime="2026-10-25T18:37:56.5900840+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3b67bb6c-c05d-444a-bfcb-a528d232eacb">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : Could not find a part of the path '/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/local-act-overlay-e83e0d587b054dfdb2283805fec3e370'.</Message>
+          <StackTrace>   at System.IO.FileSystem.RemoveEmptyDirectory(String fullPath, Boolean topLevel, Boolean throwWhenNotEmpty)
+   at System.IO.Directory.Delete(String path, Boolean recursive)
+   at UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(String mode, Boolean cleared) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/SettingsWindowClearanceBuyerTests.LocalAct.cs:line 50
+   at InvokeStub_SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="1fb34ef4-6a88-43df-9194-2707f9e037ff" testId="f1e62990-d8fc-d492-70a4-ee993468b569" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;same-route&quot;, verified: True)" computerName="frandeMac-mini" duration="00:00:00.1006427" startTime="2026-10-25T18:37:58.7167370+08:00" endTime="2026-10-25T18:37:58.7167370+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1fb34ef4-6a88-43df-9194-2707f9e037ff" />
+    <UnitTestResult executionId="24091bbb-7e94-4050-b45e-216ea52b309f" testId="759730df-ebc8-928c-35d7-d240c6b608ff" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;no-window-evidence&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.0729502" startTime="2026-10-25T18:37:58.0669530+08:00" endTime="2026-10-25T18:37:58.0669540+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="24091bbb-7e94-4050-b45e-216ea52b309f" />
+    <UnitTestResult executionId="99327b44-f6e8-4f51-b5c7-370d42a4d11d" testId="62f64130-6334-b982-8016-bcff0d2eee19" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;delivery-failed&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.0560683" startTime="2026-10-25T18:37:57.9015280+08:00" endTime="2026-10-25T18:37:57.9015280+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="99327b44-f6e8-4f51-b5c7-370d42a4d11d" />
+    <UnitTestResult executionId="1105f695-4be0-4ee8-a10a-75f25f2566c8" testId="54a5cb56-0b68-65d0-2023-92b141317b42" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;partial-windows&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.1095995" startTime="2026-10-25T18:37:57.6157200+08:00" endTime="2026-10-25T18:37:57.6157200+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1105f695-4be0-4ee8-a10a-75f25f2566c8" />
+    <UnitTestResult executionId="32e40695-700f-4088-80d5-cbafa23c5027" testId="747e6d22-e89b-0eb5-8b7b-43bf1ebec7be" testName="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget" computerName="frandeMac-mini" duration="00:00:00.0057718" startTime="2026-10-25T18:37:56.6050030+08:00" endTime="2026-10-25T18:37:56.6050030+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="32e40695-700f-4088-80d5-cbafa23c5027">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs:line 41
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs:line 83
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget() in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs:line 75
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="6035d410-686a-4d14-8565-495b2c17a1a6" testId="28bf9613-6712-2fc8-ee5f-45cdb378a76c" testName="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.RecordedPopupClears_ThenControlledTaskResumes" computerName="frandeMac-mini" duration="00:00:00.0078236" startTime="2026-10-25T18:37:56.6047440+08:00" endTime="2026-10-25T18:37:56.6047440+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6035d410-686a-4d14-8565-495b2c17a1a6">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs:line 41
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs:line 83
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.RecordedPopupClears_ThenControlledTaskResumes() in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs:line 72
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="cc46cb35-ae76-48fc-98ae-1720fcbdb9c1" testId="905aba47-0bdb-b55a-4a12-a55a0b543789" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;pre-unknown-windows&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.0791953" startTime="2026-10-25T18:37:58.5195890+08:00" endTime="2026-10-25T18:37:58.5195890+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cc46cb35-ae76-48fc-98ae-1720fcbdb9c1" />
+    <UnitTestResult executionId="23ff3061-a72a-4010-9749-ad534dfb7e73" testId="0401a558-21ef-cc23-5435-96e0f304ec03" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;missing-overlay&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.1335443" startTime="2026-10-25T18:37:57.7493630+08:00" endTime="2026-10-25T18:37:57.7493630+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="23ff3061-a72a-4010-9749-ad534dfb7e73" />
+    <UnitTestResult executionId="ae87f6cf-dac5-4fa3-b2e4-e279bb4b26c7" testId="735dbde8-25dd-8c09-eff9-551f96b1b7c0" testName="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch" computerName="frandeMac-mini" duration="00:00:00.0153576" startTime="2026-10-25T18:37:56.5974910+08:00" endTime="2026-10-25T18:37:56.5974920+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ae87f6cf-dac5-4fa3-b2e4-e279bb4b26c7">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs:line 41
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs:line 83
+   at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch() in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs:line 78
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d425da5e-91cf-47ee-9bd3-f9e8f626004f" testId="991bf54e-6fbd-0bc7-94ac-701ecb3b23e2" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;pre-partial-windows&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.0752924" startTime="2026-10-25T18:37:58.4403400+08:00" endTime="2026-10-25T18:37:58.4403400+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d425da5e-91cf-47ee-9bd3-f9e8f626004f" />
+    <UnitTestResult executionId="c216224d-534c-45dc-b926-9e2e3df20d7c" testId="cd498942-7c5d-8e3e-a030-dc37eeae1d67" testName="UniClaw.Host.Tests.RecordedPopupReplayTests.MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers" computerName="frandeMac-mini" duration="00:00:00.0085311" startTime="2026-10-25T18:37:56.6048750+08:00" endTime="2026-10-25T18:37:56.6048750+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c216224d-534c-45dc-b926-9e2e3df20d7c">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs:line 41
+   at UniClaw.Host.Tests.RecordedPopupReplayTests.MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers() in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupReplayTests.cs:line 36
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="32744cdc-ac19-408a-abab-f72341cfeb56" testId="497ea894-b3bf-13ee-9f5b-38d9eadfb6ca" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;repeated-frame&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.0684700" startTime="2026-10-25T18:37:58.2865710+08:00" endTime="2026-10-25T18:37:58.2865710+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="32744cdc-ac19-408a-abab-f72341cfeb56" />
+    <UnitTestResult executionId="5ef5d912-e6ea-46ed-ba63-5db158f4d3e2" testId="b2328bd4-8052-5679-8f37-b5764ff2d1ec" testName="UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: &quot;default-apps-cross-package&quot;)" computerName="frandeMac-mini" duration="00:00:00.0141076" startTime="2026-10-25T18:37:56.5907420+08:00" endTime="2026-10-25T18:37:56.5907420+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5ef5d912-e6ea-46ed-ba63-5db158f4d3e2">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs</Message>
+          <StackTrace>   at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs:line 41
+   at UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(String id) in /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupReplayTests.cs:line 15
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="15a2bfc4-39b4-412f-ad62-b77eafdf9dd8" testId="aa858018-49cb-0161-2437-1b6cee93443d" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;wrong-base&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.0761239" startTime="2026-10-25T18:37:58.2180520+08:00" endTime="2026-10-25T18:37:58.2180520+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="15a2bfc4-39b4-412f-ad62-b77eafdf9dd8" />
+    <UnitTestResult executionId="887c1eb4-da71-489c-83e7-2e3133240279" testId="3af03540-e6bc-a5cc-f844-f0e64136b9a2" testName="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;late-overlay&quot;, verified: False)" computerName="frandeMac-mini" duration="00:00:00.1071100" startTime="2026-10-25T18:37:57.5060760+08:00" endTime="2026-10-25T18:37:57.5060760+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="887c1eb4-da71-489c-83e7-2e3133240279" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="735dbde8-25dd-8c09-eff9-551f96b1b7c0">
+      <Execution id="ae87f6cf-dac5-4fa3-b2e4-e279bb4b26c7" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests" name="InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(mode: &quot;same-route&quot;, cleared: True)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="fde8950a-a397-1647-f50f-43be7db67818">
+      <Execution id="3b67bb6c-c05d-444a-bfcb-a528d232eacb" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: &quot;sim-dialog&quot;)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="5ad770c3-9d3e-7713-2dc4-f71efdfd9277">
+      <Execution id="a5b004c1-f9ae-433a-9488-047ea1b88180" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupReplayTests" name="OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;wrong-base&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="aa858018-49cb-0161-2437-1b6cee93443d">
+      <Execution id="15a2bfc4-39b4-412f-ad62-b77eafdf9dd8" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;route-change&quot;, verified: True)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="7b414098-997d-29e2-2459-7c1ed6ee3365">
+      <Execution id="d425750f-9213-4552-b5e0-71f2026e55ee" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;same-route&quot;, verified: True)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="f1e62990-d8fc-d492-70a4-ee993468b569">
+      <Execution id="1fb34ef4-6a88-43df-9194-2707f9e037ff" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;missing-overlay&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="0401a558-21ef-cc23-5435-96e0f304ec03">
+      <Execution id="23ff3061-a72a-4010-9749-ad534dfb7e73" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;conflict&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="498b4a10-8898-e8c6-b582-bd2ebdb54e51">
+      <Execution id="79f765fb-7271-4bc3-b157-9f59fc95f916" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;repeated-frame&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="497ea894-b3bf-13ee-9f5b-38d9eadfb6ca">
+      <Execution id="32744cdc-ac19-408a-abab-f72341cfeb56" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;pre-unknown-windows&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="905aba47-0bdb-b55a-4a12-a55a0b543789">
+      <Execution id="cc46cb35-ae76-48fc-98ae-1720fcbdb9c1" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;persistent&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="a93db0e4-725c-b129-1c0a-665d625a6013">
+      <Execution id="d42762a6-1250-4bd1-90cd-0d54c8d85904" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="747e6d22-e89b-0eb5-8b7b-43bf1ebec7be">
+      <Execution id="32e40695-700f-4088-80d5-cbafa23c5027" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests" name="InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;other-popup&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="299e1307-de8a-00bf-e382-b421a1add15b">
+      <Execution id="4fa4b826-9601-4834-a370-ba0239fd03fb" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.RecordedPopupClears_ThenControlledTaskResumes" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="28bf9613-6712-2fc8-ee5f-45cdb378a76c">
+      <Execution id="6035d410-686a-4d14-8565-495b2c17a1a6" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests" name="RecordedPopupClears_ThenControlledTaskResumes" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(mode: &quot;other-popup&quot;, cleared: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="96492611-5c4c-fa38-3ada-38792bb966cb">
+      <Execution id="5ef4facd-4c7a-419b-91e7-fcde135aea64" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;pre-partial-windows&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="991bf54e-6fbd-0bc7-94ac-701ecb3b23e2">
+      <Execution id="d425da5e-91cf-47ee-9bd3-f9e8f626004f" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;delivery-failed&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="62f64130-6334-b982-8016-bcff0d2eee19">
+      <Execution id="99327b44-f6e8-4f51-b5c7-370d42a4d11d" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;unknown-windows&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="364344f7-9b4a-c168-6665-332b75319329">
+      <Execution id="86d8dd11-9b6f-4971-8b2c-1d8ef85411e2" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;late-overlay&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="3af03540-e6bc-a5cc-f844-f0e64136b9a2">
+      <Execution id="887c1eb4-da71-489c-83e7-2e3133240279" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: &quot;default-apps-cross-package&quot;)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="b2328bd4-8052-5679-8f37-b5764ff2d1ec">
+      <Execution id="5ef5d912-e6ea-46ed-ba63-5db158f4d3e2" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupReplayTests" name="OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;no-window-evidence&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="759730df-ebc8-928c-35d7-d240c6b608ff">
+      <Execution id="24091bbb-7e94-4050-b45e-216ea52b309f" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;partial-windows&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="54a5cb56-0b68-65d0-2023-92b141317b42">
+      <Execution id="1105f695-4be0-4ee8-a10a-75f25f2566c8" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.QualifiedWindowObservationControlsClearanceVerification(mode: &quot;unrelated-target&quot;, verified: False)" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="fdcff522-861b-7d50-6dbb-76f80b8e6129">
+      <Execution id="f8901290-8d23-46c8-98ce-069ea986a091" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests" name="QualifiedWindowObservationControlsClearanceVerification" />
+    </UnitTest>
+    <UnitTest name="UniClaw.Host.Tests.RecordedPopupReplayTests.MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers" storage="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/t/uniclaw-replay-cleanup-3l6niybv/tests/uniclaw.host.tests/bin/debug/net10.0/uniclaw.host.tests.dll" id="cd498942-7c5d-8e3e-a030-dc37eeae1d67">
+      <Execution id="c216224d-534c-45dc-b926-9e2e3df20d7c" />
+      <TestMethod codeBase="/private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/bin/Debug/net10.0/UniClaw.Host.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="UniClaw.Host.Tests.RecordedPopupReplayTests" name="MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="498b4a10-8898-e8c6-b582-bd2ebdb54e51" executionId="79f765fb-7271-4bc3-b157-9f59fc95f916" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a93db0e4-725c-b129-1c0a-665d625a6013" executionId="d42762a6-1250-4bd1-90cd-0d54c8d85904" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7b414098-997d-29e2-2459-7c1ed6ee3365" executionId="d425750f-9213-4552-b5e0-71f2026e55ee" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="299e1307-de8a-00bf-e382-b421a1add15b" executionId="4fa4b826-9601-4834-a370-ba0239fd03fb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="364344f7-9b4a-c168-6665-332b75319329" executionId="86d8dd11-9b6f-4971-8b2c-1d8ef85411e2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5ad770c3-9d3e-7713-2dc4-f71efdfd9277" executionId="a5b004c1-f9ae-433a-9488-047ea1b88180" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="96492611-5c4c-fa38-3ada-38792bb966cb" executionId="5ef4facd-4c7a-419b-91e7-fcde135aea64" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fdcff522-861b-7d50-6dbb-76f80b8e6129" executionId="f8901290-8d23-46c8-98ce-069ea986a091" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fde8950a-a397-1647-f50f-43be7db67818" executionId="3b67bb6c-c05d-444a-bfcb-a528d232eacb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f1e62990-d8fc-d492-70a4-ee993468b569" executionId="1fb34ef4-6a88-43df-9194-2707f9e037ff" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="759730df-ebc8-928c-35d7-d240c6b608ff" executionId="24091bbb-7e94-4050-b45e-216ea52b309f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="62f64130-6334-b982-8016-bcff0d2eee19" executionId="99327b44-f6e8-4f51-b5c7-370d42a4d11d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="54a5cb56-0b68-65d0-2023-92b141317b42" executionId="1105f695-4be0-4ee8-a10a-75f25f2566c8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="747e6d22-e89b-0eb5-8b7b-43bf1ebec7be" executionId="32e40695-700f-4088-80d5-cbafa23c5027" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="28bf9613-6712-2fc8-ee5f-45cdb378a76c" executionId="6035d410-686a-4d14-8565-495b2c17a1a6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="905aba47-0bdb-b55a-4a12-a55a0b543789" executionId="cc46cb35-ae76-48fc-98ae-1720fcbdb9c1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0401a558-21ef-cc23-5435-96e0f304ec03" executionId="23ff3061-a72a-4010-9749-ad534dfb7e73" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="735dbde8-25dd-8c09-eff9-551f96b1b7c0" executionId="ae87f6cf-dac5-4fa3-b2e4-e279bb4b26c7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="991bf54e-6fbd-0bc7-94ac-701ecb3b23e2" executionId="d425da5e-91cf-47ee-9bd3-f9e8f626004f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cd498942-7c5d-8e3e-a030-dc37eeae1d67" executionId="c216224d-534c-45dc-b926-9e2e3df20d7c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="497ea894-b3bf-13ee-9f5b-38d9eadfb6ca" executionId="32744cdc-ac19-408a-abab-f72341cfeb56" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b2328bd4-8052-5679-8f37-b5764ff2d1ec" executionId="5ef5d912-e6ea-46ed-ba63-5db158f4d3e2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="aa858018-49cb-0161-2437-1b6cee93443d" executionId="15a2bfc4-39b4-412f-ad62-b77eafdf9dd8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3af03540-e6bc-a5cc-f844-f0e64136b9a2" executionId="887c1eb4-da71-489c-83e7-2e3133240279" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="24" executed="24" passed="16" failed="8" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.4.1+b9eacec401 (64-bit .NET 10.0.11)
+[xUnit.net 00:00:00.04]   Discovering: UniClaw.Host.Tests
+[xUnit.net 00:00:00.11]   Discovered:  UniClaw.Host.Tests
+[xUnit.net 00:00:00.11]   Starting:    UniClaw.Host.Tests
+[xUnit.net 00:00:00.15]       System.IO.DirectoryNotFoundException : Could not find a part of the path '/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/local-act-overlay-2618485983f747cfbf764353c886981a'.
+[xUnit.net 00:00:00.15]       Stack Trace:
+[xUnit.net 00:00:00.15]            at System.IO.FileSystem.RemoveEmptyDirectory(String fullPath, Boolean topLevel, Boolean throwWhenNotEmpty)
+[xUnit.net 00:00:00.15]            at System.IO.Directory.Delete(String path, Boolean recursive)
+[xUnit.net 00:00:00.15]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/SettingsWindowClearanceBuyerTests.LocalAct.cs(50,0): at UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(String mode, Boolean cleared)
+[xUnit.net 00:00:00.15]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.15]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.16]       System.IO.DirectoryNotFoundException : Could not find a part of the path '/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/local-act-overlay-e83e0d587b054dfdb2283805fec3e370'.
+[xUnit.net 00:00:00.16]       Stack Trace:
+[xUnit.net 00:00:00.16]            at System.IO.FileSystem.RemoveEmptyDirectory(String fullPath, Boolean topLevel, Boolean throwWhenNotEmpty)
+[xUnit.net 00:00:00.16]            at System.IO.Directory.Delete(String path, Boolean recursive)
+[xUnit.net 00:00:00.16]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/SettingsWindowClearanceBuyerTests.LocalAct.cs(50,0): at UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(String mode, Boolean cleared)
+[xUnit.net 00:00:00.16]            at InvokeStub_SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(Object, Span`1)
+[xUnit.net 00:00:00.16]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.16]       System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs
+[xUnit.net 00:00:00.16]       Stack Trace:
+[xUnit.net 00:00:00.16]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs(41,0): at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes)
+[xUnit.net 00:00:00.16]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupReplayTests.cs(15,0): at UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(String id)
+[xUnit.net 00:00:00.16]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.16]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.16]       System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs
+[xUnit.net 00:00:00.16]       Stack Trace:
+[xUnit.net 00:00:00.16]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs(41,0): at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes)
+[xUnit.net 00:00:00.16]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupReplayTests.cs(15,0): at UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(String id)
+[xUnit.net 00:00:00.16]            at InvokeStub_RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(Object, Span`1)
+[xUnit.net 00:00:00.16]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.16]       System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs
+[xUnit.net 00:00:00.16]       Stack Trace:
+[xUnit.net 00:00:00.16]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs(41,0): at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes)
+[xUnit.net 00:00:00.16]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs(83,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId)
+[xUnit.net 00:00:00.16]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs(78,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch()
+[xUnit.net 00:00:00.16]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.16]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.17]       System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs
+[xUnit.net 00:00:00.17]       Stack Trace:
+[xUnit.net 00:00:00.17]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs(41,0): at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes)
+[xUnit.net 00:00:00.17]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs(83,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId)
+[xUnit.net 00:00:00.17]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs(72,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.RecordedPopupClears_ThenControlledTaskResumes()
+[xUnit.net 00:00:00.17]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.17]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.17]       System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs
+[xUnit.net 00:00:00.17]       Stack Trace:
+[xUnit.net 00:00:00.17]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs(41,0): at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes)
+[xUnit.net 00:00:00.17]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupReplayTests.cs(36,0): at UniClaw.Host.Tests.RecordedPopupReplayTests.MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers()
+[xUnit.net 00:00:00.17]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.17]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.17]       System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs
+[xUnit.net 00:00:00.17]       Stack Trace:
+[xUnit.net 00:00:00.17]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Simulation.Tests/ComponentReplay/ReplayCompositionGuard.cs(41,0): at UniClaw.Simulation.Tests.ComponentReplay.ReplayCompositionGuard.Create[T](String repoRoot, Func`1 factory, Func`2 readBytes)
+[xUnit.net 00:00:00.17]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs(83,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.Execute(String mode, String scenarioId)
+[xUnit.net 00:00:00.17]         /private/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv/tests/UniClaw.Host.Tests/RecordedPopupRuntimeReplayTests.cs(75,0): at UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget()
+[xUnit.net 00:00:00.17]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.17]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:02.29]   Finished:    UniClaw.Host.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-25T18:37:56.5852500+08:00">
+        <Text>[xUnit.net 00:00:00.15]     UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(mode: "other-popup", cleared: False) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-25T18:37:56.5921290+08:00">
+        <Text>[xUnit.net 00:00:00.16]     UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(mode: "same-route", cleared: True) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-25T18:37:56.5922150+08:00">
+        <Text>[xUnit.net 00:00:00.16]     UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: "default-apps-cross-package") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-25T18:37:56.5922500+08:00">
+        <Text>[xUnit.net 00:00:00.16]     UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: "sim-dialog") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-25T18:37:56.5924420+08:00">
+        <Text>[xUnit.net 00:00:00.16]     UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-25T18:37:56.6054510+08:00">
+        <Text>[xUnit.net 00:00:00.17]     UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.RecordedPopupClears_ThenControlledTaskResumes [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-25T18:37:56.6055290+08:00">
+        <Text>[xUnit.net 00:00:00.17]     UniClaw.Host.Tests.RecordedPopupReplayTests.MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="frandeMac-mini" outcome="Error" timestamp="2026-10-25T18:37:56.6056710+08:00">
+        <Text>[xUnit.net 00:00:00.17]     UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

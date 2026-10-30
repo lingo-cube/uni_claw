@@ -1,0 +1,19 @@
+{
+  "copies": [
+    {
+      "path": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-regression-diagnosis-x9qclu91",
+      "owner": "REGRESSION-DIAG-001 private diagnostic copy created in this chat",
+      "removed": true,
+      "files": 3207,
+      "bytes": 318024946
+    },
+    {
+      "path": "/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/uniclaw-replay-cleanup-3l6niybv",
+      "owner": "REPLAY-CLEANUP-001 verification/control copy",
+      "files": 1391,
+      "bytes": 109301105,
+      "removed": true
+    }
+  ],
+  "bytes": 427326051
+}

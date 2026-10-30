@@ -1,0 +1,11 @@
+{
+  "files": [
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.Reports.cs",
+      "entrySha256": "312cfecfd11eb7f4210ef1d40bd97ff612aef128491c4161a656a37e8c422c33",
+      "observedSha256": "2e1068d7a9eb084e95913c1429869e22986bc49b0706778b1da4498ad084efb8",
+      "modifiedAt": "2026-10-25T18:38:54.095053",
+      "qualification": "outside cleanup write allowlist; observed shared-worktree drift, preserved without rollback; no product source mutation was performed by this cleanup"
+    }
+  ]
+}

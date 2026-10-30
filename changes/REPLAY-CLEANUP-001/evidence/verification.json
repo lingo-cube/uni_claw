@@ -1,0 +1,92 @@
+{
+  "cleanupScopeVerified": true,
+  "deletedRepositoryFiles": 305,
+  "deletedRepositoryBytes": 47691874,
+  "protectedFilesUnchanged": 421,
+  "protectedBaselineAndCarrierFilesUnchanged": 150,
+  "concurrentProductSourceChangesPreserved": [
+    {
+      "path": "src/UniClaw.Host.Dsh/RuntimeToolHost.Reports.cs",
+      "entrySha256": "312cfecfd11eb7f4210ef1d40bd97ff612aef128491c4161a656a37e8c422c33",
+      "observedSha256": "2e1068d7a9eb084e95913c1429869e22986bc49b0706778b1da4498ad084efb8",
+      "modifiedAt": "2026-10-25T18:38:54.095053",
+      "qualification": "outside cleanup write allowlist; observed shared-worktree drift, preserved without rollback; no product source mutation was performed by this cleanup"
+    }
+  ],
+  "formalPopupReplayTestsRetained": 6,
+  "duplicateCandidateTestsRetired": 6,
+  "afterCleanup": {
+    "total": "24",
+    "executed": "24",
+    "passed": "16",
+    "failed": "8",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "candidateControl": {
+    "total": "30",
+    "executed": "30",
+    "passed": "16",
+    "failed": "14",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "unchangedFailures": [
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.RecordedPopupClears_ThenControlledTaskResumes",
+      "message": "System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs"
+    },
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedDeliveryFailure_PreservesUnconfirmedBarrierWithoutRedispatch",
+      "message": "System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs"
+    },
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupReplayTests.MissingXmlFaultMakesNoPopupClaim_ThenSameRecordedInputRecovers",
+      "message": "System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs"
+    },
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupRuntimeReplayTests.InjectedPopupPersists_RealRunnerStopsWithinObstacleBudget",
+      "message": "System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs"
+    },
+    {
+      "name": "UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(mode: \"same-route\", cleared: True)",
+      "message": "System.IO.DirectoryNotFoundException : Could not find a part of the path '/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/local-act-overlay-d444f4c23c2f4b0ab5b8fbfd88e7b08d'."
+    },
+    {
+      "name": "UniClaw.Host.Tests.SettingsWindowClearanceBuyerTests.LocalAct_ClosingOverlayDoesNotExtendItsTailIntoTheUnderlyingSlice(mode: \"other-popup\", cleared: False)",
+      "message": "System.IO.DirectoryNotFoundException : Could not find a part of the path '/var/folders/_3/lbphn3p95f3dj8ds3z1874q00000gn/T/local-act-overlay-a359111c7700436c84fdaade8f9714d0'."
+    },
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: \"default-apps-cross-package\")",
+      "message": "System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs"
+    },
+    {
+      "name": "UniClaw.Host.Tests.RecordedPopupReplayTests.OriginalFramesAreExtractedInOrder_AndKnownMismatchRemainsVisible(id: \"sim-dialog\")",
+      "message": "System.IO.InvalidDataException : hash-mismatch:src/UniClaw.Host/SettingsCoverage/SettingsActionPolicy.cs"
+    }
+  ],
+  "comparison": "same remaining failure names/messages; normalize only test-generated temporary directory GUID",
+  "controlQualification": "restore exact 3 candidate source files and composition in private clone only; deleted process exports have no runtime references; unused provenance was not restored",
+  "allSuitesGreen": false,
+  "productFixApplied": false
+}

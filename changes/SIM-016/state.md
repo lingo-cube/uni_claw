@@ -31,3 +31,6 @@ evidence: evidence/sim-016/
 - 2026-10-23 IMPLEMENT→REVIEW→VERIFY：跨根工具和载体增量独立复核无阻断。第二次full全部行为/场景通过，但coverage成功结尾旧变量NameError，保留attempt2-*，修复并增加CLI成功回归；工具18/18。最终当前源码隔离full全部通过，双TRX完整名关联6项新场景测试；来源/保护核验见verification.json。
 - 2026-10-23 CLOSED（接入范围）：本轮提取、注入、真实Host/Runtime消费及回归完成。SIM-017前置设计已等待完成；窗口事实采集、unknown/stale实现、分类误判修复留待后续裁决与实施。本轮未启设备/模型或提交推送。
 - 2026-10-23 PUBLICATION：用户追加授权“完成后提交并推送”。发布包仅含SIM-009至017及CHECKED-GUARD/VERIFY-ENTRY必要前置、checked补采候选设计和测试必需资产；排除外线改动、私有运行配置及重复快照。HEAD归档加显式文件清单的独立发布副本full八工程2109/2109、41/41场景、工具18/18通过，见publication-full.txt及publication.json；原未提交/推送声明保留为历史阶段事实。
+
+## 2026-10-25 数据保留更新
+用户明确选择“只保留正式测试基线，历史过程证据也可删除”。`evidence/sim-016/`的215份旧过程输出（TRX、日志、导出actual、重复快照及脚本/评审过程材料）由REPLAY-CLEANUP-001列单删除，仅留退役说明；以上执行/发布结果保留为当时结论，不再声称这些旧路径现存可验证。正式PopupReplay fixture/Oracle/原始录制、场景和正式载体及其依赖逐字节保留。清理不修复旧source pin拒绝，不晋升新组合。

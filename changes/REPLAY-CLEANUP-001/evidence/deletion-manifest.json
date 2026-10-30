@@ -1,0 +1,1849 @@
+{
+  "scope": "old popup replay only; explicit user retention decision 2026-10-25",
+  "targets": {
+    "evidence/sim-016": "old-popup-replay-process-output",
+    "changes/REGRESSION-DIAG-001/evidence": "diagnostic-process-output",
+    "changes/SIM-024/evidence/resume/current-replay": "candidate-replay-composition",
+    "changes/SIM-024/evidence/resume/current-replay.trx": "candidate-replay-result",
+    "changes/SIM-024/evidence/resume/current-replay.txt": "candidate-replay-log",
+    "changes/SIM-024/evidence/resume/host-current-qualified.trx": "candidate-qualified-suite-result",
+    "changes/SIM-024/evidence/resume/host-current-qualified.txt": "candidate-qualified-suite-log",
+    "tests/UniClaw.Host.Tests/CurrentCandidatePopupComposition.cs": "obsolete-candidate-carrier",
+    "tests/UniClaw.Host.Tests/CurrentCandidateRecordedPopupReplayTests.cs": "obsolete-candidate-carrier",
+    "tests/UniClaw.Host.Tests/CurrentCandidateRecordedPopupRuntimeReplayTests.cs": "obsolete-candidate-carrier"
+  },
+  "files": [
+    {
+      "path": "evidence/sim-016/actual/component-semantic-all-apps-frozen-response.json",
+      "bytes": 19987,
+      "sha256": "320f93415ff63640a708e10c71a044d77841a0cb55b5fe1b24b95ced224ef4a7",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-all-apps-scripted.json",
+      "bytes": 19980,
+      "sha256": "187be18e60b08ec172a9565c36fdc300d56362990943fe878ff0248db618a881",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-cancel-frozen-response.json",
+      "bytes": 17336,
+      "sha256": "4d3d731818f137c99a7b49e1ffd5642bf0ed678cba3dd9680106b71db2abf186",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-cancel-scripted.json",
+      "bytes": 17336,
+      "sha256": "4d3d731818f137c99a7b49e1ffd5642bf0ed678cba3dd9680106b71db2abf186",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-default-apps-frozen-response.json",
+      "bytes": 20031,
+      "sha256": "465e10674fa2d8da9b8caab8ff9377ec410b5eae329712d95e9a089dbc919732",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-default-apps-scripted.json",
+      "bytes": 20024,
+      "sha256": "49407b17629a8bbbf93ce61c8834b75f0c2245b58f03903463637d25a6c73231",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-frozen-response-conflicted-intent.json",
+      "bytes": 18005,
+      "sha256": "97b65be366df27742159e0663ed94ffea30b434a716446d3486da41ea52c6289",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-frozen-response-misbound-response.json",
+      "bytes": 17257,
+      "sha256": "2f20ca1a8c1516ac888891874050e8681db22322a3295ea39cc926e7d8c13787",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-frozen-response-unavailable.json",
+      "bytes": 17260,
+      "sha256": "fcd31138fa3928e88f5c79d5b74c517f8b25af1ac1ba422c4898db2d6ad45b95",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-scripted-conflicted-intent.json",
+      "bytes": 18005,
+      "sha256": "97b65be366df27742159e0663ed94ffea30b434a716446d3486da41ea52c6289",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-scripted-misbound-response.json",
+      "bytes": 17257,
+      "sha256": "2f20ca1a8c1516ac888891874050e8681db22322a3295ea39cc926e7d8c13787",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-scripted-unavailable.json",
+      "bytes": 17260,
+      "sha256": "fcd31138fa3928e88f5c79d5b74c517f8b25af1ac1ba422c4898db2d6ad45b95",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-sims-frozen-response.json",
+      "bytes": 19943,
+      "sha256": "3c2adbf74b5c4a2107c8604583b011e763e04e3254f6b4267895d3fde7a3df8f",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-semantic-sims-scripted.json",
+      "bytes": 19936,
+      "sha256": "906272db9423c7f2d58378d86ed1f3bca47e1810ea11d8d3dfb1da3ae8dd0616",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-world-all-apps-frozen-capture.json",
+      "bytes": 19100,
+      "sha256": "f4bee4a9ffc7906ca02214d48d57b029db63fab08e9f2e20d289d517f77147d2",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-world-all-apps-typed-import.json",
+      "bytes": 18773,
+      "sha256": "fa08037bda0d3e0ec0008cf5473f854f5558169b8a36fa3b246b1f38f2dc5f31",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-world-conflict-frozen-capture.json",
+      "bytes": 16134,
+      "sha256": "b2a7c2748ab90a85966621c7c21f49939be58df62244bff144744156234f1b0b",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-world-conflict-typed-import.json",
+      "bytes": 16134,
+      "sha256": "b2a7c2748ab90a85966621c7c21f49939be58df62244bff144744156234f1b0b",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-world-default-apps-frozen-capture.json",
+      "bytes": 19116,
+      "sha256": "1b2a657384de436eed1be452448754a77a3ed437a6fb5355e590415f611b59cc",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-world-default-apps-typed-import.json",
+      "bytes": 18781,
+      "sha256": "09f880ee668bde28d9f1129d666be51e486200c77dcc7307f509932f17283458",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-world-sims-frozen-capture.json",
+      "bytes": 19084,
+      "sha256": "53d8534758bf37bd73d4820aa8bee4dd2923151f9a9232201dcf65b832401377",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/component-world-sims-typed-import.json",
+      "bytes": 18765,
+      "sha256": "afd555d26670d5a627ad0d1d32a165896e906460cd877af52404b49af299dcfe",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/operations-duplicate.json",
+      "bytes": 275831,
+      "sha256": "5f1b15d11a2446e5c25f052dfb785da8050307810f7d6d926fb0bb72c7953392",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/operations-nested.json",
+      "bytes": 293090,
+      "sha256": "a047bce1031be90b9e15ba53cd515d66f1565cb015d297a8d9dc693da6d96c47",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/operations-reflow.json",
+      "bytes": 275778,
+      "sha256": "99b6f3fd6d861431d29dbda77bd06cb1e2cc2e23aa5799512b7aeb07d856bd6d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/operations-translation-budget4.json",
+      "bytes": 255964,
+      "sha256": "fb62c192952bd483942d467730aed9aa1f57a27e599e338fb6ca7a5f18bb0d94",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/operations-translation.json",
+      "bytes": 285524,
+      "sha256": "591f7b4daa400f66ac94c7116a2620d1c597f326756ff6315db1873a0bbb8644",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/oracle-content.json",
+      "bytes": 238,
+      "sha256": "e70b68f5219204b6756e4823363298a2edb95fcd1af66b1855ad4ff6b954135f",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/oracle-navigation-direction.json",
+      "bytes": 957,
+      "sha256": "98753c71b0b0f56571181ef568d79411e1307a3f3dbc5071452154518bc93ff1",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/oracle-navigation-kind.json",
+      "bytes": 952,
+      "sha256": "c8583f0db4e12c9fb16d5563cd446355fc3fd8cbc06e4e46c30623622e5451e4",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/oracle-navigation-target.json",
+      "bytes": 954,
+      "sha256": "2c2b0b5cf79b38161b9390fbf85ad2fcd9a1d2c66643c5dc0d7acffe28cd7e42",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/oracle-offset.json",
+      "bytes": 234,
+      "sha256": "381e21b3e0a45088e1eecadcbc079eb028dc17c4d3a4c186f6894f44af511933",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/oracle-relation.json",
+      "bytes": 225,
+      "sha256": "3b1430f6103c56064db5545ef2ec5d22769dd1532eba198ce9172e3990ee2fcc",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/oracle-verification.json",
+      "bytes": 237,
+      "sha256": "a1ae78a28de99176164629370e17faee6611b293b5b01625be54627403f17ace",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/page-identity-replay.json",
+      "bytes": 13013,
+      "sha256": "938fea69a21324bb61d3e6f46742d79e1a0b8570d189c37d5ca375c52778a243",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/popup-extracted-default-apps-cross-package.json",
+      "bytes": 79748,
+      "sha256": "9ed652cebdce5f5cac591087bc8269583f0c86e9c7f90b36c15c7781e1885227",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/popup-extracted-sim-dialog.json",
+      "bytes": 106484,
+      "sha256": "fd0298c7977bd9cf459cccc5385eb29b9b578590921643a08f1cd9d2f9ef44b1",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/popup-missing-xml.json",
+      "bytes": 368,
+      "sha256": "60355602a2d6bdb05e9454279c19d727d43e30b93c8813edd75aeab402fa8639",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/popup-runtime-clears.json",
+      "bytes": 38276,
+      "sha256": "2a5b367da9ac2a4c0234812e0f46221240fdee0004893f51aa76410553c95a43",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/popup-runtime-failed.json",
+      "bytes": 36962,
+      "sha256": "ef0a408a091e109e945175d762f6d7a0eac59fb6c0c2abc82521438ad2a1455d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/popup-runtime-held.json",
+      "bytes": 41151,
+      "sha256": "f6db89eee3b4d7ccfb6d26ba2d38e4bad050aa8a48b2f38524dc037500ece470",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recent-all-apps.json",
+      "bytes": 14775,
+      "sha256": "5bacd8530016c210aa13543ba45e25ab418ed91f894c19c85de3e0f1837c3db9",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recent-default-apps.json",
+      "bytes": 14876,
+      "sha256": "87007f9f501eaa47638882d8bd5a43eac0be33ef875b5f6d48a2eff68f03353a",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recent-sims.json",
+      "bytes": 14743,
+      "sha256": "62553852187e13f87b1a211b3bdbd868816aa9d74600045e70bf874dd20c3b9d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recorded-network-direct-diagnostic.json",
+      "bytes": 1566964,
+      "sha256": "d4474050a788fc8c0532254cfb9230dba3474d263456976efa9ae1087cb8da5f",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recorded-network-direct.json",
+      "bytes": 1566953,
+      "sha256": "aefdbdcd781d31ddf2de7393cf263bbe58d9045e0348c72c7f1e8c4a7250dac8",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recorded-network-recovered.json",
+      "bytes": 1567375,
+      "sha256": "47ed5350e82c36d78c27ebf9db14189964d7e80182f5e9b6bd77194d356a7ddf",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recorded-network-unchanged-diagnostic.json",
+      "bytes": 1595944,
+      "sha256": "02ca5b6fd54a4644bdba4d79219ea08b9fd9ce43a437f88adc3f868c9033b700",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recorded-network-unchanged-post.json",
+      "bytes": 1595938,
+      "sha256": "bb1a9ac743b9656d850fbc9c0032d47f5ff8b2b9034fe0a0c215e1a3e5b4aba9",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recorded-stay-awake-direct-diagnostic.json",
+      "bytes": 1378722,
+      "sha256": "39fc797b2d2b500c3978d6af35ff3b47e3f680933f63745c9736ac61548b5334",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recorded-stay-awake-direct.json",
+      "bytes": 1378711,
+      "sha256": "d351632330714744581a28d4fe26c1f4c72ffcdcb892da28ffcf1914da7f1a61",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recorded-stay-awake-recovered.json",
+      "bytes": 1379133,
+      "sha256": "05f0d1840c2344132d6ca3338c53027868d50a0c13286eb0772218e8e1cae525",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recorded-stay-awake-unchanged-diagnostic.json",
+      "bytes": 1380601,
+      "sha256": "7fd2a6561f7c2db22232a2fca084281ae7e0b06072870844289efae866beb918",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/actual/recorded-stay-awake-unchanged-post.json",
+      "bytes": 1379880,
+      "sha256": "51afbadb9177603baf944c3a011797b8112c4e787dd183e869abf1f427291241",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/attempt1-final-snapshot.json",
+      "bytes": 312946,
+      "sha256": "f6dc6997814cf0290a6269671804a488e6d08681f5b99c80a72b331264f523b8",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/attempt1-full-exit.json",
+      "bytes": 26,
+      "sha256": "9dc07322bd81d8d31c54bc0c6d2280b049d00d5a8748f171f16ced8d24c6e070",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/attempt1-full.txt",
+      "bytes": 321940,
+      "sha256": "6c35753aae21fe1f4bb5b0d6d11a5b01c2560eb677c6969e54b6dbf2d62de551",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/attempt1-simulation-full.trx",
+      "bytes": 473642,
+      "sha256": "a201a1378a894e6dca4021f2308acfa2f6e7f8b6f25daf71f67500e0d5980f6d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/attempt2-final-snapshot.json",
+      "bytes": 313028,
+      "sha256": "3730889bd1ef6ac96cbb42f0a5c225b05a27ff8a462b967a5d8803b1f37ff95a",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/attempt2-full-exit.json",
+      "bytes": 26,
+      "sha256": "9dc07322bd81d8d31c54bc0c6d2280b049d00d5a8748f171f16ced8d24c6e070",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/attempt2-full.txt",
+      "bytes": 319585,
+      "sha256": "ae3a10c46f76a1b5b298bc2a0003e26f3a5d0fb496361f46828fb61f895d9f91",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/classification-red.cs.txt",
+      "bytes": 1288,
+      "sha256": "3315f71ad93fa1c7490c3bd287fd5145ff76f427ed58da2f85db83c5880b9ec1",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/classification-red.trx",
+      "bytes": 4634,
+      "sha256": "ea8e4367868ce73bc39ae7aa580bfc57c0c6ec32347055b353e2cf73c294209c",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/classification-red.txt",
+      "bytes": 235885,
+      "sha256": "6cef107ac115c21948da2125be2dd9fa22841553f13fc6dc15e7ea5f6caadd56",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/collect-results.py",
+      "bytes": 6577,
+      "sha256": "40e572a86012cfeb186244b07011c65d1280f9cfc8c4915cedbacce9b76fb217",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/collection.txt",
+      "bytes": 773,
+      "sha256": "96cadfd94c68ccf71ecf5b5d0a6d9af87beff4f68cc899dc6be71e86951e8c19",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/diff-check.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/disabled-hold-selector.trx",
+      "bytes": 5261,
+      "sha256": "1a559f30ea3bf05b97cafd99849eee5065585085c57155cc211e8a97934884a9",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/disabled-hold-selector.txt",
+      "bytes": 4141,
+      "sha256": "e2af9dc2b74c6bdbe17af1bac2d90b3ac35e931f9a28829f0770beea8dbc12b6",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/entry/protected.json",
+      "bytes": 262214,
+      "sha256": "f8fba4dd81a6a6cd3cb2dbefee1da6e3447237e9e62bc2a4a1a5d287756dc96a",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/entry/status.txt",
+      "bytes": 44491,
+      "sha256": "26c1a94760a318ec57373183804e803b9902b60c7b5d8e5dd8bcf745dab2d56e",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/entry/tracked.patch",
+      "bytes": 66802,
+      "sha256": "14872bb6579aa42d26cc61d052a425f514ef15fa6eb3eeaba16e0d4572b2b4e1",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/episode-audit-work-item.json",
+      "bytes": 1423,
+      "sha256": "1c77fde5a5c7c3c69a2df7b6d48be19aafa6826a0160b1bf01d03e505f2b4a02",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/episode-audit.json",
+      "bytes": 2559,
+      "sha256": "b195699f010270bbf69ae8ef754956bc8ceb4a5e60f6a32bb168b6a5f190354d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/extract-sources.py",
+      "bytes": 2363,
+      "sha256": "95bab3d9d9108ddacc43ad0ce8782698af596366cbffa432ac3954d9a388f4b7",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/final-restore.txt",
+      "bytes": 1752,
+      "sha256": "92ba3f8ce8204ba3441160c2aba0f80000dccbceb0ca460657f8f152e8405718",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/final-snapshot.json",
+      "bytes": 313028,
+      "sha256": "e846b46f2af0fc0a5587b6e37ee606604d55ec3193bd79c478ecebb63cb0b25c",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/focused-actual/popup-extracted-default-apps-cross-package.json",
+      "bytes": 79580,
+      "sha256": "c932c0767484b08845d9086a59087f54cefabb61407012b9ad78d3133d64f7d8",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/focused-actual/popup-extracted-sim-dialog.json",
+      "bytes": 106316,
+      "sha256": "88f3df92f735638fca7d0a2d069978983334065abeca4d37013e81d5783b0018",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/focused-actual/popup-missing-xml.json",
+      "bytes": 368,
+      "sha256": "60355602a2d6bdb05e9454279c19d727d43e30b93c8813edd75aeab402fa8639",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/focused-actual/popup-runtime-clears.json",
+      "bytes": 38108,
+      "sha256": "b408433aa8f201e4e7d293df2c02ac228506812ff282f2fc322d01ffc9fc570b",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/focused-actual/popup-runtime-failed.json",
+      "bytes": 36794,
+      "sha256": "c94493d2034b1423a49c54c4bcaea5ab8ddc6562859c3b1b923b9aac97e6fa24",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/focused-actual/popup-runtime-held.json",
+      "bytes": 40983,
+      "sha256": "527a2a4f14572108968329ef00aff4690dbcd4acf8e0a2f1e408d4b44eff13f2",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/focused-restore.txt",
+      "bytes": 1758,
+      "sha256": "4eb3d65de7baaa6c77e815e533618ce31cd86d1d006bb30e96e92b7a2e3a54de",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/focused-snapshot.json",
+      "bytes": 312526,
+      "sha256": "0f50364ce7f6af5c7d8c74040e63933ad4479b6e3bc331636dddf4f1396902fa",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/full-exit.json",
+      "bytes": 26,
+      "sha256": "a95e914588112033a9a54f77b89f576e27262a2104a746808eb1989865700bf0",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/full.txt",
+      "bytes": 319152,
+      "sha256": "ac4e9a1d56c3072889381455f450684da5aadf26ec77e9132076d6c021af4f7d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/host-composition-boundary-audit.md",
+      "bytes": 6887,
+      "sha256": "c359a178edf1531a61bbbc8f88e247b7ef41532c74c915fe93cd8ebfca1d28bf",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/host-focused-actual/popup-extracted-default-apps-cross-package.json",
+      "bytes": 79748,
+      "sha256": "9ed652cebdce5f5cac591087bc8269583f0c86e9c7f90b36c15c7781e1885227",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/host-focused-actual/popup-extracted-sim-dialog.json",
+      "bytes": 106484,
+      "sha256": "fd0298c7977bd9cf459cccc5385eb29b9b578590921643a08f1cd9d2f9ef44b1",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/host-focused-actual/popup-missing-xml.json",
+      "bytes": 368,
+      "sha256": "60355602a2d6bdb05e9454279c19d727d43e30b93c8813edd75aeab402fa8639",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/host-focused-actual/popup-runtime-clears.json",
+      "bytes": 38276,
+      "sha256": "2a5b367da9ac2a4c0234812e0f46221240fdee0004893f51aa76410553c95a43",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/host-focused-actual/popup-runtime-failed.json",
+      "bytes": 36962,
+      "sha256": "ef0a408a091e109e945175d762f6d7a0eac59fb6c0c2abc82521438ad2a1455d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/host-focused-actual/popup-runtime-held.json",
+      "bytes": 41151,
+      "sha256": "f6db89eee3b4d7ccfb6d26ba2d38e4bad050aa8a48b2f38524dc037500ece470",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/host-focused-snapshot.json",
+      "bytes": 313028,
+      "sha256": "bcc3a35c4eaf6bcf9e3d10f767da4d4ace9a461a878bf93293d03136bfecce62",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/host-focused.trx",
+      "bytes": 13070,
+      "sha256": "b9a17378d2fd03a3690a57158224c1f097814548232e91a6ce37f182eb35e959",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/host-focused.txt",
+      "bytes": 237206,
+      "sha256": "c76564483f88149e2b47497e9713ce05ba93c1d8335c250bef8d5f97fcb8147c",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/host-full.trx",
+      "bytes": 597891,
+      "sha256": "a81ddfcc791178d0b96b235c20fa1aebfed565b58b7659af368cdbd2fb770bfa",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/host-truth-work-item.json",
+      "bytes": 2149,
+      "sha256": "578335cdca8fb99da80256125d9304807aa0c1506c9258a0a8d8262d63f07b92",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/make-snapshot.py",
+      "bytes": 2089,
+      "sha256": "0e8eddeaaef5d7c5359b0d524157a2da857e79c06b3fe7916e1cf56c8b7c11f7",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/module-results.json",
+      "bytes": 1162,
+      "sha256": "72f8bf5873ecaf3006521bad231792b6066ce510ba10ec1c532c8ae109a869fe",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/mutate-replay.py",
+      "bytes": 2644,
+      "sha256": "b7f19588531ff131a34c1ca0c36b88015230db90c39ea1bccb9971488b44a556",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/mutation-exits.json",
+      "bytes": 128,
+      "sha256": "9eace8d6361e8869d2e493b087652793c9fa11a963462c9c8d63042c17d22524",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/mutation-final-runner.txt",
+      "bytes": 118,
+      "sha256": "4d22da6aa0f6fe331c283af608c926eb2722423358a3d9872da58f362707e84b",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/mutation-host-runner.txt",
+      "bytes": 118,
+      "sha256": "4d22da6aa0f6fe331c283af608c926eb2722423358a3d9872da58f362707e84b",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/mutation-results.json",
+      "bytes": 1962,
+      "sha256": "16cf094e2c5a58202186eccaef683fccf4dfb5b8e11115b7cf7370cc6a40e447",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/mutation-runner.txt",
+      "bytes": 89,
+      "sha256": "bdbeb38e96ec6c1d6d9159c1a07e05e24662cb3a8c626e155d2b7f9e783d4a65",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/pin-composition.py",
+      "bytes": 2416,
+      "sha256": "146f88dabaaac095a8c126922497bfe59c47c2608fdc39a63de246211ea8a2bf",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/popup-candidate-final.trx",
+      "bytes": 10472,
+      "sha256": "717562b16aa1d5e643eebd61818d187e45f4cac9742007d63e3c2a38d683d246",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/popup-candidate-final.txt",
+      "bytes": 11440,
+      "sha256": "58211ce1ba8982b46076d84fb519c30c0be900db3d7894b4520bc16fedc69adc",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/popup-candidate.trx",
+      "bytes": 10472,
+      "sha256": "08db48cfc88e826f7cc5deac36b783892bf53b4fd818a222ce8948d0c1d9e587",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/popup-candidate.txt",
+      "bytes": 9306,
+      "sha256": "d74e7f8c69f2ae9a739876a0f688063eb7b977f8379d884617908e2e325d00e4",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/popup-discovery.json",
+      "bytes": 916,
+      "sha256": "41964f299d4d5d2573439086c752c4f609a40f902ceddf62eee6254f3096e60c",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/popup-focused-final.trx",
+      "bytes": 10744,
+      "sha256": "e66451bbd6cd39d077c9dd2261b609db1da9f6f10636ef784c87bc7be76c5500",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/popup-focused-final.txt",
+      "bytes": 9310,
+      "sha256": "09f8e68269a431ff14bc3895d54e4e6b8013f33414eb7ad916ffc15220a6a5d1",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/popup-focused.trx",
+      "bytes": 9192,
+      "sha256": "d506be3cf3953b7a93a3c40f49cf3da58f01eac8083648fab5071802c8f4746c",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/popup-focused.txt",
+      "bytes": 244939,
+      "sha256": "228b619624138cffc4c6137f3f20ae668a4a36b9f1fa803a10330af4e401afc7",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/popup-guarded.trx",
+      "bytes": 10744,
+      "sha256": "f1e21ee6fa2e67670c852b640fe2704acbb8c069d100e35b668ecf3400b55acf",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/popup-guarded.txt",
+      "bytes": 9307,
+      "sha256": "dcd3008622c64b4119948f13ce18c7391a367100edb4ab29ee05905d794cc606",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/popup-results.json",
+      "bytes": 747,
+      "sha256": "460fdff7556b9333c5c2927081519aa1e33a30f63428713e71152119a54dcae8",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/protection-check.json",
+      "bytes": 551,
+      "sha256": "e7c7b0cf2ec732810290b363bb198730831d92627ee24fe380784439d57c25f4",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/protocol-check.txt",
+      "bytes": 210,
+      "sha256": "84482ec200bacbaab34bf776b2e6a3f6b015f30ee062c0e220b178509a88a1a4",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-all-apps-frozen-response.json",
+      "bytes": 19987,
+      "sha256": "94f2d5fb4de9714749c1f09826f46f2b95db58d3e7e7fb44de5c531e53e897e3",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-all-apps-scripted.json",
+      "bytes": 19980,
+      "sha256": "e492e9f916fcbf40a52f0b03a27ce364b18c90d64f3f2660ef7d1c0c2936c727",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-cancel-frozen-response.json",
+      "bytes": 17336,
+      "sha256": "8b48b29dbc38edabbc6015469a2bf01bbcdd3c2216da4cce650c70ce42af4e5d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-cancel-scripted.json",
+      "bytes": 17336,
+      "sha256": "8b48b29dbc38edabbc6015469a2bf01bbcdd3c2216da4cce650c70ce42af4e5d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-default-apps-frozen-response.json",
+      "bytes": 20031,
+      "sha256": "fc52c97012f8d15914f51be532cdae2e2c30f37aff792a37986dbf1d373bd38e",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-default-apps-scripted.json",
+      "bytes": 20024,
+      "sha256": "d2bae78fbd131b86a453a666997fb6c1d665449c6a1f13cf2c37ccb4523b9eb9",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-frozen-response-conflicted-intent.json",
+      "bytes": 18005,
+      "sha256": "6e58d16285c548bd4a3bab0729d44c106c005dd8e81442942c48bf7943053f4b",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-frozen-response-misbound-response.json",
+      "bytes": 17257,
+      "sha256": "fe501f4c9fd8b4dacc6208d73e52bb267df6454ad3646c9495bfd6bfa5321e46",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-frozen-response-unavailable.json",
+      "bytes": 17260,
+      "sha256": "d76ae221af80caa64a7be7487eb7da34b32d03ee19e35213d46db1f16310ee82",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-scripted-conflicted-intent.json",
+      "bytes": 18005,
+      "sha256": "6e58d16285c548bd4a3bab0729d44c106c005dd8e81442942c48bf7943053f4b",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-scripted-misbound-response.json",
+      "bytes": 17257,
+      "sha256": "fe501f4c9fd8b4dacc6208d73e52bb267df6454ad3646c9495bfd6bfa5321e46",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-scripted-unavailable.json",
+      "bytes": 17260,
+      "sha256": "d76ae221af80caa64a7be7487eb7da34b32d03ee19e35213d46db1f16310ee82",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-sims-frozen-response.json",
+      "bytes": 19943,
+      "sha256": "b38a833b13d8551922bccdac12f664d5d2fca14bc88f0698facd9638c1979fee",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-semantic-sims-scripted.json",
+      "bytes": 19936,
+      "sha256": "13929aec46b18367f73531ccbc676c74a2750be95320b119c12e078696af9641",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-world-all-apps-frozen-capture.json",
+      "bytes": 19100,
+      "sha256": "3b91097c52a44b47ffad92d8edb068a11a9da24927ac9ffcce8d0a7a1423e048",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-world-all-apps-typed-import.json",
+      "bytes": 18773,
+      "sha256": "922a3fb9938f3d3d7e1dbc66d29311cdeb09d5bf43b38eb54ce333d8d85b2a3d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-world-conflict-frozen-capture.json",
+      "bytes": 16134,
+      "sha256": "6d45b4215149c93bcc8f35cccbb9b2f92e8683c2dea7153ed03a4d4e186c1372",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-world-conflict-typed-import.json",
+      "bytes": 16134,
+      "sha256": "6d45b4215149c93bcc8f35cccbb9b2f92e8683c2dea7153ed03a4d4e186c1372",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-world-default-apps-frozen-capture.json",
+      "bytes": 19116,
+      "sha256": "e12cf1cbc617bcc86a9eee3c77829440c94e842b290b797a11c31050e6cb9f8c",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-world-default-apps-typed-import.json",
+      "bytes": 18781,
+      "sha256": "114b75b8fa8bbb6fbfd528f8af41b6a12108affd8889ffe2e847eb5bb767f017",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-world-sims-frozen-capture.json",
+      "bytes": 19084,
+      "sha256": "0b41693ad9198d3a0e93ff243ea51cfeb17c3eee2c67f971723991c4f2a57296",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/component-world-sims-typed-import.json",
+      "bytes": 18765,
+      "sha256": "ffffbdce64d767fcf02344a3dc26fa72ea04161a8faf9716427239d606385b4c",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/operations-duplicate.json",
+      "bytes": 275831,
+      "sha256": "5f1b15d11a2446e5c25f052dfb785da8050307810f7d6d926fb0bb72c7953392",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/operations-nested.json",
+      "bytes": 293090,
+      "sha256": "a047bce1031be90b9e15ba53cd515d66f1565cb015d297a8d9dc693da6d96c47",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/operations-reflow.json",
+      "bytes": 275778,
+      "sha256": "99b6f3fd6d861431d29dbda77bd06cb1e2cc2e23aa5799512b7aeb07d856bd6d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/operations-translation-budget4.json",
+      "bytes": 255964,
+      "sha256": "fb62c192952bd483942d467730aed9aa1f57a27e599e338fb6ca7a5f18bb0d94",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/operations-translation.json",
+      "bytes": 285524,
+      "sha256": "591f7b4daa400f66ac94c7116a2620d1c597f326756ff6315db1873a0bbb8644",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/oracle-content.json",
+      "bytes": 238,
+      "sha256": "e70b68f5219204b6756e4823363298a2edb95fcd1af66b1855ad4ff6b954135f",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/oracle-navigation-direction.json",
+      "bytes": 957,
+      "sha256": "98753c71b0b0f56571181ef568d79411e1307a3f3dbc5071452154518bc93ff1",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/oracle-navigation-kind.json",
+      "bytes": 952,
+      "sha256": "c8583f0db4e12c9fb16d5563cd446355fc3fd8cbc06e4e46c30623622e5451e4",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/oracle-navigation-target.json",
+      "bytes": 954,
+      "sha256": "2c2b0b5cf79b38161b9390fbf85ad2fcd9a1d2c66643c5dc0d7acffe28cd7e42",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/oracle-offset.json",
+      "bytes": 234,
+      "sha256": "381e21b3e0a45088e1eecadcbc079eb028dc17c4d3a4c186f6894f44af511933",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/oracle-relation.json",
+      "bytes": 225,
+      "sha256": "3b1430f6103c56064db5545ef2ec5d22769dd1532eba198ce9172e3990ee2fcc",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/oracle-verification.json",
+      "bytes": 237,
+      "sha256": "a1ae78a28de99176164629370e17faee6611b293b5b01625be54627403f17ace",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/page-identity-replay.json",
+      "bytes": 13013,
+      "sha256": "938fea69a21324bb61d3e6f46742d79e1a0b8570d189c37d5ca375c52778a243",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/popup-extracted-default-apps-cross-package.json",
+      "bytes": 79748,
+      "sha256": "9ed652cebdce5f5cac591087bc8269583f0c86e9c7f90b36c15c7781e1885227",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/popup-extracted-sim-dialog.json",
+      "bytes": 106484,
+      "sha256": "fd0298c7977bd9cf459cccc5385eb29b9b578590921643a08f1cd9d2f9ef44b1",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/popup-missing-xml.json",
+      "bytes": 368,
+      "sha256": "60355602a2d6bdb05e9454279c19d727d43e30b93c8813edd75aeab402fa8639",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/popup-runtime-clears.json",
+      "bytes": 38276,
+      "sha256": "2a5b367da9ac2a4c0234812e0f46221240fdee0004893f51aa76410553c95a43",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/popup-runtime-failed.json",
+      "bytes": 36962,
+      "sha256": "ef0a408a091e109e945175d762f6d7a0eac59fb6c0c2abc82521438ad2a1455d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/popup-runtime-held.json",
+      "bytes": 41151,
+      "sha256": "f6db89eee3b4d7ccfb6d26ba2d38e4bad050aa8a48b2f38524dc037500ece470",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recent-all-apps.json",
+      "bytes": 14775,
+      "sha256": "5bacd8530016c210aa13543ba45e25ab418ed91f894c19c85de3e0f1837c3db9",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recent-default-apps.json",
+      "bytes": 14876,
+      "sha256": "87007f9f501eaa47638882d8bd5a43eac0be33ef875b5f6d48a2eff68f03353a",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recent-sims.json",
+      "bytes": 14743,
+      "sha256": "62553852187e13f87b1a211b3bdbd868816aa9d74600045e70bf874dd20c3b9d",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recorded-network-direct-diagnostic.json",
+      "bytes": 1566964,
+      "sha256": "d4474050a788fc8c0532254cfb9230dba3474d263456976efa9ae1087cb8da5f",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recorded-network-direct.json",
+      "bytes": 1566953,
+      "sha256": "aefdbdcd781d31ddf2de7393cf263bbe58d9045e0348c72c7f1e8c4a7250dac8",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recorded-network-recovered.json",
+      "bytes": 1567375,
+      "sha256": "47ed5350e82c36d78c27ebf9db14189964d7e80182f5e9b6bd77194d356a7ddf",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recorded-network-unchanged-diagnostic.json",
+      "bytes": 1595944,
+      "sha256": "02ca5b6fd54a4644bdba4d79219ea08b9fd9ce43a437f88adc3f868c9033b700",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recorded-network-unchanged-post.json",
+      "bytes": 1595938,
+      "sha256": "bb1a9ac743b9656d850fbc9c0032d47f5ff8b2b9034fe0a0c215e1a3e5b4aba9",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recorded-stay-awake-direct-diagnostic.json",
+      "bytes": 1378722,
+      "sha256": "39fc797b2d2b500c3978d6af35ff3b47e3f680933f63745c9736ac61548b5334",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recorded-stay-awake-direct.json",
+      "bytes": 1378711,
+      "sha256": "d351632330714744581a28d4fe26c1f4c72ffcdcb892da28ffcf1914da7f1a61",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recorded-stay-awake-recovered.json",
+      "bytes": 1379133,
+      "sha256": "05f0d1840c2344132d6ca3338c53027868d50a0c13286eb0772218e8e1cae525",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recorded-stay-awake-unchanged-diagnostic.json",
+      "bytes": 1380601,
+      "sha256": "7fd2a6561f7c2db22232a2fca084281ae7e0b06072870844289efae866beb918",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-actual/recorded-stay-awake-unchanged-post.json",
+      "bytes": 1379880,
+      "sha256": "51afbadb9177603baf944c3a011797b8112c4e787dd183e869abf1f427291241",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-audit-work-item.json",
+      "bytes": 1280,
+      "sha256": "fc2c54230dc9fd4112c1b8ee7ad39f36bf8df388131364a9d9c34c991dd442bc",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-candidate.json",
+      "bytes": 46834,
+      "sha256": "ad837bc3328055161e54888611d6b3a4b24bcd7af41ef028a7aee5b600920d72",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-check-exit.json",
+      "bytes": 42,
+      "sha256": "2f164a640f80d86b86ef4ec90bba3447fbc953ebf8ff0a081b5a4afd296a364a",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-content-scan.json",
+      "bytes": 337,
+      "sha256": "010cfb5b35314a84044dbd06d65e3aedc0aaa777c04b34e7b0d6281bb467adc7",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-entry.json",
+      "bytes": 162,
+      "sha256": "5fda3a652830d34ff750104ef1013602e8cc4716d2111c0fbce5bea0d30dfbd2",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-full.txt",
+      "bytes": 335864,
+      "sha256": "3389b242c4211fcea645b891b34fc57e3b6995eb904b5b8965e354d35ba8e94b",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-host-full.trx",
+      "bytes": 604675,
+      "sha256": "0c20a26288d4e431140ba4fde9ca849828c0e138dbb91760a27cc6fe2af6e031",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-local-result.json",
+      "bytes": 682,
+      "sha256": "05ba3f43fd96c8540be2afc25b7f3b8b77bd2a05242f6502956ae6b2456df825",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-required-assets.json",
+      "bytes": 6336,
+      "sha256": "b0e2c89160f9b0479d0620caf6d0f81ef722cd896b0564a4936b9bfd938e6ce6",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-restore.txt",
+      "bytes": 1864,
+      "sha256": "4d5d8ced695b317988f632456341bd0ca0b440d91c6daa6185ed549ab04ab773",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-scope-audit.md",
+      "bytes": 4119,
+      "sha256": "6972a97f0c116200fbd441f6d9e0a3af7466582fdf7057ffcb57c25543e0db84",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-simulation-full.trx",
+      "bytes": 469807,
+      "sha256": "67b3976a1ec696b42782f6d1bdd74b396d42b1638ac69f178ee9b3bbe1bfaa26",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication-tool-tests.txt",
+      "bytes": 200,
+      "sha256": "89d90496410ce256f41fbf4bb951159672826e2009c43aee45056b7479ee9f1a",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication.json",
+      "bytes": 2453,
+      "sha256": "ec021739a3efec516997a1633f971cfd870284d2f5c31db2ca9b53110402cd04",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/publication.md",
+      "bytes": 1732,
+      "sha256": "13c5bb17c548f27cb1b3cfa982fde3970af21bfd7aa2023c6a2e179e2a08274c",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/red-restore.txt",
+      "bytes": 1758,
+      "sha256": "3b46355901de37362bb74205b64de1bfc22a954c20d6426bb84c3839a8fdc08a",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/red-snapshot.json",
+      "bytes": 307692,
+      "sha256": "8b66813b330838fa277f2be3b7d30c5d16417f199dbbc482d1cc79a08509c696",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/report.md",
+      "bytes": 5659,
+      "sha256": "a78f101778b9805b8ef7cd317cc0668b670fcd1e4f8ae2a131d809aec2a1335e",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/review-disposition.json",
+      "bytes": 1952,
+      "sha256": "3e65869d343900946ee6c8c93f9a4c97fb35786690ab47a37b245fad7bdd49de",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/review-final-delta.md",
+      "bytes": 1410,
+      "sha256": "c85a9e215e8a80445bd0f761f661fc036c9183211a9229adfb60c61a8cdf39d4",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/review-host-truth-work-item.json",
+      "bytes": 1571,
+      "sha256": "33b7b514f76590a763b6e1d75d4ae570eb07f945a85b6cb295a6fc48579d52d1",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/review-host-truth.md",
+      "bytes": 2979,
+      "sha256": "d7f988537bb4b07a45d1fcebe3cc91328e7c3cfeab6036b9226494acdf9680da",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/review-spec-work-item.json",
+      "bytes": 1844,
+      "sha256": "848460fdb70f0c3c8996078e9658192418764a3ea8451c92cc097df1ab7ba206",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/review-spec.md",
+      "bytes": 3204,
+      "sha256": "0936becb54e256f05f00568a034a6373ac83190aed637870ae25276e4158e2c9",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/review-standards-work-item.json",
+      "bytes": 2022,
+      "sha256": "38a85361bc036d32646d8fc5d00df4ef54fd41f323d186bd8963d60634b426bd",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/review-standards.md",
+      "bytes": 4518,
+      "sha256": "3174687457ea153995dfa7190c8eb0caac893e5941bccd994a2c846e37f3c229",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/run-full.py",
+      "bytes": 1105,
+      "sha256": "80916a581c927db8cef9d94e0bd90963f7d737364c35a56a958b807be37d4415",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/runtime-artifact-check.json",
+      "bytes": 1164,
+      "sha256": "f484cdb8266e2ca70692df83e48341fa7b33f4ff7c132758ccccf7f6d299eedd",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/scenario-schema.txt",
+      "bytes": 101,
+      "sha256": "58976e1ebef02b28fad1bcf93e82831c9ac8cc4bf93fac3ea64e4eed88432c50",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/simulation-full.trx",
+      "bytes": 464783,
+      "sha256": "4766c75f585a67bfad9f66c57b6009f958ca2dbdb2d8ae31890613eba1446ed2",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/source-provenance.json",
+      "bytes": 3146,
+      "sha256": "fe600a44be09a6b8e15d5b95eb00c7ca95528ff9f94c67105a68cc7f130a7fa1",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/swapped-recording-file.trx",
+      "bytes": 7846,
+      "sha256": "0e8e7601e7d2be1e31d9965eadc320371e8ba7987f8ce5a03b0fbea76bd1c10e",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/swapped-recording-file.txt",
+      "bytes": 2632,
+      "sha256": "e1907673537c1885dd0783c6b77d34103166206bb8c53f282f853db238512d0f",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/tool-tests.txt",
+      "bytes": 200,
+      "sha256": "9d5f6425ee57865a5fa9656cc856b27e61b3ff8a9119ddb0af4d471ec30d2149",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/verification.json",
+      "bytes": 4460,
+      "sha256": "ebb86c44295c2be8fe48ba722d9311b6f9e1078cb262764b50c0946f6e7993b5",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/wrong-popup-oracle.trx",
+      "bytes": 6387,
+      "sha256": "cc59f252f6ab1055a7021f8baa680ab933ff40140281918e98ae7c9e1916f61c",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/wrong-popup-oracle.txt",
+      "bytes": 3981,
+      "sha256": "09846b0fdfd639788f8b26970d655808733abb5f86dbd49c8aee26b9468535bb",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/wrong-recording-correlation.trx",
+      "bytes": 7862,
+      "sha256": "f4eff04fb3bd000774dbc36be9b0ab1e60d5d303b4eb7b49cfc3be6f9088b440",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "evidence/sim-016/wrong-recording-correlation.txt",
+      "bytes": 2650,
+      "sha256": "df8d8a24a750175a4b133b614b566224a9bef011c3165d650c50aca9a670f566",
+      "role": "old-popup-replay-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/cases/claim-order/diagnosis.packet.json",
+      "bytes": 4068,
+      "sha256": "5541d570dcad6a568600baa00085a1ff8a07c2c13608f4bff5a414811e3509e6",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/cases/memory-attribution/diagnosis.packet.json",
+      "bytes": 5519,
+      "sha256": "ea13b449dae9ba3d6fa6522a185f73e5f20f1930c787e567eea28a4312037052",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/cases/partial-window-axis/diagnosis.packet.json",
+      "bytes": 4582,
+      "sha256": "24a80e906e22a30a63db5e7b926547ca4adfdf2d2a68c91aab99453fd1f1e4b4",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/cases/readme-ownership/diagnosis.packet.json",
+      "bytes": 4681,
+      "sha256": "14b455cea5a9297824d3f9062cfdd4e6311fe3533404f953faa466865c069f06",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/cases/replay-pins/diagnosis.packet.json",
+      "bytes": 4336,
+      "sha256": "4363df81d1d9a8deeee2fef32e192c1a085e7def5d09420912028c68bc6d9cd4",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/cases/trace-emission/diagnosis.packet.json",
+      "bytes": 6428,
+      "sha256": "06684481453d85f1d2659f7d968aec5cf335e5babec90c519db72047c03c8251",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/cases/world-replay-owner/diagnosis.packet.json",
+      "bytes": 5598,
+      "sha256": "715d277bfa5dd42064a78ef5ab3d87251a9acfc3a38528b0b425d9fbb923dfe7",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/cleanup.json",
+      "bytes": 3945,
+      "sha256": "7c74f13dd7809b92a7e25749e7c9255bb238e381c2cf333f5282b8aeb039c0fb",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/controlled-source/tests/UniClaw.Host.Dsh.Tests/OverlayDismissalSimulationTests.cs",
+      "bytes": 13066,
+      "sha256": "6ed661dfbb246676011d251fc914b951882ac961caea5cd7253bd7c4e2232633",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/controlled-source/tests/UniClaw.Host.Tests/WorldOperationReplayTests.cs",
+      "bytes": 23820,
+      "sha256": "02b97a3bab50541b59e82e33cac68b61b311bf981e4f7c9878c776d2d5008913",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/controlled-source/trace-issued-link.cs",
+      "bytes": 25045,
+      "sha256": "76a626005e3fa086f81a92ca2b181bd734f88e57423e1598cdaaa40af2ca4a72",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/controlled-source/xunit.runner.serial.json",
+      "bytes": 62,
+      "sha256": "65c3f3dbd2a89a3e0928c401726196b405f90e8ec35d6e533f08727cc9c2ab14",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/diagnosis-index.json",
+      "bytes": 4295,
+      "sha256": "6205786ad0108ea34c4c87e59f6b2c92e526a51df7b80ba8471d83a67ed5e34f",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/entry/frozen-source.json",
+      "bytes": 223,
+      "sha256": "d68e8775de92909461a24cde3da05670fe82e41ac13179bda515f68dfe681b8d",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/entry/head.txt",
+      "bytes": 41,
+      "sha256": "05c29e09d7a62471f4016344789222fc7020b5aaac4c83cd2e44a0096f0e1a58",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/entry/input-sha256.json",
+      "bytes": 1296,
+      "sha256": "3c1b9360b48149be1b267984425fa32100e75bd2d14b203faa52730acd79cb92",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/entry/probe-source.json",
+      "bytes": 299,
+      "sha256": "258bda5be31629bd30f668b0a80340f4f4ea2615122ab70b6fa311978ed95a7f",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/entry/status.txt",
+      "bytes": 99528,
+      "sha256": "c39e3a01099dce539cd48e782aa4428a91d7bb6b512441b6d5e8b18198775a1b",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/failure-inventory.json",
+      "bytes": 22928,
+      "sha256": "655055bf6e841f947bca4a612f43d842c0408d041e4bf833a3c8455294ae5007",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/generate-packets.py",
+      "bytes": 13279,
+      "sha256": "ca51637ca17553a72c7eaba01501ae453c008a376d5cff95a6f689480f62b7a7",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/instrumented-source/tests/UniClaw.Host.Tests/FileWorldJournalStreamingTests.cs",
+      "bytes": 3001,
+      "sha256": "de9e904d91d34476daae91d788866c2a89e4b9df7767b8a2fc732a2ef74cac80",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/instrumented-source/tests/UniClaw.Host.Tests/WorldOperationReplayTests.cs",
+      "bytes": 23799,
+      "sha256": "a053f063cefac56fb310f73030fd8cecd3e0c88e589f26b434353ff8b13ef3cf",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/instrumented-source/tests/UniClaw.Kernel.Tests/ClaimEvolutionTests.cs",
+      "bytes": 13202,
+      "sha256": "5855c85189e5597ed3025c50d4bc5828785c19e84df7a9a5a0b771d336f8b6de",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/instrumented-source/tests/UniClaw.Kernel.Tests/RunTraceBulletTests.cs",
+      "bytes": 24428,
+      "sha256": "ab4a26076dbb6918bd822bf21adee01ab311081a9f17f796da3d643679f1034e",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/instrumented-source-sha256.json",
+      "bytes": 508,
+      "sha256": "c9c757c2f8faddd922fe8cad49a79a22a9c6e90b4bc922f0801e9967c1e09e5b",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/pins-analysis.json",
+      "bytes": 21020,
+      "sha256": "705aa1c970109634c6ee6953d53d813a199d07bde8da52ed243cc931298d089f",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probe-memory-default.log",
+      "bytes": 2738,
+      "sha256": "efc1efe80d13f964d971e0068ddbf812727bafc2a977137522e0c15539cc0271",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probe-memory-serial.log",
+      "bytes": 2593,
+      "sha256": "c0fba4cb0ea714926af8ee2e60d474524b57d512f5a5db0a2dd38ebc55e514fe",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probe-partial-windows-restored.log",
+      "bytes": 13621,
+      "sha256": "dc022ef681572c63392d98ae89f5f48256aa1757015243a4aa3803e54a1e5e7f",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probe-partial-windows.log",
+      "bytes": 513,
+      "sha256": "1af5862faac852f84387c52cc7c376e58c7f38a9972b721f355a68adf3374ce1",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probe-trace-linked-dump.log",
+      "bytes": 80822,
+      "sha256": "ad6b7d9853112e78c79c88f883f855e3032ebfbbffbabe94f503dc45b277c127",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probe-trace-linked.log",
+      "bytes": 80816,
+      "sha256": "7c2069d30b4782f26d111adc4dc3d7608643705a6f237a37188b9a4a5bbefe2f",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/host/host-instrumented.trx",
+      "bytes": 8590,
+      "sha256": "a18b8b7c792d24ef92ce4bbc0a65dbdc130a4647b098ceb1cf29d061ae34c3bc",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/kernel/kernel-instrumented.trx",
+      "bytes": 10061,
+      "sha256": "2e0e7db0b1429b9eea48d05bf3202cfb184689b010450ec97d0869a11a547f67",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/memory-comparison.json",
+      "bytes": 523,
+      "sha256": "99ca3b3c7369755a136940880f933a3feb4b4d40e935e63af43ced2563929823",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/memory-default/host-default.trx",
+      "bytes": 1535731,
+      "sha256": "30a58dbae53b2c6414a3bb118eb4df890167281e7a3a9501672e3f13ece725be",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/memory-serial/host-serial.trx",
+      "bytes": 1542726,
+      "sha256": "2b9f6cb121662a428bae7b9b82b03f474fe6f58abcfb1999c267822b5b8edc2b",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/partial-windows/partial-windows.trx",
+      "bytes": 3208,
+      "sha256": "8b8e3ed3e7751deba6e7959b69c384950640ec94e2ea4f079b3beba87bc74633",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/replay-differences.json",
+      "bytes": 618,
+      "sha256": "c3dec38b717b16e431249d244a368a4f0387da96e81d3232d706937dcf704ba5",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/replay-first.json",
+      "bytes": 297131,
+      "sha256": "c3b653a42063d93406d80f2040bf352760897bd54e90ae8723738bea3445e403",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/replay-second.json",
+      "bytes": 297131,
+      "sha256": "91c407a51993f3e9d7c53ae8fbceb3f18ae1bac69d3f0007d7224173bfd39da3",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/trace-evaluation.json",
+      "bytes": 6716,
+      "sha256": "77fb9718e6e736ac33494669812145f35a47297ebb6d370e47f5496149cbd46a",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/trace-linked/trace-differences.json",
+      "bytes": 869,
+      "sha256": "7ba3d6ce5d84bb50c81f87b28297f2d87a0da4e2e49feb383b5bc9364e32a5bd",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/trace-linked/trace-evaluation.json",
+      "bytes": 11722,
+      "sha256": "ae96f4b80ab876d1eb1bad5637352edfd550bff5711dd222abc0a63d9c6dc219",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/trace-linked/trace-first.json",
+      "bytes": 2851,
+      "sha256": "e9dbb65ecaa7a4e745f1a1c3e3ab980e484b952424e98ccd847be711f4347b5f",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/trace-linked/trace-issued-link-dump.trx",
+      "bytes": 5224,
+      "sha256": "ca20e6baeed9fee1a3f94248f56e2d41ef3d9fbe4862a3c3cc99d5f4bcacf236",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/trace-linked/trace-issued-link.trx",
+      "bytes": 5224,
+      "sha256": "62accf169a3fffe07689210b0042f5fa951ad2eb43cfe0efa27f976daed9ee94",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes/trace-linked/trace-second.json",
+      "bytes": 2851,
+      "sha256": "2eb0d25e7ec3b213a8e353843191b17985b20d07b22b6842cc7712c78bc8c9f5",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes-host-corrected.log",
+      "bytes": 8433,
+      "sha256": "970c74821edd73e225d4494f2c1c8ef44198a023f81c755875ba78ffd2c40759",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes-host.log",
+      "bytes": 16597,
+      "sha256": "3a0d9d85e5f74ad6ed3b6050e4c39a2b65a3783072ee4215091dabfd1135cfac",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/probes-kernel.log",
+      "bytes": 80941,
+      "sha256": "9e95e8961edf58e7abba429516e84e5903e9889af1dc3bd45c0ef277bf2851fd",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/reproduce/host/host-reproduce.trx",
+      "bytes": 22180,
+      "sha256": "d6a1f8471cc05db6818a96af5ef9b5def0796fc291a1518e3902bb361453952c",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/reproduce/kernel/kernel-reproduce.trx",
+      "bytes": 13097,
+      "sha256": "9dfde9fdd1dede2c4ee70d12d017e673ef47b1551d89ed1dff7bcdb0b8d6427f",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/reproduce/memory-isolated/memory-isolated.trx",
+      "bytes": 3076,
+      "sha256": "5933ef305bd6ff25fdb5265c723360685a96495bac1b95f210d8e8ba9d1b7ebf",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/reproduce/partial/partial-reproduce.trx",
+      "bytes": 5142,
+      "sha256": "7f72db74259c1e293915e39091c4e3c0f0014f6d1c0ee5591e9532d9c61eb1df",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/reproduce-host.log",
+      "bytes": 1375,
+      "sha256": "1ed1659a399a8ea45b3ee0dd8ca75a10288b0823066f088e968c8c1941364692",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/reproduce-kernel.log",
+      "bytes": 910,
+      "sha256": "4aa7ecd16e838f8b01280750bd4d36b3507e01451d0bf850045384a5520a6a5d",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/reproduce-memory-isolated.log",
+      "bytes": 530,
+      "sha256": "8201cbe7b21f2722bc8019bac1bd411cffec3d5fe64fb8d27033f4544046e98f",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/reproduce-partial.log",
+      "bytes": 714,
+      "sha256": "361b1d32e5af1b8a8ee8fd71bf347f553254a0d66286204a7143e6fe7c5103be",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/changes/SIM-024/evidence/resume/current-replay/composition.json",
+      "bytes": 38710,
+      "sha256": "87bc4c7916c393b778f88a71792d3a6c412d8a009e4cfcbced1b738794608bdc",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/src/UniClaw.Host/README.md",
+      "bytes": 26309,
+      "sha256": "a267ed13c9682de365a7cb03bfddcbbdedbd24eb08fc439cd1243037560048ab",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/src/UniClaw.Host/Runtime/FileWorldJournal.cs",
+      "bytes": 12227,
+      "sha256": "26c3a8fd36c7b5e4fcbd9c19da12f4914c730ace9d297d056b7b3593700d490a",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/src/UniClaw.Kernel/Assurance/README.md",
+      "bytes": 1626,
+      "sha256": "6f42fd1ea949d746aa22fcfba7ba2263362d50e28af95d6cc5ae296b8641a88e",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/src/UniClaw.Kernel/Assurance/RuntimeAssurance.OverlayDismissal.cs",
+      "bytes": 4300,
+      "sha256": "db5f1810756c619399b7470eea4d24a4c8e41b27a4f79b19e226048f26c09f65",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/src/UniClaw.Kernel/Assurance/RuntimeAssurance.cs",
+      "bytes": 16296,
+      "sha256": "102d8828987dbafd560838e6e2a9678d0ac836e11f77a70f58e2c9afe1fffd9c",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/src/UniClaw.Kernel/Effects/EffectBoundary.cs",
+      "bytes": 19361,
+      "sha256": "dc1bd33f400aef9425ed68b5e72885f2db3431f24f22f79ec78f2df384dc6718",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/src/UniClaw.Kernel/Evidence/AttemptObservationLink.cs",
+      "bytes": 1143,
+      "sha256": "42a7ca915f815b3ca2709f38b687044e5d25944b596eeacff48deaf96f8bf2d9",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/src/UniClaw.Kernel/Evidence/EvidenceLedger.cs",
+      "bytes": 12604,
+      "sha256": "c05b639f39ffe3591b2fa95032112a8da7af510ce406f987044a50056699be0d",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/src/UniClaw.Kernel/README.md",
+      "bytes": 2885,
+      "sha256": "3320c9e70ee81bc314ecb22000ca8b3fd83b65cd87250baa579bf45cc75c00a7",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/src/UniClaw.Kernel/Runtime/README.md",
+      "bytes": 17873,
+      "sha256": "3b48c9a7c0fb99d7db899597aca8022046c528b1ccb760253323136d3e36d74d",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/src/UniClaw.Kernel/UniKernel.cs",
+      "bytes": 55453,
+      "sha256": "30912eb4a2b4ceedd15670491346fec394b8e486452175546c4c807ff26a8064",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/tests/UniClaw.Host.Dsh.Tests/OverlayDismissalSimulationTests.cs",
+      "bytes": 12822,
+      "sha256": "dc2d725a2bd365debe62d106dc49d0f7083e2ec1fe9561f77ea77a8e9d237b1c",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/tests/UniClaw.Host.Tests/FileWorldJournalStreamingTests.cs",
+      "bytes": 2574,
+      "sha256": "2b84f9a8c5427eb6764363599784599bf4fb686866f19ec3e83156caef2bab21",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/tests/UniClaw.Host.Tests/Fixtures/PopupReplay/composition.json",
+      "bytes": 38032,
+      "sha256": "47cb6bc1a61635a97915b2c904c50e85b7aa872b9adaae24ebe811a6d7fc84b9",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/tests/UniClaw.Host.Tests/WorldOperationReplayTests.cs",
+      "bytes": 23471,
+      "sha256": "2697d281cc46476d4e6b3726bc9f0d97c8feb5d40c3076a6bb0f008c91ff0320",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/tests/UniClaw.Kernel.Tests/ClaimEvolutionTests.cs",
+      "bytes": 12786,
+      "sha256": "ba31db4f99dd2adeeb2091679f0c5e5cde40c047e5127a1ac1a73ddf27fe3ba8",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/tests/UniClaw.Kernel.Tests/RunTraceBulletTests.cs",
+      "bytes": 24060,
+      "sha256": "1b27901b41b6f9fd638dc6e76b63bf982169ecf109129c32ede24584c0dffbd0",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/source-snapshot/tests/UniClaw.Kernel.Tests/SourceReadmeOwnershipTests.cs",
+      "bytes": 5899,
+      "sha256": "310f1f2ee3aa07c1bcfd4ab1ef553d3ab0b44ea3aad31357fe2b21d03fb66f1a",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/verification.json",
+      "bytes": 308,
+      "sha256": "5e4da9cc3427b9dd0d2206d300b82b2a1ed6cfd0f6488ff6be3b8b5d198c2e26",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/verify.py",
+      "bytes": 5511,
+      "sha256": "03320b4fbc2d6549f239d15d6a07dd70a54b634207b283d231f4c1508c908185",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/REGRESSION-DIAG-001/evidence/world-consistency.log",
+      "bytes": 572109,
+      "sha256": "8541c24f039c179d8f3584a8ca8cdb04ec3f4e53f758bb115fe88a510b696d78",
+      "role": "diagnostic-process-output"
+    },
+    {
+      "path": "changes/SIM-024/evidence/resume/current-replay/composition.json",
+      "bytes": 38710,
+      "sha256": "87bc4c7916c393b778f88a71792d3a6c412d8a009e4cfcbced1b738794608bdc",
+      "role": "candidate-replay-composition"
+    },
+    {
+      "path": "changes/SIM-024/evidence/resume/current-replay/provenance.json",
+      "bytes": 595,
+      "sha256": "de1f1b3b40e2c370d8cbc137d0e3bd0882e7a3f40396ebb9a519e994e780b721",
+      "role": "candidate-replay-composition"
+    },
+    {
+      "path": "changes/SIM-024/evidence/resume/current-replay.trx",
+      "bytes": 10556,
+      "sha256": "0564831fd08ff1ded698c9ce54e8b7a5992b816084a2e0b5b9a1164b849b9a58",
+      "role": "candidate-replay-result"
+    },
+    {
+      "path": "changes/SIM-024/evidence/resume/current-replay.txt",
+      "bytes": 4609,
+      "sha256": "f3ffcfa6ddc108077f58c4d15a26814b294e6d4208388797d66e8e857c6fcd72",
+      "role": "candidate-replay-log"
+    },
+    {
+      "path": "changes/SIM-024/evidence/resume/host-current-qualified.trx",
+      "bytes": 661249,
+      "sha256": "83e6f1997f4c9ac755e8478184474b67848372538d8743dc29e2824c3539dc17",
+      "role": "candidate-qualified-suite-result"
+    },
+    {
+      "path": "changes/SIM-024/evidence/resume/host-current-qualified.txt",
+      "bytes": 455,
+      "sha256": "c1b061726e96d31a00aab3b9d711dcd4026f250f3a0f957453d2750af71b5ef7",
+      "role": "candidate-qualified-suite-log"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/CurrentCandidatePopupComposition.cs",
+      "bytes": 398,
+      "sha256": "1efec4024b9e1ddbf775ec3326f700b1e13c96507b5a0a3bd8d45c9e2062175e",
+      "role": "obsolete-candidate-carrier"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/CurrentCandidateRecordedPopupReplayTests.cs",
+      "bytes": 3095,
+      "sha256": "8a67393a3e9c7aab635d457d270eae2ae0bd20456cf2f9637f007ece76dfc1a9",
+      "role": "obsolete-candidate-carrier"
+    },
+    {
+      "path": "tests/UniClaw.Host.Tests/CurrentCandidateRecordedPopupRuntimeReplayTests.cs",
+      "bytes": 9763,
+      "sha256": "15a1a16ccfeb26f449a852db76be1d7da37287781aa264ede59704284b2d0434",
+      "role": "obsolete-candidate-carrier"
+    }
+  ],
+  "fileCount": 305,
+  "bytes": 47691874
+}
